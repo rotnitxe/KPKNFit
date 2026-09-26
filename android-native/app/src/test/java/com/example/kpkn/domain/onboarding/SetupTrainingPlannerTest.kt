@@ -20,26 +20,32 @@ class SetupTrainingPlannerTest {
     ) = SetupTrainingPlannerInput(reference, frequency, equipment, level, focus, protocolOnly, mixedTraining)
 
     @Test
-    fun fixedRecipesRequireTheirDeclaredEquipment() {
-        val withoutGym = SetupTrainingPlanner.candidates(
-            input(reference = null, frequency = 3, equipment = setOf("bodyweight")),
+    fun fixedRecipesAreNotHiddenBehindCoarseGeneralGym() {
+        // `general_gym` es metadata gruesa de la receta fija: no autoriza nada
+        // por sí sola ni bloquea con inventario finito. El planner ya NO oculta
+        // plantillas/protocolos por esa clave: el material real se verifica en
+        // la materialización con `missingFixedRecipeEquipment` (antes del preview).
+        val finiteMaterial = SetupTrainingPlanner.candidates(
+            input(reference = null, frequency = 3, equipment = setOf("barbell", "bodyweight")),
         )
-        assertTrue(withoutGym.none { it.source == CatalogSource.PROTOCOL })
-        assertTrue(withoutGym.none { it.source == CatalogSource.TEMPLATE })
+        assertTrue(finiteMaterial.any { it.source == CatalogSource.PROTOCOL || it.source == CatalogSource.TEMPLATE })
 
-        val withGym = SetupTrainingPlanner.candidates(
+        val legacyGym = SetupTrainingPlanner.candidates(
             input(reference = null, frequency = 3, equipment = setOf("general_gym", "bodyweight")),
         )
-        assertTrue(withGym.any { it.source == CatalogSource.PROTOCOL || it.source == CatalogSource.TEMPLATE })
+        assertTrue(legacyGym.any { it.source == CatalogSource.PROTOCOL || it.source == CatalogSource.TEMPLATE })
     }
 
     @Test
-    fun machineOnlyUsersStillSeeNativeFamily() {
+    fun machineOnlyUsersStillSeeNativeFamilyAndFixedRecipesReachTheGuard() {
         val candidates = SetupTrainingPlanner.candidates(
             input(reference = null, frequency = 3, equipment = setOf("machine")),
         )
         assertTrue(candidates.any { it.source == CatalogSource.NATIVE })
-        assertTrue(candidates.none { it.source == CatalogSource.PROTOCOL })
+        // Las recetas fijas tampoco se ocultan aquí: su material se comprueba en
+        // la guardia de materialización (una máquina genérica no atestigua toda
+        // la maquinaria ni se afirma compatible en el planner).
+        assertTrue(candidates.any { it.source == CatalogSource.PROTOCOL || it.source == CatalogSource.TEMPLATE })
     }
 
     @Test
@@ -71,11 +77,17 @@ class SetupTrainingPlannerTest {
     }
 
     @Test
-    fun incompatibleCombinationIsEmptyInsteadOfSubstitutingAnotherDiscipline() {
+    fun disciplineMismatchNeverSubstitutesAnotherDisciplineAndMaterialIsCheckedAtGuard() {
         val homeStrength = SetupTrainingPlanner.candidates(
             input(reference = TrainingReference.POWERLIFTING, frequency = 3, equipment = setOf("bodyweight", "band")),
         )
-        assertTrue(homeStrength.isEmpty())
+        // La disciplina nunca se sustituye: solo powerlifting real (el nativo es
+        // de hipertrofia y queda fuera). El material NO se decide en el planner
+        // (metadata gruesa `general_gym`): lo decide la guardia de materialización
+        // `missingFixedRecipeEquipment`, que con {bodyweight, band} rechaza una
+        // receta que exige barra/cable/máquina.
+        assertTrue(homeStrength.none { it.source == CatalogSource.NATIVE })
+        assertTrue(homeStrength.all { TrainingReference.POWERLIFTING in it.references })
     }
 
     @Test

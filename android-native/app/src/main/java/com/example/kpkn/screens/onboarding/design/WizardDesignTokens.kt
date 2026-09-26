@@ -50,41 +50,44 @@ object WizardFonts {
 }
 
 /**
- * Paleta observada en las referencias de `INSPO WIZARDS`: antracita sólido, texto
- * blanco, secundario gris, tarjeta seleccionada con borde blanco y CTA blanco.
+ * Paleta neutral derivada del muestreo de píxeles de las 48 referencias de
+ * `INSPO WIZARDS`: antracita sólido `#1F1F1F`, texto `#FBFBFB`, secundario gris,
+ * tarjeta con hairline y CTA blanco fijo. El cursor de la regla de peso es verde
+ * (mezcla medida `#356D4E`–`#467E5F`, verdadero ≈ `#3FBF6F`).
  *
- * Son valores de partida, no medidas extraídas de los JPG. Se calibran midiendo
- * Compose en dispositivo dentro de la puerta de aprobación visual.
+ * El muestreo fue programático (píxeles y OCR), no inspección visual: estos
+ * valores son el punto de partida y se calibran midiendo Compose en dispositivo
+ * dentro de la puerta de aprobación visual.
  */
 object WizardColors {
-    /** Fondo antracita sólido (negro cálido). Sin degradados. */
-    val background = Color(0xFF0F1216)
-    val text = Color(0xFFF4F6F8)
-    val textMuted = Color(0xFFAEB7C4)
-    val textFaint = Color(0xFF7B8593)
+    /** Fondo antracita sólido, neutro (sin azul y sin degradados). */
+    val background = Color(0xFF1F1F1F)
+    val text = Color(0xFFFBFBFB)
+    val textMuted = Color(0xFFD5D5D5)
+    val textFaint = Color(0xFF8C8C8C)
 
-    val cardFill = Color(0xFF12161B)
-    val cardBorder = Color(0xFF2E3540)
+    val cardFill = Color(0xFF262626)
+    val cardBorder = Color(0xFF3E3E3E)
     val selectedBorder = Color(0xFFFFFFFF)
     val selectedBorderWidth = 2.dp
     val unselectedBorderWidth = 1.dp
 
     /** Radio derecho de la tarjeta seleccionada: relleno blanco con punto oscuro. */
     val markFill = Color(0xFFFFFFFF)
-    val markDot = Color(0xFF0F1216)
-    val markBorder = Color(0xFF5A6472)
+    val markDot = Color(0xFF1F1F1F)
+    val markBorder = Color(0xFF6E6E6E)
 
     val cta = Color(0xFFFFFFFF)
-    val ctaContent = Color(0xFF0B0E12)
-    val ctaDisabled = Color(0xFF232830)
-    val ctaDisabledContent = Color(0xFF6B7480)
+    val ctaContent = Color(0xFF0D0D0D)
+    val ctaDisabled = Color(0xFF2E2E2E)
+    val ctaDisabledContent = Color(0xFF7A7A7A)
 
-    val progressTrack = Color(0xFF252B33)
-    val progressFill = Color(0xFFF4F6F8)
+    val progressTrack = Color(0xFF2E2E2E)
+    val progressFill = Color(0xFFFBFBFB)
 
     /** Cursor de la regla de peso: verde, con la zona derecha sombreada. */
-    val ruleCursor = Color(0xFF6EDB9A)
-    val ruleTint = Color(0x336EDB9A)
+    val ruleCursor = Color(0xFF3FBF6F)
+    val ruleTint = Color(0x1F3FBF6F)
 
     val danger = Color(0xFFFF9B92)
     val info = Color(0xFF74B5FF)
@@ -92,8 +95,12 @@ object WizardColors {
 
 object WizardShapes {
     val card = RoundedCornerShape(18.dp)
-    val cta = RoundedCornerShape(19.dp)
-    val pill = RoundedCornerShape(15.dp)
+    /**
+     * CTA y píldoras: esquinas cortas (≈8–10 dp) como las referencias
+     * `Workouts/p1·p3·p5`, no cápsula completa.
+     */
+    val cta = RoundedCornerShape(9.dp)
+    val pill = RoundedCornerShape(8.dp)
     val panel = RoundedCornerShape(20.dp)
 }
 
@@ -105,6 +112,8 @@ object WizardSpacing {
     val gutter = 24.dp
     val gutterCompact = 20.dp
     val ctaHeight = 56.dp
+    /** Height calibrated to the reference CTA in the full-screen setup wizard. */
+    val wizardCtaHeight = 70.dp
     val touchTarget = 48.dp
     val cardGap = 12.dp
     val sectionGap = 20.dp
@@ -168,6 +177,33 @@ object WizardTypography {
         lineHeight = 20.sp,
     )
 
+    /** Top-bar heading scaled to the reference at equal screen width. */
+    val wizardTopBar = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 21.sp,
+        lineHeight = 26.sp,
+    )
+
+    /**
+     * Héroe de la pantalla de hitos ("GET STARTED" en las referencias), título
+     * grande en display bold y subtítulo en cuerpo.
+     */
+    val heroTitle = TextStyle(
+        fontFamily = WizardFonts.display,
+        fontWeight = FontWeight.Bold,
+        fontSize = 38.sp,
+        lineHeight = 44.sp,
+        letterSpacing = (-0.6).sp,
+    )
+
+    val heroSubtitle = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 23.sp,
+    )
+
     val cta = TextStyle(
         fontFamily = WizardFonts.body,
         fontWeight = FontWeight.SemiBold,
@@ -175,25 +211,45 @@ object WizardTypography {
         lineHeight = 20.sp,
     )
 
-    /** Valor grande de peso. */
+    /** CTA label used by wizard steps (the welcome CTA keeps [cta]). */
+    val wizardCta = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 21.sp,
+        lineHeight = 26.sp,
+    )
+
+    /** Measurement-unit labels sized to the p3/p5 control proportions. */
+    val measureUnit = TextStyle(
+        fontFamily = WizardFonts.body,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp,
+        lineHeight = 24.sp,
+    )
+
+    /**
+     * Valor grande de peso calibrado a la altura de glifo del valor central en
+     * `Workouts/p5.jpg`, comparando referencia y captura actual a igual ancho.
+     */
     val measure = TextStyle(
         fontFamily = WizardFonts.display,
         fontWeight = FontWeight.Bold,
-        fontSize = 34.sp,
-        lineHeight = 38.sp,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
         letterSpacing = (-0.5).sp,
     )
 
+    /** Valor central de la rueda: grande pero contenido, como la referencia. */
     val wheelValue = TextStyle(
         fontFamily = WizardFonts.display,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 38.sp,
+        fontSize = 26.sp,
+        lineHeight = 32.sp,
     )
 
     val wheelValueNeighbour = TextStyle(
         fontFamily = WizardFonts.display,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 21.sp,
         lineHeight = 27.sp,
     )

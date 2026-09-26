@@ -83,7 +83,10 @@ class SetupWizardStateTest {
 
         assertEquals(
             setOf(SetupPreviewKind.EER, SetupPreviewKind.MACROS,
-                SetupPreviewKind.EXPENDITURE, SetupPreviewKind.NUTRITION_REFERENCES),
+                SetupPreviewKind.EXPENDITURE, SetupPreviewKind.NUTRITION_REFERENCES,
+                // El peso alimenta también el reparto semanal previsto: es una
+                // dependencia correcta de la huella de peso, no una correlación.
+                SetupPreviewKind.NUTRITION_DISTRIBUTION),
             changed.stepProgress.stalePreviews,
         )
         assertTrue(changed.stepProgress.pendingReview.isEmpty())
@@ -122,7 +125,12 @@ class SetupWizardStateTest {
             setOf(SetupPreviewKind.MARKS, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE),
             changed.stepProgress.stalePreviews,
         )
-        assertEquals(setOf(SetupStepId.TRAINING_MARKS, SetupStepId.PLAN), changed.stepProgress.pendingReview)
+        // El cambio de protocolo revalida marcas, split y receta, y deja la
+        // pregunta "¿conoces tus marcas?" también para revisión.
+        assertEquals(
+            setOf(SetupStepId.TRAINING_MAX, SetupStepId.TRAINING_MARKS, SetupStepId.PLAN),
+            changed.stepProgress.pendingReview,
+        )
     }
 
     @Test

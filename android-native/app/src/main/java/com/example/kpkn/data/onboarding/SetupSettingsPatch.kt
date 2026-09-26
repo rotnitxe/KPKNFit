@@ -2,6 +2,8 @@ package com.example.kpkn.data.onboarding
 
 import com.example.kpkn.data.models.InitialRecoveryEvidence
 import com.example.kpkn.data.models.NutritionTrackingChoice
+import com.example.kpkn.data.models.EquipmentAvailability
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.UserVitals
 import com.example.kpkn.data.models.Gender
@@ -47,6 +49,21 @@ data class SetupSettingsPatch(
     val nutritionTrackingChoice: SetupPatchField<NutritionTrackingChoice> = SetupPatchField.Unchanged,
     val initialRecoveryEvidence: SetupPatchField<InitialRecoveryEvidence?> = SetupPatchField.Unchanged,
     val volumeCalibrationProfile: SetupPatchField<VolumeCalibrationProfile?> = SetupPatchField.Unchanged,
+    /**
+     * Inventario principal del gimnasio confirmado en el alta. Set persiste el
+     * inventario declarado; Clear deriva de [Settings.barbellWeight] +
+     * [Settings.availablePlates]; Unchanged conserva el inventario actual.
+     */
+    val equipmentInventory: SetupPatchField<EquipmentInventory?> = SetupPatchField.Unchanged,
+    /**
+     * Modo durable de solo registro declarado por parche. La intención efectiva
+     * (request O parche) es excluyente con plan, activación, metas derivadas o
+     * snapshot en el mismo alta: una contradicción revierte el commit entero.
+     * Cuando el alcance no toca nutrición, el modo persiste intacto.
+     */
+    val nutritionTrackingOnly: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
+    /** Categories are patched independently of numeric equipment stock. */
+    val equipmentAvailability: SetupPatchField<EquipmentAvailability?> = SetupPatchField.Unchanged,
 ) {
     fun applyTo(base: Settings): Settings = base.copy(
         username = username.resolve(base.username),
@@ -64,6 +81,9 @@ data class SetupSettingsPatch(
         nutritionTrackingChoice = nutritionTrackingChoice.resolve(base.nutritionTrackingChoice),
         initialRecoveryEvidence = initialRecoveryEvidence.resolve(base.initialRecoveryEvidence),
         volumeCalibrationProfile = volumeCalibrationProfile.resolve(base.volumeCalibrationProfile),
+        equipmentInventory = equipmentInventory.resolve(base.equipmentInventory),
+        nutritionTrackingOnly = nutritionTrackingOnly.resolve(base.nutritionTrackingOnly),
+        equipmentAvailability = equipmentAvailability.resolve(base.equipmentAvailability),
     )
 
     private fun <T> SetupPatchField<T>.resolve(previous: T): T = when (this) {

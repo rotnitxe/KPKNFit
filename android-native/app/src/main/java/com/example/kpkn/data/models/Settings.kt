@@ -155,20 +155,30 @@ data class Settings(
      * JSON of [com.example.kpkn.domain.relator.RelatorLongTermMemory]; null = empty.
      */
     val relatorMemoryJson: String? = null,
+    /** Categorical equipment availability; numeric stock remains in [equipmentInventory]. */
+    val equipmentAvailability: EquipmentAvailability? = null,
 ) {
     /**
-     * Inventario efectivo: el explícito manda; si no existe se deriva del
-     * legacy [barbellWeight] + [availablePlates] con cantidades ilimitadas
-     * (compatibilidad con backups antiguos).
+     * Stock efectivo para alcanzar cargas: el inventario explícito manda,
+     * incluidas sus ausencias. Si no hay inventario pero sí disponibilidad
+     * categórica, el stock queda desconocido. Solo cuando ambos son null se
+     * deriva del legacy [barbellWeight] + [availablePlates] con cantidades
+     * ilimitadas (compatibilidad con backups antiguos).
      */
     fun resolvedEquipmentInventory(): EquipmentInventory {
         val configured = equipmentInventory
-            ?: return EquipmentInventory(
-                barbellWeightKg = barbellWeight,
-                plates = availablePlates.map { PlateStock(weightKg = it, countPerSide = null) },
+        if (configured != null) {
+            return configured.copy(
+                barbellWeightKg = configured.barbellWeightKg?.takeIf { it.isFinite() && it > 0.0 },
             )
-        return configured.copy(
-            barbellWeightKg = configured.barbellWeightKg?.takeIf { it > 0.0 } ?: barbellWeight,
+        }
+        if (equipmentAvailability != null) return EquipmentInventory()
+        return EquipmentInventory(
+            barbellWeightKg = barbellWeight.takeIf { it.isFinite() && it > 0.0 },
+            plates = availablePlates.mapNotNull { weightKg ->
+                weightKg.takeIf { it.isFinite() && it > 0.0 }
+                    ?.let { PlateStock(weightKg = it, countPerSide = null) }
+            },
         )
     }
 }
@@ -315,6 +325,11 @@ data class KettlebellStock(val weightKg: Double)
  * Rango de cargas de máquina: la carga real avanza en pasos de [incrementKg]
  * desde [baseLoadKg] (carro/pin/stack mínimo), dentro de
  * [minLoadKg]..[maxLoadKg]. Nunca asumir incrementos universales de 0,5 kg.
+ *
+ * [equipmentKind] es el tipo explícito declarado por el usuario (`machine`,
+ * `cable`, `smith_machine`); null = rango legacy sin tipo. El nombre NUNCA
+ * infiere el tipo y una máquina nueva no se declara sin tope superior en la
+ * UI (el null sólo sobrevive a lecturas antiguas).
  */
 @Serializable
 data class MachineLoadRange(
@@ -323,6 +338,15 @@ data class MachineLoadRange(
     val maxLoadKg: Double? = null,
     val incrementKg: Double = 2.5,
     val baseLoadKg: Double = 0.0,
+    val equipmentKind: String? = null,
+    /**
+     * Configuración real elegida del catálogo para una máquina genérica (id
+     * v2 de configuración, p. ej. `leg_press__machine`); null = sin
+     * configuración (rango legado o estación multi cable/Smith). El nombre de
+     * la fila jamás acredita la máquina y un null nunca libera «todas las
+     * máquinas»: sólo la configuración explícita empareja ejercicio y estación.
+     */
+    val configurationId: String? = null,
 ) {
     /**
      * Ajusta [targetKg] al paso más cercano real de la máquina (nunca inventa
@@ -370,6 +394,12 @@ data class DumbbellLoadResult(
 /**
  * Inventario principal del gimnasio (un solo inventario, kg canónicos).
  * Resoluciones honestas con cantidades reales; sin sustituciones silenciosas.
+ *
+ * [supportEquipment] guarda el material auxiliar declarado con ids canónicos
+ * del catálogo (`support`, `pull_up_bar`, `band`, `ball`, `cardio`). Default
+ * vacío: un JSON legado sin el campo queda vacío, nunca auto-relleno; rack y
+ * banco se acreditan como `support`, que es el identificador que valida el
+ * catálogo existente.
  */
 @Serializable
 data class EquipmentInventory(
@@ -378,6 +408,7 @@ data class EquipmentInventory(
     val dumbbells: List<DumbbellPairStock> = emptyList(),
     val kettlebells: List<KettlebellStock> = emptyList(),
     val machines: List<MachineLoadRange> = emptyList(),
+    val supportEquipment: Set<String> = emptySet(),
 ) {
     fun resolvedBarbellWeightKg(fallback: Double = 20.0): Double =
         barbellWeightKg?.takeIf { it > 0.0 } ?: fallback

@@ -1,7 +1,7 @@
 package com.example.kpkn.screens.onboarding
 
 import android.app.Application
-import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -16,16 +16,10 @@ import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
-import com.example.kpkn.data.repository.NutritionRepository
-import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
-import com.example.kpkn.domain.nutrition.EerActivity
-import com.example.kpkn.domain.nutrition.EerSex
-import com.example.kpkn.domain.nutrition.NutritionPlanPreparation
-import com.example.kpkn.domain.nutrition.NutritionPlanPreparationInput
+import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.kilogramsFromInput
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
-import com.example.kpkn.domain.nutrition.paceRateFor
 import com.example.kpkn.domain.onboarding.*
 import com.example.kpkn.domain.training.*
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
@@ -37,7 +31,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -49,9 +42,18 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /** Single serialized WIZCHAT orchestrator. Room owns the full draft; SavedStateHandle owns IDs only. */
-class SetupWizardViewModel(
+class SetupWizardViewModel @JvmOverloads constructor(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
+    private val persistence: SetupWizardPersistence = realSetupWizardPersistence(application),
+    private val environment: SetupWizardEnvironment = RealSetupWizardEnvironment(application.applicationContext),
+    private val commits: SetupWizardCommits? = null,
+    /**
+     * Puerto de materialización opcional: producción usa el motor real del VM
+     * ([SetupWizardViewModel.materializeProgram]); las tests inyectan el suyo
+     * para controlar orden y tiempo de los previews (carrera A→B→A).
+     */
+    private val materializeOverride: SetupWizardMaterializer? = null,
 ) : AndroidViewModel(application) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val commandMutex = Mutex()
@@ -64,10 +66,20 @@ class SetupWizardViewModel(
     private var candidateJob: kotlinx.coroutines.Job? = null
     private var exerciseSearchJob: kotlinx.coroutines.Job? = null
     @Volatile private var exerciseLookup: List<ExerciseMuscleInfo>? = null
+    @Volatile private var navigationInFlight = false
     private var ringsPreviewJob: kotlinx.coroutines.Job? = null
     private var lastRingsPreviewKey: List<Any?>? = null
+    /** Clock injected into the last rings preview so preview and stored check-in share one date. */
+    @Volatile private var ringsPreviewNow: Long? = null
     private var preparingTrainingKey: List<Any?>? = null
     private var lastSuccessfulTrainingKey: List<Any?>? = null
+    /**
+     * Generación del cálculo de preview. Cada lanzamiento (o liberación de
+     * caché) la incrementa y se hace DUEÑO de `isPreviewLoading` y
+     * `preparingTrainingKey`: sólo el job dueño publica o limpia, un job viejo
+     * cancelado o tardío no escribe nada y una cancelación nunca publica error.
+     */
+    @Volatile private var previewGeneration = 0L
 
     private val _state = MutableStateFlow(SetupWizardState(SetupWizardDraft(commitId = UUID.randomUUID().toString()), isLoading = true))
     val state: StateFlow<SetupWizardState> = _state.asStateFlow()
@@ -76,25 +88,31 @@ class SetupWizardViewModel(
         if (initialized && _state.value.mode == mode && (draftId == null || draftId == currentDraftId)) return
         initializeJob?.cancel()
         initialized = false
-        previewJob?.cancel()
+        // Invalida la generación del preview, cancela el job en vuelo y apaga
+        // su loading: un cancelado de aquí jamás deja `isPreviewLoading` eterno.
+        releasePreviewGeneration(cancelInFlight = true)
         candidateJob?.cancel()
         exerciseSearchJob?.cancel()
         ringsPreviewJob?.cancel()
         lastSuccessfulTrainingKey = null
         lastRingsPreviewKey = null
+        ringsPreviewNow = null
+        // La intención de volver a la revisión vive en el BORRADOR
+        // (`reviewReturnStep`): aquí NO se reinicia para que sobreviva a
+        // guardar/salir y a la recreación del ViewModel.
         _state.value = _state.value.copy(mode = mode, isLoading = true, machineState = WizChatMachineState.Loading,
             programPreview = null, planCandidates = emptyList(), availablePlanCandidates = emptyList(),
-            nutritionPlanPreview = null, ringsBatteriesPreview = null)
+            isPreviewLoading = false,
+            nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null,
+            errors = emptyMap(), lastFailure = null)
         initializeJob = viewModelScope.launch {
             try {
-                ProgramRepository.getInstance().isReady.first { it }
-                if (!catalogLoaded) { catalogRepository.load(); catalogLoaded = true }
-                val factory = persistenceFactory(getApplication<Application>())
+                environment.awaitReady()
                 val storedCandidate = savedStateHandle.get<String>(DRAFT_ID_KEY)?.takeIf(String::isNotBlank)
                 val storedId = storedCandidate?.takeIf { mode == SetupWizardMode.RESUME || it.startsWith(SetupDraftResolver.canonicalDraftId(scopeFor(mode))) }
-                val resumeId = if (mode == SetupWizardMode.RESUME) SetupDraftResolver(factory.database).listRecoverable().firstOrNull()?.draftId else null
+                val resumeId = if (mode == SetupWizardMode.RESUME) persistence.listRecoverable().firstOrNull()?.draftId else null
                 val id: String = draftId ?: storedId ?: resumeId ?: SetupDraftResolver.canonicalDraftId(scopeFor(mode))
-                val persisted = factory.drafts.load(id)
+                val persisted = persistence.load(id)
                 val restored = persisted?.let { runCatching { json.decodeFromString<SetupWizardDraft>(it.payloadJson) }.getOrNull() }
                 if (persisted != null && (restored == null || restored.wizChat.schemaVersion > 2 || restored.wizChat.scriptVersion > WizChatCopyCatalog.SCRIPT_VERSION)) {
                     currentDraftId = id
@@ -153,32 +171,120 @@ class SetupWizardViewModel(
                 preparePreview(migrated)
             } catch (cancel: CancellationException) { throw cancel }
             catch (error: Throwable) {
-                _state.value = _state.value.copy(isLoading = false, machineState = WizChatMachineState.RecoverableError, errors = mapOf("initialize" to (error.message ?: "No se pudo cargar el asistente")))
+                _state.value = _state.value.copy(isLoading = false, machineState = WizChatMachineState.RecoverableError, errors = mapOf("initialize" to (error.message ?: "No se pudo cargar el asistente")), lastFailure = error.message)
             }
         }
     }
 
-    fun answerText(text: String, expectedRevision: Int? = null) = enqueueAnswer(WizChatAnswerRecord(WizChatQuestionId.P_NAME, WizChatAnswerKind.TEXT, textValue = text, expectedRevision = expectedRevision))
-    fun answerNumber(id: WizChatQuestionId, value: Double, expectedRevision: Int? = null) = enqueueAnswer(WizChatAnswerRecord(id, WizChatAnswerKind.NUMBER, numberValue = value, expectedRevision = expectedRevision))
-    fun answerWeight(value: Double, unit: String, expectedRevision: Int? = null) = answerNumber(WizChatQuestionId.P_WEIGHT,
-        WizChatWeightScale.toKg(value, unit), expectedRevision)
-    fun acceptImportedWeight(valueKg: Double, expectedRevision: Int) = enqueueAnswer(
-        WizChatAnswerRecord(WizChatQuestionId.P_WEIGHT, WizChatAnswerKind.NUMBER, numberValue = valueKg,
-            source = WizChatAnswerSource.IMPORTED, expectedRevision = expectedRevision),
-    )
-    fun answerChoice(id: WizChatQuestionId, value: String, expectedRevision: Int? = null) = enqueueAnswer(WizChatAnswerRecord(id, WizChatAnswerKind.CHOICE, textValue = value, expectedRevision = expectedRevision))
-    fun answerMulti(id: WizChatQuestionId, values: List<String>, expectedRevision: Int? = null) = enqueueAnswer(WizChatAnswerRecord(id, WizChatAnswerKind.MULTI_CHOICE, values = values.distinct(), expectedRevision = expectedRevision))
-    fun answerAction(id: WizChatQuestionId = _state.value.draft.wizChat.currentQuestionId, expectedRevision: Int? = null) = enqueueAnswer(WizChatAnswerRecord(id, WizChatAnswerKind.ACTION, expectedRevision = expectedRevision))
-    fun skip(id: WizChatQuestionId = _state.value.draft.wizChat.currentQuestionId, expectedRevision: Int? = null) = enqueueAnswer(WizChatAnswerRecord(id, WizChatGraph.question(id)?.kind ?: WizChatAnswerKind.CHOICE, source = WizChatAnswerSource.OMITTED, expectedRevision = expectedRevision))
-    fun selectPlan(id: String, expectedRevision: Int? = null) = answerChoice(WizChatQuestionId.T_PLAN, id, expectedRevision)
-    fun answerTrainingMarks(squat: String, bench: String, deadlift: String, expectedRevision: Int? = null) = enqueueAnswer(
-        WizChatAnswerRecord(WizChatQuestionId.T_MARKS, WizChatAnswerKind.ACTION, values = listOf(squat, bench, deadlift), expectedRevision = expectedRevision),
-    )
+    // ── Paso → datos: única vía productiva de la UI ─────────────────────────
+    //
+    // Cada setter escribe el dato del paso, lo marca como declarado por el
+    // usuario y persiste con revisión monótona. Ninguno mueve el cursor: solo
+    // [submitCurrentStep] confirma y avanza exactamente un paso.
 
-    fun updateNameDraft(text: String) = mutateDraft {
-        if (it.wizChat.currentQuestionId == WizChatQuestionId.P_NAME) it.copy(name = WizChatValidation.stripControls(text)) else it
+    /** Selección única del paso; guarda el valor estable de sus opciones. */
+    fun setStepChoice(step: SetupStepId, value: String) =
+        mutateDraft(step) { draft -> draft.withStepChoice(step, value, System.currentTimeMillis()) }
+
+    /** Selección múltiple (días, equipo, molestias…); nunca inventa valores. */
+    fun setStepChoices(step: SetupStepId, values: Set<String>) =
+        mutateDraft(step) { draft -> draft.withStepChoices(step, values, System.currentTimeMillis()) }
+
+    /**
+     * Alterna una opción de un paso multi a partir del **evento** de la tarjeta
+     * (solo el valor estable, sin Set calculado en la UI).
+     *
+     * El conjunto resultante se deriva SIEMPRE del último borrador dentro del
+     * mutex ([setupToggleExclusive] sobre `latest.selectedValues`), de modo que
+     * dos toques seguidos sin esperar el primer persisto no se pisan: el segundo
+     * parte del resultado del primero y un valor excluyente (`none`/`unknown`/
+     * `omit`) desplaza al resto. No avanza ni confirma: el cursor lo mueve solo
+     * [submitCurrentStep].
+     */
+    fun toggleStepChoice(step: SetupStepId, value: String) =
+        mutateDraft(step) { latest ->
+            latest.withStepChoices(
+                step,
+                setupToggleExclusive(
+                    latest.selectedValues(step),
+                    value,
+                    SetupStepDefinitions.of(step)?.exclusiveValues.orEmpty(),
+                ),
+                System.currentTimeMillis(),
+            )
+        }
+
+    /** Texto libre del paso (nombre, filas editoriales). */
+    fun setStepText(step: SetupStepId, value: String) =
+        mutateDraft(step) { draft -> draft.withStepText(step, value, System.currentTimeMillis()) }
+
+    /** Número del paso; [value] null retira el dato (nunca deja un default). */
+    fun setStepNumber(step: SetupStepId, value: Double?) =
+        mutateDraft(step) { draft -> draft.withStepNumber(step, value, System.currentTimeMillis()) }
+
+    /**
+     * Escritura tipada arbitraria sobre el paso (p. ej. el plan elegido o las
+     * filas de marcas). Solo persiste el borrador: no toca `acceptedAnswers`
+     * del espejo legacy y no confirma el paso.
+     */
+    fun updateStep(step: SetupStepId, change: (SetupWizardDraft) -> SetupWizardDraft) =
+        mutateDraft(step, change)
+
+    /**
+     * Omite el paso SOLO si su definición lo permite. Registra procedencia y
+     * estado ausente sin fabricar ningún dato, y no avanza: la confirmación
+     * sigue siendo [submitCurrentStep].
+     */
+    fun skipStep(step: SetupStepId) {
+        val definition = SetupStepDefinitions.of(step)
+        if (definition == null || definition.legacyOnly || !definition.allowSkip) {
+            _state.value = _state.value.copy(errors = _state.value.errors + (step.name to "Este paso no se puede omitir"))
+            return
+        }
+        mutateDraft(step) { draft ->
+            draft.recordStepAnswer(step, SetupAnswerProvenance.USER_DECLARED, SetupValueState.ABSENT)
+        }
     }
-    fun setWeightUnit(unit: String) = mutateDraft { draft ->
+
+    /**
+     * Vuelve a un paso anterior sin borrar nada. Si se edita desde la
+     * revisión final y al confirmar la ruta sigue siendo válida, el cursor
+     * regresa a la revisión: no se vuelve a contestar todo el formulario.
+     */
+    fun editStep(step: SetupStepId) {
+        viewModelScope.launch { commandMutex.withLock {
+            val state = _state.value
+            if (!initialized || state.isCommitting || state.isSubmittingAnswer || state.isSavingAndExiting ||
+                state.machineState == WizChatMachineState.Committed ||
+                state.machineState == WizChatMachineState.UnsupportedDraft
+            ) return@withLock
+            val draft = state.draft
+            if (step == draft.stepProgress.currentStepId) return@withLock
+            if (step !in SetupStepGraph.stepIds(draft.stepContext())) return@withLock
+            // La intención de volver a la revisión vive en el BORRADOR
+            // (`reviewReturnStep`), no en un campo volatile: así sobrevive a
+            // guardar/salir y a la recreación del ViewModel. Solo una edición
+            // empezada desde la revisión final la deja puesta.
+            val fromReview = draft.stepProgress.currentStepId == SetupStepId.REVIEW_ACTIVATE
+            persistAndPublish(
+                draft.editStep(step).copy(
+                    reviewReturnStep = if (fromReview) SetupStepId.REVIEW_ACTIVATE else null,
+                ),
+            )
+        } }
+    }
+
+    /**
+     * Solo selecciona el plan: escribe el id elegido en el paso PLAN sin
+     * validar candidatos, sin tocar el espejo conversacional y sin avanzar el
+     * paso (la confirmación sigue siendo [submitCurrentStep]).
+     */
+    fun selectPlan(id: String) = updateStep(SetupStepId.PLAN) { draft ->
+        if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft
+        else draft.copy(selectedCatalogId = id, acceptFixedRecipeDifference = false)
+    }
+
+    fun setWeightUnit(unit: String) = mutateDraft(step = SetupStepId.WEIGHT) { draft ->
         if (unit !in setOf("kg", "lb") || unit == draft.weightUnit) draft else {
             val nutrition = draft.nutritionDraft?.let { n ->
                 val existing = parseLocalizedNumber(n.targetWeightText)
@@ -238,12 +344,8 @@ class SetupWizardViewModel(
         val current = _state.value
         _state.value = current.copy(planCandidates = current.availablePlanCandidates.take(current.planCandidates.size + 3))
     }
-    fun activeNutritionPlan(): NutritionPlan? {
-        val repository = NutritionRepository.getInstance()
-        val id = repository.activeNutritionPlanId.value ?: return null
-        return repository.nutritionPlans.value.firstOrNull { it.id == id }
-    }
-    fun hasInitialRecoveryEvidence(): Boolean = ProgramRepository.getInstance().settings.value.initialRecoveryEvidence != null
+    fun activeNutritionPlan(): NutritionPlan? = environment.activeNutritionPlan()
+    fun hasInitialRecoveryEvidence(): Boolean = environment.hasInitialRecoveryEvidence()
     fun searchExercises(query: String) {
         exerciseSearchJob?.cancel()
         val term = query.trim()
@@ -254,6 +356,7 @@ class SetupWizardViewModel(
         _state.value = _state.value.copy(exerciseSuggestions = emptyList(), isExerciseSearching = true, exerciseSearchError = null)
         exerciseSearchJob = viewModelScope.launch {
             try {
+                ensureCatalogLoaded()
                 val matches = withContext(Dispatchers.IO) {
                     val all = exerciseLookup ?: (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)
                         ?.catalog?.toLegacyConfigurationLookup()?.values?.distinctBy { it.id }
@@ -261,68 +364,282 @@ class SetupWizardViewModel(
                     all.asSequence().filter { it.name.contains(term, ignoreCase = true) }.take(14).toList()
                 }
                 currentCoroutineContext().ensureActive()
-                if (_state.value.draft.wizChat.currentQuestionId == WizChatQuestionId.T_PLAN) _state.value = _state.value.copy(
+                if (_state.value.draft.stepProgress.currentStepId == SetupStepId.PLAN) _state.value = _state.value.copy(
                     exerciseSuggestions = matches, isExerciseSearching = false)
             } catch (cancel: CancellationException) { throw cancel }
             catch (error: Exception) {
-                if (_state.value.draft.wizChat.currentQuestionId == WizChatQuestionId.T_PLAN) _state.value = _state.value.copy(
+                if (_state.value.draft.stepProgress.currentStepId == SetupStepId.PLAN) _state.value = _state.value.copy(
                     exerciseSuggestions = emptyList(), isExerciseSearching = false,
                     exerciseSearchError = "No pude consultar los ejercicios. Inténtalo otra vez.")
             }
         }
     }
-    fun activeQuestion() = WizChatGraph.question(_state.value.draft.wizChat.currentQuestionId)
     fun ringsPreview(): SetupRingsMapping = ringsMapping(_state.value.draft)
     fun retryRingsPreview() {
         if (_state.value.machineState == WizChatMachineState.Committed || _state.value.isCommitting) return
         lastRingsPreviewKey = null
+        ringsPreviewNow = null
+        _state.value = _state.value.copy(ringsPreviewError = null, errors = _state.value.errors - "rings_preview")
         prepareRingsPreview(_state.value.draft)
     }
 
-    fun edit(id: WizChatQuestionId) {
+    /**
+     * Specific retry for one inline error: every failure keeps the key of the
+     * operation that produced it, so the UI never offers a generic reload for
+     * a save/preview/commit problem.
+     */
+    fun retryOperationForError(key: String): SetupRetryOperation? = when (key) {
+        "initialize" -> SetupRetryOperation.LOAD
+        "save" -> SetupRetryOperation.SAVE
+        "preview" -> SetupRetryOperation.PREVIEW
+        "candidates" -> SetupRetryOperation.CANDIDATES
+        "rings_preview" -> SetupRetryOperation.RINGS_PREVIEW
+        "commit" -> SetupRetryOperation.COMMIT
+        else -> null
+    }
+
+    /**
+     * Retries the operation that failed. LOAD re-runs initialization (modal
+     * RecoverableError only) or, when the draft is already loaded, persists the
+     * in-memory draft instead of silently doing nothing; SAVE repersists without
+     * losing unpersisted answers; the rest recompute the corresponding preview.
+     */
+    fun retryFailedOperation(operation: SetupRetryOperation, expectedRevision: Int? = null) {
+        when (operation) {
+            SetupRetryOperation.LOAD -> {
+                _state.value = _state.value.copy(errors = emptyMap(), lastFailure = null)
+                if (initialized) retryPersist() else initialize(_state.value.mode, draftId = currentDraftId)
+            }
+            SetupRetryOperation.SAVE -> retryPersist()
+            SetupRetryOperation.PREVIEW -> retryPreview()
+            SetupRetryOperation.CANDIDATES -> retryCandidates()
+            SetupRetryOperation.RINGS_PREVIEW -> retryRingsPreview()
+            SetupRetryOperation.COMMIT -> retryCommit(expectedRevision)
+        }
+    }
+
+    /** Dismisses one inline error (e.g. closing the banner). */
+    fun clearError(key: String) {
+        if (key !in _state.value.errors) return
+        _state.value = _state.value.copy(errors = _state.value.errors - key)
+    }
+
+    /** Dismisses every inline error. */
+    fun clearErrors() {
+        if (_state.value.errors.isEmpty()) return
+        _state.value = _state.value.copy(errors = emptyMap())
+    }
+
+    private fun retryPersist() {
         viewModelScope.launch { commandMutex.withLock {
-            if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed) return@withLock
-            val draft = _state.value.draft
-            val step = SetupStepGraph.stepForQuestion(id) ?: return@withLock
-            val invalidated = WizChatReducer.invalidatedAnswersFor(id)
-            // Cambiar un dato anterior sin pérdida: las respuestas se conservan
-            // como datos y solo se marca pendiente lo que puede dejar de ser
-            // compatible; los previews dependientes se invalidan al re-responder.
-            val edited = draft.editStep(step, invalidated)
-            val next = edited.copy(
-                wizChat = edited.wizChat.copy(currentQuestionId = id, stage = WizChatGraph.stageFor(id), terminal = false,
-                    revision = draft.wizChat.revision + 1,
-                    acceptedAnswers = draft.wizChat.acceptedAnswers.filterNot { it.questionId in invalidated + id }),
-                confirmActivation = false, acceptFixedRecipeDifference = false, revision = draft.revision + 1)
-            persistAndPublish(next)
+            val current = _state.value
+            if (!initialized || current.isCommitting || current.machineState == WizChatMachineState.Committed) return@withLock
+            // Reintenta el guardado del borrador en memoria sin perder respuestas:
+            // la revisión avanza de forma monótona frente a la fila guardada.
+            val next = current.draft.withNextDraftRevision(current.draft)
+            _state.value = current.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
+            if (persistDraft(next)) {
+                publishDraft(next, true, WizChatMachineState.AwaitingAnswer)
+            } else {
+                _state.value = _state.value.copy(draft = next, machineState = WizChatMachineState.AwaitingAnswer, dirty = true,
+                    isSubmittingAnswer = false)
+            }
         } }
+    }
+
+    private fun retryPreview() {
+        lastSuccessfulTrainingKey = null
+        _state.value = _state.value.copy(previewError = null, errors = _state.value.errors - "preview")
+        preparePreview(_state.value.draft)
+    }
+
+    private fun retryCandidates() {
+        _state.value = _state.value.copy(previewError = null, errors = _state.value.errors - "candidates")
+        updateCandidates(_state.value.draft)
+    }
+
+    private fun retryCommit(expectedRevision: Int?) {
+        viewModelScope.launch {
+            if (expectedRevision != null && _state.value.draft.revision != expectedRevision) return@launch
+            commit()
+        }
     }
 
     /** Back never deletes answers; it only moves the step cursor. */
     fun back(): Boolean = goBack()
 
+    /** Whether the step cursor can move one step back. */
+    fun canGoBack(): Boolean {
+        if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed) return false
+        return SetupStepGraph.previous(_state.value.draft.stepProgress.currentStepId,
+            _state.value.draft.stepContext(), _state.value.draft.stepProgress.visited) != null
+    }
+
     fun goBack(): Boolean {
         if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed) return false
-        val draft = _state.value.draft
-        if (SetupStepGraph.previous(draft.stepProgress.currentStepId, draft.stepContext(), draft.stepProgress.visited) == null) return false
-        viewModelScope.launch { commandMutex.withLock { persistAndPublish(_state.value.draft.goBack()) } }
+        val expectedStep = _state.value.draft.stepProgress.currentStepId
+        if (SetupStepGraph.previous(expectedStep, _state.value.draft.stepContext(), _state.value.draft.stepProgress.visited) == null) return false
+        if (navigationInFlight) return false
+        navigationInFlight = true
+        viewModelScope.launch {
+            try { commandMutex.withLock {
+                if (_state.value.draft.stepProgress.currentStepId != expectedStep) return@withLock
+                // Navegación manual: se retira la intención de volver a la
+                // revisión en el BORRADOR persistido (nunca en memoria volátil).
+                persistAndPublish(_state.value.draft.copy(reviewReturnStep = null).goBack())
+            } } finally { navigationInFlight = false }
+        }
         return true
     }
 
-    fun goNext(): Boolean {
-        if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed) return false
-        val draft = _state.value.draft
-        if (SetupStepGraph.next(draft.stepProgress.currentStepId, draft.stepContext()) == null) return false
-        viewModelScope.launch { commandMutex.withLock { persistAndPublish(_state.value.draft.goNext()) } }
-        return true
+    /**
+     * Safe delegation to [submitCurrentStep]: the same gate, revisions and
+     * exactly-once advance that the Continuar CTA uses.
+     */
+    fun goNext(): Boolean = submitCurrentStep(_state.value.draft.stepProgress.currentStepId).accepted
+
+    /**
+     * Confirms and advances exactly one step. Repeated callbacks are dropped:
+     * the synchronous gate rejects while a confirmation is in flight, and the
+     * cursor/revision are re-checked inside the serialized queue, so a stale
+     * callback can never double-advance.
+     */
+    fun submitCurrentStep(
+        step: SetupStepId = _state.value.draft.stepProgress.currentStepId,
+        expectedRevision: Int? = null,
+    ): SetupSubmitResult {
+        val current = _state.value
+        if (!initialized || current.isCommitting || current.machineState == WizChatMachineState.Committed ||
+            current.machineState == WizChatMachineState.UnsupportedDraft) {
+            Log.w(DIAG_TAG, "submit $step → DROP initialized=$initialized committing=${current.isCommitting} machine=${current.machineState}")
+            return SetupSubmitResult(SetupSubmitOutcome.DROPPED)
+        }
+        if (navigationInFlight || current.isSubmittingAnswer || current.isSavingAndExiting ||
+            step != current.draft.stepProgress.currentStepId) {
+            Log.w(DIAG_TAG, "submit $step → DROP navigation=$navigationInFlight submitting=${current.isSubmittingAnswer} saving=${current.isSavingAndExiting} cursor=${current.draft.stepProgress.currentStepId}")
+            return SetupSubmitResult(SetupSubmitOutcome.DROPPED)
+        }
+        if (expectedRevision != null && expectedRevision != current.draft.revision) {
+            Log.w(DIAG_TAG, "submit $step → DROP revision expected=$expectedRevision actual=${current.draft.revision}")
+            return SetupSubmitResult(SetupSubmitOutcome.DROPPED)
+        }
+        val validation = SetupWizardValidation.validateStep(current.draft, step)
+        if (validation.any { it.isBlocking }) {
+            // Solo claves de validación: nunca el valor del usuario.
+            Log.w(DIAG_TAG, "submit $step → REJECT ${validation.filter { it.isBlocking }.map { it.key }}")
+            _state.value = current.copy(errors = validation.mapNotNull { check -> check.message?.let { check.key to it } }.toMap())
+            return SetupSubmitResult(SetupSubmitOutcome.REJECTED)
+        }
+        navigationInFlight = true
+        Log.d(DIAG_TAG, "submit $step → ACCEPTED (encolado, cursor=${current.draft.stepProgress.currentStepId} rev=${current.draft.revision})")
+        viewModelScope.launch {
+            try { commandMutex.withLock { submitCurrentStepLocked(current.draft, step, expectedRevision) } }
+            finally { navigationInFlight = false }
+        }
+        return SetupSubmitResult(SetupSubmitOutcome.ACCEPTED)
     }
 
-    /** Compatibility entry point for advanced editor callers; it still uses the same queue and Room draft. */
-    fun update(change: (SetupWizardDraft) -> SetupWizardDraft) = mutateDraft(change)
-    fun setName(value: String) = updateNameDraft(value)
-    fun setAge(value: Int?) = mutateDraft { it.copy(ageYears = value?.takeIf { age -> age in 13..100 }) }
-    fun setWeightKg(value: Double?) = mutateDraft { it.copy(weightKg = value?.takeIf { kg -> kg.isFinite() && kg in 20.0..500.0 }) }
-    fun setHeightCm(value: Double?) = mutateDraft { it.copy(heightCm = value?.takeIf { cm -> cm.isFinite() && cm in 100.0..250.0 }) }
+    /**
+     * Confirma altura y peso en un solo avance cuando las dos reglas caben
+     * en la misma pantalla. El peso tiene que existir ya (el usuario lo movió
+     * o lo confirmó); si no, se confirma solo la altura.
+     */
+    fun submitAnthropometryPair(): SetupSubmitResult {
+        val draft = _state.value.draft
+        if (draft.stepProgress.currentStepId != SetupStepId.HEIGHT || draft.weightKg == null) {
+            return submitCurrentStep(SetupStepId.HEIGHT)
+        }
+        confirmPairedWeight = true
+        val result = submitCurrentStep(SetupStepId.HEIGHT)
+        if (!result.accepted) confirmPairedWeight = false
+        return result
+    }
+
+    private var confirmPairedWeight = false
+
+    /** Runs fully under the command mutex: re-validates, records, advances, persists. */
+    private suspend fun submitCurrentStepLocked(snapshot: SetupWizardDraft, expectedStep: SetupStepId, expectedRevision: Int?) {
+        val pairWeight = confirmPairedWeight && expectedStep == SetupStepId.HEIGHT
+        confirmPairedWeight = false
+        val current = _state.value
+        if (!initialized || current.isCommitting || current.machineState == WizChatMachineState.Committed) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → DROP initialized=$initialized committing=${current.isCommitting} machine=${current.machineState}")
+            return
+        }
+        if (expectedStep != current.draft.stepProgress.currentStepId) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → DROP cursor=${current.draft.stepProgress.currentStepId}")
+            return
+        }
+        if (expectedRevision != null && expectedRevision != current.draft.revision) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → DROP revision expected=$expectedRevision actual=${current.draft.revision}")
+            return
+        }
+        if (snapshot.draftId != current.draft.draftId) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → DROP draftId ${snapshot.draftId} ≠ ${current.draft.draftId}")
+            return
+        }
+        val validation = SetupWizardValidation.validateStep(current.draft, expectedStep)
+        if (validation.any { it.isBlocking }) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → REJECT ${validation.filter { it.isBlocking }.map { it.key }}")
+            _state.value = _state.value.copy(errors = validation.mapNotNull { check -> check.message?.let { check.key to it } }.toMap())
+            return
+        }
+        val previous = current.draft
+        var stepping = previous.confirmCurrentStep(expectedStep)
+        val paired = pairWeight &&
+            stepping.stepProgress.currentStepId == SetupStepId.WEIGHT &&
+            stepping.weightKg != null &&
+            SetupWizardValidation.validateStep(stepping, SetupStepId.WEIGHT).none { it.isBlocking }
+        if (paired) stepping = stepping.confirmCurrentStep(SetupStepId.WEIGHT)
+        val confirmed = resumeReviewAfterEdit(stepping, if (paired) SetupStepId.WEIGHT else expectedStep)
+            .withNextDraftRevision(previous)
+        val previousKey = trainingKey(previous)
+        _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
+        val persisted = persistDraft(confirmed)
+        if (persisted) {
+            publishDraft(confirmed, true, WizChatMachineState.AwaitingAnswer)
+        } else {
+            _state.value = _state.value.copy(draft = confirmed, dirty = true, machineState = WizChatMachineState.AwaitingAnswer,
+                isSubmittingAnswer = false)
+        }
+        Log.d(DIAG_TAG, "submitLocked $expectedStep → ${confirmed.stepProgress.currentStepId} rev=${confirmed.revision} persisted=$persisted")
+        if (previousKey != trainingKey(confirmed)) updateCandidates(confirmed)
+        preparePreview(confirmed)
+    }
+
+    /**
+     * Editing from the final review and confirming the edited step lands back
+     * on the review when the route still contains it and the step still
+     * validates, so the user never re-answers the whole form.
+     *
+     * La intención ([SetupWizardDraft.reviewReturnStep]) vive en el borrador y
+     * se consume AQUÍ, dentro del borrador confirmado que se persiste: sobrevive
+     * a guardar/salir y a la recreación del ViewModel, y se consume exactamente
+     * una vez.
+     */
+    private fun resumeReviewAfterEdit(confirmed: SetupWizardDraft, editedStep: SetupStepId): SetupWizardDraft {
+        val target = confirmed.reviewReturnStep
+        val consumed = confirmed.copy(reviewReturnStep = null)
+        if (target != SetupStepId.REVIEW_ACTIVATE) return consumed
+        if (target !in SetupStepGraph.stepIds(consumed.stepContext())) return consumed
+        if (SetupWizardValidation.validateStep(consumed, editedStep).any { it.isBlocking }) return consumed
+        return consumed.copy(
+            stepProgress = consumed.stepProgress.at(target, consumed.stepContext()),
+            wizChat = consumed.wizChat.copy(
+                currentQuestionId = WizChatQuestionId.REVIEW,
+                stage = WizChatStage.REVIEW,
+                terminal = true,
+                revision = consumed.wizChat.revision + 1,
+            ),
+        )
+    }
+
+    /** Compatibility entry point for advanced editor callers; same queue, same Room draft. */
+    fun update(change: (SetupWizardDraft) -> SetupWizardDraft) = mutateDraft(change = change)
+    fun setName(value: String) = setStepText(SetupStepId.NAME, value)
+    fun setAge(value: Int?) = setStepNumber(SetupStepId.AGE, value?.toDouble())
+    fun setWeightKg(value: Double?) = setStepNumber(SetupStepId.WEIGHT, value)
+    fun setHeightCm(value: Double?) = setStepNumber(SetupStepId.HEIGHT, value)
     fun setChapter(chapter: SetupWizardChapter) = Unit
     fun setProgramRoute(route: SetupProgramRoute) = mutateDraft { it.copy(programRoute = route) }
     fun setModuleChoice(choice: SetupModuleChoice) = mutateDraft { it.copy(includeNutrition = choice == SetupModuleChoice.TRAINING_AND_NUTRITION) }
@@ -396,17 +713,20 @@ class SetupWizardViewModel(
         val plan = session().saveAndExit() as? SetupWizardExitPlan.SaveAndExit ?: return@withLock false
         // La revisión siempre avanza: el guardado no puede perder contra la fila
         // persistida aunque el borrador en memoria lleve cambios sin escribir.
-        val toSave = plan.draft.copy(revision = plan.draft.revision + 1)
+        val previous = _state.value.draft
+        val toSave = plan.draft.withNextDraftRevision(previous)
         val previousState = _state.value.machineState
-        _state.value = _state.value.copy(isSavingAndExiting = true, machineState = WizChatMachineState.PersistingAnswer)
-        val saved = withContext(NonCancellable + Dispatchers.IO) { persistDraft(toSave) }
+        _state.value = _state.value.copy(isSavingAndExiting = true, machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
+        val saved = withContext(NonCancellable) { persistDraft(toSave) }
         if (saved) {
             val finished = session().onSavedAndExited()
             _state.value = _state.value.copy(draft = toSave, machineState = previousState,
                 isSavingAndExiting = finished.isSavingAndExiting,
-                exitCompleted = finished.exitCompleted, dialog = finished.dialog, dirty = false)
+                exitCompleted = finished.exitCompleted, dialog = finished.dialog, dirty = false, errors = emptyMap(), lastFailure = null)
         } else {
-            _state.value = _state.value.copy(isSavingAndExiting = false)
+            // No se navega cuando el guardado falla: el diálogo se mantiene y el
+            // error queda inline para poder reintentar sin perder nada.
+            _state.value = _state.value.copy(isSavingAndExiting = false, machineState = previousState)
         }
         saved
     }
@@ -428,10 +748,14 @@ class SetupWizardViewModel(
         candidateJob?.cancel()
         exerciseSearchJob?.cancel()
         ringsPreviewJob?.cancel()
-        runCatching {
-            withContext(NonCancellable + Dispatchers.IO) {
-                persistenceFactory(getApplication<Application>()).drafts.discard(draftId)
-            }
+        try {
+            withContext(NonCancellable) { persistence.discard(draftId) }
+        } catch (cancel: CancellationException) { throw cancel }
+        catch (error: Exception) {
+            // El fallo de descarte se reporta: nunca se navega mintiendo.
+            _state.value = _state.value.copy(isSavingAndExiting = false, machineState = stateForCurrentStep(),
+                errors = mapOf("draft" to "No pude descartar el borrador. Inténtalo de nuevo."), lastFailure = error.message)
+            return@withLock false
         }
         savedStateHandle[DRAFT_ID_KEY] = null
         currentDraftId = null
@@ -450,310 +774,167 @@ class SetupWizardViewModel(
         exitCompleted = _state.value.exitCompleted,
     )
 
-    suspend fun commit(context: Context): String? = commandMutex.withLock {
+    suspend fun commit(): String? = commandMutex.withLock {
         val current = _state.value
         if (current.machineState == WizChatMachineState.Committed) return@withLock current.receiptId
         _state.value = current.copy(isCommitting = true, machineState = WizChatMachineState.Committing, errors = emptyMap())
         try {
+            // Puerta real: revisión de pasos + validación completa (sin
+            // `wizChat.terminal` ni respuestas legacy aceptadas).
             val errors = reviewErrors()
             if (errors.isNotEmpty()) {
-                _state.value = _state.value.copy(isCommitting = false, machineState = WizChatMachineState.RecoverableError, errors = errors)
+                _state.value = _state.value.copy(isCommitting = false, machineState = stateForCurrentStep(), errors = errors)
                 return@withLock null
             }
             val draft = _state.value.draft
             val program = if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) _state.value.programPreview ?: error("La vista previa del programa no es ejecutable") else null
-            val nutritionResult = if (draft.includeNutrition) prepareNutrition(draft) else null
-            if (draft.includeNutrition && nutritionResult?.plan == null) error(nutritionResult?.errors?.values?.firstOrNull() ?: "Completa el plan de nutrición")
-            val nutrition = nutritionResult?.plan
-            val rings = ringsMapping(draft)
-            val base = ProgramRepository.getInstance().settings.value
+            val trackingOnly = isTrackingOnly(draft)
+            // Se reutiliza la preparación revisada del preview (planId estable
+            // derivado del commitId); nunca se fabrica un EER ni un objetivo.
+            val preparation = if (draft.includeNutrition) prepareNutrition(draft) else null
+            if (draft.includeNutrition && !trackingOnly && preparation?.plan == null) {
+                error(preparation?.errors?.values?.firstOrNull() ?: "Completa el plan de nutrición")
+            }
+            val nutrition = if (trackingOnly) null else preparation?.plan
+            // Un solo reloj para el check-in: el previewado y el persistido en
+            // esta misma operación comparten exactamente la fecha.
+            val ringsNow = ringsPreviewNow ?: System.currentTimeMillis()
+            val rings = ringsMapping(draft, ringsNow)
+            val base = environment.settings
             val typed = nutrition?.typedBodyGoal
             val bodyGoals = typed?.targetValueSi?.let { target -> listOf(BodyGoal("plan:${nutrition.id}:${typed.metric.name}", typed.metric.toBodyMetric(), target, typed.unitSi, typed.origin, nutrition.id, System.currentTimeMillis(), System.currentTimeMillis())) }.orEmpty()
-            // Check-in real: evidencia completa o calibración parcial (sensaciones
-            // declaradas sin evidencia histórica). Nunca se fabrican sesiones.
+            // Check-in real: evidencia completa, calibración parcial o solo
+            // molestias declaradas. Nunca se fabrican sesiones sintéticas.
             val wellbeing = if (rings.savesRealCheckIn) {
-                calculateRingsPreview(draft, rings).stagedWellbeing
+                calculateRingsPreview(draft, rings, ringsNow).stagedWellbeing
             } else null
             val pendingNutritionDraft = if (SetupPendingNutrition.shouldPreserve(draft)) {
                 val pending = SetupPendingNutrition.build(draft)
                 SetupPendingNutrition.toCommitField(pending, json.encodeToString(pending))
             } else null
-            val result = persistenceFactory(context).commits.commit(SetupCommitRequest(
+            // Snapshot del día REAL: el objetivo de HOY calculado por el reparto
+            // de la ventana; si hoy no tiene objetivo no se graba ninguno.
+            val today = LocalDate.now()
+            val snapshot = if (!trackingOnly && draft.activateNutrition && nutrition != null) {
+                preparation?.days?.firstOrNull { it.date == today }?.let { day ->
+                    DailyGoalSnapshot(today.toString(), nutrition.id, day.calorieTargetKcal,
+                        day.proteinG, day.carbsG, day.fatG, nutrition.direction,
+                        nutrition.calculationOrigin, System.currentTimeMillis())
+                }
+            } else null
+            // El adaptador real se resuelve solo aquí: las tests inyectan el
+            // suyo y la construcción del VM nunca toca Room.
+            val port = commits ?: realSetupWizardCommits(getApplication())
+            val result = port.commit(SetupCommitRequest(
                 commitId = draft.commitId,
                 draftId = draft.draftId,
                 settings = base,
                 program = program,
                 nutritionPlan = nutrition,
                 activateProgram = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
-                activateNutrition = draft.includeNutrition && draft.activateNutrition,
+                activateNutrition = draft.includeNutrition && draft.activateNutrition && !trackingOnly,
                 derivedBodyGoals = bodyGoals,
                 initialWellbeing = wellbeing,
-                settingsPatch = buildSettingsPatch(base, draft, program, nutrition, rings),
-                dailyGoalSnapshot = nutrition?.takeIf { draft.activateNutrition }?.let { plan -> DailyGoalSnapshot(LocalDate.now().toString(), plan.id, plan.calorieTarget, plan.proteinGoal, plan.carbGoal, plan.fatGoal, plan.direction, plan.calculationOrigin, System.currentTimeMillis()) },
+                settingsPatch = buildSettingsPatch(base, draft, program, nutrition, rings, trackingOnly),
+                dailyGoalSnapshot = snapshot,
                 pendingNutritionDraft = pendingNutritionDraft,
+                nutritionTrackingOnly = trackingOnly,
+                bodyObservations = SetupActivationPayload.bodyObservations(draft),
             ))
             _state.value = _state.value.copy(draft = draft.copy(
                 wizChat = draft.wizChat.copy(terminal = true, currentQuestionId = WizChatQuestionId.REVIEW, stage = WizChatStage.REVIEW),
                 stepProgress = draft.stepProgress.at(SetupStepId.REVIEW_ACTIVATE, draft.stepContext()),
             ), dirty = false, receiptId = result.commitId, isCommitting = false, machineState = WizChatMachineState.Committed, errors = emptyMap())
             savedStateHandle[DRAFT_ID_KEY] = null
+            // Post-éxito: Body Progress relee su almacenamiento para mostrar
+            // las observaciones recién escritas sin reiniciar la app.
+            environment.refreshBodyProgress()
             result.commitId
         } catch (cancel: CancellationException) {
-            _state.value = _state.value.copy(isCommitting = false, machineState = WizChatMachineState.RecoverableError, errors = mapOf("commit" to "La configuración se interrumpió. Inténtalo de nuevo."))
+            // Un commit interrumpido no se maquilla: vuelve a la pantalla real
+            // con el error inline para poder reintentar la operación exacta.
+            _state.value = _state.value.copy(isCommitting = false, machineState = stateForCurrentStep(), errors = mapOf("commit" to "La configuración se interrumpió. Inténtalo de nuevo."))
             throw cancel
         }
         catch (error: Throwable) {
-            _state.value = _state.value.copy(isCommitting = false, machineState = WizChatMachineState.RecoverableError, errors = mapOf("commit" to (error.message ?: "No se pudo guardar la configuración")))
+            _state.value = _state.value.copy(isCommitting = false, machineState = stateForCurrentStep(), errors = mapOf("commit" to (error.message ?: "No se pudo guardar la configuración")))
             null
         }
     }
-    suspend fun commit(): String? = commit(getApplication())
 
-    private fun enqueueAnswer(answer: WizChatAnswerRecord) = viewModelScope.launch { commandMutex.withLock { acceptAnswer(answer) } }
-
-    private suspend fun acceptAnswer(answer: WizChatAnswerRecord) {
-        val state = _state.value
-        if (!initialized || state.isCommitting || state.machineState == WizChatMachineState.Committed) return
-        val currentId = state.draft.wizChat.currentQuestionId
-        if (answer.questionId != currentId || answer.expectedRevision != null && answer.expectedRevision != state.draft.wizChat.revision) return
-        val question = WizChatGraph.question(currentId) ?: return
-        if (answer.source == WizChatAnswerSource.OMITTED && currentId in WizChatValidation.mandatoryNumericQuestions) {
-            _state.value = state.copy(machineState = WizChatMachineState.RecoverableError,
-                errors = mapOf(currentId.name to "Este dato es necesario para continuar"))
-            return
+    /**
+     * Machine state that renders the REAL step screen for the current cursor.
+     * Failures (commit, preview) keep the steps visible with an inline error
+     * instead of hiding them behind a status dialog.
+     */
+    private fun stateForCurrentStep(): WizChatMachineState =
+        if (_state.value.draft.stepProgress.currentStepId == SetupStepId.REVIEW_ACTIVATE) {
+            WizChatMachineState.Reviewing
+        } else {
+            WizChatMachineState.AwaitingAnswer
         }
-        validateAnswer(currentId, answer, state.draft)?.let { error -> _state.value = state.copy(machineState = WizChatMachineState.RecoverableError, errors = mapOf(currentId.name to error)); return }
-        val applied = applyAnswer(state.draft, answer)
-        val next = nextQuestion(applied, currentId)
-        val reduced = WizChatReducer.accept(state.draft.wizChat, currentId,
-            answer.copy(acceptedAtMs = System.currentTimeMillis(), variantId = WizChatReducer.stableVariantId(
-                state.draft.commitId, currentId, state.draft.wizChat.revision + 1, WizChatCopyCatalog.SCRIPT_VERSION)), next) ?: return
-        val invalidated = reduced.invalidated
-        val progress = reduced.progress.copy(
-            acceptedAnswers = reduced.progress.acceptedAnswers.filterNot { it.questionId in invalidated },
-            currentQuestionId = if (currentId == WizChatQuestionId.REVIEW) WizChatQuestionId.REVIEW else next,
-            terminal = currentId == WizChatQuestionId.REVIEW,
-        )
-        // Procedencia: nunca se guarda un preview como respuesta declarada.
-        val step = SetupStepGraph.stepForQuestion(if (currentId == WizChatQuestionId.REVIEW) WizChatQuestionId.REVIEW else next)
-        val answeredStep = SetupStepGraph.stepForQuestion(currentId)
-        val recorded = if (answeredStep == null) applied else applied.recordStepAnswer(
-            answeredStep,
-            SetupAnswerProvenance.fromLegacy(answer.source),
-            when (answer.source) {
-                WizChatAnswerSource.OMITTED -> SetupValueState.ABSENT
-                WizChatAnswerSource.IMPORTED, WizChatAnswerSource.SUGGESTED_ACCEPTED -> SetupValueState.ESTIMATED
-                else -> SetupValueState.DECLARED
-            },
-        ).let { draft -> draft.copy(stepProgress = draft.stepProgress.reviewDone(answeredStep)) }
-        val moved = recorded.copy(
-            wizChat = progress,
-            stepProgress = (step?.let { recorded.stepProgress.at(it, recorded.stepContext()) } ?: recorded.stepProgress),
-            revision = state.draft.revision + 1,
-        )
-        val persisted = moved.withChangeImpacts(state.draft)
-        _state.value = state.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
-        if (!persistDraft(persisted)) return
-        publishDraft(persisted, true, if (currentId == WizChatQuestionId.REVIEW) WizChatMachineState.Reviewing else WizChatMachineState.AwaitingAnswer)
-        if (currentId != WizChatQuestionId.T_PLAN && trainingKey(state.draft) != trainingKey(persisted)) updateCandidates(persisted)
-        preparePreview(persisted)
-    }
-
-    private fun validateAnswer(id: WizChatQuestionId, answer: WizChatAnswerRecord, draft: SetupWizardDraft): String? {
-        val question = WizChatGraph.question(id) ?: return "Pregunta no disponible"
-        if (answer.source == WizChatAnswerSource.OMITTED) return if (question.allowSkip || id in setOf(WizChatQuestionId.N_START, WizChatQuestionId.N_RESULT, WizChatQuestionId.R_START)) null else "Esta respuesta es necesaria para continuar"
-        WizChatValidation.validate(question, answer.textValue, answer.numberValue, answer.values)?.let { return it }
-        return when (id) {
-            WizChatQuestionId.P_NAME -> if (WizChatValidation.cleanText(answer.textValue.orEmpty()).isBlank() && !question.allowSkip) "Escribe un nombre o usa omitir" else null
-            WizChatQuestionId.N_START -> if (answer.textValue in question.options ||
-                answer.textValue == "Conservar plan actual" && activeNutritionPlan() != null) null else "Elige una opción disponible"
-            WizChatQuestionId.T_GOAL -> if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH && answer.textValue == "Fuerza + cardio") "Para combinar fuerza y cardio, elige un plan que programe ambas modalidades" else null
-            WizChatQuestionId.T_DAYS -> if (answer.textValue?.toIntOrNull() !in 1..6) "Elige entre 1 y 6 días" else null
-            WizChatQuestionId.T_WEEKDAYS -> if (answer.values.size != (draft.daysPerWeek ?: 0)) "Selecciona exactamente ${draft.daysPerWeek ?: 0} días" else null
-            WizChatQuestionId.T_HOME_EQUIPMENT -> WizChatValidation.exclusiveMultiChoice(answer.values, "Sin material", "El equipo")
-            WizChatQuestionId.N_ELIGIBILITY -> when {
-                "No lo sé / prefiero no responder" in answer.values && answer.values.size > 1 -> "No lo sé / prefiero no responder es una opción exclusiva"
-                else -> WizChatValidation.exclusiveMultiChoice(answer.values, "Ninguna de estas", "La selección")
-            }
-            WizChatQuestionId.R_DISCOMFORT -> WizChatValidation.exclusiveMultiChoice(answer.values, "Sin molestias", "La selección")
-                ?: WizChatValidation.exclusiveMultiChoice(answer.values, "Prefiero omitirlo", "La selección")
-            WizChatQuestionId.T_PLAN -> if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) {
-                if (answer.textValue != "from-scratch" || previewInputsIncomplete(draft)) "Completa al menos un ejercicio en cada sesión" else null
-            } else if (_state.value.planCandidates.none { it.id == answer.textValue }) "Elige una opción compatible" else null
-            WizChatQuestionId.T_MARKS -> {
-                val parsed = answer.values.map { parseLocalizedNumber(it) }
-                if (parsed.none { it != null }) "Añade al menos una marca, o vuelve y elige Todavía no"
-                else if (parsed.any { it != null && it !in 1.0..1000.0 }) "Usa valores válidos entre 1 y 1000 kg"
-                else null
-            }
-            WizChatQuestionId.T_REVIEW -> when {
-                draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && (_state.value.programPreview == null || _state.value.isPreviewLoading || lastSuccessfulTrainingKey != trainingKey(draft)) -> "Espera a que el programa esté preparado"
-                _state.value.fixedSessionEstimateMinutes?.let { it > (draft.minutesPerSession ?: 100) } == true -> "Esta receta supera los ${draft.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo"
-                fixedRecipeDifference(draft, _state.value.programPreview, _state.value.fixedSessionEstimateMinutes) && !draft.acceptFixedRecipeDifference -> "Confirma la diferencia entre tu disponibilidad y esta receta"
-                else -> null
-            }
-            WizChatQuestionId.N_RESULT -> prepareNutrition(draft)?.errors?.values?.firstOrNull()
-            WizChatQuestionId.R_RESULT -> if (ringsMapping(draft).completion == RingsCompletion.INCOMPLETE) "Completa las tres sensaciones requeridas" else null
-            else -> null
-        }
-    }
-
-    private fun nextQuestion(draft: SetupWizardDraft, current: WizChatQuestionId): WizChatQuestionId {
-        val context = WizChatGraphContext(
-        includeTraining = draft.includeTraining,
-        includeNutrition = draft.includeNutrition,
-        programRouteLater = draft.programRoute == SetupProgramRoute.LATER,
-        trainingPlanSelected = draft.selectedCatalogId != null || draft.trainingPath == SetupTrainingPath.FROM_SCRATCH,
-        recentTraining = draft.ringsAnswers?.recentTraining,
-        recentTrainingUnknown = draft.ringsAnswers?.recentTrainingState == SetupRecentTrainingState.UNKNOWN,
-        nutritionStarted = draft.includeNutrition && draft.nutritionMode == "create",
-        nutritionProfessional = draft.nutritionDraft?.mode == "professional",
-        ringsAction = draft.ringsAnswers?.startAction,
-        homeEquipmentSelected = draft.trainingEnvironment == "Entreno en casa",
-        hasTrainingMarks = draft.knowsTrainingMarks,
-        includeRings = _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.RINGS_ONLY),
-        mixedTraining = draft.goal == SetupGoal.MIXED,
-        goalStyleInferred = draft.goal?.inferredTrainingStyle != null,
-        )
-        var next = WizChatGraph.next(current, context) ?: WizChatQuestionId.REVIEW
-        val invalidated = WizChatReducer.invalidatedAnswersFor(current)
-        val kept = draft.wizChat.acceptedAnswers.map { it.questionId }.toSet() - invalidated - current
-        val visited = mutableSetOf<WizChatQuestionId>()
-        while (next != WizChatQuestionId.REVIEW && next in kept && visited.add(next)) {
-            next = WizChatGraph.next(next, context) ?: WizChatQuestionId.REVIEW
-        }
-        return next
-    }
-
-    private fun applyAnswer(draft: SetupWizardDraft, answer: WizChatAnswerRecord): SetupWizardDraft {
-        val text = WizChatValidation.cleanText(answer.textValue.orEmpty())
-        val values = answer.values
-        return when (answer.questionId) {
-            WizChatQuestionId.P_NAME -> if (answer.source == WizChatAnswerSource.OMITTED) draft else draft.copy(name = text)
-            WizChatQuestionId.P_GENDER -> draft.copy(profileGender = when (text) { "Mujer" -> Gender.FEMALE; "Hombre" -> Gender.MALE; "Otro" -> Gender.OTHER; else -> null })
-            WizChatQuestionId.P_AGE -> if (answer.source == WizChatAnswerSource.OMITTED) draft else draft.copy(ageYears = answer.numberValue?.toInt())
-            WizChatQuestionId.P_HEIGHT -> if (answer.source == WizChatAnswerSource.OMITTED) draft else draft.copy(heightCm = answer.numberValue)
-            WizChatQuestionId.P_WEIGHT -> if (answer.source == WizChatAnswerSource.OMITTED) draft else draft.copy(weightKg = answer.numberValue)
-            WizChatQuestionId.P_EXPERIENCE -> draft.copy(experience = SetupExperience.entries.first { it.label == text })
-            WizChatQuestionId.T_ROUTE -> when (text) {
-                "Elegir un protocolo" -> draft.copy(programRoute = SetupProgramRoute.PROTOCOL, trainingPath = SetupTrainingPath.PERSONALIZE)
-                "Crear desde cero" -> draft.copy(programRoute = SetupProgramRoute.CUSTOMIZABLE, trainingPath = SetupTrainingPath.FROM_SCRATCH)
-                "Lo decidiré después" -> draft.copy(programRoute = SetupProgramRoute.LATER, includeTraining = false, selectedCatalogId = null)
-                else -> draft.copy(programRoute = SetupProgramRoute.CUSTOMIZABLE, trainingPath = SetupTrainingPath.PERSONALIZE, includeTraining = true)
-            }
-            WizChatQuestionId.T_GOAL -> {
-                val goal = when (text) {
-                    "Fuerza" -> SetupGoal.STRENGTH
-                    "Músculo" -> SetupGoal.MUSCLE
-                    "Fuerza y músculo" -> SetupGoal.STRENGTH_MUSCLE
-                    "Fuerza + cardio" -> SetupGoal.MIXED
-                    else -> SetupGoal.HEALTH
-                }
-                val base = draft.copy(goal = goal, cardioType = null, cardioMinutes = null)
-                // The goal recalibrates the volume reference; an asked focus is
-                // only valid once it has been answered again.
-                val style = goal.inferredTrainingStyle
-                if (style != null) base.withVolumeStyle(style)
-                else base.copy(volumeAnswers = base.volumeAnswers.copy(style = null),
-                    volumeCalibrationProfile = null, volumeRecommendations = emptyList(), athleteProfileScore = null)
-            }
-            WizChatQuestionId.T_STYLE -> draft.withVolumeStyle(when {
-                text == "Powerlifting" || text == "Fuerza" -> TrainingStyle.POWERLIFTER
-                text == "Powerbuilding" || text == "Ambos" -> TrainingStyle.POWERBUILDER
-                else -> TrainingStyle.BODYBUILDER
-            })
-            WizChatQuestionId.T_VOLUME_TECHNIQUE -> withVolume(draft, answer, 0)
-            WizChatQuestionId.T_VOLUME_CONSISTENCY -> withVolume(draft, answer, 1)
-            WizChatQuestionId.T_VOLUME_STRENGTH -> withVolume(draft, answer, 2)
-            WizChatQuestionId.T_VOLUME_MOBILITY -> withVolume(draft, answer, 3)
-            WizChatQuestionId.T_EQUIPMENT -> draft.copy(trainingEnvironment = text, equipment = equipmentFor(text)?.let(::setOf) ?: emptySet())
-            WizChatQuestionId.T_HOME_EQUIPMENT -> draft.copy(equipment = values.mapNotNull(::equipmentFor).toSet())
-            WizChatQuestionId.T_DAYS -> draft.copy(daysPerWeek = text.toIntOrNull())
-            WizChatQuestionId.T_WEEKDAYS -> draft.copy(selectedWeekdays = values.mapNotNull { weekdayLabels.indexOf(it).takeIf { index -> index >= 0 }?.plus(1) }.toSet())
-            WizChatQuestionId.T_TIME -> draft.copy(minutesPerSession = answer.numberValue?.toInt())
-            WizChatQuestionId.T_CARDIO_TYPE -> draft.copy(cardioType = when (text) { "Correr al aire libre" -> CardioType.RUN_OUTDOOR; "Bicicleta al aire libre" -> CardioType.BIKE_OUTDOOR; else -> CardioType.WALK })
-            WizChatQuestionId.T_CARDIO_TIME -> draft.copy(cardioMinutes = Regex("\\d+").find(text)?.value?.toIntOrNull())
-            WizChatQuestionId.T_TRAINING_MAX -> draft.copy(knowsTrainingMarks = text == "Conozco mis marcas", powerliftingProfile = if (text == "Conozco mis marcas") draft.powerliftingProfile else null)
-            WizChatQuestionId.T_MARKS -> draft.copy(powerliftingProfile = (draft.powerliftingProfile ?: PowerliftingProfile()).copy(
-                squat1RM = parseLocalizedNumber(values.getOrNull(0).orEmpty()),
-                bench1RM = parseLocalizedNumber(values.getOrNull(1).orEmpty()),
-                deadlift1RM = parseLocalizedNumber(values.getOrNull(2).orEmpty()),
-            ))
-            WizChatQuestionId.T_PLAN -> if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft else draft.copy(selectedCatalogId = text, acceptFixedRecipeDifference = false)
-            WizChatQuestionId.N_START -> SetupPendingNutrition.applyNStart(draft, text)
-            WizChatQuestionId.N_SEX -> draft.withNutrition { it.copy(equationSex = when (text) { "Femenino" -> EerSex.FEMALE; "Masculino" -> EerSex.MALE; else -> null }) }
-            WizChatQuestionId.N_ELIGIBILITY -> draft.withNutrition { it.copy(eligibilityUnknown = values.any { it.contains("no lo sé", true) || it.contains("no lo se", true) }, pregnant = values.any { it.contains("embarazo", true) }, lactating = values.any { it.contains("lactancia", true) }, medicalRestriction = values.any { it.contains("médica", true) || it.contains("medica", true) }) }
-            WizChatQuestionId.N_DIRECTION -> draft.withNutrition { it.copy(direction = when (text) { "Definir" -> PlanDirection.DEFICIT; "Volumen" -> PlanDirection.SURPLUS; else -> PlanDirection.MAINTENANCE }) }
-            WizChatQuestionId.N_ACTIVITY -> draft.withNutrition { it.copy(activity = when (text) { "Muy activo" -> EerActivity.VERY_ACTIVE; "Activo" -> EerActivity.ACTIVE; "Algo activo" -> EerActivity.LOW_ACTIVE; else -> EerActivity.INACTIVE }) }
-            WizChatQuestionId.R_START -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(
-                startAction = text, capturedAtMs = if (text == "Actualizarla" || text == "Preparar mi punto de partida") null else draft.ringsAnswers?.capturedAtMs))
-            WizChatQuestionId.R_RECENT -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).let { old ->
-                if (text == "Sí") old.copy(recentTraining = true, recentTrainingState = SetupRecentTrainingState.YES, capturedAtMs = null)
-                else old.copy(recentTraining = if (text == "No") false else null,
-                    recentTrainingState = if (text == "No") SetupRecentTrainingState.NO else SetupRecentTrainingState.UNKNOWN,
-                    sessionsLastSevenDays = null, lastSessionRecencyDays = null, recencyDays = null,
-                    activityType = null, intensityLevel = null, axialExposure = InitialRecoveryAxialExposure(), capturedAtMs = null)
-            })
-            WizChatQuestionId.R_SESSIONS -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(sessionsLastSevenDays = answer.numberValue?.toInt() ?: text.toIntOrNull(), capturedAtMs = null))
-            WizChatQuestionId.R_RECENCY -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(lastSessionRecencyDays = recencyFor(text), recencyDays = recencyFor(text), capturedAtMs = null))
-            WizChatQuestionId.R_ACTIVITY -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(activityType = when { text.contains("cardio", true) -> InitialRecoveryActivityType.CARDIO; text.contains("mixta", true) -> InitialRecoveryActivityType.MIXED; else -> InitialRecoveryActivityType.STRENGTH }, activityTypeState = InitialRecoveryResponseState.DECLARED, capturedAtMs = null))
-            WizChatQuestionId.R_INTENSITY -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(intensityLevel = intensityFor(text), capturedAtMs = null))
-            WizChatQuestionId.R_AXIAL -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(axialExposure = InitialRecoveryAxialExposure(if (text == "Sí" || text == "No") InitialRecoveryResponseState.DECLARED else InitialRecoveryResponseState.UNKNOWN, if (text == "Sí") 1 else 0, draft.ringsAnswers?.intensityLevel, draft.ringsAnswers?.lastSessionRecencyDays), capturedAtMs = null))
-            WizChatQuestionId.R_FEELINGS_MUSCLE -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(muscleFeeling = feelingFor(answer.questionId, text), capturedAtMs = null))
-            WizChatQuestionId.R_FEELINGS_ENERGY -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(energy = feelingFor(answer.questionId, text), capturedAtMs = null))
-            WizChatQuestionId.R_FEELINGS_STRUCTURE -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(structureFeeling = feelingFor(answer.questionId, text), capturedAtMs = null))
-            WizChatQuestionId.R_DISCOMFORT -> draft.copy(ringsAnswers = (draft.ringsAnswers ?: SetupRingsAnswers()).copy(
-                discomfortState = when { "Prefiero omitirlo" in values -> SetupDiscomfortState.OMITTED; "Sin molestias" in values -> SetupDiscomfortState.NONE; values.isNotEmpty() -> SetupDiscomfortState.DECLARED; else -> SetupDiscomfortState.NOT_ANSWERED },
-                discomfortIds = values.filterNot { it == "Sin molestias" || it == "Prefiero omitirlo" }.mapNotNull { value -> DISCOMFORT_CATALOG_BY_ID[value]?.id ?: DISCOMFORT_CATALOG_BY_ID.values.firstOrNull { entry -> entry.label == value }?.id }.distinct()))
-            WizChatQuestionId.N_RESULT -> if (answer.source == WizChatAnswerSource.OMITTED) draft.copy(includeNutrition = false) else draft
-            WizChatQuestionId.R_RESULT -> if (ringsMapping(draft).savesRealCheckIn) draft.copy(ringsAnswers = draft.ringsAnswers?.let { it.copy(capturedAtMs = it.capturedAtMs ?: System.currentTimeMillis()) }) else draft
-            else -> draft
-        }
-    }
-
-    private fun SetupWizardDraft.withVolumeStyle(style: TrainingStyle): SetupWizardDraft {
-        val answers = volumeAnswers.copy(style = style)
-        val profile = buildVolumeProfile(copy(volumeAnswers = answers))
-        return copy(volumeAnswers = answers, volumeCalibrationProfile = profile, volumeRecommendations = profile?.recommendations.orEmpty(), athleteProfileScore = profile?.athleteProfileScore)
-    }
-    private fun withVolume(draft: SetupWizardDraft, answer: WizChatAnswerRecord, field: Int): SetupWizardDraft {
-        val old = draft.volumeAnswers
-        val value = answerIndex(answer.textValue)
-        val answers = when (field) { 0 -> old.copy(technique = value); 1 -> old.copy(consistency = value); 2 -> old.copy(strength = value); else -> old.copy(mobility = value) }
-        val profile = buildVolumeProfile(draft.copy(volumeAnswers = answers))
-        return draft.copy(volumeAnswers = answers, volumeCalibrationProfile = profile, volumeRecommendations = profile?.recommendations.orEmpty(), athleteProfileScore = profile?.athleteProfileScore)
-    }
 
     private suspend fun persistAndPublish(draft: SetupWizardDraft) {
         val previous = _state.value.draft
         val previousKey = trainingKey(previous)
         // Cambios fisiológicos reales: marcan pendientes y previews obsoletos.
         // La navegación pura no cambia la huella y por eso no dispara nada.
-        val next = draft.withChangeImpacts(previous)
+        // Revisión monótona: models nunca toca draft.revision, así que la frontera
+        // de persistencia siempre supera la fila guardada (guard de Room en 126).
+        val next = draft.withNextDraftRevision(previous).withChangeImpacts(previous)
         _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
         if (persistDraft(next)) {
             publishDraft(next, true, WizChatMachineState.AwaitingAnswer)
             if (previousKey != trainingKey(next)) updateCandidates(next)
             preparePreview(next)
+        } else {
+            // Guardar falló: el borrador (respuestas incluidas) sigue visible en
+            // memoria con un error inline y sin perder nada, para reintentar.
+            _state.value = _state.value.copy(draft = next, dirty = true, machineState = WizChatMachineState.AwaitingAnswer,
+                isSubmittingAnswer = false, isSavingAndExiting = false)
         }
     }
-    private fun mutateDraft(change: (SetupWizardDraft) -> SetupWizardDraft) = viewModelScope.launch { commandMutex.withLock {
-        if (!initialized || _state.value.isCommitting || _state.value.machineState == WizChatMachineState.Committed || _state.value.machineState == WizChatMachineState.UnsupportedDraft) return@withLock
+    /**
+     * Serialized write: applies [change] to the current draft and persists with
+     * a strictly monotonic revision. It NEVER moves the cursor: confirmation
+     * and advance belong to [submitCurrentStep] alone.
+     *
+     * Declaración explícita: una escritura de usuario con `step != null`
+     * declara el paso aunque el valor no cambie (p. ej. confirmar el peso por
+     * defecto 70 kg con la regla); si ya estaba declarado y el valor no varía,
+     * no se persiste nada (sin revisión inútil).
+     */
+    private fun mutateDraft(step: SetupStepId? = null, change: (SetupWizardDraft) -> SetupWizardDraft) = viewModelScope.launch { commandMutex.withLock {
+        if (!initialized || _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting ||
+            _state.value.machineState == WizChatMachineState.Committed ||
+            _state.value.machineState == WizChatMachineState.UnsupportedDraft
+        ) return@withLock
         val old = _state.value.draft
         val changed = change(old)
-        if (changed != old) persistAndPublish(changed.copy(revision = old.revision + 1))
+        val alreadyDeclared = step != null && step in old.declaredSteps
+        val marked = if (step != null && (changed != old || !alreadyDeclared)) changed.touchStep(step) else changed
+        if (marked != old) persistAndPublish(marked.copy(revision = old.revision + 1))
     } }
     private suspend fun persistDraft(draft: SetupWizardDraft): Boolean = try {
-        persistenceFactory(getApplication<Application>()).drafts.save(draft.draftId, json.encodeToString(draft), draft.revision.toLong(), PersonalizedPlanCatalog.REVISION)
+        persistence.save(draft.draftId, json.encodeToString(draft), draft.revision.toLong(), PersonalizedPlanCatalog.REVISION)
         savedStateHandle[DRAFT_ID_KEY] = draft.draftId
         true
     } catch (cancel: CancellationException) { throw cancel }
     catch (error: Exception) {
-        _state.value = _state.value.copy(machineState = WizChatMachineState.RecoverableError,
-            errors = mapOf("draft" to "No pude guardar esta respuesta. Inténtalo de nuevo."), isSubmittingAnswer = false)
+        // Fracaso de guardado: error inline (dismissible), nunca un modal; el
+        // estado de máquina lo decide quien llama (AwaitingAnswer + inicializado).
+        _state.value = _state.value.copy(errors = mapOf("save" to "No pude guardar esta respuesta. Tu información sigue aquí; inténtalo de nuevo."), lastFailure = error.message)
         false
     }
-    private fun publishDraft(draft: SetupWizardDraft, dirty: Boolean, machine: WizChatMachineState) { _state.value = _state.value.copy(draft = draft, dirty = dirty, isLoading = false, machineState = machine, messages = messagesFor(draft), errors = emptyMap(), previewError = null, isSubmittingAnswer = false) }
+    private fun publishDraft(draft: SetupWizardDraft, dirty: Boolean, machine: WizChatMachineState) {
+        // Éxito de escritura: se limpia el último fallo, salvo el diagnóstico
+        // de RINGS, que solo lo retira su propio cálculo cuando sale bien (el
+        // gate de RINGS debe poder seguir mostrando la causa real).
+        val ringsDiagnosis = _state.value.lastFailure
+            ?.takeIf { it.startsWith(RINGS_FAILURE_PREFIX) }
+        _state.value = _state.value.copy(draft = draft, dirty = dirty, isLoading = false, machineState = machine,
+            errors = emptyMap(), previewError = null, lastFailure = ringsDiagnosis, isSubmittingAnswer = false)
+    }
 
     private val trainingPreviewKinds = setOf(
         SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS,
@@ -774,38 +955,162 @@ class SetupWizardViewModel(
         })
     }
 
+    /**
+     * Fingerprint of everything the training engines consume: options, split,
+     * marks and VITALS. Any change makes the cached preview stale so the next
+     * computation runs against the real inputs.
+     */
     private fun trainingKey(draft: SetupWizardDraft): List<Any?> = listOf(
         draft.commitId, draft.includeTraining, draft.programRoute, draft.trainingPath, draft.goal, draft.focus,
         draft.experience, draft.daysPerWeek, draft.selectedWeekdays, draft.minutesPerSession, draft.equipment,
         draft.cardioType, draft.cardioMinutes,
-        draft.volumeRecommendations, draft.priorityMuscles, draft.lowerEmphasisMuscles,
+        draft.ageYears, draft.heightCm, draft.weightKg, draft.profileGender,
+        draft.trainingOptions,
+        // Inventario declarado (P0): su cambio invalida candidatos y preview de
+        // programa, aunque el resto de opciones no varíen.
+        draft.trainingOptions.inventory,
+        draft.trainingEnvironment, draft.knowsTrainingMarks,
+        draft.volumeAnswers, draft.volumeRecommendations, draft.priorityMuscles, draft.lowerEmphasisMuscles,
         draft.selectedSplitId, draft.customSplitPattern, draft.customSplitName,
         draft.selectedCatalogId, draft.sessions, draft.powerliftingProfile, draft.catalogRevision,
     )
 
+    /** Catalog is loaded lazily, only when a preview or candidate computation requires it. */
+    private suspend fun ensureCatalogLoaded() {
+        if (catalogLoaded) return
+        catalogRepository.load()
+        catalogLoaded = true
+    }
+
+    /**
+     * Propiedad de generación/job del preview: cada lanzamiento (o liberación
+     * de caché) incrementa [previewGeneration] y toma la PROPIEDAD de
+     * `isPreviewLoading`/`preparingTrainingKey`.
+     *
+     * Reglas:
+     *  - el dedup sólo vale con un job **activo** calculando la misma clave;
+     *  - un cache-hit **libera** el cálculo intermedio (cancela y apaga el
+     *    loading): es la carrera A→B→A que dejaba `isPreviewLoading=true` eterno;
+     *  - sólo el job **dueño** publica o limpia — un job viejo (cancelado o
+     *    tardío) no escribe nada —;
+     *  - una cancelación nunca publica error.
+     */
+    private fun previewKey(draft: SetupWizardDraft): List<Any?> =
+        trainingKey(draft) + _state.value.planAdaptedToBodyweight
+
+    private fun bodyweightAdapted(draft: SetupWizardDraft): SetupWizardDraft = draft.copy(
+        equipment = setOf(SetupEquipment.BODYWEIGHT),
+        trainingOptions = draft.trainingOptions.copy(availability = EquipmentAvailability()),
+    )
+
     private fun preparePreview(draft: SetupWizardDraft) {
         prepareRingsPreview(draft)
-        val key = trainingKey(draft)
-        if (preparingTrainingKey == key && _state.value.isPreviewLoading) {
+        // Mientras se recalculan candidatos, el pase adaptado todavía no está
+        // decidido. Materializar aquí mostraría un error de equipo que el
+        // segundo pase puede resolver. El job de candidatos relanza la vista.
+        if (_state.value.isCandidateLoading) return
+        val key = previewKey(draft)
+        val jobActive = previewJob?.isActive == true
+        if (jobActive && preparingTrainingKey == key && _state.value.isPreviewLoading) {
             updateNutritionPreview(draft)
             return
         }
         if (lastSuccessfulTrainingKey == key && _state.value.programPreview != null && _state.value.previewError == null) {
+            // Caché válida: se recupera el resultado Y se retira la rama
+            // intermedia que aún estuviera calculando.
+            releasePreviewGeneration(cancelInFlight = true)
             clearStalePreviews(trainingPreviewKinds)
             updateNutritionPreview(draft)
             return
         }
+        val generation = previewGeneration + 1
+        previewGeneration = generation
         previewJob?.cancel()
         preparingTrainingKey = key
-        previewJob = viewModelScope.launch {
-            if (!initialized) return@launch
-            if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) { lastSuccessfulTrainingKey = null; _state.value = _state.value.copy(programPreview = null, previewReport = null, fixedSessionEstimateMinutes = null, fixedTrainingDays = null, isPreviewLoading = false); updateNutritionPreview(draft); return@launch }
-            if (previewInputsIncomplete(draft)) { lastSuccessfulTrainingKey = null; _state.value = _state.value.copy(programPreview = null, previewReport = null, fixedSessionEstimateMinutes = null, fixedTrainingDays = null, isPreviewLoading = false); updateNutritionPreview(draft); return@launch }
-            _state.value = _state.value.copy(machineState = WizChatMachineState.PreparingPreview, isPreviewLoading = true, previewError = null)
-            try {
-                val result = withContext(Dispatchers.IO) { materializeProgram(draft) }
-                if (trainingKey(_state.value.draft) == key) {
+        _state.value = _state.value.copy(isPreviewLoading = true)
+        previewJob = viewModelScope.launch { runPreview(generation, key, draft) }
+    }
+
+    /**
+     * Retira la propiedad del cálculo en vuelo: invalida la generación, cancela
+     * si hace falta y apaga el loading. Sólo la invoca el NUEVO dueño
+     * (cache-hit / nueva generación) o [initialize].
+     */
+    private fun releasePreviewGeneration(cancelInFlight: Boolean) {
+        previewGeneration += 1
+        if (cancelInFlight) previewJob?.cancel()
+        previewJob = null
+        preparingTrainingKey = null
+        retirePreviewLoading()
+    }
+
+    private fun ownsPreview(generation: Long): Boolean = generation == previewGeneration
+
+    /** Sólo el dueño retira su señal de carga, sin publicar ningún resultado. */
+    private fun retirePreviewLoading() {
+        preparingTrainingKey = null
+        val current = _state.value
+        if (current.isPreviewLoading || current.machineState == WizChatMachineState.PreparingPreview) {
+            _state.value = current.copy(
+                isPreviewLoading = false,
+                machineState = if (current.machineState == WizChatMachineState.PreparingPreview) {
+                    stateForCurrentStep()
+                } else {
+                    current.machineState
+                },
+            )
+        }
+    }
+
+    /**
+     * Materialización real, salvo el puerto inyectado por las tests. El catálogo
+     * es un PREREQUISITO del motor real: con override las tests controlan el
+     * materializado completo sin cargar assets.
+     */
+    private suspend fun materialize(draft: SetupWizardDraft): SetupPreview {
+        val override = materializeOverride
+        if (override != null) return override.materialize(draft)
+        ensureCatalogLoaded()
+        return materializeProgram(draft)
+    }
+
+    private suspend fun runPreview(generation: Long, key: List<Any?>, draft: SetupWizardDraft) {
+        if (!initialized) {
+            if (ownsPreview(generation)) {
+                preparingTrainingKey = null
+                _state.value = _state.value.copy(isPreviewLoading = false)
+            }
+            return
+        }
+        val withoutPreview = !draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER ||
+            previewInputsIncomplete(draft)
+        if (withoutPreview) {
+            if (ownsPreview(generation)) {
+                lastSuccessfulTrainingKey = null
+                preparingTrainingKey = null
+                _state.value = _state.value.copy(
+                    programPreview = null, previewReport = null,
+                    fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
+                    isPreviewLoading = false,
+                )
+                updateNutritionPreview(draft)
+            }
+            return
+        }
+        if (ownsPreview(generation)) {
+            _state.value = _state.value.copy(
+                machineState = WizChatMachineState.PreparingPreview,
+                isPreviewLoading = true, previewError = null,
+            )
+        }
+        try {
+            val source = if (_state.value.planAdaptedToBodyweight) bodyweightAdapted(draft) else draft
+            val result = withContext(Dispatchers.IO) { materialize(source) }
+            when {
+                // Dueño + clave vigente: publica y se retira.
+                ownsPreview(generation) && previewKey(_state.value.draft) == key -> {
                     lastSuccessfulTrainingKey = key
+                    preparingTrainingKey = null
                     clearStalePreviews(trainingPreviewKinds)
                     val isFixed = draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)?.source?.let { it != CatalogSource.NATIVE } == true
                     val minutes = if (isFixed) result.program?.let(::estimateFixedSessionMinutes) else null
@@ -815,8 +1120,23 @@ class SetupWizardViewModel(
                         requiresActivationConfirmation = activationConfirmation(draft, result.program))
                     updateNutritionPreview(_state.value.draft)
                 }
-            } catch (cancel: CancellationException) { throw cancel }
-            catch (error: Throwable) { if (trainingKey(_state.value.draft) == key) _state.value = _state.value.copy(isPreviewLoading = false, machineState = WizChatMachineState.RecoverableError, previewError = error.message ?: "No se pudo preparar la vista previa") }
+                // Dueño con clave ya vieja: sólo retira su carga; el resultado
+                // se descarta (nunca se publica un preview que ya no corresponde).
+                ownsPreview(generation) -> retirePreviewLoading()
+            }
+            // No dueño: manda el job actual; este job no escribe nada.
+        } catch (cancel: CancellationException) {
+            // Cancelación: sin error y sin tocar el estado del job dueño.
+            throw cancel
+        } catch (error: Throwable) {
+            if (ownsPreview(generation)) {
+                preparingTrainingKey = null
+                if (previewKey(_state.value.draft) == key) {
+                    _state.value = _state.value.copy(isPreviewLoading = false, machineState = stateForCurrentStep(), previewError = error.message ?: "No se pudo preparar la vista previa", errors = _state.value.errors + ("preview" to (error.message ?: "No se pudo preparar la vista previa")), lastFailure = error.message)
+                } else {
+                    retirePreviewLoading()
+                }
+            }
         }
     }
     private fun firstWeekSessions(program: Program): List<Session> = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
@@ -842,34 +1162,78 @@ class SetupWizardViewModel(
         draft.manualMuscleOverrides, draft.manualEnergyOverride, draft.manualStructureOverride)
 
     private fun prepareRingsPreview(draft: SetupWizardDraft) {
-        val mapping = ringsMapping(draft)
+        // Un solo reloj para el mapeo y el cálculo: el check-in previewado y
+        // el que se guardaría en el commit comparten fecha.
+        val now = System.currentTimeMillis()
+        val mapping = ringsMapping(draft, now)
         val key = ringsKey(draft)
         if (!mapping.savesRealCheckIn) {
             ringsPreviewJob?.cancel()
+            // Sin check-in real no hay baterías NI cobertura: nunca se muestra
+            // una cobertura calculada sobre datos que no existen.
             lastRingsPreviewKey = null
-            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsPreviewLoading = false, ringsPreviewError = null)
+            ringsPreviewNow = null
+            _state.value = _state.value.copy(ringsBatteriesPreview = null, ringsCoveragePreview = null,
+                ringsPreviewLoading = false, ringsPreviewError = null,
+                errors = _state.value.errors - "rings_preview",
+                // Tampoco queda un diagnóstico de RINGS que ya no aplica.
+                lastFailure = _state.value.lastFailure
+                    ?.takeUnless { it.startsWith(RINGS_FAILURE_PREFIX) })
+            // Baterías, cobertura y marcas obsoletas se limpian juntas.
+            clearStalePreviews(ringsPreviewKinds)
             return
         }
         if (lastRingsPreviewKey == key && _state.value.ringsBatteriesPreview != null) return
         ringsPreviewJob?.cancel()
-        _state.value = _state.value.copy(ringsPreviewLoading = true, ringsPreviewError = null)
+        _state.value = _state.value.copy(ringsPreviewLoading = true, ringsPreviewError = null,
+            errors = _state.value.errors - "rings_preview")
         ringsPreviewJob = viewModelScope.launch {
             try {
-                val result = calculateRingsPreview(draft, mapping)
+                val result = calculateRingsPreview(draft, mapping, now)
                 if (ringsKey(_state.value.draft) == key) {
                     lastRingsPreviewKey = key
-                    _state.value = _state.value.copy(ringsBatteriesPreview = result.batteries, ringsPreviewLoading = false)
+                    // El reloj inyectado se conserva: el commit reutiliza esta
+                    // MISMA fecha para el check-in que se guardará.
+                    ringsPreviewNow = now
+                    // Éxito: se retira SOLO el diagnóstico de RINGS; los fallos
+                    // de guardado/carga que sigan abiertos no se enmascaran.
+                    val stillFailed = _state.value.lastFailure
+                        ?.takeUnless { it.startsWith(RINGS_FAILURE_PREFIX) }
+                    // Baterías y cobertura se publican JUNTAS: la cobertura sale
+                    // del mismo cálculo, nunca de una etiqueta global derivada
+                    // de las baterías (un canal desconocido no es cobertura).
+                    _state.value = _state.value.copy(
+                        ringsBatteriesPreview = result.batteries,
+                        ringsCoveragePreview = result.coverage,
+                        ringsPreviewLoading = false,
+                        lastFailure = stillFailed,
+                    )
                     clearStalePreviews(ringsPreviewKinds)
                 }
             } catch (cancel: CancellationException) { throw cancel }
             catch (error: Throwable) {
+                // Diagnóstico honesto: la CAUSA REAL (clase + mensaje) queda en
+                // `lastFailure` —nunca un genérico— y se registra en logcat con
+                // la traza. Solo se manda la excepción: ni borrador, ni
+                // respuestas, ni ajustes (sin datos personales). Sin cancelación
+                // encima, y sin inventar ningún preview en su lugar.
+                val cause = "${error::class.java.simpleName}: ${error.message ?: "sin detalle"}"
+                Log.e(DIAG_TAG, "Rings preview falló → $cause", error)
                 if (ringsKey(_state.value.draft) == key) _state.value = _state.value.copy(
-                    ringsPreviewLoading = false, ringsPreviewError = "No pude preparar tus RINGS. Reintenta desde esta pregunta.")
+                    ringsPreviewLoading = false,
+                    ringsPreviewError = "No pude preparar tus RINGS. Reintenta desde esta pregunta.",
+                    errors = _state.value.errors + ("rings_preview" to "No pude preparar tus RINGS. Reintenta desde esta pregunta."),
+                    lastFailure = "$RINGS_FAILURE_PREFIX · $cause",
+                )
             }
         }
     }
 
-    private suspend fun calculateRingsPreview(draft: SetupWizardDraft, mapping: SetupRingsMapping): SetupRingsPreview {
+    private suspend fun calculateRingsPreview(
+        draft: SetupWizardDraft,
+        mapping: SetupRingsMapping,
+        nowEpochMs: Long = System.currentTimeMillis(),
+    ): SetupRingsPreview {
         val a = requireNotNull(draft.ringsAnswers)
         // Mismo alcance que usaba la evidencia (perMuscleScores), sin depender de ella.
         val allowed = when (a.muscleScope) {
@@ -879,70 +1243,112 @@ class SetupWizardViewModel(
         }
         val selected = draft.manualMuscleOverrides.filterKeys { it in allowed }
         val discomforts = SetupRingsResponseMapping.discomfortField(mapping.discomfortResponse, mapping.discomfortIds)
-        val settings = ProgramRepository.getInstance().settings.value
+        val settings = environment.settings
         val evidenceInput = mapping.evidence?.let { SetupRingsEvidenceInput.Available(it) }
             ?: if (settings.initialRecoveryEvidence != null) SetupRingsEvidenceInput.Preserved
             else SetupRingsEvidenceInput.Absent
+        // El preview y el registro guardado comparten el MISMO `now` inyectado
+        // (mapping.previewCheckIn() lleva la fecha del mapeo): nunca se mezclan
+        // dos relojes para el mismo check-in.
         return SetupRingsPreviewCalculator(getApplication()).calculate(
             settings, evidenceInput, draft.commitId,
             selected, draft.manualEnergyOverride, draft.manualStructureOverride, discomforts,
-            System.currentTimeMillis(), checkIn = mapping.previewCheckIn(),
+            nowEpochMs, checkIn = mapping.previewCheckIn(),
         )
     }
     private fun updateNutritionPreview(draft: SetupWizardDraft) {
         val result = if (draft.includeNutrition) prepareNutrition(draft) else null
-        _state.value = _state.value.copy(nutritionPlanPreview = result?.plan,
+        _state.value = _state.value.copy(nutritionPreparation = result,
+            nutritionPlanPreview = result?.plan,
             nutritionErrors = result?.errors.orEmpty(),
             nutritionPacePercentPerWeek = result?.recommendation?.suggestedRatePercentBodyWeightPerWeek?.times(100.0),
             requiresActivationConfirmation = activationConfirmation(draft, _state.value.programPreview))
         if (result != null) clearStalePreviews(nutritionPreviewKinds)
     }
 
-    private fun messagesFor(draft: SetupWizardDraft): List<WizChatMessage> {
-        val profileName = ProgramRepository.getInstance().settings.value.username
-            ?.takeIf { it.isNotBlank() && it != "Usuario" }
-        return WizChatMessageBuilder.build(
-            acceptedAnswers = draft.wizChat.acceptedAnswers,
-            currentQuestionId = draft.wizChat.currentQuestionId,
-            weightUnit = draft.weightUnit,
-            profileName = profileName,
-        )
-    }
+    /**
+     * Equipo Efectivo para los motores (M7: `TrainingOptions.effectiveEquipment`):
+     * con inventario declarado manda él —en casa los 5 grupos finitos del wizard,
+     * sin asumir `general_gym`— y sin inventario se conserva el perfil legacy.
+     * Incluye siempre BODYWEIGHT.
+     */
+    private fun effectiveEquipmentIds(draft: SetupWizardDraft): Set<String> =
+        draft.trainingOptions.effectiveEquipment(draft.equipment.map { it.catalogId }.toSet())
 
     private fun updateCandidates(draft: SetupWizardDraft) {
         candidateJob?.cancel()
+        val equipmentIds = effectiveEquipmentIds(draft)
         val canPrepare = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER &&
             draft.trainingPath != SetupTrainingPath.FROM_SCRATCH && draft.daysPerWeek != null &&
-            draft.minutesPerSession != null && draft.selectedWeekdays.size == draft.daysPerWeek && draft.equipment.isNotEmpty() &&
+            draft.minutesPerSession != null && draft.selectedWeekdays.size == draft.daysPerWeek && equipmentIds.isNotEmpty() &&
             (draft.goal != SetupGoal.MIXED || draft.cardioType != null && draft.cardioMinutes != null)
         if (!canPrepare) {
-            _state.value = _state.value.copy(planCandidates = emptyList(), availablePlanCandidates = emptyList(), isCandidateLoading = false)
+            // Entradas incompletas: se retira SOLO la marca de candidatos
+            // (`errors["candidates"]` + su `previewError`); los errores de otras
+            // operaciones nunca se tocan ni se filtran aquí.
+            _state.value = withoutStaleCandidatesError(
+                _state.value.copy(
+                    planCandidates = emptyList(),
+                    availablePlanCandidates = emptyList(),
+                    isCandidateLoading = false,
+                    planAdaptedToBodyweight = false,
+                ),
+            )
             return
         }
-        _state.value = _state.value.copy(planCandidates = emptyList(), availablePlanCandidates = emptyList(), isCandidateLoading = true)
+        // Nueva carga: la marca vieja de candidatos sale YA, para que un error
+        // anterior no tape la lista que está a punto de llegar.
+        _state.value = withoutStaleCandidatesError(
+            _state.value.copy(
+                planCandidates = emptyList(),
+                availablePlanCandidates = emptyList(),
+                isCandidateLoading = true,
+                planAdaptedToBodyweight = false,
+            ),
+        )
         candidateJob = viewModelScope.launch {
             try {
-                val entries = withContext(Dispatchers.IO) {
-                    val published = SetupTrainingPlanner.candidates(SetupTrainingPlannerInput(draft.trainingReference(), draft.daysPerWeek,
-                        draft.equipment.map { it.catalogId }.toSet(), draft.experience.toCatalogLevel(),
-                        draft.focus.toTrainingFocus(), protocolOnly = draft.programRoute == SetupProgramRoute.PROTOCOL,
+                ensureCatalogLoaded()
+                val (published, viable, useAdapted) = withContext(Dispatchers.IO) {
+                    suspend fun collectViable(
+                        equipment: Set<String>,
+                        protocolOnly: Boolean,
+                    ): Pair<List<com.example.kpkn.data.programs.CatalogEntry>, List<com.example.kpkn.data.programs.CatalogEntry>> {
+                    val publishedEntries = SetupTrainingPlanner.candidates(SetupTrainingPlannerInput(draft.trainingReference(), draft.daysPerWeek,
+                        equipment, draft.experience.toCatalogLevel(),
+                        draft.focus.toTrainingFocus(), protocolOnly = protocolOnly,
                         mixedTraining = draft.goal == SetupGoal.MIXED))
-                    val viable = mutableListOf<com.example.kpkn.data.programs.CatalogEntry>()
-                    for (entry in published) {
+                    val viableEntries = mutableListOf<com.example.kpkn.data.programs.CatalogEntry>()
+                    val source = if (equipment == setOf("bodyweight")) bodyweightAdapted(draft) else draft
+                    for (entry in publishedEntries) {
                         currentCoroutineContext().ensureActive()
                         val executable = try {
-                            val program = materializeProgram(draft.copy(selectedCatalogId = entry.id)).program
+                            val program = materialize(source.copy(selectedCatalogId = entry.id)).program
                             program != null && (entry.source == CatalogSource.NATIVE ||
                                 (estimateFixedSessionMinutes(program) ?: 0) <= (draft.minutesPerSession ?: 100))
                         } catch (cancel: CancellationException) { throw cancel }
                         catch (_: Exception) { false }
-                        if (executable) viable += entry
-                        if (viable.size == 6) break
+                        if (executable) viableEntries += entry
+                        if (viableEntries.size == 6) break
                     }
-                    viable
+                    return publishedEntries to viableEntries
+                    }
+                    val requested = collectViable(
+                        equipmentIds,
+                        protocolOnly = draft.programRoute == SetupProgramRoute.PROTOCOL,
+                    )
+                    val adaptedPass = requested.second.isEmpty() && equipmentIds != setOf("bodyweight")
+                    val fallback = if (adaptedPass) {
+                        collectViable(setOf("bodyweight"), protocolOnly = false)
+                    } else {
+                        requested
+                    }
+                    val useAdapted = adaptedPass && fallback.second.isNotEmpty()
+                    val chosen = if (useAdapted) fallback else requested
+                    Triple(chosen.first, chosen.second, useAdapted)
                 }
                 if (trainingKey(_state.value.draft) == trainingKey(draft)) {
-                    val options = entries.map { entry ->
+                    val options = viable.map { entry ->
                         SetupPlanCandidate(
                             id = entry.id,
                             title = entry.title,
@@ -953,7 +1359,11 @@ class SetupWizardViewModel(
                                 draft.daysPerWeek?.let { days ->
                                     if (entry.supportedFrequencies.contains(days)) add("Encaja con tus $days días por semana")
                                 }
-                                add("Se ejecuta con el equipo que has elegido")
+                                if (useAdapted) {
+                                    add("Plan KPKN adaptado a peso corporal: tu material no tenía una receta ejecutable")
+                                } else {
+                                    add("Se ejecuta con el equipo que has elegido")
+                                }
                                 if (entry.level == draft.experience.toCatalogLevel()) add("Su nivel coincide con tu experiencia")
                                 if (draft.goal == SetupGoal.MIXED && entry.schedulesCardio) add("Programa el cardio que has pedido")
                             },
@@ -964,16 +1374,68 @@ class SetupWizardViewModel(
                             ).joinToString("\n").ifBlank { null },
                         )
                     }
-                    _state.value = _state.value.copy(planCandidates = options.take(3),
-                        availablePlanCandidates = options, isCandidateLoading = false)
+                    val current = _state.value
+                    if (options.isEmpty()) {
+                        // Estado explícito «no compatible» con motivo REAL (UDF):
+                        // una lista vacía nunca se publica en silencio. El motivo
+                        // sale de los datos del propio borrador, sin fabricar nada.
+                        val material = equipmentIds.sorted().joinToString(", ")
+                            .ifBlank { "solo peso corporal" }
+                        val frequency = draft.daysPerWeek?.let { "$it días por semana" } ?: "esta frecuencia"
+                        val reason = if (published.isEmpty()) {
+                            "No hay planes publicados compatibles con tu material ($material) y $frequency."
+                        } else {
+                            "${published.size} planes publicados; ninguno es ejecutable con tu material ($material) y $frequency."
+                        }
+                        _state.value = current.copy(
+                            planCandidates = emptyList(), availablePlanCandidates = emptyList(),
+                            isCandidateLoading = false,
+                            planAdaptedToBodyweight = false,
+                            // El motivo vive en `errors["candidates"]`. El preview
+                            // anterior se retira: ya no corresponde a este material.
+                            errors = current.errors + ("candidates" to reason),
+                            programPreview = null,
+                            previewReport = null,
+                        )
+                    } else {
+                        // Éxito: sólo se retira la marca propia de candidatos;
+                        // `previewError` ajeno (p. ej. del programa) se conserva.
+                        _state.value = current.copy(
+                            planCandidates = options.take(3), availablePlanCandidates = options,
+                            isCandidateLoading = false,
+                            planAdaptedToBodyweight = useAdapted,
+                            errors = current.errors - "candidates",
+                        )
+                        refreshPreviewAfterCandidates(draft)
+                    }
                 }
             } catch (cancel: CancellationException) { throw cancel }
             catch (error: Exception) {
                 if (trainingKey(_state.value.draft) == trainingKey(draft)) _state.value = _state.value.copy(
                     planCandidates = emptyList(), availablePlanCandidates = emptyList(),
-                    isCandidateLoading = false, previewError = "No pude comprobar los planes. Prueba de nuevo.")
+                    isCandidateLoading = false, planAdaptedToBodyweight = false,
+                    previewError = "No pude comprobar los planes. Prueba de nuevo.",
+                    errors = _state.value.errors + ("candidates" to "No pude comprobar los planes. Prueba de nuevo."))
             }
         }
+    }
+
+    /** Relanza el programa solo cuando ya hay un plan elegido y los candidatos terminaron. */
+    private fun refreshPreviewAfterCandidates(draft: SetupWizardDraft) {
+        if (draft.selectedCatalogId != null) preparePreview(_state.value.draft)
+    }
+
+    /**
+     * Retira SOLO la marca de candidatos (`errors["candidates"]` y, si era suya,
+     * su `previewError`): así un error viejo nunca se queda ocultando una lista
+     * nueva y los fallos de otras operaciones siguen visibles.
+     */
+    private fun withoutStaleCandidatesError(state: SetupWizardState): SetupWizardState {
+        val hadCandidatesError = "candidates" in state.errors
+        return state.copy(
+            errors = state.errors - "candidates",
+            previewError = if (hadCandidatesError) null else state.previewError,
+        )
     }
     private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.goal == SetupGoal.MIXED && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
 
@@ -1009,7 +1471,7 @@ class SetupWizardViewModel(
                     focus = draft.focus.toTrainingFocus(),
                     frequency = frequency,
                     weekdays = draft.selectedWeekdays.sorted(),
-                    equipment = draft.equipment.map { it.catalogId }.toSet(),
+                    equipment = effectiveEquipmentIds(draft),
                     level = draft.experience.toCatalogLevel(),
                     availableMinutes = draft.minutesPerSession ?: error("Indica el tiempo disponible"),
                     cardio = if (draft.goal == SetupGoal.MIXED) CardioPreference(requireNotNull(draft.cardioType), requireNotNull(draft.cardioMinutes)) else null,
@@ -1021,11 +1483,25 @@ class SetupWizardViewModel(
                     splitPattern = draft.customSplitPattern,
                     splitName = draft.customSplitName,
                 ),
+                // Cadena real de entrenamiento: el motor recibe las opciones del
+                // usuario (inventario, prioridades, calentamientos, autorreg.)
+                options = draft.trainingOptions,
             )
             return SetupPreview(result.program?.copy(id = draft.commitId) ?: error(result.report.limitations.joinToString(" ")), result.report)
         }
-        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog ?: error("El catálogo de ejercicios todavía no está disponible")
-        val base = Program(id = draft.commitId, name = "Plan de ${draft.name.ifBlank { "entrenamiento" }}", startDay = draft.selectedWeekdays.minOrNull(), powerliftingProfile = draft.powerliftingProfile)
+        val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
+            ?: error("El catálogo de ejercicios todavía no está disponible")
+        // Mismo equipo efectivo que candidatos y preview (helper de M7): nunca
+        // se reinyecta `general_gym` ni se retira el modelo finito de inventario.
+        val effectiveEquipment = effectiveEquipmentIds(draft)
+        // Opciones del usuario ANTES de materializar: la autoregulación entra en
+        // la base (PlanMaterializer la conserva sin mezclar) y los calentamientos
+        // viajan como `defaultOptions` hasta el materializador, que da
+        // precedencia a la elección/autor ya guardada sobre `options`.
+        val options = draft.trainingOptions
+        val base = options.applyTo(
+            Program(id = draft.commitId, name = "Plan de ${draft.name.ifBlank { "entrenamiento" }}", startDay = draft.selectedWeekdays.minOrNull(), powerliftingProfile = draft.powerliftingProfile),
+        )
         val program = when (entry.source) {
             CatalogSource.PROTOCOL -> {
                 val protocol = PROTOCOL_LIBRARY.first { it.id == entry.sourceId }
@@ -1034,11 +1510,29 @@ class SetupWizardViewModel(
                     protocol = protocol,
                     metadata = CatalogCompositionMetadataProvider.fromCatalog(catalog),
                     exerciseList = catalog.toLegacyConfigurationLookup().values.toList(),
+                    defaultOptions = options,
                 )
             }
-            CatalogSource.TEMPLATE -> ProgramTemplateEngine.applyTemplate(base, requireNotNull(entry.template), forceReplace = true).program
+            CatalogSource.TEMPLATE -> ProgramTemplateEngine.applyTemplate(
+                base,
+                requireNotNull(entry.template),
+                forceReplace = true,
+                defaultOptions = options,
+            ).program
             CatalogSource.NATIVE -> error("Ruta nativa no válida")
         }.copy(id = draft.commitId)
+        // Guardia de material real (helper de M7) DESPUÉS de aplicar la receta
+        // fija y ANTES del preview: si la receta exige material no declarado, el
+        // error es honesto en lugar de presentarla como compatible. Así los
+        // candidatos viables se podan solos en `updateCandidates` (su `catch`
+        // marca la entrada como no viable) sin afirmar compatibilidad falsa.
+        val missingMaterial = missingFixedRecipeEquipment(program, effectiveEquipment, catalog)
+        if (missingMaterial.isNotEmpty()) {
+            error(
+                "Esta receta necesita material que no has declarado: " +
+                    missingMaterial.sorted().joinToString(", "),
+            )
+        }
         val sessionDays = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
             .flatMap { it.weeks }.flatMap { it.sessions }.mapNotNull { it.dayOfWeek }.toSet()
         val frequency = sessionDays.size
@@ -1049,63 +1543,225 @@ class SetupWizardViewModel(
                 trainingDays = sessionDays,
             ),
         )
+        // Sin copia posterior de `planWarmupConfig`: una vez materializada la
+        // receta, reasignar la config no vuelve a aplicar los warmups (bug
+        // confirmado). La resolución correcta ocurre EN la primera
+        // materialización, dentro del materializador (elección/autor guardada >
+        // `defaultOptions`), que es el que asigna los pasos por ejercicio.
         return SetupPreview(scheduled, null)
     }
 
-    private fun prepareNutrition(draft: SetupWizardDraft): com.example.kpkn.domain.nutrition.NutritionPlanPreparationResult? {
+    /**
+     * Preparación nutricional REAL del alta: motor `SetupNutritionPreparation`
+     * con el borrador enriquecido (vitales del wizard y grasa corporal ACTUAL
+     * medida o estimada, nunca usada como meta), el programa previewado como
+     * calendario y los ajustes del entorno con las vitales del borrador. El
+     * planId se deriva del commitId, así que cada preview reutiliza el mismo
+     * id estable en lugar de generar uno nuevo.
+     */
+    private fun prepareNutrition(draft: SetupWizardDraft): SetupNutritionPreparationResult? {
         if (!draft.includeNutrition) return null
-        val n = draft.nutritionDraft ?: return null
-        val weight = draft.weightKg ?: parseLocalizedNumber(n.weightText)?.let { kilogramsFromInput(it, n.weightUnit) }
-        val target = when (n.goalMetric) { GoalMetric.WEIGHT -> parseLocalizedNumber(n.targetWeightText.ifBlank { n.targetValueText })?.let { kilogramsFromInput(it, n.weightUnit) }; GoalMetric.BODY_FAT -> parseLocalizedNumber(n.targetBodyFatText.ifBlank { n.targetValueText }); GoalMetric.MUSCLE_MASS -> parseLocalizedNumber(n.targetMuscleText.ifBlank { n.targetValueText }) }
-        return NutritionPlanPreparation.prepare(NutritionPlanPreparationInput(draft.nutritionPlanId ?: draft.commitId, NutritionRepository.getInstance().nutritionPlans.value.firstOrNull { it.id == (draft.nutritionPlanId ?: draft.commitId) }, draft.ageYears ?: parseLocalizedNumber(n.ageText)?.toInt(), draft.heightCm ?: parseLocalizedNumber(n.heightText), weight, n.equationSex, n.activity, n.eligibilityUnknown, n.pregnant, n.lactating, n.medicalRestriction, n.direction, n.goalMetric, target, parseLocalizedNumber(n.manualCalorieTargetText)?.toInt(), parseLocalizedNumber(n.manualProteinText), parseLocalizedNumber(n.manualCarbsText), parseLocalizedNumber(n.manualFatText), n.higherProteinInDeficit, parseLocalizedNumber(n.bodyFatText), parseLocalizedNumber(n.muscleText), n.direction?.let { paceRateFor(it, n.pacePreset) }))
+        val wizard = draft.nutritionDraft ?: return null
+        // Solo una fuente EXPLÍCITA (medida o estimación visual) enriquece el
+        // borrador; «No lo sé» o fuente sin declarar no aportan grasa alguna.
+        // Mismo rango que la validación del commit (0–100 %) para que la
+        // nutrición y las observaciones corporales no diverjan.
+        val currentBodyFat = draft.bodyFatPercent
+            ?.takeIf { it.isFinite() && it in 0.0..100.0 }
+            ?.takeIf {
+                draft.bodyFatSource == SetupBodyFatSource.MEASURED ||
+                    draft.bodyFatSource == SetupBodyFatSource.VISUAL_ESTIMATE
+            }
+        val enriched = wizard.copy(
+            planId = draft.nutritionPlanId ?: draft.commitId,
+            ageText = wizard.ageText.ifBlank { draft.ageYears?.toString().orEmpty() },
+            heightText = wizard.heightText.ifBlank { draft.heightCm?.toString().orEmpty() },
+            weightText = wizard.weightText.ifBlank { draft.weightKg?.toString().orEmpty() },
+            bodyFatText = wizard.bodyFatText.ifBlank {
+                currentBodyFat?.let { String.format(java.util.Locale.ROOT, "%.1f", it) }.orEmpty()
+            },
+        )
+        return SetupNutritionPreparation.prepare(SetupNutritionPreparationInput(
+            draft = enriched,
+            program = _state.value.programPreview,
+            settings = settingsWithVitals(draft),
+            today = LocalDate.now(),
+        ))
     }
+
+    /** Entorno con las vitales del borrador: las ecuaciones leen el alta, no el viejo Settings. */
+    private fun settingsWithVitals(draft: SetupWizardDraft): Settings {
+        val base = environment.settings
+        val vitals = base.userVitals.copy(
+            age = draft.ageYears ?: base.userVitals.age,
+            height = draft.heightCm ?: base.userVitals.height,
+            weight = draft.weightKg ?: base.userVitals.weight,
+            gender = draft.profileGender ?: base.userVitals.gender,
+            bodyFatPercentage = draft.bodyFatPercent ?: base.userVitals.bodyFatPercentage,
+        )
+        return base.copy(userVitals = vitals, age = draft.ageYears ?: base.age)
+    }
+
+    /** «Solo registro»: el modo explícito del borrador, nunca inferido. */
+    private fun isTrackingOnly(draft: SetupWizardDraft): Boolean =
+        draft.includeNutrition &&
+            draft.nutritionDraft?.configurationMode == NutritionConfigurationMode.TRACKING_ONLY
+
+    /**
+     * Puerta de activación REAL: revisión de pasos + validación completa. No
+     * depende del espejo conversacional (`wizChat.terminal` ni
+     * `acceptedAnswers`): el estado de la ruta sale de `stepProgress` y de
+     * [SetupWizardValidation.validateAll].
+     */
     private fun reviewErrors(): Map<String, String> = buildMap {
         val s = _state.value; val d = s.draft
-        if (d.wizChat.currentQuestionId != WizChatQuestionId.REVIEW && !d.wizChat.terminal) put("flow", "Completa la revisión antes de activar")
+        val route = SetupStepGraph.stepIds(d.stepContext())
+        if (SetupStepId.REVIEW_ACTIVATE !in route || d.stepProgress.currentStepId != SetupStepId.REVIEW_ACTIVATE) {
+            put("flow", "Completa la revisión antes de activar")
+        }
+        // Revisión REAL del camino: cada paso se confirma (o llega confirmado
+        // desde un borrador migrado). «Obligatorio» significa revisado, no
+        // fabricar sensaciones ni historia: omitir con la opción explícita
+        // también cuenta como revisado.
+        val unreviewed = route.filterNot { step ->
+            step == SetupStepId.REVIEW_ACTIVATE ||
+                step in d.stepProgress.answers ||
+                (SetupStepGraph.questionForStep(step)?.let { question ->
+                    d.wizChat.acceptedAnswers.any { it.questionId == question }
+                } == true)
+        }
+        unreviewed.firstOrNull()?.let { step ->
+            val title = SetupStepDefinitions.of(step)?.title ?: "la revisión"
+            put("review", "Falta revisar «$title» antes de activar")
+        }
         if (SetupDraftCompatibility.pendingMandatoryVitals(d).isNotEmpty()) put("profile", "Completa tu edad, estatura y peso para continuar")
+        val blocking = SetupWizardValidation.validateAll(d).firstOrNull { it.isBlocking }
+        if (blocking != null) put(blocking.key, blocking.message ?: "Revisa tus respuestas antes de activar")
         if (d.includeTraining && d.programRoute != SetupProgramRoute.LATER && (s.programPreview == null || s.previewError != null || s.isPreviewLoading || lastSuccessfulTrainingKey != trainingKey(d))) put("program", "Prepara una vista previa ejecutable")
         if (s.fixedSessionEstimateMinutes != null && s.fixedSessionEstimateMinutes > (d.minutesPerSession ?: 100)) put("time", "Esta receta supera los ${d.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo")
         if (fixedRecipeDifference(d, s.programPreview, s.fixedSessionEstimateMinutes) && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
-        if (d.includeNutrition && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) put("nutrition", s.nutritionErrors.values.firstOrNull() ?: "Completa la nutrición")
-        if (ringsMapping(d).savesRealCheckIn && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) put("rings", s.ringsPreviewError ?: "Espera a que la vista previa de RINGS esté lista")
+        // Solo registro = sin plan y sin metas; no se exige una preparación que
+        // el modo rechaza explícitamente.
+        if (d.includeNutrition && !isTrackingOnly(d) && (s.nutritionPlanPreview == null || s.nutritionErrors.isNotEmpty())) {
+            put("nutrition", s.nutritionErrors.values.firstOrNull() ?: "Completa la nutrición")
+        }
+        if (ringsMapping(d).savesRealCheckIn && (s.ringsBatteriesPreview == null || s.ringsPreviewLoading || s.ringsPreviewError != null || lastRingsPreviewKey != ringsKey(d))) {
+            // Causa real de RINGS primero (clase+mensaje del último fallo de
+            // este cálculo): nunca un genérico cuando existe diagnóstico, ni el
+            // fallo de otra operación colado bajo esta clave.
+            val ringsCause = s.lastFailure?.takeIf { it.startsWith(RINGS_FAILURE_PREFIX) }
+            put("rings", ringsCause ?: s.ringsPreviewError ?: "Espera a que la vista previa de RINGS esté lista")
+        }
         if (activationConfirmation(d, s.programPreview) && !d.confirmActivation) put("activation", "Confirma la activación del plan")
     }
-    private fun activationConfirmation(draft: SetupWizardDraft, preview: Program?): Boolean = (draft.activateProgram && preview != null && ProgramRepository.getInstance().activeProgramState.value?.programId?.let { it != preview.id } == true) || (draft.includeNutrition && draft.activateNutrition && NutritionRepository.getInstance().activeNutritionPlanId.value?.let { it != (draft.nutritionPlanId ?: draft.commitId) } == true)
+    private fun activationConfirmation(draft: SetupWizardDraft, preview: Program?): Boolean = (draft.activateProgram && preview != null && environment.activeProgramId()?.let { it != preview.id } == true) || (draft.includeNutrition && draft.activateNutrition && environment.activeNutritionPlanId()?.let { it != (draft.nutritionPlanId ?: draft.commitId) } == true)
 
-    private fun buildSettingsPatch(base: Settings, draft: SetupWizardDraft, program: Program?, nutrition: NutritionPlan?, rings: SetupRingsMapping): SetupSettingsPatch {
-        val accepted = draft.wizChat.acceptedAnswers.map { it.questionId }.toSet()
-        val provided = draft.wizChat.acceptedAnswers.filter { it.source != WizChatAnswerSource.OMITTED }.map { it.questionId }.toSet()
+    private fun buildSettingsPatch(
+        base: Settings,
+        draft: SetupWizardDraft,
+        program: Program?,
+        nutrition: NutritionPlan?,
+        rings: SetupRingsMapping,
+        trackingOnly: Boolean,
+    ): SetupSettingsPatch {
+        // Evidencia REAL de que el usuario escribió el dato: el paso declarado.
+        // Los borradores migrados conservan el espejo legacy como alternativa;
+        // un valor nunca se declara solo por existir en el borrador.
+        val declared = draft.declaredSteps
+        val legacyProvided = draft.wizChat.acceptedAnswers
+            .filter { it.source != WizChatAnswerSource.OMITTED }
+            .map { it.questionId }.toSet()
+        val legacyAccepted = draft.wizChat.acceptedAnswers.map { it.questionId }.toSet()
+        fun provided(step: SetupStepId, question: WizChatQuestionId): Boolean =
+            step in declared || question in legacyProvided
         val age = draft.ageYears ?: parseLocalizedNumber(draft.nutritionDraft?.ageText.orEmpty())?.toInt()
+        val equipmentAvailabilityConfirmed = draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT) ||
+            draft.stepProgress.answers[SetupStepId.HOME_EQUIPMENT]?.canPersistAsDeclared() == true
+        val declaredName = draft.name.takeIf {
+            it.isNotBlank() && provided(SetupStepId.NAME, WizChatQuestionId.P_NAME)
+        }
+        val goals = nutrition?.takeIf { draft.activateNutrition }
         // SET/CLEAR/UNCHANGED decididos por el mapper: una calibración parcial deja
         // initialRecoveryEvidence sin tocar (Unchanged) y PRESERVE no rejuvenece nada.
         val evidence = rings.toEvidencePatchField()
+        val trackingChoice: NutritionTrackingChoice? = when {
+            goals != null -> NutritionTrackingChoice.ENABLED
+            trackingOnly -> null
+            !draft.includeNutrition && !SetupPendingNutrition.shouldPreserve(draft) &&
+                (provided(SetupStepId.NUTRITION_START, WizChatQuestionId.N_START) ||
+                    WizChatQuestionId.N_START in legacyAccepted) &&
+                environment.activeNutritionPlanId() == null -> NutritionTrackingChoice.SKIPPED
+            else -> null
+        }
         return SetupSettingsPatch(
-            username = if (WizChatQuestionId.P_NAME in provided && draft.name.isNotBlank()) SetupPatchField.Set(draft.name) else SetupPatchField.Unchanged,
-            age = if (WizChatQuestionId.P_AGE in provided && age != null) SetupPatchField.Set(age) else SetupPatchField.Unchanged,
+            username = setOrKeep(declaredName),
+            age = setIf(age, provided(SetupStepId.AGE, WizChatQuestionId.P_AGE) && age != null),
             vitalsPatch = SetupUserVitalsPatch(
-                age = if (WizChatQuestionId.P_AGE in provided && age != null) SetupPatchField.Set(age) else SetupPatchField.Unchanged,
-                height = if (WizChatQuestionId.P_HEIGHT in provided && draft.heightCm != null) SetupPatchField.Set(draft.heightCm) else SetupPatchField.Unchanged,
-                weight = if (WizChatQuestionId.P_WEIGHT in provided && draft.weightKg != null) SetupPatchField.Set(draft.weightKg) else SetupPatchField.Unchanged,
-                gender = if (WizChatQuestionId.P_GENDER in provided && draft.profileGender != null) SetupPatchField.Set(draft.profileGender) else SetupPatchField.Unchanged,
+                age = setIf(age, provided(SetupStepId.AGE, WizChatQuestionId.P_AGE) && age != null),
+                height = setIf(draft.heightCm, provided(SetupStepId.HEIGHT, WizChatQuestionId.P_HEIGHT) && draft.heightCm != null),
+                weight = setIf(draft.weightKg, provided(SetupStepId.WEIGHT, WizChatQuestionId.P_WEIGHT) && draft.weightKg != null),
+                gender = setIf(draft.profileGender, provided(SetupStepId.GENDER, WizChatQuestionId.P_GENDER) && draft.profileGender != null),
             ),
-            weightUnit = if (draft.weightUnitChanged) SetupPatchField.Set(if (draft.weightUnit == "lb") WeightUnit.LBS else WeightUnit.KG) else SetupPatchField.Unchanged,
-            dailyCalorieGoal = nutrition?.takeIf { draft.activateNutrition }?.let { SetupPatchField.Set(it.calorieTarget) } ?: SetupPatchField.Unchanged,
-            dailyProteinGoal = nutrition?.takeIf { draft.activateNutrition }?.let { SetupPatchField.Set(it.proteinGoal) } ?: SetupPatchField.Unchanged,
-            dailyCarbGoal = nutrition?.takeIf { draft.activateNutrition }?.let { SetupPatchField.Set(it.carbGoal) } ?: SetupPatchField.Unchanged,
-            dailyFatGoal = nutrition?.takeIf { draft.activateNutrition }?.let { SetupPatchField.Set(it.fatGoal) } ?: SetupPatchField.Unchanged,
-            onboardingCompleted = if (draft.draftScope == "full" && _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME)) SetupPatchField.Set(true) else SetupPatchField.Unchanged,
-            onboardingNameDone = if (WizChatQuestionId.P_NAME in provided && draft.name.isNotBlank()) SetupPatchField.Set(true) else SetupPatchField.Unchanged,
-            onboardingProgramDone = if (_state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY) &&
-                (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER || program != null)) SetupPatchField.Set(true) else SetupPatchField.Unchanged,
-            onboardingNutritionDone = if (_state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.NUTRITION_ONLY) &&
-                (!draft.includeNutrition || nutrition != null)) SetupPatchField.Set(true) else SetupPatchField.Unchanged,
-            nutritionTrackingChoice = when { nutrition != null && draft.activateNutrition -> SetupPatchField.Set(NutritionTrackingChoice.ENABLED); !draft.includeNutrition && !SetupPendingNutrition.shouldPreserve(draft) && WizChatQuestionId.N_START in accepted && NutritionRepository.getInstance().activeNutritionPlanId.value == null -> SetupPatchField.Set(NutritionTrackingChoice.SKIPPED); else -> SetupPatchField.Unchanged },
+            weightUnit = setIf(
+                if (draft.weightUnit == "lb") WeightUnit.LBS else WeightUnit.KG,
+                draft.weightUnitChanged,
+            ),
+            dailyCalorieGoal = setIf(goals?.calorieTarget, goals != null),
+            dailyProteinGoal = setIf(goals?.proteinGoal, goals != null),
+            dailyCarbGoal = setIf(goals?.carbGoal, goals != null),
+            dailyFatGoal = setIf(goals?.fatGoal, goals != null),
+            onboardingCompleted = setIf(
+                true,
+                draft.draftScope == "full" &&
+                    _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME),
+            ),
+            onboardingNameDone = setIf(true, declaredName != null),
+            onboardingProgramDone = setIf(
+                true,
+                _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.TRAINING_ONLY) &&
+                    (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER || program != null),
+            ),
+            onboardingNutritionDone = setIf(
+                true,
+                _state.value.mode in setOf(SetupWizardMode.FULL, SetupWizardMode.RESUME, SetupWizardMode.NUTRITION_ONLY) &&
+                    (!draft.includeNutrition || nutrition != null || trackingOnly),
+            ),
+            nutritionTrackingChoice = setOrKeep(trackingChoice),
             initialRecoveryEvidence = evidence,
-            volumeCalibrationProfile = draft.volumeCalibrationProfile?.let { SetupPatchField.Set(it) } ?: SetupPatchField.Unchanged,
+            volumeCalibrationProfile = setIf(draft.volumeCalibrationProfile, draft.volumeCalibrationProfile != null),
+            // Inventario declarado en el wizard (`trainingOptions.inventory`);
+            // sin datos se conserva el actual, nunca se limpia por accidente.
+            equipmentInventory = setIf(draft.trainingOptions.inventory, draft.trainingOptions.inventory != null),
+            nutritionTrackingOnly = setIf(true, trackingOnly),
+            // Un sugerido solo se guarda después de confirmarse: confirmCurrentStep
+            // deja su procedencia en stepProgress sin convertirlo en declarado.
+            // Las respuestas declaradas, incluido none, conservan su gate actual.
+            equipmentAvailability = if (equipmentAvailabilityConfirmed) {
+                setOrKeep(draft.trainingOptions.availability)
+            } else {
+                SetupPatchField.Unchanged
+            },
         )
     }
 
-    private fun ringsMapping(draft: SetupWizardDraft): SetupRingsMapping {
+    /**
+     * `Set` cuando hay valor; `Unchanged` conserva lo actual. El tipo de
+     * retorno es explícito a propósito: construir `SetupSettingsPatch` con
+     * `if (…) Set(…) else Unchanged` degrada la inferencia en cascada.
+     */
+    private fun <T> setOrKeep(value: T?): SetupPatchField<T> =
+        if (value == null) SetupPatchField.Unchanged else SetupPatchField.Set(value)
+
+    /**
+     * `Set` solo cuando [present]; si no, `Unchanged`. Pensado para campos
+     * cuyo tipo ya es anulable (`SetupPatchField<Int?>`,
+     * `SetupPatchField<EquipmentInventory?>`): un dato sin declarar nunca se
+     * escribe como `Set(null)`.
+     */
+    private fun <T> setIf(value: T, present: Boolean): SetupPatchField<T> =
+        if (present) SetupPatchField.Set(value) else SetupPatchField.Unchanged
+
+    private fun ringsMapping(draft: SetupWizardDraft, nowEpochMs: Long = System.currentTimeMillis()): SetupRingsMapping {
         val a = draft.ringsAnswers ?: return SetupRingsMapping(RingsCompletion.UNKNOWN)
         return SetupRingsMapper.map(SetupRingsInput(
             startAction = a.startAction,
@@ -1132,7 +1788,7 @@ class SetupWizardViewModel(
                 SetupDiscomfortState.OMITTED -> RingsDiscomfortResponse.OMITTED
                 SetupDiscomfortState.NOT_ANSWERED -> RingsDiscomfortResponse.NOT_ANSWERED
             },
-        ), System.currentTimeMillis())
+        ), nowEpochMs)
     }
     private fun buildVolumeProfile(draft: SetupWizardDraft): VolumeCalibrationProfile? {
         val a = draft.volumeAnswers; val style = a.style ?: return null; val t = a.technique ?: return null; val c = a.consistency ?: return null; val s = a.strength ?: return null; val m = a.mobility ?: return null; val output = VolumeCalibrationEngine.calculate(style, t, c, s, m)
@@ -1140,14 +1796,15 @@ class SetupWizardViewModel(
     }
 
     private fun newDraft(mode: SetupWizardMode, nutritionMode: String, nutritionPlanId: String?, id: String): SetupWizardDraft {
-        val settings = ProgramRepository.getInstance().settings.value
+        val settings = environment.settings
         val training = mode != SetupWizardMode.NUTRITION_ONLY && mode != SetupWizardMode.RINGS_ONLY
         val nutrition = mode != SetupWizardMode.TRAINING_ONLY && mode != SetupWizardMode.RINGS_ONLY
         val first = WizChatGraph.firstFor(WizChatGraphContext(training, nutrition))
         val progress = WizChatProgress(scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
             draftScope = scopeFor(mode).name.lowercase(), currentQuestionId = first, stage = WizChatGraph.stageFor(first))
         val unit = if (settings.weightUnit == WeightUnit.LBS) "lb" else "kg"
-        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress)
+        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress,
+            trainingOptions = SetupTrainingOptions(availability = settings.equipmentAvailability))
             .let { draft -> draft.copy(stepProgress = SetupStepProgress.initial(draft.stepContext())) }
     }
     private fun normalizeProgress(progress: WizChatProgress, scope: String, mode: SetupWizardMode): WizChatProgress {
@@ -1163,25 +1820,15 @@ class SetupWizardViewModel(
     private fun SetupFocus.toTrainingFocus() = TrainingFocus.valueOf(name)
     private fun SetupExperience?.toCatalogLevel() = when (this) { SetupExperience.ADVANCED -> CatalogLevel.ADVANCED; SetupExperience.INTERMEDIATE -> CatalogLevel.INTERMEDIATE; else -> CatalogLevel.BEGINNER }
     private val SetupEquipment.catalogId: String get() = when (this) { SetupEquipment.NONE, SetupEquipment.BODYWEIGHT -> "bodyweight"; SetupEquipment.BANDS -> "band"; SetupEquipment.DUMBBELLS -> "dumbbells"; SetupEquipment.MACHINE -> "machine"; SetupEquipment.CABLE -> "cable"; SetupEquipment.BARBELL -> "barbell"; SetupEquipment.PULL_UP -> "pull_up_bar"; SetupEquipment.GYM -> "general_gym"; SetupEquipment.SUPPORT -> "support"; SetupEquipment.BALL -> "ball"; SetupEquipment.SMITH -> "smith_machine" }
-    private fun SetupWizardDraft.withNutrition(update: (NutritionWizardDraft) -> NutritionWizardDraft): SetupWizardDraft { val value = nutritionDraft ?: NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId); return copy(nutritionDraft = update(value)) }
-    private fun answerIndex(value: String?) = when { value?.contains("Inicial", true) == true || value?.contains("Aprendiendo", true) == true || value?.contains("Irregular", true) == true || value?.contains("Limitada", true) == true -> 1; value?.contains("Intermedia", true) == true || value?.contains("estable", true) == true || value?.contains("constante", true) == true || value?.contains("Suficiente", true) == true -> 2; else -> 3 }
-    private fun feelingFor(id: WizChatQuestionId, value: String): Int? = WizChatGraph.question(id)?.options?.indexOf(value)?.takeIf { it >= 0 }?.plus(1)
-    private fun intensityFor(value: String) = when { value.contains("fácil", true) -> InitialRecoveryIntensity.EASY; value.contains("moderada", true) -> InitialRecoveryIntensity.MODERATE; value.contains("exigente", true) && !value.contains("muy", true) -> InitialRecoveryIntensity.HARD; else -> InitialRecoveryIntensity.VERY_HARD }
-    private fun recencyFor(value: String) = when { value.equals("Hoy", true) -> 0; value.equals("Ayer", true) -> 1; else -> Regex("\\d+").find(value)?.value?.toIntOrNull()?.coerceIn(0, 6) ?: 6 }
-    private fun equipmentFor(value: String): SetupEquipment? = when (value) {
-        "Sin material" -> SetupEquipment.NONE
-        "Peso corporal" -> SetupEquipment.BODYWEIGHT
-        "Bandas" -> SetupEquipment.BANDS
-        "Mancuernas" -> SetupEquipment.DUMBBELLS
-        "Barra de dominadas" -> SetupEquipment.PULL_UP
-        "Apoyo estable" -> SetupEquipment.SUPPORT
-        "Principalmente máquinas" -> SetupEquipment.MACHINE
-        "Gimnasio completo" -> SetupEquipment.GYM
-        else -> null
-    }
     private fun com.example.kpkn.data.models.GoalMetric.toBodyMetric() = when (this) { GoalMetric.WEIGHT -> BodyMetric.WEIGHT; GoalMetric.BODY_FAT -> BodyMetric.BODY_FAT_PERCENT; GoalMetric.MUSCLE_MASS -> BodyMetric.MUSCLE_MASS_PERCENT }
 
-    companion object { private const val DRAFT_ID_KEY = "setup_wizard_draft_id"; private val weekdayLabels = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo") }
+    companion object {
+        private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
+        /** Etiqueta de logcat de diagnóstico: solo clase+mensaje, nunca datos del usuario. */
+        private const val DIAG_TAG = "SetupWizard"
+        /** Marca en `lastFailure` del fallo de RINGS; permite limpiarlo sin pisar otros fallos. */
+        private const val RINGS_FAILURE_PREFIX = "Rings preview"
+    }
 }
 
 private fun List<SetupSessionDraft>.ensureSession(weekday: Int): List<SetupSessionDraft> = if (any { it.weekday == weekday }) this else this + SetupSessionDraft(weekday, "Sesión del día $weekday")

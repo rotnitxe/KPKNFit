@@ -45,6 +45,8 @@ data class SetupRingsCheckIn(
     val structure: Int? = null,
 ) {
     val isDeclared: Boolean get() = muscular != null || energy != null || structure != null
+
+    /** Informativo: las tres sensaciones a la vez. El mapeo NO las exige. */
     val isComplete: Boolean get() = muscular != null && energy != null && structure != null
 }
 
@@ -96,7 +98,16 @@ data class SetupRingsMapping(
     val capturedAtMs: Long? = null,
 ) {
     /** Guarda un check-in real (evidencia completa o calibración parcial). */
-    val savesRealCheckIn: Boolean get() = calibration != RingsCalibration.NONE
+    val savesRealCheckIn: Boolean get() = calibration != RingsCalibration.NONE || declaresDiscomforts
+
+    /**
+     * Molestias declaradas de forma real: lista de ids o «sin molestias»
+     * explícito. Ese payload se persiste aunque la calibración sea [RingsCalibration.NONE]
+     * (p. ej. solo molestias sin historial ni sensaciones); el no respondido y lo
+     * omitido no escriben nada.
+     */
+    val declaresDiscomforts: Boolean get() =
+        discomfortResponse == RingsDiscomfortResponse.NONE || discomfortResponse == RingsDiscomfortResponse.DECLARED
 }
 
 object SetupRingsMapper {
@@ -150,21 +161,28 @@ object SetupRingsMapper {
                 capturedAtMs = if (checkIn.isDeclared) input.capturedAtMs ?: nowMs else input.capturedAtMs,
             )
         }
-        if (!checkIn.isComplete) {
-            return SetupRingsMapping(
-                completion = RingsCompletion.INCOMPLETE,
-                discomfortIds = discomfortIds,
-                historyState = historyState,
-                checkIn = checkIn,
-                discomfortResponse = discomfortResponse,
-                evidenceHandling = RingsEvidenceHandling.UNCHANGED,
-            )
-        }
+        // Historia conocida: las sensaciones son OPCIONALES. Un campo no
+        // informado viaja como `null` en la evidencia (la fábrica lo admite y
+        // cuenta solo los no nulos) y jamás se completa con un valor por
+        // defecto. Lo obligatorio es la evidencia histórica (sesiones, recencia,
+        // tipo, intensidad), que NUNCA se sintetiza: si falta, el alta queda
+        // incompleta, pero el check-in declarado sí se conserva como parcial
+        // válido en lugar de perderse.
+        fun incompleteHistory(): SetupRingsMapping = SetupRingsMapping(
+            completion = RingsCompletion.INCOMPLETE,
+            discomfortIds = discomfortIds,
+            historyState = historyState,
+            checkIn = checkIn,
+            discomfortResponse = discomfortResponse,
+            calibration = if (checkIn.isDeclared) RingsCalibration.PARTIAL_CHECK_IN else RingsCalibration.NONE,
+            evidenceHandling = RingsEvidenceHandling.UNCHANGED,
+            capturedAtMs = if (checkIn.isDeclared) input.capturedAtMs ?: nowMs else input.capturedAtMs,
+        )
         val recent = input.recentTraining
-        val sessions = if (recent == false) 0 else input.sessions?.takeIf { it in 1..7 } ?: return SetupRingsMapping(RingsCompletion.INCOMPLETE, discomfortIds = discomfortIds, historyState = historyState, checkIn = checkIn, discomfortResponse = discomfortResponse)
-        val recency = if (recent == false) 0 else input.recencyDays?.takeIf { it in 0..6 } ?: return SetupRingsMapping(RingsCompletion.INCOMPLETE, discomfortIds = discomfortIds, historyState = historyState, checkIn = checkIn, discomfortResponse = discomfortResponse)
-        val type = if (recent == false) InitialRecoveryActivityType.MIXED else input.activityType ?: return SetupRingsMapping(RingsCompletion.INCOMPLETE, discomfortIds = discomfortIds, historyState = historyState, checkIn = checkIn, discomfortResponse = discomfortResponse)
-        val intensity = if (recent == false) InitialRecoveryIntensity.MODERATE else input.intensity ?: return SetupRingsMapping(RingsCompletion.INCOMPLETE, discomfortIds = discomfortIds, historyState = historyState, checkIn = checkIn, discomfortResponse = discomfortResponse)
+        val sessions = if (recent == false) 0 else input.sessions?.takeIf { it in 1..7 } ?: return incompleteHistory()
+        val recency = if (recent == false) 0 else input.recencyDays?.takeIf { it in 0..6 } ?: return incompleteHistory()
+        val type = if (recent == false) InitialRecoveryActivityType.MIXED else input.activityType ?: return incompleteHistory()
+        val intensity = if (recent == false) InitialRecoveryIntensity.MODERATE else input.intensity ?: return incompleteHistory()
         val capturedAt = input.capturedAtMs ?: nowMs
         val axial = InitialRecoveryAxialExposure(
             state = input.axialState,

@@ -3,6 +3,7 @@ package com.example.kpkn.domain.onboarding
 import com.example.kpkn.data.models.DailyWellbeingLog
 import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.RecoveryChannelId
+import com.example.kpkn.data.models.WellbeingSource
 import com.example.kpkn.domain.auge.InitialRecoveryContribution
 
 /**
@@ -79,48 +80,43 @@ data class RingsCoverage(
             channelConfidence: (RecoveryChannelId) -> Int? = { null },
             score: (RecoveryChannelId) -> Int,
         ): RingsCoverage {
-            fun channel(id: RecoveryChannelId): RingsChannelCoverage {
-                val manual = when (id) {
-                    RecoveryChannelId.MUSCULAR ->
-                        wellbeing?.manualMuscularBattery != null ||
-                            wellbeing?.manualMuscleBatteries?.isNotEmpty() == true ||
-                            wellbeing?.manualMuscleOverridesV2?.isNotEmpty() == true
-                    RecoveryChannelId.SYSTEM -> wellbeing?.manualNeuralBattery != null
-                    RecoveryChannelId.STRUCTURE -> wellbeing?.manualSpinalBattery != null
-                }
-                val declaredSensation = when (id) {
-                    RecoveryChannelId.MUSCULAR -> subjective.muscular != null
-                    RecoveryChannelId.SYSTEM -> subjective.energy != null
-                    RecoveryChannelId.STRUCTURE -> subjective.structure != null
-                }
-                // Mismo carácter estimado por canal que calcula el motor.
-                val estimated = contribution.isEstimated && !manual
-                val source = when {
-                    estimated -> RingsCoverageSource.INITIAL_ESTIMATE
-                    !historyIsEmpty -> RingsCoverageSource.REAL_HISTORY
-                    declaredSensation -> RingsCoverageSource.SUBJECTIVE_SENSATION
-                    manual -> RingsCoverageSource.MANUAL_CHECK_IN
-                    else -> RingsCoverageSource.NO_DATA
-                }
-                val uncertainty = channelConfidence(id)?.let { 100 - it.coerceIn(0, 100) }
-                    ?: when (source) {
-                        RingsCoverageSource.REAL_HISTORY -> 20
-                        RingsCoverageSource.INITIAL_ESTIMATE -> 100 - contribution.confidence.coerceIn(0, 100)
-                        RingsCoverageSource.MANUAL_CHECK_IN -> 40
-                        RingsCoverageSource.SUBJECTIVE_SENSATION -> 70
-                        RingsCoverageSource.NO_DATA -> 100
-                    }
-                return RingsChannelCoverage(
-                    channel = id,
-                    source = source,
-                    uncertainty = uncertainty.coerceIn(0, 100),
-                    score = if (source == RingsCoverageSource.NO_DATA) null else score(id),
-                )
+            fun manual(id: RecoveryChannelId) = hasManualChannel(wellbeing, id)
+            fun declared(id: RecoveryChannelId) = when (id) {
+                RecoveryChannelId.MUSCULAR -> subjective.muscular != null
+                RecoveryChannelId.SYSTEM -> subjective.energy != null
+                RecoveryChannelId.STRUCTURE -> subjective.structure != null
             }
             return RingsCoverage(
-                muscular = channel(RecoveryChannelId.MUSCULAR),
-                system = channel(RecoveryChannelId.SYSTEM),
-                structure = channel(RecoveryChannelId.STRUCTURE),
+                muscular = channelCoverage(RecoveryChannelId.MUSCULAR, manual(RecoveryChannelId.MUSCULAR), declared(RecoveryChannelId.MUSCULAR), historyIsEmpty, contribution, channelConfidence(RecoveryChannelId.MUSCULAR), score(RecoveryChannelId.MUSCULAR)),
+                system = channelCoverage(RecoveryChannelId.SYSTEM, manual(RecoveryChannelId.SYSTEM), declared(RecoveryChannelId.SYSTEM), historyIsEmpty, contribution, channelConfidence(RecoveryChannelId.SYSTEM), score(RecoveryChannelId.SYSTEM)),
+                structure = channelCoverage(RecoveryChannelId.STRUCTURE, manual(RecoveryChannelId.STRUCTURE), declared(RecoveryChannelId.STRUCTURE), historyIsEmpty, contribution, channelConfidence(RecoveryChannelId.STRUCTURE), score(RecoveryChannelId.STRUCTURE)),
+            )
+        }
+
+        /**
+         * Cobertura por canal para Home (y cualquier consumidor post-alta) con las
+         * MISMAS entradas del motor: historial, evidencia inicial vigente y la fila
+         * de check-in guardada. A diferencia de [fromBatteries], cada canal
+         * resuelve su procedencia POR CANAL: un check-in parcial (p. ej. solo
+         * muscular) no convierte sistema/estructura en «conocidos».
+         *
+         * @param declaredChannels canales que el check-in declaró realmente
+         *   ([declaredCheckInChannels]); se presentan como estimación subjetiva,
+         *   nunca como recuperación confirmada.
+         */
+        fun fromEngineInputs(
+            historyIsEmpty: Boolean,
+            wellbeing: DailyWellbeingLog?,
+            contribution: InitialRecoveryContribution,
+            declaredChannels: Set<RecoveryChannelId> = emptySet(),
+            channelConfidence: Map<RecoveryChannelId, Int> = emptyMap(),
+            score: (RecoveryChannelId) -> Int,
+        ): RingsCoverage {
+            fun manual(id: RecoveryChannelId) = hasManualChannel(wellbeing, id)
+            return RingsCoverage(
+                muscular = channelCoverage(RecoveryChannelId.MUSCULAR, manual(RecoveryChannelId.MUSCULAR), RecoveryChannelId.MUSCULAR in declaredChannels, historyIsEmpty, contribution, channelConfidence[RecoveryChannelId.MUSCULAR], score(RecoveryChannelId.MUSCULAR)),
+                system = channelCoverage(RecoveryChannelId.SYSTEM, manual(RecoveryChannelId.SYSTEM), RecoveryChannelId.SYSTEM in declaredChannels, historyIsEmpty, contribution, channelConfidence[RecoveryChannelId.SYSTEM], score(RecoveryChannelId.SYSTEM)),
+                structure = channelCoverage(RecoveryChannelId.STRUCTURE, manual(RecoveryChannelId.STRUCTURE), RecoveryChannelId.STRUCTURE in declaredChannels, historyIsEmpty, contribution, channelConfidence[RecoveryChannelId.STRUCTURE], score(RecoveryChannelId.STRUCTURE)),
             )
         }
 
@@ -128,6 +124,10 @@ data class RingsCoverage(
          * Cobertura derivada de la procedencia que ya publican los motores en
          * [GlobalBatteries]. «Sin calibrar» significa que no hay historial, check-in
          * ni evidencia: se marca «sin datos» en lugar de exponer el 100 % calculado.
+         *
+         * Nota: [dataLabel] es UNA etiqueta global para los tres canales; solo se
+         * usa como último recurso cuando no hay entradas por canal disponibles
+         * ([fromEngineInputs] o un `RingsCoverage` explícito).
          */
         fun fromBatteries(
             batteries: GlobalBatteries?,
@@ -162,6 +162,83 @@ data class RingsCoverage(
                 system = channel(RecoveryChannelId.SYSTEM, batteries?.cnc),
                 structure = channel(RecoveryChannelId.STRUCTURE, batteries?.spinal),
             )
+        }
+    }
+}
+
+/** ¿Este canal tiene un ajuste manual real en la fila de check-in? */
+private fun hasManualChannel(wellbeing: DailyWellbeingLog?, id: RecoveryChannelId): Boolean = when (id) {
+    RecoveryChannelId.MUSCULAR ->
+        wellbeing?.manualMuscularBattery != null ||
+            wellbeing?.manualMuscleBatteries?.isNotEmpty() == true ||
+            wellbeing?.manualMuscleOverridesV2?.isNotEmpty() == true
+    RecoveryChannelId.SYSTEM -> wellbeing?.manualNeuralBattery != null
+    RecoveryChannelId.STRUCTURE -> wellbeing?.manualSpinalBattery != null
+}
+
+/**
+ * Resolución de procedencia de UN canal, con la misma precedencia que el motor:
+ * estimación inicial (salvo que el canal tenga ajuste manual) → historial real →
+ * sensación declarada → ajuste manual → sin datos.
+ */
+private fun channelCoverage(
+    id: RecoveryChannelId,
+    manual: Boolean,
+    declaredSensation: Boolean,
+    historyIsEmpty: Boolean,
+    contribution: InitialRecoveryContribution,
+    confidence: Int?,
+    score: Int?,
+): RingsChannelCoverage {
+    // Mismo carácter estimado por canal que calcula el motor.
+    val estimated = contribution.isEstimated && !manual
+    val source = when {
+        estimated -> RingsCoverageSource.INITIAL_ESTIMATE
+        !historyIsEmpty -> RingsCoverageSource.REAL_HISTORY
+        declaredSensation -> RingsCoverageSource.SUBJECTIVE_SENSATION
+        manual -> RingsCoverageSource.MANUAL_CHECK_IN
+        else -> RingsCoverageSource.NO_DATA
+    }
+    val uncertainty = confidence?.let { 100 - it.coerceIn(0, 100) }
+        ?: when (source) {
+            RingsCoverageSource.REAL_HISTORY -> 20
+            RingsCoverageSource.INITIAL_ESTIMATE -> 100 - contribution.confidence.coerceIn(0, 100)
+            RingsCoverageSource.MANUAL_CHECK_IN -> 40
+            RingsCoverageSource.SUBJECTIVE_SENSATION -> 70
+            RingsCoverageSource.NO_DATA -> 100
+        }
+    return RingsChannelCoverage(
+        channel = id,
+        source = source,
+        uncertainty = uncertainty.coerceIn(0, 100),
+        score = if (source == RingsCoverageSource.NO_DATA) null else score,
+    )
+}
+
+/**
+ * Canales que el check-in REALMENTE declaró en esta fila de wellbeing.
+ * `capturedFields` es el registro durable de lo declarado; cuando la fila nació
+ * en el alta ([WellbeingSource.ONBOARDING_INITIAL]) un ajuste manual sin campo
+ * capturado también identifica su canal (así se preserva la procedencia
+ * subjetiva/estimada de la vista previa más allá del alta). Nunca inventa
+ * canales: lo no declarado queda fuera y su cobertura sigue siendo «sin datos».
+ */
+fun declaredCheckInChannels(wellbeing: DailyWellbeingLog?): Set<RecoveryChannelId> {
+    wellbeing ?: return emptySet()
+    val fields = wellbeing.capturedFields
+    val fromOnboarding = wellbeing.source == WellbeingSource.ONBOARDING_INITIAL
+    val muscularManual = wellbeing.manualMuscularBattery != null ||
+        wellbeing.manualMuscleBatteries.isNotEmpty() ||
+        wellbeing.manualMuscleOverridesV2.isNotEmpty()
+    return buildSet {
+        if ("muscular" in fields || "muscle_batteries" in fields || (fromOnboarding && muscularManual)) {
+            add(RecoveryChannelId.MUSCULAR)
+        }
+        if ("energy" in fields || "energy_rating" in fields || (fromOnboarding && wellbeing.manualNeuralBattery != null)) {
+            add(RecoveryChannelId.SYSTEM)
+        }
+        if ("structure" in fields || (fromOnboarding && wellbeing.manualSpinalBattery != null)) {
+            add(RecoveryChannelId.STRUCTURE)
         }
     }
 }

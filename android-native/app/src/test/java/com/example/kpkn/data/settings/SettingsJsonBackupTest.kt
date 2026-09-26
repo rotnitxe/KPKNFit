@@ -7,8 +7,10 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.toCompetitionRecord
 import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.db.SetupDraftEntity
 import com.example.kpkn.data.models.CompetitionRecord
+import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.repository.NutritionRepository
@@ -180,6 +182,32 @@ class SettingsJsonBackupTest {
                 onMeasurementSchedule = {},
             )
             assertTrue(db.setupDraftDao().getAllDrafts().any { it.draftId == "keep-me" })
+        } finally {
+            db.close()
+        }
+    }
+
+    @Test
+    fun `settings backup preserves explicit empty availability and accepts absent legacy field`() = runBlocking {
+        assertEquals(null, dbJson.decodeFromString<Settings>("{}").equipmentAvailability)
+        val db = KpknDatabase.createInMemory(context)
+        try {
+            val explicitNone = EquipmentAvailability(emptySet())
+            val encoded = dbJson.encodeToString(
+                minimalPayload().copy(settings = Settings(equipmentAvailability = explicitNone)),
+            )
+            val decoded = dbJson.decodeFromString<SettingsExportPayload>(encoded)
+            assertEquals(explicitNone, decoded.settings.equipmentAvailability)
+
+            SettingsJsonBackup.importPayload(
+                context = context,
+                payload = decoded,
+                db = db,
+                nutritionRepository = nutritionRepo(db),
+                onMeasurementSchedule = {},
+            )
+
+            assertEquals(explicitNone, db.settingsDao().get()?.toSettings()?.equipmentAvailability)
         } finally {
             db.close()
         }

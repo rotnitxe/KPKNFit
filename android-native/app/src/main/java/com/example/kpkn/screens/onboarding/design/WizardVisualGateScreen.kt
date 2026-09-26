@@ -144,6 +144,9 @@ fun WizardVisualGateScreen(onBack: () -> Unit) {
                     bodyFatPercent = it.percent.toString()
                     bodyFatSource = it.source.name
                 },
+                // La puerta necesita la versión completa (fuente + pill): la
+                // pantalla productiva usa el modo VISUAL_ONLY por defecto.
+                mode = WizardPhysiqueMode.COMPLETE,
             )
         }
 
@@ -164,28 +167,30 @@ fun WizardVisualGateScreen(onBack: () -> Unit) {
                 color = WizardColors.textMuted,
             )
             WizardMilestones(
+                heroTitle = "¡Empecemos!",
+                heroSubtitle = "Tu programa personalizado te espera",
                 items = listOf(
                     WizardMilestoneItem(
                         block = WizardBlock.BASICS,
-                        title = "1 · Datos básicos",
+                        title = "Datos básicos",
                         body = "Edad, sexo usado por la ecuación, altura, peso y grasa corporal actual.",
                         state = WizardMilestoneState.DONE,
                     ),
                     WizardMilestoneItem(
                         block = WizardBlock.TRAINING,
-                        title = "2 · Entreno",
+                        title = "Entreno",
                         body = "Recomendación o protocolo, equipo, calendario, prioridades de orden y calentamientos.",
                         state = WizardMilestoneState.CURRENT,
                     ),
                     WizardMilestoneItem(
                         block = WizardBlock.NUTRITION,
-                        title = "3 · Nutrición",
+                        title = "Nutrición",
                         body = "Presupuesto energético, macros y reparto semanal según el gasto previsto.",
                         state = WizardMilestoneState.PENDING,
                     ),
                     WizardMilestoneItem(
                         block = WizardBlock.RINGS,
-                        title = "4 · Rings",
+                        title = "Rings",
                         body = "Entrenamiento reciente, sensaciones y molestias para calibrar la recuperación.",
                         state = WizardMilestoneState.PENDING,
                     ),

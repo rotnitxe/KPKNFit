@@ -32,9 +32,19 @@ object SetupTrainingPlanner {
             .filter { it.supportedFrequencies.contains(input.frequency ?: it.supportedFrequencies.first) }
             .filter { it.supportedFocuses.contains(input.focus) || it.source == CatalogSource.PROTOCOL }
             // Native exercise compatibility is decided by SimpleCyclePersonalizer.
-            // Fixed recipes cannot substitute missing required equipment.
-            .filter { entry -> entry.source == CatalogSource.NATIVE || "general_gym" in input.equipment ||
-                entry.requiredEquipment.all { it in input.equipment } }
+            // En las recetas fijas `requiredEquipment = general_gym` es metadata
+            // GRUESA: no autoriza nada por sí sola ni bloquea con inventario
+            // finito. Aquí solo se exigen requisitos de material EXPLÍCITOS
+            // distintos de `general_gym`; el filtro real del material ocurre en
+            // la materialización con `missingFixedRecipeEquipment`, que el
+            // wizard invoca antes del preview (así ninguna receta fija se oculta
+            // en vano ni se afirma compatible sin verificar).
+            .filter { entry ->
+                entry.source == CatalogSource.NATIVE ||
+                    entry.requiredEquipment.none { requirement ->
+                        requirement != "general_gym" && requirement !in input.equipment
+                    }
+            }
             // A strength + cardio goal only qualifies plans that schedule cardio;
             // the chosen reference then orders them instead of hiding them.
             .filter { entry -> !input.mixedTraining || entry.schedulesCardio }

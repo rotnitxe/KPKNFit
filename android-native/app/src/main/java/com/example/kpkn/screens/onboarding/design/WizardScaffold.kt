@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -25,15 +27,34 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+/** Altura real bajo progreso y sobre el CTA. `Unspecified` fuera de esa ruta. */
+val LocalWizardControlViewport = compositionLocalOf { Dp.Unspecified }
+
+enum class WizardAnthropometryLayout { Pending, Combined, Separate }
+
+/** Decisión de fusionar altura y peso según el hueco medido y la escala de fuente. */
+@Composable
+fun currentAnthropometryLayout(): WizardAnthropometryLayout {
+    val viewport = LocalWizardControlViewport.current
+    if (viewport == Dp.Unspecified) return WizardAnthropometryLayout.Pending
+    val fits = WizardAnthropometryFit.fits(viewport.value, LocalDensity.current.fontScale)
+    return if (fits) WizardAnthropometryLayout.Combined else WizardAnthropometryLayout.Separate
+}
 
 /**
  * Andamiaje común de una pantalla del wizard.
@@ -54,30 +75,111 @@ fun WizardScaffold(
     ctaLabel: String,
     ctaEnabled: Boolean = true,
     onCta: () -> Unit,
+    /**
+     * Ruta de **control centrado** (altura/peso): `header` queda fijo arriba y
+     * `content` ocupa el espacio restante real de la viewport. `false`
+     * conserva el layout clásico con scroll de todas las demás pantallas.
+     */
+    centerControl: Boolean = false,
+    /** Cabecera fija superior; solo se usa con [centerControl]. */
+    header: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    WizardDarkSystemBars()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(WizardColors.background)
             .statusBarsPadding(),
     ) {
-        WizardHeader(title = title, onBack = onBack, onExit = onExit, exitLabel = exitLabel)
-        WizardProgress(progress = progress, accent = block.accent)
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = WizardSpacing.gutter, vertical = WizardSpacing.sectionGap),
-            verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
-            content = content,
+        WizardHeader(
+            title = title,
+            onBack = onBack,
+            onExit = onExit,
+            exitLabel = exitLabel,
+            measurementScale = centerControl,
         )
+        WizardProgress(progress = progress)
+        if (centerControl && header != null) {
+            CenteredControlArea(header = header, content = content)
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = WizardSpacing.gutter, vertical = WizardSpacing.sectionGap),
+                verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
+                content = content,
+            )
+        }
         WizardCta(
             label = ctaLabel,
             enabled = ctaEnabled,
             onClick = onCta,
+            measurementScale = centerControl,
         )
+    }
+}
+
+/**
+ * Contenedor de viewport para los pasos de control centrado.
+ *
+ * `BoxWithConstraints` da la altura **real** que queda bajo la cabecera, el
+ * progreso y el CTA; el contenedor fija ese mínimo (`heightIn`) y la región de
+ * control se lleva el resto con `weight`, así que no hay alturas mágicas por
+ * teléfono. La cabecera no se desplaza: el control se centra por debajo.
+ */
+@Composable
+private fun ColumnScope.CenteredControlArea(
+    header: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f),
+    ) {
+        val viewportHeight = maxHeight
+        CompositionLocalProvider(LocalWizardControlViewport provides viewportHeight) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = viewportHeight),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = WizardSpacing.gutter,
+                        end = WizardSpacing.gutter,
+                        top = WizardSpacing.sectionGap,
+                        bottom = WizardSpacing.cardGap,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap),
+            ) { header() }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(
+                        start = WizardSpacing.gutter,
+                        end = WizardSpacing.gutter,
+                        bottom = WizardSpacing.sectionGap,
+                    ),
+                // El control se centra en el espacio restante; si no cabe, su
+                // columna interna hace scroll (escala de fuente o pantalla corta).
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) { content() }
+            }
+        }
+        }
     }
 }
 
@@ -87,6 +189,7 @@ private fun WizardHeader(
     onBack: (() -> Unit)?,
     onExit: (() -> Unit)?,
     exitLabel: String,
+    measurementScale: Boolean,
 ) {
     Box(
         modifier = Modifier
@@ -97,7 +200,7 @@ private fun WizardHeader(
     ) {
         Text(
             text = title,
-            style = WizardTypography.header,
+            style = if (measurementScale) WizardTypography.wizardTopBar else WizardTypography.header,
             color = WizardColors.text,
             textAlign = TextAlign.Center,
             maxLines = 1,
@@ -150,9 +253,13 @@ private fun WizardHeader(
     }
 }
 
-/** Progreso fino bajo la cabecera, relleno proporcional al avance del bloque. */
+/**
+ * Progreso fino bajo la cabecera, relleno claro neutral proporcional al avance.
+ * El color lo fija la paleta (`progressFill`), no el acento del bloque: las
+ * referencias lo muestran neutro.
+ */
 @Composable
-private fun WizardProgress(progress: Float, accent: Color) {
+private fun WizardProgress(progress: Float) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,35 +270,51 @@ private fun WizardProgress(progress: Float, accent: Color) {
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(progress.coerceIn(0f, 1f))
-                .background(accent),
+                .background(WizardColors.progressFill),
         )
     }
 }
 
-/** CTA blanco fijo del pie, con el estado deshabilitado de las referencias. */
+/**
+ * CTA blanco fijo del pie, con el estado deshabilitado de las referencias.
+ *
+ * Estable para pruebas y para TalkBack: `setup-continue` identifica el único
+ * CTA de la pantalla y el nodo publica `Role.Button` junto al estado
+ * deshabilitado real (`clickable(enabled = …)` emite `Disabled`), de modo que
+ * «ocupado/inválido» se anuncia como botón deshabilitado y no como texto.
+ */
 @Composable
-private fun WizardCta(label: String, enabled: Boolean, onClick: () -> Unit) {
+private fun WizardCta(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    measurementScale: Boolean,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(WizardColors.background)
             .navigationBarsPadding()
             .imePadding()
-            .padding(horizontal = WizardSpacing.gutter, vertical = 12.dp),
+            .padding(
+                horizontal = if (measurementScale) WizardSpacing.gutterCompact else WizardSpacing.gutter,
+                vertical = 12.dp,
+            ),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(WizardSpacing.ctaHeight)
+                .height(if (measurementScale) WizardSpacing.wizardCtaHeight else WizardSpacing.ctaHeight)
                 .clip(WizardShapes.cta)
                 .background(if (enabled) WizardColors.cta else WizardColors.ctaDisabled)
-                .clickable(enabled = enabled, onClick = onClick)
+                .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+                .testTag("setup-continue")
                 .semantics { contentDescription = label },
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = label,
-                style = WizardTypography.cta,
+                style = if (measurementScale) WizardTypography.wizardCta else WizardTypography.cta,
                 color = if (enabled) WizardColors.ctaContent else WizardColors.ctaDisabledContent,
             )
         }

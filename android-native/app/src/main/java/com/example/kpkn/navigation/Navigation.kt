@@ -36,6 +36,21 @@ sealed class KpknRoute(val route: String) {
         const val ARG_PROGRAM_ID = "programId"
     }
 
+    /**
+     * Editor de programa DIRECTO (post-alta): única puerta de creación/edición
+     * del programa sin wizard de módulo. [programId] null o vacío = alta nueva;
+     * con valor = edición de un programa existente.
+     */
+    object ProgramEditor : KpknRoute("program-editor?programId={programId}") {
+        const val BASE_ROUTE = "program-editor"
+        const val ARG_PROGRAM_ID = "programId"
+
+        fun create(programId: String? = null): String = buildString {
+            append("$BASE_ROUTE?programId=")
+            append(Uri.encode(programId?.trim().orEmpty()))
+        }
+    }
+
     object SessionEditor : KpknRoute("session-editor/{programId}/{sessionId}?weekId={weekId}&macroIndex={macroIndex}&mesoIndex={mesoIndex}&dayOfWeek={dayOfWeek}") {
         fun create(
             programId: String,
@@ -179,6 +194,12 @@ sealed class KpknRoute(val route: String) {
     object SetupVisualGate : KpknRoute("setup/visual-gate")
     object SetupWizard : KpknRoute("setup/wizard?mode={mode}&draftId={draftId}") {
         const val BASE_ROUTE = "setup/wizard"
+        /**
+         * Prefijo común de TODAS las rutas de setup (entry, visual-gate,
+         * wizard). Oculta el chrome de navegación y fija el contraste de las
+         * system bars en cualquier pantalla del flujo de alta.
+         */
+        const val SETUP_ROUTES_BASE = "setup"
         const val ARG_MODE = "mode"
         const val ARG_DRAFT_ID = "draftId"
 

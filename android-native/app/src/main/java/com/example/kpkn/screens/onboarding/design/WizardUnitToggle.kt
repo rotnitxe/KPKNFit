@@ -21,8 +21,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 /**
- * Selector de unidad de las referencias: píldora oscura con la opción activa en
- * una pastilla blanca de texto oscuro.
+ * Selector de unidad centrado con la opción activa en una pastilla blanca. Los
+ * controles de altura/peso usan la escala de la referencia (90 % del ancho,
+ * tipografía y altura mayores); los demás usos compactos conservan 75 %.
  *
  * Alternar unidad no cambia el valor canónico: solo reexpresa lo mismo en otra
  * unidad, sin acumular errores de conversión.
@@ -34,38 +35,48 @@ fun <T> WizardUnitToggle(
     label: (T) -> String,
     onSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
+    measurementScale: Boolean = false,
 ) {
-    Row(
-        modifier = modifier
-            .clip(WizardShapes.pill)
-            .background(WizardColors.cardFill)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        options.forEach { option ->
-            val active = option == selected
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .defaultMinSize(minHeight = 40.dp)
-                    .clip(WizardShapes.pill)
-                    .background(if (active) WizardColors.cta else androidx.compose.ui.graphics.Color.Transparent)
-                    .semantics {
-                        role = Role.RadioButton
-                        this.selected = active
-                    }
-                    .clickable { onSelected(option) }
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = label(option),
-                    style = WizardTypography.cardSubtitle,
-                    color = if (active) WizardColors.ctaContent else WizardColors.textMuted,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                )
+    val compact = options.size <= 2
+    val controlWidth = when {
+        !compact -> 1f
+        measurementScale -> 0.90f
+        else -> 0.75f
+    }
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(controlWidth)
+                .clip(WizardShapes.pill)
+                .background(androidx.compose.ui.graphics.Color.Black)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            options.forEach { option ->
+                val active = option == selected
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = if (measurementScale) 50.dp else 40.dp)
+                        .clip(WizardShapes.pill)
+                        .background(if (active) WizardColors.cta else androidx.compose.ui.graphics.Color.Transparent)
+                        .semantics {
+                            role = Role.RadioButton
+                            this.selected = active
+                        }
+                        .clickable { onSelected(option) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = label(option),
+                        style = if (measurementScale) WizardTypography.measureUnit else WizardTypography.cardSubtitle,
+                        color = if (active) WizardColors.ctaContent else WizardColors.textMuted,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
@@ -83,6 +94,7 @@ fun WizardMassUnitToggle(
         label = { it.code.uppercase() },
         onSelected = onSelected,
         modifier = modifier.fillMaxWidth(),
+        measurementScale = true,
     )
 }
 
@@ -98,5 +110,6 @@ fun WizardHeightUnitToggle(
         label = { it.label },
         onSelected = onSelected,
         modifier = modifier.fillMaxWidth(),
+        measurementScale = true,
     )
 }

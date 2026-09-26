@@ -18,20 +18,32 @@ import com.example.kpkn.data.models.CalibrationResponseState
 import com.example.kpkn.data.models.InitialRecoveryAxialExposure
 import com.example.kpkn.data.models.InitialRecoveryMuscleScope
 import com.example.kpkn.data.models.VolumeCalibrationProfile
+import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.programs.toTrainingReference
+import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
+import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
+import com.example.kpkn.domain.training.TrainingValidation
+import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupChangeDetector
 import com.example.kpkn.domain.onboarding.SetupChangeSource
 import com.example.kpkn.domain.onboarding.SetupDependencyRules
 import com.example.kpkn.domain.onboarding.SetupFieldCheck
 import com.example.kpkn.domain.onboarding.SetupInputFootprint
+import com.example.kpkn.domain.onboarding.SetupInventoryGroup
+import com.example.kpkn.domain.onboarding.SetupNutritionPreparationResult
 import com.example.kpkn.domain.onboarding.SetupStepContext
+import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
+import com.example.kpkn.domain.onboarding.SetupTrainingOptions
 import com.example.kpkn.domain.onboarding.SetupValueState
+import com.example.kpkn.domain.onboarding.WizChatAnswerKind
+import com.example.kpkn.domain.onboarding.WizChatAnswerRecord
+import com.example.kpkn.domain.onboarding.WizChatAnswerSource
 import com.example.kpkn.domain.onboarding.WizChatGraph
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.onboarding.WizChatProgress
@@ -58,6 +70,40 @@ enum class SetupRecentTrainingState { NOT_ANSWERED, NO, YES, UNKNOWN }
 
 @Serializable
 enum class SetupDiscomfortState { NOT_ANSWERED, NONE, DECLARED, OMITTED }
+
+/**
+ * Procedencia de la grasa corporal ACTUAL: una medición real, una estimación
+ * visual con la figura o una omisión explícita. El percentil y la fuente son
+ * estado actual, nunca una meta; la figura (hombre/mujer) no escribe
+ * `equationSex` ni plantea identidad.
+ */
+@Serializable
+enum class SetupBodyFatSource { MEASURED, VISUAL_ESTIMATE, UNKNOWN }
+
+/**
+ * Pesaje real declarado por el usuario: id estable + fecha + peso en kg.
+ * El wizard nunca fabrica pesajes ni fechas; la tendencia y el máximo anterior
+ * viajan en campos propios del contexto, separados de estos registros.
+ */
+@Serializable
+data class SetupWeighIn(
+    val id: String,
+    val dateIso: String,
+    val weightKg: Double,
+)
+
+/**
+ * Estado de edición de una fila editorial de paso (M4 lo persiste vía
+ * `updateStep`). Mientras `editing` está activo la validación del paso no
+ * deja avanzar, para no perder la fila a medias; guardar o salir la cierra.
+ */
+@Serializable
+data class SetupStepEditorState(
+    val editing: Boolean = false,
+    val itemIndex: Int? = null,
+    val phase: Int = 0,
+    val values: Map<String, String> = emptyMap(),
+)
 
 @Serializable
 data class SetupVolumeAnswers(
@@ -228,7 +274,73 @@ data class SetupWizardDraft(
      * kept so older drafts and screens keep loading; it never drives navigation.
      */
     val wizChat: WizChatProgress = WizChatProgress(),
+    /**
+     * Steps the user actively touched (typed or selected) in this or any
+     * previous session. Additive and serialization-safe: values prefilled from
+     * settings are never silently upgraded to DECLARED; only an explicit user
+     * interaction or a legacy DECLARED mirror answer counts.
+     */
+    val declaredSteps: Set<SetupStepId> = emptySet(),
+    // ── Contrato del wizard tradicional (API exacta UI/VM) ──────────────────
+    /** Contrato real de entrenamiento: bolsa de orden, autorregulación, calentamientos e inventario. */
+    val trainingOptions: SetupTrainingOptions = SetupTrainingOptions(),
+    /** Unidad visible de la estatura (`cm`/`ft`); el valor canónico sigue en [heightCm]. */
+    val heightUnit: String = "cm",
+    /** Grasa corporal ACTUAL (%): composición declarada, nunca una meta. */
+    val bodyFatPercent: Double? = null,
+    /** Cómo se obtuvo [bodyFatPercent]; exigido para persistir un percentil real. */
+    val bodyFatSource: SetupBodyFatSource? = null,
+    /** Figura del selector de complexión; independiente del sexo de cálculo. */
+    val physiqueModel: String = "male",
+    /** Posición del slider de complexión (estado de UI persistido con el borrador). */
+    val physiqueSliderPosition: Float = 4f,
+    /** Tendencia de peso declarada como contexto: rising | stable | falling. */
+    val weightTrend: String? = null,
+    /** Máximo de peso anterior (kg) como contexto del plan; no es un pesaje. */
+    val previousMaximumWeightKg: Double? = null,
+    /** Pesajes reales añadidos por el usuario; nunca derivados ni inventados. */
+    val historicalWeighIns: List<SetupWeighIn> = emptyList(),
+    /** Cuándo se midió realmente el peso actual; sobrevive a la rehidratación sin regenerarse. */
+    val currentWeightMeasuredAtEpochMs: Long? = null,
+    /** Cuándo se capturó realmente la grasa corporal actual; no se regenera al rehidratar. */
+    val bodyFatCapturedAtEpochMs: Long? = null,
+    /** Selecciones canónicas por paso (valores estables de las opciones del catálogo). */
+    val stepSelections: Map<SetupStepId, List<String>> = emptyMap(),
+    /**
+     * Texto crudo por paso, siempre con clave [SetupStepId.name]: conserva el
+     * intermedio de tecleo («1» de «19») y el texto inválido mientras el
+     * usuario corrige. Nunca se usa [SetupStepId] como clave.
+     */
+    val inputTexts: Map<String, String> = emptyMap(),
+    /** Fila editorial abierta por paso (M4): mientras `editing` no se cierre, el paso no avanza. */
+    val stepEditors: Map<SetupStepId, SetupStepEditorState> = emptyMap(),
+    /**
+     * Paso al que volver cuando una edición arrancada desde la revisión final
+     * se confirma (o se guarda y sale). El VM lo persiste con el borrador para
+     * no perder la intención al reanudar; null = avance normal.
+     */
+    val reviewReturnStep: SetupStepId? = null,
 )
+
+/** Whether a step value was declared by the user: touched here or recorded as DECLARED in the legacy mirror. */
+fun SetupWizardDraft.isStepDeclared(step: SetupStepId): Boolean {
+    if (step in declaredSteps) return true
+    val question = SetupStepGraph.questionForStep(step) ?: return false
+    return wizChat.acceptedAnswers.any { it.questionId == question && it.source == WizChatAnswerSource.DECLARED }
+}
+
+/** Marks a step as explicitly touched by the user; never removes existing marks. */
+fun SetupWizardDraft.touchStep(step: SetupStepId): SetupWizardDraft =
+    copy(declaredSteps = declaredSteps + step)
+
+/**
+ * Monotonic revision bump for a write. The draft from models navigation
+ * ([goNext]/[goBack]/[confirmCurrentStep]) carries its own revisions for the
+ * mirrors but never for the Room row, so the persistence boundary must always
+ * beat the previous revision by one. Never produces a revision below [previous].
+ */
+fun SetupWizardDraft.withNextDraftRevision(previous: SetupWizardDraft): SetupWizardDraft =
+    copy(revision = maxOf(revision, previous.revision + 1))
 
 /** Routing context derived from the draft; mirrors the legacy WizChat context. */
 fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
@@ -236,7 +348,7 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     includeNutrition = includeNutrition,
     includeRings = draftScope in setOf("full", "resume", "rings_only"),
     programRouteLater = programRoute == SetupProgramRoute.LATER,
-    homeEquipmentSelected = trainingEnvironment == "Entreno en casa",
+    homeEquipmentSelected = trainingEnvironment == "home" || trainingEnvironment == "Entreno en casa",
     mixedTraining = goal == SetupGoal.MIXED,
     hasTrainingMarks = knowsTrainingMarks,
     goalStyleInferred = goal?.inferredTrainingStyle != null,
@@ -244,7 +356,32 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     nutritionStarted = includeNutrition && nutritionMode == "create",
     ringsAction = ringsAnswers?.startAction,
     recentTraining = ringsAnswers?.recentTraining,
+    // Ramas nuevas: derivadas SOLO de datos del borrador, nunca de `answered`
+    // (así la ruta es estable mientras el cursor está dentro de una rama).
+    inventoryGroups = inventoryGroups(),
+    asksAvailability = asksEquipmentCategories(),
+    wantsCardio = cardioType != null || cardioMinutes != null,
+    nutritionStartChoice = stepSelections[SetupStepId.NUTRITION_START]?.firstOrNull()
+        ?: nutritionDraft?.configurationMode?.name?.lowercase(),
+    nutritionDirection = stepSelections[SetupStepId.NUTRITION_DIRECTION]?.firstOrNull()
+        ?: nutritionDraft?.direction?.name?.lowercase(),
+    // AUTO inserta el paso de confirmación; el paso se mantiene en la ruta
+    // mientras el modo siga siendo AUTO, nunca por estado de respuesta.
+    autoregulationOn = trainingOptions.autoregulationMode == AutoregulationMode.AUTO,
 )
+
+/**
+ * El alta ya no pregunta stock (kilos, discos, rangos). El material se declara
+ * por categorías en [SetupStepId.AVAILABILITY]. Los pasos de inventario quedan
+ * fuera de la ruta productiva; se conservan solo para borradores antiguos.
+ */
+internal fun SetupWizardDraft.inventoryGroups(): Set<SetupInventoryGroup> = emptySet()
+
+/** Gimnasio, casa o máquinas: una sola pantalla de categorías. Sin material, no. */
+internal fun SetupWizardDraft.asksEquipmentCategories(): Boolean = when (trainingEnvironment) {
+    "gym", "Gimnasio completo", "home", "Entreno en casa", "machines", "Principalmente máquinas" -> true
+    else -> false
+}
 
 /** Fingerprint of the inputs that feed previews; pure navigation never changes it. */
 fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint(
@@ -252,8 +389,12 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     heightCm = heightCm,
     ageYears = ageYears,
     gender = profileGender?.name,
+    equationSex = nutritionDraft?.equationSex?.name,
+    bodyFatPercent = bodyFatPercent,
     equipment = equipment.map { it.name }.toSet(),
     trainingEnvironment = trainingEnvironment,
+    inventory = trainingOptions.inventory?.toString()?.let { setOf(it) }.orEmpty(),
+    equipmentAvailability = trainingOptions.availability?.categories?.mapTo(linkedSetOf()) { it.name },
     daysPerWeek = daysPerWeek,
     selectedWeekdays = selectedWeekdays,
     minutesPerSession = minutesPerSession,
@@ -271,8 +412,11 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     selectedCatalogId = selectedCatalogId,
     priorityMuscles = priorityMuscles,
     lowerEmphasisMuscles = lowerEmphasisMuscles,
+    priorityPoints = trainingOptions.orderPriorities,
     selectedSplitId = selectedSplitId,
     customSplitPattern = customSplitPattern,
+    autoregulationMode = trainingOptions.autoregulationMode.name,
+    warmupsPreference = trainingOptions.warmup?.joinToString(";") { step -> "${step.percent ?: ""}:${step.reps ?: ""}" },
     sessionsSignature = sessions.map { session ->
         "${session.weekday}:${session.title}:" + session.exercises.joinToString("|") { item ->
             "${item.id}/${item.sets ?: 0}/${item.reps}"
@@ -289,6 +433,15 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
         nutritionMode,
         nutritionPlanId.orEmpty(),
     ),
+    nutritionStartChoice = stepContext().nutritionStartChoice,
+    nutritionDirection = stepContext().nutritionDirection,
+    nutritionDistribution = nutritionDraft?.weeklyDistribution?.name,
+    nutritionTargetKg = nutritionDraft?.targetWeightText?.takeIf { it.isNotBlank() }?.let { parseLocalizedNumber(it) },
+    nutritionHistorySignature = listOf(
+        weightTrend.orEmpty(),
+        previousMaximumWeightKg?.toString().orEmpty(),
+        historicalWeighIns.joinToString(";") { "${it.id}|${it.dateIso}|${it.weightKg}" },
+    ).joinToString("|"),
 )
 
 /** Keeps valid answers, marks incompatible selections pending and stales previews. */
@@ -360,6 +513,91 @@ fun SetupWizardDraft.recordStepAnswer(
     provenance: SetupAnswerProvenance,
     valueState: SetupValueState,
 ): SetupWizardDraft = copy(stepProgress = stepProgress.recordAnswer(step, provenance, valueState))
+
+/**
+ * Result of a single confirmation of the current step. Exactly one advance is
+ * produced per accepted call, so repeated callbacks are dropped by the caller.
+ */
+enum class SetupSubmitOutcome { ACCEPTED, REJECTED, DROPPED, FAILED }
+
+data class SetupSubmitResult(
+    val outcome: SetupSubmitOutcome,
+    val movedToStep: SetupStepId? = null,
+) {
+    val accepted: Boolean get() = outcome == SetupSubmitOutcome.ACCEPTED
+    val advanced: Boolean get() = outcome == SetupSubmitOutcome.ACCEPTED && movedToStep != null
+}
+
+/** Operations that can fail and be retried explicitly from the UI. */
+enum class SetupRetryOperation { LOAD, SAVE, PREVIEW, CANDIDATES, RINGS_PREVIEW, COMMIT }
+
+/**
+ * Records provenance for [step] and moves the cursor exactly one step forward.
+ * Basics values the user never touched (prefilled from settings) are recorded
+ * as ESTIMATED; touched or legacy-DECLARED values are DECLARED. The legacy
+ * wizChat mirror keeps a coherent answer log for older readers and the commit
+ * review gate.
+ */
+fun SetupWizardDraft.confirmCurrentStep(step: SetupStepId): SetupWizardDraft {
+    val atReview = step == SetupStepId.REVIEW_ACTIVATE
+    val nextStep = SetupStepGraph.next(step, stepContext())
+    val landedOnReview = atReview || nextStep == SetupStepId.REVIEW_ACTIVATE
+    val question = SetupStepGraph.questionForStep(step)
+    val declared = isStepDeclared(step)
+    val recorded = stepProgress.recordAnswer(
+        step,
+        if (declared) SetupAnswerProvenance.USER_DECLARED else SetupAnswerProvenance.SUGGESTED,
+        if (declared) SetupValueState.DECLARED else SetupValueState.ESTIMATED,
+    ).at(nextStep ?: step, stepContext())
+    val nextQuestion = if (landedOnReview) WizChatQuestionId.REVIEW
+    else SetupStepGraph.questionForStep(nextStep ?: step) ?: wizChat.currentQuestionId
+    val mirror = question?.let { listOf(confirmationMirrorRecord(step, it)) }
+    // The mirror must stay coherent even for steps without a legacy question
+    // (milestones, the review terminal): landing on the review always opens the
+    // REVIEW question and marks the draft terminal so commit's gate opens.
+    return copy(
+        stepProgress = recorded,
+        wizChat = wizChat.copy(
+            acceptedAnswers = if (question == null) wizChat.acceptedAnswers
+            else wizChat.acceptedAnswers.filterNot { it.questionId == question } + mirror.orEmpty(),
+            currentQuestionId = nextQuestion,
+            stage = WizChatGraph.stageFor(nextQuestion),
+            terminal = wizChat.terminal || landedOnReview,
+            revision = wizChat.revision + 1,
+        ),
+    )
+}
+
+/** Legacy mirror of a confirmed step: the envelope the old conversational flow would have kept. */
+private fun SetupWizardDraft.confirmationMirrorRecord(step: SetupStepId, question: WizChatQuestionId): WizChatAnswerRecord {
+    val declared = isStepDeclared(step)
+    return WizChatAnswerRecord(
+        questionId = question,
+        kind = WizChatGraph.question(question)?.kind ?: WizChatAnswerKind.ACTION,
+        textValue = when (question) {
+            WizChatQuestionId.P_NAME -> name.takeIf { it.isNotBlank() }
+            WizChatQuestionId.P_GENDER -> when (profileGender) {
+                Gender.FEMALE -> "Mujer"
+                Gender.MALE -> "Hombre"
+                Gender.OTHER -> "Otro"
+                null -> null
+            }
+            WizChatQuestionId.P_AGE -> ageYears?.toString()
+            WizChatQuestionId.P_HEIGHT -> heightCm?.toString()
+            WizChatQuestionId.P_WEIGHT -> weightKg?.toString()
+            WizChatQuestionId.P_EXPERIENCE -> experience?.label
+            else -> null
+        },
+        numberValue = when (question) {
+            WizChatQuestionId.P_AGE -> ageYears?.toDouble()
+            WizChatQuestionId.P_HEIGHT -> heightCm
+            WizChatQuestionId.P_WEIGHT -> weightKg
+            else -> null
+        },
+        source = if (declared) WizChatAnswerSource.DECLARED else WizChatAnswerSource.SUGGESTED_ACCEPTED,
+        revision = wizChat.revision + 1,
+    )
+}
 
 /** Pending modal decisions; discard is never triggered by the back button. */
 @Serializable
@@ -435,6 +673,11 @@ data class SetupWizardState(
     val isExerciseSearching: Boolean = false,
     val exerciseSearchError: String? = null,
     val isCandidateLoading: Boolean = false,
+    /**
+     * Los candidatos visibles salieron del segundo pase a peso corporal:
+     * la vista previa y el alta usan ese mismo borrador adaptado.
+     */
+    val planAdaptedToBodyweight: Boolean = false,
     val nutritionPlanPreview: NutritionPlan? = null,
     val nutritionErrors: Map<String, String> = emptyMap(),
     val nutritionPacePercentPerWeek: Double? = null,
@@ -444,6 +687,17 @@ data class SetupWizardState(
     val dialog: SetupWizardDialog = SetupWizardDialog.NONE,
     val isSavingAndExiting: Boolean = false,
     val exitCompleted: Boolean = false,
+    /** Message of the last failed operation; cleared on the next successful publish. */
+    val lastFailure: String? = null,
+    /**
+     * Cobertura publicada por el preview de RINGS (`SetupRingsPreview.coverage`).
+     * Es la única fuente que consumen Home y Revisión: nunca se deriva una
+     * etiqueta global mezclando canales parciales (un `INCOMPLETE` histórico
+     * convive con un `PARTIAL_CHECK_IN` válido y con «Sin calibrar» explícito).
+     */
+    val ringsCoveragePreview: RingsCoverage? = null,
+    /** Preparación nutricional REAL del alta (días, gastos y errores), cuando existe. */
+    val nutritionPreparation: SetupNutritionPreparationResult? = null,
 ) {
     val showNutritionPreview: Boolean get() = nutritionDraft != null
     val nutritionDraft: NutritionWizardDraft? get() = draft.nutritionDraft
@@ -454,6 +708,12 @@ data class SetupWizardState(
         get() = SetupWizardValidation.validateStep(draft, draft.stepProgress.currentStepId)
     val globalValidation: List<SetupFieldCheck>
         get() = SetupWizardValidation.validateAll(draft)
+    /** Continuar is usable when the step is not blocking and no write is in flight. */
+    val canConfirmStep: Boolean
+        get() = !isSubmittingAnswer && !isSavingAndExiting && stepValidation.none { it.isBlocking }
+    /** The step is valid once its values are present; it never blocks on already-answered steps. */
+    val hasBlockingError: Boolean
+        get() = stepValidation.any { it.isBlocking }
 }
 
 data class SetupPlanCandidate(
@@ -538,10 +798,39 @@ object SetupWizardValidation {
             return if (error != null) invalid(key, error) else ok(key)
         }
         fun number(key: String, value: Double?, absentMessage: String): List<SetupFieldCheck> {
-            if (value == null) return absent(key, absentMessage)
-            val question = SetupStepGraph.questionForStep(step)?.let(WizChatGraph::question)
-            val error = question?.let { WizChatValidation.validate(it, number = value) }
-            return if (error != null) invalid(key, error) else ok(key)
+            // El texto crudo manda: si existe, el número válido es el que el
+            // usuario está escribiendo ahora, no el tipado anterior.
+            val raw = draft.inputTexts[step.name]
+            val parsedRaw = raw?.takeIf { it.isNotBlank() }?.let { parseLocalizedNumber(it) }
+            if (raw != null && raw.isNotBlank() && parsedRaw == null) return invalid(key, "Escribe un número válido")
+            val effective = parsedRaw ?: value
+            if (effective == null) {
+                // Pasos opcionales: omitir de forma explícita (registro de
+                // respuesta en la confirmación) habilita Continuar sin fabricar dato.
+                val skippable = SetupStepDefinitions.of(step)?.allowSkip == true
+                return if (skippable && draft.isAnswered(step)) ok(key) else absent(key, absentMessage)
+            }
+            if (!effective.isFinite()) return invalid(key, "Escribe un número válido")
+            // Enteros exactos donde el decimal no significa nada.
+            if ((step == SetupStepId.AGE || step == SetupStepId.SESSION_TIME) && effective % 1.0 != 0.0) {
+                return invalid(key, "Escribe un número entero sin decimales")
+            }
+            // Rangos: manda el catálogo ([SetupStepDefinitions]); la regla legacy
+            // solo cubre pasos sin rango propio (compatibilidad de lectura).
+            val definitionRange = SetupStepDefinitions.of(step)?.range
+            if (definitionRange != null) {
+                if (effective !in definitionRange.min..definitionRange.max) {
+                    return invalid(
+                        key,
+                        "Usa un valor entre ${definitionRange.min.toInt()} y ${definitionRange.max.toInt()} ${definitionRange.unit.orEmpty()}.".trim(),
+                    )
+                }
+            } else {
+                val question = SetupStepGraph.questionForStep(step)?.let(WizChatGraph::question)
+                val error = question?.let { WizChatValidation.validate(it, number = effective) }
+                if (error != null) return invalid(key, error)
+            }
+            return ok(key)
         }
         return when (step) {
             SetupStepId.NAME -> when {
@@ -554,6 +843,29 @@ object SetupWizardValidation {
             SetupStepId.AGE -> number("age", draft.ageYears?.toDouble(), "Añade tu edad o fecha de nacimiento")
             SetupStepId.HEIGHT -> number("height", draft.heightCm, "Indica tu estatura")
             SetupStepId.WEIGHT -> number("weight", draft.weightKg, "Indica tu peso")
+            SetupStepId.EQUATION_SEX -> when {
+                draft.nutritionDraft?.equationSex != null -> ok("equationSex")
+                // «No lo sé» solo es válido con nutrición a mano: la omisión es
+                // una elección explícita del usuario, nunca un default.
+                "unknown" in draft.selectedValues(step) -> ok("equationSex")
+                else -> absent("equationSex", "Elige tu sexo de cálculo o usa «No lo sé»")
+            }
+            SetupStepId.BODY_FAT -> {
+                val raw = draft.inputTexts[step.name]
+                val parsedRaw = raw?.takeIf { it.isNotBlank() }?.let { parseLocalizedNumber(it) }
+                val percent = draft.bodyFatPercent
+                val source = draft.bodyFatSource
+                when {
+                    raw != null && raw.isNotBlank() && parsedRaw == null -> invalid("bodyFat", "Escribe un porcentaje válido")
+                    (parsedRaw ?: percent)?.let { it !in 3.0..60.0 } == true -> invalid("bodyFat", "Usa un porcentaje entre 3 y 60 %")
+                    // Medido o visual SIN percentil no es válido nunca: ni con
+                    // respuesta vieja ni con omisión previa registrada.
+                    (source == SetupBodyFatSource.MEASURED || source == SetupBodyFatSource.VISUAL_ESTIMATE) &&
+                        percent == null && parsedRaw == null -> absent("bodyFat", "Indica tu grasa corporal")
+                    // Fuente desconocida o omitida explícitamente: sin percentil fabricado.
+                    else -> ok("bodyFat")
+                }
+            }
             SetupStepId.EXPERIENCE -> choice("experience", draft.experience?.label, "Elige tu experiencia")
             SetupStepId.MILESTONE_BASICS, SetupStepId.MILESTONE_TRAINING,
             SetupStepId.MILESTONE_NUTRITION, SetupStepId.MILESTONE_RINGS -> emptyList()
@@ -571,6 +883,43 @@ object SetupWizardValidation {
                 else absent("volumeMobility", "Indica tu movilidad actual")
             SetupStepId.EQUIPMENT -> if (draft.trainingEnvironment.isNullOrBlank()) absent("equipment", "Elige dónde sueles entrenar")
                 else ok("equipment")
+            SetupStepId.AVAILABILITY -> if (draft.trainingOptions.availability == null) {
+                absent("availability", "Elige el material que tienes o marca solo peso corporal")
+            } else {
+                ok("availability")
+            }
+            // Inventario honesto: el contrato real ([TrainingOptions.validate])
+            // decide si una declaración es válida (cantidades explícitas y
+            // finitas); sin declaración no se inventa material. Solo se bloquean
+            // las razones de INVENTARIO de este paso, nunca un pendiente
+            // ajeno (autorregulación, prioridades, calentamiento).
+            SetupStepId.INVENTORY_BARBELL, SetupStepId.INVENTORY_PLATES,
+            SetupStepId.INVENTORY_DUMBBELLS, SetupStepId.INVENTORY_KETTLEBELLS,
+            SetupStepId.INVENTORY_MACHINES -> {
+                val raw = draft.inputTexts[step.name]
+                val explicitNone = draft.stepSelections[step] == listOf("none")
+                val reasons = when (val training = draft.trainingOptions.validate()) {
+                    TrainingValidation.Valid -> emptyList()
+                    is TrainingValidation.Invalid ->
+                        training.reasons.filter { reason -> inventoryReasonAffects(step, reason) }
+                }
+                when {
+                    // Fila editorial abierta: nunca se confirma ni se avanza
+                    // perdiendo la fila (se puede guardar o salir; Atrás la mantiene).
+                    draft.stepEditors[step]?.editing == true ->
+                        invalid("inventory", "Termina de editar la fila antes de continuar")
+                    !raw.isNullOrBlank() && parseLocalizedNumber(raw) == null ->
+                        invalid("inventory", "Escribe un valor numérico")
+                    // Elección explícita «no tengo de este grupo»: sin inventario fantasma.
+                    explicitNone -> ok("inventory")
+                    reasons.isNotEmpty() -> invalid("inventory", reasons.first())
+                    // Dato propio declarado y válido según el contrato real.
+                    hasOwnInventoryData(draft, step) -> ok("inventory")
+                    // Vacío pre-confirmación: lo desconocido NO cuenta como
+                    // material disponible ilimitado; hay que declarar o elegir none.
+                    else -> absent("inventory", "Declara tu material o elige que no tienes")
+                }
+            }
             SetupStepId.HOME_EQUIPMENT -> if (draft.equipment.isEmpty()) absent("equipment", "Elige al menos un perfil de equipo")
                 else ok("equipment")
             SetupStepId.DAYS -> when {
@@ -588,6 +937,24 @@ object SetupWizardValidation {
             SetupStepId.SESSION_TIME -> number("minutes", draft.minutesPerSession?.toDouble(), "Indica el tiempo disponible")
             SetupStepId.CARDIO_TYPE -> if (draft.cardioType != null) ok("cardioType") else absent("cardioType", "Elige el tipo de cardio")
             SetupStepId.CARDIO_TIME -> if (draft.cardioMinutes != null) ok("cardioMinutes") else absent("cardioMinutes", "Indica los minutos de cardio")
+            // Bolsa de orden: ≤5 puntos en total, ≤2 por músculo y SIN límite
+            // al número de músculos (5×1 es válido). Vacío es válido: no es
+            // obligatorio gastar los puntos.
+            SetupStepId.PRIORITIES -> {
+                val bag = draft.trainingOptions.orderPriorities
+                when {
+                    bag.values.any { it < 0 || it > 2 } -> invalid("priorities", "Máximo 2 puntos por músculo")
+                    bag.values.sum() > 5 -> invalid("priorities", "Reparte 5 puntos en total")
+                    else -> ok("priorities")
+                }
+            }
+            // La ruta de protocolo fija su propio reparto: no se bloquea un paso
+            // que la UI solo puede mostrar como informativo.
+            SetupStepId.SPLIT -> when {
+                draft.programRoute == SetupProgramRoute.PROTOCOL -> ok("split")
+                draft.isAnswered(step) -> ok("split")
+                else -> absent("split", "Elige tu reparto semanal")
+            }
             SetupStepId.TRAINING_MAX -> if (draft.isAnswered(step)) ok("trainingMax") else absent("trainingMax", "Indica si conoces tus marcas")
             SetupStepId.TRAINING_MARKS -> {
                 val marks = listOf(draft.powerliftingProfile?.squat1RM, draft.powerliftingProfile?.bench1RM, draft.powerliftingProfile?.deadlift1RM)
@@ -597,6 +964,31 @@ object SetupWizardValidation {
                     else -> ok("marks")
                 }
             }
+            // PROPOSE (el default del contrato) es una decisión válida: se
+            // acepta al confirmar sin ningún touch sintético y nunca bloquea.
+            SetupStepId.AUTOREGULATION -> ok("autoregulation")
+            // AUTO exige confirmación explícita: un registro previo de
+            // respuesta (isAnswered) NO sustituye `automaticConfirmed`; solo
+            // salir de AUTO («Solo revisar») desbloquea sin confirmación.
+            SetupStepId.AUTOREGULATION_CONFIRM -> when {
+                draft.trainingOptions.autoregulationMode != AutoregulationMode.AUTO -> ok("autoregulationConfirm")
+                draft.trainingOptions.automaticConfirmed -> ok("autoregulationConfirm")
+                else -> absent("autoregulationConfirm", "Confirma el ajuste automático o elige Solo revisar")
+            }
+            // null = preset del plan, vacío = sin calentamiento explícito.
+            SetupStepId.WARMUPS -> {
+                val rows = draft.trainingOptions.warmup
+                when {
+                    rows == null || rows.isEmpty() -> ok("warmups")
+                    rows.any { recipe ->
+                        val percent = recipe.percent
+                        val reps = recipe.reps
+                        percent == null || !percent.isFinite() || percent <= 0.0 || percent > 100.0 ||
+                            reps == null || reps !in 1..60
+                    } -> invalid("warmups", "Cada paso necesita un porcentaje entre 1 y 100 y entre 1 y 60 repeticiones")
+                    else -> ok("warmups")
+                }
+            }
             SetupStepId.PLAN -> if (draft.selectedCatalogId != null || draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) ok("plan")
                 else absent("plan", "Elige un plan")
             SetupStepId.TRAINING_REVIEW, SetupStepId.NUTRITION_RESULT,
@@ -604,14 +996,83 @@ object SetupWizardValidation {
             SetupStepId.NUTRITION_START -> if (draft.isAnswered(step)) ok("nutritionStart") else absent("nutritionStart", "Elige una opción de nutrición")
             SetupStepId.NUTRITION_SEX -> if (draft.nutritionDraft?.equationSex != null) ok("equationSex")
                 else absent("equationSex", "Elige el sexo que usamos solo para calcular tu energía")
-            SetupStepId.NUTRITION_ELIGIBILITY -> if (draft.isAnswered(step)) ok("eligibility") else absent("eligibility", "Elige al menos una opción")
-            SetupStepId.NUTRITION_DIRECTION -> if (draft.nutritionDraft?.direction != null) ok("direction")
+            SetupStepId.NUTRITION_ELIGIBILITY -> {
+                val selected = draft.selectedValues(step)
+                val exclusive = SetupStepDefinitions.of(step)?.exclusiveValues.orEmpty()
+                when {
+                    selected.any { it in exclusive } && selected.size > 1 ->
+                        invalid("eligibility", "«Ninguna de estas» y «No lo sé» no se pueden combinar")
+                    selected.isEmpty() && !draft.isAnswered(step) -> absent("eligibility", "Elige al menos una opción")
+                    else -> ok("eligibility")
+                }
+            }
+            SetupStepId.NUTRITION_DIRECTION -> if (draft.nutritionDraft?.direction != null || draft.isAnswered(step)) ok("direction")
                 else absent("direction", "Elige hacia dónde quieres llevar tu alimentación")
+            SetupStepId.NUTRITION_RHYTHM -> if (draft.isAnswered(step)) ok("rhythm")
+                else absent("rhythm", "Elige el ritmo de cambio")
+            SetupStepId.NUTRITION_TARGET -> {
+                val raw = draft.inputTexts[step.name]
+                    ?: draft.nutritionDraft?.targetWeightText.orEmpty().ifBlank { null }
+                val parsed = raw?.let { parseLocalizedNumber(it) }
+                when {
+                    raw != null && parsed == null -> invalid("targetWeight", "Escribe un peso válido")
+                    parsed != null && parsed !in 20.0..500.0 -> invalid("targetWeight", "Usa un peso entre 20 y 500 kg")
+                    raw == null && !draft.isAnswered(step) ->
+                        absent("targetWeight", "Indica tu peso objetivo o usa omitir")
+                    else -> ok("targetWeight")
+                }
+            }
+            // Contexto de historia OBLIGATORIO-PERO-OPCIONAL en sus dos filas:
+            // tender o máximo ausentes requiere respuesta u omisión explícita;
+            // nunca se inventan registros de pesaje aquí.
+            SetupStepId.NUTRITION_HISTORY_CONTEXT -> {
+                val rawMax = draft.inputTexts[step.name]
+                val parsed = rawMax?.takeIf { it.isNotBlank() }?.let { parseLocalizedNumber(it) }
+                val maximum = draft.previousMaximumWeightKg
+                when {
+                    rawMax != null && rawMax.isNotBlank() && parsed == null -> invalid("historyMax", "Escribe un peso válido")
+                    (parsed ?: maximum)?.let { it !in 20.0..500.0 } == true -> invalid("historyMax", "Usa un peso entre 20 y 500 kg")
+                    draft.weightTrend == null && maximum == null && !draft.isAnswered(step) ->
+                        absent("historyContext", "Declara la tendencia, el máximo anterior o usa omitir")
+                    else -> ok("historyContext")
+                }
+            }
             SetupStepId.NUTRITION_ACTIVITY -> if (draft.isAnswered(step)) ok("activity") else absent("activity", "Indica qué tan activo eres")
+            // «Yo traigo mis números»: dejar un campo vacío es válido (así lo
+            // declara la UI); solo un texto no numérico crudo bloquea.
+            SetupStepId.NUTRITION_MANUAL_CALORIES -> {
+                val raw = draft.inputTexts[step.name]
+                if (!raw.isNullOrBlank() && parseLocalizedNumber(raw) == null) invalid("calories", "Escribe un número válido")
+                else ok("calories")
+            }
+            SetupStepId.NUTRITION_MANUAL_CARBS_FAT -> {
+                val raw = draft.inputTexts[step.name]
+                if (!raw.isNullOrBlank() && parseLocalizedNumber(raw) == null) invalid("carbs", "Escribe un número válido")
+                else ok("carbs")
+            }
+            SetupStepId.NUTRITION_DISTRIBUTION -> if (draft.isAnswered(step)) ok("distribution")
+                else absent("distribution", "Elige cómo repartir tu semana")
+            SetupStepId.NUTRITION_WEIGH_INS -> {
+                val rows = draft.historicalWeighIns
+                val today = LocalDate.now()
+                val broken = rows.firstOrNull { row ->
+                    val date = runCatching { LocalDate.parse(row.dateIso) }.getOrNull()
+                    date == null || date.isAfter(today) ||
+                        !row.weightKg.isFinite() || row.weightKg !in 20.0..500.0
+                }
+                when {
+                    broken != null -> invalid("weighIns", "Revisa la fecha y el peso de tus pesajes")
+                    rows.isEmpty() && !draft.isAnswered(step) -> absent("weighIns", "Añade tus pesajes o usa omitir")
+                    else -> ok("weighIns")
+                }
+            }
             SetupStepId.RINGS_START -> if (draft.isAnswered(step)) ok("startAction") else absent("startAction", "Elige cómo situar tus RINGS")
             SetupStepId.RINGS_RECENT -> when (draft.ringsAnswers?.recentTrainingState) {
                 null, SetupRecentTrainingState.NOT_ANSWERED ->
-                    absent("recentTraining", "Indica si entrenaste en los últimos siete días")
+                    if (draft.isAnswered(step)) ok("recentTraining")
+                    else absent("recentTraining", "Indica si entrenaste en los últimos siete días")
+                // «No lo sé» explícito (UNKNOWN) permite resultado parcial:
+                // desconocer el historial no es no haber entrenado.
                 else -> ok("recentTraining")
             }
             SetupStepId.RINGS_SESSIONS -> if (draft.ringsAnswers?.sessionsLastSevenDays != null) ok("sessions")
@@ -623,14 +1084,21 @@ object SetupWizardValidation {
             SetupStepId.RINGS_INTENSITY -> if (draft.ringsAnswers?.intensityLevel != null) ok("intensity")
                 else absent("intensity", "Indica cómo sentiste la intensidad")
             SetupStepId.RINGS_AXIAL -> if (draft.isAnswered(step)) ok("axial") else absent("axial", "Indica si hubo cargas pesadas para la espalda")
-            SetupStepId.RINGS_MUSCLE_FEELING -> if (draft.ringsAnswers?.muscleFeeling != null) ok("muscleFeeling")
+            // Sensaciones con `allowSkip`: «No lo sé» o una omisión explícita
+            // habilita Continuar sin fabricar un nivel 0. Un check-in parcial
+            // (historial incompleto) nunca se bloquea aquí: el mapper decide
+            // INCOMPLETE/PARTIAL y este validador solo exige el dato del control.
+            SetupStepId.RINGS_MUSCLE_FEELING -> if (draft.ringsAnswers?.muscleFeeling != null || draft.isAnswered(step)) ok("muscleFeeling")
                 else absent("muscleFeeling", "Indica cómo se sienten tus músculos")
-            SetupStepId.RINGS_ENERGY_FEELING -> if (draft.ringsAnswers?.energy != null) ok("energy")
+            SetupStepId.RINGS_ENERGY_FEELING -> if (draft.ringsAnswers?.energy != null || draft.isAnswered(step)) ok("energy")
                 else absent("energy", "Indica cómo está tu energía")
-            SetupStepId.RINGS_STRUCTURE_FEELING -> if (draft.ringsAnswers?.structureFeeling != null) ok("structureFeeling")
+            SetupStepId.RINGS_STRUCTURE_FEELING -> if (draft.ringsAnswers?.structureFeeling != null || draft.isAnswered(step)) ok("structureFeeling")
                 else absent("structureFeeling", "Indica cómo está tu columna")
             SetupStepId.RINGS_DISCOMFORT -> when (draft.ringsAnswers?.discomfortState) {
-                null, SetupDiscomfortState.NOT_ANSWERED -> absent("discomfort", "Indica si hay alguna molestia o si prefieres omitirlo")
+                null, SetupDiscomfortState.NOT_ANSWERED ->
+                    if (draft.isAnswered(step)) ok("discomfort")
+                    else absent("discomfort", "Indica si hay alguna molestia o si prefieres omitirlo")
+                // NONE/DECLARED/OMITTED son respuestas explícitas conservadas.
                 else -> ok("discomfort")
             }
         }
@@ -647,6 +1115,8 @@ object SetupWizardValidation {
     fun missingEquationInputs(draft: SetupWizardDraft): List<SetupFieldCheck> {
         if (!draft.includeNutrition || draft.nutritionMode != "create") return emptyList()
         val nutrition = draft.nutritionDraft
+        // Objetivos propios o solo registro: no hay cadena EER que exigir.
+        if (nutrition != null && nutrition.configurationMode != NutritionConfigurationMode.AUTOMATIC) return emptyList()
         return buildList {
             if (draft.weightKg == null && nutrition?.weightText.isNullOrBlank()) add(
                 SetupFieldCheck(SetupStepId.WEIGHT, "equation.weight", SetupValueState.MISSING_EQUATION_INPUT,
@@ -663,8 +1133,45 @@ object SetupWizardValidation {
         }
     }
 
+    /**
+     * ¿Afecta este motivo de [TrainingOptions.validate] al MATERIAL del grupo
+     * del paso corriente? Solo se valida el material de este paso: un grupo
+     * pendiente no puede bloquear otro antes de que el usuario llegue a él.
+     */
+    private fun inventoryReasonAffects(step: SetupStepId, reason: String): Boolean {
+        val keyword = when (step) {
+            SetupStepId.INVENTORY_BARBELL -> "barra"
+            SetupStepId.INVENTORY_PLATES -> "disco"
+            SetupStepId.INVENTORY_DUMBBELLS -> "mancuerna"
+            SetupStepId.INVENTORY_KETTLEBELLS -> "kettlebell"
+            else -> "máquina"
+        }
+        return reason.contains(keyword, ignoreCase = true)
+    }
+
+    /** Dato propio del grupo en el inventario declarado; sin declaración = falso. */
+    private fun hasOwnInventoryData(draft: SetupWizardDraft, step: SetupStepId): Boolean {
+        val inventory = draft.trainingOptions.inventory ?: return false
+        return when (step) {
+            SetupStepId.INVENTORY_BARBELL -> inventory.barbellWeightKg != null
+            SetupStepId.INVENTORY_PLATES -> inventory.plates.isNotEmpty()
+            SetupStepId.INVENTORY_DUMBBELLS -> inventory.dumbbells.isNotEmpty()
+            SetupStepId.INVENTORY_KETTLEBELLS -> inventory.kettlebells.isNotEmpty()
+            SetupStepId.INVENTORY_MACHINES -> inventory.machines.isNotEmpty()
+            else -> false
+        }
+    }
+
+    /**
+     * Respuesta visible ANTES de la primera confirmación: registro confirmado,
+     * selección actual o texto crudo escrito. Sin esto, cualquier rama que
+     * valide `answered` se bloquearía a sí misma (deadlock) porque los
+     * registros solo nacen en `confirmCurrentStep`/`skipStep`.
+     */
     private fun SetupWizardDraft.isAnswered(step: SetupStepId): Boolean =
         step in stepProgress.answers ||
+            !stepSelections[step].isNullOrEmpty() ||
+            inputTexts[step.name]?.isNotBlank() == true ||
             (SetupStepGraph.questionForStep(step)?.let { question ->
                 wizChat.acceptedAnswers.any { it.questionId == question }
             } == true)

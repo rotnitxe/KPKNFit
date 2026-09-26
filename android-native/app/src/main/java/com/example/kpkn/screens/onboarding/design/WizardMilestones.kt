@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.onboarding.design
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 enum class WizardMilestoneState { DONE, CURRENT, PENDING }
@@ -34,8 +34,13 @@ data class WizardMilestoneItem(
 )
 
 /**
- * Pantalla de hitos entre bloques: lista vertical de etapas con checks, como en
- * `Workouts/p1.jpg` y `Food/Screenshot_20260920_113434.jpg`.
+ * Pantalla de hitos (transición entre bloques), como `Workouts/p1.jpg` y
+ * `Food/Screenshot_20260920_113434.jpg`: héroe grande ("GET STARTED" + subtítulo)
+ * y etapas numeradas — el círculo blanco marca la actual, los checks las ya
+ * revisadas y los círculos grises las futuras. Los conectores son neutros.
+ *
+ * Solo la etapa **actual** muestra su párrafo; las pasadas y futuras quedan
+ * resumidas a número y título, como en las referencias.
  *
  * Marca como completado únicamente lo que ya quedó **revisado**; una etapa
  * disponible pero sin revisar aparece como actual, nunca como completada.
@@ -44,33 +49,58 @@ data class WizardMilestoneItem(
 fun WizardMilestones(
     items: List<WizardMilestoneItem>,
     modifier: Modifier = Modifier,
+    heroTitle: String? = null,
+    heroSubtitle: String? = null,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
+        if (heroTitle != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = WizardSpacing.sectionGap),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = heroTitle,
+                    style = WizardTypography.heroTitle,
+                    color = WizardColors.text,
+                    textAlign = TextAlign.Center,
+                )
+                if (heroSubtitle != null) {
+                    Text(
+                        text = heroSubtitle,
+                        style = WizardTypography.heroSubtitle,
+                        color = WizardColors.textMuted,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
         items.forEachIndexed { index, item ->
+            val showBody = item.state == WizardMilestoneState.CURRENT
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = "${item.title}: ${item.state.name}" },
+                    .semantics { contentDescription = "${index + 1}. ${item.title}: ${item.state.name}" },
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    WizardMilestoneMarker(item)
+                    WizardMilestoneMarker(number = index + 1, item = item)
                     if (index != items.lastIndex) {
                         Box(
                             Modifier
                                 .width(2.dp)
-                                .height(34.dp)
-                                .background(
-                                    if (item.state == WizardMilestoneState.DONE) item.block.accent
-                                    else WizardColors.cardBorder,
-                                ),
+                                .height(if (showBody) 30.dp else 24.dp)
+                                .background(WizardColors.cardBorder),
                         )
                     }
                 }
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(bottom = if (index == items.lastIndex) 0.dp else 18.dp),
+                        .padding(bottom = if (index == items.lastIndex) 0.dp else if (showBody) 18.dp else 12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
@@ -81,23 +111,26 @@ fun WizardMilestones(
                             else -> WizardColors.text
                         },
                     )
-                    Text(
-                        text = item.body,
-                        style = WizardTypography.milestoneBody,
-                        color = when (item.state) {
-                            WizardMilestoneState.DONE -> WizardColors.textMuted
-                            WizardMilestoneState.CURRENT -> WizardColors.textMuted
-                            WizardMilestoneState.PENDING -> WizardColors.textFaint
-                        },
-                    )
+                    if (showBody) {
+                        Text(
+                            text = item.body,
+                            style = WizardTypography.milestoneBody,
+                            color = WizardColors.textMuted,
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+/**
+ * Círculo numerado de la referencia: blanco relleno con check (pasado) o con el
+ * número (actual), gris con número tenue para las etapas futuras y sin acento de
+ * bloque.
+ */
 @Composable
-private fun WizardMilestoneMarker(item: WizardMilestoneItem) {
+private fun WizardMilestoneMarker(number: Int, item: WizardMilestoneItem) {
     Box(
         modifier = Modifier.size(28.dp),
         contentAlignment = Alignment.Center,
@@ -107,14 +140,14 @@ private fun WizardMilestoneMarker(item: WizardMilestoneItem) {
                 modifier = Modifier
                     .size(26.dp)
                     .clip(CircleShape)
-                    .background(item.block.accent),
+                    .background(WizardColors.selectedBorder),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = null,
                     tint = WizardColors.ctaContent,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(15.dp),
                 )
             }
 
@@ -122,17 +155,29 @@ private fun WizardMilestoneMarker(item: WizardMilestoneItem) {
                 modifier = Modifier
                     .size(26.dp)
                     .clip(CircleShape)
-                    .background(WizardColors.background)
-                    .border(2.dp, item.block.accent, CircleShape),
-            )
+                    .background(WizardColors.selectedBorder),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = number.toString(),
+                    style = WizardTypography.milestoneTitle,
+                    color = WizardColors.ctaContent,
+                )
+            }
 
             WizardMilestoneState.PENDING -> Box(
                 modifier = Modifier
-                    .size(22.dp)
+                    .size(26.dp)
                     .clip(CircleShape)
-                    .background(WizardColors.background)
-                    .border(1.5.dp, WizardColors.cardBorder, CircleShape),
-            )
+                    .background(WizardColors.cardBorder),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = number.toString(),
+                    style = WizardTypography.milestoneTitle,
+                    color = WizardColors.textFaint,
+                )
+            }
         }
     }
 }

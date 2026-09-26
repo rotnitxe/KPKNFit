@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -17,9 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -27,10 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -44,16 +44,27 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private val wheelItemHeight = 56.dp
+private val wheelItemHeight = 44.dp
 private val wheelVisibleItems = 5
 
+/** Atenuación de los vecinos por distancia al centro, como la referencia p3. */
+private fun neighbourAlpha(distance: Int): Float = when (distance) {
+    1 -> .58f
+    2 -> .28f
+    else -> .2f
+}
+
 /**
- * Rueda vertical de altura de las referencias: el ítem central queda destacado
- * entre dos líneas guía y los vecinos se atenúan sin perder contraste.
+ * Rueda vertical de altura de las referencias (p.ej. `Workouts/p3.jpg`): **cinco
+ * valores visibles** (pitch ≈ 113 px ≈ 44 dp medidos sobre el JPG 1080), con el
+ * ítem central destacado entre dos líneas guía y los vecinos atenuados sin perder
+ * contraste.
  *
- * Como en la regla de peso, la posición inicial no es una respuesta: el valor
- * canónico (cm) solo se emite tras una interacción real. Alternar entre cm y
- * pies/pulgadas reexpresa el mismo valor sin acumular error de conversión.
+ * La posición inicial no es una respuesta: el canónico (cm) solo se emite tras
+ * una interacción real. Tocar el valor central confirma exactamente ese valor una
+ * sola vez, sin haber movido la rueda; también existe la acción de accesibilidad
+ * "Confirmar altura". Alternar cm/pies-pulgadas reexpresa el mismo valor sin
+ * acumular error de conversión.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -61,11 +72,12 @@ fun WizardHeightWheel(
     unit: WizardHeightUnit,
     cm: Int?,
     onValueChange: (Int) -> Unit,
+    onConfirm: (() -> Unit)? = null,
 ) {
     val reducedMotion = wizardReducedMotion()
     val stepCount = remember(unit) { WizardHeightScale.stepCount(unit) }
     val labels = remember(unit) { WizardHeightScale.labels(unit) }
-    val initialIndex = remember(unit, cm) {
+    val initialIndex = remember(unit) {
         WizardHeightScale.nearestStepIndex(cm ?: (WizardHeightScale.MIN_CM + WizardHeightScale.MAX_CM) / 2, unit)
             .coerceIn(0, stepCount - 1)
     }
@@ -73,50 +85,102 @@ fun WizardHeightWheel(
     val fling = rememberSnapFlingBehavior(state)
     val scope = rememberCoroutineScope()
     var touched by remember { mutableStateOf(false) }
-    var programmaticScroll by remember { mutableStateOf(false) }
+    var programmaticScrolls by remember { mutableStateOf(0) }
+    var lastEmittedCm by remember { mutableStateOf<Int?>(null) }
+    val onValueChangeState = rememberUpdatedState(onValueChange)
+
+    fun centeredIndexNow(): Int {
+        val layoutInfo = state.layoutInfo
+        val visible = layoutInfo.visibleItemsInfo
+        if (visible.isEmpty()) return initialIndex
+        val center = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+        return visible.minByOrNull { abs((it.offset + it.size / 2) - center) }
+            ?.index?.coerceIn(0, stepCount - 1)
+            ?: initialIndex
+    }
+
+    fun emitCandidate(cm: Int) {
+        // A settled swipe, `jumpTo` and a later center confirmation can carry the
+        // same candidate; emit it only once while still allowing onConfirm.
+        if (lastEmittedCm != cm) {
+            lastEmittedCm = cm
+            onValueChangeState.value(cm)
+        }
+    }
 
     val centerIndex by remember(state, stepCount, initialIndex) {
-        derivedStateOf {
-            val visible = state.layoutInfo.visibleItemsInfo
-            if (visible.isEmpty()) initialIndex else {
-                val center = state.layoutInfo.viewportStartOffset + state.layoutInfo.viewportSize.height / 2
-                visible.minByOrNull { abs((it.offset + it.size / 2) - center) }?.index?.coerceIn(0, stepCount - 1)
-                    ?: initialIndex
-            }
-        }
+        derivedStateOf { centeredIndexNow() }
     }
     val currentCm = WizardHeightScale.cmForStepIndex(centerIndex, unit)
 
+    /**
+     * Confirmar la altura central explícitamente (tocar el valor central o la
+     * acción de accesibilidad) **no exige haber movido la rueda**: la posición
+     * inicial no es una respuesta, pero confirmarla sí lo es. Cada interacción
+     * emite el valor exacto una sola vez.
+     */
+    fun confirm() {
+        touched = true
+        emitCandidate(currentCm)
+        onConfirm?.invoke()
+    }
+
     fun settle() {
-        if (touched) onValueChange(currentCm)
+        if (touched) {
+            emitCandidate(WizardHeightScale.cmForStepIndex(centeredIndexNow(), unit))
+        }
     }
 
     val jumpTo: (Int) -> Unit = { target ->
         touched = true
         scope.launch {
-            if (reducedMotion) state.scrollToItem(target) else state.animateScrollToItem(target)
+            programmaticScrolls += 1
+            try {
+                if (reducedMotion) state.scrollToItem(target) else state.animateScrollToItem(target)
+            } finally {
+                programmaticScrolls -= 1
+            }
             settle()
         }
     }
 
-    LaunchedEffect(unit, cm) {
-        programmaticScroll = true
+    // Solo re-centra cuando cambia la unidad. Dejar de observar `cm` evita que cada
+    // `onValueChange` del usuario devuelva la rueda a la posición central.
+    LaunchedEffect(unit) {
+        programmaticScrolls += 1
         try {
             state.scrollToItem(initialIndex)
             withFrameNanos { }
             val item = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == initialIndex }
                 ?: return@LaunchedEffect
-            val viewportCenter = state.layoutInfo.viewportStartOffset + state.layoutInfo.viewportSize.height / 2
+            val viewportCenter = (state.layoutInfo.viewportStartOffset + state.layoutInfo.viewportEndOffset) / 2
             val delta = item.offset - (viewportCenter - item.size / 2)
             if (delta != 0) state.scroll { scrollBy(delta.toFloat()) }
         } finally {
             touched = false
-            programmaticScroll = false
+            programmaticScrolls -= 1
         }
     }
 
-    LaunchedEffect(state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset) {
-        if (state.isScrollInProgress && !programmaticScroll) touched = true
+    // Only a real user scroll emits at rest. Initial centering and jumpTo are
+    // bracketed by programmaticScrolls; neither reaches the user-scroll branch.
+    LaunchedEffect(state, unit) {
+        var userScrollActive = false
+        snapshotFlow { Triple(state.isScrollInProgress, programmaticScrolls, centerIndex) }
+            .collect { (scrolling, programmatic, candidateIndex) ->
+                if (scrolling) {
+                    if (programmatic == 0) {
+                        touched = true
+                        userScrollActive = true
+                    }
+                    return@collect
+                }
+                if (!userScrollActive) return@collect
+                userScrollActive = false
+                if (programmatic == 0) {
+                    emitCandidate(WizardHeightScale.cmForStepIndex(candidateIndex, unit))
+                }
+            }
     }
 
     Column(
@@ -126,7 +190,7 @@ fun WizardHeightWheel(
                 contentDescription = "Rueda de altura en ${unit.label.lowercase()}"
                 stateDescription = "${WizardHeightScale.format(currentCm, unit)}. Desliza para ajustar"
                 role = Role.Button
-                onClick("Confirmar altura") { if (touched) onValueChange(currentCm); true }
+                onClick("Confirmar altura") { confirm(); true }
                 customActions = listOf(
                     CustomAccessibilityAction("Disminuir altura") {
                         jumpTo((centerIndex - 1).coerceAtLeast(0)); true
@@ -152,16 +216,21 @@ fun WizardHeightWheel(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(wheelItemHeight)
-                            .clickable { jumpTo(index) },
+                            // Solo el ítem central expone la etiqueta estable; al
+                            // desplazarla el tag sigue al valor central, sin duplicados.
+                            .then(if (center) Modifier.testTag("setup-height-value") else Modifier)
+                            .clickable { if (center) confirm() else jumpTo(index) },
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = label,
                             style = if (center) WizardTypography.wheelValue else WizardTypography.wheelValueNeighbour,
-                            color = when {
-                                center && (touched || cm != null) -> WizardColors.text
-                                center -> WizardColors.textMuted
-                                else -> WizardColors.textMuted.copy(alpha = .62f)
+                            // Centro gris claro y vecinos con atenuación por
+                            // distancia a ambos lados (referencia p3).
+                            color = if (center) {
+                                WizardColors.textMuted
+                            } else {
+                                WizardColors.textMuted.copy(alpha = neighbourAlpha(abs(index - centerIndex)))
                             },
                             maxLines = 1,
                         )
@@ -186,18 +255,9 @@ fun WizardHeightWheel(
                     .background(WizardColors.cardBorder),
             )
         }
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(onClick = { jumpTo((centerIndex - 1).coerceAtLeast(0)) }) {
-                Text("−1", color = WizardColors.textMuted)
-            }
-            TextButton(onClick = { jumpTo((centerIndex + 1).coerceAtMost(stepCount - 1)) }) {
-                Text("+1", color = WizardColors.textMuted)
-            }
-        }
+        // Sin fila «−1/+1» visible (no está en la referencia p3): el incremento
+        // sigue disponible por arrastre y por las acciones semánticas
+        // «Disminuir/Aumentar altura» del propio control.
         if (!touched && cm == null) {
             Text(
                 text = "Desliza la rueda para declarar tu altura. La posición inicial no es una respuesta.",

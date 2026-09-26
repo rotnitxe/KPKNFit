@@ -53,6 +53,13 @@ object DeepLinkRouter {
             "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
             "program" -> segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 ?.let { ResolvedRoute(KpknRoute.ProgramDetail.create(it)) }
+            "setup" -> when (second) {
+                "entry" -> ResolvedRoute(KpknRoute.SetupEntry.route)
+                else -> resolveSetup(
+                    mode = uri.getQueryParameter(KpknRoute.SetupWizard.ARG_MODE),
+                    draftId = uri.getQueryParameter(KpknRoute.SetupWizard.ARG_DRAFT_ID),
+                )
+            }
             "workout", "entreno-vivo", "sesion-viva" -> {
                 val programId = segments.getOrNull(1)?.takeIf { it.isNotBlank() }
                 val sessionId = segments.getOrNull(2)?.takeIf { it.isNotBlank() }
@@ -76,6 +83,28 @@ object DeepLinkRouter {
             "joint", "articulacion", "articulación", "pattern", "patron", "patrón",
             "chain", "cadena", "action" -> ResolvedRoute(KpknRoute.Home.route)
             else -> null
+        }
+    }
+
+    /**
+     * Scopes de setup post-alta: nunca el wizard de módulo. Cada scope va a su
+     * editor directo; RINGS_ONLY no tiene camino ejecutable (los anillos AUGE
+     * viven en Home). RESUME/FULL conservan el wizard completo intacto y, con
+     * él, el borrador completo (draftId) que el deep link legacy traiga.
+     */
+    private fun resolveSetup(mode: String?, draftId: String?): ResolvedRoute {
+        val normalizedMode = mode?.trim()?.uppercase().orEmpty()
+        val cleanDraftId = draftId?.trim()?.takeIf { it.isNotEmpty() }
+        return when (normalizedMode) {
+            "TRAINING_ONLY" -> ResolvedRoute(KpknRoute.ProgramEditor.create())
+            "NUTRITION_ONLY" -> ResolvedRoute(KpknRoute.NutritionPlanEditor.create())
+            "RINGS_ONLY" -> ResolvedRoute(KpknRoute.Home.route)
+            "RESUME" -> ResolvedRoute(
+                KpknRoute.SetupWizard.create(mode = "RESUME", draftId = cleanDraftId),
+            )
+            else -> ResolvedRoute(
+                KpknRoute.SetupWizard.create(mode = "FULL", draftId = cleanDraftId),
+            )
         }
     }
 

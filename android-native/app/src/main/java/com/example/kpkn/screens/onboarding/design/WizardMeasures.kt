@@ -121,8 +121,15 @@ object WizardHeightScale {
         WizardHeightUnit.FT_IN -> cmFromTotalInches(totalInches(MIN_CM) + index)
     }
 
+    /**
+     * Rótulos de la rueda. En centímetros la referencia muestra la unidad en
+     * cada valor (`173 cm`); en pies y pulgadas la notación ya la lleva.
+     */
     fun labels(unit: WizardHeightUnit): List<String> =
-        (0 until stepCount(unit)).map { format(cmForStepIndex(it, unit), unit) }
+        (0 until stepCount(unit)).map { index ->
+            val cm = cmForStepIndex(index, unit)
+            if (unit == WizardHeightUnit.CM) "${format(cm, unit)} cm" else format(cm, unit)
+        }
 
     /** Índice de rueda más cercano a una altura, para fijar la posición inicial. */
     fun nearestStepIndex(cm: Int, unit: WizardHeightUnit): Int {

@@ -128,4 +128,65 @@ class DeepLinkRouterTest {
             DeepLinkRouter.resolve(Uri.parse("kpkn://competition/new"))?.route,
         )
     }
+
+    @Test
+    fun setupModuleScopesRouteToDirectEditorsOrHome() {
+        assertEquals(
+            KpknRoute.ProgramEditor.create(),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=TRAINING_ONLY"))?.route,
+        )
+        assertEquals(
+            KpknRoute.NutritionPlanEditor.create(),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=NUTRITION_ONLY"))?.route,
+        )
+        // RINGS_ONLY no tiene wizard ejecutable: los anillos AUGE viven en Home.
+        assertEquals(
+            KpknRoute.Home.route,
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup?mode=RINGS_ONLY"))?.route,
+        )
+    }
+
+    @Test
+    fun setupResumeAndFullKeepTheWizardRoute() {
+        assertEquals(
+            KpknRoute.SetupWizard.create(mode = "RESUME"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=RESUME"))?.route,
+        )
+        assertEquals(
+            KpknRoute.SetupWizard.create(mode = "FULL"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard"))?.route,
+        )
+        assertEquals(
+            KpknRoute.SetupEntry.route,
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup/entry"))?.route,
+        )
+    }
+
+    @Test
+    fun setupResumeDeepLinkKeepsTheFullDraftId() {
+        // RESUME legacy con borrador completo: el draftId viaja al wizard.
+        assertEquals(
+            KpknRoute.SetupWizard.create(mode = "RESUME", draftId = "setup-wizard:full"),
+            DeepLinkRouter.resolve(
+                Uri.parse("kpkn://setup/wizard?mode=RESUME&draftId=setup-wizard%3Afull"),
+            )?.route,
+        )
+        // FULL implícito (sin mode) también conserva el borrador.
+        assertEquals(
+            KpknRoute.SetupWizard.create(mode = "FULL", draftId = "draft-123"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup?draftId=draft-123"))?.route,
+        )
+        // Sin borrador la ruta resuelta no cambia (compatibilidad total).
+        assertEquals(
+            KpknRoute.SetupWizard.create(mode = "RESUME"),
+            DeepLinkRouter.resolve(Uri.parse("kpkn://setup/wizard?mode=RESUME"))?.route,
+        )
+        // Los scopes directos no admiten borrador: no inventan ruta con draftId.
+        assertEquals(
+            KpknRoute.ProgramEditor.create(),
+            DeepLinkRouter.resolve(
+                Uri.parse("kpkn://setup/wizard?mode=TRAINING_ONLY&draftId=draft-123"),
+            )?.route,
+        )
+    }
 }

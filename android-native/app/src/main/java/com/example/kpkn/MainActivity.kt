@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
@@ -96,6 +97,7 @@ import com.example.kpkn.screens.albums.WorkoutAlbumsScreen
 import com.example.kpkn.screens.albums.WorkoutMediaViewerScreen
 import com.example.kpkn.screens.programdetail.ProgramDetailScreen
 import com.example.kpkn.screens.programs.ProgramCreationRequests
+import com.example.kpkn.screens.programs.ProgramEditorScreen
 import com.example.kpkn.screens.programs.ProgramsScreen
 import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
@@ -146,7 +148,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // La app es SIEMPRE oscura (KPKNTheme dark): íconos claros fijos para
+        // contraste correcto de status/nav bar en wizard y rutas setup/*.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+        )
 
         // HazeLogger must stay off — enabling it floods logcat and tanks emulator FPS.
 
@@ -498,7 +505,7 @@ fun KPKNApp(
     }
 
     LaunchedEffect(currentRoute, settings.onboardingCompleted) {
-        val onboardingRoute = currentRoute == KpknRoute.SetupEntry.route || currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true
+        val onboardingRoute = currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true
         if (settings.onboardingCompleted && !onboardingRoute && !permissionsRequested) {
             permissionsRequested = true
             onRequestRequiredPermissions()
@@ -511,8 +518,11 @@ fun KPKNApp(
         currentRoute?.startsWith(KpknRoute.ExerciseCatalog.route) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionWizard.BASE_ROUTE) == true ||
         currentRoute?.startsWith(KpknRoute.NutritionPlanEditor.BASE_ROUTE) == true ||
-        currentRoute == KpknRoute.SetupEntry.route ||
-        currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true ||
+        currentRoute?.startsWith(KpknRoute.ProgramEditor.BASE_ROUTE) == true ||
+        // TODAS las rutas setup/* (entry, visual-gate, wizard) ocultan el
+        // chrome de navegación: el CTA «Continuar» del visual gate no puede
+        // quedar tapado por la bottom bar.
+        currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true ||
         currentRoute == KpknRoute.CompetitionDetail.route ||
         resolvedRoute?.startsWith("competition/") == true
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
@@ -538,7 +548,7 @@ fun KPKNApp(
 
     LaunchedEffect(pendingDeepLinkRoute, settings.onboardingCompleted, currentRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
-        if (!settings.onboardingCompleted || currentRoute == KpknRoute.SetupEntry.route || currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true) return@LaunchedEffect
+        if (currentRoute == null || !settings.onboardingCompleted || currentRoute.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE)) return@LaunchedEffect
         if (route != currentRoute) {
             navController.navigate(route) {
                 launchSingleTop = true
@@ -550,7 +560,7 @@ fun KPKNApp(
 
     LaunchedEffect(pendingSharedNutritionText, settings.onboardingCompleted, currentRoute) {
         val shared = pendingSharedNutritionText ?: return@LaunchedEffect
-        if (!settings.onboardingCompleted || currentRoute == KpknRoute.SetupEntry.route || currentRoute?.startsWith(KpknRoute.SetupWizard.BASE_ROUTE) == true) return@LaunchedEffect
+        if (!settings.onboardingCompleted || currentRoute?.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE) == true) return@LaunchedEffect
         val normalized = shared.trim()
         if (normalized.isBlank()) {
             onSharedNutritionHandled()
@@ -1203,7 +1213,13 @@ private fun KPKNNavGraph(
                 onNavigateToProgram = { programId ->
                     navController.navigate(KpknRoute.ProgramDetail.create(programId))
                 },
-                onCreateProgram = { createProgramAndOpen(navController) }
+                onCreateProgram = { createProgramAndOpen(navController) },
+                // Edición: ruta real del editor con programaId existente.
+                onEditProgram = { programId ->
+                    navController.navigate(KpknRoute.ProgramEditor.create(programId)) {
+                        launchSingleTop = true
+                    }
+                },
             )
         }
         composable(KpknRoute.Competitions.route) {
@@ -1483,6 +1499,30 @@ private fun KPKNNavGraph(
                 },
             )
         }
+        composable(
+            route = KpknRoute.ProgramEditor.route,
+            arguments = listOf(
+                navArgument(KpknRoute.ProgramEditor.ARG_PROGRAM_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStackEntry ->
+            val editorProgramId = backStackEntry.arguments
+                ?.getString(KpknRoute.ProgramEditor.ARG_PROGRAM_ID)
+                ?.takeIf { it.isNotBlank() }
+            ProgramEditorScreen(
+                programId = editorProgramId,
+                onSaved = { savedProgramId ->
+                    navController.navigate(KpknRoute.ProgramDetail.create(savedProgramId)) {
+                        popUpTo(KpknRoute.ProgramEditor.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
         composable(KpknRoute.ExerciseCatalog.route) { backStack ->
             val requestId = backStack.arguments
                 ?.getString(KpknRoute.ExerciseCatalog.ARG_REQUEST_ID)
@@ -1613,7 +1653,12 @@ private fun KPKNNavGraph(
 }
 
 private fun createProgramAndOpen(navController: androidx.navigation.NavHostController) {
-    navController.navigate(KpknRoute.SetupWizard.create("TRAINING_ONLY")) { launchSingleTop = true }
+    // Post-alta: SIEMPRE editor directo, nunca el wizard de módulo
+    // (TRAINING_ONLY). Con onboarding incompleto se mantiene la puerta FULL.
+    val onboardingCompleted = ProgramRepository.getInstance().settings.value.onboardingCompleted
+    navController.navigate(
+        com.example.kpkn.navigation.PostDischargeRouting.createProgramRoute(onboardingCompleted),
+    ) { launchSingleTop = true }
 }
 
 @Composable

@@ -25,7 +25,8 @@ import com.example.kpkn.domain.onboarding.SetupRingsResponseMapping
 import com.example.kpkn.domain.onboarding.StagedRingsCheckIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
+import java.time.Instant
+import java.time.ZoneId
 
 /** Estado de la evidencia inicial que debe usar la vista previa. */
 sealed interface SetupRingsEvidenceInput {
@@ -52,6 +53,31 @@ data class SetupRingsPreview(
     val stagedWellbeing: DailyWellbeingLog?,
     /** Cobertura por canal: procedencia, carácter estimado e incertidumbre. */
     val coverage: RingsCoverage,
+)
+
+/**
+ * Fecha del check-in derivada del instante INYECTADO (no de `LocalDate.now()`),
+ * con la zona del sistema: la vista previa y el commit deben acordar el mismo
+ * día aunque se crucen medianoche.
+ */
+internal fun previewWellbeingDate(nowMs: Long): String =
+    Instant.ofEpochMilli(nowMs).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+
+/**
+ * Payload REAL que usa la vista previa: el mismo staging que consume el commit
+ * (`SetupRingsResponseMapping.stageCheckIn`), anclado al instante del cálculo.
+ * Devuelve `null` cuando no hay ningún campo declarado (nunca un check-in vacío).
+ */
+internal fun stagePreviewWellbeing(
+    commitId: String,
+    staged: StagedRingsCheckIn,
+    nowMs: Long,
+    muscleOverrides: Map<String, ManualMuscleBatteryOverride> = emptyMap(),
+): DailyWellbeingLog? = if (staged.isEmpty) null else staged.toWellbeingLog(
+    id = "$commitId-onboarding-wellbeing",
+    date = previewWellbeingDate(nowMs),
+    anchorMs = nowMs,
+    muscleOverridesV2 = muscleOverrides,
 )
 
 /** Runs the same recovery engines and uses the same persisted inputs as Home,
@@ -127,22 +153,11 @@ class SetupRingsPreviewCalculator(private val context: Context) {
                     ?: error("No se pudo estimar la batería automática de $muscle")
                 ManualMuscleBatteryOverride(battery, nowMs, null, automatic)
             }
-            val incoming = if (staged.isEmpty) null else staged.toWellbeingLog(
-                id = "$commitId-onboarding-wellbeing",
-                date = LocalDate.now().toString(),
-                anchorMs = nowMs,
-                muscleOverridesV2 = manual,
-            )
+            val incoming = stagePreviewWellbeing(commitId, staged, nowMs, manual)
             val onCommitToday = if (incoming == null) existing else today
-            // Mismo merge por campos que SetupPersistence.mergeWellbeing.
-            val proposed = if (onCommitToday == null || incoming == null) incoming ?: onCommitToday else onCommitToday.copy(
-                manualMuscleBatteries = if ("muscle_batteries" in incoming.capturedFields) onCommitToday.manualMuscleBatteries + incoming.manualMuscleBatteries else onCommitToday.manualMuscleBatteries,
-                manualMuscleOverridesV2 = if ("muscle_batteries" in incoming.capturedFields) onCommitToday.manualMuscleOverridesV2 + incoming.manualMuscleOverridesV2 else onCommitToday.manualMuscleOverridesV2,
-                manualBatteryAnchorMs = if ("muscle_batteries" in incoming.capturedFields) incoming.manualBatteryAnchorMs else onCommitToday.manualBatteryAnchorMs,
-                manualNeuralBattery = if ("energy" in incoming.capturedFields) incoming.manualNeuralBattery else onCommitToday.manualNeuralBattery,
-                manualSpinalBattery = if ("structure" in incoming.capturedFields) incoming.manualSpinalBattery else onCommitToday.manualSpinalBattery,
-                preWorkoutDiscomforts = if ("discomforts" in incoming.capturedFields) incoming.preWorkoutDiscomforts else onCommitToday.preWorkoutDiscomforts,
-            )
+            // Mismo merge por campos que el commit del alta (muscular/energy/structure/
+            // muscle_batteries/discomforts), para que la vista previa no diverja.
+            val proposed = if (incoming == null) onCommitToday else mergeSetupWellbeing(onCommitToday, incoming)
             val normalized = proposed?.copy(manualMuscleBatteries = remapMuscleIntMapToPillars(proposed.manualMuscleBatteries))
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(history, normalized, candidateSettings,
                 catalog, sleep, nutrition, feedbacks, cache, nowOverrideMs = nowMs)
@@ -177,6 +192,23 @@ class SetupRingsPreviewCalculator(private val context: Context) {
     }
 }
 
-/** Solo la calibración parcial deposita la sensación subjetiva en el check-in. */
+/**
+ * Check-in declarado que comparten vista previa y commit (un solo staging, así
+ * no se previsualiza una cosa y se guarda otra).
+ *
+ * Se deposita en la fila de check-in en AMBOS calibrados:
+ *  - [RingsCalibration.PARTIAL_CHECK_IN]: es el ÚNICO registro de lo declarado
+ *    (no hay evidencia que lo conserve).
+ *  - [RingsCalibration.FULL_EVIDENCE]: la evidencia conserva las sensaciones y,
+ *    además, la fila deja constancia durable de lo declarado (procedencia por
+ *    canal vía `declaredCheckInChannels` y origen ONBOARDING_INITIAL), que es lo
+ *    que Home usa mucho después, cuando la evidencia ya caducó o se quitó. El
+ *    motor aplica UNA fuente por canal: el ajuste manual del día desactiva la
+ *    mezcla de la estimación inicial de ESE canal
+ *    (`muscularEstimated = isEstimated && manual == null`), por lo que no hay
+ *    doble fatiga; los canales sin check-in siguen usando la evidencia.
+ *  - [RingsCalibration.NONE] (sin sensaciones; OMITTED/PRESERVE): no se fabrica
+ *    nada: el desconocimiento jamás se convierte en check-in.
+ */
 fun SetupRingsMapping.previewCheckIn(): SetupRingsCheckIn =
-    if (calibration == RingsCalibration.PARTIAL_CHECK_IN) checkIn else SetupRingsCheckIn()
+    if (calibration == RingsCalibration.NONE) SetupRingsCheckIn() else checkIn
