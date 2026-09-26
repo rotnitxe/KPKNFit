@@ -144,9 +144,16 @@ object NutritionPlanPreparation {
         if (requiresEquation && recommendation.ineligibility != null) {
             baseErrors["eligibility"] = when (recommendation.ineligibility) {
                 NutritionIneligibility.UNDER_19 -> "La recomendación automática requiere 19 años o más"
-                NutritionIneligibility.PREGNANCY -> "Embarazo requiere orientación profesional"
-                NutritionIneligibility.LACTATION -> "Lactancia requiere orientación profesional"
-                NutritionIneligibility.MEDICAL_RESTRICTION -> "Condición médica: usa un objetivo profesional/manual"
+                // La EER no aplica POR LA CAUSA declarada: se ofrecen las
+                // salidas reales del propio plan (objetivos propios o solo
+                // registro). NO se exige orientación profesional ni se usa
+                // PlanDirection.PROFESSIONAL como atajo.
+                NutritionIneligibility.PREGNANCY ->
+                    "La recomendación automática no aplica durante el embarazo: define tus objetivos propios o usa solo registro"
+                NutritionIneligibility.LACTATION ->
+                    "La recomendación automática no aplica durante la lactancia: define tus objetivos propios o usa solo registro"
+                NutritionIneligibility.MEDICAL_RESTRICTION ->
+                    "La recomendación automática no aplica con una condición médica declarada: define tus objetivos propios o usa solo registro"
                 NutritionIneligibility.SEX_REQUIRED -> "Selecciona el sexo usado por la ecuación"
                 NutritionIneligibility.MISSING_REQUIRED_DATA -> "Completa los datos necesarios para calcular"
             }

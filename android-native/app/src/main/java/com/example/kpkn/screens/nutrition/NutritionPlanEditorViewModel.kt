@@ -33,15 +33,30 @@ import com.example.kpkn.domain.nutrition.preparationInputOf
 import com.example.kpkn.domain.nutrition.resolvedTargetSiOf
 import com.example.kpkn.domain.nutrition.reviewedBaseOf
 import com.example.kpkn.domain.nutrition.reviewedPlanOf
-import com.example.kpkn.domain.nutrition.weeklyTargetsFor
 import com.example.kpkn.domain.nutrition.withCalories
 import com.example.kpkn.domain.nutrition.withMacro
 import com.example.kpkn.domain.nutrition.withProvenance
 import com.example.kpkn.domain.nutrition.NutritionEditorDayTarget
+import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
+import com.example.kpkn.domain.nutrition.WEEKLY_FORECAST_KEY
+import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarAdapter
+import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarInput
+import com.example.kpkn.domain.nutrition.WeeklyForecastDay
+import com.example.kpkn.domain.nutrition.WeeklyForecastDocument
+import com.example.kpkn.domain.nutrition.calorieBoundsFor
+import com.example.kpkn.domain.nutrition.effectiveOptionalConfirmations
+import com.example.kpkn.domain.nutrition.decodeWeeklyForecast
+import com.example.kpkn.domain.nutrition.decodeWeeklyForecastDocument
+import com.example.kpkn.domain.nutrition.fixedWeeklyEvidenceFor
+import com.example.kpkn.domain.nutrition.forecastDaysFor
+import com.example.kpkn.domain.nutrition.previousTargetsFor
+import com.example.kpkn.domain.nutrition.weeklyDistributionResultFor
+import com.example.kpkn.domain.nutrition.weeklyForecastPeriodFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,6 +81,8 @@ data class NutritionPlanEditorUiState(
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
     val savedPlanId: String? = null,
+    /** Estado explícito del reparto semanal vigente ([NutritionDayDistribution]). */
+    val distributionStatus: NutritionDistributionStatus? = null,
     /** Identificador de idempotencia de la operación de edición en curso. */
     val activeCommitId: String? = null,
 )
@@ -96,6 +113,27 @@ class NutritionPlanEditorViewModel(
     private var revision: Int = 0
     /** Idempotencia por operación de edición (la 0 es el alta). */
     private val commitIds = NutritionEditCommitIds()
+
+    /**
+     * Consumidor REAL del calendario de entrenamiento (no un simple setter): el
+     * gasto previsto por fecha llega del adaptador [NutritionTrainingCalendarAdapter]
+     * sobre el programa real vía [ProgramCalendarEngine] + [TrainingEnergyEngine]
+     * + [CardioCalorieEngine]. Un cambio de programa activo, de la lista de
+     * programas o de los ajustes re-proyecta el gasto y re-reparte la semana
+     * (hoy/pasado quedan fijados; el futuro se redistribuye).
+     */
+    init {
+        viewModelScope.launch {
+            combine(
+                programRepository.activeProgramState,
+                programRepository.programs,
+                programRepository.settings,
+                // ÚNICA fuente de opcionales confirmadas (evidencia real).
+                programRepository.history,
+            ) { _, _, _, _ -> }
+                .collect { refreshCalendarExpenditures() }
+        }
+    }
 
     /**
      * Carga el estado inicial: plan existente, borrador pendiente (pauta
@@ -143,14 +181,39 @@ class NutritionPlanEditorViewModel(
                     draft = draft,
                 )
             }
-            refresh()
+            refreshCalendarExpenditures()
         }
     }
 
-    /** Alimenta el reparto semanal con gastos previstos cuando existan. */
-    fun setPlannedExpenditures(values: Map<LocalDate, DayExpenditure>) {
-        expenditures.value = values
-        refresh()
+    /**
+     * Re-proyecta el gasto previsto del programa/calendario activo sobre el
+     * PERIODO de la previsión vigente (no una ventana rolling «hoy..+6», que
+     * rompería la semana) y re-reparte los objetivos cuando ya hay estado
+     * visible (durante la carga inicial el reparto queda para el final de
+     * [initialize]).
+     */
+    fun refreshCalendarExpenditures() {
+        val program = programRepository.activeProgramState.value?.programId
+            ?.let { id -> programRepository.programs.value.firstOrNull { it.id == id } }
+        val plan = _uiState.value.draft.planId
+            ?.let { id -> nutritionRepository.nutritionPlans.value.firstOrNull { it.id == id } }
+        val window = weeklyForecastPeriodFor(priorForecastOf(plan), LocalDate.now(), WEEK_DAYS)
+        val result = NutritionTrainingCalendarAdapter.adapt(
+            NutritionTrainingCalendarInput(
+                program = program,
+                settings = programRepository.settings.value,
+                today = window.first(),
+                windowDays = window.size.toLong(),
+                // Origen productivo: registro real + confirmaciones manuales
+                // del calendario, vía la MISMA función pura que alta y coordinador.
+                confirmedOptionalSessions = effectiveOptionalConfirmations(
+                    logs = programRepository.history.value,
+                    program = program,
+                ),
+            ),
+        )
+        expenditures.value = result.expendituresByDate
+        if (!_uiState.value.isLoading) refresh()
     }
 
     // ─── Ediciones de sección (sin pasos; todas editables en cualquier orden) ─
@@ -252,7 +315,15 @@ class NutritionPlanEditorViewModel(
         }
         val plan = prepared.plan
             ?: throw IllegalArgumentException("No hay una preparación completa para guardar")
-        val reviewed = reviewedPlanOf(draft, plan)
+        // La previsión semanal del reparto viaja en el snapshot de cálculo para
+        // resolver el objetivo por fecha después del guardado; la REVISIÓN sigue
+        // a la previsión que el plan ya traía (monotónica, sin resets).
+        val reviewed = reviewedPlanOf(
+            draft = draft,
+            prepared = plan,
+            forecastTargets = _uiState.value.weeklyTargets,
+            priorForecast = priorForecastDocumentOf(existing),
+        )
         // Una sola base coherente: si la preparación no devuelve exactamente la
         // base revisada, NO se guarda nada (nunca una corrección en silencio).
         if (base != null && !matchesReviewedBase(reviewed, base)) {
@@ -304,23 +375,73 @@ class NutritionPlanEditorViewModel(
         val draft = current.draft
         val recommendation = recommendationFor(draft)
         val base = reviewedBaseOf(draft, recommendation)
-        val targets = base?.let {
-            weeklyTargetsFor(
+        val today = LocalDate.now()
+        // Objetivos YA fijados (hoy/pasado): evidencia del mismo plan (snapshot
+        // histórico o su propia previsión previa, aunque no haya snapshot).
+        val plan = draft.planId
+            ?.let { id -> nutritionRepository.nutritionPlans.value.firstOrNull { it.id == id } }
+        val prior = priorForecastOf(plan)
+        // El periodo NO rueda con «hoy»: se conserva el horizonte de la previsión
+        // vigente (una ventana hoy..+6 partiría la semana y rompería el presupuesto).
+        val window = weeklyForecastPeriodFor(prior, today, WEEK_DAYS)
+        val fixedEvidence = fixedWeeklyEvidenceFor(
+            priorDays = prior,
+            today = today,
+            period = window,
+            snapshots = nutritionRepository.dailyGoalSnapshots.value,
+            planId = plan?.id,
+        )
+        val fixed = fixedEvidence.mapValues { it.value.calorieTargetKcal }
+        // Nunca se mueven y consumen presupuesto; el futuro se redistribuye.
+        val future = window.filterNot { it in fixed }
+        val previous = plan?.let { previousTargetsFor(it, future) }.orEmpty()
+        val bounds = draft.direction?.let { calorieBoundsFor(it, recommendation?.eerKcal) }
+        val distribution = base?.let {
+            weeklyDistributionResultFor(
                 base = it,
                 mode = draft.weeklyDistribution,
-                dates = (0L until WEEK_DAYS).map { offset -> LocalDate.now().plusDays(offset) },
+                dates = future,
                 expenditures = expenditures.value,
+                bounds = bounds,
+                fixedTargets = fixed,
+                previousTargets = previous,
+                // Presupuesto del periodo FIJO: Σ T_i = |periodo| · B aunque
+                // hoy/pasado estén fijados (sin ventana rolling que rompa la semana).
+                periodBudgetKcal = window.size * it.caloriesKcal,
             )
-        }.orEmpty()
+        }
+        // Los días fijados conservan SUS macros; solo los repartidos escalan
+        // los tres macros desde la base revisada.
+        val targets = if (base == null) {
+            emptyList()
+        } else {
+            forecastDaysFor(
+                fixedEvidence = fixedEvidence,
+                distributed = distribution?.targetsByDate.orEmpty(),
+                base = base,
+            )
+        }
         _uiState.update {
             it.copy(
                 recommendation = recommendation,
                 base = base,
                 weeklyTargets = targets,
+                distributionStatus = distribution?.status,
                 errors = if (it.errors.containsKey("commit")) it.errors else editorErrorsOf(draft, base),
             )
         }
     }
+
+    /** Previsión semanal versionada del plan (días), vacía si no la tiene. */
+    private fun priorForecastOf(plan: NutritionPlan?): List<WeeklyForecastDay> =
+        plan?.calculationSnapshot?.inputs?.get(WEEKLY_FORECAST_KEY)
+            ?.let(::decodeWeeklyForecast)
+            .orEmpty()
+
+    /** Cabecera de la previsión vigente (revisión + efectividad) del plan. */
+    private fun priorForecastDocumentOf(plan: NutritionPlan?): WeeklyForecastDocument? =
+        plan?.calculationSnapshot?.inputs?.get(WEEKLY_FORECAST_KEY)
+            ?.let(::decodeWeeklyForecastDocument)
 
     private fun recommendationFor(draft: NutritionPlanEditorDraft): NutritionPlanRecommendation? {
         val direction = draft.direction ?: return null
@@ -376,49 +497,9 @@ class NutritionPlanEditorViewModel(
         )
     }
 
-    private fun draftFromWizard(wizard: NutritionWizardDraft, pendingDraftId: String?): NutritionPlanEditorDraft {
-        val targetText = when (wizard.goalMetric) {
-            GoalMetric.WEIGHT -> wizard.targetWeightText.ifBlank { wizard.targetValueText }
-            GoalMetric.BODY_FAT -> wizard.targetBodyFatText.ifBlank { wizard.targetValueText }
-            GoalMetric.MUSCLE_MASS -> wizard.targetMuscleText.ifBlank { wizard.targetValueText }
-        }
-        val protein = parseLocalizedNumber(wizard.manualProteinText)?.takeIf { it >= 0 }?.toInt()
-        val carbs = parseLocalizedNumber(wizard.manualCarbsText)?.takeIf { it >= 0 }?.toInt()
-        val fat = parseLocalizedNumber(wizard.manualFatText)?.takeIf { it >= 0 }?.toInt()
-        val calories = parseLocalizedNumber(wizard.manualCalorieTargetText)?.takeIf { it > 0 }?.toInt()
-        val base = if (calories != null && protein != null && carbs != null && fat != null) {
-            NutritionEditorBase(calories, protein, carbs, fat)
-        } else {
-            null
-        }
-        return NutritionPlanEditorDraft(
-            planId = wizard.planId?.takeIf { it.isNotBlank() },
-            pendingDraftId = pendingDraftId,
-            direction = wizard.direction,
-            goalMetric = wizard.goalMetric,
-            targetValueText = targetText,
-            ageText = wizard.ageText,
-            heightText = wizard.heightText,
-            weightText = wizard.weightText,
-            weightUnit = wizard.weightUnit,
-            equationSex = wizard.equationSex,
-            activity = wizard.activity,
-            eligibilityUnknown = wizard.eligibilityUnknown,
-            medicalRestriction = wizard.medicalRestriction,
-            pregnant = wizard.pregnant,
-            lactating = wizard.lactating,
-            bodyFatText = wizard.bodyFatText,
-            muscleText = wizard.muscleText,
-            base = base,
-            baseEdited = base != null,
-            provenance = when {
-                wizard.direction == PlanDirection.PROFESSIONAL -> NutritionEditorProvenance.PROFESSIONAL
-                base != null -> NutritionEditorProvenance.SELF_DEFINED
-                else -> NutritionEditorProvenance.AUTOMATIC
-            },
-            mode = NutritionPlanEditorMode.ACTIVE_PLAN,
-        )
-    }
+    private fun draftFromWizard(wizard: NutritionWizardDraft, pendingDraftId: String?): NutritionPlanEditorDraft =
+        // Misma traducción que el alta: UN solo algoritmo en domain/nutrition.
+        com.example.kpkn.domain.nutrition.editorDraftOf(wizard, pendingDraftId)
 
     private companion object {
         const val WEEK_DAYS = 7L

@@ -136,6 +136,9 @@ object NutritionDayDistribution {
      * - Una sola variante por sesión (A si no hay elección planificada);
      *   B/C/D nunca se suman entre sí.
      * - Las sesiones opcionales solo cuentan si están confirmadas para esa fecha.
+     * - La MISMA sesión puede repetirse en fechas distintas (p. ej. un el mismo
+     *   `Session` planificado en dos semanas); se cuenta una vez POR fecha,
+     *   nunca se colapsa a nivel global por `sessionId`.
      * - Dos sesiones reales distintas en el mismo día sí se suman.
      * - Una sesión no estimable marca la fecha como [DayExpenditure.NotEstimable],
      *   que NO equivale a descanso.
@@ -143,9 +146,7 @@ object NutritionDayDistribution {
     fun sessionExpendituresByDate(sessions: List<PlannedSessionLoad>): Map<LocalDate, DayExpenditure> =
         sessions
             .filter { !it.optional || it.confirmedForDate }
-            .groupBy { it.sessionId }
-            .values
-            .mapNotNull { loadsForSession -> loadsForSession.firstOrNull() }
+            .distinctBy { it.date to it.sessionId }
             .groupBy { it.date }
             .mapValues { (_, daySessions) ->
                 val estimates = daySessions.map { session ->

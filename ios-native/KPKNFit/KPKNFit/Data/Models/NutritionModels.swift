@@ -341,15 +341,19 @@ public struct NutritionGoal: Codable, Equatable {
     }
 }
 
+/// Presencia: los campos de macros son `Int?` con decodificación ausente →
+/// `nil` (una clave que no viaja en el JSON NO es un 0). Un 0 explícito se
+/// conserva como 0: es una meta declarada, no ausencia. Sin defaults de
+/// objetivo fabricados en el modelo.
 public struct NutritionPlan: Codable, Identifiable, Equatable {
     public let id: String
     public let name: String
     public let goalType: GoalMetric
     public let goalValue: Double
-    public let calorieTarget: Int
-    public let proteinGoal: Int
-    public let carbGoal: Int
-    public let fatGoal: Int
+    public let calorieTarget: Int?
+    public let proteinGoal: Int?
+    public let carbGoal: Int?
+    public let fatGoal: Int?
     public let isActive: Bool
     public let createdAt: String
     public let primaryGoal: NutritionGoal?
@@ -364,10 +368,10 @@ public struct NutritionPlan: Codable, Identifiable, Equatable {
         name: String = "",
         goalType: GoalMetric = .WEIGHT,
         goalValue: Double = 0.0,
-        calorieTarget: Int = 0,
-        proteinGoal: Int = 0,
-        carbGoal: Int = 0,
-        fatGoal: Int = 0,
+        calorieTarget: Int? = nil,
+        proteinGoal: Int? = nil,
+        carbGoal: Int? = nil,
+        fatGoal: Int? = nil,
         isActive: Bool = false,
         createdAt: String = "",
         primaryGoal: NutritionGoal? = nil,
@@ -819,27 +823,27 @@ public struct FoodLog: Codable, Identifiable, Equatable {
 }
 
 public struct MacroGoals: Codable, Equatable {
-    public let calorieGoal: Int
-    public let proteinGoal: Int
-    public let carbGoal: Int
-    public let fatGoal: Int
-    public let fiberGoal: Int
-    public let sugarLimit: Int
-    public let sodiumLimitMg: Int
-    public let potassiumGoalMg: Int
-    public let hydrationGoalMl: Int
+    public let calorieGoal: Int?
+    public let proteinGoal: Int?
+    public let carbGoal: Int?
+    public let fatGoal: Int?
+    public let fiberGoal: Int?
+    public let sugarLimit: Int?
+    public let sodiumLimitMg: Int?
+    public let potassiumGoalMg: Int?
+    public let hydrationGoalMl: Int?
     public let showOverages: Bool
 
     public init(
-        calorieGoal: Int = 2500,
-        proteinGoal: Int = 150,
-        carbGoal: Int = 250,
-        fatGoal: Int = 70,
-        fiberGoal: Int = 25,
-        sugarLimit: Int = 50,
-        sodiumLimitMg: Int = 2300,
-        potassiumGoalMg: Int = 3500,
-        hydrationGoalMl: Int = 2000,
+        calorieGoal: Int? = nil,
+        proteinGoal: Int? = nil,
+        carbGoal: Int? = nil,
+        fatGoal: Int? = nil,
+        fiberGoal: Int? = nil,
+        sugarLimit: Int? = nil,
+        sodiumLimitMg: Int? = nil,
+        potassiumGoalMg: Int? = nil,
+        hydrationGoalMl: Int? = nil,
         showOverages: Bool = true
     ) {
         self.calorieGoal = calorieGoal
@@ -855,39 +859,46 @@ public struct MacroGoals: Codable, Equatable {
     }
 }
 
+/// Metas vigentes (plan + ajustes) sin fabricar defaults: un campo sin
+/// evidencia queda `nil` (nunca 2500/150/250/70 ni el objetivo de ajustes).
+/// Con plan activo mandan sus campos tal cual: un 0 explícito es un 0
+/// legítimo y un `nil` (campo ausente al decodificar) es ausencia real; no
+/// hay fallback a los ajustes aunque el plan esté vacío. Sin plan, solo los
+/// objetivos explícitos de los ajustes. Devuelve todas las metas macro `nil`
+/// cuando no existe ninguna evidencia. Equivale a `dayGoalForecastOf` +
+/// `macroGoalsOf` de Android, salvo la resolución por fecha con snapshots
+/// (`resolveDayGoalsByDate`), ausente en iOS.
 public func deriveMacroGoals(settings: Settings, activePlan: NutritionPlan? = nil) -> MacroGoals {
+    let calorieGoal: Int?
+    let proteinGoal: Int?
+    let carbGoal: Int?
+    let fatGoal: Int?
     if let plan = activePlan {
-        let planCalories = plan.calorieTarget > 0 ? plan.calorieTarget : nil
-        let planProtein = plan.proteinGoal > 0 ? plan.proteinGoal : nil
-        let planCarbs = plan.carbGoal > 0 ? plan.carbGoal : nil
-        let planFats = plan.fatGoal > 0 ? plan.fatGoal : nil
-
-        if planCalories != nil || planProtein != nil || planCarbs != nil || planFats != nil {
-            return MacroGoals(
-                calorieGoal: planCalories ?? settings.dailyCalorieGoal ?? 2500,
-                proteinGoal: planProtein ?? settings.dailyProteinGoal ?? 150,
-                carbGoal: planCarbs ?? settings.dailyCarbGoal ?? 250,
-                fatGoal: planFats ?? settings.dailyFatGoal ?? 70,
-                fiberGoal: settings.dailyFiberGoal ?? 25,
-                sugarLimit: settings.dailySugarLimit ?? 50,
-                sodiumLimitMg: settings.dailySodiumLimitMg ?? 2300,
-                potassiumGoalMg: settings.dailyPotassiumGoalMg ?? 3500,
-                hydrationGoalMl: settings.dailyHydrationGoalMl ?? 2000,
-                showOverages: settings.nutritionShowOverages
-            )
-        }
+        // Sin filtro `> 0` y sin caída a los ajustes: la evidencia del plan
+        // (0 o nil incluidos) es la única fuente de las macros.
+        calorieGoal = plan.calorieTarget
+        proteinGoal = plan.proteinGoal
+        carbGoal = plan.carbGoal
+        fatGoal = plan.fatGoal
+    } else {
+        // Sin plan, solo objetivos explícitos de ajustes (nil por defecto).
+        calorieGoal = settings.dailyCalorieGoal
+        proteinGoal = settings.dailyProteinGoal
+        carbGoal = settings.dailyCarbGoal
+        fatGoal = settings.dailyFatGoal
     }
 
+    // Micronutrientes y límites: siempre de ajustes explícitos, sin literales.
     return MacroGoals(
-        calorieGoal: settings.dailyCalorieGoal ?? 2500,
-        proteinGoal: settings.dailyProteinGoal ?? 150,
-        carbGoal: settings.dailyCarbGoal ?? 250,
-        fatGoal: settings.dailyFatGoal ?? 70,
-        fiberGoal: settings.dailyFiberGoal ?? 25,
-        sugarLimit: settings.dailySugarLimit ?? 50,
-        sodiumLimitMg: settings.dailySodiumLimitMg ?? 2300,
-        potassiumGoalMg: settings.dailyPotassiumGoalMg ?? 3500,
-        hydrationGoalMl: settings.dailyHydrationGoalMl ?? 2000,
+        calorieGoal: calorieGoal,
+        proteinGoal: proteinGoal,
+        carbGoal: carbGoal,
+        fatGoal: fatGoal,
+        fiberGoal: settings.dailyFiberGoal,
+        sugarLimit: settings.dailySugarLimit,
+        sodiumLimitMg: settings.dailySodiumLimitMg,
+        potassiumGoalMg: settings.dailyPotassiumGoalMg,
+        hydrationGoalMl: settings.dailyHydrationGoalMl,
         showOverages: settings.nutritionShowOverages
     )
 }

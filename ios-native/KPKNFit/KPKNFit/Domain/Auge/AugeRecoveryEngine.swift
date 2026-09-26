@@ -135,15 +135,14 @@ enum AugeRecoveryEngine {
         return 0
     }
 
-    private static func manualBatteryAnchorMs(_ wellbeing: DailyWellbeingLog?) -> Int64 {
+    /// Ancla temporal del ajuste manual. Espejo de Android
+    /// (`AugeRecoveryEngine.manualBatteryAnchorMs`): sin ancla explícita se usa
+    /// la medianoche del día del registro, nunca «ahora». Re-anclar en `nowMs()`
+    /// en cada evaluación congelaría el ajuste manual (horas desde el ancla ≈ 0,
+    /// sin decaimiento) y descartaría el historial posterior al ancla.
+    static func manualBatteryAnchorMs(_ wellbeing: DailyWellbeingLog?) -> Int64 {
         guard let w = wellbeing else { return 0 }
-        if let anchor = w.manualBatteryAnchorMs { return anchor }
-        if w.manualNeuralBattery != nil || w.manualMuscularBattery != nil
-            || w.manualSpinalBattery != nil || !w.manualMuscleBatteries.isEmpty
-            || !(w.manualMuscleOverridesV2 ?? [:]).isEmpty {
-            return nowMs()
-        }
-        return parseWellbeingDate(w.date)
+        return w.manualBatteryAnchorMs ?? parseWellbeingDate(w.date)
     }
 
     private static func muscleMatchesCategory(_ specificMuscle: String, _ category: String) -> Bool {

@@ -21,6 +21,8 @@ import com.example.kpkn.domain.auge.AugeRecoveryEngine
 import com.example.kpkn.domain.auge.AugeTtcEngine
 import com.example.kpkn.domain.auge.AugeUtils
 import com.example.kpkn.domain.auge.AxialLoadMonitor
+import com.example.kpkn.domain.auge.InitialRecoveryEvidencePolicy
+import com.example.kpkn.domain.auge.InitialRecoveryPolicyInput
 import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.domain.auge.MuscularSessionImpactEngine
 import com.example.kpkn.domain.auge.PerformanceTauInput
@@ -31,6 +33,8 @@ import com.example.kpkn.domain.auge.SystemicLoadMonitor
 import com.example.kpkn.domain.auge.remapMuscleIntMapToPillars
 import com.example.kpkn.domain.auge.remapMuscleMultiplierMapToPillars
 import com.example.kpkn.domain.auge.toAugeAdaptiveMuscleKey
+import com.example.kpkn.domain.onboarding.RingsCoverage
+import com.example.kpkn.domain.onboarding.declaredCheckInChannels
 import com.example.kpkn.domain.training.VolumeCalculator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -217,7 +221,8 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             feedbacks = feedbacks,
         )
 
-        val (batteries, perMuscle, dashboard, readiness, articular, cumulativeFatigue) = withContext(Dispatchers.Default) {
+        val evaluationNowMs = System.currentTimeMillis()
+        val (batteries, perMuscle, dashboard, readiness, articular, cumulativeFatigue, coverage) = withContext(Dispatchers.Default) {
             val muscles = AugeRecoveryEngine.getPerMuscleBatteries(
                 history = history,
                 wellbeing = wellbeingNormalized,
@@ -227,6 +232,10 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 nutritionLogs = nutritionLogs,
                 feedbacks = feedbacks,
                 adaptiveCache = adaptiveCache,
+                // Mismo corte de evaluación que publica la cobertura: sin él cada
+                // motor usaría su propio reloj y podrían discrepar en el umbral
+                // de caducidad de la evidencia.
+                nowOverrideMs = evaluationNowMs,
             )
             val articular = AugeTtcEngine.calculateArticularBatteries(history, exerciseDb, feedbacks, wellbeingNormalized)
             val bat = AugeRecoveryEngine.calculateGlobalBatteries(
@@ -240,6 +249,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 adaptiveCache = adaptiveCache,
                 precomputedMuscles = muscles,
                 articularBatteries = articular,
+                nowOverrideMs = evaluationNowMs,
             )
             val dashboard = AugeRecoveryEngine.calculateRecoveryDashboard(
                 batteries = bat,
@@ -247,11 +257,11 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                 articularBatteries = articular,
                 wellbeing = wellbeingNormalized,
                 sleepLogs = sleepLogs,
-                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history),
+                recentSessionCount = AugeRecoveryEngine.recentSessionCount(history, evaluationNowMs),
             )
             val verdict = AugeRecoveryEngine.calculateDailyReadiness(dashboard, wellbeingNormalized)
             
-            val twoWeeksAgo = System.currentTimeMillis() - 14L * 24 * 3600_000
+            val twoWeeksAgo = evaluationNowMs - 14L * 24 * 3600_000
             val cumFatigue = history
                 .filter { log ->
                     com.example.kpkn.domain.auge.AugeUtils.logDateMs(log) >= twoWeeksAgo
@@ -264,23 +274,40 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
                         adaptiveCache = adaptiveCache,
                     )
                 }
-            Sextuple(bat, muscles, dashboard, verdict, articular, cumFatigue)
+            // Cobertura por canal con las MISMAS entradas y el MISMO corte temporal
+            // que las baterías recién calculadas (historial, evidencia inicial de
+            // settings, wellbeing normalizado, confianza y scores del dashboard):
+            // getPerMuscleBatteries/calculateGlobalBatteries y recentSessionCount
+            // reciben `evaluationNowMs`. AugeTtcEngine, calculateRecoveryDashboard
+            // y calculateDailyReadiness no aceptan `now` y conservan su reloj
+            // interno; no se fuerza ningún parámetro inexistente.
+            val coverage = computeSnapshotCoverage(
+                history = history,
+                settings = settings,
+                wellbeing = wellbeingNormalized,
+                dashboard = dashboard,
+                batteries = bat,
+                nowMs = evaluationNowMs,
+            )
+            Septuple(bat, muscles, dashboard, verdict, articular, cumFatigue, coverage)
         }
 
-        val nowMs = System.currentTimeMillis()
-        val axial = AxialLoadMonitor.evaluate(history, exerciseDb, nowMs)
+        // Mismo corte de evaluación para las entradas relacionadas del snapshot:
+        // un solo instante por recompute, así lo publicado es atómico (baterías,
+        // cobertura, fatiga de 2 semanas, axial/sistémico y avisos).
+        val axial = AxialLoadMonitor.evaluate(history, exerciseDb, evaluationNowMs)
         val systemic = SystemicLoadMonitor.evaluate(
             history = history,
             exerciseDb = exerciseDb,
             settings = settings,
             adaptiveCache = adaptiveCache,
-            nowMs = nowMs,
+            nowMs = evaluationNowMs,
         )
         val advisoryResult = LoadAdvisoryEngine.evaluate(
             axial = axial,
             systemic = systemic,
             cache = adaptiveCache,
-            nowMs = nowMs,
+            nowMs = evaluationNowMs,
         )
         val actionable = advisoryResult.advisories.filter {
             LoadAdvisoryEngine.rank(it.level) >= LoadAdvisoryEngine.rank(LoadAdvisoryLevel.ADJUST)
@@ -331,6 +358,7 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
             personalBaseline = personalBaseline,
             sparkline = sparkline,
             showModelUpdateNotice = !adaptiveCache.modelUpdateNoticeShown,
+            coverage = coverage,
         )
         KpknDiagnosticLogger.event(
             namespace = "auge",
@@ -1124,7 +1152,53 @@ class AugeViewModel(application: Application) : AndroidViewModel(application) {
     }
 }
 
-private data class Sextuple<A, B, C, D, E, F>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F)
+/**
+ * Cobertura por canal que publica el productor del snapshot ([AugeViewModel]).
+ *
+ * Se calcula con las MISMAS entradas y el MISMO corte temporal que las baterías
+ * del cálculo AUGE (historial real, evidencia inicial de settings, wellbeing
+ * normalizado, confianza y scores del dashboard), de modo que la UI solo lee
+ * `AugeSnapshot.coverage`: sin IO en composables y sin etiquetas globales.
+ * En `recompute` ese corte (`evaluationNowMs`) se pasa también a
+ * `getPerMuscleBatteries`/`calculateGlobalBatteries` (`nowOverrideMs`) y a
+ * `recentSessionCount`; las funciones sin parámetro `now` (articular, dashboard,
+ * readiness) conservan su reloj interno y no se les fuerza ningún parámetro.
+ *
+ * No estima recuperación: describe procedencia. Un canal sin historial, sin
+ * evidencia vigente y sin check-in declarado queda `NO_DATA` con `score = null`
+ * (nunca un 100 % afirmativo), aunque el motor pinte 100 por estar sin calibrar.
+ */
+internal fun computeSnapshotCoverage(
+    history: List<WorkoutLog>,
+    settings: Settings,
+    wellbeing: DailyWellbeingLog?,
+    dashboard: RecoveryDashboard,
+    batteries: GlobalBatteries,
+    nowMs: Long,
+): RingsCoverage {
+    val contribution = InitialRecoveryEvidencePolicy.resolve(
+        InitialRecoveryPolicyInput(
+            evidence = settings.initialRecoveryEvidence,
+            nowMs = nowMs,
+            workoutLogs = history,
+        ),
+    )
+    val engineScores = mapOf(
+        RecoveryChannelId.MUSCULAR to batteries.muscular,
+        RecoveryChannelId.SYSTEM to batteries.cnc,
+        RecoveryChannelId.STRUCTURE to batteries.spinal,
+    )
+    return RingsCoverage.fromEngineInputs(
+        historyIsEmpty = history.isEmpty(),
+        wellbeing = wellbeing,
+        contribution = contribution,
+        declaredChannels = declaredCheckInChannels(wellbeing),
+        channelConfidence = dashboard.channels.associate { it.id to it.confidence },
+        score = { channel -> dashboard.channelScore(channel, engineScores.getValue(channel)) },
+    )
+}
+
+private data class Septuple<A, B, C, D, E, F, G>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E, val sixth: F, val seventh: G)
 
 @Composable
 fun rememberAugeViewModel(): AugeViewModel {

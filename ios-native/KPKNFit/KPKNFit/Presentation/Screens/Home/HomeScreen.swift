@@ -284,7 +284,7 @@ private struct HomeTopBar: View {
     let sncProgress: CGFloat
     let columnaProgress: CGFloat
     let todaySessions: [TodaySessionItem]
-    let dailyCalorieGoal: Int
+    let dailyCalorieGoal: Int?
     let consumedCalories: Int
     let onSettingsClick: () -> Void
     let onStartWorkout: (Session, Program) -> Void
@@ -528,12 +528,12 @@ private struct MiniSessionCard: View {
 // MARK: - MiniNutritionCard
 
 private struct MiniNutritionCard: View {
-    let dailyCalorieGoal: Int
+    let dailyCalorieGoal: Int?
     let consumedCalories: Int
     let onAddMeal: () -> Void
 
     private var pct: CGFloat {
-        guard dailyCalorieGoal > 0 else { return 0 }
+        guard let dailyCalorieGoal, dailyCalorieGoal > 0 else { return 0 }
         return min(CGFloat(consumedCalories) / CGFloat(dailyCalorieGoal), 1.5)
     }
 
@@ -554,7 +554,7 @@ private struct MiniNutritionCard: View {
                     Text("\(consumedCalories)")
                         .font(.system(size: 15, weight: .black))
                         .foregroundColor(.white)
-                    Text("/ \(dailyCalorieGoal)")
+                    Text("/ \(dailyCalorieGoal.map(String.init) ?? "–")")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white.opacity(0.6))
                 }

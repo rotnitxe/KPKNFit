@@ -16,6 +16,8 @@ import java.time.LocalDate
  */
 class NutritionPlanEditorEngineTest {
 
+    private val monday: LocalDate = LocalDate.of(2026, 9, 21)
+
     private fun validDraft(base: NutritionEditorBase? = null, baseEdited: Boolean = false) = NutritionPlanEditorDraft(
         planId = null,
         direction = PlanDirection.DEFICIT,
@@ -266,6 +268,58 @@ class NutritionPlanEditorEngineTest {
             targets.minOf { it.calorieTargetKcal },
             targets.maxOf { it.calorieTargetKcal },
         )
+    }
+
+    @Test
+    fun midWeekDistributionKeepsTodayAndPastFixedAndPreservesTheBudget() {
+        val base = NutritionEditorBase(2000, 150, 250, 55)
+        val weekDates = (0L until 7L).map { monday.plusDays(it) }
+        // Hoy es miércoles: lunes, martes y miércoles ya están FIJADOS por el
+        // historial del mismo plan y consumen presupuesto.
+        val fixed = weekDates.take(3).associateWith { 2000 }
+        val future = weekDates.drop(3)
+        val expenditures = future.associateWith { DayExpenditure.Estimated(500.0) }
+
+        val result = weeklyDistributionResultFor(
+            base = base,
+            mode = NutritionWeeklyDistributionMode.VARIABLE,
+            dates = future,
+            expenditures = expenditures,
+            fixedTargets = fixed,
+        )
+
+        // Los fijados no se mueven...
+        assertEquals(fixed, result.fixedTargets)
+        assertTrue(result.targetsByDate.keys.none { it in fixed })
+        // ...y el reparto cubre TODA la ventana cuadrando el presupuesto total
+        // (R = 14000 − 6000 = 8000 repartido en las 4 fechas futuras).
+        assertEquals(4, result.targetsByDate.size)
+        assertEquals(14_000, result.allTargets().values.sum())
+        assertEquals(14_000 - 6_000, result.remainingBudgetKcal)
+        assertEquals(8_000, result.targetsByDate.values.sum())
+    }
+
+    @Test
+    fun noValidSolutionKeepsPreviousTargetsUntilNextWeek() {
+        val base = NutritionEditorBase(2000, 150, 250, 55)
+        val weekDates = (0L until 7L).map { monday.plusDays(it) }
+        val previous = weekDates.associateWith { 2100 }
+
+        val result = weeklyDistributionResultFor(
+            base = base,
+            mode = NutritionWeeklyDistributionMode.VARIABLE,
+            dates = weekDates,
+            expenditures = emptyMap(),
+            // Ningún objetivo entero cabe en el rango → sin solución válida.
+            bounds = 3_000..3_200,
+            previousTargets = previous,
+        )
+
+        // El reparto vigente se devuelve INTACTO: la semana siguiente recalcula
+        // sobre los nuevos gastos en vez de improvisar un valor.
+        assertEquals(NutritionDistributionStatus.KEPT_PREVIOUS, result.status)
+        assertEquals(previous, result.targetsByDate)
+        assertTrue(result.fixedTargets.isEmpty())
     }
 
     @Test

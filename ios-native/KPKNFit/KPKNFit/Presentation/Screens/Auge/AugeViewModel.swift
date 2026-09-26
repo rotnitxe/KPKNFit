@@ -302,9 +302,17 @@ final class AugeViewModel: ObservableObject {
         )
     }
 
+    /// Depósito PARCIAL de un check-in manual: solo escriben los canales que el
+    /// llamador toca; los no tocados conservan su valor previo (y un canal sin
+    /// dato sigue `nil`, que es ausencia real, no un 0 inventado). Espejo de
+    /// Android `AugeViewModel.applyManualBatteries` (parámetros opcionales,
+    /// `?: base?...` por canal, fusión de overrides V2, V1 limpiado solo al
+    /// escribir V2 y ancla solo cuando algo cambió).
     func applyManualBatteries(
-        neural: Int, muscular: Int? = nil, spinal: Int,
-        perMuscle: [String: Int],
+        neural: Int? = nil,
+        muscular: Int? = nil,
+        spinal: Int? = nil,
+        perMuscle: [String: Int]? = nil,
         perMuscleDelta: [String: Int]? = nil,
         manualBatteryAnchorMs: Int64? = nil,
         sessionCnsDrain: Double = 0, sessionSpinalDrain: Double = 0, sessionMuscleDrain: Double = 0,
@@ -313,12 +321,27 @@ final class AugeViewModel: ObservableObject {
     ) {
         Task {
             let base = await augeRepo.getTodayWellbeing()
-            let touchedMuscles = perMuscleDelta ?? perMuscle
+            let canonicalDelta = (perMuscleDelta ?? perMuscle ?? [:]).filter { !$0.key.isEmpty }
+            let touchedMuscles = !canonicalDelta.isEmpty
+            let touched = neural != nil || spinal != nil || muscular != nil || touchedMuscles
+            let anchor = manualBatteryAnchorMs ?? Int64(Date().timeIntervalSince1970 * 1000)
             let dateStr: String = {
                 let f = ISO8601DateFormatter()
                 f.formatOptions = [.withFullDate]
                 return f.string(from: Date())
             }()
+            let existingV2 = base?.manualMuscleOverridesV2 ?? [:]
+            var mergedV2 = existingV2
+            if touchedMuscles {
+                for (key, value) in canonicalDelta {
+                    mergedV2[key] = ManualMuscleBatteryOverride(
+                        battery: max(0, min(100, value)),
+                        anchorEpochMs: anchor,
+                        sourceSessionId: nil,
+                        automaticBatteryAtAnchor: predictedMuscleBatteries[key] ?? 100
+                    )
+                }
+            }
             let updated = DailyWellbeingLog(
                 id: base?.id ?? UUID().uuidString,
                 date: dateStr,
@@ -330,33 +353,26 @@ final class AugeViewModel: ObservableObject {
                 moodState: base?.moodState,
                 workIntensity: base?.workIntensity,
                 studyIntensity: base?.studyIntensity,
-                // A local muscle edit must not be collapsed into a global
-                // average. The global muscular ring remains engine-derived.
-                manualMuscularBattery: muscular ?? base?.manualMuscularBattery,
-                manualNeuralBattery: max(0, min(100, neural)),
-                manualSpinalBattery: max(0, min(100, spinal)),
-                manualMuscleBatteries: touchedMuscles.isEmpty ? (base?.manualMuscleBatteries ?? [:]) : [:],
-                manualMuscleOverridesV2: touchedMuscles.isEmpty
-                    ? base?.manualMuscleOverridesV2
-                    : Dictionary(uniqueKeysWithValues: touchedMuscles.map { key, value in
-                        (
-                            key,
-                            ManualMuscleBatteryOverride(
-                                battery: max(0, min(100, value)),
-                                anchorEpochMs: manualBatteryAnchorMs ?? Int64(Date().timeIntervalSince1970 * 1000),
-                                sourceSessionId: nil,
-                                automaticBatteryAtAnchor: predictedMuscleBatteries[key] ?? 100
-                            )
-                        )
-                    }),
-                manualBatteryAnchorMs: manualBatteryAnchorMs ?? Int64(Date().timeIntervalSince1970 * 1000),
-                notes: base?.notes
+                // Un canal no tocado conserva lo que ya tenía (no se fabrican
+                // valores ni se borra la evidencia declarada antes).
+                manualMuscularBattery: muscular.map { max(0, min(100, $0)) } ?? base?.manualMuscularBattery,
+                manualNeuralBattery: neural.map { max(0, min(100, $0)) } ?? base?.manualNeuralBattery,
+                manualSpinalBattery: spinal.map { max(0, min(100, $0)) } ?? base?.manualSpinalBattery,
+                // Nuevas escrituras usan V2 per-muscle; V1 solo se limpia si
+                // esta llamada tocó músculos (compatibilidad con lo anterior).
+                manualMuscleBatteries: touchedMuscles ? [:] : (base?.manualMuscleBatteries ?? [:]),
+                manualMuscleOverridesV2: mergedV2.isEmpty ? nil : mergedV2,
+                manualBatteryAnchorMs: touched ? anchor : base?.manualBatteryAnchorMs,
+                notes: base?.notes,
+                preWorkoutDiscomforts: base?.preWorkoutDiscomforts ?? []
             )
             await augeRepo.saveWellbeingLog(log: updated)
 
+            // Igual que Android: se pasa el gesto al aprendizaje; su propia
+            // guarda (sin sistema ni músculos) lo convierte en no-op.
             await learnFromManualAdjustment(
                 manualNeural: neural, manualSpinal: spinal,
-                manualMuscleBatteries: touchedMuscles,
+                manualMuscleBatteries: canonicalDelta,
                 sessionCnsDrain: sessionCnsDrain, sessionSpinalDrain: sessionSpinalDrain,
                 sessionMuscleDrain: sessionMuscleDrain,
                 predictedNeuralBattery: predictedNeuralBattery,

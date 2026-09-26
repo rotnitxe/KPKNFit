@@ -305,19 +305,39 @@ fun preparationInputOf(
 
 /**
  * Plan final a persistir: el resultado de la preparación canónica + el reparto
- * semanal elegido, viajando en el payload JSON del snapshot de cálculo (sin
- * cambiar el esquema). La base revisada se guarda tal cual, sin correcciones.
+ * semanal elegido y su previsión versionada (REVISIÓN + fecha de efectividad),
+ * viajando en el payload JSON del snapshot de cálculo (sin cambiar el esquema).
+ * La base revisada se guarda tal cual, sin correcciones.
+ *
+ * @param forecastTargets días ya repartidos (objetivos del reparto semanal) que
+ *   se almacenan con [WEEKLY_FORECAST_KEY] para poder resolver el objetivo de
+ *   una fecha concreta después ([NutritionGoalResolver.planDayTargetForDate]).
+ * @param priorForecast previsión que el plan traía ANTES de este guardado; su
+ *   revisión se incrementa para que la cabecera sea monotónica. Sin ella (alta)
+ *   empieza en la revisión 1.
  */
 fun reviewedPlanOf(
     draft: NutritionPlanEditorDraft,
     prepared: NutritionPlan,
+    forecastTargets: List<NutritionEditorDayTarget> = emptyList(),
+    priorForecast: WeeklyForecastDocument? = null,
 ): NutritionPlan =
     prepared.copy(
         calculationSnapshot = prepared.calculationSnapshot?.let { snapshot ->
             snapshot.copy(
-                inputs = snapshot.inputs + mapOf(
-                    "weeklyDistribution" to draft.weeklyDistribution.name,
-                ),
+                inputs = snapshot.inputs + buildMap {
+                    put("weeklyDistribution", draft.weeklyDistribution.name)
+                    if (forecastTargets.isNotEmpty()) {
+                        put(
+                            WEEKLY_FORECAST_KEY,
+                            encodeWeeklyForecast(
+                                targets = forecastTargets,
+                                revision = (priorForecast?.revision ?: 0) + 1,
+                                effectiveDate = forecastTargets.minOfOrNull { it.date },
+                            ),
+                        )
+                    }
+                },
             )
         },
     )
@@ -334,9 +354,42 @@ data class NutritionEditorDayTarget(
 )
 
 /**
+ * Resultado del reparto semanal (sin traducir a macros): dueño único
+ * [NutritionDayDistribution]; la semana parcial (fechas futuras tras fijar
+ * hoy/pasado) reparte R = periodo − Σ fijados. `dates` DEBE excluir las fechas
+ * fijadas; [fixedTargets] nunca se mueven y [previousTargets] se devuelven
+ * intactos con [NutritionDistributionStatus.KEPT_PREVIOUS] cuando no hay
+ * solución válida.
+ */
+fun weeklyDistributionResultFor(
+    base: NutritionEditorBase,
+    mode: NutritionWeeklyDistributionMode,
+    dates: List<LocalDate>,
+    expenditures: Map<LocalDate, DayExpenditure> = emptyMap(),
+    bounds: IntRange? = null,
+    fixedTargets: Map<LocalDate, Int> = emptyMap(),
+    previousTargets: Map<LocalDate, Int> = emptyMap(),
+    /** Presupuesto del periodo; null = 7·B (semana completa). */
+    periodBudgetKcal: Int? = null,
+): NutritionDayDistributionResult =
+    NutritionDayDistribution.distribute(
+        NutritionDayDistributionInput(
+            futureDates = dates,
+            expenditures = expenditures,
+            dailyMeanKcal = base.caloriesKcal.toDouble(),
+            periodBudgetKcal = periodBudgetKcal ?: (base.caloriesKcal * 7),
+            bounds = bounds,
+            uniformByChoice = mode == NutritionWeeklyDistributionMode.UNIFORM,
+            fixedTargets = fixedTargets,
+            previousTargets = previousTargets,
+        ),
+    )
+
+/**
  * Reparto semanal de las metas: los T_i salen de [NutritionDayDistribution]
  * (único dueño de T_i = B + α·(E_i − Ē)) y los macros por fecha escalan los
- * TRES desde la MISMA base revisada con [macroTargetsByDate].
+ * TRES desde la MISMA base revisada con [macroTargetsByDate]. El resultado
+ * cubre TODA la ventana: fechas fijadas (hoy/pasado) + fechas repartidas.
  */
 fun weeklyTargetsFor(
     base: NutritionEditorBase,
@@ -344,15 +397,17 @@ fun weeklyTargetsFor(
     dates: List<LocalDate>,
     expenditures: Map<LocalDate, DayExpenditure> = emptyMap(),
     bounds: IntRange? = null,
+    fixedTargets: Map<LocalDate, Int> = emptyMap(),
+    previousTargets: Map<LocalDate, Int> = emptyMap(),
 ): List<NutritionEditorDayTarget> {
-    val result = NutritionDayDistribution.distribute(
-        NutritionDayDistributionInput(
-            futureDates = dates,
-            expenditures = expenditures,
-            dailyMeanKcal = base.caloriesKcal.toDouble(),
-            bounds = bounds,
-            uniformByChoice = mode == NutritionWeeklyDistributionMode.UNIFORM,
-        ),
+    val result = weeklyDistributionResultFor(
+        base = base,
+        mode = mode,
+        dates = dates,
+        expenditures = expenditures,
+        bounds = bounds,
+        fixedTargets = fixedTargets,
+        previousTargets = previousTargets,
     )
     return macroTargetsByDate(
         targetsByDate = result.allTargets(),

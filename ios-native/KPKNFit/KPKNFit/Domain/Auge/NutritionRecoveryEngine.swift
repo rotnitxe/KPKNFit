@@ -36,28 +36,24 @@ enum NutritionRecoveryEngine {
         let calorieGoal = goals.calorieGoal
         let proteinGoal = goals.proteinGoal
 
+        // Sin comidas en la ventana no se infiere déficit ni superávit:
+        // mismo criterio neutro que Android (commit ac3ff1c88 «sin 100% sin datos»).
         if recentLogs.isEmpty {
-            let fallback = settings.calorieGoalObjective
-            switch fallback {
-            case .DEFICIT:
-                return NutritionRecoveryResult(
-                    recoveryTimeMultiplier: 1.25,
-                    status: .deficit,
-                    factors: ["Sin datos recientes; asumiendo déficit según objetivo."]
-                )
-            case .SURPLUS:
-                return NutritionRecoveryResult(
-                    recoveryTimeMultiplier: 0.95,
-                    status: .surplus,
-                    factors: ["Sin datos recientes; asumiendo superávit según objetivo."]
-                )
-            case .MAINTENANCE:
-                return NutritionRecoveryResult(
-                    recoveryTimeMultiplier: 1.0,
-                    status: .maintenance,
-                    factors: []
-                )
-            }
+            return NutritionRecoveryResult(
+                recoveryTimeMultiplier: 1.0,
+                status: .maintenance,
+                factors: ["Sin comidas en la ventana; no se asume déficit ni superávit."]
+            )
+        }
+
+        // Sin metas no hay contra qué medir: mismo criterio neutro que «sin
+        // comidas». Nunca se sustituye por un default ni por el objetivo.
+        if ((calorieGoal ?? 0) <= 0) && ((proteinGoal ?? 0) <= 0) {
+            return NutritionRecoveryResult(
+                recoveryTimeMultiplier: 1.0,
+                status: .maintenance,
+                factors: ["Sin metas en la ventana de análisis; no se asume déficit, superávit ni insuficiencia de proteína."]
+            )
         }
 
         var totalCal = 0.0
@@ -72,8 +68,14 @@ enum NutritionRecoveryEngine {
         let avgCalories = totalCal / daysInWindow
         let avgProtein = totalProtein / daysInWindow
 
-        let calRatio = calorieGoal > 0 ? avgCalories / Double(calorieGoal) : 1.0
-        let proteinRatio = proteinGoal > 0 ? avgProtein / Double(proteinGoal) : 1.0
+        var calRatio = 1.0
+        if let calorieGoal, calorieGoal > 0 {
+            calRatio = avgCalories / Double(calorieGoal)
+        }
+        var proteinRatio = 1.0
+        if let proteinGoal, proteinGoal > 0 {
+            proteinRatio = avgProtein / Double(proteinGoal)
+        }
 
         let status: NutritionRecoveryStatus
 

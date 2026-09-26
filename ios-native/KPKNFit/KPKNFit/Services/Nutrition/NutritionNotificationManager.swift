@@ -135,23 +135,33 @@ public final class NutritionNotificationManager {
         var hasCalorieExcess = false
         var deficitItems: [String] = []
 
-        let protPct = goals.proteinGoal > 0 ? totals.protein / Double(goals.proteinGoal) : 1.0
-        let carbPct = goals.carbGoal > 0 ? totals.carbs / Double(goals.carbGoal) : 1.0
-        let fatPct = goals.fatGoal > 0 ? totals.fats / Double(goals.fatGoal) : 1.0
-        let calPct = goals.calorieGoal > 0 ? totals.calories / Double(goals.calorieGoal) : 1.0
-
-        if protPct < 0.70 {
-            deficitItems.append("Proteína: \(Int(totals.protein))g de \(goals.proteinGoal)g (\(Int(protPct * 100))%)")
+        // Solo se alerta contra metas reales (>0). Un campo sin meta (nil) o
+        // un 0 explícito no genera su alerta: sin meta no hay contra qué medir.
+        // Mismo criterio que `macroDeficitAlerts` de Android (commit ac3ff1c88).
+        if let goal = goals.proteinGoal, goal > 0 {
+            let pct = totals.protein / Double(goal)
+            if pct < 0.70 {
+                deficitItems.append("Proteína: \(Int(totals.protein))g de \(goal)g (\(Int(pct * 100))%)")
+            }
         }
-        if carbPct < 0.60 {
-            deficitItems.append("Carbohidratos: \(Int(totals.carbs))g de \(goals.carbGoal)g (\(Int(carbPct * 100))%)")
+        if let goal = goals.carbGoal, goal > 0 {
+            let pct = totals.carbs / Double(goal)
+            if pct < 0.60 {
+                deficitItems.append("Carbohidratos: \(Int(totals.carbs))g de \(goal)g (\(Int(pct * 100))%)")
+            }
         }
-        if fatPct < 0.60 {
-            deficitItems.append("Grasas: \(Int(totals.fats))g de \(goals.fatGoal)g (\(Int(fatPct * 100))%)")
+        if let goal = goals.fatGoal, goal > 0 {
+            let pct = totals.fats / Double(goal)
+            if pct < 0.60 {
+                deficitItems.append("Grasas: \(Int(totals.fats))g de \(goal)g (\(Int(pct * 100))%)")
+            }
         }
-        if calPct > 1.10 {
-            hasCalorieExcess = true
-            deficitItems.append("Calorías: \(Int(totals.calories)) de \(goals.calorieGoal) — excedido")
+        if let goal = goals.calorieGoal, goal > 0 {
+            let pct = totals.calories / Double(goal)
+            if pct > 1.10 {
+                hasCalorieExcess = true
+                deficitItems.append("Calorías: \(Int(totals.calories)) de \(goal) — excedido")
+            }
         }
 
         guard !deficitItems.isEmpty else { return }
@@ -332,7 +342,8 @@ public enum NutritionAlertReceiver {
 
         let totals = computeDailyTotals(logs: todayLogs)
         let settings = programRepo.settings
-        let goals = deriveMacroGoals(settings: settings)
+        // El plan activo manda sobre los ajustes (mismo contrato que Home).
+        let goals = deriveMacroGoals(settings: settings, activePlan: nutritionRepo.activeNutritionPlan)
 
         NutritionNotificationManager.sendMacroDeficitAlert(totals: totals, goals: goals)
     }

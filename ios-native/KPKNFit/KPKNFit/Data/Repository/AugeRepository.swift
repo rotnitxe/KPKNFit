@@ -18,8 +18,37 @@ public final class AugeRepository {
     }
 
     public func saveWellbeingLog(log: DailyWellbeingLog) async {
-        let data = try? JSONEncoder().encode(log)
-        let entity = WellbeingEntity(id: log.id, date: log.date, data: data.map { String(decoding: $0, as: UTF8.self) } ?? "{}")
+        // Paridad Android (AugeRepository.saveWellbeingLog): se reutiliza el id
+        // de la fila ya existente de esa fecha para no duplicar el check-in del
+        // día (Android lo exige por la restricción unique(date)).
+        let existing = await db.augeDao.getWellbeingForDate(date: log.date)
+        var resolved = log
+        if let existing,
+           let previous = try? JSONDecoder().decode(DailyWellbeingLog.self, from: Data(existing.data.utf8)),
+           previous.id != log.id {
+            resolved = DailyWellbeingLog(
+                id: previous.id,
+                date: log.date,
+                sleepQuality: log.sleepQuality,
+                stressLevel: log.stressLevel,
+                doms: log.doms,
+                motivation: log.motivation,
+                sleepHours: log.sleepHours,
+                moodState: log.moodState,
+                workIntensity: log.workIntensity,
+                studyIntensity: log.studyIntensity,
+                manualMuscularBattery: log.manualMuscularBattery,
+                manualNeuralBattery: log.manualNeuralBattery,
+                manualSpinalBattery: log.manualSpinalBattery,
+                manualMuscleBatteries: log.manualMuscleBatteries,
+                manualMuscleOverridesV2: log.manualMuscleOverridesV2,
+                manualBatteryAnchorMs: log.manualBatteryAnchorMs,
+                notes: log.notes,
+                preWorkoutDiscomforts: log.preWorkoutDiscomforts
+            )
+        }
+        let data = try? JSONEncoder().encode(resolved)
+        let entity = WellbeingEntity(id: resolved.id, date: resolved.date, data: data.map { String(decoding: $0, as: UTF8.self) } ?? "{}")
         await db.augeDao.upsertWellbeing(entity: entity)
     }
 
@@ -30,18 +59,36 @@ public final class AugeRepository {
         return try? JSONDecoder().decode(DailyWellbeingLog.self, from: Data(data.utf8))
     }
 
+    /// Equivalente de Android `AugeRepository.getActiveWellbeingWithManualOverrides`:
+    /// rango ayer→hoy; la fila de ayer solo cuenta si su ancla manual sigue
+    /// dentro de ~18 h, y se reconocen TODAS las fuentes manuales (los tres
+    /// anillos y los overrides per-muscle V1/V2). Antes iOS usaba un rango de
+    /// 3 días, ignoraba los overrides per-muscle y no aplicaba la ventana de
+    /// 18 h, de modo que un ajuste caducado seguía mandando.
     public func getActiveWellbeingWithManualOverrides() async -> DailyWellbeingLog? {
         let today = IsoDateFormatter.todayString()
-        let fromDate = IsoDateFormatter.dateString(daysAgo: 2)
-        let logs = await db.augeDao.getWellbeingInRange(from: fromDate, to: today)
+        let yesterday = IsoDateFormatter.dateString(daysAgo: 1)
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        let logs = await db.augeDao.getWellbeingInRange(from: yesterday, to: today)
         let decoded = logs.compactMap { entity -> DailyWellbeingLog? in
             try? JSONDecoder().decode(DailyWellbeingLog.self, from: Data(entity.data.utf8))
         }
-        return decoded.first { log in
-            log.manualNeuralBattery != nil ||
-            log.manualMuscularBattery != nil ||
-            log.manualSpinalBattery != nil
-        }
+        return decoded.first { Self.isActiveManualOverride($0, nowMs: nowMs, today: today) }
+    }
+
+    /// ¿Esta fila aporta un ajuste manual ACTIVO hoy? Espejo de la condición
+    /// Android: sin fuentes manuales → no; fila de hoy → sí; fila anterior →
+    /// solo si `manualBatteryAnchorMs` está dentro de las últimas 18 h (un
+    /// anchor ausente/expirado no cuenta, nunca se inventa).
+    public static func isActiveManualOverride(_ log: DailyWellbeingLog, nowMs: Int64, today: String) -> Bool {
+        let hasManual = log.manualNeuralBattery != nil
+            || log.manualMuscularBattery != nil
+            || log.manualSpinalBattery != nil
+            || !log.manualMuscleBatteries.isEmpty
+            || !(log.manualMuscleOverridesV2 ?? [:]).isEmpty
+        guard hasManual else { return false }
+        if log.date == today { return true }
+        return (log.manualBatteryAnchorMs ?? 0) >= nowMs - 18 * 3_600_000
     }
 
     public func saveSleepLog(log: SleepLog) async {

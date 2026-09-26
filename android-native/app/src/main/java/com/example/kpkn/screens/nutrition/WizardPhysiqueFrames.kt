@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,9 +36,9 @@ import com.example.kpkn.R
 /**
  * Recursos del bloque de grasa corporal, extraídos de `NutritionWizardScreen.kt`
  * en la Fase 7, cuando la pantalla y el ViewModel legacy del wizard nutricional
- * se retiraron. Los consumidores vivos son `WizChatPhysiquePicker` (wizard de
- * configuración) y `design/WizardPhysiqueSelector` (prototipo de la puerta
- * visual): el paquete no cambia para no tocar sus imports.
+ * se retiraron. Tras el retiro del picker legacy de WizChat, el único consumidor
+ * vivo es `design/WizardPhysiqueSelector` (prototipo de la puerta visual): el
+ * paquete no cambia para no tocar sus imports.
  *
  * NO borrar: los frames `wizard_h_*`/`wizard_m_*` se usan en el bloque de grasa.
  */
@@ -45,9 +46,18 @@ import com.example.kpkn.R
 private val PhysiqueSliderBorder = Color.White.copy(alpha = 0.10f)
 
 @Composable
-internal fun VerticalPhysiqueSlider(pos: Float, onPosChange: (Float) -> Unit,
-    height: Dp = 360.dp, hitWidth: Dp = 22.dp, tint: Color = Color.White, withBorder: Boolean = true) {
+internal fun VerticalPhysiqueSlider(
+    pos: Float,
+    onPosChange: (Float) -> Unit,
+    height: Dp = 360.dp,
+    hitWidth: Dp = 22.dp,
+    tint: Color = Color.White,
+    withBorder: Boolean = true,
+    onGestureEnd: () -> Unit = {},
+) {
     var hPx by remember { mutableStateOf(1f) }
+    val currentPosChange by rememberUpdatedState(onPosChange)
+    val currentGestureEnd by rememberUpdatedState(onGestureEnd)
     val frac = ((pos - 1f) / 6f).coerceIn(0f, 1f)
     Box(
         Modifier.width(hitWidth).height(height).clip(RoundedCornerShape(999.dp)).background(Color.White.copy(alpha = 0.08f))
@@ -61,10 +71,13 @@ internal fun VerticalPhysiqueSlider(pos: Float, onPosChange: (Float) -> Unit,
             }
             .onSizeChanged { hPx = it.height.toFloat().coerceAtLeast(1f) }
             .pointerInput(Unit) {
-                detectVerticalDragGestures { change, _ ->
+                detectVerticalDragGestures(
+                    onDragEnd = { currentGestureEnd() },
+                    onDragCancel = { currentGestureEnd() },
+                ) { change, _ ->
                     val y = change.position.y.coerceIn(0f, hPx)
                     val p = 1f + (y / hPx) * 6f
-                    onPosChange(p.coerceIn(1f, 7f))
+                    currentPosChange(p.coerceIn(1f, 7f))
                 }
             }
             .pointerInput(Unit) {
@@ -74,7 +87,8 @@ internal fun VerticalPhysiqueSlider(pos: Float, onPosChange: (Float) -> Unit,
                         if (ev.type == androidx.compose.ui.input.pointer.PointerEventType.Press) {
                             val y = ev.changes.firstOrNull()?.position?.y ?: continue
                             val p = 1f + (y.coerceIn(0f, hPx) / hPx) * 6f
-                            onPosChange(p.coerceIn(1f, 7f))
+                            currentPosChange(p.coerceIn(1f, 7f))
+                            currentGestureEnd()
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 package com.example.kpkn.data.models
 
 import com.example.kpkn.domain.auge.MuscularSessionImpactV2
+import com.example.kpkn.domain.onboarding.RingsCoverage
 import kotlinx.serialization.Serializable
 
 // ─── Wellbeing & Logging ──────────────────────────────────────────────────────
@@ -191,6 +192,15 @@ data class AugeSnapshot(
     val personalBaseline: Map<RecoveryChannelId, IntRange> = emptyMap(),
     val sparkline: Map<RecoveryChannelId, List<Int>> = emptyMap(),
     val showModelUpdateNotice: Boolean = false,
+    /**
+     * Cobertura POR CANAL calculada por el productor (`AugeViewModel.recompute`,
+     * `computeSnapshotCoverage`) con las mismas entradas y el mismo corte
+     * temporal que las baterías, y publicada en la MISMA asignación que
+     * `batteries`/`dashboard`. `null` mientras no se calculó; la UI nunca la
+     * deriva de etiquetas globales ni asume que un canal sin cobertura es
+     * «conocido».
+     */
+    val coverage: RingsCoverage? = null,
 )
 
 @Serializable

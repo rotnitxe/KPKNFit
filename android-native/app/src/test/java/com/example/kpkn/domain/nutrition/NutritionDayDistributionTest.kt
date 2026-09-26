@@ -125,6 +125,49 @@ class NutritionDayDistributionTest {
     }
 
     @Test
+    fun `same session id repeated on the same date counts once and the first wins`() {
+        val day = week[4]
+        // El MISMO sessionId planificado dos veces en la misma fecha (duplicado
+        // accidental o plantilla): se cuenta UNA vez por `date to sessionId`.
+        val duplicated = listOf(
+            PlannedSessionLoad("dup", day, mapOf(SessionVariant.A to 500.0)),
+            PlannedSessionLoad("dup", day, mapOf(SessionVariant.A to 900.0)),
+        )
+        assertEquals(DayExpenditure.Estimated(500.0), NutritionDayDistribution.sessionExpendituresByDate(duplicated)[day])
+
+        // La variante elegida del primero manda; la segunda entrada se ignora.
+        val differentChoice = listOf(
+            PlannedSessionLoad("dup", day, mapOf(SessionVariant.A to 500.0), chosenVariant = SessionVariant.B),
+            PlannedSessionLoad("dup", day, mapOf(SessionVariant.A to 700.0), chosenVariant = SessionVariant.A),
+        )
+        assertEquals(DayExpenditure.NotEstimable, NutritionDayDistribution.sessionExpendituresByDate(differentChoice)[day])
+    }
+
+    @Test
+    fun `two distinct real sessions on the same day sum their chosen variants`() {
+        val day = week[2]
+        val sessions = listOf(
+            PlannedSessionLoad("a", day, mapOf(SessionVariant.A to 400.0)),
+            PlannedSessionLoad("b", day, mapOf(SessionVariant.A to 300.0, SessionVariant.B to 450.0), chosenVariant = SessionVariant.B),
+        )
+        // La MISMA fecha con sesiones DISTINTAS: ambas cuentan (400 + 450),
+        // nunca se colapsan por fecha.
+        assertEquals(DayExpenditure.Estimated(850.0), NutritionDayDistribution.sessionExpendituresByDate(sessions)[day])
+    }
+
+    @Test
+    fun `same session id on different dates is counted once per date`() {
+        val duplicateAcrossDates = listOf(
+            PlannedSessionLoad("shared", week[0], mapOf(SessionVariant.A to 500.0)),
+            PlannedSessionLoad("shared", week[6], mapOf(SessionVariant.A to 500.0)),
+        )
+        val byDate = NutritionDayDistribution.sessionExpendituresByDate(duplicateAcrossDates)
+        assertEquals(2, byDate.size)
+        assertEquals(DayExpenditure.Estimated(500.0), byDate[week[0]])
+        assertEquals(DayExpenditure.Estimated(500.0), byDate[week[6]])
+    }
+
+    @Test
     fun `uniform by choice stays distinct from provisional and limit-flattened distributions`() {
         val estimated = expenditures(listOf(600.0, 600.0, 600.0, 600.0, 600.0, 600.0, 2_100.0))
 

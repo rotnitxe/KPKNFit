@@ -19,17 +19,20 @@ import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
-import com.example.kpkn.domain.nutrition.planDayTargetOf
+import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -541,7 +544,7 @@ class NutritionRepository private constructor(
         if (normalizedDate.isBlank()) return null
         val parsedDate = runCatching { LocalDate.parse(normalizedDate) }.getOrNull() ?: return null
         val existing = db.nutritionDao().getDailyGoalSnapshot(normalizedDate)?.toDailyGoalSnapshot()
-        val forecast = plan?.let { planDayTargetOf(it, NutritionGoalSource.PLAN_FORECAST) }
+        val forecast = plan?.let { planDayTargetForDate(it, parsedDate, NutritionGoalSource.PLAN_FORECAST) }
         return NutritionGoalResolver.resolve(
             date = parsedDate,
             today = LocalDate.now(),
@@ -579,6 +582,108 @@ class NutritionRepository private constructor(
 
     suspend fun getDailyGoalSnapshots(): List<DailyGoalSnapshot> =
         db.nutritionDao().getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
+
+    // ─── Previsión semanal desde el calendario de entrenamiento ─────────────
+
+    /**
+     * Fachada de persistencia de la previsión para
+     * [NutritionCalendarForecastCoordinator]. Usa [NutritionForecastWriteLane]:
+     * el MISMO mutex global que el editor cubre CAS de origen + commit + la
+     * publicación en caché, de modo que un guardado del editor no puede quedar
+     * ENTRE la escritura de Room y la publicación (y una caché más nueva jamás
+     * se pisa: CAS en `publishForecastIfSourceUnchanged`).
+     */
+    private val forecastStore: NutritionForecastStore = object : NutritionForecastStore {
+        override val activePlanId: StateFlow<String?> = _activeNutritionPlanId
+        override val plans: StateFlow<List<NutritionPlan>> = _nutritionPlans
+        override val snapshots: StateFlow<List<DailyGoalSnapshot>> = _dailyGoalSnapshots
+
+        private val lane = NutritionForecastWriteLane(
+            readCurrent = { planId ->
+                withContext(Dispatchers.IO) {
+                    db.nutritionDao().getAllPlans().firstOrNull { it.id == planId }?.toNutritionPlan()
+                }
+            },
+            commitRevision = { revised ->
+                withContext(Dispatchers.IO) {
+                    db.withTransaction { db.nutritionDao().upsertPlan(revised.toEntity()) }
+                }
+            },
+            publish = { source, revised ->
+                // Publicación SIN esperas dentro del mutex global: `StateFlow.update`
+                // es atómico y thread-safe (mismo trato que `addNutritionPlan`), así
+                // la sección crítica no espera al hilo principal (no amplía la
+                // ventana del mutex con un salto a Main) y al ser código no
+                // suspendible no hay ventana de cancelación entre commit y caché.
+                _nutritionPlans.publishForecastIfSourceUnchanged(source, revised)
+            },
+        )
+
+        override suspend fun storeForecastRevision(source: NutritionPlan, revised: NutritionPlan): Boolean {
+            val outcome = runCatching { lane.write(source, revised) }
+            val failure = outcome.exceptionOrNull()
+            if (failure != null) {
+                // Convergencia SIEMPRE, también si el llamador se canceló: la BD
+                // es la verdad durable y la caché se resincroniza desde ella
+                // (NonCancellable: no se aborta a mitad de la relectura).
+                withContext(NonCancellable) {
+                    runCatching { publishNutritionPlanCommit() }
+                        .exceptionOrNull()
+                        ?.let { syncError ->
+                            android.util.Log.e(
+                                "NutritionRepository",
+                                "La convergencia de caché también falló; se reintentará en la próxima publicación",
+                                syncError,
+                            )
+                        }
+                }
+                if (failure is CancellationException) throw failure
+                android.util.Log.e(
+                    "NutritionRepository",
+                    "No se pudo publicar la revisión de previsión; caché resincronizada desde BD",
+                    failure,
+                )
+                return false
+            }
+            return outcome.getOrDefault(false)
+        }
+    }
+
+    @Volatile
+    private var calendarForecast: NutritionCalendarForecastCoordinator? = null
+    private var forecastUpdatesStarted = false
+
+    /**
+     * Arranca (UNA sola vez) la revisión de la previsión del plan activo cuando
+     * el repositorio de programas YA está listo. Observa programa/calendario/
+     * prescripciones/vitales, el registro de entrenamiento (única fuente de
+     * opcionales confirmadas) y el día; nunca la ingesta ni el gasto registrado.
+     */
+    private fun startCalendarForecastUpdates() {
+        if (forecastUpdatesStarted) return
+        val programRepository = runCatching { ProgramRepository.getInstance() }.getOrNull() ?: return
+        forecastUpdatesStarted = true
+        scope.launch {
+            runCatching { programRepository.isReady.first { it } }.getOrNull() ?: return@launch
+            val coordinator = NutritionCalendarForecastCoordinator(
+                store = forecastStore,
+                activeProgramId = programRepository.activeProgramState.map { it?.programId },
+                programs = programRepository.programs,
+                settings = programRepository.settings,
+                workoutLogs = programRepository.history,
+                scope = scope,
+            )
+            calendarForecast = coordinator
+            coordinator.start()
+        }
+    }
+
+    /** Detiene la colección de reforecast (solo para cierre/pruebas). */
+    internal fun stopCalendarForecastUpdates() {
+        calendarForecast?.stop()
+        calendarForecast = null
+        forecastUpdatesStarted = false
+    }
 
     // ─── User meal memory / templates ───────────────────────────────────────
 
@@ -889,6 +994,11 @@ class NutritionRepository private constructor(
                 } else {
                     notifier.cancelMeasurementReminder()
                 }
+
+                // Con el estado nutricional publicado, la previsión semanal del
+                // plan activo se revisa sola cuando cambia el calendario
+                // (después de que el repositorio de programas esté listo).
+                startCalendarForecastUpdates()
             } catch (t: Throwable) {
                 if (t is CancellationException) throw t
                 android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)

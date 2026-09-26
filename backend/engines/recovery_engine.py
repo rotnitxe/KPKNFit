@@ -164,24 +164,24 @@ def calculate_muscle_battery(
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     recent_wb = next((l for l in daily_wellbeing if l.date == today_str), daily_wellbeing[-1] if daily_wellbeing else None)
 
-    # Nutrition
+    # Nutrition: sin datos o sin meta no se infiere déficit ni superávit
+    # (mismo criterio neutro que Android NutritionRecoveryEngine, commit
+    # ac3ff1c88: «sin 100% sin datos»). El objetivo declarado (calorieGoalObjective)
+    # NO es evidencia de ingesta: solo se modula con registros reales y meta.
     if getattr(settings.algorithmSettings, "augeEnableNutritionTracking", True):
         forty_eight = now - 48 * 3600000
         recent_nut = [n for n in nutrition_logs if _parse_date_ms(n.date) > forty_eight]
-        status = settings.calorieGoalObjective
-        if recent_nut:
-            avg_cal = sum(n.calories or 0 for n in recent_nut) / 2
-            if settings.dailyCalorieGoal:
-                if avg_cal < settings.dailyCalorieGoal * 0.9:
-                    status = "deficit"
-                elif avg_cal > settings.dailyCalorieGoal * 1.1:
-                    status = "surplus"
-                else:
-                    status = "maintenance"
-        if status == "deficit":
-            recovery_mult *= 1.35
-        elif status == "surplus":
-            recovery_mult *= 0.85
+        if recent_nut and settings.dailyCalorieGoal:
+            avg_cal = sum(n.calories or 0 for n in recent_nut) / 2  # ventana 48 h = 2 días
+            status = "maintenance"
+            if avg_cal < settings.dailyCalorieGoal * 0.9:
+                status = "deficit"
+            elif avg_cal > settings.dailyCalorieGoal * 1.1:
+                status = "surplus"
+            if status == "deficit":
+                recovery_mult *= 1.35
+            elif status == "surplus":
+                recovery_mult *= 0.85
 
     # Stress
     if recent_wb and recent_wb.stressLevel >= 4:
@@ -444,9 +444,11 @@ def calculate_daily_readiness(
         mult *= 1.4
         diag.append("Tus niveles altos de estrés están liberando cortisol, bloqueando la recuperación del sistema nervioso.")
 
-    if settings.calorieGoalObjective == "deficit":
-        mult *= 1.3
-        diag.append("Al estar en déficit calórico, tienes recursos limitados para reparar tejido dañado.")
+    # Nota de paridad: este cálculo no recibe registros de nutrición, así que ya
+    # no se aplica un mult 1.3 por `calorieGoalObjective == "deficit"`: el
+    # objetivo declarado no es evidencia de ingesta (commit ac3ff1c88 usa el
+    # criterio neutro «sin datos no se asume déficit»). Ver
+    # docs/PARITY_WIZARD_NUTRITION_RINGS.md.
 
     status = "green"
     rec = "Estás en condiciones óptimas. Tienes luz verde para buscar récords personales o tirar pesado."
@@ -511,17 +513,17 @@ def calculate_global_batteries(
     cns_hl, musc_hl, spinal_hl = 28.0, 40.0, 72.0
     audit: dict[str, list] = {"cns": [], "muscular": [], "spinal": []}
 
-    # Nutrition modulator
+    # Nutrition modulator: neutral sin datos o sin meta (no se fabrica déficit
+    # desde el objetivo declarado). Mismo criterio neutro que Android.
     forty_eight = now - 48 * 3600000
     recent_nut = [n for n in nutrition_logs if _parse_date_ms(n.date) > forty_eight]
-    nut_status = settings.calorieGoalObjective or "maintenance"
-    if recent_nut:
+    nut_status = "maintenance"
+    if recent_nut and settings.dailyCalorieGoal:
         avg = sum(n.calories or 0 for n in recent_nut) / len(recent_nut)
-        if settings.dailyCalorieGoal:
-            if avg < settings.dailyCalorieGoal * 0.9:
-                nut_status = "deficit"
-            elif avg > settings.dailyCalorieGoal * 1.1:
-                nut_status = "surplus"
+        if avg < settings.dailyCalorieGoal * 0.9:
+            nut_status = "deficit"
+        elif avg > settings.dailyCalorieGoal * 1.1:
+            nut_status = "surplus"
     if nut_status == "deficit":
         musc_hl *= 1.3
     elif nut_status == "surplus":

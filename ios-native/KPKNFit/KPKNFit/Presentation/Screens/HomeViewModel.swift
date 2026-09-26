@@ -12,10 +12,10 @@ public final class HomeViewModel: ObservableObject {
     @Published var competitionCountdown: CompetitionCountdown? = nil
     @Published var overtrainedMuscles: [String] = []
     @Published var todaySessions: [TodaySessionItem] = []
-    @Published var dailyCalorieGoal: Int = 2500
-    @Published var dailyProteinGoal: Int = 150
-    @Published var dailyCarbGoal: Int = 250
-    @Published var dailyFatGoal: Int = 70
+    @Published var dailyCalorieGoal: Int? = nil
+    @Published var dailyProteinGoal: Int? = nil
+    @Published var dailyCarbGoal: Int? = nil
+    @Published var dailyFatGoal: Int? = nil
     @Published var todayNutritionTotals: HomeNutritionSnapshot = HomeNutritionSnapshot()
     @Published var lastWeight: Double? = nil
     @Published var lastBodyFat: Double? = nil

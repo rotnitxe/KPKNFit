@@ -64,7 +64,7 @@ fun HomeRingsSection(
     dashboard: RecoveryDashboard? = null,
     dataLabel: String? = null,
     snapshot: AugeSnapshot? = null,
-    /** Cobertura por canal; sin ella se deriva de la procedencia que publican los motores. */
+    /** Cobertura por canal explícita; sin ella manda `snapshot.coverage` (publicada por el productor AugeViewModel) y sin ninguna → «sin datos». */
     coverage: RingsCoverage? = null,
     showModelUpdateNotice: Boolean = false,
     onDismissAdvisory: (String) -> Unit = {},
@@ -78,14 +78,11 @@ fun HomeRingsSection(
 
     // «Sin calibrar» (sin historial, sin check-in y sin evidencia) no se renderiza
     // como un 100 % afirmativo: se marca «sin datos» en valor y accesibilidad.
-    val derivedCoverage = remember(snapshot, dataLabel, dashboard) {
-        RingsCoverage.fromBatteries(
-            batteries = snapshot?.batteries,
-            dataLabel = dataLabel ?: dashboard?.dataLabel,
-            channelConfidence = dashboard?.channels?.associate { it.id to it.confidence }.orEmpty(),
-        )
-    }
-    val ringsCoverage = coverage ?: derivedCoverage
+    // Cobertura POR CANAL publicada por el productor del snapshot (AugeViewModel,
+    // mismas entradas y corte temporal que las baterías). Esta sección no hace IO
+    // ni usa etiquetas globales: sin snapshot todavía → «sin datos», nunca una
+    // afirmación.
+    val ringsCoverage = coverage ?: snapshot?.coverage ?: RingsCoverage.NO_DATA
 
     val ringColors = remember(hasActiveProgram, isLoading) {
         when {

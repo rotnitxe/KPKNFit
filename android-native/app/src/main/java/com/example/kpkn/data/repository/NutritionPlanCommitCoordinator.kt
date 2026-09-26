@@ -15,7 +15,7 @@ import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.domain.nutrition.NutritionGoalSource
 import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
-import com.example.kpkn.domain.nutrition.planDayTargetOf
+import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -149,7 +149,7 @@ class NutritionPlanCommitCoordinator(
                         // plan jamás reescribe un snapshot existente.
                         val today = LocalDate.now()
                         if (db.nutritionDao().getDailyGoalSnapshot(today.toString()) == null) {
-                            val target = planDayTargetOf(request.plan, NutritionGoalSource.PLAN_FORECAST)
+                            val target = planDayTargetForDate(request.plan, today, NutritionGoalSource.PLAN_FORECAST)
                             db.nutritionDao()
                                 .insertDailyGoalSnapshot(dailyGoalSnapshotOf(target, today, System.currentTimeMillis()).toEntity())
                         }

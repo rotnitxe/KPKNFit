@@ -55,7 +55,7 @@ private struct MacroProgressBars: View {
             MacroItem(label: "Prot", current: Int(nutritionToday.protein), goal: protGoal, color: Color(hex: 0xF87171)),
             MacroItem(label: "Carb", current: Int(nutritionToday.carbs), goal: carbGoal, color: Color(hex: 0xFBBF24)),
             MacroItem(label: "Fat", current: Int(nutritionToday.fats), goal: fatGoal, color: Color(hex: 0xA78BFA))
-        ]
+        ].filter { ($0.goal ?? 0) > 0 }
         
         Button(action: onAddMeal) {
             VStack(alignment: .leading, spacing: 8) {
@@ -65,23 +65,25 @@ private struct MacroProgressBars: View {
                     .tracking(1.6)
                 
                 ForEach(macros, id: \.label) { m in
-                    VStack(spacing: 4) {
-                        HStack {
-                            Text(m.label)
-                                .font(.system(size: 10, weight: .black))
-                                .foregroundColor(Color.white.opacity(0.72))
-                            
-                            Spacer()
-                            
-                            Text("\(m.current)/\(m.goal)")
-                                .font(.system(size: 10))
-                                .foregroundColor(Color.white.opacity(0.46))
+                    if let goal = m.goal, goal > 0 {
+                        VStack(spacing: 4) {
+                            HStack {
+                                Text(m.label)
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(Color.white.opacity(0.72))
+
+                                Spacer()
+
+                                Text("\(m.current)/\(goal)")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(Color.white.opacity(0.46))
+                            }
+
+                            ProgressView(value: Double(m.current), total: Double(max(goal, 1)))
+                                .progressViewStyle(LinearProgressViewStyle(tint: m.color))
+                                .frame(height: 4)
+                                .clipShape(Capsule())
                         }
-                        
-                        ProgressView(value: Double(m.current), total: Double(max(m.goal, 1)))
-                            .progressViewStyle(LinearProgressViewStyle(tint: m.color))
-                            .frame(height: 4)
-                            .clipShape(Capsule())
                     }
                 }
             }
@@ -97,7 +99,7 @@ private struct MacroProgressBars: View {
 private struct MacroItem {
     let label: String
     let current: Int
-    let goal: Int
+    let goal: Int?
     let color: Color
 }
 
