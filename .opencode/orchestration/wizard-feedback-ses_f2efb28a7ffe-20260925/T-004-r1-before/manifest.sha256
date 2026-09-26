@@ -1,0 +1,5 @@
+# Byte-preserving T-004-r1 before snapshots; source files copied as raw bytes.
+# Each snapshot SHA-256 was checked against its live candidate and recovery/candidate copy before edits.
+F5F72211EDEB6F44845CE23E3375405F08721E2D5223C1F762378DC819DB5849  android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt
+6AC6C444198678FE2544A88B541F40C74AABE7C4499BBE49C347B24F275BAE08  android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt
+EB6DF1BB476C4616527CD227FBC7D0A0A701B7E71E04A8D2B371071E94A688C1  android-native/app/src/test/java/com/example/kpkn/data/onboarding/SetupActivationContractTest.kt

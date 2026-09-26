@@ -1,0 +1,69 @@
+*** Begin Patch
+*** Update File: android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt
+@@
+-import com.example.kpkn.domain.onboarding.SetupWizardMode
+-import com.example.kpkn.domain.onboarding.stepContext
+*** Update File: android-native/app/src/test/java/com/example/kpkn/data/onboarding/SetupActivationContractTest.kt
+@@
+ import com.example.kpkn.data.models.BodyObservationQuality
+ import com.example.kpkn.data.models.CalculationOrigin
+ import com.example.kpkn.data.models.DailyGoalSnapshot
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
+ import com.example.kpkn.data.models.EquipmentInventory
+@@
+     fun normalProgramPlusNutritionActivationCommitsInventoryGoalsObservationsAndSnapshotTogether() = runBlocking {
+@@
+         assertNotNull(db.setupCommitReceiptDao().get("commit-full"))
+     }
++
++    @Test
++    fun availability_patch_updates_latest_settings_without_touching_numeric_stock() = runBlocking {
++        val stock = EquipmentInventory(
++            barbellWeightKg = 15.0,
++            plates = listOf(com.example.kpkn.data.models.PlateStock(weightKg = 10.0, countPerSide = 2)),
++        )
++        val latest = Settings(
++            username = "Latest profile",
++            barbellWeight = 17.5,
++            availablePlates = listOf(5.0, 2.5),
++            equipmentInventory = stock,
++            equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.BARBELL)),
++        )
++        db.settingsDao().upsert(latest.toEntity())
++
++        SetupCommitCoordinator(db).commit(
++            SetupCommitRequest(
++                commitId = "commit-availability-empty",
++                draftId = null,
++                settings = Settings(username = "stale request snapshot"),
++                program = null,
++                nutritionPlan = null,
++                activateProgram = false,
++                activateNutrition = false,
++                settingsPatch = SetupSettingsPatch(
++                    equipmentAvailability = SetupPatchField.Set(EquipmentAvailability(emptySet())),
++                ),
++            ),
++        )
++
++        val saved = checkNotNull(db.settingsDao().get()?.toSettings())
++        assertEquals("Latest profile", saved.username)
++        assertEquals(EquipmentAvailability(emptySet()), saved.equipmentAvailability)
++        assertEquals(stock, saved.equipmentInventory)
++        assertEquals(17.5, saved.barbellWeight, 0.0)
++        assertEquals(listOf(5.0, 2.5), saved.availablePlates)
++    }
++
++    @Test
++    fun unanswered_availability_patch_preserves_current_availability_and_stock() {
++        val availability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES))
++        val stock = EquipmentInventory(barbellWeightKg = 20.0)
++        val latest = Settings(equipmentAvailability = availability, equipmentInventory = stock)
++
++        val patched = SetupSettingsPatch().applyTo(latest)
++
++        assertEquals(availability, patched.equipmentAvailability)
++        assertEquals(stock, patched.equipmentInventory)
++    }
+*** End Patch

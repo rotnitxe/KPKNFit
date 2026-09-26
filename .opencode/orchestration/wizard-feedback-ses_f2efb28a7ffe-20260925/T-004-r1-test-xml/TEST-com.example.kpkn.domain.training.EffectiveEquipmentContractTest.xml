@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-25T22:31:44.972Z" hostname="VF" time="1.603">
+  <properties/>
+  <testcase name="explicit_empty_availability_is_bodyweight_only_even_with_legacy_gym_and_stock" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.003"/>
+  <testcase name="machine_kind_without_configuration_does_not_approve_machine_muscle" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.567"/>
+  <testcase name="gym_con_inventario_vacio_no_fuga_machines_cable_ni_smith" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.0"/>
+  <testcase name="inventario_declarado_mantiene_viva_la_ruta_100_peso_corporal" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.227"/>
+  <testcase name="declared_machine_emits_presence_token_and_only_its_own_configuration" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.001"/>
+  <testcase name="sin_inventario_el_perfil_legacy_se_conserva_normalizado" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.0"/>
+  <testcase name="gym_con_inventario_vacio_no_fuga_maquinas_y_una_maquina_no_se_aprueba_como_toda_la_maquinaria" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.121"/>
+  <testcase name="maquinas_declaradas_no_inferieren_cable_ni_smith" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.002"/>
+  <testcase name="explicit_availability_overrides_legacy_and_inventory_selection_evidence" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.0"/>
+  <testcase name="casa_con_barra_y_mancuernas_genera_candidatos_reales_y_bloquea_sin_inventario" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.266"/>
+  <testcase name="inventario_declarado_devuelve_solo_presencia_real_y_nunca_general_gym" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.002"/>
+  <testcase name="categorical_machines_select_native_variants_with_null_or_invalid_unrelated_stock" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.272"/>
+  <testcase name="only_declared_machine_configurations_are_generated" classname="com.example.kpkn.domain.training.EffectiveEquipmentContractTest" time="0.141"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

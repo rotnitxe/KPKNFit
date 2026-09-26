@@ -1,0 +1,16 @@
+# Final SHA-256 for the original T-004 15-path candidate after T-004 correction round 1.
+97F1F6B32ED9128288DD8088521FEAABED8170D01753B0FCC1E482F23ACF538A  android-native/app/src/main/java/com/example/kpkn/data/models/EquipmentAvailability.kt
+BA3306D0A3347A8E292D529F53C2EBA710915CA8336E2284DDEA99320102669A  android-native/app/src/main/java/com/example/kpkn/data/models/Settings.kt
+C0240671634E1E3F2C57E12AF99A190F3BC0AC35375B38FA97633F98C93E219E  android-native/app/src/main/java/com/example/kpkn/data/onboarding/SetupSettingsPatch.kt
+18FABB2E1E01CA3C269A00A67FCD5489B7B4C05328A1E450B34209DEDC67E4B0  android-native/app/src/main/java/com/example/kpkn/domain/training/TrainingOptions.kt
+87F9B42CE428B1D013E640726905D01353162F19D8996CF5316DC074D48EE2D1  android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt
+F5EB26E047602AF5DC23B20AE3B0F33BEC4B6851A536CA6B147BFE01ED295773  android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepGraph.kt
+A61AF84A9E3D1914AE66D4DDA2F4122250200DDF7AF999939EB21A80211EBE7D  android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt
+347146233D7B19679139774F76346DE19C2953ED6423C5ABBC952BB86C011A22  android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt
+415E6C015BF28863397EF030CC85B91266497A9BD64C5701199098850C58B136  android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt
+8D58EF7BBFE327C245D8040CFCD4289070A3AF60027E7DE9BBEA09A1BF31F714  android-native/app/src/test/java/com/example/kpkn/domain/training/FixedRecipeEquipmentCompatibilityTest.kt
+C01A7CAAAFB6F50CA85169F76F613141C90279FFDA8627A525C4EB8282E01B3C  android-native/app/src/test/java/com/example/kpkn/data/models/SettingsEquipmentInventoryResolutionTest.kt
+8164647E9B1AC8333C95984D3ADADC913C78BFD5F6B3FEBAAD84F6CB30CC00FA  android-native/app/src/test/java/com/example/kpkn/data/models/EquipmentAvailabilityTest.kt
+4C0C779583D869B800AD8BDC33D3D4443FA121CC89CD3856BC4D5C4E19549B8F  android-native/app/src/test/java/com/example/kpkn/data/onboarding/SetupActivationContractTest.kt
+6B234AFA01F1C809234E4999DA4BA3980C4D00A0358E3AEA879298C7C62B70EE  android-native/app/src/test/java/com/example/kpkn/data/settings/SettingsJsonBackupTest.kt
+5CFFE3DCC7D052909C087226BD3ED4B9B7501552EE497FA31E820B77EC3CA376  android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt

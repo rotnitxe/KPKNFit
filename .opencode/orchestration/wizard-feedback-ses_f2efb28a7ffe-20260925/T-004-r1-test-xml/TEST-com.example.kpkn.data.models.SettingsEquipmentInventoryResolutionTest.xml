@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-25T22:31:23.662Z" hostname="VF" time="0.045">
+  <properties/>
+  <testcase name="explicit_stock_without_a_bar_does_not_borrow_legacy_bar_or_plates" classname="com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest" time="0.01"/>
+  <testcase name="explicit_numeric_stock_still_wins_over_categorical_availability" classname="com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest" time="0.001"/>
+  <testcase name="invalid_explicit_bar_weights_are_sanitized_without_legacy_fallback" classname="com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest" time="0.001"/>
+  <testcase name="null_inventory_keeps_legacy_barbell_and_unlimited_plate_compatibility" classname="com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest" time="0.033"/>
+  <testcase name="category_only_settings_keep_loads_unknown_without_mutating_legacy_or_saved_stock" classname="com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

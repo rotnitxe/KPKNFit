@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.settings.SettingsJsonBackupTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-25T22:31:26.563Z" hostname="VF" time="17.418">
+  <properties/>
+  <testcase name="settings backup preserves explicit empty availability and accepts absent legacy field" classname="com.example.kpkn.data.settings.SettingsJsonBackupTest" time="4.929"/>
+  <testcase name="legacy json without competition section preserves competition rows" classname="com.example.kpkn.data.settings.SettingsJsonBackupTest" time="4.186"/>
+  <testcase name="export import export preserves program ids" classname="com.example.kpkn.data.settings.SettingsJsonBackupTest" time="4.239"/>
+  <testcase name="setup drafts and receipts are portable only in schema v6 section" classname="com.example.kpkn.data.settings.SettingsJsonBackupTest" time="4.064"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

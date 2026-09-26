@@ -1,0 +1,17 @@
+*** Begin Patch
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt
+@@
+-        // La configuración real (bolsa de orden, autorregulación, inventario y
+-        // calentamientos) debe cumplir su contrato antes de tocar el motor.
++        // Las opciones que intervienen en la selección/personalización deben
++        // cumplir su contrato antes de tocar el motor.
+@@
+-        // Equipo efectivo con el contrato COMPARTIDO (TrainingOptions.effectiveEquipment):
+-        // con inventario declarado manda la presencia real del material —nunca
+-        // general_gym— y sin inventario se conserva el perfil legacy normalizado.
+-        // El mismo resultado es el que el wizard usa para readiness y candidatos.
++        // Equipo efectivo con el contrato COMPARTIDO (TrainingOptions.effectiveEquipment):
++        // availability explícita manda sobre chips e inventario; en su ausencia
++        // se conserva el comportamiento de inventario/legacy. El mismo resultado
++        // es el que el wizard usa para readiness y candidatos.
+*** End Patch

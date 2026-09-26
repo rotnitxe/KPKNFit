@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-25T22:31:19.383Z" hostname="VF" time="3.999">
+  <properties/>
+  <testcase name="fresh_draft_seeds_stored_categories_as_an_undeclared_suggestion" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="3.698"/>
+  <testcase name="restoring_a_null_availability_draft_does_not_merge_the_settings_suggestion" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.107"/>
+  <testcase name="confirming_an_empty_availability_suggestion_persists_explicit_empty" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.046"/>
+  <testcase name="settings_patch_keeps_unanswered_null_and_persists_explicit_none" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.042"/>
+  <testcase name="draft_json_and_equipment_footprint_keep_null_empty_and_change_impact_distinct" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.044"/>
+  <testcase name="confirming_an_untouched_availability_suggestion_persists_it_without_declaring_it" classname="com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest" time="0.053"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

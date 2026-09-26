@@ -1,0 +1,485 @@
+diff --git a/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt b/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt
+--- a/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt
++++ b/android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt
+@@ -1653,6 +1653,13 @@
+             // sin datos se conserva el actual, nunca se limpia por accidente.
+             equipmentInventory = setIf(draft.trainingOptions.inventory, draft.trainingOptions.inventory != null),
+             nutritionTrackingOnly = setIf(true, trackingOnly),
++            // Un valor sugerido desde Settings no cuenta como respuesta. Un
++            // none explícito sí persiste como EquipmentAvailability(emptySet()).
++            equipmentAvailability = if (draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT)) {
++                setOrKeep(draft.trainingOptions.availability)
++            } else {
++                SetupPatchField.Unchanged
++            },
+         )
+     }
+ 
+@@ -1715,7 +1722,8 @@
+         val progress = WizChatProgress(scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
+             draftScope = scopeFor(mode).name.lowercase(), currentQuestionId = first, stage = WizChatGraph.stageFor(first))
+         val unit = if (settings.weightUnit == WeightUnit.LBS) "lb" else "kg"
+-        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress)
++        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress,
++            trainingOptions = SetupTrainingOptions(availability = settings.equipmentAvailability))
+             .let { draft -> draft.copy(stepProgress = SetupStepProgress.initial(draft.stepContext())) }
+     }
+     private fun normalizeProgress(progress: WizChatProgress, scope: String, mode: SetupWizardMode): WizChatProgress {
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt
+@@ -1,6 +1,8 @@
+ package com.example.kpkn.domain.training
+ 
+ import com.example.kpkn.data.models.DumbbellPairStock
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
+ import com.example.kpkn.data.models.EquipmentInventory
+ import com.example.kpkn.data.models.Exercise
+ import com.example.kpkn.data.models.KettlebellStock
+@@ -89,6 +91,41 @@
+         assertEquals(setOf("machine"), legacy.effectiveEquipment(setOf("machine")))
+         assertEquals(setOf("band", "smith_machine"), legacy.effectiveEquipment(setOf("bands", "smith")))
+         assertEquals(emptySet<String>(), legacy.effectiveEquipment(emptySet()))
++    }
++
++    @Test
++    fun explicit_availability_overrides_legacy_and_inventory_selection_evidence() {
++        val selectedMachine = EquipmentAvailability(setOf(EquipmentCategory.MACHINES))
++        val options = TrainingOptions(
++            inventory = EquipmentInventory(
++                machines = listOf(pressMachine().copy(configurationId = "press__machine")),
++            ),
++            availability = selectedMachine,
++        )
++
++        val effective = options.effectiveEquipment(setOf("general_gym", "barbell"))
++
++        assertEquals(setOf("bodyweight", "machine"), effective)
++        assertFalse("No general gym token", "general_gym" in effective)
++        assertFalse("No invented exact machine config", effective.any { it.startsWith("machine_config:") })
++    }
++
++    @Test
++    fun explicit_empty_availability_is_bodyweight_only_even_with_legacy_gym_and_stock() {
++        val settings = com.example.kpkn.data.models.Settings(
++            barbellWeight = 20.0,
++            equipmentInventory = EquipmentInventory(barbellWeightKg = 20.0),
++            equipmentAvailability = EquipmentAvailability(),
++        )
++        val stockSnapshot = settings.equipmentInventory
++        val options = TrainingOptions(
++            inventory = settings.equipmentInventory,
++            availability = settings.equipmentAvailability,
++        )
++
++        assertEquals(setOf("bodyweight"), options.effectiveEquipment(setOf("general_gym")))
++        assertEquals(stockSnapshot, settings.equipmentInventory)
++        assertEquals(20.0, settings.barbellWeight, 0.0)
+     }
+ 
+     @Test
+@@ -297,6 +334,37 @@
+     }
+ 
+     @Test
++    fun categorical_machines_select_native_variants_with_null_or_invalid_unrelated_stock() {
++        val input = homeInput.copy(
++            catalogEntryId = "native:machine-muscle",
++            frequency = 2,
++            weekdays = listOf(1, 3),
++            equipment = setOf("general_gym"),
++            splitPattern = listOf("Pecho", "Descanso", "Piernas", "Descanso", "Descanso", "Descanso", "Descanso"),
++        )
++        val availability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES))
++        val options = listOf(
++            TrainingOptions(availability = availability),
++            TrainingOptions(
++                inventory = EquipmentInventory(
++                    plates = listOf(PlateStock(weightKg = 10.0, countPerSide = null)),
++                ),
++                availability = availability,
++            ),
++        )
++
++        options.forEachIndexed { index, trainingOptions ->
++            val result = personalizer().personalize("category-machine-$index", input, trainingOptions)
++            val program = requireNotNull(result.program) {
++                "Máquinas debe seleccionar variantes KPKN con stock nulo/ajeno: ${result.report.limitations}"
++            }
++            val generatedIds = exercisesOf(program).mapNotNull { it.catalogConfigurationId }
++            assertTrue("Debe usar variantes máquina nativas", generatedIds.any { equipmentIdByConfig()[it] == "machine" })
++            assertNoEquipmentLeak(program, setOf("bodyweight", "machine"), "categoría máquinas")
++        }
++    }
++
++    @Test
+     fun inventario_declarado_mantiene_viva_la_ruta_100_peso_corporal() {
+         // Declaración «sin material»: la ruta 100 % peso corporal sigue disponible.
+         val options = TrainingOptions(inventory = EquipmentInventory())
+diff --git a/android-native/app/src/test/java/com/example/kpkn/domain/training/FixedRecipeEquipmentCompatibilityTest.kt b/android-native/app/src/test/java/com/example/kpkn/domain/training/FixedRecipeEquipmentCompatibilityTest.kt
+--- a/android-native/app/src/test/java/com/example/kpkn/domain/training/FixedRecipeEquipmentCompatibilityTest.kt
++++ b/android-native/app/src/test/java/com/example/kpkn/domain/training/FixedRecipeEquipmentCompatibilityTest.kt
+@@ -3,6 +3,8 @@
+ import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
+ import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
+ import com.example.kpkn.data.models.Block
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
+ import com.example.kpkn.data.models.EquipmentInventory
+ import com.example.kpkn.data.models.Exercise
+ import com.example.kpkn.data.models.ExerciseSet
+@@ -206,6 +208,22 @@
+     }
+ 
+     @Test
++    fun broad_machine_availability_does_not_satisfy_an_authored_exact_machine_requirement() {
++        val authored = programWith(listOf("seated_leg_curl__bilateral__machine"))
++        val snapshot = authored.copy()
++        val categories = TrainingOptions(
++            availability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES)),
++        ).effectiveEquipment(setOf("general_gym"))
++
++        assertEquals(setOf("bodyweight", "machine"), categories)
++        assertEquals(
++            setOf("machine"),
++            missingFixedRecipeEquipment(authored, categories, catalog),
++        )
++        assertEquals("La guardia no relaja ni reescribe la receta autora", snapshot, authored)
++    }
++
++    @Test
+     fun cable_and_smith_stations_attest_only_their_station() {
+         val cableConfig = "triceps_pushdown__bilateral__cable"
+         val smithConfig = "bench_press__smith_machine"
+diff --git a/android-native/app/src/main/java/com/example/kpkn/data/models/EquipmentAvailability.kt b/android-native/app/src/main/java/com/example/kpkn/data/models/EquipmentAvailability.kt
+new file mode 100644
+--- /dev/null
++++ b/android-native/app/src/main/java/com/example/kpkn/data/models/EquipmentAvailability.kt
+@@ -0,0 +1,25 @@
++package com.example.kpkn.data.models
++
++import kotlinx.serialization.Serializable
++
++/** Categorical training equipment availability, independent of numeric stock. */
++@Serializable
++data class EquipmentAvailability(
++    val categories: Set<EquipmentCategory> = emptySet(),
++)
++
++/** Closed set of equipment categories the setup flow can declare. */
++@Serializable
++enum class EquipmentCategory {
++    BARBELL,
++    DUMBBELLS,
++    KETTLEBELL,
++    MACHINES,
++    CABLE,
++    SMITH_MACHINE,
++    BAND,
++    SUPPORT,
++    PULL_UP_BAR,
++    BALL,
++    CARDIO,
++}
+diff --git a/android-native/app/src/test/java/com/example/kpkn/data/models/EquipmentAvailabilityTest.kt b/android-native/app/src/test/java/com/example/kpkn/data/models/EquipmentAvailabilityTest.kt
+new file mode 100644
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/data/models/EquipmentAvailabilityTest.kt
+@@ -0,0 +1,62 @@
++package com.example.kpkn.data.models
++
++import com.example.kpkn.domain.training.TrainingOptions
++import com.example.kpkn.domain.training.effectiveEquipment
++import kotlinx.serialization.decodeFromString
++import kotlinx.serialization.encodeToString
++import kotlinx.serialization.json.Json
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertNotEquals
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++class EquipmentAvailabilityTest {
++    @Test
++    fun categorical_projection_is_closed_exhaustive_and_never_invents_inventory_tokens() {
++        val expected = mapOf(
++            EquipmentCategory.BARBELL to "barbell",
++            EquipmentCategory.DUMBBELLS to "dumbbells",
++            EquipmentCategory.KETTLEBELL to "kettlebell",
++            EquipmentCategory.MACHINES to "machine",
++            EquipmentCategory.CABLE to "cable",
++            EquipmentCategory.SMITH_MACHINE to "smith_machine",
++            EquipmentCategory.BAND to "band",
++            EquipmentCategory.SUPPORT to "support",
++            EquipmentCategory.PULL_UP_BAR to "pull_up_bar",
++            EquipmentCategory.BALL to "ball",
++            EquipmentCategory.CARDIO to "cardio",
++        )
++        assertEquals(expected.keys, EquipmentCategory.entries.toSet())
++        expected.forEach { (category, token) ->
++            assertEquals(
++                setOf("bodyweight", token),
++                TrainingOptions(availability = EquipmentAvailability(setOf(category)))
++                    .effectiveEquipment(setOf("general_gym", "free_weights")),
++            )
++        }
++
++        val allTokens = expected.values.toSet()
++        val all = TrainingOptions(
++            availability = EquipmentAvailability(EquipmentCategory.entries.toSet()),
++        ).effectiveEquipment(setOf("general_gym", "free_weights", "machine_config:invented"))
++        assertEquals(setOf("bodyweight") + allTokens, all)
++        assertFalse("No blanket gym token", "general_gym" in all)
++        assertFalse("No free-weight umbrella token", "free_weights" in all)
++        assertFalse("No inferred machine configuration", all.any { it.startsWith("machine_config:") })
++    }
++
++    @Test
++    fun null_and_explicit_empty_settings_availability_are_distinct_in_json() {
++        val json = Json { encodeDefaults = true }
++        val oldSettings = json.decodeFromString<Settings>("{}")
++        val explicitEmpty = Settings(equipmentAvailability = EquipmentAvailability())
++        val roundTrip = json.decodeFromString<Settings>(json.encodeToString(explicitEmpty))
++
++        assertNull(oldSettings.equipmentAvailability)
++        assertNotEquals(oldSettings.equipmentAvailability, roundTrip.equipmentAvailability)
++        assertEquals(EquipmentAvailability(emptySet()), roundTrip.equipmentAvailability)
++        assertTrue(json.encodeToString(explicitEmpty).contains("\"categories\":[]"))
++    }
++}
+diff --git a/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt b/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt
+new file mode 100644
+--- /dev/null
++++ b/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt
+@@ -0,0 +1,229 @@
++package com.example.kpkn.screens.onboarding
++
++import android.app.Application
++import androidx.lifecycle.SavedStateHandle
++import androidx.lifecycle.ViewModelStore
++import androidx.test.core.app.ApplicationProvider
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
++import com.example.kpkn.data.models.NutritionPlan
++import com.example.kpkn.data.models.Program
++import com.example.kpkn.data.models.Settings
++import com.example.kpkn.data.onboarding.SetupDraft
++import com.example.kpkn.data.onboarding.SetupDraftCandidate
++import com.example.kpkn.data.onboarding.SetupDraftScope
++import com.example.kpkn.data.onboarding.SetupPatchField
++import com.example.kpkn.data.onboarding.SetupSettingsPatch
++import com.example.kpkn.domain.onboarding.SetupChangeDetector
++import com.example.kpkn.domain.onboarding.SetupChangeSource
++import com.example.kpkn.domain.onboarding.SetupPreviewKind
++import com.example.kpkn.domain.onboarding.RingsCompletion
++import com.example.kpkn.domain.onboarding.SetupRingsMapping
++import com.example.kpkn.domain.onboarding.SetupStepId
++import com.example.kpkn.domain.onboarding.SetupStepProgress
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.ExperimentalCoroutinesApi
++import kotlinx.coroutines.test.StandardTestDispatcher
++import kotlinx.coroutines.test.advanceUntilIdle
++import kotlinx.coroutines.test.resetMain
++import kotlinx.coroutines.test.runTest
++import kotlinx.coroutines.test.setMain
++import kotlinx.serialization.decodeFromString
++import kotlinx.serialization.encodeToString
++import kotlinx.serialization.json.Json
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Before
++import org.junit.Test
++import org.junit.runner.RunWith
++import org.robolectric.RobolectricTestRunner
++import org.robolectric.annotation.Config
++
++@OptIn(ExperimentalCoroutinesApi::class)
++@RunWith(RobolectricTestRunner::class)
++@Config(manifest = Config.NONE, sdk = [34])
++class SetupAvailabilitySeedTest {
++    private val dispatcher = StandardTestDispatcher()
++    private val viewModels = ViewModelStore()
++    private lateinit var app: Application
++    private lateinit var persistence: MemoryPersistence
++
++    @Before
++    fun setUp() {
++        Dispatchers.setMain(dispatcher)
++        app = ApplicationProvider.getApplicationContext()
++        persistence = MemoryPersistence()
++    }
++
++    @After
++    fun tearDown() {
++        viewModels.clear()
++        Dispatchers.resetMain()
++    }
++
++    @Test
++    fun fresh_draft_seeds_stored_categories_as_an_undeclared_suggestion() = runTest {
++        val suggested = EquipmentAvailability(setOf(EquipmentCategory.BARBELL, EquipmentCategory.MACHINES))
++        val vm = viewModel(Settings(equipmentAvailability = suggested))
++
++        vm.initialize(SetupWizardMode.FULL, draftId = "fresh-availability")
++        advanceUntilIdle()
++
++        val draft = vm.state.value.draft
++        assertEquals(suggested, draft.trainingOptions.availability)
++        assertFalse(SetupStepId.HOME_EQUIPMENT in draft.declaredSteps)
++        assertFalse(draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
++        assertEquals(
++            SetupPatchField.Unchanged,
++            buildSettingsPatch(vm, draft, Settings(equipmentAvailability = suggested)).equipmentAvailability,
++        )
++    }
++
++    @Test
++    fun settings_patch_keeps_unanswered_null_and_persists_explicit_none() {
++        val vm = viewModel(Settings())
++        val unanswered = SetupWizardDraft()
++        val selectedNone = unanswered.copy(
++            trainingOptions = SetupTrainingOptions(availability = EquipmentAvailability()),
++        ).touchStep(SetupStepId.HOME_EQUIPMENT)
++
++        assertEquals(
++            SetupPatchField.Unchanged,
++            buildSettingsPatch(vm, unanswered, Settings()).equipmentAvailability,
++        )
++        assertEquals(
++            SetupPatchField.Set(EquipmentAvailability()),
++            buildSettingsPatch(vm, selectedNone, Settings()).equipmentAvailability,
++        )
++    }
++
++    @Test
++    fun restoring_a_null_availability_draft_does_not_merge_the_settings_suggestion() = runTest {
++        val id = "restored-availability"
++        val restored = SetupWizardDraft(
++            draftId = id,
++            commitId = "restored-commit",
++            draftScope = "full",
++            trainingOptions = SetupTrainingOptions(availability = null),
++        ).let { it.copy(stepProgress = SetupStepProgress.initial(it.stepContext())) }
++        persistence.seed(restored)
++        val vm = viewModel(Settings(equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.CARDIO))))
++
++        vm.initialize(SetupWizardMode.RESUME, draftId = id)
++        advanceUntilIdle()
++
++        assertNull(vm.state.value.draft.trainingOptions.availability)
++    }
++
++    @Test
++    fun draft_json_and_equipment_footprint_keep_null_empty_and_change_impact_distinct() {
++        val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
++        val legacyDraft = json.decodeFromString<SetupWizardDraft>("""{"trainingOptions":{}}""")
++        val explicitNone = SetupWizardDraft(
++            trainingOptions = SetupTrainingOptions(availability = EquipmentAvailability()),
++        )
++        val roundTrip = json.decodeFromString<SetupWizardDraft>(json.encodeToString(explicitNone))
++        assertNull(legacyDraft.trainingOptions.availability)
++        assertEquals(EquipmentAvailability(emptySet()), roundTrip.trainingOptions.availability)
++        assertFalse(legacyDraft.inputFootprint().equipmentAvailability == roundTrip.inputFootprint().equipmentAvailability)
++
++        val withBarbell = explicitNone.copy(
++            trainingOptions = SetupTrainingOptions(
++                availability = EquipmentAvailability(setOf(EquipmentCategory.BARBELL)),
++            ),
++        )
++        assertEquals(
++            setOf(SetupChangeSource.EQUIPMENT),
++            SetupChangeDetector.sourcesFor(explicitNone.inputFootprint(), withBarbell.inputFootprint()),
++        )
++        val impacted = withBarbell.withChangeImpacts(explicitNone)
++        assertTrue(impacted.stepProgress.pendingReview.contains(SetupStepId.PLAN))
++        assertTrue(
++            impacted.stepProgress.stalePreviews.containsAll(
++                setOf(SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS),
++            ),
++        )
++    }
++
++    private fun viewModel(settings: Settings): SetupWizardViewModel =
++        SetupWizardViewModel(
++            application = app,
++            savedStateHandle = SavedStateHandle(),
++            persistence = persistence,
++            environment = TestEnvironment(settings),
++            materializeOverride = SetupWizardMaterializer { SetupPreview(null, null) },
++        ).also { viewModels.put("availability-${viewModels.hashCode()}-${System.identityHashCode(it)}", it) }
++
++    private fun buildSettingsPatch(
++        viewModel: SetupWizardViewModel,
++        draft: SetupWizardDraft,
++        base: Settings,
++    ): SetupSettingsPatch {
++        val builder = SetupWizardViewModel::class.java.getDeclaredMethod(
++            "buildSettingsPatch",
++            Settings::class.java,
++            SetupWizardDraft::class.java,
++            Program::class.java,
++            NutritionPlan::class.java,
++            SetupRingsMapping::class.java,
++            Boolean::class.javaPrimitiveType!!,
++        ).apply { isAccessible = true }
++        return builder.invoke(
++            viewModel,
++            base,
++            draft,
++            null,
++            null,
++            SetupRingsMapping(RingsCompletion.UNKNOWN),
++            false,
++        ) as SetupSettingsPatch
++    }
++
++    private class MemoryPersistence : SetupWizardPersistence {
++        private val rows = linkedMapOf<String, SetupDraft>()
++        private val json = Json { encodeDefaults = true }
++
++        fun seed(draft: SetupWizardDraft) {
++            rows[draft.draftId] = SetupDraft(
++                draftId = draft.draftId,
++                payloadJson = json.encodeToString(draft),
++                revision = draft.revision.toLong(),
++                catalogRevision = draft.catalogRevision,
++                updatedAtEpochMs = 0L,
++            )
++        }
++
++        override suspend fun load(draftId: String): SetupDraft? = rows[draftId]
++
++        override suspend fun save(
++            draftId: String,
++            payloadJson: String,
++            revision: Long,
++            catalogRevision: String?,
++        ): SetupDraft = SetupDraft(draftId, payloadJson, revision, catalogRevision, 0L)
++            .also { rows[draftId] = it }
++
++        override suspend fun discard(draftId: String) {
++            rows.remove(draftId)
++        }
++
++        override suspend fun listRecoverable(): List<SetupDraftCandidate> = rows.values.map {
++            SetupDraftCandidate(it.draftId, SetupDraftScope.FULL, it.revision, it.updatedAtEpochMs, it.catalogRevision)
++        }
++    }
++
++    private class TestEnvironment(
++        override val settings: Settings,
++    ) : SetupWizardEnvironment {
++        override suspend fun awaitReady() = Unit
++        override fun activeProgramId(): String? = null
++        override fun activeNutritionPlanId(): String? = null
++        override fun activeNutritionPlan(): NutritionPlan? = null
++        override fun nutritionPlan(id: String): NutritionPlan? = null
++        override fun hasInitialRecoveryEvidence(): Boolean = false
++        override suspend fun refreshBodyProgress() = Unit
++    }
++}

@@ -1,0 +1,19 @@
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt:90:31 Unresolved reference 'SetupTrainingOptions'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt:110:31 Unresolved reference 'SetupTrainingOptions'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt:126:31 Unresolved reference 'SetupTrainingOptions'.
+e: file:///C:/Users/valen/Documents/KPKNFit/android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt:134:31 Unresolved reference 'SetupTrainingOptions'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileBaseDebugUnitTestKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4m

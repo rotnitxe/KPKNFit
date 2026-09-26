@@ -1,0 +1,9 @@
+# T-004 correction round 1 test XML; copied byte-for-byte after the final seven-suite run.
+com.example.kpkn.domain.training.EffectiveEquipmentContractTest tests=13 skipped=0 failures=0 errors=0 SHA256=0ADDA4159B339DBB3F22939C52D51A3ADD93E3F77704C381900461DE269F8F48
+com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest tests=10 skipped=0 failures=0 errors=0 SHA256=35ADEA479691F3CD7319542BBDA6A93E4B9310393B2BFF202825DD35AB584F2C
+com.example.kpkn.data.models.SettingsEquipmentInventoryResolutionTest tests=5 skipped=0 failures=0 errors=0 SHA256=A42331800EDF00B481D88F199FF3667D51928C525E949885B3301A966745B6C0
+com.example.kpkn.data.onboarding.SetupActivationContractTest tests=22 skipped=0 failures=0 errors=0 SHA256=4AFEDEBEEFD0B29A0017A4B740FEA4E2A3A81BE3E655837DEF02DDD1D7FC0A53
+com.example.kpkn.data.settings.SettingsJsonBackupTest tests=4 skipped=0 failures=0 errors=0 SHA256=8648A4C4242D653F895F1D4EA82D4ECE0143F24F1B66AB2E4EEA83E4F5BCA035
+com.example.kpkn.data.models.EquipmentAvailabilityTest tests=2 skipped=0 failures=0 errors=0 SHA256=02A0218EC6101F03F650CD9B9A3E9E55A6C88BCB049D1873438A5761E8A4BEB1
+com.example.kpkn.screens.onboarding.SetupAvailabilitySeedTest tests=6 skipped=0 failures=0 errors=0 SHA256=CB8639456E70D6840436E4DA2B97D3FFBE424B94674310B3F3E960F558C0D900
+TOTAL tests=62 skipped=0 failures=0 errors=0

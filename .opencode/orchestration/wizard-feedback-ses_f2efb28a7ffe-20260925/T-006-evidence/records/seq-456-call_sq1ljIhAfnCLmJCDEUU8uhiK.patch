@@ -1,0 +1,199 @@
+*** Begin Patch
+*** Add File: android-native/app/src/main/java/com/example/kpkn/data/models/EquipmentAvailability.kt
++package com.example.kpkn.data.models
++
++import kotlinx.serialization.Serializable
++
++/** Categorical training equipment availability, independent of numeric stock. */
++@Serializable
++data class EquipmentAvailability(
++    val categories: Set<EquipmentCategory> = emptySet(),
++)
++
++/** Closed set of equipment categories the setup flow can declare. */
++@Serializable
++enum class EquipmentCategory(val canonicalToken: String) {
++    BARBELL("barbell"),
++    DUMBBELLS("dumbbells"),
++    KETTLEBELL("kettlebell"),
++    MACHINES("machine"),
++    CABLE("cable"),
++    SMITH_MACHINE("smith_machine"),
++    BAND("band"),
++    SUPPORT("support"),
++    PULL_UP_BAR("pull_up_bar"),
++    BALL("ball"),
++    CARDIO("cardio"),
++}
+*** Update File: android-native/app/src/main/java/com/example/kpkn/data/models/Settings.kt
+@@
+     /**
+      * Relator 2.0 long-term memory (concepts shown, per-exercise counters, openers).
+      * JSON of [com.example.kpkn.domain.relator.RelatorLongTermMemory]; null = empty.
+      */
+     val relatorMemoryJson: String? = null,
++    /** Categorical equipment availability; numeric stock remains in [equipmentInventory]. */
++    val equipmentAvailability: EquipmentAvailability? = null,
+ ) {
+@@
+-     * Inventario efectivo: el explícito manda, incluidas sus ausencias; solo
+-     * cuando es null se deriva del legacy [barbellWeight] + [availablePlates]
+-     * con cantidades ilimitadas (compatibilidad con backups antiguos).
++     * Stock efectivo para alcanzar cargas: el inventario explícito manda,
++     * incluidas sus ausencias. Si no hay inventario pero sí disponibilidad
++     * categórica, el stock queda desconocido. Solo cuando ambos son null se
++     * deriva del legacy [barbellWeight] + [availablePlates] con cantidades
++     * ilimitadas (compatibilidad con backups antiguos).
+      */
+     fun resolvedEquipmentInventory(): EquipmentInventory {
+-        val configured = equipmentInventory
+-            ?: return EquipmentInventory(
++        val configured = equipmentInventory
++        if (configured != null) {
++            return configured.copy(
++                barbellWeightKg = configured.barbellWeightKg?.takeIf { it.isFinite() && it > 0.0 },
++            )
++        }
++        if (equipmentAvailability != null) return EquipmentInventory()
++        return EquipmentInventory(
+                 barbellWeightKg = barbellWeight.takeIf { it.isFinite() && it > 0.0 },
+                 plates = availablePlates.mapNotNull { weightKg ->
+                     weightKg.takeIf { it.isFinite() && it > 0.0 }
+                         ?.let { PlateStock(weightKg = it, countPerSide = null) }
+                 },
+             )
+-        return configured.copy(
+-            barbellWeightKg = configured.barbellWeightKg?.takeIf { it.isFinite() && it > 0.0 },
+-        )
+     }
+ }
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/TrainingOptions.kt
+@@
+ import com.example.kpkn.data.models.AutoregulationMode
++import com.example.kpkn.data.models.EquipmentAvailability
+ import com.example.kpkn.data.models.EquipmentInventory
+@@
+- * - `effectiveEquipment(legacy)` (extensión pública de este archivo) es el
+- *   único filtro de equipo compartido: readiness y candidatos del wizard y
+- *   filtro real del motor consumen la MISMA salida. Con inventario declarado
+- *   manda la presencia real del material y `general_gym` nunca se asume; sin
+- *   inventario, el perfil legacy se conserva tal cual.
++ * - [availability], cuando no es null, es la fuente categórica del equipo para
++ *   readiness, candidatos y el filtro real del motor. No afirma stock ni
++ *   configuraciones exactas. Cuando es null, [effectiveEquipment] conserva las
++ *   reglas legacy/inventario anteriores.
+@@
+     val autoregulationMode: AutoregulationMode = AutoregulationMode.PROPOSE,
+     val automaticConfirmed: Boolean = false,
+     val warmup: List<SetRecipe>? = null,
++    val availability: EquipmentAvailability? = null,
+ ) {
+@@
+-    fun validate(): TrainingValidation {
++    fun validate(): TrainingValidation = validate(includeInventoryHonesty = true)
++
++    /** Selection validation ignores independent legacy stock errors only for a categorical declaration. */
++    internal fun validateForSelection(): TrainingValidation =
++        validate(includeInventoryHonesty = availability == null)
++
++    private fun validate(includeInventoryHonesty: Boolean): TrainingValidation {
+@@
+-        reasons += inventoryHonestyReasons(inventory)
++        if (includeInventoryHonesty) reasons += inventoryHonestyReasons(inventory)
+         return if (reasons.isEmpty()) TrainingValidation.Valid else TrainingValidation.Invalid(reasons.distinct())
+@@
+- * Contrato:
++ * Contrato:
++ * - [TrainingOptions.availability] no nula → bodyweight + categorías elegidas,
++ *   sin importar inventario o equipo legacy. No emite `general_gym`,
++ *   `free_weights` ni `machine_config:*`.
+  * - [TrainingOptions.inventory] **null** → compatibilidad legacy: se devuelve el
+@@
+ fun TrainingOptions.effectiveEquipment(legacyEquipment: Set<String>): Set<String> {
++    availability?.let { declaredAvailability ->
++        return buildSet {
++            add(KIND_BODYWEIGHT)
++            EquipmentCategory.entries.forEach { category ->
++                if (category in declaredAvailability.categories) add(category.canonicalToken)
++            }
++        }
++    }
+     val legacy = legacyEquipment.mapTo(LinkedHashSet<String>()) { normalizeLegacyEquipmentKind(it) }
+@@
+ }
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/TrainingOptions.kt
+@@
+ import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt
+@@
+-        when (val config = options.validate()) {
++        when (val config = options.validateForSelection()) {
+@@
+-                if (!equipmentAllows(configuration, equipment, entry.sourceId, options.inventory != null)) return@mapNotNull null
++                val requireExactMachineConfiguration = options.availability == null && options.inventory != null
++                if (!equipmentAllows(configuration, equipment, entry.sourceId, requireExactMachineConfiguration)) return@mapNotNull null
+@@
+-     * - Con **inventario declarado**, una máquina concreta solo se admite si su
++     * - En **modo inventario legacy**, una máquina concreta solo se admite si su
+      *   token `machine_config:<id>` está en el set (leg curl ≠ chest press ≠
+      *   prensa); la presencia genérica `machine` no basta. `cable` y
+      *   `smith_machine` sí valen como estación multi-ejercicio declarada.
++     * - La disponibilidad categórica `machine` habilita variantes nativas
++     *   aprobadas sin afirmar una configuración concreta.
+@@
+-        inventoryDeclared: Boolean,
++        requireExactMachineConfiguration: Boolean,
+@@
+-        if (inventoryDeclared && actual == "machine" && !machineConfigDeclared) return false
++        if (requireExactMachineConfiguration && actual == "machine" && !machineConfigDeclared) return false
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/onboarding/SetupStepGraph.kt
+@@
+     val equipment: Set<String> = emptySet(),
+     val trainingEnvironment: String? = null,
+     val inventory: Set<String> = emptySet(),
++    /** Null = unanswered/legacy; empty = explicitly no declared categories. */
++    val equipmentAvailability: Set<String>? = null,
+@@
+         if (old.equipment != new.equipment || old.trainingEnvironment != new.trainingEnvironment ||
+-            old.inventory != new.inventory
++            old.inventory != new.inventory || old.equipmentAvailability != new.equipmentAvailability
+         ) add(SetupChangeSource.EQUIPMENT)
+*** Update File: android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardModels.kt
+@@
+     equipment = equipment.map { it.name }.toSet(),
+     trainingEnvironment = trainingEnvironment,
+     inventory = trainingOptions.inventory?.toString()?.let { setOf(it) }.orEmpty(),
++    equipmentAvailability = trainingOptions.availability?.categories?.mapTo(linkedSetOf()) { it.name },
+*** Update File: android-native/app/src/main/java/com/example/kpkn/data/onboarding/SetupSettingsPatch.kt
+@@
+ import com.example.kpkn.data.models.Settings
++import com.example.kpkn.data.models.EquipmentAvailability
+ import com.example.kpkn.data.models.UserVitals
+@@
+     val nutritionTrackingOnly: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
++    /** Categories are patched independently of numeric equipment stock. */
++    val equipmentAvailability: SetupPatchField<EquipmentAvailability?> = SetupPatchField.Unchanged,
+ ) {
+@@
+         equipmentInventory = equipmentInventory.resolve(base.equipmentInventory),
+         nutritionTrackingOnly = nutritionTrackingOnly.resolve(base.nutritionTrackingOnly),
++        equipmentAvailability = equipmentAvailability.resolve(base.equipmentAvailability),
+*** Update File: android-native/app/src/main/java/com/example/kpkn/screens/onboarding/SetupWizardViewModel.kt
+@@
+             // Inventario declarado en el wizard (`trainingOptions.inventory`);
+             // sin datos se conserva el actual, nunca se limpia por accidente.
+             equipmentInventory = setIf(draft.trainingOptions.inventory, draft.trainingOptions.inventory != null),
+             nutritionTrackingOnly = setIf(true, trackingOnly),
++            // Un valor sugerido desde Settings no cuenta como respuesta. Un
++            // none explícito sí persiste como EquipmentAvailability(emptySet()).
++            equipmentAvailability = if (draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT)) {
++                setOrKeep(draft.trainingOptions.availability)
++            } else {
++                SetupPatchField.Unchanged
++            },
+@@
+-        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress)
++        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress,
++            trainingOptions = SetupTrainingOptions(availability = settings.equipmentAvailability))
+*** End Patch

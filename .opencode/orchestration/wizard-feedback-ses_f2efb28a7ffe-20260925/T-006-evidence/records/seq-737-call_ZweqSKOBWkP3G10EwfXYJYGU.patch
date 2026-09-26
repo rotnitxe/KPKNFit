@@ -1,0 +1,28 @@
+*** Begin Patch
+*** Update File: android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt
+@@
+             Program::class.java,
+             NutritionPlan::class.java,
+             SetupRingsMapping::class.java,
+-            Boolean::class.javaPrimitiveType,
++            Boolean::class.javaPrimitiveType!!,
+*** Update File: android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt
+@@
+         val input = homeInput.copy(
+             catalogEntryId = "native:machine-muscle",
++            frequency = 2,
++            weekdays = listOf(1, 3),
+             equipment = setOf("general_gym"),
++            splitPattern = listOf("Pecho", "Descanso", "Piernas", "Descanso", "Descanso", "Descanso", "Descanso"),
+         )
+*** Update File: android-native/app/src/main/java/com/example/kpkn/data/onboarding/SetupSettingsPatch.kt
+@@
+ import com.example.kpkn.data.models.InitialRecoveryEvidence
+ import com.example.kpkn.data.models.NutritionTrackingChoice
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentInventory
+ import com.example.kpkn.data.models.Settings
+-import com.example.kpkn.data.models.EquipmentAvailability
+ import com.example.kpkn.data.models.UserVitals
+-import com.example.kpkn.data.models.EquipmentInventory
+*** End Patch

@@ -1,0 +1,169 @@
+diff --git "a/C:\\Users\\valen\\Documents\\KPKNFit\\.opencode\\orchestration\\wizard-feedback-ses_f2efb28a7ffe-20260925\\T-004-r1-before\\android-native\\app\\src\\main\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupWizardViewModel.kt" "b/C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\main\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupWizardViewModel.kt"
+index 2c031331c..83e3751a2 100644
+--- "a/C:\\Users\\valen\\Documents\\KPKNFit\\.opencode\\orchestration\\wizard-feedback-ses_f2efb28a7ffe-20260925\\T-004-r1-before\\android-native\\app\\src\\main\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupWizardViewModel.kt"
++++ "b/C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\main\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupWizardViewModel.kt"
+@@ -1597,6 +1597,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
+         fun provided(step: SetupStepId, question: WizChatQuestionId): Boolean =
+             step in declared || question in legacyProvided
+         val age = draft.ageYears ?: parseLocalizedNumber(draft.nutritionDraft?.ageText.orEmpty())?.toInt()
++        val equipmentAvailabilityConfirmed = draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT) ||
++            draft.stepProgress.answers[SetupStepId.HOME_EQUIPMENT]?.canPersistAsDeclared() == true
+         val declaredName = draft.name.takeIf {
+             it.isNotBlank() && provided(SetupStepId.NAME, WizChatQuestionId.P_NAME)
+         }
+@@ -1653,9 +1655,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
+             // sin datos se conserva el actual, nunca se limpia por accidente.
+             equipmentInventory = setIf(draft.trainingOptions.inventory, draft.trainingOptions.inventory != null),
+             nutritionTrackingOnly = setIf(true, trackingOnly),
+-            // Un valor sugerido desde Settings no cuenta como respuesta. Un
+-            // none explícito sí persiste como EquipmentAvailability(emptySet()).
+-            equipmentAvailability = if (draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT)) {
++            // Un sugerido solo se guarda después de confirmarse: confirmCurrentStep
++            // deja su procedencia en stepProgress sin convertirlo en declarado.
++            // Las respuestas declaradas, incluido none, conservan su gate actual.
++            equipmentAvailability = if (equipmentAvailabilityConfirmed) {
+                 setOrKeep(draft.trainingOptions.availability)
+             } else {
+                 SetupPatchField.Unchanged
+diff --git "a/C:\\Users\\valen\\Documents\\KPKNFit\\.opencode\\orchestration\\wizard-feedback-ses_f2efb28a7ffe-20260925\\T-004-r1-before\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupAvailabilitySeedTest.kt" "b/C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupAvailabilitySeedTest.kt"
+index cd5ce15cb..3de74417e 100644
+--- "a/C:\\Users\\valen\\Documents\\KPKNFit\\.opencode\\orchestration\\wizard-feedback-ses_f2efb28a7ffe-20260925\\T-004-r1-before\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupAvailabilitySeedTest.kt"
++++ "b/C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\screens\\onboarding\\SetupAvailabilitySeedTest.kt"
+@@ -14,6 +14,7 @@ import com.example.kpkn.data.onboarding.SetupDraftCandidate
+ import com.example.kpkn.data.onboarding.SetupDraftScope
+ import com.example.kpkn.data.onboarding.SetupPatchField
+ import com.example.kpkn.data.onboarding.SetupSettingsPatch
++import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
+ import com.example.kpkn.domain.onboarding.SetupChangeDetector
+ import com.example.kpkn.domain.onboarding.SetupChangeSource
+ import com.example.kpkn.domain.onboarding.SetupPreviewKind
+@@ -21,6 +22,7 @@ import com.example.kpkn.domain.onboarding.RingsCompletion
+ import com.example.kpkn.domain.onboarding.SetupRingsMapping
+ import com.example.kpkn.domain.onboarding.SetupStepId
+ import com.example.kpkn.domain.onboarding.SetupStepProgress
++import com.example.kpkn.domain.onboarding.SetupTrainingOptions
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.ExperimentalCoroutinesApi
+ import kotlinx.coroutines.test.StandardTestDispatcher
+@@ -100,6 +102,55 @@ class SetupAvailabilitySeedTest {
+         )
+     }
+ 
++    @Test
++    fun confirming_an_untouched_availability_suggestion_persists_it_without_declaring_it() = runTest {
++        val suggested = EquipmentAvailability(setOf(EquipmentCategory.BARBELL, EquipmentCategory.MACHINES))
++        val vm = viewModel(Settings(equipmentAvailability = suggested))
++
++        vm.initialize(SetupWizardMode.FULL, draftId = "confirm-availability-suggestion")
++        advanceUntilIdle()
++
++        val seeded = vm.state.value.draft
++        assertEquals(suggested, seeded.trainingOptions.availability)
++        assertFalse(seeded.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
++        assertEquals(
++            SetupPatchField.Unchanged,
++            buildSettingsPatch(vm, seeded, Settings(equipmentAvailability = suggested)).equipmentAvailability,
++        )
++
++        val confirmed = seeded.confirmCurrentStep(SetupStepId.HOME_EQUIPMENT)
++
++        assertEquals(
++            SetupAnswerProvenance.SUGGESTED,
++            confirmed.stepProgress.answers[SetupStepId.HOME_EQUIPMENT],
++        )
++        assertFalse("Accepting a suggestion must not turn it into a declaration", confirmed.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
++        assertEquals(
++            SetupPatchField.Set(suggested),
++            buildSettingsPatch(vm, confirmed, Settings(equipmentAvailability = suggested)).equipmentAvailability,
++        )
++    }
++
++    @Test
++    fun confirming_an_empty_availability_suggestion_persists_explicit_empty() = runTest {
++        val suggestedNone = EquipmentAvailability(emptySet())
++        val vm = viewModel(Settings(equipmentAvailability = suggestedNone))
++
++        vm.initialize(SetupWizardMode.FULL, draftId = "confirm-empty-availability-suggestion")
++        advanceUntilIdle()
++
++        val seeded = vm.state.value.draft
++        assertFalse(seeded.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
++        val confirmed = seeded.confirmCurrentStep(SetupStepId.HOME_EQUIPMENT)
++
++        assertEquals(SetupAnswerProvenance.SUGGESTED, confirmed.stepProgress.answers[SetupStepId.HOME_EQUIPMENT])
++        assertFalse(confirmed.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
++        assertEquals(
++            SetupPatchField.Set(EquipmentAvailability(emptySet())),
++            buildSettingsPatch(vm, confirmed, Settings(equipmentAvailability = suggestedNone)).equipmentAvailability,
++        )
++    }
++
+     @Test
+     fun restoring_a_null_availability_draft_does_not_merge_the_settings_suggestion() = runTest {
+         val id = "restored-availability"
+diff --git "a/C:\\Users\\valen\\Documents\\KPKNFit\\.opencode\\orchestration\\wizard-feedback-ses_f2efb28a7ffe-20260925\\T-004-r1-before\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\data\\onboarding\\SetupActivationContractTest.kt" "b/C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\data\\onboarding\\SetupActivationContractTest.kt"
+index aee618c7b..cb2ed65ec 100644
+--- "a/C:\\Users\\valen\\Documents\\KPKNFit\\.opencode\\orchestration\\wizard-feedback-ses_f2efb28a7ffe-20260925\\T-004-r1-before\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\data\\onboarding\\SetupActivationContractTest.kt"
++++ "b/C:\\Users\\valen\\Documents\\KPKNFit\\android-native\\app\\src\\test\\java\\com\\example\\kpkn\\data\\onboarding\\SetupActivationContractTest.kt"
+@@ -147,6 +147,61 @@ class SetupActivationContractTest {
+         assertEquals(stock, patched.equipmentInventory)
+     }
+ 
++    @Test
++    fun replay_of_availability_receipt_preserves_later_settings_without_duplicate_activation_rows() = runBlocking {
++        val stock = EquipmentInventory(
++            barbellWeightKg = 20.0,
++            plates = listOf(com.example.kpkn.data.models.PlateStock(weightKg = 10.0, countPerSide = 2)),
++        )
++        val availabilityAtCommit = EquipmentAvailability(setOf(EquipmentCategory.BARBELL))
++        val availabilityAfterCommit = EquipmentAvailability(setOf(EquipmentCategory.CABLE))
++        db.settingsDao().upsert(
++            Settings(
++                username = "Before receipt",
++                equipmentInventory = stock,
++                equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.DUMBBELLS)),
++            ).toEntity(),
++        )
++        val coordinator = SetupCommitCoordinator(db)
++        val request = SetupCommitRequest(
++            commitId = "commit-availability-replay",
++            draftId = null,
++            settings = Settings(username = "Stale request snapshot"),
++            program = executableProgram("availability-replay-program"),
++            nutritionPlan = null,
++            activateProgram = true,
++            activateNutrition = false,
++            settingsPatch = SetupSettingsPatch(
++                equipmentAvailability = SetupPatchField.Set(availabilityAtCommit),
++            ),
++        )
++
++        val first = coordinator.commit(request)
++
++        assertEquals(availabilityAtCommit, db.settingsDao().get()?.toSettings()?.equipmentAvailability)
++        assertEquals(stock, db.settingsDao().get()?.toSettings()?.equipmentInventory)
++        assertEquals(1, db.programDao().getAll().size)
++        assertEquals(1, db.setupCommitReceiptDao().getAll().size)
++        assertEquals("availability-replay-program", db.stateDao().getActiveProgram()?.toActiveProgramState()?.programId)
++
++        val independentlyUpdated = checkNotNull(db.settingsDao().get()?.toSettings()).copy(
++            username = "Independent update",
++            equipmentAvailability = availabilityAfterCommit,
++        )
++        db.settingsDao().upsert(independentlyUpdated.toEntity())
++
++        val replayed = coordinator.commit(request)
++
++        val saved = checkNotNull(db.settingsDao().get()?.toSettings())
++        assertEquals(first, replayed)
++        assertEquals("Independent update", saved.username)
++        assertEquals(availabilityAfterCommit, saved.equipmentAvailability)
++        assertEquals(stock, saved.equipmentInventory)
++        assertEquals(1, db.programDao().getAll().size)
++        assertEquals(1, db.setupCommitReceiptDao().getAll().size)
++        assertEquals("availability-replay-program", db.stateDao().getActiveProgram()?.toActiveProgramState()?.programId)
++    }
++
+     @Test
+     fun trackingOnlyDeactivatesActiveNutritionWithoutNewGoalsSnapshotOrPlanDeletion() = runBlocking {
+         db.nutritionDao().upsertPlan(NutritionPlan(id = "previous-plan", name = "Previous", isActive = true).toEntity())

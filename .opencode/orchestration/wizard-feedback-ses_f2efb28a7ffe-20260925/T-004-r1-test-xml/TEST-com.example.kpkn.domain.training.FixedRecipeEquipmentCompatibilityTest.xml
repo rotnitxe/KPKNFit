@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-25T22:31:46.578Z" hostname="VF" time="0.061">
+  <properties/>
+  <testcase name="unverifiable_configuration_never_affirms_compatibility" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.001"/>
+  <testcase name="legacy_general_gym_keeps_the_previous_behaviour_without_missing_material" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.0"/>
+  <testcase name="empty_inventory_even_with_gym_admits_no_machine_kind" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.001"/>
+  <testcase name="broad_machine_availability_does_not_satisfy_an_authored_exact_machine_requirement" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.0"/>
+  <testcase name="cable_and_smith_stations_attest_only_their_station" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.001"/>
+  <testcase name="finite_material_without_general_gym_reports_exactly_what_is_missing" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.001"/>
+  <testcase name="helper_is_pure_and_keeps_the_author_recipe_intact" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.0"/>
+  <testcase name="declared_leg_curl_attests_only_itself_not_chest_press_or_leg_press" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.0"/>
+  <testcase name="support_dependency_is_required_and_satisfied_only_explicitly" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.0"/>
+  <testcase name="real_protocol_guard_separates_compatible_material_from_finite_empty" classname="com.example.kpkn.domain.training.FixedRecipeEquipmentCompatibilityTest" time="0.056"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.kpkn.data.models.EquipmentAvailabilityTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-25T22:31:23.575Z" hostname="VF" time="0.063">
+  <properties/>
+  <testcase name="null_and_explicit_empty_settings_availability_are_distinct_in_json" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.054"/>
+  <testcase name="categorical_projection_is_closed_exhaustive_and_never_invents_inventory_tokens" classname="com.example.kpkn.data.models.EquipmentAvailabilityTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

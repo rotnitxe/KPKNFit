@@ -1,0 +1,157 @@
+*** Begin Patch
+*** Update File: android-native/app/src/test/java/com/example/kpkn/domain/training/EffectiveEquipmentContractTest.kt
+@@
+ import com.example.kpkn.data.models.DumbbellPairStock
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
+ import com.example.kpkn.data.models.EquipmentInventory
+@@
+     fun sin_inventario_el_perfil_legacy_se_conserva_normalizado() {
+@@
+     }
++
++    @Test
++    fun explicit_availability_overrides_legacy_and_inventory_selection_evidence() {
++        val selectedMachine = EquipmentAvailability(setOf(EquipmentCategory.MACHINES))
++        val options = TrainingOptions(
++            inventory = EquipmentInventory(
++                machines = listOf(pressMachine().copy(configurationId = "press__machine")),
++            ),
++            availability = selectedMachine,
++        )
++
++        val effective = options.effectiveEquipment(setOf("general_gym", "barbell"))
++
++        assertEquals(setOf("bodyweight", "machine"), effective)
++        assertFalse("No general gym token", "general_gym" in effective)
++        assertFalse("No invented exact machine config", effective.any { it.startsWith("machine_config:") })
++    }
++
++    @Test
++    fun explicit_empty_availability_is_bodyweight_only_even_with_legacy_gym_and_stock() {
++        val settings = com.example.kpkn.data.models.Settings(
++            barbellWeight = 20.0,
++            equipmentInventory = EquipmentInventory(barbellWeightKg = 20.0),
++            equipmentAvailability = EquipmentAvailability(),
++        )
++        val stockSnapshot = settings.equipmentInventory
++        val options = TrainingOptions(
++            inventory = settings.equipmentInventory,
++            availability = settings.equipmentAvailability,
++        )
++
++        assertEquals(setOf("bodyweight"), options.effectiveEquipment(setOf("general_gym")))
++        assertEquals(stockSnapshot, settings.equipmentInventory)
++        assertEquals(20.0, settings.barbellWeight, 0.0)
++    }
+@@
+     fun only_declared_machine_configurations_are_generated() {
+@@
+     }
++
++    @Test
++    fun categorical_machines_select_native_variants_with_null_or_invalid_unrelated_stock() {
++        val input = homeInput.copy(
++            catalogEntryId = "native:machine-muscle",
++            equipment = setOf("general_gym"),
++        )
++        val availability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES))
++        val options = listOf(
++            TrainingOptions(availability = availability),
++            TrainingOptions(
++                inventory = EquipmentInventory(
++                    plates = listOf(PlateStock(weightKg = 10.0, countPerSide = null)),
++                ),
++                availability = availability,
++            ),
++        )
++
++        options.forEachIndexed { index, trainingOptions ->
++            val result = personalizer().personalize("category-machine-$index", input, trainingOptions)
++            val program = requireNotNull(result.program) {
++                "Máquinas debe seleccionar variantes KPKN con stock nulo/ajeno: ${result.report.limitations}"
++            }
++            val generatedIds = exercisesOf(program).mapNotNull { it.catalogConfigurationId }
++            assertTrue("Debe usar variantes máquina nativas", generatedIds.any { equipmentIdByConfig()[it] == "machine" })
++            assertNoEquipmentLeak(program, setOf("bodyweight", "machine"), "categoría máquinas")
++        }
++    }
+*** Update File: android-native/app/src/test/java/com/example/kpkn/domain/training/FixedRecipeEquipmentCompatibilityTest.kt
+@@
+ import com.example.kpkn.data.models.Block
++import com.example.kpkn.data.models.EquipmentAvailability
++import com.example.kpkn.data.models.EquipmentCategory
+@@
+     fun declared_leg_curl_attests_only_itself_not_chest_press_or_leg_press() {
+@@
+     }
++
++    @Test
++    fun broad_machine_availability_does_not_satisfy_an_authored_exact_machine_requirement() {
++        val authored = programWith(listOf("seated_leg_curl__bilateral__machine"))
++        val snapshot = authored.copy()
++        val categories = TrainingOptions(
++            availability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES)),
++        ).effectiveEquipment(setOf("general_gym"))
++
++        assertEquals(setOf("bodyweight", "machine"), categories)
++        assertEquals(
++            setOf("machine"),
++            missingFixedRecipeEquipment(authored, categories, catalog),
++        )
++        assertEquals("La guardia no relaja ni reescribe la receta autora", snapshot, authored)
++    }
+*** Update File: android-native/app/src/test/java/com/example/kpkn/data/models/SettingsEquipmentInventoryResolutionTest.kt
+@@
+ import com.example.kpkn.domain.training.PlanMaterializer
+ import com.example.kpkn.domain.training.WarmupLoadStatus
++import org.junit.Assert.assertFalse
+ import org.junit.Assert.assertEquals
+@@
+     fun null_inventory_keeps_legacy_barbell_and_unlimited_plate_compatibility() {
+@@
+         assertTrue(plan.entries.all { it.status == WarmupLoadStatus.READY })
+     }
++
++    @Test
++    fun category_only_settings_keep_loads_unknown_without_mutating_legacy_or_saved_stock() {
++        val legacyPlates = listOf(25.0, 20.0, 15.0)
++        val settings = Settings(
++            barbellWeight = 20.0,
++            availablePlates = legacyPlates,
++            equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.BARBELL)),
++        )
++
++        val resolved = settings.resolvedEquipmentInventory()
++        val warmupPlan = PlanMaterializer.realizeWarmupLoads(
++            warmups = warmups,
++            workingLoadKg = 100.0,
++            inventory = resolved,
++            equipmentKind = "barbell",
++            deduplicate = false,
++        )
++
++        assertEquals(EquipmentInventory(), resolved)
++        assertTrue(warmupPlan.entries.all { it.status == WarmupLoadStatus.PENDING_PERCENT })
++        assertTrue(warmupPlan.entries.all { it.realizedKg == null })
++        assertEquals(20.0, settings.barbellWeight, 0.0)
++        assertEquals(legacyPlates, settings.availablePlates)
++        assertNull(settings.equipmentInventory)
++    }
++
++    @Test
++    fun explicit_numeric_stock_still_wins_over_categorical_availability() {
++        val stock = EquipmentInventory(
++            barbellWeightKg = 15.0,
++            plates = listOf(PlateStock(weightKg = 10.0, countPerSide = 2)),
++        )
++        val resolved = Settings(
++            equipmentInventory = stock,
++            equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.MACHINES)),
++        ).resolvedEquipmentInventory()
++
++        assertEquals(stock, resolved)
++        assertFalse(resolved.plates.any { it.countPerSide == null })
++    }
+ }
+*** End Patch

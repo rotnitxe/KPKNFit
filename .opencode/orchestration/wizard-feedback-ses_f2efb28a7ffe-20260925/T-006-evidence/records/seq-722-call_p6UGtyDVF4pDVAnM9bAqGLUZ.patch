@@ -1,0 +1,75 @@
+*** Begin Patch
+*** Update File: android-native/app/src/test/java/com/example/kpkn/screens/onboarding/SetupAvailabilitySeedTest.kt
+@@
+ import com.example.kpkn.data.models.EquipmentCategory
+ import com.example.kpkn.data.models.NutritionPlan
++import com.example.kpkn.data.models.Program
+ import com.example.kpkn.data.models.Settings
+ import com.example.kpkn.data.onboarding.SetupDraft
+ import com.example.kpkn.data.onboarding.SetupDraftCandidate
+ import com.example.kpkn.data.onboarding.SetupDraftScope
++import com.example.kpkn.data.onboarding.SetupPatchField
++import com.example.kpkn.data.onboarding.SetupSettingsPatch
+ import com.example.kpkn.domain.onboarding.SetupChangeDetector
+ import com.example.kpkn.domain.onboarding.SetupChangeSource
+ import com.example.kpkn.domain.onboarding.SetupPreviewKind
++import com.example.kpkn.domain.onboarding.RingsCompletion
++import com.example.kpkn.domain.onboarding.SetupRingsMapping
+ import com.example.kpkn.domain.onboarding.SetupStepId
+@@
+         assertEquals(suggested, draft.trainingOptions.availability)
+         assertFalse(SetupStepId.HOME_EQUIPMENT in draft.declaredSteps)
+         assertFalse(draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
++        assertEquals(
++            SetupPatchField.Unchanged,
++            buildSettingsPatch(vm, draft, Settings(equipmentAvailability = suggested)).equipmentAvailability,
++        )
+     }
++
++    @Test
++    fun settings_patch_keeps_unanswered_null_and_persists_explicit_none() {
++        val vm = viewModel(Settings())
++        val unanswered = SetupWizardDraft()
++        val selectedNone = unanswered.copy(
++            trainingOptions = SetupTrainingOptions(availability = EquipmentAvailability()),
++        ).touchStep(SetupStepId.HOME_EQUIPMENT)
++
++        assertEquals(
++            SetupPatchField.Unchanged,
++            buildSettingsPatch(vm, unanswered, Settings()).equipmentAvailability,
++        )
++        assertEquals(
++            SetupPatchField.Set(EquipmentAvailability()),
++            buildSettingsPatch(vm, selectedNone, Settings()).equipmentAvailability,
++        )
++    }
+@@
+     private fun viewModel(settings: Settings): SetupWizardViewModel =
+@@
+         ).also { viewModels.put("availability-${viewModels.hashCode()}-${System.identityHashCode(it)}", it) }
++
++    private fun buildSettingsPatch(
++        viewModel: SetupWizardViewModel,
++        draft: SetupWizardDraft,
++        base: Settings,
++    ): SetupSettingsPatch {
++        val builder = SetupWizardViewModel::class.java.getDeclaredMethod(
++            "buildSettingsPatch",
++            Settings::class.java,
++            SetupWizardDraft::class.java,
++            Program::class.java,
++            NutritionPlan::class.java,
++            SetupRingsMapping::class.java,
++            Boolean::class.javaPrimitiveType,
++        ).apply { isAccessible = true }
++        return builder.invoke(
++            viewModel,
++            base,
++            draft,
++            null,
++            null,
++            SetupRingsMapping(RingsCompletion.UNKNOWN),
++            false,
++        ) as SetupSettingsPatch
++    }
+*** End Patch

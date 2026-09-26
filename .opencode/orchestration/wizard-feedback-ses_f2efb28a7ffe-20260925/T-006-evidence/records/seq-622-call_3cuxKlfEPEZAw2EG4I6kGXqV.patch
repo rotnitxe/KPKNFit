@@ -1,0 +1,99 @@
+*** Begin Patch
+*** Update File: android-native/app/src/main/java/com/example/kpkn/data/models/EquipmentAvailability.kt
+@@
+ @Serializable
+-enum class EquipmentCategory(val canonicalToken: String) {
+-    BARBELL("barbell"),
+-    DUMBBELLS("dumbbells"),
+-    KETTLEBELL("kettlebell"),
+-    MACHINES("machine"),
+-    CABLE("cable"),
+-    SMITH_MACHINE("smith_machine"),
+-    BAND("band"),
+-    SUPPORT("support"),
+-    PULL_UP_BAR("pull_up_bar"),
+-    BALL("ball"),
+-    CARDIO("cardio"),
++enum class EquipmentCategory {
++    BARBELL,
++    DUMBBELLS,
++    KETTLEBELL,
++    MACHINES,
++    CABLE,
++    SMITH_MACHINE,
++    BAND,
++    SUPPORT,
++    PULL_UP_BAR,
++    BALL,
++    CARDIO,
+ }
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/TrainingOptions.kt
+@@
+             add(KIND_BODYWEIGHT)
+             EquipmentCategory.entries.forEach { category ->
+-                if (category in declaredAvailability.categories) add(category.canonicalToken)
++                if (category in declaredAvailability.categories) add(category.canonicalToken())
+             }
+@@
+ }
++
++private fun EquipmentCategory.canonicalToken(): String = when (this) {
++    EquipmentCategory.BARBELL -> KIND_BARBELL
++    EquipmentCategory.DUMBBELLS -> KIND_DUMBBELLS
++    EquipmentCategory.KETTLEBELL -> KIND_KETTLEBELL
++    EquipmentCategory.MACHINES -> KIND_MACHINE
++    EquipmentCategory.CABLE -> KIND_CABLE
++    EquipmentCategory.SMITH_MACHINE -> KIND_SMITH
++    EquipmentCategory.BAND -> KIND_BAND
++    EquipmentCategory.SUPPORT -> "support"
++    EquipmentCategory.PULL_UP_BAR -> "pull_up_bar"
++    EquipmentCategory.BALL -> "ball"
++    EquipmentCategory.CARDIO -> "cardio"
++}
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/TrainingOptions.kt
+@@
+- * - **Aprobar ejercicios de máquina exige el token** (o inventario null):
+- *   `machine_config:<configurationId>` es lo único que desbloquea UNA máquina
+- *   concreta (leg curl ≠ chest press ≠ prensa); `equipmentKind = machine` sin
+- *   `configurationId` no aprueba nada. El control vive en
+- *   `SimpleCyclePersonalizer.equipmentAllows` (con `inventory != null`) y en
+- *   `missingFixedRecipeEquipment`: esta API solo expone hechos del inventario.
++ * - **Selección nativa categórica** permite variantes aprobadas `machine` sin
++ *   afirmar una configuración concreta. En modo inventario legacy,
++ *   `machine_config:<configurationId>` es lo único que desbloquea UNA máquina
++ *   concreta (leg curl ≠ chest press ≠ prensa). Las recetas fijas conservan su
++ *   guardia exacta en `missingFixedRecipeEquipment`.
+@@
+- * - Con `inventory == null` se devuelve el perfil intacto (compatibilidad
+- *   legacy exacta, incluido `general_gym` y el kind `machine` de chip).
++ * - Con `availability == null` y `inventory == null` se devuelve el perfil
++ *   intacto (compatibilidad legacy exacta, incluido `general_gym` y `machine`).
+*** Update File: android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt
+@@
+         val lookup = ready.catalog.toLegacyConfigurationLookup()
+         val compositionMetadata = CatalogCompositionMetadataProvider.fromCatalog(ready.catalog)
+         val pools = curatedPools()
+         val allowedIds = pools.values.flatten().toSet()
++        val requireExactMachineConfiguration = options.availability == null && options.inventory != null
+         val candidates = ready.catalog.families.flatMap { it.definitions }.flatMap { definition ->
+             definition.configurations.mapNotNull { configuration ->
+                 if (configuration.id !in allowedIds || configuration.evidence.reviewStatus != CatalogReviewStatusV2.APPROVED) return@mapNotNull null
+-                val requireExactMachineConfiguration = options.availability == null && options.inventory != null
+                 if (!equipmentAllows(configuration, equipment, entry.sourceId, requireExactMachineConfiguration)) return@mapNotNull null
+*** Update File: android-native/app/src/main/java/com/example/kpkn/data/models/Settings.kt
+@@
+         if (equipmentAvailability != null) return EquipmentInventory()
+         return EquipmentInventory(
+-                barbellWeightKg = barbellWeight.takeIf { it.isFinite() && it > 0.0 },
+-                plates = availablePlates.mapNotNull { weightKg ->
+-                    weightKg.takeIf { it.isFinite() && it > 0.0 }
+-                        ?.let { PlateStock(weightKg = it, countPerSide = null) }
+-                },
+-            )
++            barbellWeightKg = barbellWeight.takeIf { it.isFinite() && it > 0.0 },
++            plates = availablePlates.mapNotNull { weightKg ->
++                weightKg.takeIf { it.isFinite() && it > 0.0 }
++                    ?.let { PlateStock(weightKg = it, countPerSide = null) }
++            },
++        )
+*** End Patch
