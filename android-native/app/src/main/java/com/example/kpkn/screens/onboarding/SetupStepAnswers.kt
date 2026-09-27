@@ -332,7 +332,7 @@ private fun SetupWizardDraft.projectChoice(
         val neededGroups = if (environmentChanged) {
             copy(trainingEnvironment = value).inventoryGroups().map(SetupStepDefinitions::stepOf).toSet()
         } else emptySet()
-        val availability = when (value) {
+        val preset = when (value) {
             "gym", "Gimnasio completo" -> EquipmentAvailability(EquipmentCategory.entries.toSet())
             "machines", "Principalmente máquinas" -> EquipmentAvailability(
                 setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS),
@@ -340,6 +340,19 @@ private fun SetupWizardDraft.projectChoice(
             "none", "Sin material" -> EquipmentAvailability(emptySet())
             else -> null
         }
+        // Mismo entorno + material ya presente = NO es un entorno nuevo: el
+        // material declarado manda y re-pulsar la tarjeta no puede re-sembrar
+        // el preset (ni ampliar lo confirmado ni borrar un vacío explícito).
+        // El preset solo siembra cuando el entorno cambia de verdad o cuando
+        // aún no había material (el borrador restaurado sin valor).
+        val keepsDeclaredAvailability = !environmentChanged && trainingOptions.availability != null
+        val availability = if (keepsDeclaredAvailability) trainingOptions.availability else preset
+        // Si una semilla recién creada desde «sin material» produce un valor no
+        // nulo, la confirmación previa de AVAILABILITY queda obsoleta igual: un
+        // registro viejo nunca puede confirmar un valor que no describía.
+        val seedsFromMissing = !environmentChanged &&
+            trainingOptions.availability == null && availability != null
+        val availabilityInvalidated = environmentChanged || seedsFromMissing
         copy(
             trainingEnvironment = value,
             equipment = when (value) {
@@ -348,8 +361,22 @@ private fun SetupWizardDraft.projectChoice(
                 else -> emptySet()
             },
             trainingOptions = trainingOptions.copy(availability = availability),
-            stepSelections = if (environmentChanged) stepSelections - SetupStepId.AVAILABILITY else stepSelections,
-            stepProgress = if (neededGroups.isNotEmpty()) stepProgress.withPendingReview(neededGroups) else stepProgress,
+            stepSelections = if (availabilityInvalidated) stepSelections - SetupStepId.AVAILABILITY else stepSelections,
+            // La semilla de AVAILABILITY es de OTRO material: su confirmación
+            // queda obsoleta y, sin este retiro, la semilla nueva se guardaría
+            // como si el usuario la hubiera confirmado. Se retira solo ese paso
+            // (respuesta y marca de declaración); el resto del borrador intacto.
+            stepProgress = if (availabilityInvalidated) {
+                val withoutAvailability = stepProgress.copy(
+                    answers = stepProgress.answers - SetupStepId.AVAILABILITY,
+                )
+                if (neededGroups.isNotEmpty()) withoutAvailability.withPendingReview(neededGroups) else withoutAvailability
+            } else if (neededGroups.isNotEmpty()) {
+                stepProgress.withPendingReview(neededGroups)
+            } else {
+                stepProgress
+            },
+            declaredSteps = if (availabilityInvalidated) declaredSteps - SetupStepId.AVAILABILITY else declaredSteps,
         )
     }
 
@@ -602,8 +629,7 @@ private fun rebuildVolumeProfile(answers: SetupVolumeAnswers): VolumeCalibration
             consistency,
             strength,
             mobility,
-            answers.responseState.takeIf { it != CalibrationResponseState.UNKNOWN }
-                ?: CalibrationResponseState.DECLARED,
+            answers.responseState,
         ),
         output.recommendations,
         System.currentTimeMillis(),

@@ -45,6 +45,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: Cada rodilla flexiona y extiende de forma unilateral sobre la diagonal que marca la barra a horcajadas, con un extremo al frente y otro atrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende al subir y conserva el control frontal de la pelvis mientras la barra a horcajadas obliga a un descenso que viaja en diagonal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo trabaja la dorsiflexión y el equilibrio durante el descenso diagonal, con la barra a horcajadas y un extremo al frente y otro atrás.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y columna en la postura asimétrica de la barra a horcajadas, con el descenso viajando en diagonal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_asymmetric",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps frena el descenso diagonal con la barra a horcajadas y un extremo al frente y otro atrás, y extiende las rodillas en la subida."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores ayudan a dirigir las rodillas en la postura a horcajadas, con la barra entre las piernas y el descenso viajando en diagonal."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor ayuda a extender la cadera al subir desde el descenso diagonal, con la barra a horcajadas repartiendo la carga entre los dos lados."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_jefferson__barbell__sentadilla_jefferson",
               "primaryMuscles": [
                 "quadriceps"
@@ -94,6 +112,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: Cada rodilla flexiona y extiende de forma unilateral sobre la diagonal que marca la barra a horcajadas, con un extremo al frente y otro atrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende al subir y conserva el control frontal de la pelvis mientras la barra a horcajadas obliga a un descenso que viaja en diagonal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo trabaja la dorsiflexión y el equilibrio durante el descenso diagonal, con la barra a horcajadas y un extremo al frente y otro atrás.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y columna en la postura asimétrica de la barra a horcajadas, con el descenso viajando en diagonal.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -228,8 +228,7 @@ object SetupDraftCompatibility {
             output.score,
             com.example.kpkn.data.models.VolumeCalibrationResponses(
                 technique, consistency, strength, mobility,
-                answers.responseState.takeIf { it != com.example.kpkn.data.models.CalibrationResponseState.UNKNOWN }
-                    ?: com.example.kpkn.data.models.CalibrationResponseState.DECLARED,
+                answers.responseState,
             ),
             output.recommendations,
             System.currentTimeMillis(),

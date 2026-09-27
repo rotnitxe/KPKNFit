@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla alterna flexión y extensión con el peso corporal; el balón sujeto entre los pies obliga a un control continuo y simétrico de ambas piernas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la flexión y la extensión con la pelvis elevada; sostener el balón entre los pies exige que la línea de cada pierna permanezca estable.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control mientras los pies sujetan el balón; el peso corporal es la única resistencia del recorrido bilateral.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado boca arriba y la pelvis elevada mientras el balón viaja hacia los glúteos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "knee_hip_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Con peso corporal, boca arriba y las pantorrillas sobre el balón, los isquiosurales flexionan ambas rodillas de forma concéntrica y frenan el retorno del balón."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor sostiene la cadera extendida con la pelvis elevada mientras los talones acercan el balón, sin carga externa que guíe el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco tumbado boca arriba e impide que la pelvis se hunda mientras el balón queda sujeto entre los pies por el peso corporal."
+                }
+              ],
               "performanceProfileId": "curl_isquios_con_balon__bodyweight__curl_de_isquiosurales_con_balón",
               "primaryMuscles": [
                 "hamstrings"
@@ -93,6 +111,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla alterna flexión y extensión con el peso corporal; el balón sujeto entre los pies obliga a un control continuo y simétrico de ambas piernas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +119,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la flexión y la extensión con la pelvis elevada; sostener el balón entre los pies exige que la línea de cada pierna permanezca estable.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +127,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control mientras los pies sujetan el balón; el peso corporal es la única resistencia del recorrido bilateral.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +135,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado boca arriba y la pelvis elevada mientras el balón viaja hacia los glúteos.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -336,6 +358,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona deslizando los pies hacia el cuerpo y extiende con frenado excéntrico; los sliders imponen un recorrido lento y bilateral sin carga externa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -343,6 +366,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende con la pelvis alta; al no existir apoyo fijo, la estabilidad de la posición depende por completo del control de esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -350,6 +374,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control sobre los sliders; los pies presionan los discos en todo el recorrido con el peso corporal como carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -357,6 +382,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar estabiliza el tronco extendido y la pelvis alta mientras los pies deslizan, sin máquina ni banco que sujete la posición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -364,6 +390,16 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight_with_sliding_resistance",
               "movementPatternId": "knee_hip_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Con los pies sobre los sliders y el cuerpo extendido, los isquiosurales flexionan ambas rodillas de forma concéntrica y frenan el deslizamiento al volver."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor mantiene la cadera alta y acompaña la extensión mientras los pies deslizan hacia el cuerpo con solo el rozamiento como resistencia."
+                }
+              ],
               "performanceProfileId": "curl_isquios_con_sliders__sliders__curl_de_isquiosurales_con_sliders",
               "primaryMuscles": [
                 "hamstrings"
@@ -384,6 +420,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona deslizando los pies hacia el cuerpo y extiende con frenado excéntrico; los sliders imponen un recorrido lento y bilateral sin carga externa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -391,6 +428,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende con la pelvis alta; al no existir apoyo fijo, la estabilidad de la posición depende por completo del control de esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -398,6 +436,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control sobre los sliders; los pies presionan los discos en todo el recorrido con el peso corporal como carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -405,6 +444,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar estabiliza el tronco extendido y la pelvis alta mientras los pies deslizan, sin máquina ni banco que sujete la posición.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -623,6 +663,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco contra el banco tumbado; la máquina fija la cadera y la carga guiada se reparte entre las dos piernas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -630,6 +671,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Tumbado en la máquina con ambas piernas, los isquiosurales flexionan las rodillas contra la almohadilla y frenan de forma excéntrica la vuelta guiada."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor mantiene la cadera extendida contra el banco de la máquina mientras las dos piernas elevan la carga de forma simultánea."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla con la punta del pie bajo la almohadilla; la máquina guía ese apoyo por igual en las dos piernas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco pegado al banco tumbado e impide el arqueo lumbar mientras ambas piernas trabajan contra la carga guiada de la máquina."
+                }
+              ],
               "performanceProfileId": "lying_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -648,6 +707,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco contra el banco tumbado; la máquina fija la cadera y la carga guiada se reparte entre las dos piernas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -851,6 +911,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera y concentra la resistencia en ese lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -858,6 +919,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Tumbado en la máquina con una pierna, el isquiosurial de ese lado flexiona la rodilla de forma concéntrica y frena la vuelta guiada sin ayuda del otro lado."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor sostiene la cadera extendida contra el banco mientras una sola pierna trabaja, lo que deja al descubierto las diferencias entre lados."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del lado trabajado; el recorrido guiado de la máquina mantiene la punta de ese pie bajo control unilateral."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco tumbado y contrarresta la carga unilateral de la máquina, que concentra todo el esfuerzo en una sola pierna."
+                }
+              ],
               "performanceProfileId": "lying_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -876,6 +955,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera y concentra la resistencia en ese lado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1079,6 +1159,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene el tronco contra la tracción continua de la polea; la cadera queda fija por el apoyo mientras ambas piernas flexionan.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1086,6 +1167,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Tumbado con polea y ambas piernas, los isquiosurales flexionan las rodillas contra la tensión constante y frenan de forma excéntrica el retorno de la polea."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor estabiliza la cadera sobre el apoyo mientras la polea tira sin pausa y las dos piernas comparten la resistencia continua."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla colabora en la flexión de rodilla con la punta enganchada; la polea mantiene la tensión en ambos lados durante todo el arco de movimiento."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco tumbado frente a la tracción constante de la polea, que no ofrece ningún punto de descanso para las dos piernas."
+                }
+              ],
               "performanceProfileId": "lying_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1104,6 +1203,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene el tronco contra la tracción continua de la polea; la cadera queda fija por el apoyo mientras ambas piernas flexionan.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1307,6 +1407,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; la cadera permanece fija sobre el apoyo del banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1314,6 +1415,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Tumbado con polea y una pierna, el isquiosurial de ese lado flexiona la rodilla contra la tensión continua y frena el retorno sin ayuda del lado contrario."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor mantiene la cadera quieta sobre el apoyo mientras una sola pierna tira de la polea, una situación útil para igualar el trabajo entre lados."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del lado enganchado a la polea, donde la tensión constante no cede ni en la subida ni en la bajada."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core contrarresta la tracción unilateral de la polea y mantiene el tronco tumbado sin que la pelvis rote hacia el lado cargado."
+                }
+              ],
               "performanceProfileId": "lying_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1332,6 +1451,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; la cadera permanece fija sobre el apoyo del banco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1535,6 +1655,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado sin máquina que guíe el recorrido; el peso libre entre los pies exige más control de la cadera.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1542,6 +1663,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Tumbado con una mancuerna sujeta entre los pies, los isquiosurales flexionan ambas rodillas levantando el peso libre y frenan su descenso de forma excéntrica."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor sostiene la cadera extendida contra el apoyo mientras ambos pies sujetan la mancuerna, sin guía mecánica que marque la trayectoria."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco tumbado frente al peso libre, cuya línea inestable obliga a las dos piernas a sujetar la mancuerna entre los pies en todo momento."
+                }
+              ],
               "performanceProfileId": "lying_leg_curl__dumbbells__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1560,6 +1695,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado sin máquina que guíe el recorrido; el peso libre entre los pies exige más control de la cadera.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1761,6 +1897,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con el peso libre colgando de un solo pie; la cadera de ese lado asume todo el control del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1768,6 +1905,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Tumbado con una mancuerna sujeta por un pie, el isquiosurial de esa pierna flexiona la rodilla levantando el peso libre y controla el descenso sin guía externa."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor estabiliza la cadera del lado cargado mientras un solo pie sostiene la mancuerna, sin ayuda del otro lado ni recorrido prefijado."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco plano y contrarresta la mancuerna libre colocada en un solo pie, que tiende a rotar la pelvis hacia el lado cargado."
+                }
+              ],
               "performanceProfileId": "lying_leg_curl__dumbbells__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1786,6 +1937,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con el peso libre colgando de un solo pie; la cadera de ese lado asume todo el control del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2015,6 +2167,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco apoyada en el respaldo; la máquina fija el muslo sentado y ambas piernas flexionan con recorrido guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2022,6 +2175,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Sentado en la máquina con ambas piernas, los isquiosurales flexionan las rodillas llevando los talones por debajo del asiento contra la almohadilla guiada."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core acompaña la estabilidad del tronco contra el respaldo mientras las dos piernas empujan la almohadilla de la máquina de forma simultánea."
+                }
+              ],
               "performanceProfileId": "seated_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2040,6 +2203,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco apoyada en el respaldo; la máquina fija el muslo sentado y ambas piernas flexionan con recorrido guiado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2237,6 +2401,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado con una sola pierna cargada; la máquina fija el muslo y concentra el recorrido en ese lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2244,6 +2409,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Sentado en la máquina con una pierna, el isquiosurial de ese lado flexiona la rodilla contra la almohadilla y frena de forma excéntrica el retorno guiado."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco contra el respaldo mientras una sola pierna empuja la almohadilla, sin que la carga se reparta hacia el lado contrario."
+                }
+              ],
               "performanceProfileId": "seated_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2262,6 +2437,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado con una sola pierna cargada; la máquina fija el muslo y concentra el recorrido en ese lado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2459,6 +2635,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado frente a la polea; el muslo queda fijo por el asiento y ambas piernas flexionan con tensión constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2466,6 +2643,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Sentado con polea y ambas piernas, los isquiosurales flexionan las rodillas contra la tensión constante, que no cede ni en la subida ni en la bajada."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco sentado frente a la tracción continua de la polea mientras las dos piernas comparten la resistencia del cable."
+                }
+              ],
               "performanceProfileId": "seated_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2484,6 +2671,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado frente a la polea; el muslo queda fijo por el asiento y ambas piernas flexionan con tensión constante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2681,6 +2869,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; el asiento y el respaldo fijan el muslo de ese lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2688,6 +2877,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Sentado con polea y una pierna, el isquiosurial de ese lado flexiona la rodilla con tensión continua y frena el retorno sin apoyo de la otra pierna."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core contrarresta la tracción de la polea sobre un solo lado y mantiene el tronco sentado frente al respaldo sin rotar la pelvis."
+                }
+              ],
               "performanceProfileId": "seated_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2706,6 +2905,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; el asiento y el respaldo fijan el muslo de ese lado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2931,6 +3131,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la máquina fija la cadera y la resistencia guiada acompaña la flexión de ambas rodillas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2938,6 +3139,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: De pie en la máquina con ambas piernas, los isquiosurales flexionan las rodillas llevando los talones hacia atrás contra la resistencia guiada del aparato."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla con la punta del pie apoyada en la máquina; de pie, ese apoyo acompaña por igual a las dos piernas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco erguido mientras la máquina guía la flexión de rodilla, con el peso corporal repartido sobre la base de apoyo de pie."
+                }
+              ],
               "performanceProfileId": "standing_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2956,6 +3171,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la máquina fija la cadera y la resistencia guiada acompaña la flexión de ambas rodillas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3157,6 +3373,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera de ese lado y la otra pierna hace de apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3164,6 +3381,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: De pie en la máquina con una pierna, el isquiosurial de ese lado flexiona la rodilla llevando el talón hacia atrás contra la resistencia guiada del aparato."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del lado trabajado, con la punta del pie en la máquina mientras la pierna libre sostiene la postura de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco erguido frente a la carga unilateral de la máquina, que concentra el esfuerzo en una sola pierna y exige equilibrio de pie."
+                }
+              ],
               "performanceProfileId": "standing_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3182,6 +3413,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera de ese lado y la otra pierna hace de apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3383,6 +3615,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la polea tira de ambos tobillos y la cadera sostiene la postura durante la flexión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3390,6 +3623,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: De pie con polea y ambos tobillos enganchados, los isquiosurales flexionan las rodillas contra la tensión constante y frenan el retorno del cable."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla con los tobillos enganchados a la polea, donde la tensión constante acompaña a los dos lados sin pausas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco erguido frente a la tracción de la polea, que tira de ambos tobillos sin ofrecer descanso en ningún punto del recorrido."
+                }
+              ],
               "performanceProfileId": "standing_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3408,6 +3655,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la polea tira de ambos tobillos y la cadera sostiene la postura durante la flexión.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3609,6 +3857,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de un solo tobillo; la cadera de apoyo mantiene la postura de pie.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3616,6 +3865,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: De pie con polea y un solo tobillo enganchado, el isquiosurial de ese lado flexiona la rodilla contra la tensión continua y controla el retorno del cable."
+                },
+                {
+                  "muscleId": "calves",
+                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del tobillo enganchado, con tensión constante mientras la pierna libre sostiene la postura de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core contrarresta la tracción de la polea sobre un solo tobillo y mantiene el tronco erguido sin dejar que la pelvis rote hacia el lado cargado."
+                }
+              ],
               "performanceProfileId": "standing_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3634,6 +3897,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de un solo tobillo; la cadera de apoyo mantiene la postura de pie.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -45,6 +45,7 @@
                     "Rotación"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Principal: La rotación torácica gira el tronco en diagonal de arriba abajo con la cuerda de la polea alta, con el pecho más móvil que la pelvis en el gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Limitación De Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar limita la rotación que la polea alta induce, de modo que el giro se concentra en la caja torácica y no arrastra la espalda baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Acompañamiento"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera acompaña la rotación del tronco con la polea alta, dejando que pie y pelvis orienten el giro sin perder la base de apoyo del cuerpo.",
                   "role": "SECONDARY"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "trunk_rotation",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: Con la polea alta, el abdomen dirige la rotación diagonal del tronco de arriba abajo y frena el retorno de la cuerda hacia el anclaje en cada repetición."
+                }
+              ],
               "performanceProfileId": "core_lenador_polea__cable__lenador_en_polea",
               "primaryMuscles": [
                 "abdominals"
@@ -86,6 +95,7 @@
                         "Rotación"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Principal: La rotación torácica gira el tronco en diagonal de arriba abajo con la cuerda de la polea alta, con el pecho más móvil que la pelvis en el gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Limitación De Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar limita la rotación que la polea alta induce, de modo que el giro se concentra en la caja torácica y no arrastra la espalda baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Acompañamiento"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera acompaña la rotación del tronco con la polea alta, dejando que pie y pelvis orienten el giro sin perder la base de apoyo del cuerpo.",
                       "role": "SECONDARY"
                     }
                   ],

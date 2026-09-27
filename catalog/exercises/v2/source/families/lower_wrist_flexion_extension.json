@@ -45,6 +45,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca alterna flexión y extensión para girar el rodillo y enrollar la cuerda, con la carga colgante tensando cada giro hasta el final del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo aporta estabilidad con los brazos extendidos ante el rodillo, sin doblarse mientras las muñecas giran la cuerda y la carga tira hacia abajo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo en cada giro del rodillo, alternando la rotación de la mano mientras la cuerda enrolla la carga colgante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo trabaja sin descanso mientras la cuerda se enrolla en el rodillo: flexiona y extiende la muñeca giro a giro hasta subir la carga colgante."
+                }
+              ],
               "performanceProfileId": "forearms_enrollamiento_muneca_rodillo__wrist_roller__enrollamiento_de_muneca_con_rodillo_y_cuerda",
               "primaryMuscles": [
                 "forearm"
@@ -86,6 +95,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca alterna flexión y extensión para girar el rodillo y enrollar la cuerda, con la carga colgante tensando cada giro hasta el final del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo aporta estabilidad con los brazos extendidos ante el rodillo, sin doblarse mientras las muñecas giran la cuerda y la carga tira hacia abajo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo en cada giro del rodillo, alternando la rotación de la mano mientras la cuerda enrolla la carga colgante.",
                       "role": "STABILIZER"
                     }
                   ],

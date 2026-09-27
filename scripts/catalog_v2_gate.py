@@ -165,7 +165,6 @@ EXPECTED_AXIS_ORDER = {
         "implement"
     ],
     "tate_press": [
-        "implement"
     ],
     "arnold_press": [
         "implement"

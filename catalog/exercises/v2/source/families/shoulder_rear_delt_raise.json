@@ -45,6 +45,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción del hombro abre los brazos hacia atrás en el plano horizontal con las mancuernas, con el torso paralelo al suelo y recorrido libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la apertura de los brazos con mancuernas y sostiene el recorrido con el torso paralelo al suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la apertura y el regreso de los brazos con mancuernas y el torso inclinado, sin guía de trayectoria externa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras las mancuernas abren los brazos, sin llegar a cerrarse ni a bloquearse por completo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con mancuernas y el torso paralelo al suelo, el deltoide posterior abre cada brazo hacia atrás y frena el regreso para conservar la tensión."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras las mancuernas se abren, con el torso inclinado y cada brazo por separado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides retraen la escápula cuando las mancuernas se abren hacia atrás, con el torso inclinado y la carga repartida entre las dos manos."
+                }
+              ],
               "performanceProfileId": "rear_delt_raise__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +112,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción del hombro abre los brazos hacia atrás en el plano horizontal con las mancuernas, con el torso paralelo al suelo y recorrido libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la apertura de los brazos con mancuernas y sostiene el recorrido con el torso paralelo al suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la apertura y el regreso de los brazos con mancuernas y el torso inclinado, sin guía de trayectoria externa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras las mancuernas abren los brazos, sin llegar a cerrarse ni a bloquearse por completo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -318,6 +340,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción del hombro abre los brazos contra la línea del cable, que conserva la carga activa en todo el arco horizontal del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -325,6 +348,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la apertura contra el cable y sostiene el recorrido con tensión constante en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -332,6 +356,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la apertura y el regreso con el cable tirando, sin el descanso que la gravedad ofrece con las mancuernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -339,6 +364,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras el cable tira de los brazos abiertos, y la carga no ofrece descanso en ningún punto del arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -346,6 +372,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con polea, el deltoide posterior abre los brazos hacia atrás y encuentra tensión también cerca de la contracción, cuando la carga se acerca al cuerpo."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras el cable tira en la apertura, con el torso inclinado y la tensión siempre activa."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides retraen la escápula bajo la tracción constante del cable, con los brazos ya abiertos hacia atrás y la carga todavía activa."
+                }
+              ],
               "performanceProfileId": "rear_delt_raise__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -367,6 +407,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción del hombro abre los brazos contra la línea del cable, que conserva la carga activa en todo el arco horizontal del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -374,6 +415,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la apertura contra el cable y sostiene el recorrido con tensión constante en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -381,6 +423,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la apertura y el regreso con el cable tirando, sin el descanso que la gravedad ofrece con las mancuernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -388,6 +431,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras el cable tira de los brazos abiertos, y la carga no ofrece descanso en ningún punto del arco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -591,6 +635,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción del hombro abre los brazos por el camino fijo que fija la máquina, con el torso inclinado y la carga sin dirigir a mano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -598,6 +643,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la trayectoria guiada de la máquina y sostiene el recorrido horizontal que ella misma fija.",
                   "role": "SECONDARY"
                 },
                 {
@@ -605,6 +651,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña cada repetición en la máquina, donde el brazo recorre una línea predeterminada hacia atrás con el torso inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -612,6 +659,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo conserva una extensión relativa sobre el recorrido que fija la máquina, con el brazo abierto hacia atrás y el torso inclinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -619,6 +667,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: En la máquina de deltoides posterior, la trayectoria guiada concentra el esfuerzo en la cara posterior del hombro al abrir los brazos hacia atrás."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras la máquina guía la apertura de los brazos con el torso inclinado sobre el apoyo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ajustan la escápula durante la apertura guiada de la máquina, con la carga siguiendo una trayectoria fija hacia atrás del torso."
+                }
+              ],
               "performanceProfileId": "rear_delt_raise__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -640,6 +702,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción del hombro abre los brazos por el camino fijo que fija la máquina, con el torso inclinado y la carga sin dirigir a mano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -647,6 +710,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la trayectoria guiada de la máquina y sostiene el recorrido horizontal que ella misma fija.",
                       "role": "SECONDARY"
                     },
                     {
@@ -654,6 +718,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña cada repetición en la máquina, donde el brazo recorre una línea predeterminada hacia atrás con el torso inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -661,6 +726,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo conserva una extensión relativa sobre el recorrido que fija la máquina, con el brazo abierto hacia atrás y el torso inclinado.",
                       "role": "STABILIZER"
                     }
                   ],

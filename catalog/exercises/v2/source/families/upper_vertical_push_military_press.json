@@ -45,6 +45,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la barra desde los hombros hacia arriba con los dos brazos a la vez, en recorrido libre y con el cuerpo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la barra por encima de la cabeza, con el tronco de pie y la carga repartida entre ambas manos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje de la barra, que obliga a ambos brazos a bloquear a la vez con el cuerpo de pie bajo la carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar ofrece una base estable al empuje de pie con barra, con el tronco firme cuando la carga pasa por encima de la cabeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la barra sobre los hombros y el cuerpo de pie, el deltoide eleva la carga bilateral hasta el bloqueo con el tronco firme y sin inclinar el torso atrás."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para cerrar el empuje de la barra, con los dos brazos subiendo a la vez y el cuerpo de pie bajo la carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie mientras la barra asciende, con la espalda baja ofreciendo una base que no se arquea para ganar altura."
+                }
+              ],
               "performanceProfileId": "military_press__barbell__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +112,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la barra desde los hombros hacia arriba con los dos brazos a la vez, en recorrido libre y con el cuerpo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la barra por encima de la cabeza, con el tronco de pie y la carga repartida entre ambas manos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje de la barra, que obliga a ambos brazos a bloquear a la vez con el cuerpo de pie bajo la carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar ofrece una base estable al empuje de pie con barra, con el tronco firme cuando la carga pasa por encima de la cabeza.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -318,6 +340,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva cada mancuerna desde su hombro con recorrido libre, dejando que el brazo elija su línea natural con el cuerpo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -325,6 +348,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de cada mancuerna, con el tronco de pie y cada brazo llevando su propia carga por separado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -332,6 +356,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje de las mancuernas, que llegan al bloqueo sin la guía de trayectoria que sí ofrece una barra.",
                   "role": "SECONDARY"
                 },
                 {
@@ -339,6 +364,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie ante dos cargas independientes, que pueden desplazarse de forma distinta a cada lado del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -346,6 +372,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con mancuernas y el cuerpo de pie, el deltoide eleva cada carga por separado y ajusta su trayectoria sin la rigidez que impone una barra sobre los hombros."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende cada codo para cerrar el empuje de las mancuernas, con los dos brazos trabajando a la vez sin prestarse equilibrio el uno al otro."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie mientras las mancuernas ascienden de forma independiente y absorben las diferencias que aparecen entre un lado y otro."
+                }
+              ],
               "performanceProfileId": "military_press__dumbbells__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -367,6 +407,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva cada mancuerna desde su hombro con recorrido libre, dejando que el brazo elija su línea natural con el cuerpo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -374,6 +415,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de cada mancuerna, con el tronco de pie y cada brazo llevando su propia carga por separado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -381,6 +423,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje de las mancuernas, que llegan al bloqueo sin la guía de trayectoria que sí ofrece una barra.",
                       "role": "SECONDARY"
                     },
                     {
@@ -388,6 +431,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie ante dos cargas independientes, que pueden desplazarse de forma distinta a cada lado del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -591,6 +635,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la barra de la Smith por su guía fija, con ambos brazos a la vez y el cuerpo de pie sin equilibrar la carga a mano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -598,6 +643,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la barra guiada de la Smith, cuya trayectoria vertical ya viene decidida por el propio carril.",
                   "role": "SECONDARY"
                 },
                 {
@@ -605,6 +651,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos cierra el empuje sobre el carril de la Smith, que obliga a los dos brazos a bloquear juntos con el cuerpo de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -612,6 +659,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie sobre la Smith, donde la guía de la barra reduce los ajustes del tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -619,6 +667,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: En la Smith de pie, el deltoide empuja la barra guiada desde los hombros y concentra el esfuerzo sin gastarlo en equilibrar la trayectoria de la carga."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos sobre el recorrido fijo de la Smith, con la barra subiendo por el carril y el cuerpo de pie bajo la carga guiada."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie mientras la Smith guía la barra, con una demanda de equilibrio menor que la barra libre sobre los hombros."
+                }
+              ],
               "performanceProfileId": "military_press__smith_machine__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -640,6 +702,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la barra de la Smith por su guía fija, con ambos brazos a la vez y el cuerpo de pie sin equilibrar la carga a mano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -647,6 +710,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la barra guiada de la Smith, cuya trayectoria vertical ya viene decidida por el propio carril.",
                       "role": "SECONDARY"
                     },
                     {
@@ -654,6 +718,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos cierra el empuje sobre el carril de la Smith, que obliga a los dos brazos a bloquear juntos con el cuerpo de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -661,6 +726,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie sobre la Smith, donde la guía de la barra reduce los ajustes del tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -864,6 +930,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva las asas de la máquina por su trayectoria fija, con el cuerpo de pie y la carga llegando al bloqueo sobre la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -871,6 +938,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido guiado de la máquina, con el tronco de pie apoyado en el respaldo de la estación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -878,6 +946,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje sobre la guía de la máquina, que marca una línea común para los dos brazos con el cuerpo de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -885,6 +954,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar se apoya en el respaldo de la máquina y ofrece una base estable al empuje de pie sobre la trayectoria guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -892,6 +962,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: En la máquina de empuje vertical, el deltoide recibe una carga guiada y directa con el cuerpo de pie, sin repartir atención en equilibrar la estación."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos sobre el recorrido de la máquina, con la guía marcando la línea del empuje y el cuerpo de pie dentro de la estación."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie dentro de la máquina, donde el respaldo y la guía ya reducen la demanda de equilibrio de la estación."
+                }
+              ],
               "performanceProfileId": "military_press__machine__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -913,6 +997,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva las asas de la máquina por su trayectoria fija, con el cuerpo de pie y la carga llegando al bloqueo sobre la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -920,6 +1005,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido guiado de la máquina, con el tronco de pie apoyado en el respaldo de la estación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -927,6 +1013,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje sobre la guía de la máquina, que marca una línea común para los dos brazos con el cuerpo de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -934,6 +1021,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar se apoya en el respaldo de la máquina y ofrece una base estable al empuje de pie sobre la trayectoria guiada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1137,6 +1225,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva los brazos contra la línea del cable, con tensión constante desde la altura de los hombros hasta el bloqueo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1144,6 +1233,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el empuje contra el cable, donde la polea todavía tira con los brazos ya extendidos y el tronco de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1151,6 +1241,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos cierra el empuje contra la polea, con la tensión del cable activa también en la parte alta del recorrido de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1158,6 +1249,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie frente a la tracción del cable, que exige ajuste constante sin el apoyo de ningún respaldo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1165,6 +1257,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la polea y el cuerpo de pie, el deltoide empuja desde los hombros con tensión activa en todo el arco, también cuando la carga queda por encima de la cabeza."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos contra la tracción constante del cable, que no ofrece descanso ni en la parte alta ni en el regreso del empuje de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie ante la tracción constante del cable, que tira del cuerpo en cada punto del recorrido hacia arriba."
+                }
+              ],
               "performanceProfileId": "military_press__cable__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -1186,6 +1292,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva los brazos contra la línea del cable, con tensión constante desde la altura de los hombros hasta el bloqueo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1193,6 +1300,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el empuje contra el cable, donde la polea todavía tira con los brazos ya extendidos y el tronco de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1200,6 +1308,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos cierra el empuje contra la polea, con la tensión del cable activa también en la parte alta del recorrido de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1207,6 +1316,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie frente a la tracción del cable, que exige ajuste constante sin el apoyo de ningún respaldo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1410,6 +1520,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la kettlebell con recorrido libre, y la carga descentrada obliga al brazo a ajustar su trayectoria con el cuerpo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1417,6 +1528,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la kettlebell, con el peso colgando de la mano y el tronco de pie sin apoyo externo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1424,6 +1536,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje de la kettlebell, que carece de superficie de guía y deja el bloqueo al trabajo propio del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1431,6 +1544,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie con kettlebell, cuyo peso descentrado intenta inclinar el tronco a cada paso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1438,6 +1552,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con kettlebell y el cuerpo de pie, el deltoide empuja una carga cuyo centro de masa queda desplazado respecto a la mano y corrige su línea al subir."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos con la kettlebell, cuyo peso cuelga descentrado respecto al antebrazo y exige cerrar el empuje con precisión."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core trabaja de pie con la kettlebell, cuyo centro de masa descentrado tira del tronco en cada punto del empuje hacia arriba."
+                }
+              ],
               "performanceProfileId": "military_press__kettlebell__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -1459,6 +1587,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la kettlebell con recorrido libre, y la carga descentrada obliga al brazo a ajustar su trayectoria con el cuerpo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1466,6 +1595,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la kettlebell, con el peso colgando de la mano y el tronco de pie sin apoyo externo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1473,6 +1603,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje de la kettlebell, que carece de superficie de guía y deja el bloqueo al trabajo propio del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1480,6 +1611,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie con kettlebell, cuyo peso descentrado intenta inclinar el tronco a cada paso.",
                       "role": "STABILIZER"
                     }
                   ],

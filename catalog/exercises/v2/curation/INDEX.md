@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-08-12-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 197 definiciones · 510 configuraciones
-Hash canónico: `ae4e82d2097a0b80…`
+96 familias · 199 definiciones · 512 configuraciones
+Hash canónico: `27a560111f28dc16…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -99,6 +99,7 @@ No editar a mano: se regenera en cada merge.
 | lower_knee_dominant | quads_sentadilla_v_squat_invertida_maquina | Sentadilla Invertida en Máquina V-Squat |  | 1 |
 | lower_knee_dominant | quads_sentadilla_zercher_barra_recta | Sentadilla Zercher con Barra Recta |  | 1 |
 | lower_knee_dominant | sumo_squat | Sentadilla Sumo | implement | 3 |
+| lower_knee_dominant | quads_sentadilla_sin_carga | Sentadilla Sin Carga |  | 1 |
 | lower_knee_dominant_asymmetric | quads_sentadilla_jefferson | Sentadilla Jefferson |  | 1 |
 | lower_knee_dominant_belt_squat | belt_squat | Sentadilla "Belt Squat" | laterality | 2 |
 | lower_knee_dominant_pendulum | pendulum_squat | Sentadilla en Máquina Pendular | laterality | 2 |
@@ -180,6 +181,7 @@ No editar a mano: se regenera en cada merge.
 | upper_horizontal_pull | back_remo_renegado_mancuernas | Remo Renegado | implement | 2 |
 | upper_horizontal_pull | deltoides_face_pull | Face Pull |  | 1 |
 | upper_horizontal_push | push_up | Flexiones de Brazos | support_angle | 2 |
+| upper_horizontal_push | knee_push_up | Flexiones con Rodillas Apoyadas |  | 1 |
 | upper_horizontal_push | tren_superior_cruce_poleas | Cruce de Poleas | implement, pulley_height | 3 |
 | upper_horizontal_push | tren_superior_fondos | Fondos en Paralelas |  | 1 |
 | upper_horizontal_push | tren_superior_press_banca_cadenas | Press de Banca con Cadenas |  | 1 |

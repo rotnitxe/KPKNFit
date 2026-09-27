@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma, cuyo déficit añade profundidad y alarga el estiramiento del descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad al tirón de la barra desde la plataforma, con la carga partiendo de más abajo y la trayectoria sin cambios.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico durante el descenso profundo desde la plataforma, con el tronco inclinado y firme bajo la barra.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco mientras la barra baja desde la plataforma, con la cadera atrás y el recorrido alargado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales extienden la cadera al subir la barra desde la plataforma y frenan el descenso alargado que el déficit provoca, con la carga partiendo de más abajo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera en la subida de la barra desde la plataforma y modera el descenso, más profundo por el déficit bajo los pies."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales ayudan a extender el tronco en la subida de la barra y frenan la flexión del descenso profundo que la plataforma provoca en cada repetición."
+                }
+              ],
               "performanceProfileId": "hams_peso_muerto_convencional_deficit__barbell__peso_muerto_convencional_en_deficit",
               "primaryMuscles": [
                 "hamstrings"
@@ -94,6 +112,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma, cuyo déficit añade profundidad y alarga el estiramiento del descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad al tirón de la barra desde la plataforma, con la carga partiendo de más abajo y la trayectoria sin cambios.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico durante el descenso profundo desde la plataforma, con el tronco inclinado y firme bajo la barra.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco mientras la barra baja desde la plataforma, con la cadera atrás y el recorrido alargado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -333,6 +355,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La flexión y la extensión de la cadera gobiernan el recorrido con la barra desde la plataforma y las piernas casi rectas, hasta el estiramiento máximo de los isquios.",
                   "role": "PRIMARY"
                 },
                 {
@@ -340,6 +363,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La flexión ligera de la rodilla da estabilidad al tirón con la barra sobre la plataforma, con las piernas casi rectas y el recorrido más largo de lo habitual.",
                   "role": "SECONDARY"
                 },
                 {
@@ -347,6 +371,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico mientras la barra baja por debajo del nivel de los pies, con las piernas casi rectas y el tronco firme.",
                   "role": "STABILIZER"
                 },
                 {
@@ -354,6 +379,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en el descenso profundo con las piernas casi rectas, con la cadera desplazada atrás.",
                   "role": "STABILIZER"
                 }
               ],
@@ -361,6 +387,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales extienden la cadera al subir la barra desde la plataforma con las piernas casi rectas y frenan un descenso que lleva el estiramiento al límite."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al subir la barra desde la plataforma y modera el descenso con las piernas casi rectas hasta el estiramiento máximo."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales ayudan a extender el tronco al subir la barra y frenan la flexión de la columna en el descenso profundo con las piernas casi rectas."
+                }
+              ],
               "performanceProfileId": "hams_peso_muerto_piernas_rigidas_deficit__barbell__peso_muerto_piernas_rigidas_en_deficit",
               "primaryMuscles": [
                 "hamstrings"
@@ -382,6 +422,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La flexión y la extensión de la cadera gobiernan el recorrido con la barra desde la plataforma y las piernas casi rectas, hasta el estiramiento máximo de los isquios.",
                       "role": "PRIMARY"
                     },
                     {
@@ -389,6 +430,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La flexión ligera de la rodilla da estabilidad al tirón con la barra sobre la plataforma, con las piernas casi rectas y el recorrido más largo de lo habitual.",
                       "role": "SECONDARY"
                     },
                     {
@@ -396,6 +438,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico mientras la barra baja por debajo del nivel de los pies, con las piernas casi rectas y el tronco firme.",
                       "role": "STABILIZER"
                     },
                     {
@@ -403,6 +446,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en el descenso profundo con las piernas casi rectas, con la cadera desplazada atrás.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -621,6 +665,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma en postura amplia, con el déficit alargando el estiramiento del descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -628,6 +673,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad en la postura amplia mientras la barra sube y baja sobre la plataforma, con la carga partiendo de más abajo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -635,6 +681,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico en el descenso profundo con la postura amplia sobre la plataforma, con el tronco inclinado y firme.",
                   "role": "STABILIZER"
                 },
                 {
@@ -642,6 +689,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en la postura amplia sobre la plataforma, con la cadera atrás y el recorrido alargado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -649,6 +697,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales extienden la cadera al subir la barra desde la plataforma con la postura amplia y frenan el descenso largo que el déficit añade al recorrido."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al subir la barra con la postura amplia y modera el descenso, alargado por el déficit bajo los pies."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores asisten la extensión de la cadera desde la postura amplia con la barra sobre la plataforma y frenan el descenso alargado por el déficit."
+                }
+              ],
               "performanceProfileId": "hams_peso_muerto_sumo_deficit__barbell__peso_muerto_sumo_en_deficit",
               "primaryMuscles": [
                 "hamstrings"
@@ -670,6 +732,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma en postura amplia, con el déficit alargando el estiramiento del descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -677,6 +740,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad en la postura amplia mientras la barra sube y baja sobre la plataforma, con la carga partiendo de más abajo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -684,6 +748,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico en el descenso profundo con la postura amplia sobre la plataforma, con el tronco inclinado y firme.",
                       "role": "STABILIZER"
                     },
                     {
@@ -691,6 +756,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en la postura amplia sobre la plataforma, con la cadera atrás y el recorrido alargado.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -45,6 +45,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo contra las almohadillas con la pelvis sujeta por el asiento y el recorrido guiado por la máquina, sin giro del fémur.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica mientras ambas piernas empujan a la vez, con el tronco sentado y el centro del cuerpo libre de oscilaciones.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla alinea el miembro inferior dentro del recorrido guiado de la máquina sentada, con las dos piernas abriendo de forma simultánea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: En la máquina sentada con ambas piernas, el glúteo medio abre el muslo contra las almohadillas con el tronco apoyado y sin demanda de equilibrio."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata acompaña la apertura del muslo en la máquina sentada bilateral y reparte con el glúteo medio el esfuerzo de cada repetición."
+                }
+              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -86,6 +99,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo contra las almohadillas con la pelvis sujeta por el asiento y el recorrido guiado por la máquina, sin giro del fémur.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica mientras ambas piernas empujan a la vez, con el tronco sentado y el centro del cuerpo libre de oscilaciones.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla alinea el miembro inferior dentro del recorrido guiado de la máquina sentada, con las dos piernas abriendo de forma simultánea.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -304,6 +320,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna activa abduce el muslo contra la almohadilla con el tronco sentado, mientras la otra cadera fija la pelvis en su sitio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -311,6 +328,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca sostiene la estabilidad pélvica con el trabajo desigual de una sola pierna en la máquina sentada, sin dejar caer la cadera contraria.",
                   "role": "SECONDARY"
                 },
                 {
@@ -318,6 +336,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla de la pierna activa alinea el miembro inferior contra la almohadilla en la versión sentada unilateral, junto al apoyo del lado opuesto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -325,6 +344,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: En la máquina sentada y una pierna cada vez, el glúteo medio del lado activo abre el muslo contra la almohadilla mientras la otra permanece apoyada."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata colabora en la apertura unilateral del muslo en la máquina sentada y comparte el trabajo con el glúteo medio del mismo lado."
+                }
+              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -345,6 +374,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna activa abduce el muslo contra la almohadilla con el tronco sentado, mientras la otra cadera fija la pelvis en su sitio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -352,6 +382,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca sostiene la estabilidad pélvica con el trabajo desigual de una sola pierna en la máquina sentada, sin dejar caer la cadera contraria.",
                       "role": "SECONDARY"
                     },
                     {
@@ -359,6 +390,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla de la pierna activa alinea el miembro inferior contra la almohadilla en la versión sentada unilateral, junto al apoyo del lado opuesto.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -563,6 +595,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo contra la almohadilla con el cuerpo de pie y sin respaldo, lo que suma estabilización de la pelvis a la apertura bilateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -570,6 +603,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica con el cuerpo de pie y las dos piernas abriendo a la vez, sin respaldo que sujete el tronco por detrás.",
                   "role": "SECONDARY"
                 },
                 {
@@ -577,6 +611,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla guía la alineación del miembro inferior contra la almohadilla con el cuerpo de pie y las dos piernas trabajando en la máquina.",
                   "role": "STABILIZER"
                 }
               ],
@@ -584,6 +619,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: De pie en la máquina con ambas piernas, el glúteo medio separa el muslo contra la almohadilla con el cuerpo erguido y sin respaldo para el tronco."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata asiste la apertura del muslo en la máquina de pie con ambas piernas y comparte el esfuerzo con el glúteo medio en cada repetición."
+                }
+              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -604,6 +649,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo contra la almohadilla con el cuerpo de pie y sin respaldo, lo que suma estabilización de la pelvis a la apertura bilateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -611,6 +657,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica con el cuerpo de pie y las dos piernas abriendo a la vez, sin respaldo que sujete el tronco por detrás.",
                       "role": "SECONDARY"
                     },
                     {
@@ -618,6 +665,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla guía la alineación del miembro inferior contra la almohadilla con el cuerpo de pie y las dos piernas trabajando en la máquina.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -822,6 +870,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna activa abduce el muslo contra la almohadilla de pie, mientras la cadera de apoyo trabaja para que la pelvis no se incline.",
                   "role": "PRIMARY"
                 },
                 {
@@ -829,6 +878,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca estabiliza la pelvis con el cuerpo de pie y un solo muslo abriendo, con la cadera de apoyo absorbiendo el desequilibrio lateral.",
                   "role": "SECONDARY"
                 },
                 {
@@ -836,6 +886,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla de la pierna activa alinea el miembro inferior contra la almohadilla en la máquina de pie y la de apoyo sostiene el equilibrio del conjunto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -843,6 +894,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: De pie en la máquina y una pierna cada vez, el glúteo medio de la pierna que abre concentra el esfuerzo mientras la otra sostiene el peso del cuerpo."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata ayuda a abrir el muslo activo contra la almohadilla en la máquina de pie unilateral, junto al glúteo medio del mismo lado."
+                }
+              ],
               "performanceProfileId": "hip_abduction__machine__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -863,6 +924,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna activa abduce el muslo contra la almohadilla de pie, mientras la cadera de apoyo trabaja para que la pelvis no se incline.",
                       "role": "PRIMARY"
                     },
                     {
@@ -870,6 +932,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca estabiliza la pelvis con el cuerpo de pie y un solo muslo abriendo, con la cadera de apoyo absorbiendo el desequilibrio lateral.",
                       "role": "SECONDARY"
                     },
                     {
@@ -877,6 +940,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla de la pierna activa alinea el miembro inferior contra la almohadilla en la máquina de pie y la de apoyo sostiene el equilibrio del conjunto.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1081,6 +1145,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo contra el cable con el cuerpo de pie y las dos piernas activas, y la polea impone tensión en todo el arco del movimiento.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1088,6 +1153,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica de pie ante la tensión constante del cable, que tira de la pierna también en el retorno del movimiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1095,6 +1161,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla alinea el miembro inferior que empuja el cable con el cuerpo de pie y las dos piernas activas, sin dejar que el fémur gire en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1102,6 +1169,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: Con polea de pie y ambas piernas, el glúteo medio separa el muslo contra la tensión constante del cable, que permanece presente incluso al volver."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata participa en la apertura del muslo con polea de pie y ambas piernas, donde el cable impone empuje continuo sin pausas."
+                }
+              ],
               "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1122,6 +1199,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo contra el cable con el cuerpo de pie y las dos piernas activas, y la polea impone tensión en todo el arco del movimiento.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1129,6 +1207,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica de pie ante la tensión constante del cable, que tira de la pierna también en el retorno del movimiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1136,6 +1215,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla alinea el miembro inferior que empuja el cable con el cuerpo de pie y las dos piernas activas, sin dejar que el fémur gire en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1340,6 +1420,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna activa abduce el muslo contra el cable estando de pie, y la tensión continua obliga a la pelvis a quedar quieta en cada fase.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1347,6 +1428,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca estabiliza la pelvis con el cuerpo de pie y un solo muslo empujando el cable, sin compensaciones del tronco hacia el lado contrario.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1354,6 +1436,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla de la pierna que trabaja alinea el miembro inferior frente al cable de pie, mientras la rodilla de apoyo soporta el peso del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1361,6 +1444,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: Con polea de pie y una sola pierna, el glúteo medio del lado activo separa el muslo contra el cable y asume también el frenado durante el retorno."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata colabora en la apertura unilateral con polea de pie y acompaña al glúteo medio del mismo lado en el empuje y el retorno."
+                }
+              ],
               "performanceProfileId": "hip_abduction__cable__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1381,6 +1474,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna activa abduce el muslo contra el cable estando de pie, y la tensión continua obliga a la pelvis a quedar quieta en cada fase.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1388,6 +1482,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca estabiliza la pelvis con el cuerpo de pie y un solo muslo empujando el cable, sin compensaciones del tronco hacia el lado contrario.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1395,6 +1490,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla de la pierna que trabaja alinea el miembro inferior frente al cable de pie, mientras la rodilla de apoyo soporta el peso del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1599,6 +1695,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo contra la banda con el cuerpo de pie y las dos piernas abriendo, con la resistencia más alta justo en la apertura amplia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1606,6 +1703,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica de pie ante la banda, que empuja las piernas hacia dentro con más fuerza al final del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1613,6 +1711,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla alinea el miembro inferior contra la banda con el cuerpo de pie y ambas piernas activas, soportando la goma al cerrar el movimiento.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1620,6 +1719,16 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: De pie con banda y ambas piernas, el glúteo medio abre el muslo contra la goma, cuya resistencia crece a medida que la apertura se ensancha."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata acompaña la apertura con banda de pie y ambas piernas, con más esfuerzo al final donde la goma ofrece más resistencia."
+                }
+              ],
               "performanceProfileId": "hip_abduction__band__abduccion_de_cadera",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1640,6 +1749,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo contra la banda con el cuerpo de pie y las dos piernas abriendo, con la resistencia más alta justo en la apertura amplia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1647,6 +1757,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica de pie ante la banda, que empuja las piernas hacia dentro con más fuerza al final del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1654,6 +1765,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla alinea el miembro inferior contra la banda con el cuerpo de pie y ambas piernas activas, soportando la goma al cerrar el movimiento.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1858,6 +1970,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna con banda abduce el muslo estando de pie, mientras la otra pierna sostiene el equilibrio y la pelvis mira de frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1865,6 +1978,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca sostiene la estabilidad pélvica con banda en una sola pierna y el cuerpo de pie, sin dejar que la cadera opuesta se hunda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1872,6 +1986,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla de la pierna con banda alinea el miembro inferior durante la apertura de pie, y la de apoyo resiste el tirón de la goma.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1879,6 +1994,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: Con banda en una pierna y el cuerpo de pie, el glúteo medio del lado activo abre el muslo contra la goma y frena el cierre cuando la pierna regresa."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Secundario: El tensor de la fascia lata ayuda al glúteo medio del lado activo con banda y postura de pie, sobre todo cuando la goma tira de la pierna al volver."
+                }
+              ],
               "performanceProfileId": "hip_abduction__band__abduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -1899,6 +2024,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna con banda abduce el muslo estando de pie, mientras la otra pierna sostiene el equilibrio y la pelvis mira de frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1906,6 +2032,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca sostiene la estabilidad pélvica con banda en una sola pierna y el cuerpo de pie, sin dejar que la cadera opuesta se hunda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1913,6 +2040,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla de la pierna con banda alinea el miembro inferior durante la apertura de pie, y la de apoyo resiste el tirón de la goma.",
                       "role": "STABILIZER"
                     }
                   ],

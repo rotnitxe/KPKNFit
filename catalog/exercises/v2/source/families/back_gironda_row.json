@@ -46,6 +46,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro dirigen los codos abiertos hacia el pecho, y el cable sostiene la tensión durante el vaivén del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta los omóplatos con el agarre amplio, y la inclinación del torso modula la tensión del cable sobre la espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acompaña la tracción amplia con un ángulo abierto, y el cable exige ese ángulo constante mientras el torso se inclina y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre fija las manos separadas sobre el accesorio de polea mientras el cable tira sin descanso durante todo el vaivén.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra la extensión del hombro en la tracción de polea y frena la vuelta del cable mientras el torso recupera su inclinación."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña el tirón con el agarre amplio, que separa los codos y lleva el esfuerzo hacia la espalda alta durante el vaivén del torso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide asiste la extensión del hombro con los codos abiertos y regula el frenado excéntrico cuando el cable devuelve el torso hacia atrás."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la retracción escapular con el agarre amplio mientras la inclinación del torso modula la tensión constante del cable."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps fija la flexión del codo en isometría para que las manos amplias transfieran la tensión constante del cable al torso."
+                }
+              ],
               "performanceProfileId": "gironda_row__wide__remo_gironda",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -97,6 +123,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro dirigen los codos abiertos hacia el pecho, y el cable sostiene la tensión durante el vaivén del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +131,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta los omóplatos con el agarre amplio, y la inclinación del torso modula la tensión del cable sobre la espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,6 +139,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acompaña la tracción amplia con un ángulo abierto, y el cable exige ese ángulo constante mientras el torso se inclina y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -118,6 +147,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre fija las manos separadas sobre el accesorio de polea mientras el cable tira sin descanso durante todo el vaivén.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -325,6 +355,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro trazan una diagonal media de codos, y el cable la sostiene tensa durante el vaivén del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -332,6 +363,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular completa el tirón medio con los omóplatos juntos, y el torso regula esa tensión al inclinarse y volver.",
                   "role": "PRIMARY"
                 },
                 {
@@ -339,6 +371,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo marca un ángulo intermedio en la tracción, y el cable impone resistencia constante mientras el torso se inclina y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -346,6 +379,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene las manos en la anchura media del accesorio de polea mientras la tensión del cable no cede.",
                   "role": "STABILIZER"
                 }
               ],
@@ -353,6 +387,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra la extensión del hombro en la diagonal media de la polea y frena el cable cuando el torso vuelve de su inclinación."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio reparte la tracción con el agarre medio, que sitúa los codos entre la cintura y la espalda alta durante el vaivén del torso."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular en la diagonal media y frenan la apertura de los omóplatos bajo la tensión constante del cable."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps colabora en la flexión del codo con el agarre medio y regula la extensión del brazo mientras el torso acompaña el recorrido."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoide fija el hombro en la diagonal media mientras el cable tira, sin asumir el papel de los dorsales en la tracción."
+                }
+              ],
               "performanceProfileId": "gironda_row__medium__remo_gironda",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -376,6 +432,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro trazan una diagonal media de codos, y el cable la sostiene tensa durante el vaivén del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -383,6 +440,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular completa el tirón medio con los omóplatos juntos, y el torso regula esa tensión al inclinarse y volver.",
                       "role": "PRIMARY"
                     },
                     {
@@ -390,6 +448,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo marca un ángulo intermedio en la tracción, y el cable impone resistencia constante mientras el torso se inclina y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -397,6 +456,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene las manos en la anchura media del accesorio de polea mientras la tensión del cable no cede.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -604,6 +664,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro arrastran los codos pegados al costado, la línea larga que el cable sostiene tensa de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -611,6 +672,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular cierra los omóplatos con los codos al cuerpo, y el vaivén del torso modula la tensión del cable en ese cierre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -618,6 +680,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acompaña la tracción cerrada junto al costado, y el cable exige un ángulo firme mientras el torso se inclina y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -625,6 +688,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sujeta las manos juntas sobre el accesorio de polea mientras la tensión constante del cable tira sin descanso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -632,6 +696,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra la extensión del hombro con los codos al costado en la polea y frena el cable en la vuelta del torso."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular en la línea cerrada, mientras el cable y la inclinación del torso prolongan la tracción del dorsal."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps colabora en la flexión del codo con el agarre cerrado y regula la extensión del brazo frente a la tensión constante de la polea."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoide fija el hombro en la línea cerrada mientras el cable tira de los codos al costado durante el vaivén del torso."
+                }
+              ],
               "performanceProfileId": "gironda_row__close__remo_gironda",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -655,6 +737,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro arrastran los codos pegados al costado, la línea larga que el cable sostiene tensa de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -662,6 +745,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular cierra los omóplatos con los codos al cuerpo, y el vaivén del torso modula la tensión del cable en ese cierre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -669,6 +753,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acompaña la tracción cerrada junto al costado, y el cable exige un ángulo firme mientras el torso se inclina y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -676,6 +761,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sujeta las manos juntas sobre el accesorio de polea mientras la tensión constante del cable tira sin descanso.",
                       "role": "STABILIZER"
                     }
                   ],

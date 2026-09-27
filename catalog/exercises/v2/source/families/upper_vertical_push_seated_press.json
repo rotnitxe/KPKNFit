@@ -45,6 +45,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la barra por encima de la cabeza con el torso sentado y fijo en el respaldo, con la trayectoria marcada por la carga bilateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la barra en su subida, con el torso sentado contra el respaldo y las dos manos empujando a la vez.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje de la barra sentado, con los dos brazos bloqueando juntos sobre la línea que fija la carga bilateral.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar recibe el apoyo del respaldo mientras la barra sube, y el torso fijo reduce el arqueo típico del empuje de pie.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la barra y el respaldo firme, el deltoide eleva la carga desde la altura de los hombros con el torso fijo y los dos brazos empujando a la vez."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para cerrar el empuje de la barra sentado, con el respaldo sujetando el torso y la carga subiendo sobre la cabeza."
+                }
+              ],
               "performanceProfileId": "seated_shoulder_press__barbell__press_hombros_sentado",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +108,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la barra por encima de la cabeza con el torso sentado y fijo en el respaldo, con la trayectoria marcada por la carga bilateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +116,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la barra en su subida, con el torso sentado contra el respaldo y las dos manos empujando a la vez.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +124,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje de la barra sentado, con los dos brazos bloqueando juntos sobre la línea que fija la carga bilateral.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +132,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar recibe el apoyo del respaldo mientras la barra sube, y el torso fijo reduce el arqueo típico del empuje de pie.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -314,6 +332,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva cada mancuerna con recorrido libre y el torso apoyado, dejando que el brazo elija su línea natural sobre la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -321,6 +340,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de cada mancuerna, con el torso sentado contra el respaldo y cada lado ajustando su recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -328,6 +348,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje de las mancuernas, sin la guía de una barra y con el bloqueo decidido por cada brazo por separado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -335,6 +356,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar queda apoyada en el respaldo mientras las mancuernas ascienden, con el torso fijo y las diferencias entre lados absorbidas por el apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -342,6 +364,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con mancuernas y el respaldo firme, el deltoide eleva cada carga por separado y ajusta su línea sin depender de la trayectoria del otro brazo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende cada codo para cerrar el empuje de las mancuernas, con el torso sentado y cada brazo llevando su propia carga hasta el bloqueo."
+                }
+              ],
               "performanceProfileId": "seated_shoulder_press__dumbbells__press_hombros_sentado",
               "primaryMuscles": [
                 "deltoid"
@@ -363,6 +395,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva cada mancuerna con recorrido libre y el torso apoyado, dejando que el brazo elija su línea natural sobre la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -370,6 +403,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de cada mancuerna, con el torso sentado contra el respaldo y cada lado ajustando su recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -377,6 +411,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje de las mancuernas, sin la guía de una barra y con el bloqueo decidido por cada brazo por separado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -384,6 +419,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar queda apoyada en el respaldo mientras las mancuernas ascienden, con el torso fijo y las diferencias entre lados absorbidas por el apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -583,6 +619,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la barra de la Smith por su guía vertical, con el torso sentado y fijo en el respaldo de la estación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -590,6 +627,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la barra guiada de la Smith, con el torso sentado y la trayectoria ya decidida por el carril.",
                   "role": "SECONDARY"
                 },
                 {
@@ -597,6 +635,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos cierra el empuje sobre el carril de la Smith, que obliga a los dos brazos a bloquear juntos con el torso apoyado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -604,6 +643,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar se apoya en el respaldo mientras la Smith guía la barra, y la guía externa reduce los ajustes del torso durante el empuje.",
                   "role": "STABILIZER"
                 }
               ],
@@ -611,6 +651,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: En la Smith sentado, el deltoide empuja la barra guiada desde los hombros con el respaldo firme y sin repartir esfuerzo en equilibrar la trayectoria."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos sobre el carril de la Smith, con la barra subiendo por una línea fija y el torso sentado contra el respaldo."
+                }
+              ],
               "performanceProfileId": "seated_shoulder_press__smith_machine__press_hombros_sentado",
               "primaryMuscles": [
                 "deltoid"
@@ -632,6 +682,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la barra de la Smith por su guía vertical, con el torso sentado y fijo en el respaldo de la estación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -639,6 +690,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la barra guiada de la Smith, con el torso sentado y la trayectoria ya decidida por el carril.",
                       "role": "SECONDARY"
                     },
                     {
@@ -646,6 +698,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos cierra el empuje sobre el carril de la Smith, que obliga a los dos brazos a bloquear juntos con el torso apoyado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -653,6 +706,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar se apoya en el respaldo mientras la Smith guía la barra, y la guía externa reduce los ajustes del torso durante el empuje.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -852,6 +906,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva las asas de la máquina por su trayectoria predeterminada, con el torso sentado y el bloqueo por encima de la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -859,6 +914,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido guiado de la máquina, con el torso sentado y apoyado contra el respaldo de la estación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -866,6 +922,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje sobre la guía de la máquina, que impone una línea común a los dos brazos con el torso sentado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -873,6 +930,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar descansa contra el respaldo de la máquina mientras la guía dirige el empuje, con el torso fijo y sin arqueos que ganar altura.",
                   "role": "STABILIZER"
                 }
               ],
@@ -880,6 +938,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: En la máquina sentada, el deltoide recibe la carga por un recorrido guiado con el torso apoyado y el esfuerzo concentrado sin distracciones de equilibrio."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos sobre el recorrido fijo de la máquina, con el torso sentado y las asas por la línea que marca la estación."
+                }
+              ],
               "performanceProfileId": "seated_shoulder_press__machine__press_hombros_sentado",
               "primaryMuscles": [
                 "deltoid"
@@ -901,6 +969,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva las asas de la máquina por su trayectoria predeterminada, con el torso sentado y el bloqueo por encima de la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -908,6 +977,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido guiado de la máquina, con el torso sentado y apoyado contra el respaldo de la estación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -915,6 +985,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje sobre la guía de la máquina, que impone una línea común a los dos brazos con el torso sentado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -922,6 +993,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar descansa contra el respaldo de la máquina mientras la guía dirige el empuje, con el torso fijo y sin arqueos que ganar altura.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1121,6 +1193,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva los brazos contra la línea del cable, con tensión constante desde la altura de los hombros y el torso sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1128,6 +1201,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el empuje contra el cable, donde la polea todavía tira con los brazos extendidos y el torso apoyado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1135,6 +1209,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos cierra el empuje contra la polea, con la tensión del cable presente en cada punto del recorrido sentado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1142,6 +1217,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar se apoya en el respaldo frente a la tracción constante del cable, que intenta inclinar el torso durante todo el empuje.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1149,6 +1225,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la polea y el torso sentado, el deltoide empuja desde los hombros con tensión activa en todo el arco, también cuando la carga queda en la parte alta."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos contra la tracción constante del cable, que permanece activo en la parte alta del empuje con el torso sentado y fijo."
+                }
+              ],
               "performanceProfileId": "seated_shoulder_press__cable__press_hombros_sentado",
               "primaryMuscles": [
                 "deltoid"
@@ -1170,6 +1256,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva los brazos contra la línea del cable, con tensión constante desde la altura de los hombros y el torso sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1177,6 +1264,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el empuje contra el cable, donde la polea todavía tira con los brazos extendidos y el torso apoyado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1184,6 +1272,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos cierra el empuje contra la polea, con la tensión del cable presente en cada punto del recorrido sentado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1191,6 +1280,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar se apoya en el respaldo frente a la tracción constante del cable, que intenta inclinar el torso durante todo el empuje.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1390,6 +1480,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la kettlebell con recorrido libre y el torso apoyado, y la carga descentrada obliga al brazo a ajustar su línea al subir.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1397,6 +1488,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la kettlebell, con el peso colgando de la mano y el torso sentado contra el respaldo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1404,6 +1496,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión de los codos termina el empuje de la kettlebell, sin guía externa y con el bloqueo librado al trabajo del brazo sobre el torso apoyado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1411,6 +1504,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar se apoya en el respaldo mientras la kettlebell sube, y el peso descentrado intenta inclinar el torso fuera de la línea sentada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1418,6 +1512,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con kettlebell y el respaldo firme, el deltoide empuja una carga cuyo centro de masa queda desplazado respecto a la mano, con el torso sentado y fijo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos con la kettlebell, cuyo peso cuelga descentrado respecto al antebrazo y exige cerrar el empuje con precisión sentado."
+                }
+              ],
               "performanceProfileId": "seated_shoulder_press__kettlebell__press_hombros_sentado",
               "primaryMuscles": [
                 "deltoid"
@@ -1439,6 +1543,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la kettlebell con recorrido libre y el torso apoyado, y la carga descentrada obliga al brazo a ajustar su línea al subir.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1446,6 +1551,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la kettlebell, con el peso colgando de la mano y el torso sentado contra el respaldo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1453,6 +1559,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión de los codos termina el empuje de la kettlebell, sin guía externa y con el bloqueo librado al trabajo del brazo sobre el torso apoyado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1460,6 +1567,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar se apoya en el respaldo mientras la kettlebell sube, y el peso descentrado intenta inclinar el torso fuera de la línea sentada.",
                       "role": "STABILIZER"
                     }
                   ],

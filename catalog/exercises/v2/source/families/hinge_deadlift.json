@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra libre bilateral; es la articulación con mayor recorrido del movimiento.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla hace una flexión ligera al inicio y aporta estabilidad, extendiéndose junto a la cadera con la barra sin dominar el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra libre a dos lados, sosteniendo el tronco durante la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con barra, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar la barra del suelo con ambos pies y frena la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir la barra con las dos piernas y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue bilateral desde el suelo y sostiene la pierna mientras la barra sube pegada al cuerpo."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales mantienen el tronco en isométrico con la barra libre, resistiendo la flexión mientras la cadera se abre."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la carga libre a dos manos, coordinando cadera y columna en la subida."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -95,6 +121,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra libre bilateral; es la articulación con mayor recorrido del movimiento.",
                       "role": "PRIMARY"
                     },
                     {
@@ -102,6 +129,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla hace una flexión ligera al inicio y aporta estabilidad, extendiéndose junto a la cadera con la barra sin dominar el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -109,6 +137,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra libre a dos lados, sosteniendo el tronco durante la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -116,6 +145,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con barra, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -324,6 +354,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra unilateral, trabajando el recorrido con un equilibrio exigente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -331,6 +362,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -338,6 +370,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la carga unilateral de la barra provoca, sosteniendo el tronco en la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -345,6 +378,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra unilateral, con movilidad mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -352,6 +386,32 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera de forma concéntrica con la barra unilateral y controla la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la barra a una pierna y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con barra y mantiene la estabilidad de la pierna que soporta la carga."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el tronco en isométrico frente al giro que la barra unilateral crea, resistiendo la flexión del tronco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para compensar el desequilibrio de la barra a una pierna durante toda la subida."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, ayudando al equilibrio con la barra unilateral."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -374,6 +434,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra unilateral, trabajando el recorrido con un equilibrio exigente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -381,6 +442,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -388,6 +450,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la carga unilateral de la barra provoca, sosteniendo el tronco en la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -395,6 +458,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra unilateral, con movilidad mínima.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -605,6 +669,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la máquina Smith bilateral, con la barra guiada que impone una trayectoria vertical fija.",
                   "role": "PRIMARY"
                 },
                 {
@@ -612,6 +677,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad con la Smith, extendiéndose junto a la cadera sobre la guía fija.",
                   "role": "SECONDARY"
                 },
                 {
@@ -619,6 +685,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra guiada a dos lados, con menor exigencia de equilibrio que la barra libre.",
                   "role": "STABILIZER"
                 },
                 {
@@ -626,6 +693,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la Smith, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -633,6 +701,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al subir la barra guiada con ambas piernas y frena la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera con la Smith bilateral y controlan el descenso de la carga guiada."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue con la máquina Smith y sostiene las piernas mientras la barra sube por su guía."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la barra guiada, aunque la guía reduce la necesidad de equilibrio lateral."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -655,6 +741,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la máquina Smith bilateral, con la barra guiada que impone una trayectoria vertical fija.",
                       "role": "PRIMARY"
                     },
                     {
@@ -662,6 +749,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad con la Smith, extendiéndose junto a la cadera sobre la guía fija.",
                       "role": "SECONDARY"
                     },
                     {
@@ -669,6 +757,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra guiada a dos lados, con menor exigencia de equilibrio que la barra libre.",
                       "role": "STABILIZER"
                     },
                     {
@@ -676,6 +765,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la Smith, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -882,6 +972,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende sobre la guía de la Smith, con recorrido vertical fijo y sin oscilación lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -889,6 +980,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose sobre la guía mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -896,6 +988,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación del apoyo unipodal, aunque la guía de la Smith reduce el desequilibrio de la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -903,6 +996,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante el apoyo unilateral, con movilidad mínima en la subida con la Smith.",
                   "role": "STABILIZER"
                 }
               ],
@@ -910,6 +1004,28 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera con la barra guiada unilateral y controla la bajada de la carga en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la Smith a una pierna y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con la guía de la Smith y mantiene estable la pierna que soporta la carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para centrar el cuerpo sobre la guía de la Smith con apoyo en una sola pierna."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, aportando equilibrio en la Smith unilateral."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -932,6 +1048,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende sobre la guía de la Smith, con recorrido vertical fijo y sin oscilación lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -939,6 +1056,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose sobre la guía mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -946,6 +1064,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación del apoyo unipodal, aunque la guía de la Smith reduce el desequilibrio de la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -953,6 +1072,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante el apoyo unilateral, con movilidad mínima en la subida con la Smith.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1161,6 +1281,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con las mancuernas bilaterales, con recorrido libre y carga a cada lado del cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1168,6 +1289,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera mientras las mancuernas viajan por fuera de la pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1175,6 +1297,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas libres a dos lados, sosteniendo el tronco durante la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1182,6 +1305,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con mancuernas, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1189,6 +1313,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar las mancuernas del suelo con ambos pies y frena la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir las mancuernas con las dos piernas y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue bilateral con mancuernas y sostiene las piernas mientras las pesas suben por fuera."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales mantienen el tronco en isométrico con las mancuernas libres, que viajan por fuera de las rodillas en la subida."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con una mancuerna en cada mano, coordinando cadera y columna sin guía externa."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1211,6 +1357,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con las mancuernas bilaterales, con recorrido libre y carga a cada lado del cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1218,6 +1365,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera mientras las mancuernas viajan por fuera de la pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1225,6 +1373,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas libres a dos lados, sosteniendo el tronco durante la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1232,6 +1381,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con mancuernas, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1440,6 +1590,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la mancuerna unilateral, con recorrido libre y equilibrio exigente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1447,6 +1598,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la mancuerna mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1454,6 +1606,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la mancuerna unilateral provoca, sosteniendo el tronco durante la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1461,6 +1614,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la mancuerna, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1468,6 +1622,32 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera con la mancuerna unilateral y controla la bajada de la carga en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la mancuerna a una pierna y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con mancuerna y mantiene estable la pierna que soporta la carga."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el tronco en isométrico frente al giro que la mancuerna unilateral crea, resistiendo la flexión del tronco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para compensar la carga asimétrica de la mancuerna con apoyo en una sola pierna."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, ayudando al equilibrio con la mancuerna unilateral."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1490,6 +1670,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la mancuerna unilateral, con recorrido libre y equilibrio exigente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1497,6 +1678,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la mancuerna mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1504,6 +1686,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la mancuerna unilateral provoca, sosteniendo el tronco durante la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1511,6 +1694,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la mancuerna, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1721,6 +1905,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra hexagonal bilateral, con recorrido más vertical que la barra libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1728,6 +1913,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera con la carga centrada de la barra hexagonal.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1735,6 +1921,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra hexagonal centrada, con menor exigencia que la barra convencional.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1742,6 +1929,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la barra hexagonal, con movilidad mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1749,6 +1937,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar la barra hexagonal con ambos pies y frena la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir la barra hexagonal con las dos piernas y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue bilateral con la barra hexagonal, que centra la carga alrededor del cuerpo."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales mantienen el tronco en isométrico con la barra hexagonal, cuya posición centrada reduce el momento sobre la espalda."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la barra hexagonal entre las manos, coordinando cadera y columna en la subida vertical."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1771,6 +1981,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra hexagonal bilateral, con recorrido más vertical que la barra libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1778,6 +1989,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera con la carga centrada de la barra hexagonal.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1785,6 +1997,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra hexagonal centrada, con menor exigencia que la barra convencional.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1792,6 +2005,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la barra hexagonal, con movilidad mínima.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2000,6 +2214,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra hexagonal unilateral, con recorrido vertical y equilibrio exigente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2007,6 +2222,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra hexagonal mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2014,6 +2230,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la barra hexagonal unilateral provoca, sosteniendo el tronco en la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2021,6 +2238,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra hexagonal, con movilidad mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2028,6 +2246,32 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera con la barra hexagonal unilateral y controla la bajada de la carga en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la barra hexagonal a una pierna y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con la barra hexagonal y mantiene estable la pierna que soporta la carga."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el tronco en isométrico frente al giro que la barra hexagonal unilateral crea, resistiendo la flexión."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para compensar la carga asimétrica de la barra hexagonal con apoyo en una sola pierna."
+                },
+                {
+                  "muscleId": "tensor_fasciae_latae",
+                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, ayudando al equilibrio con la barra hexagonal unilateral."
+                }
+              ],
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -2050,6 +2294,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra hexagonal unilateral, con recorrido vertical y equilibrio exigente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2057,6 +2302,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra hexagonal mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2064,6 +2310,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la barra hexagonal unilateral provoca, sosteniendo el tronco en la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2071,6 +2318,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra hexagonal, con movilidad mínima.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2309,6 +2557,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con barra, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2316,6 +2565,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con los brazos por dentro de las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2323,6 +2573,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra en postura sumo, con el tronco más vertical por la base amplia.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2330,6 +2581,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con barra, con movilidad mínima en el recorrido corto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2337,6 +2589,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar la barra en postura sumo y frena la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir la barra con la base amplia y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps extiende la rodilla de forma concéntrica en el despegue sumo, donde la base amplia aumenta su participación desde el suelo."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores ayudan a estabilizar la cadera abierta en la postura sumo y colaboran en la extensión durante la subida de la barra."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la barra entre las piernas en la postura sumo, coordinando cadera y columna."
+                }
+              ],
               "performanceProfileId": "sumo_deadlift__barbell__peso_muerto_sumo",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -2360,6 +2634,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con barra, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2367,6 +2642,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con los brazos por dentro de las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2374,6 +2650,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra en postura sumo, con el tronco más vertical por la base amplia.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2381,6 +2658,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con barra, con movilidad mínima en el recorrido corto.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2585,6 +2863,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con mancuernas, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2592,6 +2871,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con las mancuernas a los lados del cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2599,6 +2879,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas en postura sumo, con el tronco más vertical por la base amplia.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2606,6 +2887,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con mancuernas, con movilidad mínima en el recorrido corto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2613,6 +2895,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar las mancuernas en postura sumo y frena la bajada en excéntrico."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir las mancuernas con la base amplia y frenan el descenso de la carga."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps extiende la rodilla de forma concéntrica en el despegue sumo con mancuernas, donde la base amplia reparte el empuje de las piernas."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores ayudan a estabilizar la cadera abierta en la postura sumo y colaboran en la extensión mientras las mancuernas suben a los lados."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con una mancuerna a cada lado en la postura sumo, coordinando cadera y columna sin guía."
+                }
+              ],
               "performanceProfileId": "sumo_deadlift__dumbbells__peso_muerto_sumo",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -2636,6 +2940,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con mancuernas, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2643,6 +2948,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con las mancuernas a los lados del cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2650,6 +2956,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas en postura sumo, con el tronco más vertical por la base amplia.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2657,6 +2964,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con mancuernas, con movilidad mínima en el recorrido corto.",
                       "role": "STABILIZER"
                     }
                   ],

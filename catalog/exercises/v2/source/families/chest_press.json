@@ -46,6 +46,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro llevan la barra por su arco fijo, con el mismo recorrido de carga en ambos brazos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida de la barra y la flexión controlada regula el descenso con los antebrazos alineados bajo la barra.",
                   "role": "SECONDARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso contra el banco mientras la barra avanza con ambos lados sincronizados.",
                   "role": "STABILIZER"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión estable y alineada con el antebrazo bajo la barra durante todo el empuje bilateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral genera la aducción horizontal que sube la barra desde el pecho y frena su descenso con control en el banco plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior ayuda a flexionar el hombro en la subida de la barra y absorbe la carga en el descenso sobre el banco plano."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra y frena la flexión del codo en el descenso, con ambos brazos trabajando a la vez."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene una contracción isométrica que estabiliza codo y hombro mientras la barra recorre su arco con agarre bilateral."
+                }
+              ],
               "performanceProfileId": "bench_press__barbell__press_de_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -97,6 +119,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro llevan la barra por su arco fijo, con el mismo recorrido de carga en ambos brazos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +127,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida de la barra y la flexión controlada regula el descenso con los antebrazos alineados bajo la barra.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,6 +135,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso contra el banco mientras la barra avanza con ambos lados sincronizados.",
                       "role": "STABILIZER"
                     },
                     {
@@ -118,6 +143,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión estable y alineada con el antebrazo bajo la barra durante todo el empuje bilateral.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -333,6 +359,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían cada mancuerna por su línea, con recorrido libre y simétrico sobre el banco plano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -340,6 +367,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo eleva cada mancuerna y la flexión frenada regula el descenso, con cada antebrazo controlando su propio peso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -347,6 +375,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular apoyan el torso en el banco mientras cada mancuerna recorre su propia trayectoria.",
                   "role": "STABILIZER"
                 },
                 {
@@ -354,6 +383,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca de cada lado se mantiene en extensión estable bajo la mancuerna, alineada con su antebrazo durante todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -361,6 +391,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral aduce el hombro para elevar cada mancuerna y frena su descenso por separado en el banco plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior asiste la flexión del hombro con cada mancuerna y absorbe la carga al descender, ajustando la línea de cada brazo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende cada codo para subir la mancuerna y controla la flexión excéntrica con los dos brazos trabajando por separado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene una contracción isométrica que estabiliza codo y hombro de cada lado ante el balanceo de las mancuernas libres."
+                }
+              ],
               "performanceProfileId": "bench_press__dumbbells__press_de_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -384,6 +432,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían cada mancuerna por su línea, con recorrido libre y simétrico sobre el banco plano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -391,6 +440,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo eleva cada mancuerna y la flexión frenada regula el descenso, con cada antebrazo controlando su propio peso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -398,6 +448,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular apoyan el torso en el banco mientras cada mancuerna recorre su propia trayectoria.",
                       "role": "STABILIZER"
                     },
                     {
@@ -405,6 +456,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca de cada lado se mantiene en extensión estable bajo la mancuerna, alineada con su antebrazo durante todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -620,6 +672,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro mueven la barra Smith por su eje fijo, con recorrido idéntico en los dos brazos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -627,6 +680,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida sobre el eje guiado y la flexión controlada marca el descenso bajo la barra de la Smith.",
                   "role": "SECONDARY"
                 },
                 {
@@ -634,6 +688,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso apoyado en el banco mientras la barra guiada desciende y sube.",
                   "role": "STABILIZER"
                 },
                 {
@@ -641,6 +696,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra guiada, que impone una posición de manos constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -648,6 +704,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral empuja la barra guiada de la máquina Smith en aducción horizontal y frena su descenso sobre el banco plano, sin equilibrar la carga."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior colabora en la flexión del hombro con la barra Smith, que fija la trayectoria y reduce el ajuste fino de cada brazo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra guiada y frena su flexión en el descenso, con ambos lados unidos al mismo eje."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps trabaja isométricamente para estabilizar codo y hombro, aunque la guía de la Smith asume parte del equilibrio de la barra."
+                }
+              ],
               "performanceProfileId": "bench_press__smith_machine__press_de_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -671,6 +745,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro mueven la barra Smith por su eje fijo, con recorrido idéntico en los dos brazos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -678,6 +753,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida sobre el eje guiado y la flexión controlada marca el descenso bajo la barra de la Smith.",
                       "role": "SECONDARY"
                     },
                     {
@@ -685,6 +761,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso apoyado en el banco mientras la barra guiada desciende y sube.",
                       "role": "STABILIZER"
                     },
                     {
@@ -692,6 +769,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra guiada, que impone una posición de manos constante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -907,6 +985,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro siguen la trayectoria fija de la máquina, con recorrido guiado en ambos brazos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -914,6 +993,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa el empuje sobre el arco guiado de la máquina y la flexión frenada regula el regreso de las empuñaduras.",
                   "role": "SECONDARY"
                 },
                 {
@@ -921,6 +1001,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso contra el banco mientras la máquina guía el empuje horizontal.",
                   "role": "STABILIZER"
                 },
                 {
@@ -928,6 +1009,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene una extensión estable sobre la empuñadura fija de la máquina, alineada con el antebrazo en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -935,6 +1017,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral genera la aducción horizontal que desplaza las empuñaduras de la máquina de pecho y frena su regreso en el banco plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior asiste la flexión del hombro sobre la trayectoria fija de la máquina y absorbe la carga en el descenso guiado."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para empujar las empuñaduras de la máquina y frena la flexión del codo en el regreso al punto inicial."
+                }
+              ],
               "performanceProfileId": "bench_press__machine__press_de_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -958,6 +1054,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro siguen la trayectoria fija de la máquina, con recorrido guiado en ambos brazos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -965,6 +1062,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa el empuje sobre el arco guiado de la máquina y la flexión frenada regula el regreso de las empuñaduras.",
                       "role": "SECONDARY"
                     },
                     {
@@ -972,6 +1070,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso contra el banco mientras la máquina guía el empuje horizontal.",
                       "role": "STABILIZER"
                     },
                     {
@@ -979,6 +1078,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene una extensión estable sobre la empuñadura fija de la máquina, alineada con el antebrazo en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1190,6 +1290,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro arrastran los cables de la polea, que mantienen la carga en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1197,6 +1298,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo empuja los cables hacia delante y la flexión frenada los regresa sin que la polea pierda tracción.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1204,6 +1306,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular fijan el torso en el banco mientras la polea tira de los brazos en ambas fases.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1211,6 +1314,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo el mango de la polea, sujeta a tracción constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1218,6 +1322,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral impulsa los cables de la polea en aducción horizontal y frena su regreso con tensión constante en todo el arco del banco plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior colabora en la flexión del hombro contra la tracción constante de la polea y controla la vuelta de los cables."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para avanzar los cables de la polea y frena la flexión del codo sin perder tensión en el descenso."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso inmóvil sobre el banco frente a la tracción constante de las poleas durante todo el empuje bilateral."
+                }
+              ],
               "performanceProfileId": "bench_press__cable__press_de_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -1241,6 +1363,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro arrastran los cables de la polea, que mantienen la carga en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1248,6 +1371,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo empuja los cables hacia delante y la flexión frenada los regresa sin que la polea pierda tracción.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1255,6 +1379,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular fijan el torso en el banco mientras la polea tira de los brazos en ambas fases.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1262,6 +1387,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo el mango de la polea, sujeta a tracción constante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1477,6 +1603,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían la kettlebell por su arco, con el peso oscilando sobre la mano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1484,6 +1611,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida de la kettlebell y la flexión frenada regula el descenso con el peso fuera del eje.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1491,6 +1619,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso en el banco mientras la kettlebell exige ajustes finos del equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1498,6 +1627,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene en extensión firme bajo el asa de la kettlebell, cuyo peso descentrado carga la articulación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1505,6 +1635,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral aduce el hombro para elevar la kettlebell sujeta por el asa y frena su descenso con control sobre el banco plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior ayuda a flexionar el hombro con la kettlebell, cuyo peso descentrado obliga a ajustar la línea del empuje."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende el codo para subir la kettlebell y frena la flexión del codo mientras el peso oscila sobre el asa."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene una contracción isométrica que estabiliza codo y hombro frente a la inestabilidad de la kettlebell."
+                }
+              ],
               "performanceProfileId": "bench_press__kettlebell__press_de_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -1528,6 +1676,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían la kettlebell por su arco, con el peso oscilando sobre la mano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1535,6 +1684,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida de la kettlebell y la flexión frenada regula el descenso con el peso fuera del eje.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1542,6 +1692,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso en el banco mientras la kettlebell exige ajustes finos del equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1549,6 +1700,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene en extensión firme bajo el asa de la kettlebell, cuyo peso descentrado carga la articulación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1798,6 +1950,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro llevan la barra hacia el pecho bajo con la cabeza por debajo de las caderas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1805,6 +1958,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida de la barra en el ángulo declinado y la flexión controlada guía el descenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1812,6 +1966,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso contra el banco declinado mientras la barra sube y baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1819,6 +1974,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra, que desciende con inclinación hacia el pecho bajo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1826,6 +1982,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral, con énfasis en su porción inferior, aduce el hombro para subir la barra en el banco declinado y frena su descenso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior asiste la flexión del hombro con la barra en el banco declinado, donde el hombro recorta su recorrido."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra en el ángulo declinado y frena la flexión del codo en el descenso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene una contracción isométrica que estabiliza codo y hombro mientras la barra recorre el arco declinado."
+                }
+              ],
               "performanceProfileId": "decline_bench_press__barbell__press_declinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -1849,6 +2023,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro llevan la barra hacia el pecho bajo con la cabeza por debajo de las caderas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1856,6 +2031,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida de la barra en el ángulo declinado y la flexión controlada guía el descenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1863,6 +2039,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso contra el banco declinado mientras la barra sube y baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1870,6 +2047,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra, que desciende con inclinación hacia el pecho bajo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2077,6 +2255,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían cada mancuerna hacia el pecho bajo, con la cabeza por debajo de las caderas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2084,6 +2263,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo eleva cada mancuerna en el banco declinado y la flexión frenada regula el descenso con un antebrazo por cada lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2091,6 +2271,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular apoyan el torso en el banco declinado mientras cada mancuerna recorre su propio arco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2098,6 +2279,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca de cada lado sostiene una extensión estable bajo la mancuerna, alineada con el antebrazo en el arco declinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2105,6 +2287,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral aduce el hombro para elevar cada mancuerna en el banco declinado y frena su descenso por separado, con foco en el pecho bajo."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior colabora en la flexión del hombro con cada mancuerna en el ángulo declinado, con recorrido más corto para el hombro."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende cada codo para subir la mancuerna en el banco declinado y controla la flexión excéntrica por separado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene una contracción isométrica que estabiliza codo y hombro de cada lado ante el balanceo de las mancuernas libres."
+                }
+              ],
               "performanceProfileId": "decline_bench_press__dumbbells__press_declinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -2128,6 +2328,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían cada mancuerna hacia el pecho bajo, con la cabeza por debajo de las caderas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2135,6 +2336,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo eleva cada mancuerna en el banco declinado y la flexión frenada regula el descenso con un antebrazo por cada lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2142,6 +2344,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular apoyan el torso en el banco declinado mientras cada mancuerna recorre su propio arco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2149,6 +2352,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca de cada lado sostiene una extensión estable bajo la mancuerna, alineada con el antebrazo en el arco declinado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2356,6 +2560,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro mueven la barra Smith hacia el pecho bajo, con la cabeza por debajo de las caderas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2363,6 +2568,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida sobre el eje guiado y la flexión controlada marca el descenso en el ángulo declinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2370,6 +2576,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso fijo en el banco declinado mientras la barra guiada sube y baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2377,6 +2584,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra Smith, que impone una posición de manos constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2384,6 +2592,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral empuja la barra guiada de la máquina Smith en el banco declinado y frena su descenso sobre el pecho bajo, sin equilibrar la carga."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior asiste la flexión del hombro con la barra Smith en ángulo declinado, donde la guía fija la trayectoria del empuje."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra guiada en el banco declinado y frena su flexión en el descenso controlado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps trabaja isométricamente para estabilizar codo y hombro, aunque la guía de la Smith reduce la demanda de equilibrio."
+                }
+              ],
               "performanceProfileId": "decline_bench_press__smith_machine__press_declinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -2407,6 +2633,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro mueven la barra Smith hacia el pecho bajo, con la cabeza por debajo de las caderas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2414,6 +2641,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida sobre el eje guiado y la flexión controlada marca el descenso en el ángulo declinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2421,6 +2649,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso fijo en el banco declinado mientras la barra guiada sube y baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2428,6 +2657,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra Smith, que impone una posición de manos constante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2635,6 +2865,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían la kettlebell hacia el pecho bajo, con la cabeza por debajo de las caderas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2642,6 +2873,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo eleva la kettlebell en el banco declinado y la flexión frenada regula el descenso con el peso fuera del eje del antebrazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2649,6 +2881,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso en el banco declinado mientras la kettlebell exige ajustes del equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2656,6 +2889,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene en extensión firme bajo el asa de la kettlebell, cuyo peso descentrado carga la articulación en el banco declinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2663,6 +2897,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral aduce el hombro para subir la kettlebell en el banco declinado y frena su descenso, con foco en la parte baja del pecho."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior ayuda a flexionar el hombro con la kettlebell en el banco declinado, ajustando la línea del empuje al peso descentrado."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende el codo para elevar la kettlebell en el ángulo declinado y frena la flexión mientras el peso oscila sobre el asa."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene una contracción isométrica que estabiliza codo y hombro frente a la inestabilidad de la kettlebell en el banco declinado."
+                }
+              ],
               "performanceProfileId": "decline_bench_press__kettlebell__press_declinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -2686,6 +2938,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían la kettlebell hacia el pecho bajo, con la cabeza por debajo de las caderas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2693,6 +2946,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo eleva la kettlebell en el banco declinado y la flexión frenada regula el descenso con el peso fuera del eje del antebrazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2700,6 +2954,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso en el banco declinado mientras la kettlebell exige ajustes del equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2707,6 +2962,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene en extensión firme bajo el asa de la kettlebell, cuyo peso descentrado carga la articulación en el banco declinado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2940,6 +3196,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro llevan la barra hacia la zona alta del pecho con el respaldo elevado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2947,6 +3204,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida de la barra en la inclinación y la flexión controlada guía el descenso con antebrazos verticales.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2954,6 +3212,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el apoyo del torso contra el banco inclinado mientras la barra sube y baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2961,6 +3220,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra, que asciende en ángulo hacia la zona alta del pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2968,6 +3228,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral, con énfasis en su porción superior, aduce el hombro para subir la barra en el banco inclinado y frena su descenso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior asiste la flexión del hombro con la barra en el respaldo inclinado, donde el empuje apunta a la zona alta del pecho."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra en el ángulo inclinado y frena la flexión del codo durante el descenso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene una contracción isométrica que estabiliza codo y hombro mientras la barra recorre el arco inclinado."
+                }
+              ],
               "performanceProfileId": "incline_bench_press__barbell__press_inclinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -2991,6 +3269,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro llevan la barra hacia la zona alta del pecho con el respaldo elevado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2998,6 +3277,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida de la barra en la inclinación y la flexión controlada guía el descenso con antebrazos verticales.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3005,6 +3285,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el apoyo del torso contra el banco inclinado mientras la barra sube y baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3012,6 +3293,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra, que asciende en ángulo hacia la zona alta del pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3219,6 +3501,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían cada mancuerna hacia la zona alta del pecho con el respaldo elevado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3226,6 +3509,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo eleva cada mancuerna en la inclinación y la flexión frenada regula el descenso con un antebrazo por cada lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3233,6 +3517,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sostienen el apoyo del torso mientras cada mancuerna recorre su propia línea inclinada.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3240,6 +3525,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca de cada lado sostiene una extensión estable bajo la mancuerna, alineada con su antebrazo en el arco inclinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3247,6 +3533,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral aduce el hombro para elevar cada mancuerna en el banco inclinado y frena su descenso por separado, con foco en el pecho alto."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior colabora en la flexión del hombro con cada mancuerna en el respaldo inclinado, donde el hombro participa de lleno."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende cada codo para subir la mancuerna en la inclinación y controla la flexión excéntrica por separado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene una contracción isométrica que estabiliza codo y hombro de cada lado ante el balanceo de las mancuernas libres."
+                }
+              ],
               "performanceProfileId": "incline_bench_press__dumbbells__press_inclinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -3270,6 +3574,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían cada mancuerna hacia la zona alta del pecho con el respaldo elevado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3277,6 +3582,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo eleva cada mancuerna en la inclinación y la flexión frenada regula el descenso con un antebrazo por cada lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3284,6 +3590,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sostienen el apoyo del torso mientras cada mancuerna recorre su propia línea inclinada.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3291,6 +3598,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca de cada lado sostiene una extensión estable bajo la mancuerna, alineada con su antebrazo en el arco inclinado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3498,6 +3806,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro mueven la barra Smith hacia la zona alta del pecho, con el respaldo elevado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3505,6 +3814,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida sobre el eje guiado y la flexión controlada marca el descenso en el ángulo inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3512,6 +3822,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso fijo en el banco inclinado mientras la barra guiada sube y baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3519,6 +3830,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra Smith, que impone una posición de manos constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3526,6 +3838,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral empuja la barra guiada de la máquina Smith en el banco inclinado y frena su descenso hacia la zona alta del pecho, sin equilibrar la carga."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior colabora en la flexión del hombro con la barra Smith en ángulo alto, donde la guía fija la trayectoria del empuje."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra guiada en la inclinación y frena su flexión en el descenso controlado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps trabaja isométricamente para estabilizar codo y hombro, aunque la guía de la Smith reduce la demanda de equilibrio en la inclinación."
+                }
+              ],
               "performanceProfileId": "incline_bench_press__smith_machine__press_inclinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -3549,6 +3879,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro mueven la barra Smith hacia la zona alta del pecho, con el respaldo elevado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3556,6 +3887,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida sobre el eje guiado y la flexión controlada marca el descenso en el ángulo inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3563,6 +3895,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso fijo en el banco inclinado mientras la barra guiada sube y baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3570,6 +3903,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra Smith, que impone una posición de manos constante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3777,6 +4111,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro siguen la trayectoria fija de la máquina, orientada hacia la zona alta del pecho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3784,6 +4119,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa el empuje sobre el arco guiado de la máquina y la flexión frenada regula el regreso de las empuñaduras.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3791,6 +4127,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso contra el respaldo mientras la máquina guía el empuje inclinado.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3798,6 +4135,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene una extensión estable sobre la empuñadura fija de la máquina, alineada con el antebrazo en el ángulo inclinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3805,6 +4143,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral genera la aducción horizontal que desplaza las empuñaduras de la máquina inclinada y frena su regreso hacia el pecho alto."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior asiste la flexión del hombro sobre la trayectoria fija de la máquina inclinada y absorbe la carga en el descenso guiado."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para empujar las empuñaduras en la inclinación y frena la flexión del codo en el regreso al inicio."
+                }
+              ],
               "performanceProfileId": "incline_bench_press__machine__press_inclinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -3828,6 +4180,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro siguen la trayectoria fija de la máquina, orientada hacia la zona alta del pecho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3835,6 +4188,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa el empuje sobre el arco guiado de la máquina y la flexión frenada regula el regreso de las empuñaduras.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3842,6 +4196,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular mantienen el torso contra el respaldo mientras la máquina guía el empuje inclinado.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3849,6 +4204,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene una extensión estable sobre la empuñadura fija de la máquina, alineada con el antebrazo en el ángulo inclinado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4052,6 +4408,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro arrastran los cables de la polea hacia la zona alta del pecho con tensión continua.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4059,6 +4416,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo empuja los cables hacia delante en la inclinación y la flexión frenada los regresa sin perder tracción.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4066,6 +4424,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular fijan el torso en el banco inclinado mientras la polea tira de los brazos en ambas fases.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4073,6 +4432,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo el mango de la polea, sujeta a tracción constante en la inclinación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4080,6 +4440,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral impulsa los cables de la polea en aducción horizontal hacia la zona alta del pecho y frena su regreso con tensión constante."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior colabora en la flexión del hombro contra la tracción de la polea en el banco inclinado y controla la vuelta de los cables."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para avanzar los cables en la inclinación y frena la flexión del codo sin perder tensión en el descenso."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso inmóvil sobre el banco inclinado frente a la tracción constante de las poleas durante todo el empuje."
+                }
+              ],
               "performanceProfileId": "incline_bench_press__cable__press_inclinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -4103,6 +4481,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro arrastran los cables de la polea hacia la zona alta del pecho con tensión continua.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4110,6 +4489,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo empuja los cables hacia delante en la inclinación y la flexión frenada los regresa sin perder tracción.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4117,6 +4497,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular fijan el torso en el banco inclinado mientras la polea tira de los brazos en ambas fases.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4124,6 +4505,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo el mango de la polea, sujeta a tracción constante en la inclinación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4331,6 +4713,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían la kettlebell hacia la zona alta del pecho con el respaldo elevado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4338,6 +4721,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa la subida de la kettlebell y la flexión frenada regula el descenso en el ángulo inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4345,6 +4729,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sostienen el torso en el banco inclinado mientras la kettlebell exige ajustes del equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4352,6 +4737,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene en extensión firme bajo el asa de la kettlebell, cuyo peso descentrado carga la articulación en la inclinación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4359,6 +4745,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral aduce el hombro para subir la kettlebell en el banco inclinado y frena su descenso, con foco en la zona alta del pecho."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior ayuda a flexionar el hombro con la kettlebell en el respaldo inclinado, ajustando la línea al peso descentrado."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende el codo para elevar la kettlebell en la inclinación y frena la flexión mientras el peso oscila sobre el asa."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene una contracción isométrica que estabiliza codo y hombro frente a la inestabilidad de la kettlebell en la inclinación."
+                }
+              ],
               "performanceProfileId": "incline_bench_press__kettlebell__press_inclinado",
               "primaryMuscles": [
                 "pectoralis"
@@ -4382,6 +4786,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían la kettlebell hacia la zona alta del pecho con el respaldo elevado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4389,6 +4794,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa la subida de la kettlebell y la flexión frenada regula el descenso en el ángulo inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4396,6 +4802,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sostienen el torso en el banco inclinado mientras la kettlebell exige ajustes del equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4403,6 +4810,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene en extensión firme bajo el asa de la kettlebell, cuyo peso descentrado carga la articulación en la inclinación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4636,6 +5044,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro parten de la barra detenida sobre el pecho y la llevan arriba con ambos brazos sincronizados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4643,6 +5052,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo inicia la salida de la barra desde la pausa y la flexión controlada regula el descenso hasta detenerla sobre el pecho.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4650,6 +5060,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso contra el banco mientras la barra permanece quieta antes de cada empuje.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4657,6 +5068,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra, incluso durante la pausa sostenida sobre el pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4664,6 +5076,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral sostiene la barra quieta sobre el pecho y luego genera la aducción horizontal que la sube, sin rebote, en el banco plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoid anterior mantiene la flexión del hombro durante la pausa bajo la barra y colabora en el empuje desde esa posición detenida."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende los codos para elevar la barra tras la pausa y controla la flexión del codo mientras la barra desciende al pecho."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene una contracción isométrica que estabiliza codo y hombro durante la pausa y la posterior subida de la barra."
+                }
+              ],
               "performanceProfileId": "paused_bench_press__barbell__press_de_banca_con_pausa",
               "primaryMuscles": [
                 "pectoralis"
@@ -4687,6 +5117,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro parten de la barra detenida sobre el pecho y la llevan arriba con ambos brazos sincronizados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4694,6 +5125,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo inicia la salida de la barra desde la pausa y la flexión controlada regula el descenso hasta detenerla sobre el pecho.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4701,6 +5133,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La retracción y la estabilidad escapular sujetan el torso contra el banco mientras la barra permanece quieta antes de cada empuje.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4708,6 +5141,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca permanece en extensión alineada con el antebrazo bajo la barra, incluso durante la pausa sostenida sobre el pecho.",
                       "role": "STABILIZER"
                     }
                   ],

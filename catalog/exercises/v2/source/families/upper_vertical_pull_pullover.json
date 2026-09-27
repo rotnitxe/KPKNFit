@@ -45,6 +45,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción y la extensión del hombro llevan las mancuernas desde detrás de la cabeza hasta el pecho con los brazos extendidos sobre la banca.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras las mancuernas recorren el arco por detrás de la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo apenas se modula durante el arco, y con mancuernas cada brazo sostiene su propia línea sin apoyo compartido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sujeta las mancuernas con las muñecas alineadas mientras la carga se aleja de la cabeza y vuelve al pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral concentra la aducción del hombro que trae las mancuernas desde detrás de la cabeza hasta el pecho, tumbado en la banca con los brazos extendidos."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho asiste la extensión del hombro en el arco de las mancuernas y frena la bajada de la carga cuando las manos se alejan de la cabeza."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps sostiene la extensión del codo con las mancuernas por encima de la cabeza y regula la leve flexión que acompaña el arco del brazo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija las costillas contra la banca para que el arco de las mancuernas detrás de la cabeza no arquee el torso."
+                }
+              ],
               "performanceProfileId": "lying_pullover__dumbbells__pullover_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -94,6 +116,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción y la extensión del hombro llevan las mancuernas desde detrás de la cabeza hasta el pecho con los brazos extendidos sobre la banca.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +124,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras las mancuernas recorren el arco por detrás de la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -108,6 +132,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo apenas se modula durante el arco, y con mancuernas cada brazo sostiene su propia línea sin apoyo compartido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +140,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sujeta las mancuernas con las muñecas alineadas mientras la carga se aleja de la cabeza y vuelve al pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -320,6 +346,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción y la extensión del hombro llevan la barra en un arco amplio detrás de la cabeza hasta el pecho, con los brazos extendidos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -327,6 +354,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras la barra recorre el arco, cuyo agarre fijo une ambos brazos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -334,6 +362,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo se modula con la barra, que obliga a ambos codos a compartir el mismo ángulo durante la bajada y la subida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -341,6 +370,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre alinea las muñecas bajo la barra mientras la carga se aleja de la cabeza y regresa sobre el pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -348,6 +378,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral concentra la aducción del hombro que trae la barra desde detrás de la cabeza hasta el pecho, tumbado en la banca con los brazos extendidos."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho asiste la extensión del hombro en el arco de la barra y frena el descenso de la carga cuando se aleja por detrás de la cabeza."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps sostiene la extensión de ambos codos bajo la barra y regula la leve flexión que acompaña el recorrido completo del brazo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija las costillas contra la banca mientras la barra viaja detrás de la cabeza, sin dejar que el torso se arquee bajo la carga."
+                }
+              ],
               "performanceProfileId": "lying_pullover__barbell__pullover_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -369,6 +417,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción y la extensión del hombro llevan la barra en un arco amplio detrás de la cabeza hasta el pecho, con los brazos extendidos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -376,6 +425,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras la barra recorre el arco, cuyo agarre fijo une ambos brazos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -383,6 +433,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo se modula con la barra, que obliga a ambos codos a compartir el mismo ángulo durante la bajada y la subida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -390,6 +441,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre alinea las muñecas bajo la barra mientras la carga se aleja de la cabeza y regresa sobre el pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -595,6 +647,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción y la extensión del hombro arrastran la kettlebell desde detrás de la cabeza hasta el pecho en un arco con los brazos extendidos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -602,6 +655,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión y la rotación de la escápula ordenan el hombro mientras la campana de la kettlebell se desplaza por detrás de la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -609,6 +663,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo se modula con la kettlebell, cuyo peso descentrado exige un ángulo estable durante la bajada y la subida del arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -616,6 +671,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sujeta la kettlebell con las muñecas firmes mientras su campana se percibe distinta en cada tramo del arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -623,6 +679,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral concentra la aducción del hombro que trae la kettlebell desde detrás de la cabeza hasta el pecho, tumbado en la banca con los brazos extendidos."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho asiste la extensión del hombro con la kettlebell y frena su descenso cuando la campana se aleja por detrás de la cabeza."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps sostiene la extensión del codo con la campana suspendida y regula la leve flexión durante el arco detrás de la cabeza."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija las costillas contra la banca mientras la kettlebell viaja detrás de la cabeza y su centro de peso desafía el equilibrio."
+                }
+              ],
               "performanceProfileId": "lying_pullover__kettlebell__pullover_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -644,6 +718,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción y la extensión del hombro arrastran la kettlebell desde detrás de la cabeza hasta el pecho en un arco con los brazos extendidos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -651,6 +726,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión y la rotación de la escápula ordenan el hombro mientras la campana de la kettlebell se desplaza por detrás de la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -658,6 +734,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo se modula con la kettlebell, cuyo peso descentrado exige un ángulo estable durante la bajada y la subida del arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -665,6 +742,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sujeta la kettlebell con las muñecas firmes mientras su campana se percibe distinta en cada tramo del arco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -871,6 +949,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción y la extensión del hombro llevan el arco del cable desde detrás de la cabeza hasta el pecho con los brazos extendidos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -878,6 +957,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras el cable sostiene la tensión en el arco por detrás de la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -885,6 +965,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo se modula con la polea, cuya tensión constante acompaña tanto la bajada como la subida del arco con los brazos extendidos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -892,6 +973,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre alinea las muñecas con el cable mientras la polea tira sin descanso detrás de la cabeza y sobre el pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -899,6 +981,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral concentra la aducción del hombro que trae el cable desde detrás de la cabeza hasta el pecho, tumbado en la banca con los brazos extendidos."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho asiste la extensión del hombro con la polea y frena la carga cuando el cable la aleja detrás de la cabeza sin perder tensión."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps sostiene la extensión del codo frente a la tensión constante del cable y regula la leve flexión durante todo el arco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija las costillas contra la banca mientras el cable tira detrás de la cabeza con una tensión que no cede en ningún tramo."
+                }
+              ],
               "performanceProfileId": "lying_pullover__cable__pullover_banca",
               "primaryMuscles": [
                 "pectoralis"
@@ -920,6 +1020,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción y la extensión del hombro llevan el arco del cable desde detrás de la cabeza hasta el pecho con los brazos extendidos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -927,6 +1028,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras el cable sostiene la tensión en el arco por detrás de la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -934,6 +1036,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo se modula con la polea, cuya tensión constante acompaña tanto la bajada como la subida del arco con los brazos extendidos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -941,6 +1044,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre alinea las muñecas con el cable mientras la polea tira sin descanso detrás de la cabeza y sobre el pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1174,6 +1278,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción y la extensión del hombro bajan la barra en arco hasta los muslos, con los brazos casi extendidos frente a la polea alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1181,6 +1286,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras la barra recta recorre su arco bilateral bajo la polea alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1188,6 +1294,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo permanece leve bajo la barra prona, y la polea alta impone su tensión durante la bajada y la subida del arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1195,6 +1302,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre alinea las muñecas con la barra recta de agarre prono mientras la polea alta tira en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1202,6 +1310,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra la extensión del hombro que baja la barra en arco desde sobre la cabeza hasta los muslos con los brazos casi extendidos."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral acompaña la aducción del hombro con la barra de agarre prono y frena el arco cuando el cable devuelve la carga hacia la vertical."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps sostiene la leve flexión del codo con la barra prona para que el recorrido lo dirija el hombro y no un movimiento de antebrazo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija las costillas con el cuerpo de pie y apenas inclinado mientras la polea alta tira de la barra con ambos brazos en paralelo."
+                }
+              ],
               "performanceProfileId": "pullover__cable__pullover",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1223,6 +1349,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción y la extensión del hombro bajan la barra en arco hasta los muslos, con los brazos casi extendidos frente a la polea alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1230,6 +1357,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión y la rotación de la escápula organizan el hombro mientras la barra recta recorre su arco bilateral bajo la polea alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1237,6 +1365,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo permanece leve bajo la barra prona, y la polea alta impone su tensión durante la bajada y la subida del arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1244,6 +1373,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre alinea las muñecas con la barra recta de agarre prono mientras la polea alta tira en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1453,6 +1583,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción y la extensión del hombro llevan la empuñadura en arco hasta la cadera con el brazo casi recto frente a la polea alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1460,6 +1591,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión y la rotación de la escápula organizan el hombro activo mientras un solo brazo recorre el arco bajo la polea alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1467,6 +1599,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo permanece leve en el brazo que trabaja, y la polea alta tira de la empuñadura sin el apoyo del lado contrario.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1474,6 +1607,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene la empuñadura con la muñeca alineada, ya que toda la carga del cable recae en una sola mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1481,6 +1615,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra la extensión del hombro que baja la empuñadura en arco hasta el costado de la cadera con el brazo casi recto."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral acompaña la aducción del hombro del lado activo y frena el arco de la empuñadura cuando la polea alta devuelve la carga hacia arriba."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps sostiene la leve flexión del codo del brazo que trabaja, ya que la empuñadura única impide repartir la carga con el otro lado."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija las costillas con el cuerpo de pie frente a la polea alta para que el torso no gire cuando un solo brazo tira de la empuñadura."
+                }
+              ],
               "performanceProfileId": "pullover__cable__pullover",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1502,6 +1654,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción y la extensión del hombro llevan la empuñadura en arco hasta la cadera con el brazo casi recto frente a la polea alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1509,6 +1662,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión y la rotación de la escápula organizan el hombro activo mientras un solo brazo recorre el arco bajo la polea alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1516,6 +1670,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo permanece leve en el brazo que trabaja, y la polea alta tira de la empuñadura sin el apoyo del lado contrario.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1523,6 +1678,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene la empuñadura con la muñeca alineada, ya que toda la carga del cable recae en una sola mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1762,38 +1918,56 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "role": "PRIMARY",
-                  "note": "El hombro produce la extensión y aducción que desplaza los codos desde el tramo alto hacia la cintura."
+                  "note": "El hombro produce la extensión y aducción que desplaza los codos desde el tramo alto hacia la cintura.",
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "role": "PRIMARY",
-                  "note": "La escápula se deprime y rota para mantener el hombro organizado durante el arco guiado de la máquina."
+                  "note": "La escápula se deprime y rota para mantener el hombro organizado durante el arco guiado de la máquina.",
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "role": "SECONDARY",
-                  "note": "El codo conserva una flexión estable contra la almohadilla y transfiere fuerza sin convertir el gesto en un curl."
+                  "note": "El codo conserva una flexión estable contra la almohadilla y transfiere fuerza sin convertir el gesto en un curl.",
+                  "role": "SECONDARY"
                 },
                 {
                   "actions": [
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "role": "STABILIZER",
-                  "note": "La muñeca sostiene un contacto ligero con el agarre mientras los apoyos de codo conducen la resistencia principal."
+                  "note": "La muñeca sostiene un contacto ligero con el agarre mientras los apoyos de codo conducen la resistencia principal.",
+                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: conduce la extensión y aducción del hombro durante el arco guiado que lleva los codos hacia la cintura."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: acompaña el control del hombro en el tramo alto del pullover sin sustituir el papel principal del dorsal."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: estabiliza la leve flexión del codo para que el recorrido permanezca dominado por el hombro."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: fija las costillas y la pelvis contra el respaldo para que el torso no compense el arco de los brazos."
+                }
+              ],
               "performanceProfileId": "seated_machine_pullover__machine__pull_over_sentado_maquina",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1815,32 +1989,32 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "role": "PRIMARY",
-                      "note": "El hombro produce la extensión y aducción que desplaza los codos desde el tramo alto hacia la cintura."
+                      "note": "El hombro produce la extensión y aducción que desplaza los codos desde el tramo alto hacia la cintura.",
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "role": "PRIMARY",
-                      "note": "La escápula se deprime y rota para mantener el hombro organizado durante el arco guiado de la máquina."
+                      "note": "La escápula se deprime y rota para mantener el hombro organizado durante el arco guiado de la máquina.",
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "role": "SECONDARY",
-                      "note": "El codo conserva una flexión estable contra la almohadilla y transfiere fuerza sin convertir el gesto en un curl."
+                      "note": "El codo conserva una flexión estable contra la almohadilla y transfiere fuerza sin convertir el gesto en un curl.",
+                      "role": "SECONDARY"
                     },
                     {
                       "actions": [
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "role": "STABILIZER",
-                      "note": "La muñeca sostiene un contacto ligero con el agarre mientras los apoyos de codo conducen la resistencia principal."
+                      "note": "La muñeca sostiene un contacto ligero con el agarre mientras los apoyos de codo conducen la resistencia principal.",
+                      "role": "STABILIZER"
                     }
                   ],
                   "muscleLengthBias": "mixed_controlled",
@@ -1999,25 +2173,7 @@
               "technicalDifficulty": 4.0,
               "techniqueSummary": "Con el asiento alineado al eje de giro, los codos descansan en las almohadillas y descienden desde arriba hasta la línea de las costillas sin despegar la espalda del respaldo.",
               "ttc": 1.8,
-              "variantRationale": "La máquina dedicada conserva el arco de pullover mientras fija el torso y conduce los codos, una alternativa distinta al cable de pie y a la banca.",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: conduce la extensión y aducción del hombro durante el arco guiado que lleva los codos hacia la cintura."
-                },
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Secundario: acompaña el control del hombro en el tramo alto del pullover sin sustituir el papel principal del dorsal."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: estabiliza la leve flexión del codo para que el recorrido permanezca dominado por el hombro."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: fija las costillas y la pelvis contra el respaldo para que el torso no compense el arco de los brazos."
-                }
-              ]
+              "variantRationale": "La máquina dedicada conserva el arco de pullover mientras fija el torso y conduce los codos, una alternativa distinta al cable de pie y a la banca."
             },
             "selectedOptions": {}
           }

@@ -46,6 +46,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo para subir la barra desde el suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde el suelo y vuelven a abrirse cuando la barra se apoya entre repeticiones.",
                   "role": "PRIMARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo flexiona para traer la barra al torso desde el suelo y se extiende al devolver la carga al apoyo sin rebote.",
                   "role": "SECONDARY"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre de la barra al despegarla del suelo y resiste el peso en cada reinicio con el torso casi horizontal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,36 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho arranca la barra desde el suelo con el torso casi horizontal y concentra cada tirón hasta el abdomen sin rebote."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la retracción escapular en cada tirón desde el suelo y devuelve la barra al apoyo entre repetición y repetición."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para traer la barra al torso desde el apoyo en el suelo y frena la bajada hasta la posición inicial."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque desde el suelo y frenan la apertura cuando la barra vuelve a apoyarse."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior extiende el hombro al subir la barra desde el suelo con el torso casi paralelo y modera el descenso."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso casi paralelo al suelo en cada arranque de la barra desde cero."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija de forma isométrica el tronco horizontal antes de cada tirón y vuelve a organizarse con la barra apoyada."
+                }
+              ],
               "performanceProfileId": "pendlay_row__barbell__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -98,6 +132,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo para subir la barra desde el suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -105,6 +140,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde el suelo y vuelven a abrirse cuando la barra se apoya entre repeticiones.",
                       "role": "PRIMARY"
                     },
                     {
@@ -112,6 +148,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo flexiona para traer la barra al torso desde el suelo y se extiende al devolver la carga al apoyo sin rebote.",
                       "role": "SECONDARY"
                     },
                     {
@@ -119,6 +156,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre de la barra al despegarla del suelo y resiste el peso en cada reinicio con el torso casi horizontal.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -331,6 +369,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo al subir cada mancuerna desde el suelo con la espalda paralela a la plataforma.",
                   "role": "PRIMARY"
                 },
                 {
@@ -338,6 +377,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón de mancuernas desde el suelo y frenan la apertura al volver a apoyar la carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -345,6 +385,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo flexiona para elevar la mancuerna desde el suelo hasta el costado y se extiende al apoyarla otra vez en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -352,6 +393,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca estabiliza el agarre de cada mancuerna al despegarla del suelo y resiste el peso de cada lado por separado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -359,6 +401,36 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho sube cada mancuerna desde el suelo con la espalda paralela a la plataforma y cierra el tirón sin ayuda del otro lado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la retracción escapular en cada tirón de mancuernas desde el suelo y devuelve la carga al apoyo inicial."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para elevar la mancuerna desde el suelo hasta el costado y frena el descenso hasta apoyarla de nuevo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides aproximan las escápulas al tirar de cada mancuerna desde el suelo y frenan su separación al volver a apoyar la carga."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior extiende el hombro en cada tirón de mancuerna independiente desde el suelo y modera la bajada."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores sostienen de forma isométrica la espalda paralela a la plataforma mientras las mancuernas parten del suelo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core organiza de forma isométrica el tronco antes de cada arranque de las mancuernas y se reorganiza al apoyar la carga."
+                }
+              ],
               "performanceProfileId": "pendlay_row__dumbbells__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -383,6 +455,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo al subir cada mancuerna desde el suelo con la espalda paralela a la plataforma.",
                       "role": "PRIMARY"
                     },
                     {
@@ -390,6 +463,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón de mancuernas desde el suelo y frenan la apertura al volver a apoyar la carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -397,6 +471,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo flexiona para elevar la mancuerna desde el suelo hasta el costado y se extiende al apoyarla otra vez en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -404,6 +479,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca estabiliza el agarre de cada mancuerna al despegarla del suelo y resiste el peso de cada lado por separado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -614,6 +690,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo para arrancar las asas desde la parada con el tronco casi horizontal y acercarlas al torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -621,6 +698,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde las asas detenidas y vuelven a abrirse con el tronco sostenido por la máquina.",
                   "role": "PRIMARY"
                 },
                 {
@@ -628,6 +706,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo flexiona para traer las asas al torso desde la parada inicial y se extiende hasta detenerlas otra vez en la máquina.",
                   "role": "SECONDARY"
                 },
                 {
@@ -635,6 +714,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca estabiliza el agarre de las asas al salir de la posición detenida y resiste la carga durante todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -642,6 +722,36 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho arranca cada tirón desde las asas detenidas con el tronco casi horizontal y las acerca al torso sin impulso previo."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la retracción escapular al cerrar cada tirón desde la posición detenida de la máquina y frena la vuelta al inicio."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para traer las asas al torso desde la parada inicial y frena su regreso hasta detenerlas de nuevo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque desde las asas detenidas y frenan la apertura al volver al inicio."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior extiende el hombro desde el arranque detenido de la máquina con el tronco casi horizontal y modera la vuelta."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el tronco casi horizontal ante cada arranque desde las asas detenidas de la máquina."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija de forma isométrica el tronco antes de cada tirón desde la parada de la máquina y se reorganiza entre repeticiones."
+                }
+              ],
               "performanceProfileId": "pendlay_row__machine__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -666,6 +776,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo para arrancar las asas desde la parada con el tronco casi horizontal y acercarlas al torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -673,6 +784,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde las asas detenidas y vuelven a abrirse con el tronco sostenido por la máquina.",
                       "role": "PRIMARY"
                     },
                     {
@@ -680,6 +792,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo flexiona para traer las asas al torso desde la parada inicial y se extiende hasta detenerlas otra vez en la máquina.",
                       "role": "SECONDARY"
                     },
                     {
@@ -687,6 +800,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca estabiliza el agarre de las asas al salir de la posición detenida y resiste la carga durante todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -899,6 +1013,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo para subir la barra Smith desde la posición baja y devuelve la carga hasta detenerla.",
                   "role": "PRIMARY"
                 },
                 {
@@ -906,6 +1021,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Las escápulas se retraen al subir la barra desde su parada baja y frenan la apertura cuando la Smith regresa al inicio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -913,6 +1029,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo flexiona para elevar la barra desde la parada baja de la Smith y se extiende hasta detenerla de nuevo entre repeticiones.",
                   "role": "SECONDARY"
                 },
                 {
@@ -920,6 +1037,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre de la barra Smith en cada arranque desde la posición baja y resiste el peso sobre la guía.",
                   "role": "STABILIZER"
                 }
               ],
@@ -927,6 +1045,36 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho arranca la Smith desde la posición baja con la barra detenida y sube cada repetición por la línea guiada sin rebote."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la retracción escapular al subir la barra desde su parada baja y devuelve la Smith al punto de partida."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para elevar la barra Smith desde la parada y frena el descenso hasta detenerla de nuevo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque desde la barra detenida y frenan la apertura al volver la Smith a la posición baja."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior extiende el hombro para subir la barra desde la parada baja de la Smith y modera su descenso hasta el reinicio."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso casi horizontal en cada arranque de la barra Smith desde la posición baja."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene de forma isométrica el tronco horizontal en cada repetición que parte desde la barra detenida en la Smith."
+                }
+              ],
               "performanceProfileId": "pendlay_row__smith_machine__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -951,6 +1099,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo para subir la barra Smith desde la posición baja y devuelve la carga hasta detenerla.",
                       "role": "PRIMARY"
                     },
                     {
@@ -958,6 +1107,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Las escápulas se retraen al subir la barra desde su parada baja y frenan la apertura cuando la Smith regresa al inicio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -965,6 +1115,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo flexiona para elevar la barra desde la parada baja de la Smith y se extiende hasta detenerla de nuevo entre repeticiones.",
                       "role": "SECONDARY"
                     },
                     {
@@ -972,6 +1123,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre de la barra Smith en cada arranque desde la posición baja y resiste el peso sobre la guía.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1184,6 +1336,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo al despegar la kettlebell del suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1191,6 +1344,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Las escápulas se retraen al cerrar el tirón con la kettlebell elevada y frenan la apertura cuando la carga vuelve al suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1198,6 +1352,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo flexiona para subir la kettlebell desde el suelo hasta el costado y se extiende al apoyarla otra vez delante de los pies.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1205,6 +1360,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca estabiliza el agarre bajo de la kettlebell al despegarla del suelo y soporta la masa colgando por debajo de la mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1212,6 +1368,36 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho despega las kettlebells del suelo delante de los pies y cierra cada tirón con el torso casi paralelo a la plataforma."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la retracción escapular al elevar las kettlebells desde el suelo y devuelve la carga al apoyo inicial."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para subir la kettlebell desde el suelo hasta el costado y frena la bajada hasta apoyarla otra vez."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides aproximan las escápulas en el arranque de cada kettlebell desde el suelo y frenan la apertura al apoyar la carga."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior extiende el hombro al despegar la kettlebell del suelo con el torso casi horizontal y modera el descenso."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso casi horizontal antes de despegar las kettlebells del suelo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija de forma isométrica el tronco antes de cada despegue de las kettlebells y vuelve a organizarse con la carga en el suelo."
+                }
+              ],
               "performanceProfileId": "pendlay_row__kettlebell__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1236,6 +1422,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo al despegar la kettlebell del suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1243,6 +1430,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Las escápulas se retraen al cerrar el tirón con la kettlebell elevada y frenan la apertura cuando la carga vuelve al suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1250,6 +1438,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo flexiona para subir la kettlebell desde el suelo hasta el costado y se extiende al apoyarla otra vez delante de los pies.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1257,6 +1446,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca estabiliza el agarre bajo de la kettlebell al despegarla del suelo y soporta la masa colgando por debajo de la mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1469,6 +1659,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo para arrancar la empuñadura de la polea baja desde la parada con el torso casi horizontal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1476,6 +1667,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde la empuñadura detenida y frenan la apertura con tensión continua del cable.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1483,6 +1675,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo flexiona para traer la empuñadura de la polea baja al torso y se extiende hasta la parada inicial sin perder tensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1490,6 +1683,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca estabiliza el agarre de la empuñadura al salir de la parada y resiste la tensión continua del cable en todo el arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1497,6 +1691,36 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho inicia cada tirón con la empuñadura de la polea baja detenida y el torso horizontal, sin impulso entre repeticiones."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la retracción escapular en cada tirón desde la empuñadura detenida y frena la apertura con el cable tenso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para traer la empuñadura de la polea baja al torso y frena su vuelta hasta la parada inicial."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque detenido de la polea baja y frenan la apertura con tensión continua del cable."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior extiende el hombro desde la parada de la polea baja con el torso horizontal y modera el regreso de la empuñadura."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso horizontal frente a la polea baja durante el arranque de cada tirón."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija de forma isométrica el tronco horizontal ante la polea baja y vuelve a organizarse con la empuñadura detenida."
+                }
+              ],
               "performanceProfileId": "pendlay_row__cable__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1521,6 +1745,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo para arrancar la empuñadura de la polea baja desde la parada con el torso casi horizontal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1528,6 +1753,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde la empuñadura detenida y frenan la apertura con tensión continua del cable.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1535,6 +1761,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo flexiona para traer la empuñadura de la polea baja al torso y se extiende hasta la parada inicial sin perder tensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1542,6 +1769,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca estabiliza el agarre de la empuñadura al salir de la parada y resiste la tensión continua del cable en todo el arco.",
                       "role": "STABILIZER"
                     }
                   ],

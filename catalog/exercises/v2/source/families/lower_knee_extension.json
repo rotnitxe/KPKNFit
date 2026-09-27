@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La extensión de la rodilla levanta la almohadilla con ambas piernas, y la trayectoria guiada de la máquina impone un retorno gradual hasta la flexión inicial.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras las dos piernas empujan la almohadilla, con la pelvis quieta sin sumarse al empuje de la rodilla.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo en dorsiflexión bajo la almohadilla fija las espinillas de las dos piernas mientras la máquina guía el empuje y el retorno de la rodilla.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado sin ceder mientras ambas piernas extienden la rodilla contra la máquina y vuelven a la flexión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla al empujar la almohadilla con las dos piernas y frena de forma excéntrica el retorno guiado de la máquina."
+                }
+              ],
               "performanceProfileId": "quads_extension_cuadriceps__machine__bilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -93,6 +103,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La extensión de la rodilla levanta la almohadilla con ambas piernas, y la trayectoria guiada de la máquina impone un retorno gradual hasta la flexión inicial.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras las dos piernas empujan la almohadilla, con la pelvis quieta sin sumarse al empuje de la rodilla.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +119,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo en dorsiflexión bajo la almohadilla fija las espinillas de las dos piernas mientras la máquina guía el empuje y el retorno de la rodilla.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +127,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado sin ceder mientras ambas piernas extienden la rodilla contra la máquina y vuelven a la flexión.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -308,6 +322,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla trabajadora levanta la almohadilla en solitario y la máquina la guía de vuelta hasta la flexión inicial sin arrastre del lado contrario.",
                   "role": "PRIMARY"
                 },
                 {
@@ -315,6 +330,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras una sola pierna empuja la almohadilla, con la pelvis quieta ante el esfuerzo desequilibrado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -322,6 +338,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo de la pierna activa fija la espinilla bajo la almohadilla mientras la otra pierna espera, y la máquina guía el empuje de una sola rodilla.",
                   "role": "STABILIZER"
                 },
                 {
@@ -329,6 +346,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado frente al empuje de una pierna, cuando la carga unilateral intenta girar la pelvis sobre el asiento.",
                   "role": "STABILIZER"
                 }
               ],
@@ -336,6 +354,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla una pierna cada vez contra la almohadilla de la máquina y frena el retorno sin ayuda de la pierna contraria."
+                }
+              ],
               "performanceProfileId": "quads_extension_cuadriceps__machine__unilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -356,6 +380,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla trabajadora levanta la almohadilla en solitario y la máquina la guía de vuelta hasta la flexión inicial sin arrastre del lado contrario.",
                       "role": "PRIMARY"
                     },
                     {
@@ -363,6 +388,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras una sola pierna empuja la almohadilla, con la pelvis quieta ante el esfuerzo desequilibrado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -370,6 +396,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo de la pierna activa fija la espinilla bajo la almohadilla mientras la otra pierna espera, y la máquina guía el empuje de una sola rodilla.",
                       "role": "STABILIZER"
                     },
                     {
@@ -377,6 +404,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado frente al empuje de una pierna, cuando la carga unilateral intenta girar la pelvis sobre el asiento.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -597,6 +625,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla se estira de pie contra el cable con ambas piernas y regresa a la flexión sin que la polea afloje la resistencia en ningún punto del arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -604,6 +633,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera de pie permanece extendida y solo acompaña el equilibrio mientras las dos rodillas se estiran contra la tensión continua del cable de la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -611,6 +641,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo enganchado al accesorio de la polea transmite la tensión con las dos piernas de pie y sostiene la dorsiflexión durante el empuje y el retorno.",
                   "role": "STABILIZER"
                 },
                 {
@@ -618,6 +649,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie y de lado al cable mientras las dos rodillas se estiran contra la tensión continua de la polea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -625,6 +657,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla de pie con el tobillo enganchado a la polea y frena el retorno con la tensión del cable siempre viva."
+                }
+              ],
               "performanceProfileId": "quads_extension_cuadriceps_pie_polea__bilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -645,6 +683,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla se estira de pie contra el cable con ambas piernas y regresa a la flexión sin que la polea afloje la resistencia en ningún punto del arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -652,6 +691,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera de pie permanece extendida y solo acompaña el equilibrio mientras las dos rodillas se estiran contra la tensión continua del cable de la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -659,6 +699,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo enganchado al accesorio de la polea transmite la tensión con las dos piernas de pie y sostiene la dorsiflexión durante el empuje y el retorno.",
                       "role": "STABILIZER"
                     },
                     {
@@ -666,6 +707,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie y de lado al cable mientras las dos rodillas se estiran contra la tensión continua de la polea.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -860,6 +902,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla activa se estira de pie contra el cable y vuelve a la flexión con la polea tensa, mientras la pierna contraria queda fuera del empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -867,6 +910,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera extendida de pie sostiene el equilibrio ante el tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -874,6 +918,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo de la pierna enganchada absorbe la tracción de la polea y sostiene la dorsiflexión mientras la otra pierna equilibra el cuerpo de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -881,6 +926,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie frente al tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -888,6 +934,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla con una sola pierna de pie y el tobillo enganchado, y frena el retorno frente a la tensión continua del cable."
+                }
+              ],
               "performanceProfileId": "quads_extension_cuadriceps_pie_polea__unilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -908,6 +960,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla activa se estira de pie contra el cable y vuelve a la flexión con la polea tensa, mientras la pierna contraria queda fuera del empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -915,6 +968,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera extendida de pie sostiene el equilibrio ante el tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -922,6 +976,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo de la pierna enganchada absorbe la tracción de la polea y sostiene la dorsiflexión mientras la otra pierna equilibra el cuerpo de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -929,6 +984,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie frente al tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                       "role": "STABILIZER"
                     }
                   ],

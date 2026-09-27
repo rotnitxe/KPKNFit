@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma concéntrica para subir el cuerpo al cajón con una pierna, con mancuernas en las manos y el torso inclinado hacia delante.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna que empuja aporta estabilidad durante la subida al cajón con mancuernas y la flexión controlada del descenso, con el torso inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva su alineación con el torso inclinado hacia delante mientras las mancuernas cuelgan de los brazos y una pierna sube al cajón.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,13 +69,24 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna que sube al cajón, con mancuernas en las manos y el torso inclinado hacia delante.",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
-              "laterality": "BILATERAL",
+              "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de la pierna que empuja el cajón, con mancuernas en las manos y el torso inclinado hacia delante durante la subida."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera de la pierna que sube al cajón con mancuernas y frenan el descenso excéntrico del torso inclinado hacia delante."
+                }
+              ],
               "performanceProfileId": "glutes_step_up_gluteo__dumbbells__step_up_de_gluteo",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -94,6 +108,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma concéntrica para subir el cuerpo al cajón con una pierna, con mancuernas en las manos y el torso inclinado hacia delante.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +116,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna que empuja aporta estabilidad durante la subida al cajón con mancuernas y la flexión controlada del descenso, con el torso inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +124,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva su alineación con el torso inclinado hacia delante mientras las mancuernas cuelgan de los brazos y una pierna sube al cajón.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +132,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna que sube al cajón, con mancuernas en las manos y el torso inclinado hacia delante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -136,7 +154,7 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "dumbbells",
                   "kineticChain": "POSTERIOR",
-                  "laterality": "BILATERAL",
+                  "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_hip_dominant",
                   "rangeOfMotion": "controlled_full_available",
@@ -331,6 +349,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera delantera se extiende de forma concéntrica para elevar el cuerpo desde el paso cruzado por detrás, con mancuernas en las manos y el peso en esa pierna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -338,6 +357,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla delantera aporta estabilidad al descenso en diagonal con el paso cruzado por detrás y el peso repartido sobre esa pierna con mancuernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -345,6 +365,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva su alineación mientras el paso cruza en diagonal por detrás y las mancuernas cargan el torso que desciende y asciende.",
                   "role": "STABILIZER"
                 },
                 {
@@ -352,13 +373,24 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna delantera cuando el paso cruza por detrás en diagonal con mancuernas y el peso adelantado.",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "POSTERIOR",
-              "laterality": "BILATERAL",
+              "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de la pierna delantera que soporta el peso, con mancuernas en las manos y el paso cruzado por detrás en diagonal."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps asiste la extensión de la rodilla delantera que sostiene el peso con mancuernas y frena la flexión excéntrica del descenso en diagonal."
+                }
+              ],
               "performanceProfileId": "glutes_zancada_cruzada__dumbbells__zancada_cruzada",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -380,6 +412,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera delantera se extiende de forma concéntrica para elevar el cuerpo desde el paso cruzado por detrás, con mancuernas en las manos y el peso en esa pierna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -387,6 +420,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla delantera aporta estabilidad al descenso en diagonal con el paso cruzado por detrás y el peso repartido sobre esa pierna con mancuernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -394,6 +428,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva su alineación mientras el paso cruza en diagonal por detrás y las mancuernas cargan el torso que desciende y asciende.",
                       "role": "STABILIZER"
                     },
                     {
@@ -401,6 +436,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna delantera cuando el paso cruza por detrás en diagonal con mancuernas y el peso adelantado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -422,7 +458,7 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "dumbbells",
                   "kineticChain": "POSTERIOR",
-                  "laterality": "BILATERAL",
+                  "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_hip_dominant",
                   "rangeOfMotion": "controlled_full_available",

@@ -45,6 +45,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar resiste en isometría la extensión que el peso corporal impone al tronco, con el abdomen frenando el hundimiento entre antebrazos y pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis se organiza en posición neutra mientras el cuerpo se sostiene recto sobre los antebrazos, sin dejar que el peso corporal la hunda en extensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La caja torácica queda quieta sobre los antebrazos mientras el cuerpo se sostiene en línea recta, sin permitir que la espalda alta se redondee.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "anti_extension_isometric",
+              "muscleNotes": [
+                {
+                  "muscleId": "core",
+                  "note": "Principal: El core sostiene en isometría la línea recta del cuerpo entre antebrazos y puntas de los pies, oponiéndose a la extensión que la gravedad busca en el torso."
+                },
+                {
+                  "muscleId": "abdominals",
+                  "note": "Secundario: Los abdominales colaboran de forma isométrica sujetando las costillas sobre la pelvis en el apoyo de antebrazos y pies, sin acortamiento visible del tronco."
+                }
+              ],
               "performanceProfileId": "core_plancha__bodyweight__plancha",
               "primaryMuscles": [
                 "core"
@@ -86,6 +99,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar resiste en isometría la extensión que el peso corporal impone al tronco, con el abdomen frenando el hundimiento entre antebrazos y pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis se organiza en posición neutra mientras el cuerpo se sostiene recto sobre los antebrazos, sin dejar que el peso corporal la hunda en extensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La caja torácica queda quieta sobre los antebrazos mientras el cuerpo se sostiene en línea recta, sin permitir que la espalda alta se redondee.",
                       "role": "STABILIZER"
                     }
                   ],

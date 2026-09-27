@@ -72,7 +72,7 @@ object PersonalizedPlanCatalog {
         NativeSpec("machine-muscle", "Construye músculo con máquinas", "Una semana de movimientos guiados. Solo utilizamos máquinas; no añadimos barras, mancuernas o poleas que no hayas elegido.", 2..4, setOf("machine")),
         NativeSpec("home-training", "Entrena en casa sin gimnasio", "Aprovecha tus bandas, mancuernas y peso corporal. Te indicamos si falta material para cubrir algún movimiento, sin sustituirlo a escondidas.", 2..4, setOf("bodyweight")),
         NativeSpec("bodyweight", "Domina tu peso corporal", "Organiza fuerza con tu propio peso. Las variantes de tracción necesitan una barra o apoyo estable y experiencia previa.", 2..4, setOf("bodyweight", "support", "pull_up_bar"), CatalogLevel.INTERMEDIATE),
-        NativeSpec("strength-cardio", "Fuerza y resistencia", "Combina series de fuerza con cardio de intensidad moderada. La vista previa reserva tiempo para ambas partes.", 2..4, setOf("general_gym")),
+        NativeSpec("strength-cardio", "Fuerza y resistencia", "Combina series de fuerza con cardio de intensidad moderada. La vista previa reserva tiempo para ambas partes.", 1..6, setOf("general_gym")),
         NativeSpec("return-training", "Vuelve a entrenar", "Retoma la constancia con una entrada conservadora. Empezamos por una dosis manejable, no por el máximo volumen.", 2..3, setOf("general_gym")),
         NativeSpec("one-day", "Aprovecha un solo día", "Una sesión equilibrada cuando tu semana deja poco espacio. Priorizamos lo posible sin prometer la frecuencia de un plan de varios días.", 1..1, setOf("general_gym")),
     )

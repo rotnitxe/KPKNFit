@@ -45,6 +45,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo alterna flexión plantar al subir y dorsiflexión al bajar, guiado por la máquina con la espalda apoyada y sin rebote al final.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar reparte el apoyo entre talón y antepié mientras la máquina guía el ascenso de ambas piernas con la espalda apoyada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la carga de la máquina al tobillo sin ser el motor del movimiento, con las dos piernas compartiendo el esfuerzo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la máquina de pantorrillas y ambas piernas a la vez, el gemelo acorta en concéntrico al subir el cuerpo y frena el descenso del talón."
+                }
+              ],
               "performanceProfileId": "calf_raise__bilateral__machine",
               "primaryMuscles": [
                 "calves"
@@ -86,6 +95,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo alterna flexión plantar al subir y dorsiflexión al bajar, guiado por la máquina con la espalda apoyada y sin rebote al final.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar reparte el apoyo entre talón y antepié mientras la máquina guía el ascenso de ambas piernas con la espalda apoyada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la carga de la máquina al tobillo sin ser el motor del movimiento, con las dos piernas compartiendo el esfuerzo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -299,6 +311,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión sobre la plataforma de la máquina, que quita buena parte del equilibrio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -306,6 +319,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar ajusta el apoyo de una única pierna sobre la plataforma mientras la máquina guía el recorrido y reduce el reto de equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -313,6 +327,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la carga de la máquina a un solo tobillo, con todo el peso del cuerpo sobre una pierna y el lado contrario libre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -320,6 +335,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la máquina de pantorrillas y una sola pierna apoyada, el gemelo de ese lado acorta elevando el cuerpo entero y frena el descenso del talón."
+                }
+              ],
               "performanceProfileId": "calf_raise__unilateral__machine",
               "primaryMuscles": [
                 "calves"
@@ -340,6 +361,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión sobre la plataforma de la máquina, que quita buena parte del equilibrio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -347,6 +369,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar ajusta el apoyo de una única pierna sobre la plataforma mientras la máquina guía el recorrido y reduce el reto de equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -354,6 +377,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la carga de la máquina a un solo tobillo, con todo el peso del cuerpo sobre una pierna y el lado contrario libre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -553,6 +577,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo alterna flexión plantar y dorsiflexión bajo la barra apoyada en la espalda, sin guía mecánica y con las dos piernas en el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -560,6 +585,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar sostiene el reparto del apoyo entre talón y antepié bajo la carga libre de la barra, con las dos piernas elevando el cuerpo a la vez.",
                   "role": "SECONDARY"
                 },
                 {
@@ -567,6 +593,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite el peso de la barra al tobillo y sostiene el equilibrio del conjunto, sin la estabilidad que aporta una máquina guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -574,6 +601,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la barra sobre los hombros y ambas piernas a la vez, el gemelo acorta para elevar el cuerpo y frena el descenso del talón con carga libre."
+                }
+              ],
               "performanceProfileId": "calf_raise__bilateral__barbell",
               "primaryMuscles": [
                 "calves"
@@ -594,6 +627,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo alterna flexión plantar y dorsiflexión bajo la barra apoyada en la espalda, sin guía mecánica y con las dos piernas en el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -601,6 +635,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar sostiene el reparto del apoyo entre talón y antepié bajo la carga libre de la barra, con las dos piernas elevando el cuerpo a la vez.",
                       "role": "SECONDARY"
                     },
                     {
@@ -608,6 +643,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite el peso de la barra al tobillo y sostiene el equilibrio del conjunto, sin la estabilidad que aporta una máquina guiada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -807,6 +843,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión bajo la barra de la espalda, sin ayuda del otro pie y sin guía mecánica.",
                   "role": "PRIMARY"
                 },
                 {
@@ -814,6 +851,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar equilibra el apoyo de una única pierna bajo la carga libre de la barra, ajustando el reparto entre talón y antepié sin el otro pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -821,6 +859,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la carga de la barra a un solo tobillo y sostiene el equilibrio de la pierna que soporta todo el peso del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -828,6 +867,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la barra sobre los hombros y una sola pierna apoyada, el gemelo de ese lado acorta elevando el cuerpo y frena la bajada con carga libre."
+                }
+              ],
               "performanceProfileId": "calf_raise__unilateral__barbell",
               "primaryMuscles": [
                 "calves"
@@ -848,6 +893,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión bajo la barra de la espalda, sin ayuda del otro pie y sin guía mecánica.",
                       "role": "PRIMARY"
                     },
                     {
@@ -855,6 +901,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar equilibra el apoyo de una única pierna bajo la carga libre de la barra, ajustando el reparto entre talón y antepié sin el otro pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -862,6 +909,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la carga de la barra a un solo tobillo y sostiene el equilibrio de la pierna que soporta todo el peso del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1061,6 +1109,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo alterna flexión plantar y dorsiflexión con la barra Smith guiada sobre los hombros y las dos piernas apoyadas a la vez.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1068,6 +1117,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar ajusta el apoyo compartido de ambas piernas mientras la Smith guía la barra y reduce la demanda de equilibrio lateral.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1075,6 +1125,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la carga de la barra Smith al tobillo con la trayectoria fija, sin tener que estabilizar una barra suelta.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1082,6 +1133,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la máquina Smith y ambas piernas a la vez, el gemelo acorta al subir el cuerpo y frena el descenso del talón sobre la trayectoria guiada."
+                }
+              ],
               "performanceProfileId": "calf_raise__bilateral__smith_machine",
               "primaryMuscles": [
                 "calves"
@@ -1102,6 +1159,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo alterna flexión plantar y dorsiflexión con la barra Smith guiada sobre los hombros y las dos piernas apoyadas a la vez.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1109,6 +1167,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar ajusta el apoyo compartido de ambas piernas mientras la Smith guía la barra y reduce la demanda de equilibrio lateral.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1116,6 +1175,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la carga de la barra Smith al tobillo con la trayectoria fija, sin tener que estabilizar una barra suelta.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1315,6 +1375,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión bajo la barra Smith, con todo el peso sobre una pierna y recorrido fijo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1322,6 +1383,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar ajusta el apoyo de una única pierna bajo la Smith, que sostiene la barra y retira el equilibrio libre de la ecuación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1329,6 +1391,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la carga guiada de la Smith a un solo tobillo y sostiene el eje de la pierna que apoya todo el peso del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1336,6 +1399,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la máquina Smith y una sola pierna apoyada, el gemelo de ese lado acorta elevando el cuerpo y frena la bajada con la barra guiada."
+                }
+              ],
               "performanceProfileId": "calf_raise__unilateral__smith_machine",
               "primaryMuscles": [
                 "calves"
@@ -1356,6 +1425,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión bajo la barra Smith, con todo el peso sobre una pierna y recorrido fijo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1363,6 +1433,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar ajusta el apoyo de una única pierna bajo la Smith, que sostiene la barra y retira el equilibrio libre de la ecuación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1370,6 +1441,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la carga guiada de la Smith a un solo tobillo y sostiene el eje de la pierna que apoya todo el peso del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1569,6 +1641,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo alterna flexión plantar y dorsiflexión contra la tensión continua de la polea, con las dos piernas compartiendo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1576,6 +1649,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar reparte el apoyo entre talón y antepié mientras la polea tira sin descanso y las dos piernas elevan el cuerpo a la vez.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1583,6 +1657,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite el tirón constante de la polea al tobillo con las dos piernas apoyadas y sin el soporte de espalda de la máquina.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1590,6 +1665,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la polea y ambas piernas a la vez, el gemelo acorta contra una tensión constante y frena el descenso del talón sin puntos de descanso."
+                }
+              ],
               "performanceProfileId": "calf_raise__bilateral__cable",
               "primaryMuscles": [
                 "calves"
@@ -1610,6 +1691,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo alterna flexión plantar y dorsiflexión contra la tensión continua de la polea, con las dos piernas compartiendo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1617,6 +1699,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar reparte el apoyo entre talón y antepié mientras la polea tira sin descanso y las dos piernas elevan el cuerpo a la vez.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1624,6 +1707,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite el tirón constante de la polea al tobillo con las dos piernas apoyadas y sin el soporte de espalda de la máquina.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1823,6 +1907,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión contra el tirón continuo de la polea, con todo el peso sobre una pierna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1830,6 +1915,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar ajusta el apoyo de una única pierna mientras la polea mantiene la tensión en todo el arco y el otro pie permanece libre.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1837,6 +1923,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la tensión constante de la polea a un solo tobillo y sostiene el equilibrio del cuerpo sobre una pierna apoyada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1844,6 +1931,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "plantar_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "calves",
+                  "note": "Principal: Con la polea y una sola pierna apoyada, el gemelo de ese lado acorta contra tensión constante y frena la bajada sin ayuda del otro lado."
+                }
+              ],
               "performanceProfileId": "calf_raise__unilateral__cable",
               "primaryMuscles": [
                 "calves"
@@ -1864,6 +1957,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo de un solo lado alterna flexión plantar y dorsiflexión contra el tirón continuo de la polea, con todo el peso sobre una pierna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1871,6 +1965,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar ajusta el apoyo de una única pierna mientras la polea mantiene la tensión en todo el arco y el otro pie permanece libre.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1878,6 +1973,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la tensión constante de la polea a un solo tobillo y sostiene el equilibrio del cuerpo sobre una pierna apoyada.",
                       "role": "STABILIZER"
                     }
                   ],

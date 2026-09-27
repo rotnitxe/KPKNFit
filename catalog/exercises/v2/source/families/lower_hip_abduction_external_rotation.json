@@ -45,6 +45,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera combina abducción y rotación externa al abrir la rodilla superior contra la banda, con el cuerpo tumbado de lado sobre el suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica con el cuerpo tumbado de lado mientras la rodilla superior se abre y la resistencia elástica crece.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla actúa como eje de la abducción con rotación externa contra la banda y alinea el miembro inferior con el cuerpo tumbado de lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction_external_rotation",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: Tumbado de lado con la banda en las rodillas, el glúteo mayor rota la rodilla superior hacia fuera y la abre contra la resistencia de la goma."
+                }
+              ],
               "performanceProfileId": "glutes_clamshells_banda__band__clamshells_almejas_con_banda_elastica",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -86,6 +95,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera combina abducción y rotación externa al abrir la rodilla superior contra la banda, con el cuerpo tumbado de lado sobre el suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica con el cuerpo tumbado de lado mientras la rodilla superior se abre y la resistencia elástica crece.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla actúa como eje de la abducción con rotación externa contra la banda y alinea el miembro inferior con el cuerpo tumbado de lado.",
                       "role": "STABILIZER"
                     }
                   ],

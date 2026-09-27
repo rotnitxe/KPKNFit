@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla concentra el recorrido con barra sobre el torso, cuya carga directa no altera la inclinación hacia atrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás bajo la barra, con un papel secundario frente al trabajo aislado de la rodilla.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo con barra sobre el torso, ya que la carga desplaza el equilibrio hacia delante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás, con la barra apoyada sobre el torso sin guía externa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_lengthened",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: Con barra sobre el torso, el cuádriceps extiende la rodilla al subir y frena la flexión al descender mientras el torso se inclina hacia atrás."
+                }
+              ],
               "performanceProfileId": "sissy_squat__barbell",
               "primaryMuscles": [
                 "quadriceps"
@@ -93,6 +103,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla concentra el recorrido con barra sobre el torso, cuya carga directa no altera la inclinación hacia atrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás bajo la barra, con un papel secundario frente al trabajo aislado de la rodilla.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +119,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo con barra sobre el torso, ya que la carga desplaza el equilibrio hacia delante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +127,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás, con la barra apoyada sobre el torso sin guía externa.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -314,6 +328,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla se desplaza por la trayectoria guiada de la máquina, que sujeta los tobillos y permite un descenso profundo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -321,6 +336,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás en la máquina, con los tobillos fijados y el guiado asumiendo el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -328,6 +344,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo queda sujeto por la máquina y aporta la dorsiflexión y el control del apoyo mientras la rodilla avanza hacia el frente.",
                   "role": "STABILIZER"
                 },
                 {
@@ -335,6 +352,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás, con la máquina guiando la carga y sin peso sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -342,6 +360,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant_lengthened",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: En la máquina con tobillos sujetos, el cuádriceps extiende la rodilla al subir y frena la flexión durante el descenso profundo de trayectoria guiada."
+                }
+              ],
               "performanceProfileId": "sissy_squat__machine",
               "primaryMuscles": [
                 "quadriceps"
@@ -362,6 +386,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla se desplaza por la trayectoria guiada de la máquina, que sujeta los tobillos y permite un descenso profundo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -369,6 +394,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás en la máquina, con los tobillos fijados y el guiado asumiendo el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -376,6 +402,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo queda sujeto por la máquina y aporta la dorsiflexión y el control del apoyo mientras la rodilla avanza hacia el frente.",
                       "role": "STABILIZER"
                     },
                     {
@@ -383,6 +410,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás, con la máquina guiando la carga y sin peso sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -583,6 +611,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla se produce con la barra Smith guiada, cuyo recorrido fijo acompaña el avance de la rodilla hacia el frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -590,6 +619,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende con el torso inclinado hacia atrás, mientras la guía fija de la barra Smith impide desplazamientos laterales.",
                   "role": "SECONDARY"
                 },
                 {
@@ -597,6 +627,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo bajo la barra Smith, cuya guía fija reduce las correcciones de equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -604,6 +635,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco al inclinarse hacia atrás bajo la barra Smith, con la guía fija de la trayectoria.",
                   "role": "STABILIZER"
                 }
               ],
@@ -611,6 +643,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant_lengthened",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: En la Smith, el cuádriceps extiende la rodilla al subir y frena la flexión al descender mientras la barra guiada acompaña la inclinación del torso."
+                }
+              ],
               "performanceProfileId": "sissy_squat__smith_machine",
               "primaryMuscles": [
                 "quadriceps"
@@ -631,6 +669,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla se produce con la barra Smith guiada, cuyo recorrido fijo acompaña el avance de la rodilla hacia el frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -638,6 +677,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende con el torso inclinado hacia atrás, mientras la guía fija de la barra Smith impide desplazamientos laterales.",
                       "role": "SECONDARY"
                     },
                     {
@@ -645,6 +685,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo bajo la barra Smith, cuya guía fija reduce las correcciones de equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -652,6 +693,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco al inclinarse hacia atrás bajo la barra Smith, con la guía fija de la trayectoria.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -852,6 +894,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla avanza hacia el frente con la mancuerna al pecho, sin apoyo externo que fije la trayectoria del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -859,6 +902,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás, con la mancuerna al pecho como carga ligera y el equilibrio a cargo del cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -866,6 +910,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo con la mancuerna al pecho, donde la carga ligera exige equilibrio propio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -873,6 +918,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás con la mancuerna al pecho, sin guía externa del torso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -880,6 +926,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_lengthened",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: Con mancuerna sujeta al pecho, el cuádriceps extiende la rodilla al subir y frena la flexión al descender, con cada lado ajustando su propia línea."
+                }
+              ],
               "performanceProfileId": "sissy_squat__dumbbells",
               "primaryMuscles": [
                 "quadriceps"
@@ -900,6 +952,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla avanza hacia el frente con la mancuerna al pecho, sin apoyo externo que fije la trayectoria del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -907,6 +960,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás, con la mancuerna al pecho como carga ligera y el equilibrio a cargo del cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -914,6 +968,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo con la mancuerna al pecho, donde la carga ligera exige equilibrio propio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -921,6 +976,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás con la mancuerna al pecho, sin guía externa del torso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1121,6 +1177,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla avanza hacia el frente con el disco al pecho, cuyo lastre ligero acompaña la inclinación sin guía externa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1128,6 +1185,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás con el disco al pecho, un lastre simple que apenas altera la línea del movimiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1135,6 +1193,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo con el disco al pecho, donde la carga ligera deja el equilibrio en manos del cuerpo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1142,6 +1201,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás con el disco al pecho, sin apoyo de espalda ni guía.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1149,6 +1209,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_lengthened",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: Con disco sujeto al pecho, el cuádriceps extiende la rodilla al subir y frena la flexión al descender, con el lastre ligero y directo del disco."
+                }
+              ],
               "performanceProfileId": "sissy_squat__plate",
               "primaryMuscles": [
                 "quadriceps"
@@ -1169,6 +1235,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla avanza hacia el frente con el disco al pecho, cuyo lastre ligero acompaña la inclinación sin guía externa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1176,6 +1243,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende al inclinar el torso hacia atrás con el disco al pecho, un lastre simple que apenas altera la línea del movimiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1183,6 +1251,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo con el disco al pecho, donde la carga ligera deja el equilibrio en manos del cuerpo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1190,6 +1259,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco durante la inclinación hacia atrás con el disco al pecho, sin apoyo de espalda ni guía.",
                       "role": "STABILIZER"
                     }
                   ],

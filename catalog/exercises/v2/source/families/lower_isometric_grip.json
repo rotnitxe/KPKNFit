@@ -45,6 +45,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar trabaja en anti-extensión y anti-rotación mientras el cuerpo cuelga de la barra, con los brazos extendidos y el peso del propio cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca regula el control de pelvis mientras el cuerpo cuelga de la barra en suspensión bilateral, con las piernas sin apoyo en el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica conserva su posición erguida mientras el cuerpo cuelga de la barra, con el pecho abierto y los brazos extendidos agarrados arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo sostiene la presión de los dedos en isometría mientras el cuerpo cuelga de la barra con los brazos extendidos, sin más carga que el propio peso."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho asiste la tracción de los brazos extendidos contra la barra y ayuda a fijar el torso mientras el cuerpo permanece colgado."
+                }
+              ],
               "performanceProfileId": "forearms_suspension_isometrica_barra_fija__bodyweight__suspension_isometrica_en_barra_fija_dead_hang",
               "primaryMuscles": [
                 "forearm"
@@ -86,6 +99,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar trabaja en anti-extensión y anti-rotación mientras el cuerpo cuelga de la barra, con los brazos extendidos y el peso del propio cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca regula el control de pelvis mientras el cuerpo cuelga de la barra en suspensión bilateral, con las piernas sin apoyo en el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica conserva su posición erguida mientras el cuerpo cuelga de la barra, con el pecho abierto y los brazos extendidos agarrados arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -313,6 +329,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar resiste la extensión y la rotación que provocan las mancuernas colgando de cada mano durante toda la marcha con carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -320,6 +337,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca ofrece control de pelvis con una mancuerna colgando de cada mano mientras el paso alterna el apoyo sobre cada pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -327,6 +345,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de las mancuernas mientras la marcha avanza con la carga a los lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -334,6 +353,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo aprieta las mancuernas en isometría durante toda la marcha cargada, con un peso colgando de cada mano y los pasos sumando balanceo."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio fija los hombros contra el tirón de las mancuernas a cada lado y acompaña el avance sin dejar que la carga se escape de las manos."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras las mancuernas tiran hacia abajo en cada mano y los pasos desplazan el peso de una pierna a otra."
+                }
+              ],
               "performanceProfileId": "forearms_paseo_del_granjero__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -354,6 +387,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar resiste la extensión y la rotación que provocan las mancuernas colgando de cada mano durante toda la marcha con carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -361,6 +395,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca ofrece control de pelvis con una mancuerna colgando de cada mano mientras el paso alterna el apoyo sobre cada pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -368,6 +403,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de las mancuernas mientras la marcha avanza con la carga a los lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -572,6 +608,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar trabaja en anti-extensión y anti-rotación frente al tirón descentrado de las kettlebells durante toda la marcha con carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -579,6 +616,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta control de pelvis mientras las kettlebells cuelgan de sus asas y la marcha alterna el apoyo de cada pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -586,6 +624,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica sostiene su posición erguida mientras las kettlebells tiran de los hombros durante el avance de la marcha cargada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -593,6 +632,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo aprieta el asa de las kettlebells en isometría durante la marcha cargada, con la campana de cada una tirando hacia abajo sin descanso."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio soporta el tirón descentrado de las kettlebells y fija los hombros mientras la marcha avanza con una campana colgando de cada asa."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco frente a la campana de cada kettlebell, que cuelga descentrada y empuja el cuerpo hacia los lados con cada paso."
+                }
+              ],
               "performanceProfileId": "forearms_paseo_del_granjero__kettlebell",
               "primaryMuscles": [
                 "forearm"
@@ -613,6 +666,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar trabaja en anti-extensión y anti-rotación frente al tirón descentrado de las kettlebells durante toda la marcha con carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -620,6 +674,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta control de pelvis mientras las kettlebells cuelgan de sus asas y la marcha alterna el apoyo de cada pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -627,6 +682,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica sostiene su posición erguida mientras las kettlebells tiran de los hombros durante el avance de la marcha cargada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -831,6 +887,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar resiste la extensión y la rotación que generan los discos lisos colgando de cada mano durante toda la marcha cargada.",
                   "role": "PRIMARY"
                 },
                 {
@@ -838,6 +895,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca regula el control de pelvis con un disco liso en cada mano mientras el paso alterna el apoyo sobre cada pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -845,6 +903,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de los discos lisos mientras la marcha avanza con las cargas a los lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -852,6 +911,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo sostiene cada disco liso en isometría durante la marcha cargada, con los dedos trabajando sin un asa que reparta la presión."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio soporta el peso de los discos lisos en cada mano y fija los hombros durante el avance, con la carga colgando a los lados del cuerpo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco mientras los discos lisos tiran hacia abajo en cada mano y los pasos desplazan el peso de una pierna a otra."
+                }
+              ],
               "performanceProfileId": "forearms_paseo_del_granjero__plate",
               "primaryMuscles": [
                 "forearm"
@@ -872,6 +945,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar resiste la extensión y la rotación que generan los discos lisos colgando de cada mano durante toda la marcha cargada.",
                       "role": "PRIMARY"
                     },
                     {
@@ -879,6 +953,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca regula el control de pelvis con un disco liso en cada mano mientras el paso alterna el apoyo sobre cada pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -886,6 +961,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de los discos lisos mientras la marcha avanza con las cargas a los lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1090,6 +1166,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar trabaja en anti-extensión contra la barra hexagonal, que centra la carga en el eje del cuerpo durante toda la marcha cargada.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1097,6 +1174,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta control de pelvis con la barra hexagonal centrada colgando del cuerpo mientras la marcha alterna el apoyo de cada pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1104,6 +1182,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica conserva su posición erguida con la barra hexagonal centrada, que reparte el peso y reduce el tirón asimétrico sobre el torso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1111,6 +1190,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo sostiene el agarre sobre la barra hexagonal cargada durante la marcha, con la carga centrada en el eje del cuerpo y colgando de las manos."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio soporta el peso de la barra hexagonal colgando centrada del cuerpo y fija los hombros durante toda la marcha con carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco contra la barra hexagonal, cuya carga centrada reduce el balanceo lateral pero exige sostener cada paso."
+                }
+              ],
               "performanceProfileId": "forearms_paseo_del_granjero__hex_bar",
               "primaryMuscles": [
                 "forearm"
@@ -1131,6 +1224,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar trabaja en anti-extensión contra la barra hexagonal, que centra la carga en el eje del cuerpo durante toda la marcha cargada.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1138,6 +1232,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta control de pelvis con la barra hexagonal centrada colgando del cuerpo mientras la marcha alterna el apoyo de cada pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1145,6 +1240,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica conserva su posición erguida con la barra hexagonal centrada, que reparte el peso y reduce el tirón asimétrico sobre el torso.",
                       "role": "STABILIZER"
                     }
                   ],

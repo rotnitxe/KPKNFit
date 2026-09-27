@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma concéntrica hasta alinear pelvis y tronco, y la barra sobre la pelvis carga esa extensión con ambas piernas empujando el suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla flexionada sobre los dos pies aporta estabilidad a la extensión de cadera y reparte el empuje de las piernas bajo la barra apoyada en la cadera.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva su alineación neutra con la espalda alta en el banco mientras la barra descansa sobre la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico mientras la pelvis asciende alineada con la barra sobre la cadera y los dos pies en el suelo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera hasta alinear la pelvis, con la barra apoyada sobre la cadera y ambas piernas empujando el suelo con firmeza."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera con la barra sobre la pelvis y frenan el descenso excéntrico de la cadera hacia el suelo con los dos pies apoyados."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza la rodilla sobre los dos pies apoyados y asiste el empuje final de la pelvis mientras la barra descansa sobre la cadera con ambas piernas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico el tronco y la pelvis mientras la barra viaja sobre la cadera con las dos piernas y la espalda alta apoyada en el banco."
+                }
+              ],
               "performanceProfileId": "hip_thrust__barbell__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -94,6 +116,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma concéntrica hasta alinear pelvis y tronco, y la barra sobre la pelvis carga esa extensión con ambas piernas empujando el suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +124,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla flexionada sobre los dos pies aporta estabilidad a la extensión de cadera y reparte el empuje de las piernas bajo la barra apoyada en la cadera.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +132,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva su alineación neutra con la espalda alta en el banco mientras la barra descansa sobre la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +140,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico mientras la pelvis asciende alineada con la barra sobre la cadera y los dos pies en el suelo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -320,6 +346,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la barra sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -327,6 +354,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad a la extensión unilateral y reparte el empuje bajo la barra, mientras la otra pierna no comparte el empuje.",
                   "role": "SECONDARY"
                 },
                 {
@@ -334,6 +362,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra pese a la carga asimétrica de la barra sobre la cadera, con la espalda alta en el banco y una sola pierna empujando.",
                   "role": "STABILIZER"
                 },
                 {
@@ -341,6 +370,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico ante la carga unilateral de la barra, con la pelvis subiendo alineada sobre una sola pierna apoyada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -348,6 +378,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna sin ayuda de la contralateral, con la barra sobre la cadera y la espalda alta en el banco."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de la cadera que trabaja sola bajo la barra y frenan el descenso excéntrico de la pelvis hacia el suelo con una sola pierna."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que empuja el suelo y asiste el empuje final con la barra sobre la cadera mientras la otra pierna no ayuda."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico la pelvis y el tronco ante el desnivel de carga unilateral, con la barra sobre la cadera y la espalda alta en el banco."
+                }
+              ],
               "performanceProfileId": "hip_thrust__barbell__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -369,6 +417,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la barra sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -376,6 +425,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad a la extensión unilateral y reparte el empuje bajo la barra, mientras la otra pierna no comparte el empuje.",
                       "role": "SECONDARY"
                     },
                     {
@@ -383,6 +433,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra pese a la carga asimétrica de la barra sobre la cadera, con la espalda alta en el banco y una sola pierna empujando.",
                       "role": "STABILIZER"
                     },
                     {
@@ -390,6 +441,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico ante la carga unilateral de la barra, con la pelvis subiendo alineada sobre una sola pierna apoyada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -595,6 +647,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma concéntrica bajo la trayectoria guiada de la Smith, que mantiene la barra sobre la pelvis mientras ambas piernas empujan el suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -602,6 +655,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la barra guiada de la Smith, con los dos pies repartiendo el empuje sobre el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -609,6 +663,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la Smith guía la barra sobre la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -616,6 +671,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo el guiado de la Smith, con la pelvis alineada, los dos pies en el suelo y la barra sobre la cadera.",
                   "role": "STABILIZER"
                 }
               ],
@@ -623,6 +679,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera con la barra guiada de la Smith sobre la pelvis y ambas piernas empujando el suelo hasta alinear el tronco."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera bajo el guiado de la Smith y frenan el descenso excéntrico de la pelvis con los dos pies apoyados."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza las rodillas sobre los dos pies mientras la Smith guía la barra sobre la cadera y la pelvis empuja hasta la extensión con ambas piernas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico el tronco sin equilibrar la barra, ya que la Smith la guía sobre la cadera con las dos piernas y la espalda alta en el banco."
+                }
+              ],
               "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -644,6 +718,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma concéntrica bajo la trayectoria guiada de la Smith, que mantiene la barra sobre la pelvis mientras ambas piernas empujan el suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -651,6 +726,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la barra guiada de la Smith, con los dos pies repartiendo el empuje sobre el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -658,6 +734,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la Smith guía la barra sobre la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -665,6 +742,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo el guiado de la Smith, con la pelvis alineada, los dos pies en el suelo y la barra sobre la cadera.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -870,6 +948,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica bajo el guiado de la Smith, sin la extensión de la otra pierna, hasta alinear pelvis y tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -877,6 +956,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la barra guiada de la Smith, mientras la otra rodilla no comparte el empuje del suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -884,6 +964,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la carga unilateral de la Smith, con la espalda alta en el banco y una sola pierna empujando.",
                   "role": "STABILIZER"
                 },
                 {
@@ -891,6 +972,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada mientras la Smith guía la barra sobre la cadera y la pelvis sube alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -898,6 +980,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna bajo el guiado de la Smith, con la barra sobre la pelvis y la espalda alta en el banco."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión unilateral que guía la Smith y frenan el descenso excéntrico de la pelvis mientras solo una pierna empuja el suelo."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que trabaja bajo la barra guiada de la Smith, mientras la otra pierna acompaña sin empujar el suelo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico la pelvis frente a la carga de un solo lado, con la Smith guiando la barra sobre la cadera y la espalda alta en el banco."
+                }
+              ],
               "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -919,6 +1019,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica bajo el guiado de la Smith, sin la extensión de la otra pierna, hasta alinear pelvis y tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -926,6 +1027,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la barra guiada de la Smith, mientras la otra rodilla no comparte el empuje del suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -933,6 +1035,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la carga unilateral de la Smith, con la espalda alta en el banco y una sola pierna empujando.",
                       "role": "STABILIZER"
                     },
                     {
@@ -940,6 +1043,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada mientras la Smith guía la barra sobre la cadera y la pelvis sube alineada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1146,6 +1250,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma concéntrica contra la almohadilla de la máquina, que dirige la carga mientras ambas piernas empujan hasta alinear la pelvis.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1153,6 +1258,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera contra la almohadilla de la máquina, con los dos pies repartiendo el empuje sobre el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1160,6 +1266,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva su alineación sobre el apoyo de la máquina mientras la almohadilla carga la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1167,6 +1274,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la almohadilla de la máquina, con los dos pies en el suelo y la pelvis subiendo alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1174,6 +1282,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera contra la almohadilla de la máquina, con ambas piernas empujando el suelo y la espalda alta sobre el apoyo."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera contra la almohadilla de la máquina y frenan el descenso excéntrico de la pelvis con los dos pies apoyados."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza las rodillas sobre los dos pies mientras la almohadilla de la máquina carga la cadera y la pelvis empuja hasta la extensión."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico el tronco sobre el apoyo de la máquina, con la almohadilla cargando la cadera y las dos piernas empujando el suelo."
+                }
+              ],
               "performanceProfileId": "hip_thrust__machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1195,6 +1321,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma concéntrica contra la almohadilla de la máquina, que dirige la carga mientras ambas piernas empujan hasta alinear la pelvis.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1202,6 +1329,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera contra la almohadilla de la máquina, con los dos pies repartiendo el empuje sobre el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1209,6 +1337,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva su alineación sobre el apoyo de la máquina mientras la almohadilla carga la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1216,6 +1345,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la almohadilla de la máquina, con los dos pies en el suelo y la pelvis subiendo alineada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1422,6 +1552,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la almohadilla de la máquina, sin la extensión de la otra pierna, hasta alinear la pelvis.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1429,6 +1560,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad contra la almohadilla de la máquina, mientras la otra rodilla no comparte el empuje del suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1436,6 +1568,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra sobre el apoyo de la máquina con la carga en una sola pierna y la pelvis subiendo bajo la almohadilla.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1443,6 +1576,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la almohadilla de la máquina sobre la cadera y la pelvis alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1450,6 +1584,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna contra la almohadilla de la máquina, con la espalda alta sobre el apoyo y sin ayuda contralateral."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión unilateral contra la almohadilla de la máquina y frenan el descenso excéntrico de la pelvis cuando solo una pierna empuja."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que trabaja contra la almohadilla de la máquina, mientras la otra pierna permanece sin empujar el suelo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico la pelvis frente a la carga de un solo lado, con la almohadilla de la máquina sobre la cadera y la espalda alta en el apoyo."
+                }
+              ],
               "performanceProfileId": "hip_thrust__machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1471,6 +1623,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la almohadilla de la máquina, sin la extensión de la otra pierna, hasta alinear la pelvis.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1478,6 +1631,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad contra la almohadilla de la máquina, mientras la otra rodilla no comparte el empuje del suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1485,6 +1639,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra sobre el apoyo de la máquina con la carga en una sola pierna y la pelvis subiendo bajo la almohadilla.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1492,6 +1647,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la almohadilla de la máquina sobre la cadera y la pelvis alineada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1697,6 +1853,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma concéntrica contra la banda elástica sobre la pelvis, cuya resistencia crece al final del recorrido con ambas piernas empujando.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1704,6 +1861,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la banda elástica, con los dos pies repartiendo el empuje del suelo hasta alinear la pelvis.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1711,6 +1869,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la banda elástica tira de la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1718,6 +1877,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la banda elástica, con los dos pies en el suelo y la pelvis subiendo alineada al final del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1725,6 +1885,24 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera contra la banda elástica sobre la pelvis, con ambas piernas empujando el suelo y la espalda alta en el banco."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera contra la banda elástica y frenan el descenso excéntrico de la pelvis cuando la banda pierde tensión."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza las rodillas sobre los dos pies mientras la banda elástica carga la cadera y la pelvis empuja hasta la extensión con ambas piernas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico el tronco y la pelvis mientras la banda elástica sobre la cadera gana tensión, con las dos piernas y la espalda alta en el banco."
+                }
+              ],
               "performanceProfileId": "hip_thrust__band__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1746,6 +1924,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma concéntrica contra la banda elástica sobre la pelvis, cuya resistencia crece al final del recorrido con ambas piernas empujando.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1753,6 +1932,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la banda elástica, con los dos pies repartiendo el empuje del suelo hasta alinear la pelvis.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1760,6 +1940,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la banda elástica tira de la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1767,6 +1948,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la banda elástica, con los dos pies en el suelo y la pelvis subiendo alineada al final del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1972,6 +2154,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la banda elástica sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1979,6 +2162,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la banda elástica, mientras la otra rodilla no comparte el empuje del suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1986,6 +2170,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la banda elástica cargada en un solo lado, con la espalda alta en el banco y una pierna empujando.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1993,6 +2178,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la banda elástica sobre la cadera y la pelvis subiendo alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2000,6 +2186,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna contra la banda elástica sobre la pelvis, con la espalda alta en el banco y sin ayuda contralateral."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión unilateral contra la banda elástica y frenan el descenso excéntrico de la pelvis cuando la banda pierde tensión."
+                },
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que empuja el suelo contra la banda elástica, mientras la otra pierna no comparte el trabajo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene en isométrico la pelvis frente a la resistencia elástica asimétrica, con una sola pierna apoyada y la espalda alta en el banco."
+                }
+              ],
               "performanceProfileId": "hip_thrust__band__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -2021,6 +2225,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la banda elástica sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2028,6 +2233,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la banda elástica, mientras la otra rodilla no comparte el empuje del suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2035,6 +2241,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la banda elástica cargada en un solo lado, con la espalda alta en el banco y una pierna empujando.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2042,6 +2249,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la banda elástica sobre la cadera y la pelvis subiendo alineada.",
                       "role": "STABILIZER"
                     }
                   ],

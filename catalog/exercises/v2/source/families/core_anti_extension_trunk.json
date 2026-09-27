@@ -45,6 +45,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar resiste la extensión que provoca la rueda al alejarse de las rodillas, con costillas y pelvis organizadas bajo el peso corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis se organiza sobre las rodillas mientras la rueda avanza, sin que el peso corporal la arrastre hacia la extensión del tronco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La caja torácica acompaña el alargamiento del tronco sobre la rueda sin abrirse en exceso, y regresa organizada cuando el cuerpo vuelve a las rodillas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "anti_extension_trunk",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: El abdomen se opone a la extensión mientras la rueda se aleja de las rodillas estirando el cuerpo, y frena el regreso con las costillas cerca de la pelvis."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core sostiene la alineación de costillas y pelvis mientras la rueda avanza desde las rodillas, sin que la zona lumbar se hunda bajo el peso corporal."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho transmite la tensión de los brazos al tronco sobre la rueda y frena la apertura del ángulo entre brazos y torso al alejarse de las rodillas."
+                }
+              ],
               "performanceProfileId": "core_rueda_abdominal__ab_wheel__rueda_abdominal",
               "primaryMuscles": [
                 "abdominals"
@@ -86,6 +103,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar resiste la extensión que provoca la rueda al alejarse de las rodillas, con costillas y pelvis organizadas bajo el peso corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +111,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis se organiza sobre las rodillas mientras la rueda avanza, sin que el peso corporal la arrastre hacia la extensión del tronco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +119,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La caja torácica acompaña el alargamiento del tronco sobre la rueda sin abrirse en exceso, y regresa organizada cuando el cuerpo vuelve a las rodillas.",
                       "role": "STABILIZER"
                     }
                   ],

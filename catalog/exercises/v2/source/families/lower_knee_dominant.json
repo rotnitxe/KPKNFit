@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la barra al frente el momento de rodilla es alto y la rodilla flexiona y extiende en cada repetición, con el máximo cerca de la posición más baja.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, pero con la carga al frente y el torso erguido su papel es acompañante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la planta del pie apoyada, sin dejar que el talón se despegue al pasar la rodilla la vertical.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: los músculos del tronco fijan la pelvis y la columna con la barra al frente, donde el peso del torso obliga a mantener la línea recta de la cadera a la cabeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: con la carga al frente los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, que es la parte del gesto con más peso."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: el glúteo mayor extiende la cadera y devuelve el torso a la posición de pie, compartiendo el papel principal con el cuádriceps en la sentadilla frontal."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: trabaja isométricamente para mantener la columna neutra mientras la barra descansa sobre los hombros, con función postural y no de serie completa."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene las costillas y la pelvis unidas con la carga al frente, para que el torso no se incline hacia delante al bajar."
+                }
+              ],
               "performanceProfileId": "front_squat__barbell__sentadilla_frontal",
               "primaryMuscles": [
                 "quadriceps",
@@ -94,6 +116,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la barra al frente el momento de rodilla es alto y la rodilla flexiona y extiende en cada repetición, con el máximo cerca de la posición más baja.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +124,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, pero con la carga al frente y el torso erguido su papel es acompañante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +132,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la planta del pie apoyada, sin dejar que el talón se despegue al pasar la rodilla la vertical.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +140,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: los músculos del tronco fijan la pelvis y la columna con la barra al frente, donde el peso del torso obliga a mantener la línea recta de la cadera a la cabeza.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -316,6 +342,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la guía vertical de la Smith no cambia la flexión ni la extensión de la rodilla, que sigue siendo el movimiento dominante de la bajada y la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -323,6 +350,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende con la barra al frente y, gracias al recorrido guiado, su papel se concentra en el movimiento y no en el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -330,6 +358,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y la planta permanece completa en la base, con la guía obviando parte de la demanda de equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -337,6 +366,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna y la pelvis se mantienen estables con la barra frontal, y el recorrido guiado de la Smith deja el tronco libre para sostener la posición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -344,6 +374,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: la Smith mantiene la trayectoria vertical de la barra, así que los cuádriceps se concentran en extender la rodilla sin tener que corregir la carga."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en la subida con la carga al frente y comparte el papel principal con el cuádriceps en esta sentadilla frontal."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: sostiene la columna neutra de forma isométrica con la barra al frente, con función postural mientras dura el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el torso alineado sobre la pelvis durante todo el recorrido guiado, con menos demanda de equilibrio que en la versión con barra libre."
+                }
+              ],
               "performanceProfileId": "front_squat__smith_machine__sentadilla_frontal",
               "primaryMuscles": [
                 "quadriceps",
@@ -365,6 +413,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la guía vertical de la Smith no cambia la flexión ni la extensión de la rodilla, que sigue siendo el movimiento dominante de la bajada y la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -372,6 +421,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende con la barra al frente y, gracias al recorrido guiado, su papel se concentra en el movimiento y no en el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -379,6 +429,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y la planta permanece completa en la base, con la guía obviando parte de la demanda de equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -386,6 +437,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna y la pelvis se mantienen estables con la barra frontal, y el recorrido guiado de la Smith deja el tronco libre para sostener la posición.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -587,6 +639,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con las mancuernas sobre los hombros la rodilla flexiona y extiende igual que en la versión con barra, con el máximo de carga cerca de la posición baja.",
                   "role": "PRIMARY"
                 },
                 {
@@ -594,6 +647,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera acompaña la flexión y la extensión mientras el torso se mantiene erguido con el peso repartido en los dos hombros.",
                   "role": "SECONDARY"
                 },
                 {
@@ -601,6 +655,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, con el torso y las mancuernas formando un peso estable sobre la base.",
                   "role": "STABILIZER"
                 },
                 {
@@ -608,6 +663,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna y la pelvis permanecen estables bajo la carga frontal, y la tolerancia de las mancuernas sobre los hombros hace más llevadero ese trabajo isométrico.",
                   "role": "STABILIZER"
                 }
               ],
@@ -615,6 +671,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la bajada, y las mancuernas en los hombros permiten llegar a la posición baja sin perder equilibrio."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera y lleva el torso de vuelta a la posición de pie, con la misma participación que en la sentadilla frontal con barra."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: mantiene la columna neutra mientras las mancuernas descansan sobre los hombros, con trabajo postural y no de serie completa."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: une costillas y pelvis para que el torso no se pliegue al bajar, y en esta variante el peso frontal repartido en dos puntos ayuda a esa unión."
+                }
+              ],
               "performanceProfileId": "front_squat__dumbbells__sentadilla_frontal",
               "primaryMuscles": [
                 "quadriceps",
@@ -636,6 +710,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con las mancuernas sobre los hombros la rodilla flexiona y extiende igual que en la versión con barra, con el máximo de carga cerca de la posición baja.",
                       "role": "PRIMARY"
                     },
                     {
@@ -643,6 +718,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera acompaña la flexión y la extensión mientras el torso se mantiene erguido con el peso repartido en los dos hombros.",
                       "role": "SECONDARY"
                     },
                     {
@@ -650,6 +726,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, con el torso y las mancuernas formando un peso estable sobre la base.",
                       "role": "STABILIZER"
                     },
                     {
@@ -657,6 +734,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna y la pelvis permanecen estables bajo la carga frontal, y la tolerancia de las mancuernas sobre los hombros hace más llevadero ese trabajo isométrico.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -858,6 +936,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con las campanas en los hombros la rodilla flexiona y extiende en cada repetición, y el rack abre la base de las manos sin alterar la trayectoria.",
                   "role": "PRIMARY"
                 },
                 {
@@ -865,6 +944,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla mientras el torso erguido acompaña la bajada y la subida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -872,6 +952,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y la planta completa permanece en el suelo, con una base algo menos estable por el peso delante de los hombros.",
                   "role": "STABILIZER"
                 },
                 {
@@ -879,6 +960,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se fijan con las campanas al frente, y el agarre en rack añade demanda de manos además del trabajo isométrico del tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -886,6 +968,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y controlan la flexión en la bajada, y las campanas piden un torso más firme por su centro de masa adelantado."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera y devuelve el torso a la vertical, compartiendo el papel principal con el cuádriceps en la sentadilla frontal."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: sostiene la columna neutra con las campanas al frente, y el trabajo de agarre de las manos no sustituye ese papel postural."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco unido a la pelvis con el peso por delante de los hombros, que es lo que impide que la zona lumbar ceda en la bajada."
+                }
+              ],
               "performanceProfileId": "front_squat__kettlebell__sentadilla_frontal",
               "primaryMuscles": [
                 "quadriceps",
@@ -907,6 +1007,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con las campanas en los hombros la rodilla flexiona y extiende en cada repetición, y el rack abre la base de las manos sin alterar la trayectoria.",
                       "role": "PRIMARY"
                     },
                     {
@@ -914,6 +1015,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla mientras el torso erguido acompaña la bajada y la subida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -921,6 +1023,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y la planta completa permanece en el suelo, con una base algo menos estable por el peso delante de los hombros.",
                       "role": "STABILIZER"
                     },
                     {
@@ -928,6 +1031,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se fijan con las campanas al frente, y el agarre en rack añade demanda de manos además del trabajo isométrico del tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1129,6 +1233,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la polea mantiene la carga al frente con tensión constante, así que la rodilla flexiona y extiende sin que la resistencia cambie a lo largo del arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1136,6 +1241,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende con la misma tensión constante, y el recorrido vertical de la polea hace más llevadero mantener el torso erguido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1143,6 +1249,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, con la polea como referencia constante de la carga frontal.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1150,6 +1257,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se mantienen estables con el peso colgando de la polea, que tira de forma continua y obliga a un trabajo isométrico sostenido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1157,6 +1265,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: la tensión constante de la polea acompaña la extensión de la rodilla en la subida y el frenado en la bajada sin que la carga disminuya."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera y lleva el torso a la vertical, compartiendo el papel principal con el cuádriceps mientras la polea mantiene la carga constante."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: sostiene la columna neutra con el tirón continuo de la polea al frente, sin variar la intensidad como ocurriría con una barra."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene costillas y pelvis unidas con la carga suspendida al frente, que obliga a un control del tronco parejo en todo el recorrido."
+                }
+              ],
               "performanceProfileId": "front_squat__cable__sentadilla_frontal",
               "primaryMuscles": [
                 "quadriceps",
@@ -1178,6 +1304,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la polea mantiene la carga al frente con tensión constante, así que la rodilla flexiona y extiende sin que la resistencia cambie a lo largo del arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1185,6 +1312,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende con la misma tensión constante, y el recorrido vertical de la polea hace más llevadero mantener el torso erguido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1192,6 +1320,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, con la polea como referencia constante de la carga frontal.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1199,6 +1328,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se mantienen estables con el peso colgando de la polea, que tira de forma continua y obliga a un trabajo isométrico sostenido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1426,6 +1556,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la barra alta sobre los trapecios la rodilla flexiona y extiende en cada repetición, con el momento más alto al alcanzar la posición más profunda.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1433,6 +1564,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla y, con el torso erguido, acompaña el descenso entre las caderas sin adelantarse.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1440,6 +1572,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la planta completa en el suelo, con la rodilla siguiendo la dirección de los dedos del pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1447,6 +1580,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se fijan bajo la barra alta sobre los trapecios, y ese trabajo isométrico del tronco es lo que sostiene la posición baja.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1454,6 +1588,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, con la barra alta permitiendo profundidad y carga alta al mismo tiempo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en cada subida y comparte el papel principal con el cuádriceps en la sentadilla de barra alta."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: trabajan isométricamente para mantener la columna neutra durante toda la bajada con la barra apoyada en los trapecios."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene costillas y pelvis alineadas con el torso erguido, evitando que el pecho se adelante al iniciar la subida."
+                }
+              ],
               "performanceProfileId": "high_bar_back_squat__barbell__sentadilla_trasera",
               "primaryMuscles": [
                 "quadriceps",
@@ -1475,6 +1627,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la barra alta sobre los trapecios la rodilla flexiona y extiende en cada repetición, con el momento más alto al alcanzar la posición más profunda.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1482,6 +1635,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla y, con el torso erguido, acompaña el descenso entre las caderas sin adelantarse.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1489,6 +1643,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la planta completa en el suelo, con la rodilla siguiendo la dirección de los dedos del pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1496,6 +1651,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se fijan bajo la barra alta sobre los trapecios, y ese trabajo isométrico del tronco es lo que sostiene la posición baja.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1698,6 +1854,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la guía de la Smith no altera la flexión ni la extensión de la rodilla, que sigue siendo el movimiento dominante con la barra alta sobre los hombros.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1705,6 +1862,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende en el mismo ritmo que la rodilla y, con la trayectoria guiada, su papel se concentra en el movimiento y no en el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1712,6 +1870,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta del pie completa, con la guía vertical obviando parte de la demanda de equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1719,6 +1878,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna y la pelvis permanecen estables bajo la barra alta, y el recorrido guiado permite mantener la profundidad sin perder la posición del torso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1726,6 +1886,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: la guía fija sostiene la barra alta mientras los cuádriceps extienden la rodilla, así que todo el esfuerzo va al gesto y no a estabilizar la carga."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en la subida con la barra alta y comparte el papel principal con el cuádriceps, con la profundidad libre que ofrece la guía."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: sostienen la columna neutra bajo la barra alta mediante trabajo isométrico, y la guía permite mantenerlo sin pelear contra el balanceo de la carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco alineado con la pelvis durante todo el recorrido, y la guía de la Smith permite sostener esa posición sin repartir el esfuerzo en el equilibrio."
+                }
+              ],
               "performanceProfileId": "high_bar_back_squat__smith_machine__sentadilla_trasera",
               "primaryMuscles": [
                 "quadriceps",
@@ -1747,6 +1925,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la guía de la Smith no altera la flexión ni la extensión de la rodilla, que sigue siendo el movimiento dominante con la barra alta sobre los hombros.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1754,6 +1933,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende en el mismo ritmo que la rodilla y, con la trayectoria guiada, su papel se concentra en el movimiento y no en el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1761,6 +1941,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta del pie completa, con la guía vertical obviando parte de la demanda de equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1768,6 +1949,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna y la pelvis permanecen estables bajo la barra alta, y el recorrido guiado permite mantener la profundidad sin perder la posición del torso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1970,6 +2152,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la barra de seguridad asienta la carga sobre los hombros, así que la rodilla flexiona y extiende sin que el agarre de la barra altere la trayectoria.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1977,6 +2160,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, y los agarres frontales permiten llegar más abajo con el torso erguido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1984,6 +2168,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, y la seguridad de la barra deja centrarse en esa articulación sin miedo a soltar la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1991,6 +2176,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna permanecen estables con los agarres frontales repartiendo el peso, lo que hace más llevadero el trabajo isométrico del tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1998,6 +2184,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, y con la barra de seguridad se puede usar más carga sin apretar la empuñadura."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida acompañando al cuádriceps, y en esta variante su participación queda por detrás de la rodilla."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco alineado con la pelvis durante la bajada, y los agarres frontales de la barra de seguridad reducen la inclinación del torso."
+                }
+              ],
               "performanceProfileId": "high_bar_back_squat__safety_bar",
               "primaryMuscles": [
                 "quadriceps"
@@ -2018,6 +2218,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la barra de seguridad asienta la carga sobre los hombros, así que la rodilla flexiona y extiende sin que el agarre de la barra altere la trayectoria.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2025,6 +2226,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, y los agarres frontales permiten llegar más abajo con el torso erguido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2032,6 +2234,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, y la seguridad de la barra deja centrarse en esa articulación sin miedo a soltar la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2039,6 +2242,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna permanecen estables con los agarres frontales repartiendo el peso, lo que hace más llevadero el trabajo isométrico del tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2271,6 +2475,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la barra más abajo en la espalda la rodilla flexiona y extiende en cada repetición, y la postura de la barra baja reparte parte de la carga hacia la cadera.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2278,6 +2483,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende de forma marcada porque la barra baja obliga a enviar la cadera hacia atrás, y ahí su papel se acerca al del cuádriceps.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2285,6 +2491,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y mantiene la planta completa, con la cadera hacia atrás pidiendo algo más de recorrido de tobillo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2292,6 +2499,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se fijan con la barra descansando más abajo en la espalda, con el torso más inclinado que en la sentadilla de barra alta.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2299,6 +2507,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, con la barra baja repartiendo parte del peso hacia la cadera."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en cada subida y es la musculatura que más crece con la barra baja, porque la cadera tiene que empujar hacia atrás y hacia delante."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: trabajan isométricamente bajo la barra baja con el torso más inclinado, una posición que aumenta la demanda de mantener la columna neutra."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene costillas y pelvis unidas con el torso inclinado por la barra baja, evitando que el peso del tronco se adelante en la bajada."
+                }
+              ],
               "performanceProfileId": "low_bar_back_squat__barbell__sentadilla_trasera",
               "primaryMuscles": [
                 "quadriceps",
@@ -2320,6 +2546,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la barra más abajo en la espalda la rodilla flexiona y extiende en cada repetición, y la postura de la barra baja reparte parte de la carga hacia la cadera.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2327,6 +2554,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende de forma marcada porque la barra baja obliga a enviar la cadera hacia atrás, y ahí su papel se acerca al del cuádriceps.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2334,6 +2562,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y mantiene la planta completa, con la cadera hacia atrás pidiendo algo más de recorrido de tobillo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2341,6 +2570,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se fijan con la barra descansando más abajo en la espalda, con el torso más inclinado que en la sentadilla de barra alta.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2543,6 +2773,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la guía de la Smith mantiene la trayectoria de la barra baja, así que la rodilla flexiona y extiende igual que en la versión libre, sin correcciones de equilibrio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2550,6 +2781,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende enviando el cuerpo hacia atrás, y el guiado permite mantener esa postura de la barra baja de forma estable.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2557,6 +2789,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar con la planta completa apoyada, con la guía vertical añadiendo estabilidad al tobillo en la posición baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2564,6 +2797,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se mantienen estables con la barra baja sobre la espalda y, gracias a la guía, sin tener que equilibrar la carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2571,6 +2805,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, con la guía de la Smith permitiendo series pesadas con barra baja."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en la subida y, con la barra baja, su participación crece hasta compartir el papel principal con el cuádriceps."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: sostienen la columna neutra bajo la barra baja con trabajo isométrico, y la guía de la Smith les permite hacerlo sin compensar el balanceo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco unido a la pelvis con la postura de la barra baja, y la trayectoria guiada deja esa exigencia concentrada en el core."
+                }
+              ],
               "performanceProfileId": "low_bar_back_squat__smith_machine__sentadilla_trasera",
               "primaryMuscles": [
                 "quadriceps",
@@ -2592,6 +2844,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la guía de la Smith mantiene la trayectoria de la barra baja, así que la rodilla flexiona y extiende igual que en la versión libre, sin correcciones de equilibrio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2599,6 +2852,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende enviando el cuerpo hacia atrás, y el guiado permite mantener esa postura de la barra baja de forma estable.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2606,6 +2860,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar con la planta completa apoyada, con la guía vertical añadiendo estabilidad al tobillo en la posición baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2613,6 +2868,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se mantienen estables con la barra baja sobre la espalda y, gracias a la guía, sin tener que equilibrar la carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2842,6 +3098,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: en la prensa a dos lados la rodilla flexiona y extiende contra la plataforma, con el momento más alto al alcanzar el punto más bajo del recorrido guiado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2849,6 +3106,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende al mismo tiempo que la rodilla mientras el respaldo limita la inclinación del torso en el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2856,6 +3114,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta completa en la plataforma, sin dejar que el talón se despegue al extender.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2863,6 +3122,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar permanece contra el respaldo durante todo el recorrido, con la máquina quitándole al tronco la exigencia de equilibrar la carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2870,6 +3130,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida contra la plataforma y frenan la flexión en la bajada, que es la parte con más carga del recorrido."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera a medida que las rodillas se extienden, compartiendo el papel principal con el cuádriceps en la prensa bilateral."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco contra el respaldo durante la bajada y la subida, y su papel isométrico no crece porque la máquina ya aporta estabilidad."
+                }
+              ],
               "performanceProfileId": "quads_prensa_piernas__bilateral__prensa_piernas",
               "primaryMuscles": [
                 "quadriceps",
@@ -2891,6 +3165,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: en la prensa a dos lados la rodilla flexiona y extiende contra la plataforma, con el momento más alto al alcanzar el punto más bajo del recorrido guiado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2898,6 +3173,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende al mismo tiempo que la rodilla mientras el respaldo limita la inclinación del torso en el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2905,6 +3181,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta completa en la plataforma, sin dejar que el talón se despegue al extender.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2912,6 +3189,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar permanece contra el respaldo durante todo el recorrido, con la máquina quitándole al tronco la exigencia de equilibrar la carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3111,6 +3389,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: en la prensa a un lado la rodilla de la pierna que trabaja flexiona y extiende contra la plataforma, con la otra pierna sin aportar carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3118,6 +3397,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera de esa misma pierna flexiona y extiende junto a la rodilla, mientras la del lado que no trabaja sólo se apoya en el asiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3125,6 +3405,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo de la pierna activa dorsiflexiona al bajar y mantiene la planta en la plataforma, y el del otro lado sirve de apoyo al cuerpo sentado.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3132,6 +3413,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar permanece contra el respaldo con una sola pierna en la plataforma, con más asimetría en la pelvis que en la versión a dos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3139,6 +3421,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps de la pierna que empuja extienden la rodilla contra la plataforma y frenan la flexión en la bajada, con la mitad de la carga bilateral."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera de la pierna que empuja en la subida, y al trabajar un solo lado el aislamiento deja ver las asimetrías entre ambos lados."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco contra el respaldo con una sola pierna cargada, y esa asimetría hace más necesaria la estabilidad del tronco."
+                }
+              ],
               "performanceProfileId": "quads_prensa_piernas__unilateral__prensa_piernas",
               "primaryMuscles": [
                 "quadriceps",
@@ -3160,6 +3456,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: en la prensa a un lado la rodilla de la pierna que trabaja flexiona y extiende contra la plataforma, con la otra pierna sin aportar carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3167,6 +3464,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera de esa misma pierna flexiona y extiende junto a la rodilla, mientras la del lado que no trabaja sólo se apoya en el asiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3174,6 +3472,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo de la pierna activa dorsiflexiona al bajar y mantiene la planta en la plataforma, y el del otro lado sirve de apoyo al cuerpo sentado.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3181,6 +3480,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar permanece contra el respaldo con una sola pierna en la plataforma, con más asimetría en la pelvis que en la versión a dos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3406,6 +3706,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: al salir desde sentado en el suelo la rodilla flexiona y extiende en cada repetición, y toda la carga se aplica desde la posición de máxima flexión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3413,6 +3714,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende en el mismo gesto, y como cada repetición nace desde abajo la extensión de cadera se repite sin impulso previo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3420,6 +3722,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona con el cuerpo sentado en el suelo y mantiene la planta apoyada en el momento del impulso inicial.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3427,6 +3730,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar permanece neutra mientras el torso se levanta desde el suelo, y la ausencia de rebote hace más necesaria esa posición firme.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3434,6 +3738,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps tienen que extender la rodilla desde la posición más profunda, sin impulso previo, y cada repetición empieza en el punto más exigente."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera desde la posición sentado y acompaña al cuádriceps, que en esta variante lleva el papel principal por el punto de partida."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: con la carga saliendo desde abajo, el core mantiene el tronco unido a la pelvis durante toda la subida, sin lo cual la técnica se rompe."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_anderson__barbell__sentadilla_anderson",
               "primaryMuscles": [
                 "quadriceps"
@@ -3454,6 +3772,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: al salir desde sentado en el suelo la rodilla flexiona y extiende en cada repetición, y toda la carga se aplica desde la posición de máxima flexión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3461,6 +3780,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende en el mismo gesto, y como cada repetición nace desde abajo la extensión de cadera se repite sin impulso previo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3468,6 +3788,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona con el cuerpo sentado en el suelo y mantiene la planta apoyada en el momento del impulso inicial.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3475,6 +3796,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar permanece neutra mientras el torso se levanta desde el suelo, y la ausencia de rebote hace más necesaria esa posición firme.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3693,6 +4015,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la rodilla flexiona y extiende en cada salida desde el suelo, y con la barra al frente toda la carga se aplica desde la posición más profunda.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3700,6 +4023,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla desde el suelo, y la barra al frente obliga a mantener el torso erguido durante toda la subida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3707,6 +4031,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona con el cuerpo sentado en el suelo y conserva la planta apoyada en el instante del impulso inicial.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3714,6 +4039,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna y la pelvis permanecen estables con la barra descansando en los hombros delanteros durante la salida desde abajo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3721,6 +4047,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla desde la posición sentado sin ningún impulso previo, y esa es la diferencia técnica de la sentadilla Anderson frontal."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: con la barra al frente y la salida desde el suelo, el core tiene que fijar el torso en la posición más exigida de todo el recorrido."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_anderson_frontal_barra_recta__barbell__sentadilla_anderson_frontal_con_barra_recta",
               "primaryMuscles": [
                 "quadriceps"
@@ -3741,6 +4077,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la rodilla flexiona y extiende en cada salida desde el suelo, y con la barra al frente toda la carga se aplica desde la posición más profunda.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3748,6 +4085,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla desde el suelo, y la barra al frente obliga a mantener el torso erguido durante toda la subida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3755,6 +4093,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona con el cuerpo sentado en el suelo y conserva la planta apoyada en el instante del impulso inicial.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3762,6 +4101,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna y la pelvis permanecen estables con la barra descansando en los hombros delanteros durante la salida desde abajo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3980,6 +4320,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con los pies juntos y las puntas hacia delante la rodilla flexiona y extiende con las rodillas muy próximas, y el momento de rodilla es alto en esta postura estrecha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3987,6 +4328,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende con la base estrecha, que deja menos recorrido lateral del que tendría una sentadilla abierta y carga más en la vertical.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3994,6 +4336,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la punta y el talón en la base estrecha, con poco margen lateral para corregir el equilibrio.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4001,6 +4344,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar permanece neutra con la base estrecha, que exige más control del tronco para no perder el equilibrio al subir.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4008,6 +4352,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los pies juntos y las puntas al frente hacen que el cuádriceps reciba la mayor parte de la carga, y por eso es el motor de esta variante."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: con la base estrecha y las puntas al frente el core trabaja de forma continua para mantener el tronco alineado sobre una posición inestable."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida, aunque con la base tan estrecha su contribución es menor que la del cuádriceps en esta variante."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_bazuca__barbell__sentadilla_bazuca",
               "primaryMuscles": [
                 "quadriceps"
@@ -4028,6 +4386,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con los pies juntos y las puntas hacia delante la rodilla flexiona y extiende con las rodillas muy próximas, y el momento de rodilla es alto en esta postura estrecha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4035,6 +4394,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende con la base estrecha, que deja menos recorrido lateral del que tendría una sentadilla abierta y carga más en la vertical.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4042,6 +4402,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la punta y el talón en la base estrecha, con poco margen lateral para corregir el equilibrio.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4049,6 +4410,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar permanece neutra con la base estrecha, que exige más control del tronco para no perder el equilibrio al subir.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4267,6 +4629,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con el peso pegado al torso en copa la rodilla flexiona y extiende, y la carga cercana al centro de masa permite bajar con control sin barra sobre los hombros.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4274,6 +4637,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende en el mismo ritmo que la rodilla, con el torso equilibrado por la mancuerna sostenida contra el pecho.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4281,6 +4645,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, y el peso al pecho ayuda a mantener el centro de masa sobre la base.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4288,6 +4653,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna y la pelvis se mantienen estables con la carga pegada al pecho, y la postura erguida que exige esa sujeción protege la zona lumbar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4295,6 +4661,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, y la carga en copa deja bajar más profundo sin perder la posición."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida acompañando al cuádriceps, y el peso sostenido contra el pecho exige un tronco firme para que esa extensión sea completa."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_copa__dumbbells__sentadilla_copa",
               "primaryMuscles": [
                 "quadriceps"
@@ -4315,6 +4691,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con el peso pegado al torso en copa la rodilla flexiona y extiende, y la carga cercana al centro de masa permite bajar con control sin barra sobre los hombros.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4322,6 +4699,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende en el mismo ritmo que la rodilla, con el torso equilibrado por la mancuerna sostenida contra el pecho.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4329,6 +4707,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada, y el peso al pecho ayuda a mantener el centro de masa sobre la base.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4336,6 +4715,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna y la pelvis se mantienen estables con la carga pegada al pecho, y la postura erguida que exige esa sujeción protege la zona lumbar.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4552,6 +4932,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: en la máquina hack la rodilla flexiona y extiende con la espalda apoyada, y el recorrido guiado concentra la demanda en la última parte de la extensión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4559,6 +4940,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, y el respaldo de la máquina acota la profundidad para que el gesto se centre en las rodillas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4566,6 +4948,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y mantiene la planta completa en la plataforma, con el recorrido guiado marcando el ángulo de la flexión.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4573,6 +4956,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar se apoya en el respaldo durante todo el recorrido, y la máquina elimina la exigencia de equilibrar la carga con el torso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4580,6 +4964,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla contra el recorrido guiado y la máquina permite cargar el peso máximo con la espalda apoyada."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera mientras la rodilla se extiende, y el respaldo limita su recorrido, por eso acompaña al cuádriceps en lugar de igualarlo."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_hack__machine",
               "primaryMuscles": [
                 "quadriceps"
@@ -4600,6 +4994,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: en la máquina hack la rodilla flexiona y extiende con la espalda apoyada, y el recorrido guiado concentra la demanda en la última parte de la extensión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4607,6 +5002,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, y el respaldo de la máquina acota la profundidad para que el gesto se centre en las rodillas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4614,6 +5010,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y mantiene la planta completa en la plataforma, con el recorrido guiado marcando el ángulo de la flexión.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4621,6 +5018,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar se apoya en el respaldo durante todo el recorrido, y la máquina elimina la exigencia de equilibrar la carga con el torso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4799,7 +5197,7 @@
               "automationEligible": true,
               "axialLoadFactor": 0.5,
               "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                "Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
                 "La fábrica de cuádriceps que nunca pasa de moda."
               ],
               "bodyRegion": "LOWER",
@@ -4808,7 +5206,7 @@
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Con barra, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "Con barra detrás del cuerpo y sin máquina que la guíe, el cuádriceps extiende la rodilla en cada repetición mientras la persona equilibra y sostiene ese peso. Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
@@ -4821,6 +5219,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la barra detrás del cuerpo la rodilla flexiona y extiende en cada repetición, y como no hay guía la trayectoria de la bajada depende de sostener ese peso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4828,6 +5227,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla sosteniendo la barra detrás del cuerpo y sin apoyo en el torso, así que el peso de la barra sin guía añade dificultad de equilibrio en esa apertura.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4835,6 +5235,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, aunque al no existir la plataforma de la máquina la base es menos estable.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4842,6 +5243,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: al no haber máquina que sostenga el torso, la columna lumbar trabaja de forma activa durante todo el recorrido para mantenerlo firme con la barra colocada detrás del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4849,6 +5251,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en cada repetición con la barra detrás del cuerpo, y al no haber guía la demanda de equilibrio se suma a la del cuádriceps."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en cada subida mientras la rodilla se extiende y la barra descansa detrás del cuerpo, así que acompaña al cuádriceps sin llegar a igualarlo."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_hack__barbell",
               "primaryMuscles": [
                 "quadriceps"
@@ -4869,6 +5281,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la barra detrás del cuerpo la rodilla flexiona y extiende en cada repetición, y como no hay guía la trayectoria de la bajada depende de sostener ese peso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4876,6 +5289,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla sosteniendo la barra detrás del cuerpo y sin apoyo en el torso, así que el peso de la barra sin guía añade dificultad de equilibrio en esa apertura.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4883,6 +5297,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, aunque al no existir la plataforma de la máquina la base es menos estable.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4890,6 +5305,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: al no haber máquina que sostenga el torso, la columna lumbar trabaja de forma activa durante todo el recorrido para mantenerlo firme con la barra colocada detrás del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4922,7 +5338,7 @@
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
-                  "stability": "guided"
+                  "stability": "self_stabilized"
                 },
                 "coaching": {
                   "commonMistakes": [
@@ -4957,10 +5373,10 @@
                 },
                 "editorial": {
                   "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                    "Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
                     "La fábrica de cuádriceps que nunca pasa de moda."
                   ],
-                  "description": "Con barra, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+                  "description": "Con barra detrás del cuerpo y sin máquina que la guíe, el cuádriceps extiende la rodilla en cada repetición mientras la persona equilibra y sostiene ese peso. Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
                   "technique": "Hack con barra por detrás: sin máquina, el equilibrio suma trabajo al cuádriceps. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
                   "variantRationale": "Hack con barra por detrás: sin máquina, el equilibrio suma trabajo al cuádriceps. Variante exigente para quien busca algo distinto."
                 },
@@ -5077,7 +5493,7 @@
               "commonMistakes": [
                 "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
               ],
-              "description": "Con máquina Smith, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+              "description": "Con máquina Smith, la guía fija la trayectoria de la barra pero no sostiene el torso, así que el cuádriceps extiende la rodilla en cada repetición con el peso que lleva el cuerpo encima. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
@@ -5090,6 +5506,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: la guía de la Smith fija la trayectoria vertical de la barra, así que la rodilla flexiona y extiende en cada repetición mientras el torso sigue teniendo que controlar el peso que lleva encima.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5097,6 +5514,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla siguiendo la trayectoria que marca la barra, y mantener el torso sobre esa base sigue exigiendo equilibrio propio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5104,6 +5522,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, y la guía de la Smith solo marca el recorrido de la barra, no el ritmo de la flexión.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5111,6 +5530,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar trabaja de forma activa durante todo el recorrido para mantener el torso firme, porque la guía de la Smith solo limita la trayectoria de la barra y no descarga la espalda.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5118,6 +5538,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en cada repetición, y como la guía solo limita la trayectoria de la barra la pierna soporta el peso que lleva el cuerpo encima."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida acompañando al cuádriceps, y como la guía solo fija la trayectoria de la barra la cadera trabaja con el recorrido que cada persona pueda hacer."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_hack__smith_machine",
               "primaryMuscles": [
                 "quadriceps"
@@ -5138,6 +5568,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: la guía de la Smith fija la trayectoria vertical de la barra, así que la rodilla flexiona y extiende en cada repetición mientras el torso sigue teniendo que controlar el peso que lleva encima.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5145,6 +5576,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla siguiendo la trayectoria que marca la barra, y mantener el torso sobre esa base sigue exigiendo equilibrio propio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -5152,6 +5584,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, y la guía de la Smith solo marca el recorrido de la barra, no el ritmo de la flexión.",
                       "role": "STABILIZER"
                     },
                     {
@@ -5159,6 +5592,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar trabaja de forma activa durante todo el recorrido para mantener el torso firme, porque la guía de la Smith solo limita la trayectoria de la barra y no descarga la espalda.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5229,7 +5663,7 @@
                     "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                     "La fábrica de cuádriceps que nunca pasa de moda."
                   ],
-                  "description": "Con máquina Smith, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+                  "description": "Con máquina Smith, la guía fija la trayectoria de la barra pero no sostiene el torso, así que el cuádriceps extiende la rodilla en cada repetición con el peso que lleva el cuerpo encima. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
                   "technique": "Smith en posición hack: el guiado sostiene la barra y las piernas empujan. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
                   "variantRationale": "Smith en posición hack: el guiado sostiene la barra y las piernas empujan. Un punto intermedio cómodo entre barra y máquina."
                 },
@@ -5385,6 +5819,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: de espaldas a la hack la carga queda por delante de las rodillas, así que la rodilla flexiona y extiende pidiendo más cuádriceps en cada repetición.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5392,6 +5827,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, y en esta posición invertida el torso trabaja más para mantener la carga delante del cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5399,6 +5835,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada en la plataforma, con el recorrido guiado marcando hasta dónde llega la flexión.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5406,6 +5843,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar trabaja contra la carga adelantada del aparato, y esa posición invertida exige más del tronco que la hack con el respaldo normal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5413,6 +5851,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: con la carga al frente el cuádriceps tiene que vencer un brazo de palanca mayor, y por eso es el responsable principal de la variante invertida."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida, aunque el papel principal lo lleva el cuádriceps al tener la carga por delante de las rodillas."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_hack_invertida_maquina__machine__sentadilla_invertida_en_maquina_hack",
               "primaryMuscles": [
                 "quadriceps"
@@ -5433,6 +5881,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: de espaldas a la hack la carga queda por delante de las rodillas, así que la rodilla flexiona y extiende pidiendo más cuádriceps en cada repetición.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5440,6 +5889,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende junto a la rodilla, y en esta posición invertida el torso trabaja más para mantener la carga delante del cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -5447,6 +5897,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada en la plataforma, con el recorrido guiado marcando hasta dónde llega la flexión.",
                       "role": "STABILIZER"
                     },
                     {
@@ -5454,6 +5905,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar trabaja contra la carga adelantada del aparato, y esa posición invertida exige más del tronco que la hack con el respaldo normal.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5668,6 +6120,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la barra cruzando los brazos por delante la rodilla flexiona y extiende, y el peso delante de las piernas exige más profundidad de la que admite la barra normal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5675,6 +6128,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende en la misma línea que la rodilla, y la carga sostenida con los brazos cruzados limita a la vez la movilidad del hombro y la del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5682,6 +6136,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, y la postura profunda de esta variante exige algo más de recorrido que la sentadilla normal.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5689,6 +6144,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar permanece neutra con los brazos cruzados sujetando la carga al frente, una posición que exige más movilidad y más control del tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5696,6 +6152,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en una bajada profunda, con la carga sostenida por delante de las piernas."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida y acompaña al cuádriceps, con la postura profunda de la variante dando más recorrido de cadera que la sentadilla convencional."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_somersault__barbell__sentadilla_somersault",
               "primaryMuscles": [
                 "quadriceps"
@@ -5716,6 +6182,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la barra cruzando los brazos por delante la rodilla flexiona y extiende, y el peso delante de las piernas exige más profundidad de la que admite la barra normal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5723,6 +6190,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende en la misma línea que la rodilla, y la carga sostenida con los brazos cruzados limita a la vez la movilidad del hombro y la del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -5730,6 +6198,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, y la postura profunda de esta variante exige algo más de recorrido que la sentadilla normal.",
                       "role": "STABILIZER"
                     },
                     {
@@ -5737,6 +6206,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar permanece neutra con los brazos cruzados sujetando la carga al frente, una posición que exige más movilidad y más control del tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5955,6 +6425,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: en la máquina V-Squat la rodilla flexiona y extiende con el cuerpo en ángulo fijo, y el recorrido guiado lleva la demanda hasta la extensión completa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5962,6 +6433,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende mientras el cuerpo se mantiene en el ángulo que fija el aparato, lo que acota su recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5969,6 +6441,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada en la plataforma, con el ángulo fijo del aparato marcando la profundidad.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5976,6 +6449,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar descansa contra el respaldo de la máquina en ángulo, y ese apoyo es lo que permite la profundidad sin fatigar la espalda.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5983,6 +6457,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla contra la carga del aparato, que permite llegar a la extensión completa con la espalda apoyada."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera mientras las rodillas se extienden, con el respaldo en ángulo limitando su recorrido y dejándolo como acompañante."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_v_squat__machine__sentadilla_en_v_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -6003,6 +6487,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: en la máquina V-Squat la rodilla flexiona y extiende con el cuerpo en ángulo fijo, y el recorrido guiado lleva la demanda hasta la extensión completa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6010,6 +6495,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende mientras el cuerpo se mantiene en el ángulo que fija el aparato, lo que acota su recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6017,6 +6503,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y conserva la planta apoyada en la plataforma, con el ángulo fijo del aparato marcando la profundidad.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6024,6 +6511,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar descansa contra el respaldo de la máquina en ángulo, y ese apoyo es lo que permite la profundidad sin fatigar la espalda.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -6242,6 +6730,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: en la V-Squat invertida la rodilla flexiona y extiende con la carga en la posición opuesta del aparato, y el estímulo cae sobre el cuádriceps inferior.",
                   "role": "PRIMARY"
                 },
                 {
@@ -6249,6 +6738,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende con la nueva inclinación del cuerpo, y cambiar la posición del aparato modifica también lo que exige la cadera.",
                   "role": "SECONDARY"
                 },
                 {
@@ -6256,6 +6746,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar con la planta apoyada, y el ángulo invertido cambia el punto en el que la flexión se hace más profunda.",
                   "role": "STABILIZER"
                 },
                 {
@@ -6263,6 +6754,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar apoya en el respaldo también en la posición invertida, que conserva la ventaja de no tener que equilibrar la carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -6270,6 +6762,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: la posición invertida hace que el cuádriceps bajo reciba la mayor parte de la extensión de rodilla, y por eso sigue siendo el motor principal del gesto."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida, aunque en esta posición del aparato la contribución del glúteo queda por detrás de la del cuádriceps."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_v_squat_invertida_maquina__machine__sentadilla_invertida_en_maquina_v_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -6290,6 +6792,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: en la V-Squat invertida la rodilla flexiona y extiende con la carga en la posición opuesta del aparato, y el estímulo cae sobre el cuádriceps inferior.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6297,6 +6800,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende con la nueva inclinación del cuerpo, y cambiar la posición del aparato modifica también lo que exige la cadera.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6304,6 +6808,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar con la planta apoyada, y el ángulo invertido cambia el punto en el que la flexión se hace más profunda.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6311,6 +6816,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar apoya en el respaldo también en la posición invertida, que conserva la ventaja de no tener que equilibrar la carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -6525,6 +7031,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la barra descansando en los codos y abrazada al pecho la rodilla flexiona y extiende, y la carga baja pegada al tronco hace la bajada más exigente para el cuádriceps.",
                   "role": "PRIMARY"
                 },
                 {
@@ -6532,6 +7039,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende en el mismo gesto, y la profundidad de la sentadilla Zercher exige más apertura de cadera que la sentadilla con barra sobre la espalda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -6539,6 +7047,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, con la carga al pecho pidiendo un centro de masa estable sobre la base.",
                   "role": "STABILIZER"
                 },
                 {
@@ -6546,6 +7055,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar trabaja isométricamente con la barra abrazada al pecho, y esa sujeción con los brazos forma parte del trabajo de mantener el tronco erguido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -6553,6 +7063,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, y en esta variante se suman la barra apoyada en los codos y una sentadilla deliberadamente profunda."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: con la barra abrazada al pecho el core mantiene costillas y pelvis unidas durante todo el recorrido, y aquí su papel es claramente secundario."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: extiende la cadera en la subida, y en la sentadilla profunda con barra en los codos acompaña al cuádriceps como segundo motor."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_zercher_barra_recta__barbell__sentadilla_zercher_con_barra_recta",
               "primaryMuscles": [
                 "quadriceps"
@@ -6573,6 +7097,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la barra descansando en los codos y abrazada al pecho la rodilla flexiona y extiende, y la carga baja pegada al tronco hace la bajada más exigente para el cuádriceps.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6580,6 +7105,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende en el mismo gesto, y la profundidad de la sentadilla Zercher exige más apertura de cadera que la sentadilla con barra sobre la espalda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6587,6 +7113,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, con la carga al pecho pidiendo un centro de masa estable sobre la base.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6594,6 +7121,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar trabaja isométricamente con la barra abrazada al pecho, y esa sujeción con los brazos forma parte del trabajo de mantener el tronco erguido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -6810,6 +7338,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la base muy abierta y las puntas hacia fuera la rodilla flexiona y extiende siguiendo la dirección de los dedos, y el momento se reparte con la cadera.",
                   "role": "PRIMARY"
                 },
                 {
@@ -6817,6 +7346,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende bajando entre las rodillas, y la apertura de pies hace que su papel crezca respecto a una sentadilla convencional.",
                   "role": "SECONDARY"
                 },
                 {
@@ -6824,6 +7354,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, con la apertura de la base y las puntas hacia fuera manteniendo el pie en contacto completo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -6831,6 +7362,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se mantienen estables con la barra sobre la espalda, y el torso erguido entre las caderas permite la profundidad sin cargar la zona lumbar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -6838,6 +7370,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, con la base abierta repartiendo la carga entre rodillas y caderas."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en cada subida y comparte el papel principal con el cuádriceps, porque la base abierta hace participar más a la cadera que en la sentadilla convencional."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: con los pies muy separados y el descenso entre las rodillas los aductores trabajan de forma continua, resistiendo la apertura de la base durante todo el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco alineado con la pelvis mientras la cadera baja entre las rodillas, evitando que el peso del torso se adelante en la bajada."
+                }
+              ],
               "performanceProfileId": "sumo_squat__barbell__sentadilla_sumo",
               "primaryMuscles": [
                 "quadriceps",
@@ -6859,6 +7409,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la base muy abierta y las puntas hacia fuera la rodilla flexiona y extiende siguiendo la dirección de los dedos, y el momento se reparte con la cadera.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6866,6 +7417,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende bajando entre las rodillas, y la apertura de pies hace que su papel crezca respecto a una sentadilla convencional.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6873,6 +7425,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y conserva la planta apoyada, con la apertura de la base y las puntas hacia fuera manteniendo el pie en contacto completo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6880,6 +7433,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se mantienen estables con la barra sobre la espalda, y el torso erguido entre las caderas permite la profundidad sin cargar la zona lumbar.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7083,6 +7637,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con las mancuernas delante del cuerpo y la base muy abierta la rodilla flexiona y extiende siguiendo las puntas hacia fuera, sin carga sobre la espalda.",
                   "role": "PRIMARY"
                 },
                 {
@@ -7090,6 +7645,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende bajando entre las rodillas, y la base abierta aumenta su participación respecto a la sentadilla convencional.",
                   "role": "SECONDARY"
                 },
                 {
@@ -7097,6 +7653,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al descender y mantiene la planta apoyada con las puntas hacia fuera, y las mancuernas delante ayudan a equilibrar el cuerpo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -7104,6 +7661,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar permanece neutra porque el peso cuelga de las manos delante, sin barra sobre la espalda, y la profundidad se controla desde el torso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -7111,6 +7669,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en la subida y frenan la flexión en la bajada, con la carga de las mancuernas delante y la base amplia repartiendo el trabajo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en la subida y comparte el papel principal con el cuádriceps en esta sentadilla amplia con mancuernas."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: los aductores resisten la apertura de la base mientras la cadera baja entre las rodillas, con un trabajo continuo durante todo el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco unido a la pelvis con el peso delante del cuerpo, lo que evita que el torso se incline al bajar entre las piernas."
+                }
+              ],
               "performanceProfileId": "sumo_squat__dumbbells__sentadilla_sumo",
               "primaryMuscles": [
                 "quadriceps",
@@ -7132,6 +7708,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con las mancuernas delante del cuerpo y la base muy abierta la rodilla flexiona y extiende siguiendo las puntas hacia fuera, sin carga sobre la espalda.",
                       "role": "PRIMARY"
                     },
                     {
@@ -7139,6 +7716,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende bajando entre las rodillas, y la base abierta aumenta su participación respecto a la sentadilla convencional.",
                       "role": "SECONDARY"
                     },
                     {
@@ -7146,6 +7724,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al descender y mantiene la planta apoyada con las puntas hacia fuera, y las mancuernas delante ayudan a equilibrar el cuerpo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -7153,6 +7732,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar permanece neutra porque el peso cuelga de las manos delante, sin barra sobre la espalda, y la profundidad se controla desde el torso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7356,6 +7936,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: con la campana al frente o en copa y los pies muy abiertos la rodilla flexiona y extiende siguiendo las puntas hacia fuera, con la base amplia marcando la trayectoria.",
                   "role": "PRIMARY"
                 },
                 {
@@ -7363,6 +7944,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: la cadera flexiona y extiende bajando entre las rodillas, y la postura amplia de la sentadilla sumo hace que su papel crezca frente a una sentadilla estrecha.",
                   "role": "SECONDARY"
                 },
                 {
@@ -7370,6 +7952,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la planta apoyada con las puntas hacia fuera, y la campana al frente exige un centro de masa estable.",
                   "role": "STABILIZER"
                 },
                 {
@@ -7377,6 +7960,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la columna lumbar se mantiene erguida con el peso sostenido delante, sin carga sobre la espalda, lo que deja la bajada bajo control del tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -7384,6 +7968,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: los cuádriceps extienden la rodilla en cada repetición y frenan la flexión en la bajada, con la base amplia y la campana al frente repartiendo la carga."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera en la subida y comparte el papel principal con el cuádriceps en la versión sumo con kettlebell."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: trabajan de forma continua al bajar entre las rodillas, resistiendo la apertura de la base y la dirección de las puntas hacia fuera."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene costillas y pelvis unidas con el peso de la campana delante, evitando que el torso se caiga hacia delante en la bajada."
+                }
+              ],
               "performanceProfileId": "sumo_squat__kettlebell__sentadilla_sumo",
               "primaryMuscles": [
                 "quadriceps",
@@ -7405,6 +8007,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: con la campana al frente o en copa y los pies muy abiertos la rodilla flexiona y extiende siguiendo las puntas hacia fuera, con la base amplia marcando la trayectoria.",
                       "role": "PRIMARY"
                     },
                     {
@@ -7412,6 +8015,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: la cadera flexiona y extiende bajando entre las rodillas, y la postura amplia de la sentadilla sumo hace que su papel crezca frente a una sentadilla estrecha.",
                       "role": "SECONDARY"
                     },
                     {
@@ -7419,6 +8023,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: el tobillo dorsiflexiona al bajar y mantiene la planta apoyada con las puntas hacia fuera, y la campana al frente exige un centro de masa estable.",
                       "role": "STABILIZER"
                     },
                     {
@@ -7426,6 +8031,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la columna lumbar se mantiene erguida con el peso sostenido delante, sin carga sobre la espalda, lo que deja la bajada bajo control del tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7611,6 +8217,334 @@
           "sentadilla sumo",
           "sumo squat",
           "quads_sentadilla_sumo"
+        ]
+      },
+      {
+        "canonicalName": "Sentadilla Sin Carga",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "proposal:.opencode/orchestration/wizard-feedback-resume-20260926-ses_f2efb28a7ffe/T-037-r1/proposal.json#quads_sentadilla_sin_carga",
+                "reference:pmc.ncbi.nlm.nih.gov/articles/PMC10987311"
+              ],
+              "rationale": "Estado APROVED propuesto para el corte: la aprobación del usuario es de alcance (los dos movimientos), no una revisión técnica humana de este copy. Copy de propuesta editorial asistida por máquina a la espera de aprobación del orquestador.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "quads_sentadilla_sin_carga__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "Cuádriceps y glúteo mayor trabajan sin carga externa, con el peso corporal como única resistencia y sin preparación de material entre series.",
+                "El tronco estabiliza la columna durante todo el recorrido igual que en la sentadilla con barra, así que la técnica se puede practicar en casa con un suelo despejado."
+              ],
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 2.2,
+              "commonMistakes": [
+                "Arrodillarse en cada bajada, dejar caer la pelvis o despegar los talones del suelo a media repetición."
+              ],
+              "description": "Con los pies en el suelo y sin nada que sostener, las rodillas se flexionan mientras la cadera baja en bloque y el torso se mantiene firme de la cadera a la cabeza. Los pies a la anchura de los hombros o algo más abiertos dan una base estable; la profundidad llega hasta donde la cadera y el tobillo lo permiten, y más allá la pelvis se echa hacia atrás. El trabajo de los músculos del tronco no desaparece por no haber carga: acompaña cada bajada y cada subida.",
+              "efc": 2.8,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Principal: flexiona y extiende en cada repetición, con el momento de rodilla más alto cerca de la posición baja.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión Y Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Secundaria: flexiona y extiende a la vez que la rodilla y acompaña la bajada con el torso erguido.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión Y Control"
+                  ],
+                  "jointId": "tobillo",
+                  "note": "Estabilizadora: dorsiflexiona al bajar y mantiene la planta del pie apoyada cuando la rodilla pasa la vertical.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: la pelvis y la columna se mantienen estables mientras el peso del propio cuerpo recorre la pierna, con la misma demanda de los extensores que en la variante cargada.",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: extiende la rodilla en la subida y frena la flexión en la bajada, que es la parte del gesto donde más pesa."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: extiende la cadera y lleva el torso de vuelta a la posición de pie; comparte el papel principal con el cuádriceps en este patrón."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: sostiene la columna neutra durante todo el recorrido, trabaja de forma isométrica y por eso suma 0.4 y no una serie completa."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el tronco alineado con la pelvis para que el peso no se adelante en la bajada."
+                }
+              ],
+              "performanceProfileId": "quads_sentadilla_sin_carga__bodyweight__sentadilla_sin_carga",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión Y Extensión",
+                    "Dorsiflexión Y Control",
+                    "Estabilidad Del Tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Principal: flexiona y extiende en cada repetición, con el momento de rodilla más alto cerca de la posición baja.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión Y Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Secundaria: flexiona y extiende a la vez que la rodilla y acompaña la bajada con el torso erguido.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión Y Control"
+                      ],
+                      "jointId": "tobillo",
+                      "note": "Estabilizadora: dorsiflexiona al bajar y mantiene la planta del pie apoyada cuando la rodilla pasa la vertical.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad Del Tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: la pelvis y la columna se mantienen estables mientras el peso del propio cuerpo recorre la pierna, con la misma demanda de los extensores que en la variante cargada.",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizationDemand": "moderate",
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "knee_dominant",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Arrodillarse en cada bajada, dejar caer la pelvis o despegar los talones del suelo a media repetición."
+                  ],
+                  "cues": [
+                    "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical."
+                  ],
+                  "execution": [
+                    "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando trabajar cuádriceps y glúteos con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar flexión y extensión de rodilla con ayuda de cadera y tobillo como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de rodilla según tolerancia y rango disponible.",
+                    "Movilidad de cadera según tolerancia y rango disponible.",
+                    "Movilidad de tobillo según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Pies en el suelo a la anchura de los hombros, manos al frente o en la cintura, tronco firme de la cadera a la cabeza."
+                  ]
+                },
+                "display": {
+                  "displayName": "Sentadilla Sin Carga",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "Cuádriceps y glúteo mayor trabajan sin carga externa, con el peso corporal como única resistencia y sin preparación de material entre series.",
+                    "El tronco estabiliza la columna durante todo el recorrido igual que en la sentadilla con barra, así que la técnica se puede practicar en casa con un suelo despejado."
+                  ],
+                  "description": "Con los pies en el suelo y sin nada que sostener, las rodillas se flexionan mientras la cadera baja en bloque y el torso se mantiene firme de la cadera a la cabeza. Los pies a la anchura de los hombros o algo más abiertos dan una base estable; la profundidad llega hasta donde la cadera y el tobillo lo permiten, y más allá la pelvis se echa hacia atrás. El trabajo de los músculos del tronco no desaparece por no haber carga: acompaña cada bajada y cada subida.",
+                  "technique": "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical.",
+                  "variantRationale": "Es la misma sentadilla de rodillas y cadera que la variante con barra, sin carga externa: por eso conserva el patrón y el objetivo, pero no obliga a preparar ni cargar material entre series y la técnica se sostiene desde el primer mes."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Sin Carga",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "quads_sentadilla_sin_carga__default",
+                  "definitionId": "quads_sentadilla_sin_carga",
+                  "familyId": "lower_knee_dominant",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "quads_sentadilla_sin_carga__bodyweight__sentadilla_sin_carga",
+                  "searchTerms": [
+                    "sentadilla sin carga",
+                    "sentadilla de peso corporal",
+                    "sentadilla corporal",
+                    "sentadilla de piernas",
+                    "air squat",
+                    "bodyweight squat"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "objectives": [
+                    "Desarrollar los cuádriceps mediante Sentadilla Sin Carga en la variante Peso Corporal.",
+                    "Priorizar aprender el patrón de sentadilla con el propio peso y progresar en repeticiones limpias antes de cargar."
+                  ],
+                  "recoveryCost": "moderate",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "primary_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
+                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "Bajar más allá de la flexión de cadera disponible obliga a inclinar la pelvis y la zona lumbar, y ahí aparecen la compresión y el desplazamiento que conviene evitar."
+                  ]
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Preparación: Pies en el suelo a la anchura de los hombros, manos al frente o en la cintura, tronco firme de la cadera a la cabeza."
+              ],
+              "setupTimeSeconds": 15,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "techniqueSummary": "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical.",
+              "ttc": 2.0,
+              "variantRationale": "Es la misma sentadilla de rodillas y cadera que la variante con barra, sin carga externa: por eso conserva el patrón y el objetivo, pero no obliga a preparar ni cargar material entre series y la técnica se sostiene desde el primer mes."
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "quads_sentadilla_sin_carga__default",
+        "description": "La Sentadilla Sin Carga (bodyweight squat) es la sentadilla bilateral que se hace con el propio peso corporal, sin barra, mancuernas ni máquina: la misma flexión y extensión de rodilla y cadera que sostiene el patrón, con los pies en el suelo y el tronco firme. El tronco trabaja con la misma exigencia durante todo el recorrido, porque sus músculos estabilizan la columna y el torso mientras la carga del propio peso recorre la pierna. Es la versión de la sentadilla para empezar a trabajar las piernas sin nada que preparar, y por eso se practica con muchas repeticiones y sin carga externa.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "proposal:.opencode/orchestration/wizard-feedback-resume-20260926-ses_f2efb28a7ffe/T-037-r1/proposal.json#quads_sentadilla_sin_carga",
+            "reference:pmc.ncbi.nlm.nih.gov/articles/PMC10987311"
+          ],
+          "rationale": "Estado APROVED propuesto para el corte: la aprobación del usuario es de alcance (los dos movimientos), no una revisión técnica humana de este copy. Copy de propuesta editorial asistida por máquina a la espera de aprobación del orquestador.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_knee_dominant",
+        "id": "quads_sentadilla_sin_carga",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "sentadilla sin carga",
+          "sentadilla de peso corporal",
+          "sentadilla corporal",
+          "sentadilla de piernas",
+          "air squat",
+          "bodyweight squat"
         ]
       }
     ],

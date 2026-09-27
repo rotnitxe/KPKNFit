@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende para enderezar el cuerpo inclinado; el peso corporal cuelga de las asas y el tríceps abre la articulación hasta alinear el brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro mantiene el brazo respecto al tronco en suspensión, y las asas inestables obligan a estabilizar sin alterar la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre sobre las asas y alinea la mano con el antebrazo mientras el codo se extiende bajo el peso corporal suspendido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "suspension",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: En la suspensión con asas del TRX, el peso corporal carga el tríceps, que concentra la apertura del codo al enderezar el cuerpo inclinado y frena el regreso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides sostiene el brazo dentro de la inclinación corporal y asiste al hombro mientras los codos se abren, sin robarse el recorrido sobre las asas."
+                }
+              ],
               "performanceProfileId": "triceps_extension__trx__extension_de_triceps",
               "primaryMuscles": [
                 "triceps"
@@ -86,6 +99,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende para enderezar el cuerpo inclinado; el peso corporal cuelga de las asas y el tríceps abre la articulación hasta alinear el brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro mantiene el brazo respecto al tronco en suspensión, y las asas inestables obligan a estabilizar sin alterar la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre sobre las asas y alinea la mano con el antebrazo mientras el codo se extiende bajo el peso corporal suspendido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -317,6 +333,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona al descender la mancuerna por detrás de la nuca y se extiende al subir, con el tríceps como motor de esa apertura.",
                   "role": "PRIMARY"
                 },
                 {
@@ -324,6 +341,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo elevado por encima de la cabeza mientras la carga viaja tras la nuca, sin robar recorrido a la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -331,13 +349,24 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el agarre alineado con el antebrazo bajo la carga de la mancuerna, que desciende tras la nuca y vuelve arriba.",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "FULL",
-              "laterality": "BILATERAL",
+              "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la mancuerna bajando por detrás de la nuca tumbado, el tríceps trabaja el estiramiento previo y concentra la apertura del codo hasta extender los brazos."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho acompaña la posición del brazo elevado mientras la carga desciende tras la nuca, y cede el protagonismo al tríceps en la apertura del codo."
+                }
+              ],
               "performanceProfileId": "triceps_extension_pjr_mancuerna__dumbbells__extension_de_triceps_pjr_con_mancuerna",
               "primaryMuscles": [
                 "triceps"
@@ -358,6 +387,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona al descender la mancuerna por detrás de la nuca y se extiende al subir, con el tríceps como motor de esa apertura.",
                       "role": "PRIMARY"
                     },
                     {
@@ -365,6 +395,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo elevado por encima de la cabeza mientras la carga viaja tras la nuca, sin robar recorrido a la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -372,6 +403,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el agarre alineado con el antebrazo bajo la carga de la mancuerna, que desciende tras la nuca y vuelve arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -393,7 +425,7 @@
                   "bodyRegion": "UPPER",
                   "equipmentId": "dumbbells",
                   "kineticChain": "FULL",
-                  "laterality": "BILATERAL",
+                  "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "elbow_extension",
                   "rangeOfMotion": "controlled_full_available",
@@ -587,6 +619,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende para elevar el cuerpo desde los antebrazos y se flexiona al descender, con los codos pegados y apuntando atrás en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -594,6 +627,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene la posición de los brazos bajo el peso corporal mientras el tronco sube en línea, sin adelantar el recorrido de la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -601,6 +635,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano con el antebrazo contra el suelo y sostiene ese apoyo mientras el peso corporal sube y baja con los codos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -608,6 +643,12 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con el peso corporal desde los antebrazos en el suelo y los codos pegados apuntando atrás, el tríceps concentra la apertura del codo y frena la bajada del tronco."
+                }
+              ],
               "performanceProfileId": "triceps_flexiones_esfinge__bodyweight__extensiones_de_triceps_en_suelo_flexiones_esfinge_sphinx_push_up",
               "primaryMuscles": [
                 "triceps"
@@ -628,6 +669,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende para elevar el cuerpo desde los antebrazos y se flexiona al descender, con los codos pegados y apuntando atrás en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -635,6 +677,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene la posición de los brazos bajo el peso corporal mientras el tronco sube en línea, sin adelantar el recorrido de la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -642,6 +685,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano con el antebrazo contra el suelo y sostiene ese apoyo mientras el peso corporal sube y baja con los codos.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -855,6 +899,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona al bajar el cuerpo entre los apoyos y se extiende al subir, con la carga completa del peso corporal pasando por esa articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -862,6 +907,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro se desplaza tras el torso en el descenso y sostiene los brazos mientras el tríceps extiende los codos para levantar el cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -869,6 +915,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el apoyo de las manos sobre el banco y alinea el antebrazo mientras el cuerpo baja y sube entre los dos puntos de apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -876,6 +923,24 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con las manos en un banco y el cuerpo bajando entre los dos apoyos, el tríceps concentra la subida extendiendo los codos y frena el descenso con control."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral asiste la apertura de los codos cuando el cuerpo sube entre los apoyos y coopera en el descenso junto al tríceps bajo la carga corporal."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides acompaña al hombro en el descenso del cuerpo entre los apoyos y ayuda al tríceps en la subida, sosteniendo los brazos tras el torso."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco estable entre manos y pies durante todo el movimiento, con el peso corporal bajando y subiendo entre los dos apoyos."
+                }
+              ],
               "performanceProfileId": "triceps_fondos_entre_bancos__bodyweight__fondos_entre_bancos",
               "primaryMuscles": [
                 "triceps"
@@ -896,6 +961,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona al bajar el cuerpo entre los apoyos y se extiende al subir, con la carga completa del peso corporal pasando por esa articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -903,6 +969,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro se desplaza tras el torso en el descenso y sostiene los brazos mientras el tríceps extiende los codos para levantar el cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -910,6 +977,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el apoyo de las manos sobre el banco y alinea el antebrazo mientras el cuerpo baja y sube entre los dos puntos de apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1131,6 +1199,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona para descender la carga hacia la frente y se extiende al subir, con cada mancuerna siguiendo su propia línea de trabajo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1138,6 +1207,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro mantiene el brazo superior estable mientras las mancuernas bajan hacia la frente, sin robar recorrido a la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1145,6 +1215,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea el agarre con el antebrazo bajo cada mancuerna y sostiene esa línea recta mientras la carga baja hacia la frente y regresa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1152,6 +1223,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con mancuernas tumbado, la carga baja hacia la frente con los codos quietos y el tríceps concentra la apertura del codo hasta el final, frenando el descenso."
+                }
+              ],
               "performanceProfileId": "triceps_press_frances__dumbbells",
               "primaryMuscles": [
                 "triceps"
@@ -1172,6 +1249,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona para descender la carga hacia la frente y se extiende al subir, con cada mancuerna siguiendo su propia línea de trabajo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1179,6 +1257,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro mantiene el brazo superior estable mientras las mancuernas bajan hacia la frente, sin robar recorrido a la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1186,6 +1265,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea el agarre con el antebrazo bajo cada mancuerna y sostiene esa línea recta mientras la carga baja hacia la frente y regresa.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1383,6 +1463,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: Los codos se flexionan juntos al descender la barra hacia la frente y se extienden a la vez al subir, compartiendo la carga entre ambos brazos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1390,6 +1471,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene ambos brazos superiores en posición fija mientras la barra baja hacia la frente, sin alterar el recorrido del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1397,6 +1479,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre recto de la barra y alinea la mano con el antebrazo mientras la carga desciende hacia la frente y vuelve arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1404,6 +1487,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con barra tumbado, la carga baja hacia la frente y el tríceps concentra la apertura conjunta de los codos hasta extender los brazos, frenando la barra al bajar."
+                }
+              ],
               "performanceProfileId": "triceps_press_frances__barbell",
               "primaryMuscles": [
                 "triceps"
@@ -1424,6 +1513,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: Los codos se flexionan juntos al descender la barra hacia la frente y se extienden a la vez al subir, compartiendo la carga entre ambos brazos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1431,6 +1521,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene ambos brazos superiores en posición fija mientras la barra baja hacia la frente, sin alterar el recorrido del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1438,6 +1529,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre recto de la barra y alinea la mano con el antebrazo mientras la carga desciende hacia la frente y vuelve arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1635,6 +1727,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se abre y se cierra con la barra EZ descendiendo hacia la frente; el ángulo de las manos suele resultar más amable para la articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1642,6 +1735,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro mantiene la posición del brazo superior bajo la barra EZ, cuyo agarre curvo acompaña la bajada sin robar recorrido a la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1649,6 +1743,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se beneficia de las curvaturas de la barra EZ, que permiten un ángulo intermedio del agarre mientras la carga baja hacia la frente y sube.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1656,6 +1751,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la barra EZ tumbado, el ángulo del agarre reparte la carga hacia la frente y el tríceps concentra la apertura del codo, con frenado controlado al descender."
+                }
+              ],
               "performanceProfileId": "triceps_press_frances__ez_bar",
               "primaryMuscles": [
                 "triceps"
@@ -1676,6 +1777,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se abre y se cierra con la barra EZ descendiendo hacia la frente; el ángulo de las manos suele resultar más amable para la articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1683,6 +1785,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro mantiene la posición del brazo superior bajo la barra EZ, cuyo agarre curvo acompaña la bajada sin robar recorrido a la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1690,6 +1793,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se beneficia de las curvaturas de la barra EZ, que permiten un ángulo intermedio del agarre mientras la carga baja hacia la frente y sube.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1887,6 +1991,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona para traer la carga hacia la frente y se extiende al subir, con tensión constante del cable durante todo el recorrido de la apertura.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1894,6 +1999,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo superior frente a la tracción del cable mientras la carga baja hacia la frente, sin robar recorrido a la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1901,6 +2007,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea el agarre con la línea de tracción del cable y sostiene esa alineación mientras la carga viaja hacia la frente y regresa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1908,6 +2015,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con polea tumbado, la tensión constante del cable acompaña todo el arco y el tríceps concentra la apertura del codo con trabajo sostenido también en la bajada."
+                }
+              ],
               "performanceProfileId": "triceps_press_frances__cable",
               "primaryMuscles": [
                 "triceps"
@@ -1928,6 +2041,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona para traer la carga hacia la frente y se extiende al subir, con tensión constante del cable durante todo el recorrido de la apertura.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1935,6 +2049,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo superior frente a la tracción del cable mientras la carga baja hacia la frente, sin robar recorrido a la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1942,6 +2057,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea el agarre con la línea de tracción del cable y sostiene esa alineación mientras la carga viaja hacia la frente y regresa.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2139,6 +2255,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona para bajar la campana hacia la frente y se extiende al subir; la masa descentrada de la kettlebell exige un control fino de esa apertura.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2146,6 +2263,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro estabiliza el brazo superior ante la carga descentrada de la kettlebell mientras la campana viaja hacia la frente, sin robar recorrido al codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2153,6 +2271,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene un agarre distinto al de la barra y contrarresta la inclinación de la campana mientras la kettlebell baja hacia la frente y sube.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2160,6 +2279,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la kettlebell tumbado, la campana desciende hacia la frente con un agarre distinto al de la barra y el tríceps concentra la apertura del codo, frenándola al bajar."
+                }
+              ],
               "performanceProfileId": "triceps_press_frances__kettlebell",
               "primaryMuscles": [
                 "triceps"
@@ -2180,6 +2305,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona para bajar la campana hacia la frente y se extiende al subir; la masa descentrada de la kettlebell exige un control fino de esa apertura.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2187,6 +2313,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro estabiliza el brazo superior ante la carga descentrada de la kettlebell mientras la campana viaja hacia la frente, sin robar recorrido al codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2194,6 +2321,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene un agarre distinto al de la barra y contrarresta la inclinación de la campana mientras la kettlebell baja hacia la frente y sube.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2417,6 +2545,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende contra la palanca de la máquina y vuelve a flexionar de forma guiada, con la trayectoria del aparato concentrando la carga en esa articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2424,6 +2553,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro queda apoyado en el respaldo mientras la palanca trabaja, y esa posición del brazo impide que el hombro se lleve el recorrido del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2431,6 +2561,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano con el empuñadero de la palanca y mantiene esa alineación durante la apertura del codo y su regreso guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2438,6 +2569,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la máquina sentado en el aparato, la palanca guiada concentra el esfuerzo en el tríceps, que abre el codo contra la resistencia y frena su retorno."
+                }
+              ],
               "performanceProfileId": "triceps_press_maquina__machine__press_de_triceps_en_maquina",
               "primaryMuscles": [
                 "triceps"
@@ -2458,6 +2595,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende contra la palanca de la máquina y vuelve a flexionar de forma guiada, con la trayectoria del aparato concentrando la carga en esa articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2465,6 +2603,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro queda apoyado en el respaldo mientras la palanca trabaja, y esa posición del brazo impide que el hombro se lleve el recorrido del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2472,6 +2611,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano con el empuñadero de la palanca y mantiene esa alineación durante la apertura del codo y su regreso guiado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2681,6 +2821,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona al subir el agarre y se extiende al empujar hacia abajo, con la polea tensando el cable y las dos manos trabajando a la vez.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2688,6 +2829,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro mantiene los brazos pegados al torso mientras las manos descienden desde la polea alta, sin adelantar el recorrido de la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2695,6 +2837,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea el agarre con la línea del cable y sostiene esa línea mientras ambas manos empujan hacia abajo desde la polea alta.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2702,6 +2845,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con polea alta y ambas manos, los brazos empujan hacia abajo con los codos pegados al torso; el tríceps concentra la apertura del codo con tensión constante."
+                }
+              ],
               "performanceProfileId": "triceps_pushdown__cable__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -2722,6 +2871,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona al subir el agarre y se extiende al empujar hacia abajo, con la polea tensando el cable y las dos manos trabajando a la vez.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2729,6 +2879,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro mantiene los brazos pegados al torso mientras las manos descienden desde la polea alta, sin adelantar el recorrido de la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2736,6 +2887,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea el agarre con la línea del cable y sostiene esa línea mientras ambas manos empujan hacia abajo desde la polea alta.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2934,6 +3086,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo del brazo trabajador se extiende al empujar hacia abajo y se flexiona al subir, con la polea tensando el cable en todo el recorrido de ese lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2941,6 +3094,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro del lado activo mantiene el brazo pegado al torso mientras la mano desciende, y el trabajo unilateral deja a la vista las diferencias entre lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2948,6 +3102,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca del lado trabajador alinea la mano con el cable de la polea alta y sostiene ese agarre durante la apertura del codo y su regreso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2955,6 +3110,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con polea alta a una mano, cada tríceps trabaja en solitario; concentra la apertura del codo hacia abajo y frena el regreso con tensión constante en ese lado."
+                }
+              ],
               "performanceProfileId": "triceps_pushdown__cable__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -2975,6 +3136,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo del brazo trabajador se extiende al empujar hacia abajo y se flexiona al subir, con la polea tensando el cable en todo el recorrido de ese lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2982,6 +3144,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro del lado activo mantiene el brazo pegado al torso mientras la mano desciende, y el trabajo unilateral deja a la vista las diferencias entre lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2989,6 +3152,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca del lado trabajador alinea la mano con el cable de la polea alta y sostiene ese agarre durante la apertura del codo y su regreso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3187,6 +3351,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: Los dos codos se extienden al empujar la palanca hacia abajo y vuelven a flexionar de forma guiada, con el trabajo repartido entre las dos manos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3194,6 +3359,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro mantiene los brazos pegados al torso dentro del recorrido guiado, sin robarle recorrido a la apertura del codo que mueve la palanca.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3201,6 +3367,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea cada mano con el empuñadero de la palanca y mantiene esa alineación mientras ambas bajan y suben al mismo tiempo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3208,6 +3375,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: En la máquina con ambas manos, la palanca guiada concentra el esfuerzo del tríceps, que abre los dos codos a la vez hacia abajo y frena el retorno de la carga."
+                }
+              ],
               "performanceProfileId": "triceps_pushdown__machine__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -3228,6 +3401,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: Los dos codos se extienden al empujar la palanca hacia abajo y vuelven a flexionar de forma guiada, con el trabajo repartido entre las dos manos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3235,6 +3409,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro mantiene los brazos pegados al torso dentro del recorrido guiado, sin robarle recorrido a la apertura del codo que mueve la palanca.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3242,6 +3417,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea cada mano con el empuñadero de la palanca y mantiene esa alineación mientras ambas bajan y suben al mismo tiempo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3440,6 +3616,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo del lado trabajador se extiende contra la palanca y se flexiona al volver, con el guiado del aparato aislando el recorrido de un solo brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3447,6 +3624,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro del lado activo sostiene el brazo pegado al torso mientras la palanca trabaja, y el lado opuesto deja ver cualquier asimetría entre ambos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3454,6 +3632,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca del lado trabajador se alinea con el empuñadero de la palanca y sostiene el agarre durante la apertura del codo y su regreso guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3461,6 +3640,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: En la máquina a una mano, el tríceps de ese lado concentra la apertura del codo contra la palanca guiada y frena su retorno sin ayuda del otro brazo."
+                }
+              ],
               "performanceProfileId": "triceps_pushdown__machine__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -3481,6 +3666,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo del lado trabajador se extiende contra la palanca y se flexiona al volver, con el guiado del aparato aislando el recorrido de un solo brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3488,6 +3674,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro del lado activo sostiene el brazo pegado al torso mientras la palanca trabaja, y el lado opuesto deja ver cualquier asimetría entre ambos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3495,6 +3682,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca del lado trabajador se alinea con el empuñadero de la palanca y sostiene el agarre durante la apertura del codo y su regreso guiado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3693,6 +3881,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende al empujar la banda hacia abajo y se flexiona al volver; la resistencia elástica aumenta al acercarse la apertura completa de ambos codos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3700,6 +3889,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro mantiene los brazos pegados al torso frente al tirón de la banda, que crece al final del recorrido sin robarle apertura al codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3707,6 +3897,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea el agarre con la línea de la banda y sostiene esa alineación cuando la resistencia elástica alcanza su punto máximo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3714,6 +3905,12 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con banda anclada arriba y ambas manos, la resistencia crece al acercarse la apertura completa; el tríceps concentra ese tramo final con frenado al retornar."
+                }
+              ],
               "performanceProfileId": "triceps_pushdown__band__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -3734,6 +3931,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende al empujar la banda hacia abajo y se flexiona al volver; la resistencia elástica aumenta al acercarse la apertura completa de ambos codos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3741,6 +3939,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro mantiene los brazos pegados al torso frente al tirón de la banda, que crece al final del recorrido sin robarle apertura al codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3748,6 +3947,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea el agarre con la línea de la banda y sostiene esa alineación cuando la resistencia elástica alcanza su punto máximo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3946,6 +4146,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo del brazo trabajador se extiende al tirar de la banda hacia abajo y se flexiona al regresar, con la tensión elástica máxima cerca de la apertura completa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3953,6 +4154,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro del lado activo mantiene el brazo pegado al torso frente al tirón de la banda, y el trabajo unilateral hace visibles las diferencias entre lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3960,6 +4162,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca del lado trabajador alinea la mano con la línea de la banda y sostiene el agarre mientras la tensión elástica crece y decrece.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3967,6 +4170,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con banda a una mano, el tríceps de ese lado concentra la apertura del codo contra una resistencia que crece al final del recorrido, con frenado al retornar."
+                }
+              ],
               "performanceProfileId": "triceps_pushdown__band__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -3987,6 +4196,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo del brazo trabajador se extiende al tirar de la banda hacia abajo y se flexiona al regresar, con la tensión elástica máxima cerca de la apertura completa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3994,6 +4204,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro del lado activo mantiene el brazo pegado al torso frente al tirón de la banda, y el trabajo unilateral hace visibles las diferencias entre lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4001,6 +4212,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca del lado trabajador alinea la mano con la línea de la banda y sostiene el agarre mientras la tensión elástica crece y decrece.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4227,6 +4439,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se flexiona mientras la carga rueda por el suelo hacia detrás de la cabeza y se extiende al devolverla sobre el pecho, en un recorrido largo y continuo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4234,6 +4447,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro acompaña el viaje de la carga desde la cadera hasta detrás de la cabeza y sostiene esa posición sin robar recorrido a la apertura del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4241,6 +4455,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea el agarre de las mancuernas con el antebrazo mientras la carga rueda por el suelo, de la cadera al tramo detrás de la cabeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4248,6 +4463,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con mancuernas tumbado en el suelo, la carga rueda de la cadera hacia detrás de la cabeza y el tríceps concentra la apertura del codo hasta llevarla sobre el pecho."
+                }
+              ],
               "performanceProfileId": "triceps_rolling_extension__dumbbells__rolling_extension_de_triceps",
               "primaryMuscles": [
                 "triceps"
@@ -4268,6 +4489,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se flexiona mientras la carga rueda por el suelo hacia detrás de la cabeza y se extiende al devolverla sobre el pecho, en un recorrido largo y continuo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4275,6 +4497,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro acompaña el viaje de la carga desde la cadera hasta detrás de la cabeza y sostiene esa posición sin robar recorrido a la apertura del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4282,6 +4505,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea el agarre de las mancuernas con el antebrazo mientras la carga rueda por el suelo, de la cadera al tramo detrás de la cabeza.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -46,6 +46,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro llevan el arco hacia abajo en el plano declinado; las mancuernas libres exigen frenar la apertura sin guía.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo sostiene una extensión relativa durante el arco declinado y, con mancuernas libres, la carga pide un codo estable sin bloquear del todo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el banco declinado y sostiene la apertura; las mancuernas libres añaden inestabilidad lateral que el torso absorbe.",
                   "role": "STABILIZER"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene en extensión neutra bajo la carga vertical de las mancuernas mientras el arco desciende en el plano declinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco en aducción horizontal sobre banco declinado y frena la apertura excéntrica con mancuernas libres, que piden control propio."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro en el arco declinado y ayuda a sostener las mancuernas libres mientras la trayectoria baja hacia el suelo."
+                }
+              ],
               "performanceProfileId": "decline_chest_fly__dumbbells__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -97,6 +111,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro llevan el arco hacia abajo en el plano declinado; las mancuernas libres exigen frenar la apertura sin guía.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +119,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo sostiene una extensión relativa durante el arco declinado y, con mancuernas libres, la carga pide un codo estable sin bloquear del todo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,6 +127,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el banco declinado y sostiene la apertura; las mancuernas libres añaden inestabilidad lateral que el torso absorbe.",
                       "role": "STABILIZER"
                     },
                     {
@@ -118,6 +135,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene en extensión neutra bajo la carga vertical de las mancuernas mientras el arco desciende en el plano declinado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -337,6 +355,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro guían el arco sobre el banco plano; con mancuernas libres la exigencia crece al abrir las manos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -344,6 +363,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo mantiene una extensión relativa durante la apertura plana y, con mancuernas libres, la carga pide un codo estable sin bloquear del todo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -351,6 +371,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el banco plano y sostiene la apertura; las mancuernas libres piden equilibrio entre ambos lados del torso.",
                   "role": "STABILIZER"
                 },
                 {
@@ -358,6 +379,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene en extensión neutra mientras las mancuernas libres dibujan el arco plano con las palmas enfrentadas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -365,6 +387,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco en aducción horizontal sobre banco plano y frena la apertura excéntrica con mancuernas libres, sin ayuda de ningún guiado."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro en el arco plano y ayuda a estabilizar las mancuernas libres cuando las manos se separan del centro."
+                }
+              ],
               "performanceProfileId": "flat_chest_fly__dumbbells__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -388,6 +420,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro guían el arco sobre el banco plano; con mancuernas libres la exigencia crece al abrir las manos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -395,6 +428,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo mantiene una extensión relativa durante la apertura plana y, con mancuernas libres, la carga pide un codo estable sin bloquear del todo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -402,6 +436,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el banco plano y sostiene la apertura; las mancuernas libres piden equilibrio entre ambos lados del torso.",
                       "role": "STABILIZER"
                     },
                     {
@@ -409,6 +444,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene en extensión neutra mientras las mancuernas libres dibujan el arco plano con las palmas enfrentadas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -608,6 +644,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro marcan el arco plano mientras la polea mantiene tensión en todo el recorrido, también en el cierre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -615,6 +652,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo mantiene una extensión relativa durante la apertura plana y la polea no deja descansos entre la apertura y el cierre del arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -622,6 +660,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el banco plano y resiste la tracción constante de la polea, que no da tregua en ningún punto del arco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -629,6 +668,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene una extensión neutra frente a la línea de tracción de la polea durante toda la apertura plana.",
                   "role": "STABILIZER"
                 }
               ],
@@ -636,6 +676,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco en aducción horizontal sobre banco plano y frena la apertura con la tensión constante de la polea, sin punto de descanso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro en el arco plano y trabaja sin pausas porque la polea mantiene la carga de principio a fin."
+                }
+              ],
               "performanceProfileId": "flat_chest_fly__cable__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -659,6 +709,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro marcan el arco plano mientras la polea mantiene tensión en todo el recorrido, también en el cierre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -666,6 +717,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo mantiene una extensión relativa durante la apertura plana y la polea no deja descansos entre la apertura y el cierre del arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -673,6 +725,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el banco plano y resiste la tracción constante de la polea, que no da tregua en ningún punto del arco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -680,6 +733,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene una extensión neutra frente a la línea de tracción de la polea durante toda la apertura plana.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -879,6 +933,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro recorren la trayectoria fija de la máquina sobre el banco plano, con carga sostenida en todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -886,6 +941,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo mantiene una extensión relativa sobre el arco plano y la máquina dicta el ángulo sin que el brazo corrija la trayectoria.",
                   "role": "SECONDARY"
                 },
                 {
@@ -893,6 +949,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el respaldo de la máquina en el plano horizontal y sostiene el cierre sin equilibrar cargas libres.",
                   "role": "STABILIZER"
                 },
                 {
@@ -900,6 +957,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca queda en extensión neutra sobre las empuñaduras de la máquina durante toda la apertura plana guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -907,6 +965,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco en aducción horizontal sobre banco plano y frena la apertura en el recorrido guiado de la máquina, sin equilibrar peso libre."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro en el arco plano mientras la máquina guía la trayectoria y reduce el ajuste fino de cada brazo."
+                }
+              ],
               "performanceProfileId": "flat_chest_fly__machine__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -930,6 +998,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro recorren la trayectoria fija de la máquina sobre el banco plano, con carga sostenida en todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -937,6 +1006,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo mantiene una extensión relativa sobre el arco plano y la máquina dicta el ángulo sin que el brazo corrija la trayectoria.",
                       "role": "SECONDARY"
                     },
                     {
@@ -944,6 +1014,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el respaldo de la máquina en el plano horizontal y sostiene el cierre sin equilibrar cargas libres.",
                       "role": "STABILIZER"
                     },
                     {
@@ -951,6 +1022,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca queda en extensión neutra sobre las empuñaduras de la máquina durante toda la apertura plana guiada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1176,6 +1248,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro elevan el arco sobre el banco inclinado; las mancuernas libres exigen frenar la apertura sin guía.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1183,6 +1256,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo mantiene una extensión relativa mientras el arco asciende en el plano inclinado y las mancuernas libres piden un codo estable.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1190,6 +1264,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el banco inclinado y sostiene el arco alto; las mancuernas libres añaden inestabilidad que el torso absorbe.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1197,6 +1272,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene en extensión neutra bajo las mancuernas libres mientras la trayectoria asciende en el plano inclinado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1204,6 +1280,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco hacia la zona alta del pecho en aducción horizontal sobre banco inclinado y frena la apertura con mancuernas libres."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro cuando el arco se eleva sobre el banco inclinado y ayuda a sostener las mancuernas libres al subir."
+                }
+              ],
               "performanceProfileId": "incline_chest_fly__dumbbells__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -1227,6 +1313,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro elevan el arco sobre el banco inclinado; las mancuernas libres exigen frenar la apertura sin guía.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1234,6 +1321,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo mantiene una extensión relativa mientras el arco asciende en el plano inclinado y las mancuernas libres piden un codo estable.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1241,6 +1329,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el banco inclinado y sostiene el arco alto; las mancuernas libres añaden inestabilidad que el torso absorbe.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1248,6 +1337,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene en extensión neutra bajo las mancuernas libres mientras la trayectoria asciende en el plano inclinado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1447,6 +1537,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro elevan el arco sobre el banco inclinado mientras la polea mantiene tensión de la apertura al cierre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1454,6 +1545,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo mantiene una extensión relativa mientras el arco asciende en el plano inclinado y la polea impide descansos entre apertura y cierre.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1461,6 +1553,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el banco inclinado y resiste la tracción constante de la polea en todo el arco alto del pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1468,6 +1561,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene una extensión neutra frente a la línea de tracción de la polea durante el arco inclinado del pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1475,6 +1569,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco hacia la zona alta del pecho sobre banco inclinado y frena la apertura con la tensión constante de la polea en todo el recorrido."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro en el arco inclinado y trabaja sin pausas porque la polea mantiene la carga al subir y al bajar."
+                }
+              ],
               "performanceProfileId": "incline_chest_fly__cable__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -1498,6 +1602,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro elevan el arco sobre el banco inclinado mientras la polea mantiene tensión de la apertura al cierre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1505,6 +1610,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo mantiene una extensión relativa mientras el arco asciende en el plano inclinado y la polea impide descansos entre apertura y cierre.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1512,6 +1618,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el banco inclinado y resiste la tracción constante de la polea en todo el arco alto del pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1519,6 +1626,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene una extensión neutra frente a la línea de tracción de la polea durante el arco inclinado del pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1718,6 +1826,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La aducción horizontal y la flexión del hombro recorren la trayectoria fija de la máquina en el plano inclinado, con carga sostenida en todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1725,6 +1834,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo mantiene una extensión relativa en el arco inclinado y la máquina dicta el ángulo sin que el brazo corrija la trayectoria.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1732,6 +1842,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae contra el respaldo de la máquina en el plano inclinado y sostiene el cierre sin equilibrar cargas libres.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1739,6 +1850,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca queda en extensión neutra sobre las empuñaduras de la máquina durante todo el arco inclinado del pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1746,6 +1858,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral cierra el arco hacia la zona alta del pecho y frena la apertura en el recorrido guiado de la máquina sobre el plano inclinado."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide acompaña la flexión del hombro en el arco inclinado mientras la máquina guía la trayectoria y reduce el ajuste fino de cada brazo."
+                }
+              ],
               "performanceProfileId": "incline_chest_fly__machine__aperturas",
               "primaryMuscles": [
                 "pectoralis"
@@ -1769,6 +1891,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La aducción horizontal y la flexión del hombro recorren la trayectoria fija de la máquina en el plano inclinado, con carga sostenida en todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1776,6 +1899,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo mantiene una extensión relativa en el arco inclinado y la máquina dicta el ángulo sin que el brazo corrija la trayectoria.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1783,6 +1907,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae contra el respaldo de la máquina en el plano inclinado y sostiene el cierre sin equilibrar cargas libres.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1790,6 +1915,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca queda en extensión neutra sobre las empuñaduras de la máquina durante todo el arco inclinado del pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2014,6 +2140,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción horizontal lleva el hombro hacia atrás sobre la trayectoria fija de la máquina, con ambos brazos abriendo y cerrando al mismo tiempo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2021,6 +2148,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura bilateral mientras la máquina mantiene la línea del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2028,6 +2156,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura bilateral guiada por la máquina.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2035,6 +2164,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura bilateral y la máquina guía el brazo sin exigir correcciones.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2042,6 +2172,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide posterior abre el hombro hacia atrás en abducción horizontal y frena el retorno en el recorrido guiado de la máquina con ambos brazos a la vez."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la rotación superior de la escápula mientras la máquina guía la apertura con ambos brazos trabajando de forma simultánea."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides contribuyen a la retracción escapular en cada apertura bilateral de la máquina y sostienen la espalda alta durante el retorno."
+                }
+              ],
               "performanceProfileId": "reverse_pec_fly__machine__abduccion_horizontal",
               "primaryMuscles": [
                 "deltoid"
@@ -2063,6 +2207,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción horizontal lleva el hombro hacia atrás sobre la trayectoria fija de la máquina, con ambos brazos abriendo y cerrando al mismo tiempo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2070,6 +2215,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura bilateral mientras la máquina mantiene la línea del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2077,6 +2223,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura bilateral guiada por la máquina.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2084,6 +2231,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura bilateral y la máquina guía el brazo sin exigir correcciones.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2291,6 +2439,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción horizontal lleva el hombro hacia atrás de un solo lado sobre la trayectoria fija de la máquina, con el otro brazo parado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2298,6 +2447,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura unilateral mientras la máquina mantiene la línea del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2305,6 +2455,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura unilateral guiada por la máquina, lado a lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2312,6 +2463,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura unilateral y la máquina guía el brazo sin que el lado contrario compense.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2319,6 +2471,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide posterior abre el hombro hacia atrás en abducción horizontal de un solo lado y frena el retorno en el recorrido guiado de la máquina."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la rotación superior de la escápula mientras la máquina guía la apertura de un brazo cada vez, sin ayuda del lado contrario."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides sostienen la retracción escapular en la apertura unilateral de la máquina y trabajan sin compensar con el lado opuesto."
+                }
+              ],
               "performanceProfileId": "reverse_pec_fly__machine__abduccion_horizontal_unilateral",
               "primaryMuscles": [
                 "deltoid"
@@ -2340,6 +2506,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción horizontal lleva el hombro hacia atrás de un solo lado sobre la trayectoria fija de la máquina, con el otro brazo parado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2347,6 +2514,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura unilateral mientras la máquina mantiene la línea del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2354,6 +2522,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura unilateral guiada por la máquina, lado a lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2361,6 +2530,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura unilateral y la máquina guía el brazo sin que el lado contrario compense.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2568,6 +2738,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción horizontal lleva el hombro hacia atrás con ambos brazos mientras las poleas mantienen tensión constante en toda la apertura.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2575,6 +2746,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura bilateral bajo la tracción constante de la polea cruzada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2582,6 +2754,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura bilateral con polea cruzada de tensión continua.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2589,6 +2762,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura bilateral y resiste la tracción constante de las poleas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2596,6 +2770,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide posterior abre el hombro hacia atrás en abducción horizontal y frena el retorno con la tensión constante de la polea cruzada, ambos brazos a la vez."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la rotación superior de la escápula mientras las poleas mantienen tensión continua durante toda la apertura bilateral."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides sostienen la retracción escapular en cada apertura bilateral y trabajan sin descanso porque la polea nunca pierde tensión."
+                }
+              ],
               "performanceProfileId": "reverse_pec_fly__cable__abduccion_horizontal",
               "primaryMuscles": [
                 "deltoid"
@@ -2617,6 +2805,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción horizontal lleva el hombro hacia atrás con ambos brazos mientras las poleas mantienen tensión constante en toda la apertura.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2624,6 +2813,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura bilateral bajo la tracción constante de la polea cruzada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2631,6 +2821,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura bilateral con polea cruzada de tensión continua.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2638,6 +2829,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura bilateral y resiste la tracción constante de las poleas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2845,6 +3037,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción horizontal lleva el hombro hacia atrás de un solo lado con una polea que mantiene tensión constante en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2852,6 +3045,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura unilateral bajo la tracción continua de la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2859,6 +3053,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura unilateral con polea de tensión continua, lado a lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2866,6 +3061,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura unilateral y resiste la tracción constante de la polea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2873,6 +3069,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide posterior abre el hombro hacia atrás en abducción horizontal de un solo lado y frena el retorno con la tensión constante de una sola polea."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la rotación superior de la escápula mientras la polea tira sin descanso en la apertura de un brazo cada vez."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides sostienen la retracción escapular en la apertura unilateral con polea y trabajan sin compensar con el lado opuesto."
+                }
+              ],
               "performanceProfileId": "reverse_pec_fly__cable__abduccion_horizontal_unilateral",
               "primaryMuscles": [
                 "deltoid"
@@ -2894,6 +3104,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción horizontal lleva el hombro hacia atrás de un solo lado con una polea que mantiene tensión constante en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2901,6 +3112,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura unilateral bajo la tracción continua de la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2908,6 +3120,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante la apertura unilateral con polea de tensión continua, lado a lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2915,6 +3128,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura unilateral y resiste la tracción constante de la polea.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3122,6 +3336,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción horizontal lleva el hombro hacia atrás con ambos brazos y las mancuernas libres, que exigen frenar la apertura sin guía.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3129,6 +3344,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura bilateral mientras las mancuernas libres piden equilibrio entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3136,6 +3352,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante cada apertura bilateral con mancuernas libres sin guía externa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3143,6 +3360,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura bilateral y las mancuernas libres piden un codo estable sin bloquear.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3150,6 +3368,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide posterior abre el hombro hacia atrás en abducción horizontal y frena el retorno con mancuernas libres, ambos brazos trabajando a la vez."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la rotación superior de la escápula mientras las mancuernas libres exigen control propio durante la apertura bilateral."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides sostienen la retracción escapular en cada apertura bilateral con mancuernas, sin la guía de ninguna máquina ni polea."
+                }
+              ],
               "performanceProfileId": "reverse_pec_fly__dumbbells__abduccion_horizontal",
               "primaryMuscles": [
                 "deltoid"
@@ -3171,6 +3403,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción horizontal lleva el hombro hacia atrás con ambos brazos y las mancuernas libres, que exigen frenar la apertura sin guía.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3178,6 +3411,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura bilateral mientras las mancuernas libres piden equilibrio entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3185,6 +3419,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante cada apertura bilateral con mancuernas libres sin guía externa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3192,6 +3427,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura bilateral y las mancuernas libres piden un codo estable sin bloquear.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3399,6 +3635,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción horizontal lleva el hombro hacia atrás de un solo lado con una mancuerna libre, que exige frenar la apertura sin guía alguna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3406,6 +3643,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura unilateral mientras la mancuerna libre pide equilibrio del torso sin ayuda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3413,6 +3651,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante cada apertura unilateral con mancuerna libre, lado a lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3420,6 +3659,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura unilateral y la mancuerna libre pide un codo estable sin bloquear del todo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3427,6 +3667,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide posterior abre el hombro hacia atrás en abducción horizontal de un solo lado y frena el retorno con una mancuerna libre bajo control."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la rotación superior de la escápula mientras una mancuerna libre exige control propio en la apertura de un brazo cada vez."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides sostienen la retracción escapular en la apertura unilateral con mancuerna y trabajan sin compensar con el lado opuesto."
+                }
+              ],
               "performanceProfileId": "reverse_pec_fly__dumbbells__abduccion_horizontal_unilateral",
               "primaryMuscles": [
                 "deltoid"
@@ -3448,6 +3702,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción horizontal lleva el hombro hacia atrás de un solo lado con una mancuerna libre, que exige frenar la apertura sin guía alguna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3455,6 +3710,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba y se retrae en cada apertura unilateral mientras la mancuerna libre pide equilibrio del torso sin ayuda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3462,6 +3718,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: La articulación acromioclavicular ajusta el movimiento escapular durante cada apertura unilateral con mancuerna libre, lado a lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3469,6 +3726,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa durante la apertura unilateral y la mancuerna libre pide un codo estable sin bloquear del todo.",
                       "role": "STABILIZER"
                     }
                   ],

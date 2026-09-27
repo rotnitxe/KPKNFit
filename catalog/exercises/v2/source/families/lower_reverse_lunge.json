@@ -45,6 +45,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, y la barra sobre la espalda carga ese arco de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste la barra apoyada sobre la espalda en todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y su equilibrio sostiene el apoyo mientras la barra descansa sobre la espalda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la barra sobre la espalda exige una pelvis nivelada al cerrar el retroceso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada del paso atrás y concentra la extensión de rodilla que devuelve el cuerpo arriba con la barra sobre la espalda."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera al final de la subida y frena el descenso de la pelvis mientras la barra sobre la espalda acompaña el retroceso de la pierna libre."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera de la pierna delantera y frenan el descenso del tronco bajo la barra apoyada sobre la espalda."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras la barra sobre la espalda pesa sobre el retroceso de la pierna libre y la pelvis baja recta sin girar."
+                }
+              ],
               "performanceProfileId": "reverse_lunge__barbell__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -95,6 +117,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, y la barra sobre la espalda carga ese arco de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -102,6 +125,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste la barra apoyada sobre la espalda en todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -109,6 +133,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y su equilibrio sostiene el apoyo mientras la barra descansa sobre la espalda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -116,6 +141,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la barra sobre la espalda exige una pelvis nivelada al cerrar el retroceso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -319,6 +345,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso sobre el eje fijo de la Smith, que lleva la rodilla siempre por su propia línea.",
                   "role": "PRIMARY"
                 },
                 {
@@ -326,6 +353,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso, y el guiado de la Smith sostiene la pelvis alineada con el carril durante todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -333,6 +361,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio del apoyo resulta menos exigente bajo el carril guiado de la Smith.",
                   "role": "SECONDARY"
                 },
                 {
@@ -340,6 +369,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral de la pelvis al tronco mientras el carril de la Smith reduce el balanceo que el retroceso provoca.",
                   "role": "STABILIZER"
                 }
               ],
@@ -347,6 +377,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada del paso atrás y concentra la extensión de rodilla sobre el eje guiado de la Smith, que marca un ritmo constante."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis en el retroceso, con la carga guiada de la Smith sin oscilaciones laterales."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera delantera y frenan el descenso del tronco sobre el carril de la Smith, que retira el equilibrio de la carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría sobre el eje guiado de la Smith, donde la pelvis baja recta durante el retroceso sin apenas balanceo lateral."
+                }
+              ],
               "performanceProfileId": "reverse_lunge__smith_machine__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -369,6 +417,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso sobre el eje fijo de la Smith, que lleva la rodilla siempre por su propia línea.",
                       "role": "PRIMARY"
                     },
                     {
@@ -376,6 +425,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso, y el guiado de la Smith sostiene la pelvis alineada con el carril durante todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -383,6 +433,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio del apoyo resulta menos exigente bajo el carril guiado de la Smith.",
                       "role": "SECONDARY"
                     },
                     {
@@ -390,6 +441,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral de la pelvis al tronco mientras el carril de la Smith reduce el balanceo que el retroceso provoca.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -593,6 +645,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, mientras las mancuernas a los costados cargan ese arco sin desviarla.",
                   "role": "PRIMARY"
                 },
                 {
@@ -600,6 +653,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste el peso independiente de cada mancuerna al costado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -607,6 +661,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio sostiene el apoyo mientras las mancuernas cuelgan libres a los lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -614,6 +669,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras cada mancuerna al costado añade su propio peso al retroceso de la pierna libre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -621,6 +677,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada del paso atrás y concentra la extensión de rodilla mientras las mancuernas cuelgan libres a los costados del cuerpo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera al final de la subida y frena el descenso de la pelvis con una mancuerna independiente a cada lado durante el retroceso."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera delantera y frenan el descenso del tronco mientras las mancuernas a los costados suman peso sin empujar la pelvis."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría frente al balanceo de las mancuernas colgadas a los costados durante el retroceso de la pierna libre."
+                }
+              ],
               "performanceProfileId": "reverse_lunge__dumbbells__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -643,6 +717,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, mientras las mancuernas a los costados cargan ese arco sin desviarla.",
                       "role": "PRIMARY"
                     },
                     {
@@ -650,6 +725,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste el peso independiente de cada mancuerna al costado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -657,6 +733,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio sostiene el apoyo mientras las mancuernas cuelgan libres a los lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -664,6 +741,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras cada mancuerna al costado añade su propio peso al retroceso de la pierna libre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -867,6 +945,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, y las kettlebells oscilantes obligan a repetir la misma línea.",
                   "role": "PRIMARY"
                 },
                 {
@@ -874,6 +953,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste el vaivén de las kettlebells colgadas de las manos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -881,6 +961,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio del apoyo lucha con el vaivén de las kettlebells al costado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -888,6 +969,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras las kettlebells, libres en las manos, exigen firmeza durante el retroceso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -895,6 +977,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada del paso atrás y concentra la extensión de rodilla mientras las kettlebells en las manos oscilan con el retroceso."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis con las kettlebells al costado, cuyo peso libre exige firmeza en el retroceso."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera delantera y frenan el descenso del tronco mientras las kettlebells cuelgan de las manos y presionan el agarre."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría frente al vaivén de las kettlebells mientras la pierna libre abre el paso hacia atrás con la pelvis firme."
+                }
+              ],
               "performanceProfileId": "reverse_lunge__kettlebell__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -917,6 +1017,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, y las kettlebells oscilantes obligan a repetir la misma línea.",
                       "role": "PRIMARY"
                     },
                     {
@@ -924,6 +1025,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste el vaivén de las kettlebells colgadas de las manos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -931,6 +1033,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio del apoyo lucha con el vaivén de las kettlebells al costado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -938,6 +1041,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras las kettlebells, libres en las manos, exigen firmeza durante el retroceso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1141,6 +1245,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, y la tensión constante de la polea acompaña ese arco sin pausas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1148,6 +1253,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste el tirón continuo de la polea en todo el arco del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1155,6 +1261,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio sostiene el apoyo contra la tensión continua de la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1162,6 +1269,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la polea ejerce un tirón constante que la pelvis absorbe sin inclinarse.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1169,6 +1277,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada del paso atrás y concentra la extensión de rodilla mientras la polea sostiene tensión constante de arriba a abajo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis en el retroceso, con la tensión de la polea viva desde el inicio hasta el final."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera delantera y frenan el descenso del tronco mientras la polea tira de forma continua sin apoyos ni pausas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría frente al tirón constante de la polea mientras la pierna libre se abre hacia atrás y la pelvis resiste el giro."
+                }
+              ],
               "performanceProfileId": "reverse_lunge__cable__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -1191,6 +1317,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilateral de la rodilla delantera guían el retroceso y la vuelta, y la tensión constante de la polea acompaña ese arco sin pausas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1198,6 +1325,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de la cadera cierra la subida tras el retroceso y el control frontal de la pelvis resiste el tirón continuo de la polea en todo el arco del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1205,6 +1333,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: La dorsiflexión del tobillo delantero acompaña la bajada del paso atrás y el equilibrio sostiene el apoyo contra la tensión continua de la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1212,6 +1341,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la polea ejerce un tirón constante que la pelvis absorbe sin inclinarse.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -45,6 +45,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva el brazo al frente contra el cable de la polea, con tensión presente desde el inicio del recorrido hasta el regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la elevación del brazo y se adapta a la tracción constante que la polea aplica sobre el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la elevación y el descenso del brazo con la polea, cuya tensión no desaparece en ningún punto del movimiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa mientras el cable de la polea tira del brazo, sin cerrarse ni bloquearse del todo durante la elevación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la polea al frente, el deltoide anterior eleva el brazo en flexión y frena el descenso bajo la tensión constante del cable, activa en todo el arco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la elevación del brazo con rotación superior de la escápula mientras la polea aplica tensión constante sin pausas ni descanso."
+                }
+              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +108,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva el brazo al frente contra el cable de la polea, con tensión presente desde el inicio del recorrido hasta el regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +116,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la elevación del brazo y se adapta a la tracción constante que la polea aplica sobre el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +124,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la elevación y el descenso del brazo con la polea, cuya tensión no desaparece en ningún punto del movimiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +132,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa mientras el cable de la polea tira del brazo, sin cerrarse ni bloquearse del todo durante la elevación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -317,6 +335,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la barra al frente con ambas manos, en un recorrido libre donde la gravedad carga el arco completo desde la posición baja.",
                   "role": "PRIMARY"
                 },
                 {
@@ -324,6 +343,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el ascenso de la barra con las dos manos y sostiene el hombro alto al final del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -331,6 +351,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la barra al subir y al bajar, con la carga repartida entre ambos brazos y sin guía externa que imponga la trayectoria.",
                   "role": "SECONDARY"
                 },
                 {
@@ -338,6 +359,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras la barra sube entre las dos manos, sin doblarse ni quedar bloqueado de forma rígida.",
                   "role": "STABILIZER"
                 }
               ],
@@ -345,6 +367,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la barra al frente y ambas manos sobre ella, el deltoide anterior eleva la carga hasta la altura del hombro y frena su descenso sin balanceo del torso."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras la barra sube al frente, con las dos manos repartiendo la misma carga a la vez."
+                }
+              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__barbell",
               "primaryMuscles": [
                 "deltoid"
@@ -366,6 +398,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la barra al frente con ambas manos, en un recorrido libre donde la gravedad carga el arco completo desde la posición baja.",
                       "role": "PRIMARY"
                     },
                     {
@@ -373,6 +406,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el ascenso de la barra con las dos manos y sostiene el hombro alto al final del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -380,6 +414,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la barra al subir y al bajar, con la carga repartida entre ambos brazos y sin guía externa que imponga la trayectoria.",
                       "role": "SECONDARY"
                     },
                     {
@@ -387,6 +422,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras la barra sube entre las dos manos, sin doblarse ni quedar bloqueado de forma rígida.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -589,6 +625,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva cada mancuerna al frente de forma independiente, de modo que un brazo puede avanzar sin arrastrar al contrario.",
                   "role": "PRIMARY"
                 },
                 {
@@ -596,6 +633,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la elevación de cada brazo con su propia mancuerna y ajusta el recorrido de cada lado por separado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -603,6 +641,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña cada brazo durante la elevación con mancuernas, donde cada lado traza su propia línea sin imponerse al contrario.",
                   "role": "SECONDARY"
                 },
                 {
@@ -610,6 +649,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene una extensión relativa mientras la mancuerna sube al frente, con la carga libre exigiendo equilibrio en cada brazo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -617,6 +657,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con mancuernas, el deltoide anterior eleva cada brazo al frente hasta la altura del hombro y frena el descenso, con un peso independiente en cada mano."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la elevación con rotación superior de la escápula, sea con un brazo por vez o con las dos mancuernas subiendo a la vez."
+                }
+              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -638,6 +688,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva cada mancuerna al frente de forma independiente, de modo que un brazo puede avanzar sin arrastrar al contrario.",
                       "role": "PRIMARY"
                     },
                     {
@@ -645,6 +696,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la elevación de cada brazo con su propia mancuerna y ajusta el recorrido de cada lado por separado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -652,6 +704,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña cada brazo durante la elevación con mancuernas, donde cada lado traza su propia línea sin imponerse al contrario.",
                       "role": "SECONDARY"
                     },
                     {
@@ -659,6 +712,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene una extensión relativa mientras la mancuerna sube al frente, con la carga libre exigiendo equilibrio en cada brazo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -861,6 +915,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión del hombro eleva la kettlebell al frente, con un centro de masa descentrado que tira del brazo de forma distinta a una mancuerna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -868,6 +923,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la elevación con la kettlebell colgando del agarre, cuyo peso pide un ajuste fino del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -875,6 +931,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la elevación con la kettlebell, cuyo agarre y peso colgante exigen más precisión escapular que un implemento equilibrado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -882,6 +939,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras la kettlebell cuelga del agarre, con el peso empujando el antebrazo hacia abajo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -889,6 +947,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la kettlebell al frente, el deltoide anterior eleva el brazo mientras el agarre y el centro de masa descentrado cambian el tacto de la carga."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio acompaña la elevación con rotación superior de la escápula mientras la kettlebell cuelga del agarre y exige más estabilidad en el brazo."
+                }
+              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__kettlebell",
               "primaryMuscles": [
                 "deltoid"
@@ -910,6 +978,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión del hombro eleva la kettlebell al frente, con un centro de masa descentrado que tira del brazo de forma distinta a una mancuerna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -917,6 +986,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la elevación con la kettlebell colgando del agarre, cuyo peso pide un ajuste fino del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -924,6 +994,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la elevación con la kettlebell, cuyo agarre y peso colgante exigen más precisión escapular que un implemento equilibrado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -931,6 +1002,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras la kettlebell cuelga del agarre, con el peso empujando el antebrazo hacia abajo.",
                       "role": "STABILIZER"
                     }
                   ],

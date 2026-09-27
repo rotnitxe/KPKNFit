@@ -45,6 +45,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión o abducción del hombro sube la barra por encima de la cabeza y, al no haber respaldo, trabaja el arco completo sin apoyo externo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña a la barra en su recorrido superior y da amplitud al empuje con el torso libre de apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo remata cada repetición y la barra larga obliga a las dos manos a subir a la misma altura en todo el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen al sentarse en el suelo con las piernas extendidas y sin respaldo que reparta el esfuerzo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la barra y las piernas extendidas sobre el suelo, el deltoide eleva el brazo en flexión o abducción sin respaldo que sostenga el torso."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El abdomen sostiene el torso sin respaldo mientras la barra viaja sobre la cabeza, y la carga bilateral hace visible cualquier pérdida de postura."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El codo extiende el brazo bajo la barra larga, que obliga a ambas manos a compartir un mismo eje y la misma altura durante todo el empuje."
+                }
+              ],
               "performanceProfileId": "z_press__barbell__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +112,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión o abducción del hombro sube la barra por encima de la cabeza y, al no haber respaldo, trabaja el arco completo sin apoyo externo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña a la barra en su recorrido superior y da amplitud al empuje con el torso libre de apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo remata cada repetición y la barra larga obliga a las dos manos a subir a la misma altura en todo el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen al sentarse en el suelo con las piernas extendidas y sin respaldo que reparta el esfuerzo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -317,6 +339,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión o abducción del hombro sube la barra EZ por encima de la cabeza con las piernas extendidas y el torso libre de apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -324,6 +347,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido de la barra EZ y sostiene la amplitud del empuje con el tronco sentado en el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -331,6 +355,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa el empuje y el perfil girado de la barra EZ hace la muñeca más tolerante sin alterar la altura final del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -338,6 +363,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La estabilidad lumbopélvica recae sobre el abdomen mientras la barra EZ sube, con las piernas extendidas y el torso sin respaldo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -345,6 +371,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con la barra EZ y el agarre girado, el deltoide eleva cada brazo en flexión o abducción sin que el torso pierda exigencia por el respaldo ausente."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El abdomen sostiene el tronco sentado en el suelo mientras la barra EZ traslada la carga con las piernas extendidas y ninguna base de apoyo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El codo extiende el brazo con el agarre girado de la barra EZ, que reparte la carga entre las manos sin cambiar el empuje final hacia arriba."
+                }
+              ],
               "performanceProfileId": "z_press__ez_bar__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -366,6 +406,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión o abducción del hombro sube la barra EZ por encima de la cabeza con las piernas extendidas y el torso libre de apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -373,6 +414,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido de la barra EZ y sostiene la amplitud del empuje con el tronco sentado en el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -380,6 +422,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa el empuje y el perfil girado de la barra EZ hace la muñeca más tolerante sin alterar la altura final del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -387,6 +430,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La estabilidad lumbopélvica recae sobre el abdomen mientras la barra EZ sube, con las piernas extendidas y el torso sin respaldo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -589,6 +633,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión o abducción del hombro eleva cada mancuerna de forma independiente, con las piernas extendidas y el torso sin respaldo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -596,6 +641,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña a cada brazo por separado y corrige asimetrías que una barra larga dejaría ocultas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -603,6 +649,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo remata cada brazo con su propia mancuerna, sin que ambas manos compartan la altura ni el eje del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -610,6 +657,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La estabilidad lumbopélvica depende del abdomen con las piernas extendidas, y las mancuernas independientes añaden desequilibrio lateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -617,6 +665,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con una mancuerna en cada mano y sentado en el suelo, el deltoide eleva el brazo por separado y ajusta la trayectoria a cada hombro."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El abdomen sostiene el torso sin respaldo mientras las dos mancuernas suben, y la carga independiente de cada lado exige equilibrar el empuje."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El codo extiende cada brazo con su propia mancuerna, de modo que ningún lado puede empujar por el otro ni compartir un eje común."
+                }
+              ],
               "performanceProfileId": "z_press__dumbbells__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -638,6 +700,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión o abducción del hombro eleva cada mancuerna de forma independiente, con las piernas extendidas y el torso sin respaldo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -645,6 +708,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña a cada brazo por separado y corrige asimetrías que una barra larga dejaría ocultas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -652,6 +716,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo remata cada brazo con su propia mancuerna, sin que ambas manos compartan la altura ni el eje del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -659,6 +724,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La estabilidad lumbopélvica depende del abdomen con las piernas extendidas, y las mancuernas independientes añaden desequilibrio lateral.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -861,6 +927,7 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La flexión o abducción del hombro sube la kettlebell con el centro de masa desplazado sobre la mano y el torso sentado sin respaldo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -868,6 +935,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido irregular de la kettlebell y sostiene la amplitud del empuje vertical.",
                   "role": "SECONDARY"
                 },
                 {
@@ -875,6 +943,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La extensión del codo completa el empuje con la campana desplazada, un detalle que obliga a cuidar la alineación final del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -882,6 +951,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen con la kettlebell inestable y las piernas extendidas sin respaldo detrás.",
                   "role": "STABILIZER"
                 }
               ],
@@ -889,6 +959,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con kettlebells y las piernas extendidas sobre el suelo, el deltoide eleva el brazo mientras la campana desplazada exige afinar la trayectoria."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El abdomen sostiene el torso sin respaldo mientras el centro de masa de cada kettlebell se desplaza sobre la mano y desestabiliza la postura sentada."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El codo extiende el brazo con la campana colgando del agarre, lo que exige un empuje final más preciso que con barra larga o mancuernas."
+                }
+              ],
               "performanceProfileId": "z_press__kettlebell__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -910,6 +994,7 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La flexión o abducción del hombro sube la kettlebell con el centro de masa desplazado sobre la mano y el torso sentado sin respaldo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -917,6 +1002,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido irregular de la kettlebell y sostiene la amplitud del empuje vertical.",
                       "role": "SECONDARY"
                     },
                     {
@@ -924,6 +1010,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La extensión del codo completa el empuje con la campana desplazada, un detalle que obliga a cuidar la alineación final del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -931,6 +1018,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen con la kettlebell inestable y las piernas extendidas sin respaldo detrás.",
                       "role": "STABILIZER"
                     }
                   ],

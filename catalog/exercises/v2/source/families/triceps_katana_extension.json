@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se abre en el arco de desenvaine con ambas manos sobre el cable lateral; la polea sostiene la tensión durante la extensión completa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo superior en la diagonal mientras ambas manos tiran del cable lateral, sin robar recorrido a la extensión del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral durante el tirón diagonal a dos manos, donde la tensión constante exige un apoyo firme.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con polea lateral y ambas manos, el tríceps extiende el codo en diagonal llevando la mano hacia atrás y arriba; el descenso frena la tensión constante del cable."
+                }
+              ],
               "performanceProfileId": "katana_extension__cable__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -86,6 +95,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se abre en el arco de desenvaine con ambas manos sobre el cable lateral; la polea sostiene la tensión durante la extensión completa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo superior en la diagonal mientras ambas manos tiran del cable lateral, sin robar recorrido a la extensión del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral durante el tirón diagonal a dos manos, donde la tensión constante exige un apoyo firme.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -293,6 +305,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se abre en el arco de desenvaine con una sola mano sobre el cable lateral; la polea sostiene la tensión durante toda la extensión del brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -300,6 +313,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo superior en la diagonal mientras una mano tira del cable lateral; el trabajo unilateral expone las diferencias entre lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -307,6 +321,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral en el tirón diagonal a una mano, donde la tensión constante pide un apoyo firme y estable.",
                   "role": "STABILIZER"
                 }
               ],
@@ -314,6 +329,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con polea lateral a una mano, el tríceps extiende el codo en diagonal llevando la mano hacia atrás y arriba; el descenso frena la tensión constante del cable."
+                }
+              ],
               "performanceProfileId": "katana_extension__cable__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -334,6 +355,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se abre en el arco de desenvaine con una sola mano sobre el cable lateral; la polea sostiene la tensión durante toda la extensión del brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -341,6 +363,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo superior en la diagonal mientras una mano tira del cable lateral; el trabajo unilateral expone las diferencias entre lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -348,6 +371,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral en el tirón diagonal a una mano, donde la tensión constante pide un apoyo firme y estable.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -45,6 +45,7 @@
                     "Flexión Lateral"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La flexión lateral del raquis lumbar inclina el tronco con la mancuerna colgando de una mano, de pie o sentado, y devuelve el torso a la vertical.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis sostiene su estabilidad mientras la mancuerna tira del tronco hacia un lado, de pie o sentado, sin inclinarse junto al torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La caja torácica conserva su alineación mientras el tronco baja hacia el lado con la mancuerna en una mano, sin rotar ni abrirse hacia el lado cargado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "lateral_trunk_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: Con la mancuerna en una mano, el abdomen de cada lado inclina el tronco hacia el lateral y frena el regreso a la vertical, sin girar el torso en el recorrido."
+                }
+              ],
               "performanceProfileId": "core_inclinacion_lateral__dumbbells__inclinacion_lateral",
               "primaryMuscles": [
                 "abdominals"
@@ -86,6 +95,7 @@
                         "Flexión Lateral"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La flexión lateral del raquis lumbar inclina el tronco con la mancuerna colgando de una mano, de pie o sentado, y devuelve el torso a la vertical.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis sostiene su estabilidad mientras la mancuerna tira del tronco hacia un lado, de pie o sentado, sin inclinarse junto al torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La caja torácica conserva su alineación mientras el tronco baja hacia el lado con la mancuerna en una mano, sin rotar ni abrirse hacia el lado cargado.",
                       "role": "STABILIZER"
                     }
                   ],

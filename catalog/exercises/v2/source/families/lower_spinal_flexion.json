@@ -45,6 +45,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra descendiendo por delante de las piernas y recupera su alineación al subir.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras la barra baja por delante del cuerpo y devuelve el segmento a su posición inicial.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: La cadera sostiene la posición pélvica que permite el redondeo segmentado, con la barra en las manos y las piernas extendidas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: Con la barra en las manos, los erectores espinales frenan de forma excéntrica el redondeo progresivo del tronco y se acortan al desenrollar la espalda."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales se alargan mientras la barra desciende por delante de las piernas y frenan el retorno de la cadera a la postura de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica durante todo el descenso, con la barra pegada a las piernas y sin oscilaciones laterales."
+                }
+              ],
               "performanceProfileId": "back_jefferson_curl__barbell",
               "primaryMuscles": [
                 "erector_spinae"
@@ -86,6 +103,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra descendiendo por delante de las piernas y recupera su alineación al subir.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +111,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras la barra baja por delante del cuerpo y devuelve el segmento a su posición inicial.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +119,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: La cadera sostiene la posición pélvica que permite el redondeo segmentado, con la barra en las manos y las piernas extendidas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -305,6 +325,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se redondea segmento a segmento con una mancuerna en cada mano, y cada lado corrige su propia trayectoria durante el descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -312,6 +333,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras las mancuernas descienden sin guía, dejando que cada brazo trace su propio recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -319,6 +341,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: La cadera fija la posición pélvica durante el redondeo, con una mancuerna colgando de cada brazo y las piernas extendidas en todo el arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -326,6 +349,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: Con una mancuerna en cada mano, los erectores espinales frenan el descenso del tronco de forma excéntrica y se acortan al desenrollar la espalda."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales acompañan el alargamiento de la cadera mientras las mancuernas bajan por delante de las piernas y frenan el retorno hacia arriba."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica mientras las dos mancuernas descienden libres, sin la barra que una ambos lados del recorrido."
+                }
+              ],
               "performanceProfileId": "back_jefferson_curl__dumbbells",
               "primaryMuscles": [
                 "erector_spinae"
@@ -346,6 +383,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se redondea segmento a segmento con una mancuerna en cada mano, y cada lado corrige su propia trayectoria durante el descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -353,6 +391,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras las mancuernas descienden sin guía, dejando que cada brazo trace su propio recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -360,6 +399,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: La cadera fija la posición pélvica durante el redondeo, con una mancuerna colgando de cada brazo y las piernas extendidas en todo el arco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -565,6 +605,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra guiada por el carril, que fija la trayectoria del descenso y del regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -572,6 +613,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco con la máquina Smith, cuya barra no admite desplazamientos laterales durante el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -579,6 +621,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: La cadera sostiene la posición pélvica bajo la barra guiada, con las piernas extendidas y sin la oscilación propia de la carga libre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -586,6 +629,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: Con la barra guiada de la máquina Smith, los erectores espinales frenan el descenso del tronco sobre una trayectoria fija y se acortan al subir."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales se alargan mientras la barra de la Smith desciende por el carril y frenan el retorno de la cadera con la carga guiada de lado a lado."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica mientras la barra guiada desciende, con la guía del carril reduciendo la demanda de equilibrio lateral."
+                }
+              ],
               "performanceProfileId": "back_jefferson_curl__smith_machine",
               "primaryMuscles": [
                 "erector_spinae"
@@ -606,6 +663,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra guiada por el carril, que fija la trayectoria del descenso y del regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -613,6 +671,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco con la máquina Smith, cuya barra no admite desplazamientos laterales durante el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -620,6 +679,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: La cadera sostiene la posición pélvica bajo la barra guiada, con las piernas extendidas y sin la oscilación propia de la carga libre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -825,6 +885,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se redondea de forma progresiva mientras el cable de la polea baja tira en todo el recorrido, con tensión también al final del regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -832,6 +893,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco bajo la tracción de la polea baja, que mantiene la resistencia cuando cambia el ángulo de la espalda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -839,6 +901,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: La cadera sostiene la posición pélvica con el cable tirando hacia abajo desde la polea baja y las piernas extendidas durante todo el arco del descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -846,6 +909,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "spinal_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: Desde la polea baja, los erectores espinales frenan el redondeo del tronco contra una tracción constante del cable y se acortan de nuevo en el regreso."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales acompañan el descenso del tronco con la polea baja tirando en todo el arco y frenan el retorno de la cadera sin holguras en el cable."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica frente a la tracción constante del cable, que permanece activa cuando la espalda cambia de ángulo."
+                }
+              ],
               "performanceProfileId": "back_jefferson_curl__cable",
               "primaryMuscles": [
                 "erector_spinae"
@@ -866,6 +943,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se redondea de forma progresiva mientras el cable de la polea baja tira en todo el recorrido, con tensión también al final del regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -873,6 +951,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco bajo la tracción de la polea baja, que mantiene la resistencia cuando cambia el ángulo de la espalda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -880,6 +959,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: La cadera sostiene la posición pélvica con el cable tirando hacia abajo desde la polea baja y las piernas extendidas durante todo el arco del descenso.",
                       "role": "STABILIZER"
                     }
                   ],

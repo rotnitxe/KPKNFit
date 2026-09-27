@@ -46,6 +46,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce el brazo para llevar la barra hacia el banco, con el pecho apoyado y sin ayuda de la cadera al iniciar el tirón.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se retrae al final del tirón con la barra, cuando los brazos han colgado libres y el pecho apoyado fija el tronco sobre el banco alto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona para acercar la barra al banco y se extiende al bajar, con los brazos colgando libres y el tronco inmóvil sobre el apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre a la barra de forma isométrica, con el antebrazo colgando en vertical y el agarre como único vínculo con la carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira de la barra hacia el banco con el pecho apoyado, llevando el hombro a extensión y aducción sin ayuda de la cadera ni de las piernas."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste el tirón bilateral de la barra con retracción escapular al final del recorrido, cuando la barra se acerca al banco alto."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior ayuda a extender el hombro durante el tirón de la barra, sobre todo en la primera parte del recorrido con los brazos colgando."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para acercar la barra al banco, con el pecho apoyado y los brazos colgando libres por debajo del banco alto."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales sostienen la espalda extendida de forma isométrica contra el banco, con el tronco fijo mientras los brazos tiran de la barra."
+                }
+              ],
               "performanceProfileId": "seal_row__barbell__remo_seal",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -97,6 +123,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce el brazo para llevar la barra hacia el banco, con el pecho apoyado y sin ayuda de la cadera al iniciar el tirón.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +131,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se retrae al final del tirón con la barra, cuando los brazos han colgado libres y el pecho apoyado fija el tronco sobre el banco alto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,6 +139,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona para acercar la barra al banco y se extiende al bajar, con los brazos colgando libres y el tronco inmóvil sobre el apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -118,6 +147,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre a la barra de forma isométrica, con el antebrazo colgando en vertical y el agarre como único vínculo con la carga.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -325,6 +355,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro extiende y aduce cada brazo por separado al tirar de su mancuerna, con el pecho apoyado y una trayectoria independiente para cada lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -332,6 +363,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se retrae en cada lado al final del tirón con mancuernas, donde cada brazo decide su recorrido y revela diferencias entre ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -339,6 +371,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo de cada brazo se flexiona para elevar su mancuerna y se extiende al descender, con el tronco quieto sobre el banco y los brazos colgando libres.",
                   "role": "SECONDARY"
                 },
                 {
@@ -346,6 +379,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene cada mancuerna de forma isométrica con el antebrazo vertical, sin la referencia común que impone una barra entre las dos manos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -353,6 +387,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira de cada mancuerna por separado con el pecho apoyado, extendiendo y aduciendo el hombro sin que la cadera ayude al arranque."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la retracción escapular de cada lado al final del tirón, con una mancuerna por mano y el pecho apoyado sobre el banco alto."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides posterior ayuda a extender el hombro en cada brazo, con la mancuerna colgando al inicio y el pecho apoyado sobre el banco alto."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo de cada brazo para elevar su mancuerna, ajustando la línea del tirón a cada hombro sin mover el tronco del banco."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales sostienen el tronco extendido de forma isométrica contra el banco, mientras cada brazo tira de su carga por separado."
+                }
+              ],
               "performanceProfileId": "seal_row__dumbbells__remo_seal",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -376,6 +432,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro extiende y aduce cada brazo por separado al tirar de su mancuerna, con el pecho apoyado y una trayectoria independiente para cada lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -383,6 +440,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se retrae en cada lado al final del tirón con mancuernas, donde cada brazo decide su recorrido y revela diferencias entre ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -390,6 +448,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo de cada brazo se flexiona para elevar su mancuerna y se extiende al descender, con el tronco quieto sobre el banco y los brazos colgando libres.",
                       "role": "SECONDARY"
                     },
                     {
@@ -397,6 +456,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene cada mancuerna de forma isométrica con el antebrazo vertical, sin la referencia común que impone una barra entre las dos manos.",
                       "role": "STABILIZER"
                     }
                   ],

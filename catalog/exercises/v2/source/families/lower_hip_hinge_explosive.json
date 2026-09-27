@@ -45,6 +45,7 @@
                     "Extensión Explosiva"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell hasta el pecho con dos manos y frena el descenso del peso en el recorrido hacia entre las piernas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rigidez Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco durante el vaivén de la kettlebell con dos manos mientras la cadera impulsa la campana hasta el pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Extensión Coordinada"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso de la kettlebell a dos manos y cede con control en el descenso del peso entre las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Al Suelo"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo durante el impulso a dos manos y sostiene el apoyo de los pies cuando la campana viaja entre las piernas y sube al pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales concentran la extensión explosiva de cadera que lanza la campana con dos manos hasta el pecho y frenan el descenso excéntrico entre las piernas."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión explosiva de cadera en cada vaivén de la kettlebell sostenida con dos manos y frena el descenso del peso hacia entre las piernas."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales asisten la extensión del tronco en el impulso de la campana con dos manos y frenan el descenso del torso hacia el suelo durante el vaivén."
+                }
+              ],
               "performanceProfileId": "hams_swing_kettlebell_dos_manos__kettlebell__swing_con_kettlebell_a_dos_manos",
               "primaryMuscles": [
                 "hamstrings"
@@ -94,6 +112,7 @@
                         "Extensión Explosiva"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell hasta el pecho con dos manos y frena el descenso del peso en el recorrido hacia entre las piernas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Rigidez Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco durante el vaivén de la kettlebell con dos manos mientras la cadera impulsa la campana hasta el pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Extensión Coordinada"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso de la kettlebell a dos manos y cede con control en el descenso del peso entre las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Transferencia Al Suelo"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo durante el impulso a dos manos y sostiene el apoyo de los pies cuando la campana viaja entre las piernas y sube al pecho.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -331,6 +353,7 @@
                     "Extensión Explosiva"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell colgada de una sola mano hasta el pecho y frena el descenso del peso entre las piernas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -338,6 +361,7 @@
                     "Rigidez Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco frente al giro de la campana con una sola mano mientras la cadera impulsa el peso hasta el pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -345,6 +369,7 @@
                     "Extensión Coordinada"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso unilateral de la kettlebell y cede con control cuando el peso vuelve entre las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -352,6 +377,7 @@
                     "Transferencia Al Suelo"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo desde el impulso de una sola mano y sostiene el apoyo de los pies cuando la campana viaja hasta el pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -359,6 +385,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales concentran la extensión explosiva de cadera con la kettlebell sostenida por una sola mano y frenan el descenso excéntrico del peso entre las piernas."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión explosiva de cadera con una sola mano llevando la campana hasta el pecho y frena el descenso del peso hacia entre las piernas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core asiste al tronco en el recorrido de la kettlebell con una sola mano y frena el giro del torso cuando la campana viaja entre las piernas y hasta el pecho."
+                }
+              ],
               "performanceProfileId": "hams_swing_kettlebell_unilateral__kettlebell__swing_con_kettlebell_a_una_mano",
               "primaryMuscles": [
                 "hamstrings"
@@ -380,6 +420,7 @@
                         "Extensión Explosiva"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell colgada de una sola mano hasta el pecho y frena el descenso del peso entre las piernas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -387,6 +428,7 @@
                         "Rigidez Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco frente al giro de la campana con una sola mano mientras la cadera impulsa el peso hasta el pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -394,6 +436,7 @@
                         "Extensión Coordinada"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso unilateral de la kettlebell y cede con control cuando el peso vuelve entre las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -401,6 +444,7 @@
                         "Transferencia Al Suelo"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo desde el impulso de una sola mano y sostiene el apoyo de los pies cuando la campana viaja hasta el pecho.",
                       "role": "STABILIZER"
                     }
                   ],

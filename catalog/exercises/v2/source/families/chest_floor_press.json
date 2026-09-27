@@ -46,6 +46,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro combina aducción horizontal y flexión al empujar la barra, con el suelo cortando el descenso cuando los brazos llegan a la línea del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se extiende al subir la barra y toca el suelo al bajar, donde la pausa cierra el recorrido corto y el empuje parte siempre de una base estable.",
                   "role": "SECONDARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, dando un punto firme desde el que la barra vuelve a subir.",
                   "role": "STABILIZER"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene la barra en extensión de forma isométrica, con el antebrazo vertical sobre el suelo y el agarre a la misma distancia en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral empuja la barra hacia arriba con aducción horizontal y flexión de hombro, y frena el descenso hasta que los codos tocan el suelo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende el codo para completar el empuje de la barra, sobre todo en la parte final de la subida desde la pausa en el suelo."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides anterior ayuda a flexionar el hombro al empujar la barra, con el suelo limitando el descenso por debajo de la línea del torso."
+                }
+              ],
               "performanceProfileId": "floor_press__barbell__floor_press",
               "primaryMuscles": [
                 "pectoralis"
@@ -97,6 +115,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro combina aducción horizontal y flexión al empujar la barra, con el suelo cortando el descenso cuando los brazos llegan a la línea del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +123,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se extiende al subir la barra y toca el suelo al bajar, donde la pausa cierra el recorrido corto y el empuje parte siempre de una base estable.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,6 +131,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, dando un punto firme desde el que la barra vuelve a subir.",
                       "role": "STABILIZER"
                     },
                     {
@@ -118,6 +139,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene la barra en extensión de forma isométrica, con el antebrazo vertical sobre el suelo y el agarre a la misma distancia en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -320,6 +342,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro combina aducción horizontal y flexión al empujar cada mancuerna, con el suelo cortando el descenso a la altura de la línea del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -327,6 +350,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo de cada brazo se extiende al subir su mancuerna y toca el suelo al bajar, donde la pausa reinicia un empuje corto y preciso en cada lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -334,6 +358,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, con cada brazo empujando por separado y sin perder el apoyo del pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -341,6 +366,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene cada mancuerna en extensión de forma isométrica, con el antebrazo vertical y libertad para alinear el agarre de cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -348,6 +374,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: El pectoral empuja cada mancuerna por separado con aducción horizontal y flexión de hombro, frenando el descenso hasta que los codos tocan el suelo."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: El tríceps extiende cada codo para completar el empuje de su mancuerna, desde la pausa en el suelo y con cada brazo trabajando por su cuenta."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides anterior ayuda a flexionar el hombro en cada brazo, con el suelo limitando el descenso y cada mancuerna marcando su propia línea de empuje."
+                }
+              ],
               "performanceProfileId": "floor_press__dumbbells__floor_press",
               "primaryMuscles": [
                 "pectoralis"
@@ -371,6 +411,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro combina aducción horizontal y flexión al empujar cada mancuerna, con el suelo cortando el descenso a la altura de la línea del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -378,6 +419,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo de cada brazo se extiende al subir su mancuerna y toca el suelo al bajar, donde la pausa reinicia un empuje corto y preciso en cada lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -385,6 +427,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, con cada brazo empujando por separado y sin perder el apoyo del pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -392,6 +435,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene cada mancuerna en extensión de forma isométrica, con el antebrazo vertical y libertad para alinear el agarre de cada mano.",
                       "role": "STABILIZER"
                     }
                   ],

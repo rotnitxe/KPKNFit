@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla se despliega a dos piernas sobre la plataforma oscilante, cuyo arco guiado lleva la rodilla al frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende con ambas piernas mientras el cuerpo desciende con la plataforma pendular, que guía la inclinación del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo completo sobre la plataforma oscilante, que cambia de plano durante el descenso.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco con ambas piernas mientras la plataforma pendular arrastra el cuerpo en su arco guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: En la máquina pendular con ambas piernas, el cuádriceps extiende la rodilla al subir y frena la flexión mientras la plataforma oscila en su arco guiado."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor extiende la cadera al completar la subida con ambas piernas, dentro del arco que la plataforma oscilante impone al cuerpo."
+                }
+              ],
               "performanceProfileId": "pendulum_squat__machine__sentadilla_pendulo",
               "primaryMuscles": [
                 "quadriceps"
@@ -93,6 +107,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla se despliega a dos piernas sobre la plataforma oscilante, cuyo arco guiado lleva la rodilla al frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende con ambas piernas mientras el cuerpo desciende con la plataforma pendular, que guía la inclinación del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +123,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo completo sobre la plataforma oscilante, que cambia de plano durante el descenso.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +131,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco con ambas piernas mientras la plataforma pendular arrastra el cuerpo en su arco guiado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -312,6 +330,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión unilateral de la rodilla recorre el arco de la plataforma pendular, con la pierna de trabajo absorbiendo todo el descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -319,6 +338,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera extiende al subir y aporta el control frontal de la pelvis con una pierna sobre la plataforma oscilante, con el apoyo libre al margen.",
                   "role": "PRIMARY"
                 },
                 {
@@ -326,6 +346,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión sobre la plataforma pendular, donde la oscilación del arco desplaza el peso a un solo apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -333,6 +354,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la plataforma oscila, con la pelvis bajo control frontal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -340,6 +362,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: En la máquina pendular con una sola pierna, el cuádriceps extiende la rodilla al subir y frena la flexión del descenso mientras la plataforma oscila guiada."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor extiende la cadera de la pierna de trabajo y frena la inclinación lateral de la pelvis sobre la plataforma oscilante."
+                }
+              ],
               "performanceProfileId": "pendulum_squat__machine__sentadilla_pendulo",
               "primaryMuscles": [
                 "quadriceps"
@@ -361,6 +393,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión unilateral de la rodilla recorre el arco de la plataforma pendular, con la pierna de trabajo absorbiendo todo el descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -368,6 +401,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera extiende al subir y aporta el control frontal de la pelvis con una pierna sobre la plataforma oscilante, con el apoyo libre al margen.",
                       "role": "PRIMARY"
                     },
                     {
@@ -375,6 +409,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión sobre la plataforma pendular, donde la oscilación del arco desplaza el peso a un solo apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -382,6 +417,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la plataforma oscila, con la pelvis bajo control frontal.",
                       "role": "STABILIZER"
                     }
                   ],

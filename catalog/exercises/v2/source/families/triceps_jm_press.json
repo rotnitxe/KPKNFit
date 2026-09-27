@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La extensión del codo es la acción dominante con la barra; el recorrido corto hacia el mentón deja el brazo superior como referencia fija.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene la posición del brazo superior mientras la barra desciende hacia el mentón, sin robar recorrido a la extensión del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca conserva la alineación bajo la barra recta, que exige precisión en el apoyo para que la carga no desvíe la línea de empuje.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la barra, el tríceps inicia el empuje desde la posición intermedia entre press y extensión y abre el codo; en el descenso frena la carga de forma excéntrica."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral asiste el empuje cuando la barra viaja cerca del mentón y el pecho, compartiendo el recorrido sin abrir los brazos durante la bajada."
+                }
+              ],
               "performanceProfileId": "jm_press__barbell",
               "primaryMuscles": [
                 "triceps"
@@ -86,6 +99,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La extensión del codo es la acción dominante con la barra; el recorrido corto hacia el mentón deja el brazo superior como referencia fija.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene la posición del brazo superior mientras la barra desciende hacia el mentón, sin robar recorrido a la extensión del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca conserva la alineación bajo la barra recta, que exige precisión en el apoyo para que la carga no desvíe la línea de empuje.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -300,6 +316,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende sobre la barra EZ en el arco corto hacia el mentón; el brazo superior queda como referencia y la apertura completa el gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -307,6 +324,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo superior ante la barra EZ, cuyo ángulo de manos reduce la rotación exigida y deja la posición estable al empujar.",
                   "role": "SECONDARY"
                 },
                 {
@@ -314,6 +332,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La barra EZ alivia la rotación exigida a la muñeca, que conserva su alineación bajo el agarre angular durante todo el recorrido del gesto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -321,6 +340,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la barra EZ, el tríceps guía el gesto desde la zona entre mentón y pecho y completa la extensión del codo; el descenso se frena de forma excéntrica."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral acompaña el empuje con la barra EZ mientras la carga baja hacia el mentón, con los brazos recogidos a lo largo de todo el recorrido."
+                }
+              ],
               "performanceProfileId": "jm_press__ez_bar",
               "primaryMuscles": [
                 "triceps"
@@ -341,6 +370,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende sobre la barra EZ en el arco corto hacia el mentón; el brazo superior queda como referencia y la apertura completa el gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -348,6 +378,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo superior ante la barra EZ, cuyo ángulo de manos reduce la rotación exigida y deja la posición estable al empujar.",
                       "role": "SECONDARY"
                     },
                     {
@@ -355,6 +386,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La barra EZ alivia la rotación exigida a la muñeca, que conserva su alineación bajo el agarre angular durante todo el recorrido del gesto.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -555,6 +587,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: Cada codo se extiende sobre su mancuerna en el recorrido corto hacia el mentón, con el brazo superior como referencia y la apertura final del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -562,6 +595,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro estabiliza el brazo superior de cada lado mientras las mancuernas bajan hacia el mentón, sin robar recorrido a la extensión del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -569,6 +603,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Cada muñeca conserva su alineación bajo la mancuerna independiente, que permite corregir la trayectoria sin depender del lado contrario.",
                   "role": "STABILIZER"
                 }
               ],
@@ -576,6 +611,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con mancuernas, cada tríceps empuja su carga hacia el mentón y abre el codo hasta la extensión; el descenso se frena de forma excéntrica por separado."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral asiste el empuje de cada mancuerna cerca del mentón y el pecho, con los brazos recogidos mientras la carga desciende por su propia línea."
+                }
+              ],
               "performanceProfileId": "jm_press__dumbbells",
               "primaryMuscles": [
                 "triceps"
@@ -596,6 +641,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: Cada codo se extiende sobre su mancuerna en el recorrido corto hacia el mentón, con el brazo superior como referencia y la apertura final del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -603,6 +649,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro estabiliza el brazo superior de cada lado mientras las mancuernas bajan hacia el mentón, sin robar recorrido a la extensión del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -610,6 +657,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Cada muñeca conserva su alineación bajo la mancuerna independiente, que permite corregir la trayectoria sin depender del lado contrario.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -810,6 +858,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende sobre la barra Smith en el arco corto hacia el mentón; la guía fija la trayectoria y el brazo superior queda como referencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -817,6 +866,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo superior bajo la barra guiada, que reduce el ajuste lateral y deja la posición estable durante el empuje del tríceps.",
                   "role": "SECONDARY"
                 },
                 {
@@ -824,6 +874,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano sobre la barra Smith, cuya trayectoria guiada sostiene la línea de empuje sin desvíos durante la extensión del codo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -831,6 +882,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: En la máquina Smith, el tríceps empuja la barra guiada hacia el mentón y completa la extensión del codo; el descenso se frena con trabajo excéntrico."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral apoya el empuje mientras la barra Smith desciende hacia el mentón, con los brazos recogidos y la trayectoria guiada por el carril."
+                }
+              ],
               "performanceProfileId": "jm_press__smith_machine",
               "primaryMuscles": [
                 "triceps"
@@ -851,6 +912,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende sobre la barra Smith en el arco corto hacia el mentón; la guía fija la trayectoria y el brazo superior queda como referencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -858,6 +920,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo superior bajo la barra guiada, que reduce el ajuste lateral y deja la posición estable durante el empuje del tríceps.",
                       "role": "SECONDARY"
                     },
                     {
@@ -865,6 +928,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano sobre la barra Smith, cuya trayectoria guiada sostiene la línea de empuje sin desvíos durante la extensión del codo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1065,6 +1129,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se extiende sobre el cable en el arco corto hacia el mentón, con tensión viva de principio a fin y el brazo superior como referencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1072,6 +1137,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo superior frente a la tensión constante del cable, que acompaña el descenso sin punto muerto ni robo de recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1079,6 +1145,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca conserva la alineación con el cable, cuya tensión constante exige un apoyo firme para que la línea de empuje no se desvíe.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1086,6 +1153,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con polea, el tríceps empuja el cable hacia el mentón con tensión continua en todo el recorrido y abre el codo; el descenso se frena excéntricamente."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral asiste el empuje del cable mientras la carga viaja hacia el mentón y el pecho, sin abrir los brazos durante el descenso."
+                }
+              ],
               "performanceProfileId": "jm_press__cable",
               "primaryMuscles": [
                 "triceps"
@@ -1106,6 +1183,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se extiende sobre el cable en el arco corto hacia el mentón, con tensión viva de principio a fin y el brazo superior como referencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1113,6 +1191,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo superior frente a la tensión constante del cable, que acompaña el descenso sin punto muerto ni robo de recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1120,6 +1199,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca conserva la alineación con el cable, cuya tensión constante exige un apoyo firme para que la línea de empuje no se desvíe.",
                       "role": "STABILIZER"
                     }
                   ],

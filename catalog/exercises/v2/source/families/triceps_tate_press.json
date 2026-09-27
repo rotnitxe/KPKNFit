@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo baja con su compañero cerca y se extiende para empujar las mancuernas desde el pecho, mezclando press y extensión con el brazo superior fijo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo superior tumbado mientras las mancuernas viajan con los codos en abanico, sin robar recorrido a la extensión del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano con las palmas al frente bajo cada mancuerna, que pide un apoyo firme cuando los codos se juntan en el descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con mancuernas tumbado, el tríceps extiende el codo empujando cada pesa desde el pecho con los codos juntos; el descenso se frena de forma excéntrica."
+                }
+              ],
               "performanceProfileId": "tate_press__dumbbells__tate_press",
               "primaryMuscles": [
                 "triceps"
@@ -86,6 +95,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo baja con su compañero cerca y se extiende para empujar las mancuernas desde el pecho, mezclando press y extensión con el brazo superior fijo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo superior tumbado mientras las mancuernas viajan con los codos en abanico, sin robar recorrido a la extensión del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano con las palmas al frente bajo cada mancuerna, que pide un apoyo firme cuando los codos se juntan en el descenso.",
                       "role": "STABILIZER"
                     }
                   ],

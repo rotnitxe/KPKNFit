@@ -234,6 +234,35 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
                 muscleCandidates(muscle, index).firstOrNull { canAdd(index, it) }?.let { add(index, it) }
             }
         }
+        // Relleno honesto de variedad (T-004): cuando un día SIN split no alcanza
+        // el mínimo de ejercicios con sus grupos base —p. ej. principiante sin
+        // material, cuyos grupos Dorsales/Isquiosurales no tienen variante curada
+        // viable sin apoyo— se completa desde las demás piscinas CURADAS, ANTES
+        // de repartir series para que el mínimo de variedad no quede fuera del
+        // presupuesto de minutos. Respeta [canAdd] (tiempo, presupuestos,
+        // frecuencia) y no toca techo de dificultad, equipo declarado, recetas ni
+        // la restricción de grupos de un split aplicado: solo amplía qué grupos
+        // pueden rellenar una sesión.
+        val paddingDiagnostics = StringBuilder()
+        slots.indices.forEach { index ->
+            if (dayGroupsByDay[days[index]] != null) return@forEach
+            if (slots[index].size >= 3) return@forEach
+            val paddingOrder = listOf(
+                "Glúteos", "Abdomen", "Tríceps", "Pectorales", "Cuádriceps",
+                "Deltoides", "Bíceps", "Pantorrillas", "Dorsales", "Isquiosurales",
+                "Erectores Espinales",
+            )
+            for (muscle in paddingOrder) {
+                if (slots[index].size >= 3) break
+                val poolCandidates = muscleCandidates(muscle, index)
+                val chosen = poolCandidates
+                    .firstOrNull { candidate -> slots[index].none { it.candidate.id == candidate.id } && canAdd(index, candidate) }
+                if (chosen == null) {
+                    paddingDiagnostics.append(" dia${days[index]}:$muscle(cand=${poolCandidates.size})")
+                }
+                chosen?.let { add(index, it) }
+            }
+        }
         repeat(180) {
             val choice = slots.indices.flatMap { index ->
                 val permitted = slots[index].flatMap { it.candidate.primary }.toSet()
@@ -256,9 +285,12 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         // Una sesión equilibrada exige variedad; un día restringido por el split
         // se centra en su patrón y basta con un ejercicio prescrito.
         if (slots.indices.any { index -> slots[index].size < if (dayGroupsByDay[days[index]] != null) 1 else 3 }) {
+            val detail = slots.indices.joinToString("; ") { index ->
+                "dia${days[index]}=${slots[index].size}"
+            } + paddingDiagnostics.toString().replace(Regex("\\(cand=\\d+\\)"), "")
             return unavailable(
-                if (splitPlan != null) "El split '${splitPlan.splitName}' no permite completar las sesiones con tu tiempo, equipo y presupuesto de recuperación. Amplía el tiempo o el material disponible."
-                else "No se puede completar una sesión equilibrada con ese equipo, enfoque y tiempo. Amplía el tiempo o el material disponible."
+                if (splitPlan != null) "El split '${splitPlan.splitName}' no permite completar las sesiones con tu tiempo, equipo y presupuesto de recuperación. Amplía el tiempo o el material disponible. $detail"
+                else "No se puede completar una sesión equilibrada con ese equipo, enfoque y tiempo. Amplía el tiempo o el material disponible. $detail"
             )
         }
         slots.indices.forEach { index ->
@@ -677,9 +709,9 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
     }
 
     private fun curatedPools(): Map<String, List<String>> = linkedMapOf(
-        "Pectorales" to listOf("tren_superior_press_pecho_maquina_convergente__default", "bench_press__dumbbells", "bench_press__barbell", "flat_chest_fly__machine", "push_up__flat", "tren_superior_press_banda_resistencia__default"),
+        "Pectorales" to listOf("tren_superior_press_pecho_maquina_convergente__default", "bench_press__dumbbells", "bench_press__barbell", "flat_chest_fly__machine", "push_up__flat", "tren_superior_press_banda_resistencia__default", "knee_push_up__default"),
         "Dorsales" to listOf("chest_supported_row__machine__medium", "lat_pulldown__bilateral__machine", "back_remo_banda__default", "conventional_row__dumbbells", "lat_pulldown__bilateral__cable", "pull_up__pronated__medium", "back_remo_invertido__default"),
-        "Cuádriceps" to listOf("quads_extension_cuadriceps__machine__bilateral", "quads_sentadilla_hack__machine", "quads_prensa_piernas__bilateral", "walking_lunge__dumbbells", "quads_sentadilla_cosaca__default"),
+        "Cuádriceps" to listOf("quads_extension_cuadriceps__machine__bilateral", "quads_sentadilla_hack__machine", "quads_prensa_piernas__bilateral", "walking_lunge__dumbbells", "quads_sentadilla_cosaca__default", "quads_sentadilla_sin_carga__default"),
         "Isquiosurales" to listOf("seated_leg_curl__bilateral__machine", "lying_leg_curl__bilateral__machine", "romanian_deadlift__bilateral__barbell", "romanian_deadlift__bilateral__dumbbells", "curl_isquios_con_balon__default", "hams_curl_nordic_peso_corporal__default"),
         "Glúteos" to listOf("hip_thrust__bilateral__machine", "glutes_frog_pumps__default", "hip_thrust__bilateral__barbell", "glutes_patada_gluteo__band"),
         "Deltoides" to listOf("seated_lateral_raise__machine", "standing_lateral_raise__dumbbells", "standing_lateral_raise__cable", "military_press__machine"),
@@ -687,6 +719,7 @@ class SimpleCyclePersonalizer(private val catalog: ExerciseCatalogRepositoryV2? 
         "Tríceps" to listOf("triceps_pushdown__bilateral__machine", "triceps_pushdown__bilateral__band", "triceps_pushdown__bilateral__cable", "triceps_flexiones_esfinge__default"),
         "Pantorrillas" to listOf("calf_raise__bilateral__machine"),
         "Abdomen" to listOf("core_crunch_suelo_peso_corporal__default", "core_crunch_maquina__default"),
+        "Erectores Espinales" to listOf("back_superman_suelo__default"),
     )
 
     companion object {

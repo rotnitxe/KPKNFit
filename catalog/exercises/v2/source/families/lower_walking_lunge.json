@@ -45,6 +45,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilaterales de la rodilla dirigen cada paso, y la barra sobre la espalda carga la articulación con recorrido libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de cadera empuja cada avance y su control frontal contiene la pelvis con la barra sobre la espalda durante todo el desplazamiento.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo busca equilibrio y dorsiflexión en el apoyo de cada paso mientras la barra sobre la espalda exige un pie firme antes de volver a avanzar.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca gestiona la transferencia unilateral del peso entre piernas mientras la barra sobre la espalda intensifica cada traspaso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps frena la flexión de rodilla en la bajada de cada paso y concentra la extensión que levanta el cuerpo con la barra libre sobre la espalda."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor concentra la extensión de cadera que empuja cada paso hacia delante con la barra sobre la espalda y avances encadenados sin pausa."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de cadera y frenan la rodilla durante la bajada mientras la barra fija la carga sobre el torso en cada avance."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría frente a la barra de la espalda y frena la inclinación de la pelvis en cada transferencia de peso."
+                }
+              ],
               "performanceProfileId": "walking_lunge__barbell__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -95,6 +117,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilaterales de la rodilla dirigen cada paso, y la barra sobre la espalda carga la articulación con recorrido libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -102,6 +125,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de cadera empuja cada avance y su control frontal contiene la pelvis con la barra sobre la espalda durante todo el desplazamiento.",
                       "role": "PRIMARY"
                     },
                     {
@@ -109,6 +133,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo busca equilibrio y dorsiflexión en el apoyo de cada paso mientras la barra sobre la espalda exige un pie firme antes de volver a avanzar.",
                       "role": "SECONDARY"
                     },
                     {
@@ -116,6 +141,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca gestiona la transferencia unilateral del peso entre piernas mientras la barra sobre la espalda intensifica cada traspaso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -319,6 +345,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona y extiende de forma unilateral en cada paso, y la guía de la máquina Smith impone una vertical repetida sin deriva lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -326,6 +353,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de cadera impulsa cada avance y su control frontal estabiliza la pelvis con la barra guiada por la máquina Smith y menor demanda de equilibrio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -333,6 +361,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión en el pie de cada paso, con la máquina Smith guiando la carga para que el apoyo gane estabilidad.",
                   "role": "SECONDARY"
                 },
                 {
@@ -340,6 +369,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere el peso de pierna a pierna en cada avance y la máquina Smith fija la carga sobre una trayectoria estable.",
                   "role": "STABILIZER"
                 }
               ],
@@ -347,6 +377,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de rodilla al salir del paso y frena la flexión de la bajada con la trayectoria guiada de la máquina Smith."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor empuja la extensión de cadera tras cada paso y ajusta la salida mientras la máquina Smith acompaña la carga en un recorrido fijo."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de cadera y regulan la bajada de cada paso con la estabilidad que aporta la guía de la máquina Smith."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco en isometría durante cada paso y trabaja con menos correcciones laterales gracias al guiado de la máquina Smith."
+                }
+              ],
               "performanceProfileId": "walking_lunge__smith_machine__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -369,6 +417,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona y extiende de forma unilateral en cada paso, y la guía de la máquina Smith impone una vertical repetida sin deriva lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -376,6 +425,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de cadera impulsa cada avance y su control frontal estabiliza la pelvis con la barra guiada por la máquina Smith y menor demanda de equilibrio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -383,6 +433,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión en el pie de cada paso, con la máquina Smith guiando la carga para que el apoyo gane estabilidad.",
                       "role": "SECONDARY"
                     },
                     {
@@ -390,6 +441,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere el peso de pierna a pierna en cada avance y la máquina Smith fija la carga sobre una trayectoria estable.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -593,6 +645,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilaterales de la rodilla marcan cada paso, y las mancuernas libres exigen frenar la carga sin ayuda de guía alguna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -600,6 +653,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de cadera impulsa cada avance y su control frontal contiene la pelvis mientras las mancuernas libres pesan sobre el cuerpo en marcha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -607,6 +661,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo trabaja equilibrio y dorsiflexión en cada apoyo, y las mancuernas libres suman correcciones constantes al desplazamiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -614,6 +669,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca gestiona la transferencia unilateral entre piernas con cada paso, y las mancuernas libres profundizan ese traspaso de peso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -621,6 +677,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps frena la flexión de rodilla al descender el paso y concentra la extensión para levantarse con las mancuernas libres en cada avance."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera para empujar cada paso hacia delante mientras las mancuernas libres acompañan el peso sin trayectoria guiada."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de cadera y frenan la bajada de cada paso con las mancuernas marcando el ritmo del desplazamiento."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras las mancuernas libres desafían el equilibrio y frenan la inclinación de la pelvis entre pasos."
+                }
+              ],
               "performanceProfileId": "walking_lunge__dumbbells__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -643,6 +717,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilaterales de la rodilla marcan cada paso, y las mancuernas libres exigen frenar la carga sin ayuda de guía alguna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -650,6 +725,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de cadera impulsa cada avance y su control frontal contiene la pelvis mientras las mancuernas libres pesan sobre el cuerpo en marcha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -657,6 +733,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo trabaja equilibrio y dorsiflexión en cada apoyo, y las mancuernas libres suman correcciones constantes al desplazamiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -664,6 +741,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca gestiona la transferencia unilateral entre piernas con cada paso, y las mancuernas libres profundizan ese traspaso de peso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -867,6 +945,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona y extiende de forma unilateral en cada paso, y las kettlebells exigen un frenado más atento por su centro de masa desplazado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -874,6 +953,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de cadera lanza cada paso y su control frontal sostiene la pelvis con las kettlebells, cuyo agarre y centro de masa cambian el gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -881,6 +961,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo busca equilibrio y dorsiflexión en cada apoyo mientras las kettlebells suman un agarre constante y un centro de masa móvil al paso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -888,6 +969,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere el peso entre piernas en cada avance mientras el agarre de las kettlebells exige firmeza durante todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -895,6 +977,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de rodilla al salir del paso y frena la bajada con las kettlebells, cuyo centro de masa cambia el tacto del gesto."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor empuja la extensión de cadera en cada avance mientras las kettlebells desplazan el centro de masa y exigen un empuje más preciso."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de cadera y regulan la bajada de cada paso con el peso de las kettlebells sujeto por un agarre exigente."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco en isometría mientras las kettlebells tiran del centro de masa y la pelvis busca la línea en cada transferencia de peso."
+                }
+              ],
               "performanceProfileId": "walking_lunge__kettlebell__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -917,6 +1017,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona y extiende de forma unilateral en cada paso, y las kettlebells exigen un frenado más atento por su centro de masa desplazado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -924,6 +1025,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de cadera lanza cada paso y su control frontal sostiene la pelvis con las kettlebells, cuyo agarre y centro de masa cambian el gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -931,6 +1033,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo busca equilibrio y dorsiflexión en cada apoyo mientras las kettlebells suman un agarre constante y un centro de masa móvil al paso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -938,6 +1041,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere el peso entre piernas en cada avance mientras el agarre de las kettlebells exige firmeza durante todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1141,6 +1245,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y la extensión unilaterales de la rodilla guían cada paso bajo la tensión constante de la polea, presente en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1148,6 +1253,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La extensión de cadera empuja cada avance y su control frontal contiene la pelvis mientras la polea aplica su tensión constante sobre el cuerpo en marcha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1155,6 +1261,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión en cada apoyo mientras el cable de la polea exige firmeza en el pie durante todo el desplazamiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1162,6 +1269,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca gestiona la transferencia de peso entre piernas con cada paso y la polea prolonga la exigencia con su tensión constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1169,6 +1277,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps frena la flexión de rodilla en la bajada del paso y concentra la extensión con la tensión constante que la polea aplica al avance."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera para empujar cada paso mientras la polea aplica una tensión constante que no descansa ni arriba ni abajo."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiotibiales asisten la extensión de cadera y frenan el descenso de cada paso bajo la tensión constante de la polea en todo el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría frente al tirón constante de la polea, que busca desplazar el equilibrio en cada paso hacia delante."
+                }
+              ],
               "performanceProfileId": "walking_lunge__cable__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -1191,6 +1317,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y la extensión unilaterales de la rodilla guían cada paso bajo la tensión constante de la polea, presente en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1198,6 +1325,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La extensión de cadera empuja cada avance y su control frontal contiene la pelvis mientras la polea aplica su tensión constante sobre el cuerpo en marcha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1205,6 +1333,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión en cada apoyo mientras el cable de la polea exige firmeza en el pie durante todo el desplazamiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1212,6 +1341,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca gestiona la transferencia de peso entre piernas con cada paso y la polea prolonga la exigencia con su tensión constante.",
                       "role": "STABILIZER"
                     }
                   ],

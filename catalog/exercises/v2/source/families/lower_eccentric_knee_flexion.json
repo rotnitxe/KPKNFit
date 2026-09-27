@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla resiste la extensión mientras el cuerpo cae hacia delante con los tobillos sujetos y recupera su flexión al volver con el peso del cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera se flexiona al descender el tronco hacia delante y se extiende al regresar, con los tobillos anclados y el peso del cuerpo como única carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo mantiene la dorsiflexión y el control bajo el anclaje que sujeta los talones, con el peso del cuerpo cayendo hacia delante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene la estabilidad del tronco mientras el cuerpo cae hacia delante con los tobillos anclados y sin carga externa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "eccentric_knee_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Con el peso del cuerpo y los tobillos sujetos, el isquiosural frena en excéntrico la caída del tronco hacia delante y vuelve a acortarse al subir."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor acompaña la extensión de la cadera al regresar del descenso y sostiene el tronco mientras el cuerpo cae con los tobillos anclados."
+                }
+              ],
               "performanceProfileId": "hams_curl_nordic_peso_corporal__bodyweight__curl_nordico_nordic_hamstring_curl",
               "primaryMuscles": [
                 "hamstrings"
@@ -93,6 +107,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla resiste la extensión mientras el cuerpo cae hacia delante con los tobillos sujetos y recupera su flexión al volver con el peso del cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera se flexiona al descender el tronco hacia delante y se extiende al regresar, con los tobillos anclados y el peso del cuerpo como única carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +123,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo mantiene la dorsiflexión y el control bajo el anclaje que sujeta los talones, con el peso del cuerpo cayendo hacia delante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +131,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene la estabilidad del tronco mientras el cuerpo cae hacia delante con los tobillos anclados y sin carga externa.",
                       "role": "STABILIZER"
                     }
                   ],

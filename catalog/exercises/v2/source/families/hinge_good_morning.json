@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra sobre los hombros traslada el peso detrás del eje corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla admite una flexión ligera que estabiliza la pierna durante la inclinación con barra bilateral de pie sin convertirse en el motor del gesto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra sobre los hombros y conserva su curva mientras el torso se inclina con ambas piernas fijas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral de pie con la barra clásica sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco en excéntrica y extienden la cadera al volver a la vertical con la barra clásica sobre los hombros."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor colabora en la extensión de cadera al subir y refuerza el empuje final con la barra cargada sobre ambos hombros y las dos piernas apoyadas."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen la columna en isometría mientras el torso se inclina hacia delante bajo la barra clásica con carga bilateral."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco rígido en isometría y reparte la carga de la barra entre pelvis y costillas durante todo el recorrido de pie."
+                }
+              ],
               "performanceProfileId": "good_morning__bilateral__barbell",
               "primaryMuscles": [
                 "hamstrings"
@@ -94,6 +116,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra sobre los hombros traslada el peso detrás del eje corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +124,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla admite una flexión ligera que estabiliza la pierna durante la inclinación con barra bilateral de pie sin convertirse en el motor del gesto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +132,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra sobre los hombros y conserva su curva mientras el torso se inclina con ambas piernas fijas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +140,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral de pie con la barra clásica sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -325,6 +351,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la barra sobre los hombros mientras una sola pierna sostiene el apoyo, lo que aumenta el reto de control.",
                   "role": "PRIMARY"
                 },
                 {
@@ -332,6 +359,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna trabajada mantiene una flexión ligera que aporta estabilidad al gesto unilateral con barra clásica de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -339,6 +367,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera inclinación lateral que la barra unilateral provoca sobre el torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -346,6 +375,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco bajo la asimetría del gesto unilateral con barra clásica sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -353,6 +383,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera con la barra clásica sobre los hombros mientras una sola pierna sostiene el equilibrio."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir y trabaja en solitario con la barra sobre los hombros al apoyar una única pierna."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales mantienen el torso alineado frente a la asimetría de la barra clásica cuando solo un lado sostiene la postura de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core controla la inclinación lateral que provoca la carga unilateral de la barra y sostiene el tronco rígido durante todo el recorrido."
+                }
+              ],
               "performanceProfileId": "good_morning__unilateral__barbell",
               "primaryMuscles": [
                 "hamstrings"
@@ -374,6 +422,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la barra sobre los hombros mientras una sola pierna sostiene el apoyo, lo que aumenta el reto de control.",
                       "role": "PRIMARY"
                     },
                     {
@@ -381,6 +430,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna trabajada mantiene una flexión ligera que aporta estabilidad al gesto unilateral con barra clásica de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -388,6 +438,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera inclinación lateral que la barra unilateral provoca sobre el torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -395,6 +446,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco bajo la asimetría del gesto unilateral con barra clásica sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -605,6 +657,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra de seguridad mantiene la carga más cerca del eje corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -612,6 +665,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla ofrece una flexión ligera y estabilidad lateral con ambas piernas mientras la barra de seguridad guía la postura de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -619,6 +673,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso con la barra de seguridad, cuyo agarre frontal modifica cómo se transmite la carga al tronco de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -626,6 +681,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de pie con la barra de seguridad sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -633,6 +689,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera con la barra de seguridad, cuyos agarres frontales acercan la carga al cuerpo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor completa la extensión de cadera en la subida con ambas piernas apoyadas y la barra de seguridad asentada sobre los hombros."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso en isometría con la barra de seguridad, más próxima al eje corporal que la barra clásica de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene la rigidez del tronco mientras la barra de seguridad, con agarres frontales, reparte la carga sobre las dos piernas de pie."
+                }
+              ],
               "performanceProfileId": "good_morning__bilateral__safety_bar",
               "primaryMuscles": [
                 "hamstrings"
@@ -654,6 +728,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra de seguridad mantiene la carga más cerca del eje corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -661,6 +736,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla ofrece una flexión ligera y estabilidad lateral con ambas piernas mientras la barra de seguridad guía la postura de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -668,6 +744,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso con la barra de seguridad, cuyo agarre frontal modifica cómo se transmite la carga al tronco de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -675,6 +752,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de pie con la barra de seguridad sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -885,6 +963,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la barra de seguridad sobre los hombros mientras una sola pierna sostiene el equilibrio del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -892,6 +971,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de apoyo mantiene una flexión ligera que estabiliza la pierna en el trabajo unilateral con barra de seguridad de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -899,6 +979,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría de la carga con la barra de seguridad cuando solo un lado sostiene el torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -906,6 +987,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en el gesto unilateral con la barra de seguridad sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -913,6 +995,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera con la barra de seguridad mientras una sola pierna sostiene el apoyo y el equilibrio."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir con la barra de seguridad, cuyo agarre cómodo deja el foco en el lado trabajado."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso frente a la carga unilateral de la barra de seguridad y mantienen la alineación de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core frena la inclinación lateral que la barra de seguridad genera al cargar una sola pierna y mantiene el tronco rígido."
+                }
+              ],
               "performanceProfileId": "good_morning__unilateral__safety_bar",
               "primaryMuscles": [
                 "hamstrings"
@@ -934,6 +1034,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la barra de seguridad sobre los hombros mientras una sola pierna sostiene el equilibrio del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -941,6 +1042,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de apoyo mantiene una flexión ligera que estabiliza la pierna en el trabajo unilateral con barra de seguridad de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -948,6 +1050,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría de la carga con la barra de seguridad cuando solo un lado sostiene el torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -955,6 +1058,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en el gesto unilateral con la barra de seguridad sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1165,6 +1269,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende bajo la trayectoria guiada de la Smith, que mantiene la carga vertical sin exigir equilibrio lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1172,6 +1277,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la Smith guía la barra durante la inclinación del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1179,6 +1285,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión con la barra de la Smith guiada, que impone una inclinación previsible al torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1186,6 +1293,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral en la Smith, con la carga guiada en vertical.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1193,6 +1301,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera sobre la máquina Smith, cuyo guiado vertical reduce la demanda de equilibrio."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor colabora en la extensión de cadera al subir con ambas piernas apoyadas y la barra de la Smith manteniendo su trayectoria fija."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales mantienen el torso alineado en la Smith, donde el guiado sostiene la barra y el tronco trabaja de forma más previsible."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras la Smith guía la carga vertical con las dos piernas fijas sobre el suelo."
+                }
+              ],
               "performanceProfileId": "good_morning__bilateral__smith_machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -1214,6 +1340,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende bajo la trayectoria guiada de la Smith, que mantiene la carga vertical sin exigir equilibrio lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1221,6 +1348,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la Smith guía la barra durante la inclinación del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1228,6 +1356,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión con la barra de la Smith guiada, que impone una inclinación previsible al torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1235,6 +1364,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral en la Smith, con la carga guiada en vertical.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1445,6 +1575,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la barra guiada de la Smith mientras una sola pierna sostiene el apoyo y el control del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1452,6 +1583,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de la pierna de apoyo aporta una flexión ligera y estabilidad en el trabajo unilateral sobre la máquina Smith.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1459,6 +1591,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría del gesto unilateral mientras la Smith guía la barra sobre el torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1466,6 +1599,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al trabajar una sola pierna con la trayectoria guiada de la Smith.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1473,6 +1607,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales de la pierna trabajada frenan el descenso y extienden la cadera sobre la Smith, cuyo guiado compensa parte del equilibrio."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir con una sola pierna mientras la Smith mantiene la barra en su recorrido fijo."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso frente a la carga unilateral bajo el guiado vertical de la máquina Smith de pie."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core limita la inclinación lateral del torso al cargar una sola pierna en la Smith y mantiene la rigidez del tronco."
+                }
+              ],
               "performanceProfileId": "good_morning__unilateral__smith_machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -1494,6 +1646,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la barra guiada de la Smith mientras una sola pierna sostiene el apoyo y el control del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1501,6 +1654,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de la pierna de apoyo aporta una flexión ligera y estabilidad en el trabajo unilateral sobre la máquina Smith.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1508,6 +1662,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría del gesto unilateral mientras la Smith guía la barra sobre el torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1515,6 +1670,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al trabajar una sola pierna con la trayectoria guiada de la Smith.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1725,6 +1881,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende dentro del recorrido guiado de la máquina, que concentra el momento de cadera sin exigir equilibrio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1732,6 +1889,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la máquina guía la inclinación del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1739,6 +1897,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso dentro de la máquina, cuyo guiado descarga parte de la exigencia sobre el tronco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1746,6 +1905,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de la máquina, con recorrido fijo y carga guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1753,6 +1913,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera en la máquina específica, cuyo recorrido guiado centra el esfuerzo en la cadena posterior."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor acompaña la extensión de cadera al subir con ambas piernas mientras la máquina sostiene la carga en su recorrido fijo."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso en isometría dentro de la máquina, donde el apoyo y el guiado reducen la carga libre sobre el tronco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene la rigidez del tronco durante la inclinación en la máquina con las dos piernas apoyadas y el recorrido prefijado."
+                }
+              ],
               "performanceProfileId": "good_morning__bilateral__machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -1774,6 +1952,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende dentro del recorrido guiado de la máquina, que concentra el momento de cadera sin exigir equilibrio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1781,6 +1960,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la máquina guía la inclinación del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1788,6 +1968,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso dentro de la máquina, cuyo guiado descarga parte de la exigencia sobre el tronco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1795,6 +1976,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de la máquina, con recorrido fijo y carga guiada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2005,6 +2187,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con el recorrido guiado de la máquina mientras una sola pierna concentra todo el momento articular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2012,6 +2195,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla de apoyo aporta una flexión ligera que estabiliza la pierna en la máquina cuando el trabajo se realiza a un solo lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2019,6 +2203,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera asimetría del gesto unilateral dentro de la máquina de recorrido guiado.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2026,6 +2211,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al concentrar el esfuerzo en una pierna dentro de la máquina guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2033,6 +2219,24 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales de la pierna trabajada frenan el descenso y extienden la cadera en la máquina, que guía la carga mientras el lado activo hace el esfuerzo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir con una sola pierna dentro de la máquina de recorrido guiado."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales mantienen el torso alineado en el trabajo unilateral de la máquina, que estabiliza la carga durante el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core contrarresta la inclinación lateral al concentrar la carga en una pierna dentro de la máquina y sostiene el tronco rígido."
+                }
+              ],
               "performanceProfileId": "good_morning__unilateral__machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -2054,6 +2258,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con el recorrido guiado de la máquina mientras una sola pierna concentra todo el momento articular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2061,6 +2266,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla de apoyo aporta una flexión ligera que estabiliza la pierna en la máquina cuando el trabajo se realiza a un solo lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2068,6 +2274,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera asimetría del gesto unilateral dentro de la máquina de recorrido guiado.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2075,6 +2282,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al concentrar el esfuerzo en una pierna dentro de la máquina guiada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2313,6 +2521,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra clásica traslada el peso sobre los hombros sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2320,6 +2529,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas mientras el tronco baja hacia ellas sentado con barra.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2327,6 +2537,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado bajo la barra clásica, con la cadera inmovilizada por el banco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2334,6 +2545,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra clásica sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2341,6 +2553,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco hacia las rodillas y lo devuelven arriba con la barra clásica sobre los hombros y la cadera fija en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor colabora en la extensión de cadera sentado, con la barra clásica sobre los hombros y el tronco bajando hacia las rodillas."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso en isometría sentado mientras la barra clásica carga la parte alta del cuerpo sobre el banco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco rígido al inclinarse sentado y reparte la carga de la barra entre el banco y la cadera fija."
+                }
+              ],
               "performanceProfileId": "good_morning_seated__barbell",
               "primaryMuscles": [
                 "hamstrings"
@@ -2362,6 +2592,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra clásica traslada el peso sobre los hombros sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2369,6 +2600,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas mientras el tronco baja hacia ellas sentado con barra.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2376,6 +2608,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado bajo la barra clásica, con la cadera inmovilizada por el banco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2383,6 +2616,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra clásica sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2588,6 +2822,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la Smith guía la barra sobre el torso sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2595,6 +2830,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas en la inclinación sentado bajo la máquina Smith.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2602,6 +2838,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de la Smith guiada y la cadera bloqueada por el banco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2609,6 +2846,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en la inclinación sentado con la trayectoria guiada de la Smith.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2616,6 +2854,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco hacia las rodillas con la barra de la Smith guiada y la pelvis sujeta sobre el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor ayuda a extender la cadera en la vuelta sentado mientras la Smith mantiene la barra en su trayectoria fija."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso sentado bajo el guiado de la Smith, que reduce el ajuste fino que exige la barra libre."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras la Smith guía la carga y la cadera permanece fija sobre el banco."
+                }
+              ],
               "performanceProfileId": "good_morning_seated__smith_machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -2637,6 +2893,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la Smith guía la barra sobre el torso sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2644,6 +2901,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas en la inclinación sentado bajo la máquina Smith.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2651,6 +2909,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de la Smith guiada y la cadera bloqueada por el banco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2658,6 +2917,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en la inclinación sentado con la trayectoria guiada de la Smith.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2863,6 +3123,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra de seguridad traslada la carga sobre el torso sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2870,6 +3131,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla aporta una flexión ligera y estabilidad con las piernas fijas en el trabajo sentado con barra de seguridad.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2877,6 +3139,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de seguridad, que modifica la posición de los brazos sobre la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2884,6 +3147,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra de seguridad sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2891,6 +3155,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del tronco hacia las rodillas con la barra de seguridad sobre los hombros y la pelvis fija en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor acompaña la extensión de cadera sentado mientras la barra de seguridad descansa sobre los hombros con un agarre más cómodo."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso sentado bajo la barra de seguridad, cuyo diseño alivia hombros y muñecas durante la carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco rígido al inclinarse sentado con la barra de seguridad y la cadera inmovilizada por el banco."
+                }
+              ],
               "performanceProfileId": "good_morning_seated__safety_bar",
               "primaryMuscles": [
                 "hamstrings"
@@ -2912,6 +3194,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra de seguridad traslada la carga sobre el torso sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2919,6 +3202,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla aporta una flexión ligera y estabilidad con las piernas fijas en el trabajo sentado con barra de seguridad.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2926,6 +3210,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de seguridad, que modifica la posición de los brazos sobre la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2933,6 +3218,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra de seguridad sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3163,6 +3449,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera se flexiona y se extiende con la barra sujeta en los codos, cuya posición adelantada cambia el reparto del momento de cadera.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3170,6 +3457,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la carga Zercher se sostiene pegada al pecho.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3177,6 +3465,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra en los codos, más alejada del eje corporal que otras variantes de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3184,6 +3473,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto de pie con la barra abrazada en el hueco de los codos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3191,6 +3481,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan la inclinación del tronco y extienden la cadera con la barra sostenida en el hueco de los codos, pegada al pecho."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor extiende la cadera al volver a la vertical con la carga abrazada en los codos, que desplaza el peso hacia delante del torso."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores espinales sostienen el torso frente a la carga Zercher, más próxima al pecho, que aumenta la inclinación exigida al tronco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core trabaja en isometría para sujetar el tronco con la barra en los codos, posición que eleva la exigencia sobre la pared abdominal."
+                }
+              ],
               "performanceProfileId": "good_morning_zercher__barbell__buenos_dias_zercher",
               "primaryMuscles": [
                 "hamstrings",
@@ -3213,6 +3521,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera se flexiona y se extiende con la barra sujeta en los codos, cuya posición adelantada cambia el reparto del momento de cadera.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3220,6 +3529,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la carga Zercher se sostiene pegada al pecho.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3227,6 +3537,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra en los codos, más alejada del eje corporal que otras variantes de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3234,6 +3545,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto de pie con la barra abrazada en el hueco de los codos.",
                       "role": "STABILIZER"
                     }
                   ],

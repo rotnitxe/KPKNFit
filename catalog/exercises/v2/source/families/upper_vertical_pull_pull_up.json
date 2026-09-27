@@ -45,6 +45,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo para elevar el cuerpo; el agarre prono ancho abre los codos y traslada parte del esfuerzo hacia la espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota durante el ascenso; el ancho del agarre aumenta la rotación y deja la espalda alta como protagonista del tirón.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir el cuerpo y se extiende al descender; el agarre prono ancho acorta su recorrido y deja más trabajo al hombro.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre prono sobre la barra fija de forma isométrica, con las palmas al frente y el antebrazo alineado en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,28 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira del cuerpo hacia arriba con el agarre prono y ancho, llevando el hombro a aducción y extensión mientras los codos se abren hacia fuera."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la subida con los codos abiertos, acompañando la depresión escapular al inicio del tirón y la rotación escapular al acercarse la barra."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene el codo en flexión isométrica durante el tirón prono ancho, sin perder altura cuando el cuerpo asciende hacia la barra fija."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica mientras el agarre ancho fija los codos abiertos y la espalda alta cargada."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco colgado con agarre ancho, sostiene la línea del cuerpo durante el ascenso y frena cualquier balanceo lateral."
+                }
+              ],
               "performanceProfileId": "pull_up__pronated__wide",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -94,6 +120,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo para elevar el cuerpo; el agarre prono ancho abre los codos y traslada parte del esfuerzo hacia la espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +128,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota durante el ascenso; el ancho del agarre aumenta la rotación y deja la espalda alta como protagonista del tirón.",
                       "role": "PRIMARY"
                     },
                     {
@@ -108,6 +136,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir el cuerpo y se extiende al descender; el agarre prono ancho acorta su recorrido y deja más trabajo al hombro.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +144,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre prono sobre la barra fija de forma isométrica, con las palmas al frente y el antebrazo alineado en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -326,6 +356,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo mientras el cuerpo asciende; el agarre prono medio reparte el esfuerzo por igual entre la espalda y el brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -333,6 +364,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre prono medio, que equilibra la rotación y reparte el tirón entre la espalda alta y el dorsal ancho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -340,6 +372,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; con el agarre prono medio su recorrido queda entre la apertura amplia y el tirón cerrado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -347,6 +380,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca estabiliza el agarre prono medio sobre la barra fija, con las palmas al frente y el antebrazo alineado mientras el cuerpo sube y baja.",
                   "role": "STABILIZER"
                 }
               ],
@@ -354,6 +388,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige el ascenso con el agarre prono medio, llevando el hombro a aducción y extensión con un reparto equilibrado entre espalda y brazo."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica durante el tirón prono medio, aportando estabilidad al brazo sin adelantar el codo del torso."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides fijan la escápula con retracción isométrica mientras el agarre medio sitúa los codos en una posición equilibrada a la altura del torso."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sujeta el tronco colgado con agarre medio y sostiene el ascenso vertical sin balanceo, con el peso del cuerpo como única resistencia."
+                }
+              ],
               "performanceProfileId": "pull_up__pronated__medium",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -375,6 +427,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo mientras el cuerpo asciende; el agarre prono medio reparte el esfuerzo por igual entre la espalda y el brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -382,6 +435,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre prono medio, que equilibra la rotación y reparte el tirón entre la espalda alta y el dorsal ancho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -389,6 +443,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; con el agarre prono medio su recorrido queda entre la apertura amplia y el tirón cerrado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -396,6 +451,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca estabiliza el agarre prono medio sobre la barra fija, con las palmas al frente y el antebrazo alineado mientras el cuerpo sube y baja.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -602,6 +658,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con el agarre prono cerrado, que acerca los codos al torso y concentra el recorrido del tirón en el dorsal ancho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -609,6 +666,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre cerrado, que reduce la apertura y carga la espalda media al llevar los codos cerca del costado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -616,6 +674,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; el agarre cerrado acerca sus codos al torso y le da al brazo un papel claro en el tirón.",
                   "role": "SECONDARY"
                 },
                 {
@@ -623,6 +682,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre prono cerrado sobre la barra fija, con las manos juntas y las palmas al frente dando estabilidad al tirón vertical.",
                   "role": "STABILIZER"
                 }
               ],
@@ -630,6 +690,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira con el agarre prono cerrado, donde los codos viajan pegados al torso y el músculo se estira al fondo de cada descenso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene la flexión del codo de forma isométrica con las manos próximas, y el antebrazo alineado con la barra carga el agarre en cada subida."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica en el tirón cerrado, con los codos cerca del costado y la espalda media sosteniendo el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco alineado con el agarre prono cerrado, donde el cuerpo cuelga cerca de la barra y el menor balanceo rompe el tirón."
+                }
+              ],
               "performanceProfileId": "pull_up__pronated__close",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -651,6 +729,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con el agarre prono cerrado, que acerca los codos al torso y concentra el recorrido del tirón en el dorsal ancho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -658,6 +737,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre cerrado, que reduce la apertura y carga la espalda media al llevar los codos cerca del costado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -665,6 +745,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; el agarre cerrado acerca sus codos al torso y le da al brazo un papel claro en el tirón.",
                       "role": "SECONDARY"
                     },
                     {
@@ -672,6 +753,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre prono cerrado sobre la barra fija, con las manos juntas y las palmas al frente dando estabilidad al tirón vertical.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -878,6 +960,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y el agarre ancho, que abre los codos y traslada el esfuerzo hacia la espalda alta del tirón.",
                   "role": "PRIMARY"
                 },
                 {
@@ -885,6 +968,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre supino ancho, cuya apertura aumenta la rotación y exige más estabilidad escapular en la parte alta del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -892,6 +976,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir con la palma supina, que le da más protagonismo al bíceps y acompaña el ascenso con una flexión activa del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -899,6 +984,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre supino ancho sobre la barra fija, con las palmas hacia ti y el antebrazo girado, exigiendo firmeza en el agarre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -906,6 +992,28 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho inicia el ascenso con las palmas hacia ti y el agarre ancho, aunque los codos abiertos desplazan parte del esfuerzo hacia la espalda alta."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la subida con flexión de codo activa, favorecido por la palma supina, que lo sitúa en una posición fuerte para tirar del cuerpo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica mientras el agarre supino ancho fija los codos abiertos y la espalda alta cargada."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sujeta el tronco colgado con las palmas hacia ti y el agarre ancho, sosteniendo la línea del cuerpo en cada repetición del ascenso."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Estabilizador: El trapecio fija la escápula deprimida y estable de forma isométrica durante el ascenso con agarre ancho, donde los codos abiertos exigen estabilidad escapular."
+                }
+              ],
               "performanceProfileId": "pull_up__supinated__wide",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -927,6 +1035,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y el agarre ancho, que abre los codos y traslada el esfuerzo hacia la espalda alta del tirón.",
                       "role": "PRIMARY"
                     },
                     {
@@ -934,6 +1043,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre supino ancho, cuya apertura aumenta la rotación y exige más estabilidad escapular en la parte alta del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -941,6 +1051,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir con la palma supina, que le da más protagonismo al bíceps y acompaña el ascenso con una flexión activa del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -948,6 +1059,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre supino ancho sobre la barra fija, con las palmas hacia ti y el antebrazo girado, exigiendo firmeza en el agarre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1160,6 +1272,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y un agarre medio, donde el ascenso combina el tirón del dorsal con la ayuda del brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1167,6 +1280,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre supino medio, que fija una rotación intermedia y un reparto equilibrado del tirón vertical.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1174,6 +1288,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir con la palma supina, y el agarre medio le da un recorrido intermedio que le permite aportar fuerza al ascenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1181,6 +1296,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca estabiliza el agarre supino medio sobre la barra fija, con las palmas hacia ti y el antebrazo alineado durante el ascenso y el descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1188,6 +1304,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho mueve el ascenso con el agarre supino medio, repartiendo el esfuerzo con el bíceps mientras el cuerpo sube hacia la barra con ambas manos."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps contribuye con flexión de codo activa en el agarre supino medio, donde la palma hacia ti le permite ayudar al dorsal en cada subida."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides fijan la escápula con retracción isométrica durante el tirón supino medio, sosteniendo la espalda media en todo el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco con el agarre supino medio, donde el bíceps trabaja de más y el cuerpo busca balancearse para ayudar en el ascenso."
+                }
+              ],
               "performanceProfileId": "pull_up__supinated__medium",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1209,6 +1343,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y un agarre medio, donde el ascenso combina el tirón del dorsal con la ayuda del brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1216,6 +1351,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre supino medio, que fija una rotación intermedia y un reparto equilibrado del tirón vertical.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1223,6 +1359,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir con la palma supina, y el agarre medio le da un recorrido intermedio que le permite aportar fuerza al ascenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1230,6 +1367,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca estabiliza el agarre supino medio sobre la barra fija, con las palmas hacia ti y el antebrazo alineado durante el ascenso y el descenso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1439,6 +1577,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con el agarre supino cerrado, que acerca los codos al torso y concentra el tirón cerca del cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1446,6 +1585,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con las manos juntas y las palmas hacia ti, en un recorrido que acerca los codos y carga la espalda media del ascenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1453,6 +1593,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona con fuerza al subir con el agarre supino cerrado, la variante que más le exige al brazo y al bíceps en todo el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1460,6 +1601,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre supino cerrado sobre la barra fija, con las manos juntas y las palmas hacia ti, donde el antebrazo aporta firmeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1467,6 +1609,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho trabaja con el agarre supino cerrado, donde los codos se acercan al torso y el músculo se estira al fondo del descenso antes de subir."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps aporta fuerza de flexión de codo en el agarre supino cerrado, la posición donde su participación es más acusada y acompaña todo el tirón."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica con las manos juntas y las palmas hacia ti, cuidando la espalda media del tirón cerrado."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sujeta el tronco en la subida con el agarre supino cerrado, con el cuerpo colgado cerca de la barra y la línea del abdomen firme en cada fase."
+                }
+              ],
               "performanceProfileId": "pull_up__supinated__close",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1488,6 +1648,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con el agarre supino cerrado, que acerca los codos al torso y concentra el tirón cerca del cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1495,6 +1656,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con las manos juntas y las palmas hacia ti, en un recorrido que acerca los codos y carga la espalda media del ascenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1502,6 +1664,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona con fuerza al subir con el agarre supino cerrado, la variante que más le exige al brazo y al bíceps en todo el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1509,6 +1672,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre supino cerrado sobre la barra fija, con las manos juntas y las palmas hacia ti, donde el antebrazo aporta firmeza.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1718,6 +1882,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre ancho, que abre los codos y combina comodidad articular con exigencia de espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1725,6 +1890,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre neutro ancho, cuya apertura pide una rotación marcada y más trabajo de la espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1732,6 +1898,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas, y el agarre ancho acorta su recorrido mientras el hombro asume el peso del ascenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1739,6 +1906,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre neutro ancho sobre la barra fija, con las palmas enfrentadas y el antebrazo en línea, una posición que reparte la tensión del agarre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1746,6 +1914,28 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira del cuerpo con las palmas enfrentadas y el agarre ancho, donde los codos se abren y el esfuerzo se reparte hacia la espalda alta."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Estabilizador: El trapecio fija la escápula deprimida y rotada de forma isométrica durante el ascenso neutro ancho, sosteniendo la espalda alta con los codos abiertos."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica con las palmas enfrentadas, ayudando al tirón ancho sin cargar la muñeca ni el antebrazo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la retracción escapular isométrica con el agarre neutro ancho, mientras los codos abiertos exigen estabilidad en la espalda alta."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco alineado colgado con las palmas enfrentadas y el agarre ancho, frenando el balanceo del cuerpo en el ascenso y el descenso."
+                }
+              ],
               "performanceProfileId": "pull_up__neutral__wide",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1767,6 +1957,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre ancho, que abre los codos y combina comodidad articular con exigencia de espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1774,6 +1965,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre neutro ancho, cuya apertura pide una rotación marcada y más trabajo de la espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1781,6 +1973,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas, y el agarre ancho acorta su recorrido mientras el hombro asume el peso del ascenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1788,6 +1981,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre neutro ancho sobre la barra fija, con las palmas enfrentadas y el antebrazo en línea, una posición que reparte la tensión del agarre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1997,6 +2191,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre medio, la posición neutra que reparte el tirón entre dorsal, espalda alta y brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2004,6 +2199,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre neutro medio, que fija una rotación equilibrada y un recorrido amable para el conjunto del hombro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2011,6 +2207,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas y el agarre medio, en un recorrido que reparte la demanda entre el brazo y la espalda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2018,6 +2215,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre neutro medio sobre la barra fija, con las palmas enfrentadas y el antebrazo alineado, la posición más tolerante del tirón.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2025,6 +2223,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho conduce el ascenso con las palmas enfrentadas y el agarre medio, un reparto equilibrado que combina recorrido amplio y comodidad para el hombro."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica con el agarre neutro medio, colaborando en el tirón con la muñeca y el hombro en posición cómoda."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides fijan la escápula con retracción isométrica durante el ascenso neutro medio, sosteniendo la espalda media en un recorrido cómodo para el hombro."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene la línea del tronco colgado con las palmas enfrentadas y el agarre medio, con el cuerpo en línea y sin balanceo durante todo el recorrido."
+                }
+              ],
               "performanceProfileId": "pull_up__neutral__medium",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2046,6 +2262,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre medio, la posición neutra que reparte el tirón entre dorsal, espalda alta y brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2053,6 +2270,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre neutro medio, que fija una rotación equilibrada y un recorrido amable para el conjunto del hombro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2060,6 +2278,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas y el agarre medio, en un recorrido que reparte la demanda entre el brazo y la espalda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2067,6 +2286,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre neutro medio sobre la barra fija, con las palmas enfrentadas y el antebrazo alineado, la posición más tolerante del tirón.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2273,6 +2493,7 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y las manos juntas, un recorrido profundo que acerca los codos al torso y carga el dorsal ancho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2280,6 +2501,7 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La escápula se deprime y rota con el agarre neutro cerrado, que acerca los codos al costado y lleva la rotación escapular a la parte media del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2287,6 +2509,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo se flexiona al subir con las manos juntas y las palmas enfrentadas, con un recorrido amplio que le da un papel claro en la subida del cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2294,6 +2517,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre neutro cerrado sobre la barra fija, con las manos juntas y las palmas enfrentadas, la posición que mejor alinea muñeca y antebrazo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2301,6 +2525,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho trabaja con las palmas enfrentadas y el agarre cerrado, donde los codos viajan pegados al torso y el recorrido del tirón se hace más profundo."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica con el agarre neutro cerrado, donde las manos juntas y las palmas enfrentadas cuidan el antebrazo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica en el tirón neutro cerrado, con las manos juntas y la espalda media trabajando de lleno."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core fija el tronco colgado con el agarre neutro cerrado, donde el cuerpo se acerca a la barra y cualquier balanceo rompe la línea del ascenso."
+                }
+              ],
               "performanceProfileId": "pull_up__neutral__close",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2322,6 +2564,7 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y las manos juntas, un recorrido profundo que acerca los codos al torso y carga el dorsal ancho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2329,6 +2572,7 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La escápula se deprime y rota con el agarre neutro cerrado, que acerca los codos al costado y lleva la rotación escapular a la parte media del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2336,6 +2580,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo se flexiona al subir con las manos juntas y las palmas enfrentadas, con un recorrido amplio que le da un papel claro en la subida del cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2343,6 +2588,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre neutro cerrado sobre la barra fija, con las manos juntas y las palmas enfrentadas, la posición que mejor alinea muñeca y antebrazo.",
                       "role": "STABILIZER"
                     }
                   ],

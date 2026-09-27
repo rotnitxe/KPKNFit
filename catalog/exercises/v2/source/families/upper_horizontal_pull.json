@@ -46,6 +46,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro dirigen la apertura de los brazos con la banda, cuya tensión crece al separar las manos al frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta los omóplatos al separar la banda, y la vuelta libera esa retracción con control bajo tensión elástica.",
                   "role": "PRIMARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo mantiene los brazos levemente doblados mientras la banda se separa, y su tensión variable modula el recorrido del antebrazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene la banda con las muñecas alineadas, y la resistencia elástica exige firmeza en las manos durante la apertura.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,16 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concentra la contracción concéntrica al separar la banda al frente, junta los omóplatos y frena la vuelta con tensión elástica."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide asiste la apertura de los brazos con la banda y controla el frenado excéntrico cuando el elástico recupera longitud hacia el frente."
+                }
+              ],
               "performanceProfileId": "back_band_pull_apart__band__band_pull_apart",
               "primaryMuscles": [
                 "trapezius"
@@ -97,6 +111,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro dirigen la apertura de los brazos con la banda, cuya tensión crece al separar las manos al frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +119,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta los omóplatos al separar la banda, y la vuelta libera esa retracción con control bajo tensión elástica.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,6 +127,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo mantiene los brazos levemente doblados mientras la banda se separa, y su tensión variable modula el recorrido del antebrazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -118,6 +135,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene la banda con las muñecas alineadas, y la resistencia elástica exige firmeza en las manos durante la apertura.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -333,6 +351,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro llevan la banda desde los pies hasta la cintura, con tensión elástica que aumenta al recoger las manos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -340,6 +359,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta los omóplatos al recoger la banda hacia la cintura, y se libera con control cuando los brazos vuelven hacia los pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -347,6 +367,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca las manos a la cintura en cada tirón de la banda, y la extensión controlada devuelve los brazos hacia el anclaje en los pies.",
                   "role": "SECONDARY"
                 },
                 {
@@ -354,6 +375,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre mantiene la banda sujeta con las muñecas alineadas, y la tensión elástica constante exige firmeza en las manos al recogerla.",
                   "role": "STABILIZER"
                 }
               ],
@@ -361,6 +383,28 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "trapezius",
+                  "note": "Principal: El trapecio concéntrico junta los omóplatos al recoger la banda anclada a los pies, y frena la vuelta de los brazos con tensión elástica creciente."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira de las manos hacia la cintura con la banda anclada a los pies, y modera el frenado excéntrico al volver a extender los brazos."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide asiste la extensión del hombro en el recogido de la banda hacia la cintura y controla el frenado excéntrico cuando las manos regresan."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo al recoger la banda hacia la cintura y frena la extensión del brazo en la vuelta, con las piernas extendidas y el tronco sentado."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales sostienen el tronco sentado con las piernas extendidas mientras la banda tira al frente, y ceden con control en el regreso."
+                }
+              ],
               "performanceProfileId": "back_remo_banda__band__remo_en_banda_elastica",
               "primaryMuscles": [
                 "trapezius",
@@ -385,6 +429,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro llevan la banda desde los pies hasta la cintura, con tensión elástica que aumenta al recoger las manos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -392,6 +437,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta los omóplatos al recoger la banda hacia la cintura, y se libera con control cuando los brazos vuelven hacia los pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -399,6 +445,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca las manos a la cintura en cada tirón de la banda, y la extensión controlada devuelve los brazos hacia el anclaje en los pies.",
                       "role": "SECONDARY"
                     },
                     {
@@ -406,6 +453,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre mantiene la banda sujeta con las muñecas alineadas, y la tensión elástica constante exige firmeza en las manos al recogerla.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -626,6 +674,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro elevan cada mancuerna colgante hacia el torso inclinado, en un recorrido alterno que reparte el tirón lado a lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -633,6 +682,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta el omóplato de cada lado al subir la mancuerna desde parado, y se libera al bajar el brazo con el tronco inclinado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -640,6 +690,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca cada mancuerna al torso inclinado, y la extensión progresiva devuelve el brazo a colgar entre un tirón alterno y el siguiente.",
                   "role": "SECONDARY"
                 },
                 {
@@ -647,6 +698,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene cada mancuerna colgante con la muñeca alineada, y el peso libre exige firmeza en las manos en cada tirón alterno.",
                   "role": "STABILIZER"
                 }
               ],
@@ -654,6 +706,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra el tirón de cada mancuerna colgante hacia el torso inclinado, y frena su descenso en la vuelta de los brazos alternados."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo en cada tirón alterno de la mancuerna y controla el frenado excéntrico cuando el brazo vuelve a colgar del tronco inclinado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular de cada tirón alterno con mancuernas y frenan la vuelta del omóplato con el tronco inclinado."
+                }
+              ],
               "performanceProfileId": "back_remo_gorilla__dumbbells",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -677,6 +743,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro elevan cada mancuerna colgante hacia el torso inclinado, en un recorrido alterno que reparte el tirón lado a lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -684,6 +751,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta el omóplato de cada lado al subir la mancuerna desde parado, y se libera al bajar el brazo con el tronco inclinado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -691,6 +759,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca cada mancuerna al torso inclinado, y la extensión progresiva devuelve el brazo a colgar entre un tirón alterno y el siguiente.",
                       "role": "SECONDARY"
                     },
                     {
@@ -698,6 +767,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene cada mancuerna colgante con la muñeca alineada, y el peso libre exige firmeza en las manos en cada tirón alterno.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -903,6 +973,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro elevan cada kettlebell colgante hacia el torso inclinado, y su peso descentrado exige un recorrido alterno firme.",
                   "role": "PRIMARY"
                 },
                 {
@@ -910,6 +981,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta el omóplato al subir cada kettlebell desde parado, y la campana inestable hace que la vuelta demande más control escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -917,6 +989,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca la kettlebell al torso inclinado, y la extensión controlada devuelve la campana a colgar entre un tirón alterno y el siguiente.",
                   "role": "SECONDARY"
                 },
                 {
@@ -924,6 +997,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene la kettlebell con la muñeca firme, pues el asa de la campana y su peso descentrado exigen más antebrazo en cada tirón.",
                   "role": "STABILIZER"
                 }
               ],
@@ -931,6 +1005,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra el tirón de cada kettlebell colgante hacia el torso inclinado, y frena el descenso de la campana en la vuelta alternada."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo en cada tirón alterno de la kettlebell y controla el frenado excéntrico cuando la campana vuelve a colgar del brazo extendido."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular en cada tirón con kettlebell y frenan la vuelta del omóplato bajo la inestabilidad de la campana."
+                }
+              ],
               "performanceProfileId": "back_remo_gorilla__kettlebell",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -954,6 +1042,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro elevan cada kettlebell colgante hacia el torso inclinado, y su peso descentrado exige un recorrido alterno firme.",
                       "role": "PRIMARY"
                     },
                     {
@@ -961,6 +1050,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta el omóplato al subir cada kettlebell desde parado, y la campana inestable hace que la vuelta demande más control escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -968,6 +1058,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca la kettlebell al torso inclinado, y la extensión controlada devuelve la campana a colgar entre un tirón alterno y el siguiente.",
                       "role": "SECONDARY"
                     },
                     {
@@ -975,6 +1066,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene la kettlebell con la muñeca firme, pues el asa de la campana y su peso descentrado exigen más antebrazo en cada tirón.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1180,6 +1272,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro llevan el cable hacia el torso inclinado, y la polea mantiene tensión constante en el recorrido alterno.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1187,6 +1280,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta el omóplato al tirar del cable desde parado, y la tensión constante de la polea hace que la vuelta escape controlada.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1194,6 +1288,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca el cable al torso inclinado, y la extensión progresiva libera el recorrido alterno con tensión constante en ambos brazos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1201,6 +1296,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre mantiene la muñeca alineada con el cable, cuya tensión constante exige un agarre firme durante el tirón alterno completo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1208,6 +1304,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra el tirón de la polea hacia el torso inclinado, con tensión constante que también carga el frenado excéntrico del recorrido alterno."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo en cada tirón alterno de la polea y controla el frenado excéntrico, que la tensión constante mantiene cargado todo el tiempo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular de cada tirón alterno a la polea y frenan la vuelta del omóplato sin puntos muertos de tensión."
+                }
+              ],
               "performanceProfileId": "back_remo_gorilla__cable",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1231,6 +1341,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro llevan el cable hacia el torso inclinado, y la polea mantiene tensión constante en el recorrido alterno.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1238,6 +1349,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta el omóplato al tirar del cable desde parado, y la tensión constante de la polea hace que la vuelta escape controlada.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1245,6 +1357,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca el cable al torso inclinado, y la extensión progresiva libera el recorrido alterno con tensión constante en ambos brazos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1252,6 +1365,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre mantiene la muñeca alineada con el cable, cuya tensión constante exige un agarre firme durante el tirón alterno completo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1483,6 +1597,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro acercan el pecho a la barra fija, con el peso corporal como carga y el cuerpo rígido como palanca horizontal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1490,6 +1605,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta los omóplatos cuando el pecho toca la barra, y se libera con control al descender el cuerpo rígido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1497,6 +1613,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca el pecho a la barra fija, y la extensión controlada devuelve el cuerpo rígido hasta los brazos extendidos bajo ella.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1504,6 +1621,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene el peso corporal colgado de la barra fija, con las muñecas alineadas durante toda la elevación horizontal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1511,6 +1629,28 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra la elevación del pecho hacia la barra fija con el cuerpo rígido, y frena el descenso del peso corporal en la vuelta."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la retracción escapular al acercar el pecho a la barra y controla el frenado excéntrico cuando el cuerpo rígido vuelve a colgar."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide asiste la extensión del hombro en la elevación horizontal del cuerpo y modera el descenso del peso corporal bajo la barra fija."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo para acercar el pecho a la barra y frena la extensión del brazo al descender el cuerpo rígido con el propio peso."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Secundario: Los erectores espinales mantienen el cuerpo rígido y alineado bajo la barra, tanto en la elevación del pecho como en el descenso controlado."
+                }
+              ],
               "performanceProfileId": "back_remo_invertido__bodyweight__remo_invertido",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1534,6 +1674,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro acercan el pecho a la barra fija, con el peso corporal como carga y el cuerpo rígido como palanca horizontal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1541,6 +1682,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta los omóplatos cuando el pecho toca la barra, y se libera con control al descender el cuerpo rígido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1548,6 +1690,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca el pecho a la barra fija, y la extensión controlada devuelve el cuerpo rígido hasta los brazos extendidos bajo ella.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1555,6 +1698,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene el peso corporal colgado de la barra fija, con las muñecas alineadas durante toda la elevación horizontal.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1776,6 +1920,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro elevan la mancuerna hacia el costado en la plancha, con un brazo remando y el otro apoyado sobre su mancuerna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1783,6 +1928,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la mancuerna, y la vuelta ocurre con el tronco negándose a rotar en la plancha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1790,6 +1936,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca la mancuerna al costado en la plancha, y la extensión progresiva la devuelve al suelo sin dejar girar al torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1797,6 +1944,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene la mancuerna que apoya el peso en plancha y la que se tira, con las muñecas firmes frente a la rotación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1804,6 +1952,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra el tirón de una mancuerna hacia el costado en la plancha, y frena su descenso mientras el cuerpo se niega a rotar."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo en el tirón unilateral de la mancuerna y controla el frenado excéntrico al devolverla al suelo desde la posición de plancha."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular del lado que tira de la mancuerna y frenan la vuelta del omóplato con el tronco sostenido en plancha."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene la plancha de forma isométrica y se opone al giro del torso cuando un brazo rema con la mancuerna y el otro apoya el peso corporal."
+                }
+              ],
               "performanceProfileId": "back_remo_renegado__dumbbells",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1827,6 +1993,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro elevan la mancuerna hacia el costado en la plancha, con un brazo remando y el otro apoyado sobre su mancuerna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1834,6 +2001,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la mancuerna, y la vuelta ocurre con el tronco negándose a rotar en la plancha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1841,6 +2009,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca la mancuerna al costado en la plancha, y la extensión progresiva la devuelve al suelo sin dejar girar al torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1848,6 +2017,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene la mancuerna que apoya el peso en plancha y la que se tira, con las muñecas firmes frente a la rotación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2056,6 +2226,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro elevan la kettlebell hacia el costado en la plancha, con la campana desplazada exigiendo un tirón unilateral preciso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2063,6 +2234,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la kettlebell, y la campana inestable hace que la vuelta demande más control escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2070,6 +2242,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca la kettlebell al costado en la plancha, y la extensión controlada devuelve la campana al suelo sin dejar girar al torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2077,6 +2250,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre sostiene las kettlebells que apoyan el peso en plancha y la que se tira, con la muñeca firme frente a la campana.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2084,6 +2258,24 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho concentra el tirón de una kettlebell hacia el costado en la plancha, y frena el descenso de la campana mientras el torso resiste el giro."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps flexiona el codo en el tirón unilateral de la kettlebell y controla el frenado excéntrico al devolver la campana al suelo desde la plancha."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides asisten la retracción escapular del lado que tira de la kettlebell y frenan la vuelta del omóplato con la campana bajo el tronco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene la plancha de forma isométrica sobre las kettlebells, cuya campana baja el centro de gravedad y aumenta la demanda de estabilidad."
+                }
+              ],
               "performanceProfileId": "back_remo_renegado__kettlebell",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2107,6 +2299,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro elevan la kettlebell hacia el costado en la plancha, con la campana desplazada exigiendo un tirón unilateral preciso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2114,6 +2307,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la kettlebell, y la campana inestable hace que la vuelta demande más control escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2121,6 +2315,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca la kettlebell al costado en la plancha, y la extensión controlada devuelve la campana al suelo sin dejar girar al torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2128,6 +2323,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre sostiene las kettlebells que apoyan el peso en plancha y la que se tira, con la muñeca firme frente a la campana.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2362,6 +2558,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La extensión y la aducción del hombro llevan la cuerda hacia la cara abriendo los codos, con la polea manteniendo tensión constante en el regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2369,6 +2566,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La retracción escapular junta los omóplatos cuando las manos alcanzan la altura de las orejas, y la polea exige control al devolver la cuerda.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2376,6 +2574,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: La flexión del codo acerca la cuerda a la cara con los codos abiertos hacia los lados, y la extensión progresiva regresa el cable con tensión constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2383,6 +2582,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La estabilidad del agarre mantiene la cuerda con las muñecas neutras al tirar hacia la cara, y la polea exige firmeza hasta las manos junto a las orejas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2390,6 +2590,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide concentra el tirón de la cuerda hacia la cara abriendo los codos, y frena el regreso con la tensión constante que entrega la polea."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la retracción escapular cuando las manos llegan a la altura de las orejas, y controla el frenado excéntrico hacia la polea."
+                },
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Secundario: El dorsal ancho asiste la extensión del hombro en el tirón de la cuerda hacia la cara y modera el regreso del cable con los codos abiertos."
+                }
+              ],
               "performanceProfileId": "deltoides_face_pull__cable__face_pull",
               "primaryMuscles": [
                 "deltoid"
@@ -2413,6 +2627,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La extensión y la aducción del hombro llevan la cuerda hacia la cara abriendo los codos, con la polea manteniendo tensión constante en el regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2420,6 +2635,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La retracción escapular junta los omóplatos cuando las manos alcanzan la altura de las orejas, y la polea exige control al devolver la cuerda.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2427,6 +2643,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: La flexión del codo acerca la cuerda a la cara con los codos abiertos hacia los lados, y la extensión progresiva regresa el cable con tensión constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2434,6 +2651,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La estabilidad del agarre mantiene la cuerda con las muñecas neutras al tirar hacia la cara, y la polea exige firmeza hasta las manos junto a las orejas.",
                       "role": "STABILIZER"
                     }
                   ],

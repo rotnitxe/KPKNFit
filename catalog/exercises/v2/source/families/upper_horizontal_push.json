@@ -46,6 +46,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: el hombro produce la aducción horizontal y la flexión que bajan el pecho al suelo y luego empujan el torso de vuelta a la tabla con el cuerpo apoyado en manos y pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende en cada repetición y, con la palma plana en el suelo, reparte parte del empuje hacia el antebrazo para que el torso suba recto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: la escápula permanece pegada al torso y controla la retracción mientras el pecho se acerca al suelo, con el peso repartido entre las dos manos.",
                   "role": "STABILIZER"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca trabaja en extensión con la palma apoyada y traslada el peso de los brazos al talón de la mano, sin que los codos se abran hacia fuera.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,24 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: es el motor del patrón de empuje; conduce la aducción horizontal y la flexión del hombro que bajan y suben el torso con el apoyo plano de manos y pies."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en cada empuje y acompaña al pectoral con una contribución real, menor que la del hombro, sobre todo al final del recorrido."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: asiste la aducción horizontal del hombro y comparte la carga del empuje en la parte alta, cuando los brazos devuelven el torso a la tabla."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene las costillas y la pelvis alineadas en la línea de tabla, de modo que el peso no se hunda en la zona lumbar durante el recorrido."
+                }
+              ],
               "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
               "primaryMuscles": [
                 "pectoralis"
@@ -97,6 +119,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: el hombro produce la aducción horizontal y la flexión que bajan el pecho al suelo y luego empujan el torso de vuelta a la tabla con el cuerpo apoyado en manos y pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +127,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende en cada repetición y, con la palma plana en el suelo, reparte parte del empuje hacia el antebrazo para que el torso suba recto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,6 +135,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: la escápula permanece pegada al torso y controla la retracción mientras el pecho se acerca al suelo, con el peso repartido entre las dos manos.",
                       "role": "STABILIZER"
                     },
                     {
@@ -118,6 +143,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca trabaja en extensión con la palma apoyada y traslada el peso de los brazos al talón de la mano, sin que los codos se abran hacia fuera.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -326,6 +352,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con los pies en alto el hombro recorre más distancia entre la mano y el suelo, así que la aducción horizontal y la flexión se exigen en un ángulo más abierto que en el apoyo plano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -333,6 +360,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende acortando la distancia entre la mano apoyada y el pecho alto, que es el punto hacia el que se desplaza la carga con el cuerpo inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -340,6 +368,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: al bajar el pecho con los pies elevados la escápula tiende a abrirse, y esta articulación la mantiene organizada contra el torso para que el hombro reciba la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -347,6 +376,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sigue en extensión sobre el suelo, pero al inclinarse el torso la carga sobre el talón de la mano aumenta y la muñeca tiene que fijarse.",
                   "role": "STABILIZER"
                 }
               ],
@@ -354,6 +384,24 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: con el torso inclinado por los pies elevados la parte alta del pectoral recibe la mayor parte del empuje y dirige la aducción horizontal del gesto."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo para alejar el pecho de la mano en un recorrido más largo, así que su contribución crece respecto al apoyo plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: acompaña la flexión y la aducción del hombro en un ángulo más abierto, donde tiene que mantener el brazo organizado durante todo el empuje."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: sostiene la línea recta desde el talón elevado hasta la cabeza, que en esta variante exige más tensión de tronco por la inclinación del cuerpo."
+                }
+              ],
               "performanceProfileId": "push_up__bodyweight__flexiones_de_brazos",
               "primaryMuscles": [
                 "pectoralis"
@@ -377,6 +425,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con los pies en alto el hombro recorre más distancia entre la mano y el suelo, así que la aducción horizontal y la flexión se exigen en un ángulo más abierto que en el apoyo plano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -384,6 +433,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende acortando la distancia entre la mano apoyada y el pecho alto, que es el punto hacia el que se desplaza la carga con el cuerpo inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -391,6 +441,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: al bajar el pecho con los pies elevados la escápula tiende a abrirse, y esta articulación la mantiene organizada contra el torso para que el hombro reciba la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -398,6 +449,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sigue en extensión sobre el suelo, pero al inclinarse el torso la carga sobre el talón de la mano aumenta y la muñeca tiene que fijarse.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -589,6 +641,372 @@
         ]
       },
       {
+        "canonicalName": "Flexiones con Rodillas Apoyadas",
+        "configurations": [
+          {
+            "displaySummary": "Peso Corporal",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "proposal:.opencode/orchestration/wizard-feedback-resume-20260926-ses_f2efb28a7ffe/T-037-r1/proposal.json#knee_push_up",
+                "reference:nasm.org/resource-center/exercise-library/modified-push-up"
+              ],
+              "rationale": "Estado APROVED propuesto para el corte: la aprobación del usuario es de alcance (los dos movimientos), no una revisión técnica humana de este copy. Copy de propuesta editorial asistida por máquina a la espera de aprobación del orquestador.",
+              "reviewStatus": "APPROVED"
+            },
+            "id": "knee_push_up__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "benefits": [
+                "El pectoral y el tríceps trabajan con el peso corporal repartido entre manos y rodillas, sin barra, mancuernas, banda ni máquina.",
+                "El deltoide anterior asiste la aducción horizontal del hombro y acompaña al pectoral en la parte alta del recorrido."
+              ],
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-08-12-a",
+              "cnc": 3.0,
+              "commonMistakes": [
+                "Dejar caer la cadera o subir la cola, de modo que el peso se vaya a las rodillas y el pecho deje de participar."
+              ],
+              "description": "Con las rodillas y las manos apoyadas en el suelo, el torso baja y sube con el empuje de los brazos mientras la cadera queda suspendida entre rodillas y hombros. La palma abierta apoya el peso de la muñeca y el codo queda a unos 45 grados del tronco, así que cada bajada tiene la misma lentitud. El pecho se acerca al suelo sin tocarlo y vuelve sin rebotar, con la línea recta de la rodilla a la cabeza como única referencia.",
+              "efc": 3.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera."
+              ],
+              "fatigueTier": "ALTA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "note": "Principal: produce la aducción horizontal y la flexión del hombro que empujan el torso hacia arriba contra la gravedad.",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "note": "Secundaria: extiende el codo en cada repetición y acompaña al hombro sin llegar a ser el motor principal del gesto.",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Retracción Y Estabilidad Escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: mantiene la escápula pegada al torso y controla la retracción mientras el pecho se acerca al suelo.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad En Extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "note": "Estabilizadora: con la palma apoyada en el suelo la muñeca trabaja en extensión y reparte el peso de los brazos hacia las manos.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad"
+                  ],
+                  "jointId": "rodilla",
+                  "note": "Estabilizadora: recibe parte del peso corporal junto a las manos y equilibra la carga del empuje entre los dos apoyos.",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "cadera",
+                  "note": "Estabilizadora: sostiene la línea entre los hombros y las rodillas de forma isométrica durante todo el recorrido.",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "bodyweight",
+              "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: conduce la aducción horizontal y la flexión del hombro que bajan y suben el torso, y es el motor del patrón de empuje."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en cada empuje y acompaña al pectoral con una contribución real, menor que la del hombro."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: asiste la aducción horizontal del hombro y comparte la carga del empuje en la parte alta del recorrido, sobre todo al extender los brazos."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene las costillas y la pelvis alineadas mientras las rodillas asumen parte de la carga, por eso suma 0.4 y no una serie completa."
+                }
+              ],
+              "performanceProfileId": "knee_push_up__bodyweight__flexiones_con_rodillas_apoyadas",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción Horizontal",
+                    "Flexión Del Hombro",
+                    "Extensión",
+                    "Retracción Y Estabilidad Escapular",
+                    "Estabilidad En Extensión",
+                    "Estabilidad"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción Horizontal",
+                        "Flexión Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "note": "Principal: produce la aducción horizontal y la flexión del hombro que empujan el torso hacia arriba contra la gravedad.",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "note": "Secundaria: extiende el codo en cada repetición y acompaña al hombro sin llegar a ser el motor principal del gesto.",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción Y Estabilidad Escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: mantiene la escápula pegada al torso y controla la retracción mientras el pecho se acerca al suelo.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad En Extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "note": "Estabilizadora: con la palma apoyada en el suelo la muñeca trabaja en extensión y reparte el peso de los brazos hacia las manos.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad"
+                      ],
+                      "jointId": "rodilla",
+                      "note": "Estabilizadora: recibe parte del peso corporal junto a las manos y equilibra la carga del empuje entre los dos apoyos.",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "cadera",
+                      "note": "Estabilizadora: sostiene la línea entre los hombros y las rodillas de forma isométrica durante todo el recorrido.",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "muscleLengthBias": "mixed_controlled",
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizationDemand": "high",
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
+                  "targetRegions": [
+                    "pectoralis"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "horizontal_push",
+                  "rangeOfMotion": "controlled_full_available",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca",
+                    "rodilla",
+                    "cadera"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "coaching": {
+                  "commonMistakes": [
+                    "Dejar caer la cadera o subir la cola, de modo que el peso se vaya a las rodillas y el pecho deje de participar."
+                  ],
+                  "cues": [
+                    "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera."
+                  ],
+                  "execution": [
+                    "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera."
+                  ],
+                  "progressions": [
+                    "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
+                  ],
+                  "regressions": [
+                    "Reducir la carga o el rango y conservar empuje del brazo y extensión del codo como referencia técnica."
+                  ],
+                  "relevantMobility": [
+                    "Movilidad de hombro según tolerancia y rango disponible.",
+                    "Movilidad de codo según tolerancia y rango disponible.",
+                    "Movilidad de rodilla y cadera según tolerancia y rango disponible."
+                  ],
+                  "setup": [
+                    "Preparación: Rodillas en el suelo, manos algo más abiertas que los hombros y una línea recta desde la rodilla hasta la cabeza."
+                  ]
+                },
+                "display": {
+                  "displayName": "Flexiones con Rodillas Apoyadas",
+                  "displaySummary": "Peso Corporal",
+                  "selectedOptions": {}
+                },
+                "editorial": {
+                  "benefits": [
+                    "El pectoral y el tríceps trabajan con el peso corporal repartido entre manos y rodillas, sin barra, mancuernas, banda ni máquina.",
+                    "El deltoide anterior asiste la aducción horizontal del hombro y acompaña al pectoral en la parte alta del recorrido."
+                  ],
+                  "description": "Con las rodillas y las manos apoyadas en el suelo, el torso baja y sube con el empuje de los brazos mientras la cadera queda suspendida entre rodillas y hombros. La palma abierta apoya el peso de la muñeca y el codo queda a unos 45 grados del tronco, así que cada bajada tiene la misma lentitud. El pecho se acerca al suelo sin tocarlo y vuelve sin rebotar, con la línea recta de la rodilla a la cabeza como única referencia.",
+                  "technique": "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera.",
+                  "variantRationale": "El apoyo en las rodillas reparte el peso corporal con las manos y acorta la palanca, de modo que el empuje horizontal se practica con menos carga y con el mismo patrón de la flexión completa."
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 3.0,
+                  "efc": 3.5,
+                  "ssc": 0.35,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Flexiones con Rodillas Apoyadas",
+                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "configurationId": "knee_push_up__default",
+                  "definitionId": "knee_push_up",
+                  "familyId": "upper_horizontal_push",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "knee_push_up__bodyweight__flexiones_con_rodillas_apoyadas",
+                  "searchTerms": [
+                    "flexiones con rodillas apoyadas",
+                    "flexiones de rodillas",
+                    "flexiones en el suelo de rodillas",
+                    "modified push up",
+                    "push up de rodillas"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "objectives": [
+                    "Desarrollar el pectoral mediante Flexiones con Rodillas Apoyadas en la variante Peso Corporal.",
+                    "Priorizar aprender el patrón de empuje con el propio peso y progresar en repeticiones limpias antes de cargar."
+                  ],
+                  "recoveryCost": "high",
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "primary_compound",
+                  "setupTransitionCost": "low",
+                  "splitSuitability": [
+                    "full_body",
+                    "upper_lower"
+                  ],
+                  "suitableRepRanges": [
+                    "8-15",
+                    "12-20"
+                  ]
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "Conserva empuje del brazo y extensión del codo y el objetivo de el pectoral.",
+                    "La sustitución debe respetar las articulaciones relevantes: hombro, codo, articulación escapulotorácica, rodilla, cadera."
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                },
+                "safety": {
+                  "medicalDisclaimerRequired": false,
+                  "precautions": [
+                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
+                  ],
+                  "risks": [
+                    "La cadera hundida saca el peso de la línea recta y carga la zona lumbar en lugar del pecho."
+                  ]
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Preparación: Rodillas en el suelo, manos algo más abiertas que los hombros y una línea recta desde la rodilla hasta la cabeza."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.35,
+              "stabilizerMuscles": [
+                "core"
+              ],
+              "technicalDifficulty": 4.0,
+              "techniqueSummary": "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera.",
+              "ttc": 1.8,
+              "variantRationale": "El apoyo en las rodillas reparte el peso corporal con las manos y acorta la palanca, de modo que el empuje horizontal se practica con menos carga y con el mismo patrón de la flexión completa."
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "knee_push_up__default",
+        "description": "Las Flexiones con Rodillas Apoyadas (modified push-up) son la versión de las flexiones de brazos en la que las rodillas descansan en el suelo y el torso se mueve entre las rodillas y la cabeza: mismo empuje horizontal de pectoral, deltoide anterior y tríceps, con menos carga sobre los brazos. La línea recta de la rodilla a la cabeza es la referencia, y el pecho baja hasta cerca del suelo antes de volver a subir. Es la forma de entrada al empuje con el peso corporal cuando la flexión completa todavía no es posible con técnica limpia, y por eso se trabaja con muchas repeticiones y sin carga externa.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "proposal:.opencode/orchestration/wizard-feedback-resume-20260926-ses_f2efb28a7ffe/T-037-r1/proposal.json#knee_push_up",
+            "reference:nasm.org/resource-center/exercise-library/modified-push-up"
+          ],
+          "rationale": "Estado APROVED propuesto para el corte: la aprobación del usuario es de alcance (los dos movimientos), no una revisión técnica humana de este copy. Copy de propuesta editorial asistida por máquina a la espera de aprobación del orquestador.",
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_horizontal_push",
+        "id": "knee_push_up",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "flexiones con rodillas apoyadas",
+          "flexiones de rodillas",
+          "flexiones en el suelo de rodillas",
+          "modified push up",
+          "push up de rodillas"
+        ]
+      },
+      {
         "canonicalName": "Cruce de Poleas",
         "configurations": [
           {
@@ -631,6 +1049,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con la polea alta la tracción llega desde arriba, así que el hombro ejecuta la aducción horizontal y la flexión con la línea de fuerza descendente sobre la parte baja del pectoral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -638,6 +1057,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo mantiene una flexión suave mientras las manos viajan desde arriba hasta juntarse frente al pecho, y la extensión final cierra el abrazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -645,6 +1065,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: la escápula acompaña el recorrido de las manos que parten de arriba e impide que el hombro se adelante al final del abrazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -652,6 +1073,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene el agarre de la polea alta durante todo el arco, con la carga repartida entre las dos manos en la posición elevada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -659,6 +1081,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: la polea alta concentra la tracción sobre la parte baja del pectoral y ese es el motor de la aducción horizontal que lleva las manos a juntarse."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: asiste la aducción y la flexión del hombro y mantiene el brazo ordenado mientras la línea de tracción baja desde arriba."
+                }
+              ],
               "performanceProfileId": "tren_superior_cruce_poleas__high",
               "primaryMuscles": [
                 "pectoralis"
@@ -682,6 +1114,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con la polea alta la tracción llega desde arriba, así que el hombro ejecuta la aducción horizontal y la flexión con la línea de fuerza descendente sobre la parte baja del pectoral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -689,6 +1122,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo mantiene una flexión suave mientras las manos viajan desde arriba hasta juntarse frente al pecho, y la extensión final cierra el abrazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -696,6 +1130,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: la escápula acompaña el recorrido de las manos que parten de arriba e impide que el hombro se adelante al final del abrazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -703,6 +1138,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene el agarre de la polea alta durante todo el arco, con la carga repartida entre las dos manos en la posición elevada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -906,6 +1342,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con la polea al centro la tracción es casi horizontal, así que el hombro ejecuta la aducción horizontal y la flexión repartidas por todo el pectoral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -913,6 +1350,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo conserva la flexión que impone la maquinaria mientras las manos cruzan y se juntan, y extiende al final para completar el abrazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -920,6 +1358,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: en la altura media la escápula acompaña el cierre sin adelantarse, manteniendo el hombro nivelado durante todo el cruce.",
                   "role": "STABILIZER"
                 },
                 {
@@ -927,6 +1366,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene el agarre a media altura con la misma tensión constante, sin perder el contacto mientras las manos se aproximan.",
                   "role": "STABILIZER"
                 }
               ],
@@ -934,6 +1374,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: la línea de tracción horizontal reparte el trabajo por todo el pectoral y ese es el motor del cruce desde la altura media de la polea."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: acompaña la aducción y la flexión del hombro en la línea más neutra, con menor participación que en la polea alta o baja."
+                }
+              ],
               "performanceProfileId": "tren_superior_cruce_poleas__mid",
               "primaryMuscles": [
                 "pectoralis"
@@ -957,6 +1407,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con la polea al centro la tracción es casi horizontal, así que el hombro ejecuta la aducción horizontal y la flexión repartidas por todo el pectoral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -964,6 +1415,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo conserva la flexión que impone la maquinaria mientras las manos cruzan y se juntan, y extiende al final para completar el abrazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -971,6 +1423,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: en la altura media la escápula acompaña el cierre sin adelantarse, manteniendo el hombro nivelado durante todo el cruce.",
                       "role": "STABILIZER"
                     },
                     {
@@ -978,6 +1431,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene el agarre a media altura con la misma tensión constante, sin perder el contacto mientras las manos se aproximan.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1181,6 +1635,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con la polea abajo la tracción nace desde el suelo y el hombro trabaja la aducción horizontal y la flexión con la línea de fuerza ascendente sobre la parte alta del pectoral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1188,6 +1643,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo mantiene la flexión propia de la maquinaria baja y extiende al final, con las manos elevándose hasta juntarse por delante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1195,6 +1651,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: al subir las manos desde abajo la escápula tiende a elevarse, y esta articulación la mantiene baja y estable contra el torso.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1202,6 +1659,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca mantiene el agarre en la polea baja durante todo el recorrido, con la carga dividida entre las dos manos al inicio.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1209,6 +1667,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: la tracción ascendente de la polea baja hace que la parte alta del pectoral conduzca la aducción horizontal del cruce."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: participa en la flexión y la aducción del hombro mientras las manos suben desde abajo, con una línea de fuerza más vertical que en la polea media."
+                }
+              ],
               "performanceProfileId": "tren_superior_cruce_poleas__low",
               "primaryMuscles": [
                 "pectoralis"
@@ -1232,6 +1700,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con la polea abajo la tracción nace desde el suelo y el hombro trabaja la aducción horizontal y la flexión con la línea de fuerza ascendente sobre la parte alta del pectoral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1239,6 +1708,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo mantiene la flexión propia de la maquinaria baja y extiende al final, con las manos elevándose hasta juntarse por delante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1246,6 +1716,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: al subir las manos desde abajo la escápula tiende a elevarse, y esta articulación la mantiene baja y estable contra el torso.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1253,6 +1724,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca mantiene el agarre en la polea baja durante todo el recorrido, con la carga dividida entre las dos manos al inicio.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1485,6 +1957,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: entre paralelas el hombro ejecuta la aducción horizontal y la flexión que bajan el cuerpo entre las barras y la extensión que devuelve el torso arriba.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1492,6 +1965,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende al final de cada repetición y es el que acorta la distancia entre los hombros y las barras en la subida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1499,6 +1973,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: con los brazos en las paralelas la escápula tiene que extenderse y controlarse para que el hombro llegue alineado al punto más bajo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1506,6 +1981,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene el peso del cuerpo sobre las barras en extensión, y el agarre recto reparte la carga entre los dos brazos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1513,6 +1989,24 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el peso corporal suspendido entre las barras hace que el pectoral conduzca la aducción horizontal y la flexión del hombro en toda la bajada."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo para elevar el cuerpo entre las barras, con una contribución real porque la carga es el propio peso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: asiste la flexión y la aducción del hombro y limita la apertura de los codos en el punto más bajo entre las paralelas."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: mantiene el torso agrupado y la pelvis quieta mientras el cuerpo sube y baja, evitando que se balancee entre las barras."
+                }
+              ],
               "performanceProfileId": "tren_superior_fondos__bodyweight__fondos",
               "primaryMuscles": [
                 "pectoralis"
@@ -1536,6 +2030,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: entre paralelas el hombro ejecuta la aducción horizontal y la flexión que bajan el cuerpo entre las barras y la extensión que devuelve el torso arriba.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1543,6 +2038,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende al final de cada repetición y es el que acorta la distancia entre los hombros y las barras en la subida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1550,6 +2046,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: con los brazos en las paralelas la escápula tiene que extenderse y controlarse para que el hombro llegue alineado al punto más bajo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1557,6 +2054,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene el peso del cuerpo sobre las barras en extensión, y el agarre recto reparte la carga entre los dos brazos.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1786,6 +2284,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: acostado en el banco el hombro trabaja la aducción horizontal y la flexión contra la barra, con las cadenas aumentando la resistencia justo al final del empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1793,6 +2292,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende contra la barra mientras la carga aumenta al subir, así que la parte alta del recorrido es la más exigente para el brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1800,6 +2300,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: el respaldo del banco descarga la espalda, pero la escápula sigue siendo la que fija el hombro contra la mesa durante todo el press.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1807,6 +2308,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene la barra en extensión mientras las cadenas se descargan al llegar arriba, y ese cambio de carga es lo que define esta variante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1814,6 +2316,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: las cadenas hacen crecer la resistencia justo en la extensión final, así que el pectoral recibe la parte del press donde más se contrae."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: acompaña la flexión y la aducción del hombro en la salida, con más carga que en un press sin cadenas por la resistencia adicional del recorrido."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo contra la barra y es especialmente exigida en el tramo final, donde las cadenas ya suman su peso completo."
+                }
+              ],
               "performanceProfileId": "tren_superior_press_banca_cadenas__barbell__press_de_banca_con_cadenas",
               "primaryMuscles": [
                 "pectoralis"
@@ -1837,6 +2353,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: acostado en el banco el hombro trabaja la aducción horizontal y la flexión contra la barra, con las cadenas aumentando la resistencia justo al final del empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1844,6 +2361,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende contra la barra mientras la carga aumenta al subir, así que la parte alta del recorrido es la más exigente para el brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1851,6 +2369,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: el respaldo del banco descarga la espalda, pero la escápula sigue siendo la que fija el hombro contra la mesa durante todo el press.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1858,6 +2377,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene la barra en extensión mientras las cadenas se descargan al llegar arriba, y ese cambio de carga es lo que define esta variante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2067,7 +2587,7 @@
               "efc": 3.2,
               "equipmentId": "band",
               "executionCues": [
-                "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
@@ -2077,6 +2597,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con la banda alrededor de la espalda y sujeta en las dos manos, el hombro trabaja la aducción horizontal y la flexión mientras la resistencia de la banda crece hasta el final del empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2084,6 +2605,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende mientras la banda se estira más arriba, de modo que la contribución del brazo crece justo en la parte alta del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2091,6 +2613,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: la escápula acompaña el empuje y mantiene el torso firme para repartir el esfuerzo entre los dos brazos mientras la banda tira desde atrás, el mismo control que hace falta tumbado o de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2098,6 +2621,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene cada extremo de la banda en extensión con la banda ya estirada, repartiendo el tirón entre las dos manos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2105,6 +2629,20 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral lleva el empuje horizontal y trabaja en la parte del recorrido en la que la banda ofrece más resistencia, hacia el final de la extensión."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: asiste la flexión y la aducción del hombro mientras la banda aumenta la carga hacia la posición final."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en el mismo recorrido horizontal del press, con una resistencia que aumenta según se estira la banda."
+                }
+              ],
               "performanceProfileId": "tren_superior_press_banda_resistencia__band__press_con_banda_de_resistencia",
               "primaryMuscles": [
                 "pectoralis"
@@ -2128,6 +2666,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con la banda alrededor de la espalda y sujeta en las dos manos, el hombro trabaja la aducción horizontal y la flexión mientras la resistencia de la banda crece hasta el final del empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2135,6 +2674,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende mientras la banda se estira más arriba, de modo que la contribución del brazo crece justo en la parte alta del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2142,6 +2682,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: la escápula acompaña el empuje y mantiene el torso firme para repartir el esfuerzo entre los dos brazos mientras la banda tira desde atrás, el mismo control que hace falta tumbado o de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2149,6 +2690,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene cada extremo de la banda en extensión con la banda ya estirada, repartiendo el tirón entre las dos manos.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2189,10 +2731,10 @@
                     "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
                   ],
                   "cues": [
-                    "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                    "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control."
                   ],
                   "execution": [
-                    "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                    "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control."
                   ],
                   "progressions": [
                     "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
@@ -2205,7 +2747,7 @@
                     "Movilidad de codo según tolerancia y rango disponible."
                   ],
                   "setup": [
-                    "Preparación: Bandas atadas a la barra: tensión extra arriba, justo donde empujas más."
+                    "Preparación: La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco."
                   ]
                 },
                 "display": {
@@ -2219,8 +2761,8 @@
                     "El press de viaje y de calentamiento, siempre listo en la mochila."
                   ],
                   "description": "Con banda elástica, la banda a la espalda aporta una tensión que crece hasta el final del empuje. El pectoral trabaja con la banda, cuya resistencia crece con el recorrido.",
-                  "technique": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable."
+                  "technique": "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control.",
+                  "variantRationale": "La diferencia de esta variante es el tipo de resistencia: no es fija, la banda ofrece menos tensión al inicio del empuje y más a medida que se estira, de modo que el final del recorrido es donde más resistencia ofrece. La dificultad se regula con la banda o con la separación de las manos, sin añadir material."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2294,15 +2836,15 @@
                 "triceps"
               ],
               "setupCues": [
-                "Preparación: Bandas atadas a la barra: tensión extra arriba, justo donde empujas más."
+                "Preparación: La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
+              "techniqueSummary": "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control.",
               "ttc": 2.0,
-              "variantRationale": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable."
+              "variantRationale": "La diferencia de esta variante es el tipo de resistencia: no es fija, la banda ofrece menos tensión al inicio del empuje y más a medida que se estira, de modo que el final del recorrido es donde más resistencia ofrece. La dificultad se regula con la banda o con la separación de las manos, sin añadir material."
             },
             "selectedOptions": {}
           }
@@ -2368,6 +2910,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: en la máquina convergente los brazos siguen el arco del pecho, así que el hombro ejecuta la aducción horizontal y la flexión con trayectoria fija.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2375,6 +2918,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende a lo largo del recorrido guiado y acompaña al hombro sin que la máquina obligue a cambiar la posición de los codos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2382,6 +2926,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: el respaldo mantiene la espalda fija y la escápula se organiza contra ese apoyo mientras las palas convergen.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2389,6 +2934,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca apoya en las palas de la máquina y sólo tiene que sostener la trayectoria, no el peso del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2396,6 +2942,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: la convergencia de la máquina lleva las manos a juntarse por delante y ese recorrido guiado es el que conduce el trabajo del pectoral."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: acompaña la aducción y la flexión del hombro en un arco cerrado que no obliga a abrir los codos."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en la parte final del recorrido, con menos libertad de trayectoria que en una barra libre."
+                }
+              ],
               "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
               "primaryMuscles": [
                 "pectoralis"
@@ -2419,6 +2979,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: en la máquina convergente los brazos siguen el arco del pecho, así que el hombro ejecuta la aducción horizontal y la flexión con trayectoria fija.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2426,6 +2987,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende a lo largo del recorrido guiado y acompaña al hombro sin que la máquina obligue a cambiar la posición de los codos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2433,6 +2995,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: el respaldo mantiene la espalda fija y la escápula se organiza contra ese apoyo mientras las palas convergen.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2440,6 +3003,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca apoya en las palas de la máquina y sólo tiene que sostener la trayectoria, no el peso del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2663,6 +3227,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con la pausa a unos centímetros del pecho el hombro mantiene la aducción horizontal y la flexión en el punto más cerrado antes de empujar.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2670,6 +3235,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo queda flexionado durante la pausa y extiende con fuerza al reanudar el empuje, sin rebote.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2677,6 +3243,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: la escápula permanece retraída contra el banco mientras la barra se detiene, para que el pecho no se levante antes de tiempo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2684,6 +3251,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene la barra en extensión durante la pausa, con la mano apoyada en la empuñadura y el antebrazo alineado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2691,6 +3259,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: la pausa elimina el impulso y obliga al pectoral a repetir la parte difícil del recorrido, la que ocurre cerca del pecho."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: participa en la flexión y la aducción del hombro al reanudar la barra, después de la pausa sin rebote."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo desde la posición de pausa, por lo que su contribución se concentra en la salida de cada repetición."
+                }
+              ],
               "performanceProfileId": "tren_superior_press_spoto_barra__barbell__press_spoto_con_barra",
               "primaryMuscles": [
                 "pectoralis"
@@ -2714,6 +3296,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con la pausa a unos centímetros del pecho el hombro mantiene la aducción horizontal y la flexión en el punto más cerrado antes de empujar.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2721,6 +3304,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo queda flexionado durante la pausa y extiende con fuerza al reanudar el empuje, sin rebote.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2728,6 +3312,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: la escápula permanece retraída contra el banco mientras la barra se detiene, para que el pecho no se levante antes de tiempo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2735,6 +3320,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene la barra en extensión durante la pausa, con la mano apoyada en la empuñadura y el antebrazo alineado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2954,6 +3540,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: de pie junto a la polea un solo hombro ejecuta la aducción horizontal y la flexión contra el cable, y el otro acompaña sin ser el motor del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2961,6 +3548,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo del lado que trabaja extiende contra la tensión constante del cable, mientras el otro brazo sólo equilibra el torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2968,6 +3556,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: con un solo brazo la escápula del lado que empuja se mantiene retraída y la del lado libre compensa para que el torso no gire.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2975,6 +3564,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sujeta el agarre individual de la polea y permanece en extensión durante toda la aducción, con tensión continua.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2982,6 +3572,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: el pectoral del lado que empuja contra la polea es el motor de la aducción horizontal, y el del otro lado sólo estabiliza el torso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: asiste la flexión y la aducción del hombro en el brazo que trabaja, y compensa la falta de apoyo del lado contrario."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en el brazo que empuja y, al ser unilateral, el trabajo se concentra en un solo lado sin repartirse."
+                }
+              ],
               "performanceProfileId": "tren_superior_press_unilateral_polea__cable__press_unilateral_en_polea",
               "primaryMuscles": [
                 "pectoralis"
@@ -3005,6 +3609,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: de pie junto a la polea un solo hombro ejecuta la aducción horizontal y la flexión contra el cable, y el otro acompaña sin ser el motor del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3012,6 +3617,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo del lado que trabaja extiende contra la tensión constante del cable, mientras el otro brazo sólo equilibra el torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3019,6 +3625,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: con un solo brazo la escápula del lado que empuja se mantiene retraída y la del lado libre compensa para que el torso no gire.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3026,6 +3633,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sujeta el agarre individual de la polea y permanece en extensión durante toda la aducción, con tensión continua.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3243,6 +3851,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con las mancuernas apretadas una contra otra el hombro conserva la aducción horizontal y la flexión, y además debe impedir que los brazos se separen.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3250,6 +3859,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende manteniendo el contacto entre las mancuernas, así que la presión de una contra otra es lo que guía la salida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3257,6 +3867,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: la escápula permanece contra el banco mientras los brazos empujan juntos y las mancuernas se tocan entre sí.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3264,6 +3875,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca sostiene cada mancuerna en extensión durante todo el empuje y la posición neutra de las manos no se pierde al apretarlas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3271,6 +3883,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: apretar las mancuernas una contra otra mantiene la contracción del pectoral durante toda la repetición y refuerza la sensación del press plano."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: acompaña la flexión y la aducción del hombro en el press plano, con las manos neutras por el apretón entre las mancuernas."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en cada repetición manteniendo el apretón, que le obliga a controlar la trayectoria de los dos brazos a la vez."
+                }
+              ],
               "performanceProfileId": "tren_superior_squeeze_press_mancuernas__dumbbells__squeeze_press_con_mancuernas",
               "primaryMuscles": [
                 "pectoralis"
@@ -3294,6 +3920,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con las mancuernas apretadas una contra otra el hombro conserva la aducción horizontal y la flexión, y además debe impedir que los brazos se separen.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3301,6 +3928,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende manteniendo el contacto entre las mancuernas, así que la presión de una contra otra es lo que guía la salida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3308,6 +3936,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: la escápula permanece contra el banco mientras los brazos empujan juntos y las mancuernas se tocan entre sí.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3315,6 +3944,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca sostiene cada mancuerna en extensión durante todo el empuje y la posición neutra de las manos no se pierde al apretarlas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3532,6 +4162,7 @@
                     "Flexión Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: con el respaldo inclinado el hombro trabaja la aducción horizontal y la flexión con las manos por encima de la cabeza, lo que desplaza la carga al pectoral alto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3539,6 +4170,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: el codo extiende siguiendo el arco de las palas, con las manos más arriba que en la máquina plana y sin libertad de trayectoria.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3546,6 +4178,7 @@
                     "Retracción Y Estabilidad Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Estabilizadora: el respaldo inclinado sostiene la espalda, pero la escápula tiene que mantenerse organizada mientras las palas suben por encima del pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3553,6 +4186,7 @@
                     "Estabilidad En Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: la muñeca apoya en las palas y sólo transmite la fuerza del aparato, sin cargar el peso del cuerpo como en un press libre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3560,6 +4194,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_push",
+              "muscleNotes": [
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Principal: la inclinación del respaldo hace que la parte alta del pectoral reciba la convergencia de las palas en esta máquina."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: participa en la flexión y la aducción del hombro con las manos elevadas, con más presencia que en la versión plana del aparato."
+                },
+                {
+                  "muscleId": "triceps",
+                  "note": "Secundario: extiende el codo en el tramo alto del recorrido, con la trayectoria completamente determinada por el aparato."
+                }
+              ],
               "performanceProfileId": "tren_superior_press_pecho_maquina_convergente__machine__press_de_pecho_en_maquina_convergente",
               "primaryMuscles": [
                 "pectoralis"
@@ -3583,6 +4231,7 @@
                         "Flexión Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: con el respaldo inclinado el hombro trabaja la aducción horizontal y la flexión con las manos por encima de la cabeza, lo que desplaza la carga al pectoral alto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3590,6 +4239,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: el codo extiende siguiendo el arco de las palas, con las manos más arriba que en la máquina plana y sin libertad de trayectoria.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3597,6 +4247,7 @@
                         "Retracción Y Estabilidad Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Estabilizadora: el respaldo inclinado sostiene la espalda, pero la escápula tiene que mantenerse organizada mientras las palas suben por encima del pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3604,6 +4255,7 @@
                         "Estabilidad En Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: la muñeca apoya en las palas y sólo transmite la fuerza del aparato, sin cargar el peso del cuerpo como en un press libre.",
                       "role": "STABILIZER"
                     }
                   ],

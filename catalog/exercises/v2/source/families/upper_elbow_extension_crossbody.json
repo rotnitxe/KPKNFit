@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se abre en la bajada diagonal desde la polea alta mientras las dos manos cruzan el cuerpo y el brazo superior guía la trayectoria.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro dirige el cruce del brazo hacia el lado contrario con la polea alta, que tira desde arriba mientras las manos viajan en diagonal.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca guía la tracción de la polea alta en diagonal con el antebrazo alineado, sin doblarse al cruzar el cuerpo con las dos manos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la polea alta y las dos manos, el tríceps extiende los codos en diagonal hacia el lado contrario, con tensión constante en todo el arco del recorrido."
+                }
+              ],
               "performanceProfileId": "crossbody_triceps__cable__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -86,6 +95,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se abre en la bajada diagonal desde la polea alta mientras las dos manos cruzan el cuerpo y el brazo superior guía la trayectoria.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro dirige el cruce del brazo hacia el lado contrario con la polea alta, que tira desde arriba mientras las manos viajan en diagonal.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca guía la tracción de la polea alta en diagonal con el antebrazo alineado, sin doblarse al cruzar el cuerpo con las dos manos.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -294,6 +306,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo se abre cruzando el cuerpo contra la polea alta con una sola mano, sin que el hombro comparta el trabajo de la extensión del brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -301,6 +314,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro del brazo que trabaja acompaña el recorrido diagonal desde la polea alta mientras el otro brazo queda fuera del movimiento y no ayuda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -308,6 +322,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea el antebrazo con la tracción de la polea alta al cruzar el cuerpo con una mano, sin desviarse al final del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -315,6 +330,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la polea alta y una sola mano, el tríceps extiende el codo cruzando el cuerpo hacia el lado contrario, con el esfuerzo centrado en un único brazo."
+                }
+              ],
               "performanceProfileId": "crossbody_triceps__cable__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -335,6 +356,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo se abre cruzando el cuerpo contra la polea alta con una sola mano, sin que el hombro comparta el trabajo de la extensión del brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -342,6 +364,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro del brazo que trabaja acompaña el recorrido diagonal desde la polea alta mientras el otro brazo queda fuera del movimiento y no ayuda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -349,6 +372,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea el antebrazo con la tracción de la polea alta al cruzar el cuerpo con una mano, sin desviarse al final del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],

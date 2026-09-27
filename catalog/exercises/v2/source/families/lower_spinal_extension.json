@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se extiende al subir el torso con las piernas fijas en el soporte y vuelve a flexionar de forma gradual al descender.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera extiende el tronco con las piernas bloqueadas en el soporte de la máquina, que concentra el esfuerzo en el tramo final de la subida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras el torso baja y sube sobre la máquina, con las piernas fijas en el soporte.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "spinal_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: En la máquina de hiperextensiones con las piernas fijas en el soporte, los erectores espinales elevan el torso y frenan su descenso de forma gradual."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor extiende la cadera al subir el torso sobre el soporte de piernas y ayuda a frenar el descenso con la trayectoria guiada por la máquina."
+                }
+              ],
               "performanceProfileId": "back_extension_lumbar__machine__extension_lumbar",
               "primaryMuscles": [
                 "erector_spinae"
@@ -85,6 +98,7 @@
                         "Extensión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se extiende al subir el torso con las piernas fijas en el soporte y vuelve a flexionar de forma gradual al descender.",
                       "role": "PRIMARY"
                     },
                     {
@@ -92,6 +106,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera extiende el tronco con las piernas bloqueadas en el soporte de la máquina, que concentra el esfuerzo en el tramo final de la subida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -99,6 +114,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras el torso baja y sube sobre la máquina, con las piernas fijas en el soporte.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -316,6 +332,7 @@
                     "Extensión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se extiende al elevar el tronco del suelo con los brazos extendidos y desciende de forma gradual hacia el apoyo corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -323,6 +340,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera se extiende al elevar las piernas del suelo con el tronco boca abajo y sostiene la posición suspendida del cuerpo sobre el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -330,6 +348,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico con el cuerpo boca abajo, mientras brazos y piernas se elevan a la vez desde el suelo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -337,6 +356,20 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "spinal_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: Con el peso corporal boca abajo en el suelo, los erectores espinales elevan el tronco de forma concéntrica y sostienen la posición con los brazos extendidos."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor eleva la cadera extendida del suelo junto con las piernas y sostiene la postura cuando brazos y piernas quedan suspendidos en el aire."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales elevan las piernas extendidas desde el suelo y colaboran en sostenerlas, con el peso corporal como única carga del ejercicio."
+                }
+              ],
               "performanceProfileId": "back_superman_suelo__bodyweight__superman_en_suelo",
               "primaryMuscles": [
                 "erector_spinae"
@@ -356,6 +389,7 @@
                         "Extensión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se extiende al elevar el tronco del suelo con los brazos extendidos y desciende de forma gradual hacia el apoyo corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -363,6 +397,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera se extiende al elevar las piernas del suelo con el tronco boca abajo y sostiene la posición suspendida del cuerpo sobre el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -370,6 +405,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico con el cuerpo boca abajo, mientras brazos y piernas se elevan a la vez desde el suelo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -585,6 +621,7 @@
                     "Extensión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La columna lumbar se extiende al subir el torso con la barra en los codos sobre el banco a 45, y frena el descenso hasta el borde del soporte.",
                   "role": "PRIMARY"
                 },
                 {
@@ -592,6 +629,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera actúa como pivote del torso sobre el banco inclinado a 45, con la barra sujeta entre los brazos y el descenso hacia el suelo muy gradual.",
                   "role": "SECONDARY"
                 },
                 {
@@ -599,6 +637,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras el torso pivota sobre las caderas con la barra cargada en el hueco de los codos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -606,6 +645,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Principal: Con la barra sujeta en el hueco de los codos sobre el banco a 45, los erectores espinales elevan el torso y frenan el descenso hacia el suelo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica con la barra cargada en los codos, cuya posición adelantada exige estabilidad frontal durante la subida."
+                }
+              ],
               "performanceProfileId": "back_hiperextension_45_zercher_espalda_baja",
               "primaryMuscles": [
                 "erector_spinae"
@@ -625,6 +674,7 @@
                         "Extensión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La columna lumbar se extiende al subir el torso con la barra en los codos sobre el banco a 45, y frena el descenso hasta el borde del soporte.",
                       "role": "PRIMARY"
                     },
                     {
@@ -632,6 +682,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera actúa como pivote del torso sobre el banco inclinado a 45, con la barra sujeta entre los brazos y el descenso hacia el suelo muy gradual.",
                       "role": "SECONDARY"
                     },
                     {
@@ -639,6 +690,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras el torso pivota sobre las caderas con la barra cargada en el hueco de los codos.",
                       "role": "STABILIZER"
                     }
                   ],

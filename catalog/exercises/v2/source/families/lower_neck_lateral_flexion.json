@@ -45,6 +45,7 @@
                     "Flexión, Extensión O Inclinación"
                   ],
                   "jointId": "columna-cervical",
+                  "note": "Principal: La columna cervical inclina la cabeza de lado contra el disco sobre el lateral de la cabeza, de pie o tumbado, en un arco corto y sin girar el rostro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Base Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras el disco pesa sobre el lateral de la cabeza, de pie o tumbado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -59,6 +61,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "neck_lateral_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "neck",
+                  "note": "Principal: Los laterales del cuello inclinan la cabeza hacia cada lado contra el disco apoyado en el lateral, acortándose de forma concéntrica en un trabajo bilateral."
+                }
+              ],
               "performanceProfileId": "neck_flexion_lateral_cuello__plate__flexion_lateral_de_cuello",
               "primaryMuscles": [
                 "neck"
@@ -78,6 +86,7 @@
                         "Flexión, Extensión O Inclinación"
                       ],
                       "jointId": "columna-cervical",
+                      "note": "Principal: La columna cervical inclina la cabeza de lado contra el disco sobre el lateral de la cabeza, de pie o tumbado, en un arco corto y sin girar el rostro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -85,6 +94,7 @@
                         "Base Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras el disco pesa sobre el lateral de la cabeza, de pie o tumbado.",
                       "role": "STABILIZER"
                     }
                   ],

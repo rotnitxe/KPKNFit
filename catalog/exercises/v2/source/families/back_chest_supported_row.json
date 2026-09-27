@@ -46,6 +46,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra cada mancuerna de agarre amplio; la carga libre obliga a cada brazo a sostener su trayectoria propia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,6 +54,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular al cerrar cada tirón con mancuernas; el apoyo torácico impide que el tronco compense y deja la escápula trabajar sola.",
                   "role": "PRIMARY"
                 },
                 {
@@ -60,6 +62,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo para llevar las mancuernas al torso con agarre amplio; el recorrido es corto y la carga libre exige controlar cada brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -67,6 +70,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre de cada mancuerna en línea con el antebrazo mientras la carga libre tira de forma independiente en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -74,6 +78,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho aporta la concéntrica del tirón con mancuernas de agarre amplio y frena la excéntrica mientras el pecho permanece apoyado en el banco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en el tirón con las mancuernas de agarre amplio, cuando los codos se abren, y controla el descenso de la carga sin despegar el pecho."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides ayuda a extender el hombro con las mancuernas abiertas y modula la vuelta excéntrica de cada brazo con el pecho bien apoyado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen en isométrico la escápula mientras las mancuernas de agarre amplio empujan los codos hacia fuera en cada repetición."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene en isométrico la flexión de codo que estabiliza el agarre amplio de las mancuernas durante todo el recorrido del tirón."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__dumbbells__wide__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -97,6 +123,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra cada mancuerna de agarre amplio; la carga libre obliga a cada brazo a sostener su trayectoria propia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -104,6 +131,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular al cerrar cada tirón con mancuernas; el apoyo torácico impide que el tronco compense y deja la escápula trabajar sola.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,6 +139,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo para llevar las mancuernas al torso con agarre amplio; el recorrido es corto y la carga libre exige controlar cada brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -118,6 +147,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre de cada mancuerna en línea con el antebrazo mientras la carga libre tira de forma independiente en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -328,6 +358,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro con kettlebells de agarre amplio, con el peso colgado del agarre marcando la dirección del tirón.",
                   "role": "PRIMARY"
                 },
                 {
@@ -335,6 +366,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular en el cierre con kettlebells; el apoyo torácico descarga el tronco y la carga colgada prolonga el control escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -342,6 +374,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que eleva cada kettlebell con agarre amplio; el peso colgado del agarre hace corto el recorrido de los codos abiertos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -349,6 +382,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre de cada kettlebell con la carga colgando del lado externo de la mano durante todo el recorrido del tirón.",
                   "role": "STABILIZER"
                 }
               ],
@@ -356,6 +390,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige la concéntrica del tirón con kettlebells de agarre amplio y frena la excéntrica del peso colgado con el pecho apoyado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en el tirón con las kettlebells abiertas y sostiene el control de la carga en el descenso sin despegar el pecho del banco."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides ayuda a extender el hombro con el agarre amplio y regula la vuelta del peso colgado bajo cada mano durante la fase excéntrica."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides mantienen en isométrico la escápula mientras el agarre amplio de las kettlebells mantiene los codos separados del torso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene en isométrico la flexión de codo que fija el agarre amplio de cada kettlebell mientras el peso cuelga de la mano."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__kettlebell__wide__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -379,6 +435,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro con kettlebells de agarre amplio, con el peso colgado del agarre marcando la dirección del tirón.",
                       "role": "PRIMARY"
                     },
                     {
@@ -386,6 +443,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular en el cierre con kettlebells; el apoyo torácico descarga el tronco y la carga colgada prolonga el control escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -393,6 +451,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que eleva cada kettlebell con agarre amplio; el peso colgado del agarre hace corto el recorrido de los codos abiertos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -400,6 +459,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre de cada kettlebell con la carga colgando del lado externo de la mano durante todo el recorrido del tirón.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -610,6 +670,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro en el arco guiado de la máquina; las asas de agarre amplio fijan la línea de tracción y el hombro la respeta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -617,6 +678,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular al final del recorrido guiado de la máquina; el apoyo torácico fija el tronco y la estación dirige la escápula.",
                   "role": "PRIMARY"
                 },
                 {
@@ -624,6 +686,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo en el arco guiado de la máquina de agarre amplio; las asas mantienen la apertura mientras los codos se doblan.",
                   "role": "SECONDARY"
                 },
                 {
@@ -631,6 +694,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene la estabilidad del agarre sobre las asas de la máquina, que fijan la posición de la mano a lo largo del arco guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -638,6 +702,28 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho impulsa la concéntrica en el recorrido guiado de la máquina y frena la excéntrica con el pecho apoyado y agarre amplio."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste el tirón en la máquina de agarre amplio y controla la vuelta de las asas a lo largo del arco fijo que marca la estación."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides colabora en la extensión del hombro con las asas abiertas de la máquina y modera el retorno guiado hacia la posición inicial."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen en isométrico la escápula mientras la máquina guía las asas de agarre amplio lejos del plano del torso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene en isométrico la flexión de codo sobre las asas de agarre amplio de la máquina durante todo el arco del tirón."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__machine__wide__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -661,6 +747,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro en el arco guiado de la máquina; las asas de agarre amplio fijan la línea de tracción y el hombro la respeta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -668,6 +755,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular al final del recorrido guiado de la máquina; el apoyo torácico fija el tronco y la estación dirige la escápula.",
                       "role": "PRIMARY"
                     },
                     {
@@ -675,6 +763,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo en el arco guiado de la máquina de agarre amplio; las asas mantienen la apertura mientras los codos se doblan.",
                       "role": "SECONDARY"
                     },
                     {
@@ -682,6 +771,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene la estabilidad del agarre sobre las asas de la máquina, que fijan la posición de la mano a lo largo del arco guiado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -892,6 +982,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra el cable de la polea alta; la tracción entra por arriba con los codos abiertos y el pecho apoyado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -899,6 +990,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular contra el cable de la polea alta; el apoyo torácico mantiene el tronco quieto mientras la tracción llega desde arriba.",
                   "role": "PRIMARY"
                 },
                 {
@@ -906,6 +998,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que acerca el agarre amplio al torso desde la polea alta; el cable mantiene tensión en la flexión y en la vuelta.",
                   "role": "SECONDARY"
                 },
                 {
@@ -913,6 +1006,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre amplio del cable de la polea alta, que tira de forma continua y exige estabilidad en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -920,6 +1014,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige la concéntrica con la polea alta y agarre amplio y frena la excéntrica mientras el cable mantiene tensión con el pecho apoyado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en el tirón descendente de la polea alta con los codos abiertos y controla la vuelta del cable sin despegar el pecho."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides ayuda a extender el hombro contra el cable de la polea alta y modera el retorno con los codos abiertos y el pecho apoyado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen en isométrico la escápula mientras el cable de la polea alta tira hacia abajo con los codos separados del torso."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene en isométrico la flexión de codo sobre el agarre amplio mientras la polea alta tira de forma continua de cada mano."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -943,6 +1059,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra el cable de la polea alta; la tracción entra por arriba con los codos abiertos y el pecho apoyado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -950,6 +1067,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular contra el cable de la polea alta; el apoyo torácico mantiene el tronco quieto mientras la tracción llega desde arriba.",
                       "role": "PRIMARY"
                     },
                     {
@@ -957,6 +1075,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que acerca el agarre amplio al torso desde la polea alta; el cable mantiene tensión en la flexión y en la vuelta.",
                       "role": "SECONDARY"
                     },
                     {
@@ -964,6 +1083,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre amplio del cable de la polea alta, que tira de forma continua y exige estabilidad en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1176,6 +1296,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro en la línea horizontal de la polea media, con los codos abiertos y el pecho fijo sobre el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1183,6 +1304,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular en la línea horizontal de la polea media; el apoyo torácico deja que la escápula complete el cierre sin ayuda del tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1190,6 +1312,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo en la tracción horizontal de la polea media; el agarre amplio mantiene los codos abiertos durante la flexión completa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1197,6 +1320,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el agarre amplio frente a la tracción horizontal de la polea media, con tensión constante del cable en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1204,6 +1328,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho impulsa la concéntrica contra la polea media de agarre amplio y frena la excéntrica del cable con el pecho fijo en el banco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la tracción horizontal de la polea media con los codos abiertos y modula el retorno del cable bajo el apoyo torácico."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides colabora en la extensión del hombro en la línea horizontal de la polea media y sostiene la vuelta con el agarre amplio."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides mantienen en isométrico la escápula mientras la polea media tira en horizontal y el agarre amplio abre los codos."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps sostiene en isométrico la flexión de codo en el agarre amplio mientras el cable de la polea media tira sin pausa de cada mano."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1227,6 +1373,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro en la línea horizontal de la polea media, con los codos abiertos y el pecho fijo sobre el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1234,6 +1381,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular en la línea horizontal de la polea media; el apoyo torácico deja que la escápula complete el cierre sin ayuda del tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1241,6 +1389,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo en la tracción horizontal de la polea media; el agarre amplio mantiene los codos abiertos durante la flexión completa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1248,6 +1397,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el agarre amplio frente a la tracción horizontal de la polea media, con tensión constante del cable en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1460,6 +1610,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra la tracción ascendente de la polea baja, con los codos separados y el pecho apoyado en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1467,6 +1618,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular contra la tracción de la polea baja; el apoyo torácico mantiene el torso fijo mientras la carga asciende hacia el pecho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1474,6 +1626,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que sube el agarre amplio desde la polea baja; la carga asciende mientras los codos permanecen separados del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1481,6 +1634,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre amplio frente a la polea baja, donde el cable asciende y mantiene tensión sobre la mano en todo momento.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1488,6 +1642,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira en la concéntrica desde la polea baja con agarre amplio y frena la excéntrica mientras la carga asciende y el pecho permanece apoyado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en la tracción ascendente de la polea baja con los codos abiertos y controla el descenso del cable sobre el apoyo torácico."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoides ayuda a extender el hombro contra la línea ascendente de la polea baja y modera la vuelta con los codos separados del cuerpo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Estabilizador: Los romboides sostienen en isométrico la escápula mientras la polea baja tira desde abajo y el agarre amplio mantiene los codos fuera."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Estabilizador: El bíceps mantiene en isométrico la flexión de codo sobre el agarre amplio mientras la polea baja eleva la carga hacia el torso."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__wide__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1511,6 +1687,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra la tracción ascendente de la polea baja, con los codos separados y el pecho apoyado en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1518,6 +1695,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular contra la tracción de la polea baja; el apoyo torácico mantiene el torso fijo mientras la carga asciende hacia el pecho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1525,6 +1703,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que sube el agarre amplio desde la polea baja; la carga asciende mientras los codos permanecen separados del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1532,6 +1711,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre amplio frente a la polea baja, donde el cable asciende y mantiene tensión sobre la mano en todo momento.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1744,6 +1924,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra cada mancuerna de agarre medio; la carga libre reparte el trabajo entre ambos lados del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1751,6 +1932,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular al cerrar el tirón con mancuernas de agarre medio; el apoyo torácico impide que el tronco compense el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1758,6 +1940,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo para llevar las mancuernas al torso con agarre medio; la apertura moderada reparte la flexión entre ambos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1765,6 +1948,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre de cada mancuerna de apertura media en línea con el antebrazo, con la carga libre equilibrando cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1772,6 +1956,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho conduce la concéntrica con mancuernas de agarre medio y frena la excéntrica de cada brazo mientras el pecho permanece apoyado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en el tirón con mancuernas de apertura moderada y controla la vuelta de la carga sin perder el contacto del pecho con el banco."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a cerrar la escápula en la concéntrica con mancuernas de agarre medio y acompañan el retorno controlado del recorrido."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que acerca cada mancuerna al torso y frena el peso en la bajada con el agarre medio bien sostenido."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro mientras las mancuernas de agarre medio viajan con el pecho apoyado en el banco."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__dumbbells__medium__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1795,6 +2001,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra cada mancuerna de agarre medio; la carga libre reparte el trabajo entre ambos lados del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1802,6 +2009,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular al cerrar el tirón con mancuernas de agarre medio; el apoyo torácico impide que el tronco compense el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1809,6 +2017,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo para llevar las mancuernas al torso con agarre medio; la apertura moderada reparte la flexión entre ambos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1816,6 +2025,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre de cada mancuerna de apertura media en línea con el antebrazo, con la carga libre equilibrando cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2026,6 +2236,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro con kettlebells de agarre medio, con el peso desplazado del agarre exigiendo control del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2033,6 +2244,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular en el tirón con kettlebells de agarre medio; el apoyo torácico descarga el tronco mientras el peso cuelga de cada mano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2040,6 +2252,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que eleva la kettlebell hacia el torso con agarre medio; el peso desplazado del agarre acompaña toda la flexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2047,6 +2260,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca organiza el agarre de cada kettlebell, con el peso desplazado bajo la mano, durante todo el recorrido del tirón.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2054,6 +2268,28 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige la concéntrica con kettlebells de agarre medio y frena la excéntrica del peso colgado con el pecho apoyado en el banco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en el tirón con apertura moderada de codos y regula la vuelta de las kettlebells bajo el apoyo torácico constante."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a aproximar las escápulas en cada tirón con kettlebell y frenan el retorno del peso colgado del agarre medio."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que eleva la kettlebell hacia el torso y sostiene el peso desplazado bajo la mano en el descenso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro mientras las kettlebells de agarre medio cuelgan de las manos y el pecho permanece apoyado."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__kettlebell__medium__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2077,6 +2313,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro con kettlebells de agarre medio, con el peso desplazado del agarre exigiendo control del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2084,6 +2321,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular en el tirón con kettlebells de agarre medio; el apoyo torácico descarga el tronco mientras el peso cuelga de cada mano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2091,6 +2329,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que eleva la kettlebell hacia el torso con agarre medio; el peso desplazado del agarre acompaña toda la flexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2098,6 +2337,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca organiza el agarre de cada kettlebell, con el peso desplazado bajo la mano, durante todo el recorrido del tirón.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2308,6 +2548,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro en el recorrido guiado de la máquina; las asas de agarre medio marcan una apertura intermedia de codos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2315,6 +2556,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular al final del arco guiado de la máquina; el apoyo torácico fija el torso y la escápula cierra en cada repetición.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2322,6 +2564,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo sobre las asas de agarre medio de la máquina; el recorrido guiado mantiene la apertura mientras los codos se doblan.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2329,6 +2572,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene la estabilidad del agarre sobre las asas de la máquina, cuyo arco guiado fija la posición de la mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2336,6 +2580,28 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho impulsa la concéntrica en el recorrido guiado de la máquina y frena la excéntrica con agarre medio y el pecho apoyado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste el tirón en la máquina de agarre medio y controla el retorno de las asas a lo largo del arco fijo de la estación."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a cerrar la escápula en el tirón de la máquina y acompañan la vuelta guiada de las asas hacia la extensión del brazo."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo sobre las asas de agarre medio de la máquina y frena el retorno a lo largo del recorrido guiado."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro mientras la máquina mueve las asas de agarre medio con el pecho fijo en el apoyo."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__machine__medium__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2359,6 +2625,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro en el recorrido guiado de la máquina; las asas de agarre medio marcan una apertura intermedia de codos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2366,6 +2633,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular al final del arco guiado de la máquina; el apoyo torácico fija el torso y la escápula cierra en cada repetición.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2373,6 +2641,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo sobre las asas de agarre medio de la máquina; el recorrido guiado mantiene la apertura mientras los codos se doblan.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2380,6 +2649,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene la estabilidad del agarre sobre las asas de la máquina, cuyo arco guiado fija la posición de la mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2590,6 +2860,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra el cable de la polea alta; la tracción desciende sobre el hombro con una apertura moderada de codos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2597,6 +2868,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular contra el cable de la polea alta de agarre medio; el apoyo torácico mantiene el tronco fijo durante todo el tirón.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2604,6 +2876,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que acerca el agarre medio al torso desde la polea alta; el cable tira con tensión continua durante la flexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2611,6 +2884,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre medio del cable de la polea alta, que tira desde arriba sin perder tensión durante la vuelta.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2618,6 +2892,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige la concéntrica desde la polea alta con agarre medio y frena la excéntrica del cable con el pecho apoyado en el banco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en el tirón descendente de la polea alta con apertura moderada de codos y controla la vuelta del cable bajo el apoyo."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a retraer la escápula en la tracción desde la polea alta y frenan el retorno con el agarre medio bien sostenido."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo en el agarre medio mientras la polea alta tira de forma continua hacia el torso apoyado."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides sostiene en isométrico el hombro mientras la polea alta tira desde arriba y el pecho permanece en contacto con el banco."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__medium__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2641,6 +2937,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra el cable de la polea alta; la tracción desciende sobre el hombro con una apertura moderada de codos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2648,6 +2945,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular contra el cable de la polea alta de agarre medio; el apoyo torácico mantiene el tronco fijo durante todo el tirón.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2655,6 +2953,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que acerca el agarre medio al torso desde la polea alta; el cable tira con tensión continua durante la flexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2662,6 +2961,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre medio del cable de la polea alta, que tira desde arriba sin perder tensión durante la vuelta.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2874,6 +3174,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro en la línea horizontal de la polea media, con apertura moderada de codos y el pecho fijo en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2881,6 +3182,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular en la línea horizontal de la polea media; el apoyo torácico deja cerrar la escápula sin balanceo del tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2888,6 +3190,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo en la tracción horizontal de la polea media; el agarre medio lleva los codos en una diagonal intermedia al doblarse.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2895,6 +3198,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el agarre medio frente a la tracción horizontal de la polea media, con tensión continua del cable en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2902,6 +3206,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho impulsa la concéntrica contra la polea media de agarre medio y frena la excéntrica del cable bajo el apoyo torácico."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en la tracción horizontal de la polea media con apertura moderada de codos y regula el retorno del cable."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a aproximar las escápulas en la línea horizontal de la polea media y frenan la vuelta del agarre medio."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que acerca el agarre medio al torso mientras la polea media mantiene tensión en todo el recorrido."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro frente al tirón horizontal de la polea media con el pecho fijo sobre el banco."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__medium__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2925,6 +3251,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro en la línea horizontal de la polea media, con apertura moderada de codos y el pecho fijo en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2932,6 +3259,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular en la línea horizontal de la polea media; el apoyo torácico deja cerrar la escápula sin balanceo del tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2939,6 +3267,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo en la tracción horizontal de la polea media; el agarre medio lleva los codos en una diagonal intermedia al doblarse.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2946,6 +3275,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el agarre medio frente a la tracción horizontal de la polea media, con tensión continua del cable en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3158,6 +3488,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra la tracción que asciende desde la polea baja, con los codos en una diagonal intermedia de recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3165,6 +3496,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular contra la tracción ascendente de la polea baja; el apoyo torácico sostiene el torso mientras la carga sube al pecho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3172,6 +3504,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que sube el agarre medio desde la polea baja; la tracción asciende mientras los codos recorren su diagonal.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3179,6 +3512,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre medio frente a la polea baja, donde el cable asciende y mantiene viva la tensión sobre cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3186,6 +3520,28 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira en la concéntrica desde la polea baja con agarre medio y frena la excéntrica de la carga que asciende hacia el torso."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora en la tracción ascendente de la polea baja con apertura moderada y controla el descenso del cable con el pecho apoyado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a cerrar la escápula contra la línea ascendente de la polea baja y acompañan el retorno del agarre medio."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que sube el agarre medio desde la polea baja y frena la vuelta del cable hacia la extensión."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides sostiene en isométrico el hombro mientras la polea baja tira desde abajo y el pecho permanece apoyado en el banco."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__medium__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -3209,6 +3565,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra la tracción que asciende desde la polea baja, con los codos en una diagonal intermedia de recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3216,6 +3573,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular contra la tracción ascendente de la polea baja; el apoyo torácico sostiene el torso mientras la carga sube al pecho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3223,6 +3581,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que sube el agarre medio desde la polea baja; la tracción asciende mientras los codos recorren su diagonal.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3230,6 +3589,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre medio frente a la polea baja, donde el cable asciende y mantiene viva la tensión sobre cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3442,6 +3802,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra cada mancuerna de agarre cerrado, con los codos cerca del costado y la carga libre equilibrando cada brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3449,6 +3810,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular al cerrar el tirón de mancuernas de agarre cerrado; el apoyo torácico impide que el tronco compense el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3456,6 +3818,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que lleva cada mancuerna cerca del costado con agarre cerrado; la carga libre acompaña la flexión de ambos brazos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3463,6 +3826,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre cerrado de cada mancuerna en línea con el antebrazo mientras la carga libre viaja junto al costado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3470,6 +3834,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho conduce la concéntrica con mancuernas de agarre cerrado, con los codos al costado, y frena la excéntrica con el pecho apoyado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a cerrar la escápula en el tirón de agarre cerrado con mancuernas y acompañan el retorno controlado de cada brazo."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que acerca cada mancuerna al costado y frena el peso en la bajada con el pecho apoyado en el banco."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro mientras las mancuernas de agarre cerrado viajan junto al torso con el pecho apoyado."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__dumbbells__close__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -3493,6 +3875,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra cada mancuerna de agarre cerrado, con los codos cerca del costado y la carga libre equilibrando cada brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3500,6 +3883,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular al cerrar el tirón de mancuernas de agarre cerrado; el apoyo torácico impide que el tronco compense el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3507,6 +3891,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que lleva cada mancuerna cerca del costado con agarre cerrado; la carga libre acompaña la flexión de ambos brazos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3514,6 +3899,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre cerrado de cada mancuerna en línea con el antebrazo mientras la carga libre viaja junto al costado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3722,6 +4108,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro con kettlebells de agarre cerrado; el peso colgado del agarre acompaña la línea de tracción junto al costado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3729,6 +4116,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular en el tirón cerrado con kettlebells; el apoyo torácico descarga el tronco mientras el peso acompaña el cierre escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3736,6 +4124,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que eleva la kettlebell junto al costado con agarre cerrado; el peso colgado del agarre prolonga la flexión del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3743,6 +4132,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca organiza el agarre cerrado de cada kettlebell, con el peso colgando bajo la mano, en cada repetición del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3750,6 +4140,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige la concéntrica con kettlebells de agarre cerrado y frena la excéntrica del peso colgado con los codos junto al torso."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a aproximar las escápulas en el tirón cerrado con kettlebell y frenan el retorno del peso bajo cada mano."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que eleva la kettlebell cerca del costado y sostiene el peso desplazado del agarre en el descenso."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro mientras las kettlebells de agarre cerrado cuelgan de las manos junto al costado."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__kettlebell__close__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -3773,6 +4181,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro con kettlebells de agarre cerrado; el peso colgado del agarre acompaña la línea de tracción junto al costado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3780,6 +4189,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular en el tirón cerrado con kettlebells; el apoyo torácico descarga el tronco mientras el peso acompaña el cierre escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3787,6 +4197,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que eleva la kettlebell junto al costado con agarre cerrado; el peso colgado del agarre prolonga la flexión del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3794,6 +4205,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca organiza el agarre cerrado de cada kettlebell, con el peso colgando bajo la mano, en cada repetición del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4002,6 +4414,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro en el recorrido guiado de la máquina; las asas de agarre cerrado mantienen los codos pegados al torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4009,6 +4422,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular al final del recorrido guiado de la máquina; el apoyo torácico fija el torso y las asas cerradas dirigen el cierre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4016,6 +4430,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo sobre las asas de agarre cerrado de la máquina; el recorrido guiado mantiene los codos pegados al torso al doblarse.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4023,6 +4438,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene la estabilidad del agarre cerrado sobre las asas de la máquina a lo largo de todo el arco guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4030,6 +4446,24 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho impulsa la concéntrica en el recorrido guiado de la máquina y frena la excéntrica con agarre cerrado y el pecho apoyado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a retraer la escápula en el tirón cerrado de la máquina y acompañan la vuelta guiada de las asas hacia la extensión."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo sobre las asas de agarre cerrado de la máquina y frena el retorno a lo largo del recorrido guiado."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides sostiene en isométrico el hombro mientras la máquina guía las asas de agarre cerrado con el pecho fijo en el apoyo."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__machine__close__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -4053,6 +4487,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro en el recorrido guiado de la máquina; las asas de agarre cerrado mantienen los codos pegados al torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4060,6 +4495,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular al final del recorrido guiado de la máquina; el apoyo torácico fija el torso y las asas cerradas dirigen el cierre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4067,6 +4503,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo sobre las asas de agarre cerrado de la máquina; el recorrido guiado mantiene los codos pegados al torso al doblarse.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4074,6 +4511,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene la estabilidad del agarre cerrado sobre las asas de la máquina a lo largo de todo el arco guiado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4282,6 +4720,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra el cable de la polea alta; la tracción desciende con los codos junto al costado y el pecho apoyado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4289,6 +4728,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular contra el cable de la polea alta de agarre cerrado; el apoyo torácico mantiene el tronco quieto en cada repetición.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4296,6 +4736,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que recoge el agarre cerrado al costado desde la polea alta; el cable mantiene la tensión en toda la flexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4303,6 +4744,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre cerrado del cable de la polea alta, que tira de forma continua hacia abajo en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4310,6 +4752,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho dirige la concéntrica desde la polea alta con agarre cerrado y frena la excéntrica del cable con los codos junto al costado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a cerrar la escápula en la tracción descendente de la polea alta y frenan la vuelta del cable con el pecho apoyado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que lleva el agarre cerrado al costado mientras la polea alta tira de forma continua desde arriba."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro frente al tirón de la polea alta con el pecho apoyado y los codos cerca del torso."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__close__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -4333,6 +4793,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra el cable de la polea alta; la tracción desciende con los codos junto al costado y el pecho apoyado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4340,6 +4801,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular contra el cable de la polea alta de agarre cerrado; el apoyo torácico mantiene el tronco quieto en cada repetición.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4347,6 +4809,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que recoge el agarre cerrado al costado desde la polea alta; el cable mantiene la tensión en toda la flexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4354,6 +4817,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre cerrado del cable de la polea alta, que tira de forma continua hacia abajo en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4564,6 +5028,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro en la línea horizontal de la polea media, con los codos recogidos y el pecho fijo sobre el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4571,6 +5036,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular en la línea horizontal de la polea media; el apoyo torácico deja que la escápula cierre con los codos recogidos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4578,6 +5044,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que lleva el agarre cerrado hacia la cintura en la línea de la polea media; el cable acompaña toda la flexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4585,6 +5052,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca mantiene el agarre cerrado frente a la tracción horizontal de la polea media, con tensión constante del cable.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4592,6 +5060,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho impulsa la concéntrica contra la polea media de agarre cerrado y frena la excéntrica del cable con el pecho apoyado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a aproximar las escápulas en la línea horizontal de la polea media y controlan el retorno del agarre cerrado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que recoge el agarre cerrado hacia la cintura mientras la polea media mantiene la tensión del cable."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides sostiene en isométrico el hombro durante el tirón horizontal de la polea media con el pecho fijo sobre el banco."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__close__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -4615,6 +5101,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro en la línea horizontal de la polea media, con los codos recogidos y el pecho fijo sobre el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4622,6 +5109,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular en la línea horizontal de la polea media; el apoyo torácico deja que la escápula cierre con los codos recogidos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4629,6 +5117,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que lleva el agarre cerrado hacia la cintura en la línea de la polea media; el cable acompaña toda la flexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4636,6 +5125,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca mantiene el agarre cerrado frente a la tracción horizontal de la polea media, con tensión constante del cable.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4846,6 +5336,7 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: Extensión y aducción del hombro contra la tracción ascendente de la polea baja, con los codos cerca del costado y el pecho apoyado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4853,6 +5344,7 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: Retracción escapular contra la tracción ascendente de la polea baja; el apoyo torácico fija el torso mientras las manos suben al costado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4860,6 +5352,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: Flexión de codo que sube el agarre cerrado desde la polea baja hacia el costado; la tracción asciende durante toda la flexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4867,6 +5360,7 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el agarre cerrado frente a la polea baja, donde el cable asciende y mantiene tensión sobre cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4874,6 +5368,24 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: El dorsal ancho tira en la concéntrica desde la polea baja con agarre cerrado y frena la excéntrica de la carga que asciende al costado."
+                },
+                {
+                  "muscleId": "rhomboids",
+                  "note": "Secundario: Los romboides ayudan a retraer la escápula contra la línea ascendente de la polea baja y acompañan la vuelta del agarre cerrado."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión de codo que sube el agarre cerrado desde la polea baja hacia el costado; la tracción asciende durante la flexión."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Estabilizador: El deltoides mantiene en isométrico el hombro mientras la polea baja tira desde abajo y el pecho permanece en contacto con el banco."
+                }
+              ],
               "performanceProfileId": "chest_supported_row__cable__close__remo_pecho_apoyado",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -4897,6 +5409,7 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: Extensión y aducción del hombro contra la tracción ascendente de la polea baja, con los codos cerca del costado y el pecho apoyado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4904,6 +5417,7 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: Retracción escapular contra la tracción ascendente de la polea baja; el apoyo torácico fija el torso mientras las manos suben al costado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4911,6 +5425,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: Flexión de codo que sube el agarre cerrado desde la polea baja hacia el costado; la tracción asciende durante toda la flexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4918,6 +5433,7 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el agarre cerrado frente a la polea baja, donde el cable asciende y mantiene tensión sobre cada mano.",
                       "role": "STABILIZER"
                     }
                   ],

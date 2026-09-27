@@ -45,6 +45,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral en el descenso vertical, con la barra entre las piernas y el pie trasero en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra a horcajadas y el pie trasero sobre el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en el descenso asimétrico, con la barra entre las piernas y el pie trasero elevado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra entre las piernas y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant_asymmetric",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena el descenso vertical con la barra entre las piernas y el pie trasero elevado en el banco, y extiende la rodilla al subir."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores ayudan a dirigir la rodilla delantera en la postura a horcajadas, con la barra entre las piernas y el pie trasero apoyado en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor de la pierna delantera ayuda a extender la cadera al subir, con la barra entre las piernas y el descenso vertical concentrado en ese lado."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
               "primaryMuscles": [
                 "quadriceps"
@@ -94,6 +112,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral en el descenso vertical, con la barra entre las piernas y el pie trasero en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +120,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra a horcajadas y el pie trasero sobre el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -108,6 +128,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en el descenso asimétrico, con la barra entre las piernas y el pie trasero elevado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +136,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra entre las piernas y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],

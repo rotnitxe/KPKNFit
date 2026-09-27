@@ -12,6 +12,15 @@ Hash canónico compartido: `20ecd23cb4766c341236e09d336bf1c3d3db3041ec6d8b3dd568
 > de artefacto es `d229f99ad5779d881cbf2f22d1d307d10d489a8b3bd747e0342b9d182dd95d6e`.
 > El resto de este documento conserva el registro histórico del corte v7.2.
 
+> Corrección de copy — 2026-09-27 (T-041-r4): la configuración
+> `tren_superior_press_banda_resistencia__default` es band-only declarada
+> (`equipmentId=band`, `requiredEquipment=["band"]`, descripción de definición
+> "sin banco ni pesas"), pero su `techniqueSummary`, `variantRationale` y
+> `setupCues` describían bandas atadas a una barra. Se alineó ese copy y sus
+> espejos exactos con la identidad band-only ya declarada; no se cambió
+> implemento, roles, acciones, calificaciones, programación ni identidad, ni se
+> añadió o retiró ningún ejercicio. Gate global: 2652 fallos, sin cambios.
+
 ## Curaduría v7.2 (2026-08-10): estructura editorial humana aprobada
 
 - Las 196 descripciones de definición se reescribieron a mano con la estructura

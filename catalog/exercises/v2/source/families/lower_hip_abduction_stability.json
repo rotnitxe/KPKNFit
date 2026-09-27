@@ -45,6 +45,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo con cada paso lateral contra la banda de tobillos, y la resistencia elástica empuja las piernas hacia dentro sin pausas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica durante los pasos laterales con banda, con la pelvis de frente y el tronco sin inclinarse de lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla alinea el miembro inferior en cada paso lateral contra la banda de tobillos y resiste la goma que intenta cerrar las piernas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction_stability",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: Con la banda en los tobillos y los pasos laterales, el glúteo mayor empuja cada pierna hacia fuera y sostiene la tensión de la goma entre pasos."
+                }
+              ],
               "performanceProfileId": "glutes_monster_walk_banda__band__caminata_del_monstruo_monster_walk_con_banda",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -86,6 +95,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo con cada paso lateral contra la banda de tobillos, y la resistencia elástica empuja las piernas hacia dentro sin pausas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica durante los pasos laterales con banda, con la pelvis de frente y el tronco sin inclinarse de lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla alinea el miembro inferior en cada paso lateral contra la banda de tobillos y resiste la goma que intenta cerrar las piernas.",
                       "role": "STABILIZER"
                     }
                   ],

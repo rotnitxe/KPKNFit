@@ -45,6 +45,7 @@
                     "Flexión, Extensión O Inclinación"
                   ],
                   "jointId": "columna-cervical",
+                  "note": "Principal: La columna cervical extiende la cabeza hacia atrás con la polea y el arnés, recorriendo un arco suave con tensión constante de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Base Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras la polea tira de la cabeza hacia atrás, sin sumar movimientos al tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -59,6 +61,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "neck_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "neck",
+                  "note": "Principal: Los extensores del cuello llevan la cabeza hacia atrás con la polea y el arnés, acortándose de forma concéntrica bajo una tensión constante durante todo el arco."
+                }
+              ],
               "performanceProfileId": "neck_extension_cuello__cable",
               "primaryMuscles": [
                 "neck"
@@ -78,6 +86,7 @@
                         "Flexión, Extensión O Inclinación"
                       ],
                       "jointId": "columna-cervical",
+                      "note": "Principal: La columna cervical extiende la cabeza hacia atrás con la polea y el arnés, recorriendo un arco suave con tensión constante de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -85,6 +94,7 @@
                         "Base Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras la polea tira de la cabeza hacia atrás, sin sumar movimientos al tronco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -279,6 +289,7 @@
                     "Flexión, Extensión O Inclinación"
                   ],
                   "jointId": "columna-cervical",
+                  "note": "Principal: La columna cervical eleva la cabeza hacia atrás contra el disco apoyado en la nuca, trabajando un arco corto con la carga del lastre al final del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -286,6 +297,7 @@
                     "Base Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica ofrece una base firme de forma isométrica mientras el disco pesa sobre la nuca, con el tronco fuera del movimiento de la cabeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -293,6 +305,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "neck_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "neck",
+                  "note": "Principal: Los extensores del cuello elevan la cabeza contra el disco apoyado en la nuca, acortándose de forma concéntrica con un lastre directo y sencillo."
+                }
+              ],
               "performanceProfileId": "neck_extension_cuello__plate",
               "primaryMuscles": [
                 "neck"
@@ -312,6 +330,7 @@
                         "Flexión, Extensión O Inclinación"
                       ],
                       "jointId": "columna-cervical",
+                      "note": "Principal: La columna cervical eleva la cabeza hacia atrás contra el disco apoyado en la nuca, trabajando un arco corto con la carga del lastre al final del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -319,6 +338,7 @@
                         "Base Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica ofrece una base firme de forma isométrica mientras el disco pesa sobre la nuca, con el tronco fuera del movimiento de la cabeza.",
                       "role": "STABILIZER"
                     }
                   ],

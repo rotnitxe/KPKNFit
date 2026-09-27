@@ -45,6 +45,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral, mientras la barra carga de más la bajada y la subida sobre ese mismo lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra empujando el torso hacia abajo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero busca dorsiflexión y equilibrio durante todo el arco, y la barra aumenta la presión sobre ese apoyo con el pie trasero en el banco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga de la barra entre pelvis y columna mientras la pierna delantera trabaja sola con el pie trasero elevado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con la barra cargada y extiende la rodilla al subir, con el pie trasero elevado en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera en la subida, y la barra le añade carga suficiente para exigirle en cada repetición."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso erguido con la barra puesta y contrarresta la inclinación pélvica que busca el pie trasero apoyado en el banco."
+                }
+              ],
               "performanceProfileId": "bulgarian_split_squat__barbell__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -95,6 +113,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral, mientras la barra carga de más la bajada y la subida sobre ese mismo lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -102,6 +121,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra empujando el torso hacia abajo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -109,6 +129,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero busca dorsiflexión y equilibrio durante todo el arco, y la barra aumenta la presión sobre ese apoyo con el pie trasero en el banco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -116,6 +137,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga de la barra entre pelvis y columna mientras la pierna delantera trabaja sola con el pie trasero elevado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -315,6 +337,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido fijo de la Smith, con el pie trasero elevado en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -322,6 +345,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido vertical que fija la Smith.",
                   "role": "PRIMARY"
                 },
                 {
@@ -329,6 +353,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, aunque la guía de la Smith aligera la demanda lateral del apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -336,6 +361,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la Smith guiando la barra y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -343,6 +369,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada guiada por la Smith y extiende la rodilla al subir, con el pie trasero apoyado en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y la guía fija de la Smith le quita parte del equilibrio lateral al conjunto."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso erguido contra la barra guiada de la Smith y contrarresta la inclinación pélvica con el pie trasero en el banco."
+                }
+              ],
               "performanceProfileId": "bulgarian_split_squat__smith_machine__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -365,6 +405,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido fijo de la Smith, con el pie trasero elevado en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -372,6 +413,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido vertical que fija la Smith.",
                       "role": "PRIMARY"
                     },
                     {
@@ -379,6 +421,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, aunque la guía de la Smith aligera la demanda lateral del apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -386,6 +429,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la Smith guiando la barra y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -585,6 +629,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido guiado de la máquina, con el pie trasero sujeto por su apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -592,6 +637,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido fijado por la máquina.",
                   "role": "PRIMARY"
                 },
                 {
@@ -599,6 +645,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio sobre el apoyo de la máquina, que aligera la estabilidad lateral del conjunto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -606,6 +653,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con el recorrido guiado de la máquina y el pie trasero sujeto en su apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -613,6 +661,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada en el recorrido guiado de la máquina y extiende la rodilla al subir con el apoyo trasero fijo."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y el apoyo fijo de la máquina concentra el esfuerzo en ese lado sin desequilibrios."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso erguido dentro de la máquina y limita la inclinación pélvica que el apoyo trasero fijo intenta provocar."
+                }
+              ],
               "performanceProfileId": "bulgarian_split_squat__machine__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -635,6 +697,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido guiado de la máquina, con el pie trasero sujeto por su apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -642,6 +705,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido fijado por la máquina.",
                       "role": "PRIMARY"
                     },
                     {
@@ -649,6 +713,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio sobre el apoyo de la máquina, que aligera la estabilidad lateral del conjunto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -656,6 +721,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con el recorrido guiado de la máquina y el pie trasero sujeto en su apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -855,6 +921,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral mientras las mancuernas libres suman su peso al del torso en la bajada.",
                   "role": "PRIMARY"
                 },
                 {
@@ -862,6 +929,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis mientras las mancuernas libres exigen equilibrio extra.",
                   "role": "PRIMARY"
                 },
                 {
@@ -869,6 +937,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, y las mancuernas libres hacen más delicado el apoyo de esa pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -876,6 +945,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con dos mancuernas libres y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -883,6 +953,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con una mancuerna en cada mano y extiende la rodilla al subir, con el pie trasero en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y las dos mancuernas libres obligan a ese lado a dirigir todo el recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso erguido con una mancuerna por mano y contrarresta la inclinación pélvica que crea el pie trasero elevado en el banco."
+                }
+              ],
               "performanceProfileId": "bulgarian_split_squat__dumbbells__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -905,6 +989,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral mientras las mancuernas libres suman su peso al del torso en la bajada.",
                       "role": "PRIMARY"
                     },
                     {
@@ -912,6 +997,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis mientras las mancuernas libres exigen equilibrio extra.",
                       "role": "PRIMARY"
                     },
                     {
@@ -919,6 +1005,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, y las mancuernas libres hacen más delicado el apoyo de esa pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -926,6 +1013,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con dos mancuernas libres y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1125,6 +1213,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral contra la tensión constante de la polea, con el pie trasero apoyado en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1132,6 +1221,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis bajo la tracción constante que entrega la polea.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1139,6 +1229,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio bajo la tensión constante de la polea, con el pie trasero elevado sobre el banco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1146,6 +1237,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la polea tirando de forma constante y el pie trasero sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1153,6 +1245,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada contra la tensión constante de la polea y extiende la rodilla al subir, con el pie trasero en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, mientras la polea conserva la tensión también en el punto más alto del recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso erguido contra la línea de tracción de la polea y contrarresta la inclinación pélvica con el pie trasero en el banco."
+                }
+              ],
               "performanceProfileId": "bulgarian_split_squat__cable__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -1175,6 +1281,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral contra la tensión constante de la polea, con el pie trasero apoyado en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1182,6 +1289,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis bajo la tracción constante que entrega la polea.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1189,6 +1297,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio bajo la tensión constante de la polea, con el pie trasero elevado sobre el banco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1196,6 +1305,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la polea tirando de forma constante y el pie trasero sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1395,6 +1505,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la kettlebell cambiando el equilibrio de la carga y el banco detrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1402,6 +1513,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la kettlebell desplazando el centro de masa del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1409,6 +1521,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la kettlebell en juego, lo que vuelve más delicado el apoyo de la pierna delantera.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1416,6 +1529,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la kettlebell en la mano y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1423,6 +1537,20 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con la kettlebell y extiende la rodilla al subir, con el pie trasero apoyado en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y el centro de masa de la kettlebell cambia el punto duro del recorrido."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el torso erguido con la kettlebell desplazando el centro de masa y contrarresta la inclinación del pie trasero elevado."
+                }
+              ],
               "performanceProfileId": "bulgarian_split_squat__kettlebell__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -1445,6 +1573,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la kettlebell cambiando el equilibrio de la carga y el banco detrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1452,6 +1581,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la kettlebell desplazando el centro de masa del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1459,6 +1589,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la kettlebell en juego, lo que vuelve más delicado el apoyo de la pierna delantera.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1466,6 +1597,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la kettlebell en la mano y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1691,6 +1823,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la barra apoyada en los codos y el pie trasero elevado sobre el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1698,6 +1831,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la carga de la barra pegada al torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1705,6 +1839,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la barra en los codos, que acerca el peso al cuerpo y exige un apoyo firme.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1712,13 +1847,28 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra en los codos y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
-              "laterality": "BILATERAL",
+              "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con la barra apoyada en los codos y extiende la rodilla al subir, con el pie trasero en el banco."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor de la pierna delantera ayuda a extender la cadera al subir mientras la barra en los codos carga el torso en una vertical exigente."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core sostiene el torso erguido con la barra abrazada en los codos, carga que se suma al esfuerzo de la pierna delantera y al pie trasero del banco."
+                }
+              ],
               "performanceProfileId": "bulgarian_zercher__barbell__sentadilla_bulgara_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -1740,6 +1890,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la barra apoyada en los codos y el pie trasero elevado sobre el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1747,6 +1898,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la carga de la barra pegada al torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1754,6 +1906,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la barra en los codos, que acerca el peso al cuerpo y exige un apoyo firme.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1761,6 +1914,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra en los codos y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1783,7 +1937,7 @@
                   "bodyRegion": "LOWER",
                   "equipmentId": "barbell",
                   "kineticChain": "ANTERIOR",
-                  "laterality": "BILATERAL",
+                  "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
                   "rangeOfMotion": "controlled_full_available",

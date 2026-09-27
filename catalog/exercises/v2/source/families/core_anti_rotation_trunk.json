@@ -45,6 +45,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar resiste la rotación y la extensión que la cuerda de la polea impone al alejarse del pecho, con el tronco firme y orientado al frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La pelvis se queda orientada al frente mientras la polea tira de la cuerda hacia un lado, y organiza la base sobre la que descansa el cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La caja torácica mira al frente y no acompaña el giro que la cuerda de la polea busca, mientras los brazos se extienden a la altura del pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "anti_rotation_trunk",
+              "muscleNotes": [
+                {
+                  "muscleId": "core",
+                  "note": "Principal: El core resiste la rotación que la polea intenta imponer mientras la cuerda se aleja del pecho, con el torso firme y la distancia al anclaje marcando la exigencia."
+                },
+                {
+                  "muscleId": "abdominals",
+                  "note": "Secundario: Los abdominales orientan las costillas al frente mientras la cuerda se aleja del pecho ante la polea, impidiendo que la tensión constante de la cuerda gire el torso."
+                }
+              ],
               "performanceProfileId": "core_press_pallof__cable__press_pallof",
               "primaryMuscles": [
                 "core"
@@ -86,6 +99,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar resiste la rotación y la extensión que la cuerda de la polea impone al alejarse del pecho, con el tronco firme y orientado al frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La pelvis se queda orientada al frente mientras la polea tira de la cuerda hacia un lado, y organiza la base sobre la que descansa el cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La caja torácica mira al frente y no acompaña el giro que la cuerda de la polea busca, mientras los brazos se extienden a la altura del pecho.",
                       "role": "STABILIZER"
                     }
                   ],

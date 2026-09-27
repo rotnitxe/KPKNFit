@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona hasta posarse sobre el cajón y vuelve a extenderse con la barra cargada, y la superficie fija marca el final de cada descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera se flexiona al sentarse sobre el cajón y se extiende al subir con la barra, donde la pausa sin rebote alarga el trabajo de las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo en dorsiflexión reparte el peso del pie mientras el cuerpo se posa sobre el cajón y vuelve a subir con la barra cargada.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el tronco inclinado bajo la barra y absorbe la carga durante la pausa sobre el cajón y la subida sin rebote.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla al subir desde el cajón con la barra cargada y frena el descenso hasta posarse sobre la superficie sin rebote."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al levantarse del cajón con la barra y regula el descenso sentado hasta el contacto con la superficie fija."
+                },
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Secundario: Los isquiosurales asisten la extensión de la cadera al salir del cajón y frenan la bajada del tronco mientras la barra reparte la carga sobre las piernas."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_cajon__barbell__sentadilla_a_cajon",
               "primaryMuscles": [
                 "quadriceps"
@@ -93,6 +111,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona hasta posarse sobre el cajón y vuelve a extenderse con la barra cargada, y la superficie fija marca el final de cada descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +119,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera se flexiona al sentarse sobre el cajón y se extiende al subir con la barra, donde la pausa sin rebote alarga el trabajo de las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +127,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo en dorsiflexión reparte el peso del pie mientras el cuerpo se posa sobre el cajón y vuelve a subir con la barra cargada.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +135,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el tronco inclinado bajo la barra y absorbe la carga durante la pausa sobre el cajón y la subida sin rebote.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -332,6 +354,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona y se extiende con la barra al frente y las piernas separadas, donde la carga frontal exige un torso erguido en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -339,6 +362,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión con la barra al frente, que carga las piernas con el torso erguido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -346,6 +370,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo en dorsiflexión sostiene la postura amplia y reparte el peso del pie mientras la barra al frente empuja el torso hacia adelante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -353,6 +378,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra al frente y resiste la flexión durante el descenso y la subida con la postura amplia.",
                   "role": "STABILIZER"
                 }
               ],
@@ -360,6 +386,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla con la barra al frente y la postura amplia, y frena el descenso con el torso erguido en todo el arco."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores asisten la extensión de la cadera en la postura ancha de sumo con la barra al frente y frenan la apertura de las rodillas durante el descenso."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor impulsa la extensión de la cadera al subir con la barra al frente y regula la bajada profunda que permite la postura amplia."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core sostiene el torso erguido contra la carga frontal de la barra y frena cualquier inclinación durante el descenso y la subida con las piernas abiertas."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_sumo_frontal__barbell__sentadilla_sumo_frontal",
               "primaryMuscles": [
                 "quadriceps"
@@ -380,6 +424,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona y se extiende con la barra al frente y las piernas separadas, donde la carga frontal exige un torso erguido en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -387,6 +432,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión con la barra al frente, que carga las piernas con el torso erguido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -394,6 +440,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo en dorsiflexión sostiene la postura amplia y reparte el peso del pie mientras la barra al frente empuja el torso hacia adelante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -401,6 +448,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra al frente y resiste la flexión durante el descenso y la subida con la postura amplia.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -621,6 +669,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona y se extiende con la barra en los codos y las piernas separadas, con la carga al frente marcando la profundidad de cada repetición.",
                   "role": "PRIMARY"
                 },
                 {
@@ -628,6 +677,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión mientras la barra descansa en los codos y la carga se sostiene cerca del pecho.",
                   "role": "SECONDARY"
                 },
                 {
@@ -635,6 +685,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la postura amplia con la barra en los codos y reparte el peso del pie mientras la carga al frente empuja el torso hacia delante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -642,6 +693,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra en los codos y resiste la flexión durante el descenso y la subida con la postura ancha.",
                   "role": "STABILIZER"
                 }
               ],
@@ -649,6 +701,24 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla con la barra sujeta en los codos y la postura amplia, y frena el descenso con la carga pegada al torso."
+                },
+                {
+                  "muscleId": "adductors",
+                  "note": "Secundario: Los aductores asisten la extensión de la cadera con la postura de sumo mientras la barra descansa en los codos, y frenan la apertura de las rodillas."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor impulsa la extensión de la cadera al subir con la barra en los codos y regula la bajada profunda que admite la base ancha."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core sostiene el torso erguido con la barra sujeta en los codos, que acerca la carga al pecho y exige firmeza durante el descenso y la subida."
+                }
+              ],
               "performanceProfileId": "quads_sentadilla_sumo_zercher__barbell__sentadilla_sumo_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -669,6 +739,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona y se extiende con la barra en los codos y las piernas separadas, con la carga al frente marcando la profundidad de cada repetición.",
                       "role": "PRIMARY"
                     },
                     {
@@ -676,6 +747,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión mientras la barra descansa en los codos y la carga se sostiene cerca del pecho.",
                       "role": "SECONDARY"
                     },
                     {
@@ -683,6 +755,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la postura amplia con la barra en los codos y reparte el peso del pie mientras la carga al frente empuja el torso hacia delante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -690,6 +763,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra en los codos y resiste la flexión durante el descenso y la subida con la postura ancha.",
                       "role": "STABILIZER"
                     }
                   ],

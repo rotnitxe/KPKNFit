@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera combina extensión y abducción mientras la pierna describe el arco diagonal, con el cable de la polea baja tirando en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla sostiene la estabilidad de la pierna que describe el arco diagonal, con el cable de la polea baja cruzando el cuerpo de lado a lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene la alineación del tronco mientras el cable cruza el cuerpo y la cadera proyecta la pierna en diagonal.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras la pierna viaja en diagonal y el cable de la polea baja mantiene su tracción constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_extension_abduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Principal: Con la polea baja y el cable cruzando el cuerpo, el glúteo mayor proyecta la pierna atrás y hacia afuera y frena el regreso con tensión constante."
+                }
+              ],
               "performanceProfileId": "glutes_patada_gluteo_polea_diagonal__cable__patada_de_gluteos_diagonal_en_polea",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -94,6 +104,7 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera combina extensión y abducción mientras la pierna describe el arco diagonal, con el cable de la polea baja tirando en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +112,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla sostiene la estabilidad de la pierna que describe el arco diagonal, con el cable de la polea baja cruzando el cuerpo de lado a lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +120,7 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene la alineación del tronco mientras el cable cruza el cuerpo y la cadera proyecta la pierna en diagonal.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +128,7 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras la pierna viaja en diagonal y el cable de la polea baja mantiene su tracción constante.",
                       "role": "STABILIZER"
                     }
                   ],

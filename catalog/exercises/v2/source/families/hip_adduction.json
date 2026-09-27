@@ -45,6 +45,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna superior sostiene la aducción isométrica que eleva el cuerpo contra el banco sin ayuda de carga externa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis en la posición lateral estática para que la cadera permanezca elevada sin inclinarse.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla de la pierna superior mantiene la alineación sobre el banco mientras los aductores sostienen la cadera elevada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "hip_adduction_dynamic",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores de la pierna superior sostienen el peso corporal de forma isométrica al mantener la cadera elevada sobre el banco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core mantiene el tronco alineado en la posición lateral estática mientras los aductores sujetan la cadera sin carga externa."
+                }
+              ],
               "performanceProfileId": "copenhagen_plank__bodyweight__plancha_copenhagen",
               "primaryMuscles": [
                 "adductors"
@@ -86,6 +99,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna superior sostiene la aducción isométrica que eleva el cuerpo contra el banco sin ayuda de carga externa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis en la posición lateral estática para que la cadera permanezca elevada sin inclinarse.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla de la pierna superior mantiene la alineación sobre el banco mientras los aductores sostienen la cadera elevada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -317,6 +333,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: Ambas caderas aducen dentro del recorrido guiado de la máquina sentado mientras los muslos cierran contra las almohadillas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -324,6 +341,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis sobre el asiento mientras ambos muslos cierran a la vez contra las almohadillas de la máquina.",
                   "role": "SECONDARY"
                 },
                 {
@@ -331,6 +349,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la alineación del muslo dentro del recorrido guiado de la máquina sentado durante el cierre bilateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -338,6 +357,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores juntan ambos muslos contra las almohadillas de la máquina sentado, con acortamiento concéntrico y recorrido guiado."
+                }
+              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -358,6 +383,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: Ambas caderas aducen dentro del recorrido guiado de la máquina sentado mientras los muslos cierran contra las almohadillas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -365,6 +391,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis sobre el asiento mientras ambos muslos cierran a la vez contra las almohadillas de la máquina.",
                       "role": "SECONDARY"
                     },
                     {
@@ -372,6 +399,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la alineación del muslo dentro del recorrido guiado de la máquina sentado durante el cierre bilateral.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -571,6 +599,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera del lado que trabaja se aduce dentro del recorrido guiado de la máquina sentado mientras la otra pierna permanece quieta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -578,6 +607,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis sobre el asiento cuando un solo muslo empuja la almohadilla, sin permitir basculación pélvica.",
                   "role": "SECONDARY"
                 },
                 {
@@ -585,6 +615,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla del lado que trabaja mantiene la alineación del muslo dentro del recorrido guiado de la máquina sentado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -592,6 +623,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: El aductor de un solo lado cierra el muslo contra la almohadilla de la máquina sentado, con acortamiento concéntrico y recorrido guiado."
+                }
+              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -612,6 +649,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera del lado que trabaja se aduce dentro del recorrido guiado de la máquina sentado mientras la otra pierna permanece quieta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -619,6 +657,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis sobre el asiento cuando un solo muslo empuja la almohadilla, sin permitir basculación pélvica.",
                       "role": "SECONDARY"
                     },
                     {
@@ -626,6 +665,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla del lado que trabaja mantiene la alineación del muslo dentro del recorrido guiado de la máquina sentado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -825,6 +865,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: Ambas caderas aducen contra las almohadillas de la máquina de pie, con el peso repartido sobre el apoyo y la pelvis estable.",
                   "role": "PRIMARY"
                 },
                 {
@@ -832,6 +873,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis de pie mientras ambos muslos cierran contra la máquina, con el equilibrio repartido entre las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -839,6 +881,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la alineación del muslo contra la almohadilla de la máquina mientras las piernas cierran de pie.",
                   "role": "STABILIZER"
                 }
               ],
@@ -846,6 +889,12 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores juntan ambos muslos contra las almohadillas de la máquina de pie, con contracción concéntrica y pelvis sostenida."
+                }
+              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -866,6 +915,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: Ambas caderas aducen contra las almohadillas de la máquina de pie, con el peso repartido sobre el apoyo y la pelvis estable.",
                       "role": "PRIMARY"
                     },
                     {
@@ -873,6 +923,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis de pie mientras ambos muslos cierran contra la máquina, con el equilibrio repartido entre las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -880,6 +931,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la alineación del muslo contra la almohadilla de la máquina mientras las piernas cierran de pie.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1079,6 +1131,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera del lado que trabaja aduce contra la almohadilla de la máquina de pie mientras la otra pierna sostiene el apoyo corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1086,6 +1139,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis de pie cuando un solo muslo empuja la almohadilla, con la cadera de apoyo sosteniendo el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1093,6 +1147,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla del lado que trabaja mantiene la alineación del muslo contra la almohadilla de la máquina de pie durante el cierre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1100,6 +1155,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: El aductor de un solo lado cruza el muslo contra la almohadilla de la máquina de pie, con contracción concéntrica y lado trabajado aislado."
+                }
+              ],
               "performanceProfileId": "hip_adduction__machine__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -1120,6 +1181,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera del lado que trabaja aduce contra la almohadilla de la máquina de pie mientras la otra pierna sostiene el apoyo corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1127,6 +1189,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis de pie cuando un solo muslo empuja la almohadilla, con la cadera de apoyo sosteniendo el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1134,6 +1197,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla del lado que trabaja mantiene la alineación del muslo contra la almohadilla de la máquina de pie durante el cierre.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1333,6 +1397,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: Ambas caderas aducen contra la tensión constante del cable con las piernas unidas, sin puntos muertos en la trayectoria de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1340,6 +1405,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis de pie mientras ambas piernas se cierran contra la polea, con el equilibrio activo entre los dos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1347,6 +1413,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la alineación de cada muslo al cerrar las piernas contra la tensión constante de la polea de pie.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1354,6 +1421,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores juntan ambas piernas contra la tensión constante de la polea de pie, con acortamiento concéntrico en todo el recorrido."
+                }
+              ],
               "performanceProfileId": "hip_adduction__cable__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -1374,6 +1447,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: Ambas caderas aducen contra la tensión constante del cable con las piernas unidas, sin puntos muertos en la trayectoria de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1381,6 +1455,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis de pie mientras ambas piernas se cierran contra la polea, con el equilibrio activo entre los dos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1388,6 +1463,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la alineación de cada muslo al cerrar las piernas contra la tensión constante de la polea de pie.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1587,6 +1663,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera del lado que trabaja aduce contra la polea con tensión constante mientras la pierna de apoyo sostiene el equilibrio de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1594,6 +1671,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis de pie cuando una sola pierna cruza contra la polea, sosteniendo el equilibrio del lado de apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1601,6 +1679,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla del lado que trabaja mantiene su alineación mientras la pierna cruza contra la tensión constante de la polea de pie.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1608,6 +1687,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: El aductor de un solo lado cruza la pierna contra la tensión constante de la polea de pie, con el esfuerzo concentrado en el lado trabajado."
+                }
+              ],
               "performanceProfileId": "hip_adduction__cable__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -1628,6 +1713,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera del lado que trabaja aduce contra la polea con tensión constante mientras la pierna de apoyo sostiene el equilibrio de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1635,6 +1721,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis de pie cuando una sola pierna cruza contra la polea, sosteniendo el equilibrio del lado de apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1642,6 +1729,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla del lado que trabaja mantiene su alineación mientras la pierna cruza contra la tensión constante de la polea de pie.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1841,6 +1929,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: Ambas caderas aducen contra la banda elástica con las piernas unidas, y la resistencia aumenta a medida que el cierre avanza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1848,6 +1937,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis de pie mientras ambas piernas se cierran contra la banda, con la resistencia creciendo al final del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1855,6 +1945,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla mantiene la alineación de cada muslo al cerrar las piernas contra la banda elástica, cuya tensión crece con el avance.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1862,6 +1953,12 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores juntan ambas piernas contra la banda elástica de pie, con tensión creciente hacia el final del cierre concéntrico."
+                }
+              ],
               "performanceProfileId": "hip_adduction__band__adduccion_de_cadera",
               "primaryMuscles": [
                 "adductors"
@@ -1882,6 +1979,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: Ambas caderas aducen contra la banda elástica con las piernas unidas, y la resistencia aumenta a medida que el cierre avanza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1889,6 +1987,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis de pie mientras ambas piernas se cierran contra la banda, con la resistencia creciendo al final del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1896,6 +1995,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla mantiene la alineación de cada muslo al cerrar las piernas contra la banda elástica, cuya tensión crece con el avance.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2095,6 +2195,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera del lado que trabaja aduce contra la banda elástica mientras la pierna de apoyo sostiene el equilibrio de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2102,6 +2203,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis de pie cuando una sola pierna cruza contra la banda, con el equilibrio cargado en el lado de apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2109,6 +2211,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla del lado que trabaja mantiene su alineación mientras la pierna cruza contra la banda elástica, cuya tensión aumenta al avanzar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2116,6 +2219,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_adduction",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: El aductor de un solo lado cruza la pierna contra la banda elástica de pie, con una tensión que crece hacia el final del recorrido."
+                }
+              ],
               "performanceProfileId": "hip_adduction__band__adduccion_de_cadera_unilateral",
               "primaryMuscles": [
                 "adductors"
@@ -2136,6 +2245,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera del lado que trabaja aduce contra la banda elástica mientras la pierna de apoyo sostiene el equilibrio de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2143,6 +2253,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis de pie cuando una sola pierna cruza contra la banda, con el equilibrio cargado en el lado de apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2150,6 +2261,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla del lado que trabaja mantiene su alineación mientras la pierna cruza contra la banda elástica, cuya tensión aumenta al avanzar.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2377,6 +2489,7 @@
                     "Aducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera de la pierna superior se aduce de forma dinámica al subir y bajar el cuerpo contra el banco con peso corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2384,6 +2497,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroiliaca controla la pelvis en cada subida y bajada de la cadera para que el ritmo lateral no altere su alineación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2391,6 +2505,7 @@
                     "Alineación"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla de la pierna superior mantiene la alineación sobre el banco mientras la cadera sube y baja con ritmo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2398,6 +2513,16 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "hip_adduction_dynamic",
+              "muscleNotes": [
+                {
+                  "muscleId": "adductors",
+                  "note": "Principal: Los aductores de la pierna superior trabajan al subir y bajar la cadera contra el banco, con tensión constante sobre el peso corporal."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core acompaña el ritmo de la cadera en la posición lateral, manteniendo el tronco alineado durante cada subida y bajada."
+                }
+              ],
               "performanceProfileId": "copenhagen_plank__bodyweight__plancha_copenhagen",
               "primaryMuscles": [
                 "adductors"
@@ -2418,6 +2543,7 @@
                         "Aducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera de la pierna superior se aduce de forma dinámica al subir y bajar el cuerpo contra el banco con peso corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2425,6 +2551,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroiliaca controla la pelvis en cada subida y bajada de la cadera para que el ritmo lateral no altere su alineación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2432,6 +2559,7 @@
                         "Alineación"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla de la pierna superior mantiene la alineación sobre el banco mientras la cadera sube y baja con ritmo.",
                       "role": "STABILIZER"
                     }
                   ],

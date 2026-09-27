@@ -45,6 +45,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca extiende el dorso de la mano hacia arriba con la polea y las palmas hacia abajo, en un arco corto sobre el antebrazo apoyado con tensión constante.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo permanece inmóvil sobre el apoyo y aporta estabilidad isométrica, de modo que la polea mueve solo la muñeca y el brazo queda fuera del gesto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo mientras la polea extiende la muñeca, fijada de forma isométrica.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "wrist_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: Los extensores del antebrazo elevan el dorso de la mano con polea y palmas hacia abajo, acortándose de forma concéntrica sobre el antebrazo apoyado en posición sentada."
+                }
+              ],
               "performanceProfileId": "forearms_extension_muneca__cable",
               "primaryMuscles": [
                 "forearm"
@@ -86,6 +95,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca extiende el dorso de la mano hacia arriba con la polea y las palmas hacia abajo, en un arco corto sobre el antebrazo apoyado con tensión constante.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo permanece inmóvil sobre el apoyo y aporta estabilidad isométrica, de modo que la polea mueve solo la muñeca y el brazo queda fuera del gesto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo mientras la polea extiende la muñeca, fijada de forma isométrica.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -296,6 +308,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca eleva el dorso de la mano con cada mancuerna y las palmas hacia abajo, sobre el antebrazo apoyado, en un recorrido corto y sin desviaciones laterales.",
                   "role": "PRIMARY"
                 },
                 {
@@ -303,6 +316,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo queda quieto sobre el apoyo y aporta estabilidad isométrica mientras las mancuernas cargan cada muñeca por separado, sin arrastrar flexión del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -310,6 +324,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal fija la orientación del antebrazo con las palmas hacia abajo y las mancuernas, sostenida de forma isométrica durante la extensión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -317,6 +332,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: Los extensores del antebrazo suben el dorso de la mano con mancuernas y palmas hacia abajo, contrayéndose de forma concéntrica con una carga separada por lado."
+                }
+              ],
               "performanceProfileId": "forearms_extension_muneca__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -337,6 +358,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca eleva el dorso de la mano con cada mancuerna y las palmas hacia abajo, sobre el antebrazo apoyado, en un recorrido corto y sin desviaciones laterales.",
                       "role": "PRIMARY"
                     },
                     {
@@ -344,6 +366,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo queda quieto sobre el apoyo y aporta estabilidad isométrica mientras las mancuernas cargan cada muñeca por separado, sin arrastrar flexión del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -351,6 +374,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal fija la orientación del antebrazo con las palmas hacia abajo y las mancuernas, sostenida de forma isométrica durante la extensión.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -547,6 +571,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: Las dos muñecas extienden la mano hacia arriba al mismo tiempo con la barra y las palmas hacia abajo, en un arco corto sobre el apoyo del antebrazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -554,6 +579,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo permanece fijo sobre el apoyo y ofrece estabilidad isométrica mientras la barra obliga a ambas muñecas a subir juntas y al mismo ritmo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -561,6 +587,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal sostiene el antebrazo orientado con las palmas hacia abajo bajo la barra, fijada de forma isométrica en cada repetición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -568,6 +595,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: Los extensores del antebrazo elevan el dorso de ambas manos con la barra y las palmas hacia abajo, acortándose de forma concéntrica con el antebrazo apoyado."
+                }
+              ],
               "performanceProfileId": "forearms_extension_muneca__barbell",
               "primaryMuscles": [
                 "forearm"
@@ -588,6 +621,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: Las dos muñecas extienden la mano hacia arriba al mismo tiempo con la barra y las palmas hacia abajo, en un arco corto sobre el apoyo del antebrazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -595,6 +629,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo permanece fijo sobre el apoyo y ofrece estabilidad isométrica mientras la barra obliga a ambas muñecas a subir juntas y al mismo ritmo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -602,6 +637,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal sostiene el antebrazo orientado con las palmas hacia abajo bajo la barra, fijada de forma isométrica en cada repetición.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -798,6 +834,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca extiende la mano con la barra EZ y las palmas hacia abajo, aprovechando el ángulo del agarre para un arco corto y cómodo sobre el apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -805,6 +842,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo queda inmóvil sobre el apoyo y aporta estabilidad isométrica mientras la barra EZ reparte el trabajo entre ambas muñecas con su curvatura.",
                   "role": "SECONDARY"
                 },
                 {
@@ -812,6 +850,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo y la barra EZ, fijada de forma isométrica durante la extensión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -819,6 +858,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: Los extensores del antebrazo suben el dorso de la mano con la barra EZ y las palmas hacia abajo, acortándose de forma concéntrica con el antebrazo apoyado."
+                }
+              ],
               "performanceProfileId": "forearms_extension_muneca__ez_bar",
               "primaryMuscles": [
                 "forearm"
@@ -839,6 +884,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca extiende la mano con la barra EZ y las palmas hacia abajo, aprovechando el ángulo del agarre para un arco corto y cómodo sobre el apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -846,6 +892,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo queda inmóvil sobre el apoyo y aporta estabilidad isométrica mientras la barra EZ reparte el trabajo entre ambas muñecas con su curvatura.",
                       "role": "SECONDARY"
                     },
                     {
@@ -853,6 +900,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo y la barra EZ, fijada de forma isométrica durante la extensión.",
                       "role": "STABILIZER"
                     }
                   ],

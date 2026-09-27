@@ -45,6 +45,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo hacia el costado contra el cable, con la pelvis nivelada y el fémur sin giro a lo largo de todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica mientras la pierna se aleja contra el cable, con el torso libre de balanceos y compensaciones laterales.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla sostiene la alineación del miembro inferior mientras la pierna se separa contra el cable y la pelvis permanece nivelada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_abduction_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: Con polea lateral, el glúteo medio separa la pierna hacia el costado contra el cable, cuya tensión permanece durante todo el arco del movimiento."
+                }
+              ],
               "performanceProfileId": "glutes_patada_gluteo_lateral__cable",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -86,6 +95,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo hacia el costado contra el cable, con la pelvis nivelada y el fémur sin giro a lo largo de todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica mientras la pierna se aleja contra el cable, con el torso libre de balanceos y compensaciones laterales.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla sostiene la alineación del miembro inferior mientras la pierna se separa contra el cable y la pelvis permanece nivelada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -296,6 +308,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo contra la carga libre de la mancuerna, con la pelvis nivelada y la trayectoria lateral definida por la propia pierna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -303,6 +316,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca estabiliza la pelvis mientras la mancuerna tira de la pierna hacia el costado, sin respaldo ni guía que sujete el tronco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -310,6 +324,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla alinea el miembro inferior que sostiene la mancuerna durante la apertura lateral, donde ninguna máquina corrige la trayectoria.",
                   "role": "STABILIZER"
                 }
               ],
@@ -317,6 +332,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_abduction_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: Con mancuerna en la cadera o el tobillo, el glúteo medio lleva la pierna hacia el costado y sostiene la carga libre sin guía del recorrido."
+                }
+              ],
               "performanceProfileId": "glutes_patada_gluteo_lateral__dumbbells",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -337,6 +358,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo contra la carga libre de la mancuerna, con la pelvis nivelada y la trayectoria lateral definida por la propia pierna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -344,6 +366,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca estabiliza la pelvis mientras la mancuerna tira de la pierna hacia el costado, sin respaldo ni guía que sujete el tronco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -351,6 +374,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla alinea el miembro inferior que sostiene la mancuerna durante la apertura lateral, donde ninguna máquina corrige la trayectoria.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -547,6 +571,7 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera abduce el muslo contra la banda colocada en los tobillos, con la pelvis nivelada y la mayor resistencia al final de la apertura.",
                   "role": "PRIMARY"
                 },
                 {
@@ -554,6 +579,7 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica mientras la pierna abre contra la banda, con el torso sin balanceo y la goma tirando en el retorno.",
                   "role": "SECONDARY"
                 },
                 {
@@ -561,6 +587,7 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla sostiene la alineación del miembro inferior mientras la pierna se abre contra la banda de tobillos y la pelvis permanece nivelada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -568,6 +595,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "gluteus_medius",
+                  "note": "Principal: Con la banda alrededor de los tobillos, el glúteo medio separa la pierna contra la goma, cuya resistencia aumenta según la apertura se ensancha."
+                }
+              ],
               "performanceProfileId": "glutes_patada_gluteo_lateral__band",
               "primaryMuscles": [
                 "gluteus_medius"
@@ -588,6 +621,7 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera abduce el muslo contra la banda colocada en los tobillos, con la pelvis nivelada y la mayor resistencia al final de la apertura.",
                       "role": "PRIMARY"
                     },
                     {
@@ -595,6 +629,7 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica mientras la pierna abre contra la banda, con el torso sin balanceo y la goma tirando en el retorno.",
                       "role": "SECONDARY"
                     },
                     {
@@ -602,6 +637,7 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla sostiene la alineación del miembro inferior mientras la pierna se abre contra la banda de tobillos y la pelvis permanece nivelada.",
                       "role": "STABILIZER"
                     }
                   ],

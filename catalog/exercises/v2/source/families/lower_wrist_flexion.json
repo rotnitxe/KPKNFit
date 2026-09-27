@@ -45,6 +45,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca alterna flexión y extensión con la barra tras la espalda, con los antebrazos extendidos y la carga colgando del agarre en las manos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo aporta estabilidad con el brazo extendido tras la espalda, sin doblarse para fabricar recorrido mientras la barra cuelga del agarre.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo bajo la barra colgada tras la espalda y sostiene esa orientación durante la flexión de la muñeca.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo enrolla la muñeca hacia arriba contra la barra tras la espalda, con los antebrazos extendidos y la carga colgando del agarre."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps acompaña la flexión de muñeca con el brazo extendido tras la espalda y ayuda a sostener la barra mientras la mano se enrolla hacia arriba."
+                }
+              ],
               "performanceProfileId": "forearms_curl_muneca_de_pie_tras_espalda_barra__barbell__curl_de_muneca_de_pie_tras_espalda_con_barra",
               "primaryMuscles": [
                 "forearm"
@@ -86,6 +99,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca alterna flexión y extensión con la barra tras la espalda, con los antebrazos extendidos y la carga colgando del agarre en las manos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo aporta estabilidad con el brazo extendido tras la espalda, sin doblarse para fabricar recorrido mientras la barra cuelga del agarre.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo bajo la barra colgada tras la espalda y sostiene esa orientación durante la flexión de la muñeca.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -313,6 +329,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca flexiona y extiende la carga de cada mancuerna desde el apoyo del antebrazo en el muslo, con la palma hacia arriba y el codo sin moverse.",
                   "role": "PRIMARY"
                 },
                 {
@@ -320,6 +337,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo aporta estabilidad junto al antebrazo apoyado en el muslo, sin fabricar impulso mientras cada mancuerna se mueve solo desde la muñeca.",
                   "role": "SECONDARY"
                 },
                 {
@@ -327,6 +345,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta cada antebrazo con la palma hacia arriba sobre el muslo, sentado, mientras las mancuernas trabajan por separado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -334,6 +353,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo flexiona cada muñeca por separado con las mancuernas, sentado y con el antebrazo apoyado en el muslo y la palma hacia arriba."
+                }
+              ],
               "performanceProfileId": "forearms_curl_muneca__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -354,6 +379,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca flexiona y extiende la carga de cada mancuerna desde el apoyo del antebrazo en el muslo, con la palma hacia arriba y el codo sin moverse.",
                       "role": "PRIMARY"
                     },
                     {
@@ -361,6 +387,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo aporta estabilidad junto al antebrazo apoyado en el muslo, sin fabricar impulso mientras cada mancuerna se mueve solo desde la muñeca.",
                       "role": "SECONDARY"
                     },
                     {
@@ -368,6 +395,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta cada antebrazo con la palma hacia arriba sobre el muslo, sentado, mientras las mancuernas trabajan por separado.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -564,6 +592,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: Las muñecas flexionan y extienden la barra de forma conjunta desde el apoyo de los antebrazos, con las palmas hacia arriba y el peso guiado por ambos lados.",
                   "role": "PRIMARY"
                 },
                 {
@@ -571,6 +600,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo aporta estabilidad bajo la barra compartida, sin doblarse mientras ambas muñecas flexionan la carga desde el apoyo en el muslo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -578,6 +608,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta los antebrazos con las palmas hacia arriba bajo la barra, que obliga a ambos lados a girar a la vez.",
                   "role": "STABILIZER"
                 }
               ],
@@ -585,6 +616,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo flexiona las dos muñecas a la vez con la barra, sentado y con los antebrazos apoyados en el muslo y las palmas hacia arriba."
+                }
+              ],
               "performanceProfileId": "forearms_curl_muneca__barbell",
               "primaryMuscles": [
                 "forearm"
@@ -605,6 +642,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: Las muñecas flexionan y extienden la barra de forma conjunta desde el apoyo de los antebrazos, con las palmas hacia arriba y el peso guiado por ambos lados.",
                       "role": "PRIMARY"
                     },
                     {
@@ -612,6 +650,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo aporta estabilidad bajo la barra compartida, sin doblarse mientras ambas muñecas flexionan la carga desde el apoyo en el muslo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -619,6 +658,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta los antebrazos con las palmas hacia arriba bajo la barra, que obliga a ambos lados a girar a la vez.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -815,6 +855,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca flexiona y extiende la barra EZ desde el apoyo del antebrazo en el muslo, con el agarre girado de los tramos inclinados aliviando la articulación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -822,6 +863,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo aporta estabilidad con la barra EZ girada y los antebrazos apoyados, sin sumar impulso al recorrido de la muñeca en posición sentada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -829,6 +871,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo bajo el agarre girado de la barra EZ, sentado, con el apoyo sobre el muslo fijo en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -836,6 +879,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo flexiona las muñecas sobre la barra EZ, sentado con los antebrazos apoyados en el muslo y el agarre girado de sus tramos inclinados."
+                }
+              ],
               "performanceProfileId": "forearms_curl_muneca__ez_bar",
               "primaryMuscles": [
                 "forearm"
@@ -856,6 +905,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca flexiona y extiende la barra EZ desde el apoyo del antebrazo en el muslo, con el agarre girado de los tramos inclinados aliviando la articulación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -863,6 +913,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo aporta estabilidad con la barra EZ girada y los antebrazos apoyados, sin sumar impulso al recorrido de la muñeca en posición sentada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -870,6 +921,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo bajo el agarre girado de la barra EZ, sentado, con el apoyo sobre el muslo fijo en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1066,6 +1118,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca flexiona y extiende la carga de la polea desde el apoyo del antebrazo, con la palma hacia arriba y la tensión del cable viva de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1073,6 +1126,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo aporta estabilidad frente al tirón constante de la polea, sin doblarse mientras la mano se mueve desde la muñeca con el antebrazo apoyado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1080,6 +1134,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo con la palma hacia arriba ante el tirón constante de la polea durante el trabajo de muñeca sentado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1087,6 +1142,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo flexiona la muñeca contra la polea, sentado con el antebrazo apoyado en el muslo, la palma hacia arriba y la tensión del cable constante."
+                }
+              ],
               "performanceProfileId": "forearms_curl_muneca__cable",
               "primaryMuscles": [
                 "forearm"
@@ -1107,6 +1168,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca flexiona y extiende la carga de la polea desde el apoyo del antebrazo, con la palma hacia arriba y la tensión del cable viva de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1114,6 +1176,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo aporta estabilidad frente al tirón constante de la polea, sin doblarse mientras la mano se mueve desde la muñeca con el antebrazo apoyado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1121,6 +1184,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo con la palma hacia arriba ante el tirón constante de la polea durante el trabajo de muñeca sentado.",
                       "role": "STABILIZER"
                     }
                   ],

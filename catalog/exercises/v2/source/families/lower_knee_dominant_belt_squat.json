@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión de la rodilla se despliega a dos piernas en la máquina de correa, donde la carga pende de la cintura y la espalda queda libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende con la correa puesta en la cintura y ambas piernas repartiendo la carga, sin compresión sobre los hombros.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo completo en la máquina de correa, con ambas piernas compartiendo la base de apoyo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco con la carga colgada de la cintura, que libera la espalda del peso sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: Con la carga colgada de la cintura y ambas piernas apoyadas, el cuádriceps extiende la rodilla al subir y frena la flexión sin peso sobre los hombros."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor extiende la cadera al final de la subida con ambas piernas, y la correa de la cintura le deja empujar con la espalda descargada."
+                }
+              ],
               "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -93,6 +107,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión de la rodilla se despliega a dos piernas en la máquina de correa, donde la carga pende de la cintura y la espalda queda libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende con la correa puesta en la cintura y ambas piernas repartiendo la carga, sin compresión sobre los hombros.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +123,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo completo en la máquina de correa, con ambas piernas compartiendo la base de apoyo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +131,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco con la carga colgada de la cintura, que libera la espalda del peso sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -311,6 +329,7 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La flexión y extensión unilateral de la rodilla absorbe la bajada y la subida completas con la correa en la cintura, sin peso sobre los hombros.",
                   "role": "PRIMARY"
                 },
                 {
@@ -318,6 +337,7 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera extiende al subir y aporta el control frontal de la pelvis con una pierna cargada por la correa, mientras el apoyo libre acompaña.",
                   "role": "PRIMARY"
                 },
                 {
@@ -325,6 +345,7 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión sobre la plataforma de la máquina, ya que la correa unilateral desplaza todo el peso a un solo apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -332,6 +353,7 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La articulación sacroilíaca transfiere la carga unilateral de la cintura entre pelvis y tronco, con la pelvis bajo control frente al descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -339,6 +361,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
+              "muscleNotes": [
+                {
+                  "muscleId": "quadriceps",
+                  "note": "Principal: Con la correa en la cintura y una sola pierna de trabajo, el cuádriceps extiende la rodilla al subir y frena la flexión sin ayuda del lado contrario."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor extiende la cadera de la pierna de trabajo y sostiene el control frontal de la pelvis con la carga colgada de la cintura."
+                }
+              ],
               "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -360,6 +392,7 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La flexión y extensión unilateral de la rodilla absorbe la bajada y la subida completas con la correa en la cintura, sin peso sobre los hombros.",
                       "role": "PRIMARY"
                     },
                     {
@@ -367,6 +400,7 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera extiende al subir y aporta el control frontal de la pelvis con una pierna cargada por la correa, mientras el apoyo libre acompaña.",
                       "role": "PRIMARY"
                     },
                     {
@@ -374,6 +408,7 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión sobre la plataforma de la máquina, ya que la correa unilateral desplaza todo el peso a un solo apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -381,6 +416,7 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La articulación sacroilíaca transfiere la carga unilateral de la cintura entre pelvis y tronco, con la pelvis bajo control frente al descenso.",
                       "role": "STABILIZER"
                     }
                   ],

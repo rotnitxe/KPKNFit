@@ -2,9 +2,13 @@ package com.example.kpkn.screens.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
@@ -18,6 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.Exercise
@@ -38,6 +47,7 @@ import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.WizardRadioMark
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
@@ -283,7 +293,11 @@ private fun TrainingPrioritiesStep(state: SetupWizardState, vm: SetupWizardViewM
     val used = bag.values.sum()
     val remaining = (budget - used).coerceAtLeast(0)
 
-    PriorityPresetRow(onApply = { preset ->
+    // Los chips leen la bolsa real para marcar la selección: `selected` es
+    // igualdad EXACTA entre la bolsa y el preset, no un remembers de "lo último
+    // tocado". Un ajuste manual que caiga en otro preset lo selecciona; uno que
+    // no coincide con ninguno deja la fila sin marcar.
+    PriorityPresetRow(current = bag, onApply = { preset ->
         vm.updateStep(step) { draft ->
             draft.copy(trainingOptions = draft.trainingOptions.copy(orderPriorities = preset))
         }
@@ -316,6 +330,7 @@ private fun TrainingPrioritiesStep(state: SetupWizardState, vm: SetupWizardViewM
             TextButton(
                 enabled = points > 0,
                 onClick = { writePriorities(vm, step, option.value, delta = -1, budget = budget, maxPerItem = maxPerItem) },
+                modifier = Modifier.testTag("$PRIORITY_REMOVE_TAG_PREFIX${option.value}"),
             ) { Text("−", color = WizardColors.text) }
             Text(
                 text = points.toString(),
@@ -326,6 +341,7 @@ private fun TrainingPrioritiesStep(state: SetupWizardState, vm: SetupWizardViewM
             TextButton(
                 enabled = points < maxPerItem && remaining > 0,
                 onClick = { writePriorities(vm, step, option.value, delta = +1, budget = budget, maxPerItem = maxPerItem) },
+                modifier = Modifier.testTag("$PRIORITY_ADD_TAG_PREFIX${option.value}"),
             ) { Text("+", color = WizardColors.text) }
         }
     }
@@ -341,12 +357,95 @@ private val PRIORITY_PRESETS = listOf(
     "Piernas fuertes" to mapOf("Cuádriceps" to 2, "Isquiosurales" to 2, "Glúteos" to 1),
 )
 
+/** Contenedor de los siete chips, para poder medirlo en la prueba. */
+private const val PRIORITY_PRESETS_TAG = "setup-priority-presets"
+
+/** Chip `i` del catálogo, con `i` = índice real en [PRIORITY_PRESETS]. */
+private const val PRIORITY_PRESET_TAG_PREFIX = "setup-priority-preset-"
+
+/** Ajustes manuales `+` / `−` por opción canónica de la bolsa. */
+private const val PRIORITY_ADD_TAG_PREFIX = "setup-priority-add-"
+private const val PRIORITY_REMOVE_TAG_PREFIX = "setup-priority-remove-"
+
+/**
+ * Presets de la bolsa de orden como **chips** que fluyen en varias líneas.
+ *
+ * Antes eran botones de texto apilados a lo ancho; con etiquetas en español
+ * largas y fuente grande no cabían y empujaban el resto del paso. El `FlowRow`
+ * deja que cada chip mida su contenido y salte de línea, sin tarjetas de ancho
+ * completo.
+ *
+ * Nada aquí decide la selección: se pinta la **bolsa real** que el ViewModel
+ * publicó ([current]) y se marca el preset idéntico. El toque sigue llamando a
+ * [onApply], que es el que escribe con `updateStep`; este composable no muta
+ * estado ni calcula reducciones.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PriorityPresetRow(onApply: (Map<String, Int>) -> Unit) {
-    PRIORITY_PRESETS.forEach { (label, preset) ->
-        TextButton(onClick = { onApply(preset) }) {
-            Text(label, color = WizardColors.text)
+private fun PriorityPresetRow(
+    current: Map<String, Int>,
+    onApply: (Map<String, Int>) -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(PRIORITY_PRESETS_TAG),
+        horizontalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap / 2),
+        verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap / 2),
+    ) {
+        PRIORITY_PRESETS.forEachIndexed { index, (label, preset) ->
+            PriorityPresetChip(
+                label = label,
+                selected = current == preset,
+                onClick = { onApply(preset) },
+                modifier = Modifier.testTag(PRIORITY_PRESET_TAG_PREFIX + index),
+            )
         }
+    }
+}
+
+/**
+ * Chip compacto de preset: mide su contenido, envuelve la etiqueta y nunca
+ * fuerza una altura fija.
+ *
+ * - El área interactiva es ≥ `touchTarget` (48 dp) en el eje vertical, pero
+ *   **no** hay altura fija: con fuente al 2× la etiqueta salta de línea y el
+ *   chip crece. La etiqueta no se recorta con elipsis.
+ * - La selección no depende del color: además del borde blanco grueso hay
+ *   radio relleno con punto, `selected` y `Role.RadioButton` para TalkBack, los
+ *   mismos tres códigos que usa `WizardChoiceCard`.
+ */
+@Composable
+private fun PriorityPresetChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .defaultMinSize(minHeight = WizardSpacing.touchTarget)
+            .background(WizardColors.cardFill, WizardShapes.pill)
+            .border(
+                width = if (selected) WizardColors.selectedBorderWidth else WizardColors.unselectedBorderWidth,
+                color = if (selected) WizardColors.selectedBorder else WizardColors.cardBorder,
+                shape = WizardShapes.pill,
+            )
+            .semantics {
+                role = Role.RadioButton
+                this.selected = selected
+            }
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        WizardRadioMark(selected = selected)
+        Text(
+            text = label,
+            style = WizardTypography.bodySmall,
+            color = WizardColors.text,
+        )
     }
 }
 

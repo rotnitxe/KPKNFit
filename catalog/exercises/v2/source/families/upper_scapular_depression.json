@@ -45,6 +45,7 @@
                     "Elevación O Depresión"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Principal: La depresión de las escápulas hunde los hombros colgado de la barra y eleva el torso, con los brazos extendidos y el peso corporal como única carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Centrado Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El hombro conserva su centrado en la articulación mientras el cuerpo cuelga de la barra, sin desplazarse durante el descenso escapular.",
                   "role": "STABILIZER"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Cervical"
                   ],
                   "jointId": "columna-cervical",
+                  "note": "Estabilizadora: La columna cervical sostiene una posición neutra mientras el cuerpo cuelga de la barra y las escápulas suben y bajan sin balancear el cuello.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,24 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "scapular_depression",
+              "muscleNotes": [
+                {
+                  "muscleId": "latissimus_dorsi",
+                  "note": "Principal: Con peso corporal y colgado de la barra, el dorsal ancho deprime las escápulas y eleva ligeramente el torso sin flexionar los codos en el recorrido."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio coopera con el descenso de las escápulas mientras el cuerpo cuelga de la barra, con los brazos extendidos y sin flexión de codo."
+                },
+                {
+                  "muscleId": "deltoid",
+                  "note": "Secundario: El deltoide ayuda a sostener el hombro mientras el cuerpo cuelga de la barra y las escápulas suben y bajan, con los brazos extendidos y sin doblarse."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps sostiene la extensión del codo y ayuda a aguantar el peso corporal mientras las escápulas se hunden, sin doblar el brazo en ningún momento."
+                }
+              ],
               "performanceProfileId": "back_dominadas_escapulares__bodyweight__dominadas_escapulares",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -86,6 +107,7 @@
                         "Elevación O Depresión"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Principal: La depresión de las escápulas hunde los hombros colgado de la barra y eleva el torso, con los brazos extendidos y el peso corporal como única carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +115,7 @@
                         "Centrado Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El hombro conserva su centrado en la articulación mientras el cuerpo cuelga de la barra, sin desplazarse durante el descenso escapular.",
                       "role": "STABILIZER"
                     },
                     {
@@ -100,6 +123,7 @@
                         "Posición Cervical"
                       ],
                       "jointId": "columna-cervical",
+                      "note": "Estabilizadora: La columna cervical sostiene una posición neutra mientras el cuerpo cuelga de la barra y las escápulas suben y bajan sin balancear el cuello.",
                       "role": "STABILIZER"
                     }
                   ],

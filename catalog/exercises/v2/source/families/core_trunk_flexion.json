@@ -45,6 +45,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis, y el lastre del disco sobre el pecho hace que esa flexión cueste más en el declive.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La flexión torácica acompaña el encogimiento del torso sobre el banco declinado, mientras el disco en el pecho empuja el tronco hacia la extensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: La pelvis apoyada en el banco declinado conserva su posición mientras el disco sobre el pecho carga la flexión, sin que las caderas sustituyan al abdomen.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "trunk_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: El disco sostenido sobre el pecho carga la flexión del tronco en el banco declinado; el abdomen se acorta al subir y frena el descenso contra la gravedad."
+                }
+              ],
               "performanceProfileId": "core_crunch_banco_declinado_lastrado_disco__plate__crunch_abdominal_en_banco_declinado_lastrado_con_disco",
               "primaryMuscles": [
                 "abdominals"
@@ -86,6 +95,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis, y el lastre del disco sobre el pecho hace que esa flexión cueste más en el declive.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La flexión torácica acompaña el encogimiento del torso sobre el banco declinado, mientras el disco en el pecho empuja el tronco hacia la extensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: La pelvis apoyada en el banco declinado conserva su posición mientras el disco sobre el pecho carga la flexión, sin que las caderas sustituyan al abdomen.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -313,6 +325,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis de rodillas frente a la polea, con la cuerda alta empujando el torso atrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -320,6 +333,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La flexión torácica completa el encogimiento con la cuerda de la polea alta tirando desde la frente, un recorrido exigente también en el retorno.",
                   "role": "SECONDARY"
                 },
                 {
@@ -327,6 +341,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: Con las rodillas en el suelo, la pelvis se sostiene quieta mientras la polea alta arrastra el torso hacia delante, sin que el peso se traslade a las caderas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -334,6 +349,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "trunk_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: La polea alta tira del torso hacia las rodillas con tensión constante; el abdomen se acorta contra la cuerda y frena la vuelta cuando el tronco se abre."
+                }
+              ],
               "performanceProfileId": "core_crunch_en_polea_alta__cable__crunch_abdominal_de_rodillas_en_polea_alta",
               "primaryMuscles": [
                 "abdominals"
@@ -354,6 +375,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis de rodillas frente a la polea, con la cuerda alta empujando el torso atrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -361,6 +383,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La flexión torácica completa el encogimiento con la cuerda de la polea alta tirando desde la frente, un recorrido exigente también en el retorno.",
                       "role": "SECONDARY"
                     },
                     {
@@ -368,6 +391,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: Con las rodillas en el suelo, la pelvis se sostiene quieta mientras la polea alta arrastra el torso hacia delante, sin que el peso se traslade a las caderas.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -577,6 +601,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis sobre el recorrido guiado de la máquina, con la carga ajustable oponiéndose al gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -584,6 +609,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La flexión torácica acompaña al torso sentado contra la almohadilla de la máquina, cuyo recorrido guiado no admite desvíos al subir ni al volver.",
                   "role": "SECONDARY"
                 },
                 {
@@ -591,6 +617,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: Sentado en la máquina, la pelvis se queda en el asiento mientras la carga ajustable empuja el torso, de modo que las caderas solo organizan la postura.",
                   "role": "STABILIZER"
                 }
               ],
@@ -598,6 +625,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "trunk_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: La máquina guía la flexión del tronco contra la almohadilla con carga ajustable; el abdomen se acorta al empujar y frena el retorno sobre el recorrido prefijado."
+                }
+              ],
               "performanceProfileId": "core_crunch_maquina__machine__crunch_abdominal_en_maquina",
               "primaryMuscles": [
                 "abdominals"
@@ -618,6 +651,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis sobre el recorrido guiado de la máquina, con la carga ajustable oponiéndose al gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -625,6 +659,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La flexión torácica acompaña al torso sentado contra la almohadilla de la máquina, cuyo recorrido guiado no admite desvíos al subir ni al volver.",
                       "role": "SECONDARY"
                     },
                     {
@@ -632,6 +667,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: Sentado en la máquina, la pelvis se queda en el asiento mientras la carga ajustable empuja el torso, de modo que las caderas solo organizan la postura.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -841,6 +877,7 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis tumbado en el suelo, con solo el peso corporal oponiéndose al regreso del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -848,6 +885,7 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Secundaria: La flexión torácica despega la parte alta de la espalda del suelo mientras las rodillas dobladas y el peso corporal limitan la ayuda de las caderas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -855,6 +893,7 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
+                  "note": "Estabilizadora: Con las rodillas dobladas y el suelo como apoyo, la pelvis queda quieta mientras el torso se encoge, sin que el peso corporal se traslade a las caderas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -862,6 +901,12 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "trunk_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: Con peso corporal sobre el suelo, el abdomen se acorta al despegar los hombros y frena el descenso, sin material añadido que compense la pérdida de tensión."
+                }
+              ],
               "performanceProfileId": "core_crunch_suelo_peso_corporal__bodyweight__crunch_abdominal_en_suelo",
               "primaryMuscles": [
                 "abdominals"
@@ -882,6 +927,7 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis tumbado en el suelo, con solo el peso corporal oponiéndose al regreso del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -889,6 +935,7 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Secundaria: La flexión torácica despega la parte alta de la espalda del suelo mientras las rodillas dobladas y el peso corporal limitan la ayuda de las caderas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -896,6 +943,7 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
+                      "note": "Estabilizadora: Con las rodillas dobladas y el suelo como apoyo, la pelvis queda quieta mientras el torso se encoge, sin que el peso corporal se traslade a las caderas.",
                       "role": "STABILIZER"
                     }
                   ],

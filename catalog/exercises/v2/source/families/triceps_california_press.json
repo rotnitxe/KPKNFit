@@ -45,6 +45,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo baja la barra hacia la cara y se extiende para devolverla sobre el pecho, mezclando press y extensión con el brazo superior de referencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra desciende hacia la cara; la carga bilateral se reparte sin abrir los brazos en el arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano bajo la barra recta durante el recorrido entre la cara y el pecho, donde la carga pide un apoyo firme y estable.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la barra, el tríceps extiende el codo en el empuje que devuelve la carga sobre el pecho; el descenso hacia la cara se frena de forma excéntrica."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral comparte el empuje con la barra cuando la carga vuelve sobre el pecho, con los codos cerca del cuerpo y sin abrir los brazos."
+                }
+              ],
               "performanceProfileId": "california_press__barbell__press_california",
               "primaryMuscles": [
                 "triceps"
@@ -86,6 +99,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo baja la barra hacia la cara y se extiende para devolverla sobre el pecho, mezclando press y extensión con el brazo superior de referencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra desciende hacia la cara; la carga bilateral se reparte sin abrir los brazos en el arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano bajo la barra recta durante el recorrido entre la cara y el pecho, donde la carga pide un apoyo firme y estable.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -298,6 +314,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo guía la barra EZ hacia la cara y se abre para devolverla sobre el pecho; con los codos hacia dentro se mezclan press y extensión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -305,6 +322,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra EZ viaja hacia la cara; el ángulo de las manos reduce la rotación exigida al conjunto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -312,6 +330,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La barra EZ reduce la rotación exigida a la muñeca, que conserva la alineación durante el arco entre la cara y el pecho sin forzar la posición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -319,6 +338,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con la barra EZ, el tríceps extiende el codo en el empuje que devuelve la carga sobre el pecho; el descenso hacia la cara se frena excéntricamente."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral colabora en el empuje final sobre el pecho con la barra EZ, que mantiene los codos hacia dentro y el trabajo repartido entre ambos lados."
+                }
+              ],
               "performanceProfileId": "california_press__ez_bar__press_california",
               "primaryMuscles": [
                 "triceps"
@@ -339,6 +368,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo guía la barra EZ hacia la cara y se abre para devolverla sobre el pecho; con los codos hacia dentro se mezclan press y extensión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -346,6 +376,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra EZ viaja hacia la cara; el ángulo de las manos reduce la rotación exigida al conjunto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -353,6 +384,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La barra EZ reduce la rotación exigida a la muñeca, que conserva la alineación durante el arco entre la cara y el pecho sin forzar la posición.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -551,6 +583,7 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: Cada codo baja su mancuerna hacia la cara y se extiende sobre el pecho, mezclando press y extensión con el brazo superior como referencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -558,6 +591,7 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Secundaria: El hombro fija el brazo superior de cada lado mientras la mancuerna desciende hacia la cara, sin abrir el brazo durante el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -565,6 +599,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Cada muñeca conserva su alineación bajo la mancuerna independiente, que ajusta su propia línea entre la cara y el pecho en cada repetición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -572,6 +607,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "triceps",
+                  "note": "Principal: Con mancuernas, cada tríceps extiende el codo para devolver su carga sobre el pecho; el descenso hacia la cara se frena de forma excéntrica por separado."
+                },
+                {
+                  "muscleId": "pectoralis",
+                  "note": "Secundario: El pectoral asiste el empuje de cada mancuerna sobre el pecho con los codos recogidos, y cada lado reparte su propio trabajo sin dominar al otro."
+                }
+              ],
               "performanceProfileId": "california_press__dumbbells__press_california",
               "primaryMuscles": [
                 "triceps"
@@ -592,6 +637,7 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: Cada codo baja su mancuerna hacia la cara y se extiende sobre el pecho, mezclando press y extensión con el brazo superior como referencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -599,6 +645,7 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Secundaria: El hombro fija el brazo superior de cada lado mientras la mancuerna desciende hacia la cara, sin abrir el brazo durante el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -606,6 +653,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Cada muñeca conserva su alineación bajo la mancuerna independiente, que ajusta su propia línea entre la cara y el pecho en cada repetición.",
                       "role": "STABILIZER"
                     }
                   ],

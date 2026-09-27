@@ -1337,7 +1337,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         equipmentIds,
                         protocolOnly = draft.programRoute == SetupProgramRoute.PROTOCOL,
                     )
-                    val adaptedPass = requested.second.isEmpty() && equipmentIds != setOf("bodyweight")
+                    // D-005/E-015: bajo PROTOCOL NUNCA hay segundo pase
+                    // `protocolOnly=false`. Si no hay protocolo viable, la UI
+                    // muestra la razón y una acción EXPLÍCITA de cambiar de ruta;
+                    // el código jamás sustituye la ruta ni publica un nativo.
+                    val adaptedPass = draft.programRoute != SetupProgramRoute.PROTOCOL &&
+                        requested.second.isEmpty() && equipmentIds != setOf("bodyweight")
                     val fallback = if (adaptedPass) {
                         collectViable(setOf("bodyweight"), protocolOnly = false)
                     } else {
@@ -1462,6 +1467,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return SetupPreview(program, null)
         }
         val entry = draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find) ?: error("Selecciona un plan")
+        // D-005/E-015 guard de fuente: la ruta PROTOCOL solo acepta recetas de
+        // autor. Un ID nativo forzado (selección manipulada o borrador
+        // restaurado) se rechaza con motivo tipado de FUENTE EQUIVOCADA, tanto
+        // en PLAN/review como en materialización; nunca llega a receipt.
+        if (draft.programRoute == SetupProgramRoute.PROTOCOL && entry.source != CatalogSource.PROTOCOL) {
+            error("Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
+        }
         if (entry.source == CatalogSource.NATIVE) {
             val frequency = draft.daysPerWeek ?: error("Selecciona los días de entrenamiento")
             val result = OnboardingPlanGenerator(SimpleCyclePersonalizer(catalogRepository)).generate(
@@ -1638,6 +1650,15 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val blocking = SetupWizardValidation.validateAll(d).firstOrNull { it.isBlocking }
         if (blocking != null) put(blocking.key, blocking.message ?: "Revisa tus respuestas antes de activar")
         if (d.includeTraining && d.programRoute != SetupProgramRoute.LATER && (s.programPreview == null || s.previewError != null || s.isPreviewLoading || lastSuccessfulTrainingKey != trainingKey(d))) put("program", "Prepara una vista previa ejecutable")
+        // D-005/E-015 guard de fuente en la puerta REAL de activación: bajo
+        // PROTOCOL, una selección con fuente distinta de PROTOCOL bloquea el
+        // commit (no puede generarse receipt) y exige cambio de ruta explícito.
+        if (d.includeTraining && d.programRoute == SetupProgramRoute.PROTOCOL) {
+            val selected = d.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
+            if (selected != null && selected.source != CatalogSource.PROTOCOL) {
+                put("programSource", "Fuente equivocada para la ruta elegida: la ruta de protocolo solo acepta recetas de autor. Cambia de ruta de forma explícita para usar un plan nativo.")
+            }
+        }
         if (s.fixedSessionEstimateMinutes != null && s.fixedSessionEstimateMinutes > (d.minutesPerSession ?: 100)) put("time", "Esta receta supera los ${d.minutesPerSession ?: 100} minutos por sesión; elige otra o ajusta el tiempo")
         if (fixedRecipeDifference(d, s.programPreview, s.fixedSessionEstimateMinutes) && !d.acceptFixedRecipeDifference) put("schedule", "Confirma la rotación y la duración reales de la receta")
         // Solo registro = sin plan y sin metas; no se exige una preparación que
@@ -1675,8 +1696,44 @@ class SetupWizardViewModel @JvmOverloads constructor(
         fun provided(step: SetupStepId, question: WizChatQuestionId): Boolean =
             step in declared || question in legacyProvided
         val age = draft.ageYears ?: parseLocalizedNumber(draft.nutritionDraft?.ageText.orEmpty())?.toInt()
-        val equipmentAvailabilityConfirmed = draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT) ||
+        // Procedencia ORDENADA de la disponibilidad categórica. Sin estado nuevo:
+        // solo se leen marcas que el borrador ya lleva.
+        // 1) El paso AVAILABILITY —el dueño real del material— está confirmado:
+        //    declarado, o sugerencia aceptada con Continuar. Se persisten las
+        //    categorías vivas EXACTAS, vacío incluido (solo peso corporal), y un
+        //    vacío explícito nunca se confunde con «sin dato». Un simple
+        //    prefill, una selección sin confirmar o un DERIVED/ENGINE_RESULT no
+        //    son confirmaciones: no se autofirman.
+        // 2) La ruta «Sin material» ni siquiera pregunta AVAILABILITY, así que
+        //    su vacío explícito se persiste cuando el propio EQUIPMENT está
+        //    declarado o confirmado y el entorno lo dice de forma literal. Un
+        //    entorno nulo, en blanco o desconocido NO es «sin material» y jamás
+        //    autoriza un vacío. Nunca se fabrica una respuesta legacy.
+        // 3) Un borrador legacy sin ninguna señal del flujo actual conserva su
+        //    HOME_EQUIPMENT: environment sin elegir y sin marcas de
+        //    EQUIPMENT/AVAILABILITY (declaración, respuesta o selección).
+        // 4) Cualquier otro caso, incluido `live == null`, es Unchanged: ni
+        //    autofirmación de una semilla, ni borrado por accidente.
+        val liveAvailability = draft.trainingOptions.availability
+        val availabilityConfirmed = draft.isStepDeclared(SetupStepId.AVAILABILITY) ||
+            draft.stepProgress.answers[SetupStepId.AVAILABILITY]?.canPersistAsDeclared() == true
+        val noMaterialConfirmed = draft.trainingEnvironment in NO_MATERIAL_ENVIRONMENTS &&
+            liveAvailability == EquipmentAvailability(emptySet()) &&
+            (draft.isStepDeclared(SetupStepId.EQUIPMENT) ||
+                draft.stepProgress.answers[SetupStepId.EQUIPMENT]?.canPersistAsDeclared() == true)
+        val legacyHomeEquipment = draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT) ||
             draft.stepProgress.answers[SetupStepId.HOME_EQUIPMENT]?.canPersistAsDeclared() == true
+        val hasCurrentEquipmentTrace = SetupStepId.EQUIPMENT in declared ||
+            draft.stepProgress.answers[SetupStepId.EQUIPMENT] != null ||
+            draft.stepSelections[SetupStepId.EQUIPMENT] != null
+        val hasCurrentAvailabilityTrace = SetupStepId.AVAILABILITY in declared ||
+            draft.stepProgress.answers[SetupStepId.AVAILABILITY] != null ||
+            draft.stepSelections[SetupStepId.AVAILABILITY] != null
+        val legacyOnlyAuthorization = legacyHomeEquipment &&
+            draft.trainingEnvironment.isNullOrBlank() &&
+            !hasCurrentEquipmentTrace && !hasCurrentAvailabilityTrace
+        val equipmentAvailabilityConfirmed =
+            availabilityConfirmed || noMaterialConfirmed || legacyOnlyAuthorization
         val declaredName = draft.name.takeIf {
             it.isNotBlank() && provided(SetupStepId.NAME, WizChatQuestionId.P_NAME)
         }
@@ -1735,9 +1792,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
             nutritionTrackingOnly = setIf(true, trackingOnly),
             // Un sugerido solo se guarda después de confirmarse: confirmCurrentStep
             // deja su procedencia en stepProgress sin convertirlo en declarado.
-            // Las respuestas declaradas, incluido none, conservan su gate actual.
+            // La autorización la da el paso AVAILABILITY (o la ruta «Sin material»
+            // confirmada); HOME_EQUIPMENT solo sobrevive en borradores legacy sin
+            // ninguna marca del flujo actual.
             equipmentAvailability = if (equipmentAvailabilityConfirmed) {
-                setOrKeep(draft.trainingOptions.availability)
+                setOrKeep(liveAvailability)
             } else {
                 SetupPatchField.Unchanged
             },
@@ -1792,7 +1851,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     }
     private fun buildVolumeProfile(draft: SetupWizardDraft): VolumeCalibrationProfile? {
         val a = draft.volumeAnswers; val style = a.style ?: return null; val t = a.technique ?: return null; val c = a.consistency ?: return null; val s = a.strength ?: return null; val m = a.mobility ?: return null; val output = VolumeCalibrationEngine.calculate(style, t, c, s, m)
-        return VolumeCalibrationProfile(style, output.score, VolumeCalibrationResponses(t, c, s, m, a.responseState.takeIf { it != CalibrationResponseState.UNKNOWN } ?: CalibrationResponseState.DECLARED), output.recommendations, System.currentTimeMillis(), VolumeCalibrationEngine.REVISION)
+        return VolumeCalibrationProfile(style, output.score, VolumeCalibrationResponses(t, c, s, m, a.responseState), output.recommendations, System.currentTimeMillis(), VolumeCalibrationEngine.REVISION)
     }
 
     private fun newDraft(mode: SetupWizardMode, nutritionMode: String, nutritionPlanId: String?, id: String): SetupWizardDraft {
@@ -1824,6 +1883,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
+        /**
+         * Únicos valores de entorno que el reductor de EQUIPMENT acepta como
+         * «Sin material». Lista positiva a propósito: un entorno nulo, en blanco
+         * o desconocido NUNCA autoriza persistir una disponibilidad vacía.
+         */
+        private val NO_MATERIAL_ENVIRONMENTS = setOf("none", "Sin material")
         /** Etiqueta de logcat de diagnóstico: solo clase+mensaje, nunca datos del usuario. */
         private const val DIAG_TAG = "SetupWizard"
         /** Marca en `lastFailure` del fallo de RINGS; permite limpiarlo sin pisar otros fallos. */

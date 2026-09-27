@@ -45,6 +45,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción y la flexión del hombro abren los brazos en forma de Y con una mancuerna en cada mano y el pecho apoyado en el banco inclinado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La rotación superior de la escápula acompaña la apertura en Y de los brazos y sostiene el recorrido con el torso fijado contra el banco inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña cada brazo al abrir en forma de Y, con una mancuerna por mano y el pecho sostenido por el banco inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras los brazos abren en forma de Y, con una mancuerna por mano y el pecho apoyado en el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_diagonal",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: Con mancuernas y el pecho apoyado en el banco inclinado, el deltoide abre ambos brazos en forma de Y y frena el descenso de cada peso por separado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras los brazos abren en forma de Y, con el pecho apoyado sobre el banco inclinado."
+                }
+              ],
               "performanceProfileId": "deltoides_y_raises_sentado_banco_inclinado__dumbbells__y_raises_sentado_en_banco_inclinado",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +108,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción y la flexión del hombro abren los brazos en forma de Y con una mancuerna en cada mano y el pecho apoyado en el banco inclinado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +116,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La rotación superior de la escápula acompaña la apertura en Y de los brazos y sostiene el recorrido con el torso fijado contra el banco inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +124,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña cada brazo al abrir en forma de Y, con una mancuerna por mano y el pecho sostenido por el banco inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +132,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras los brazos abren en forma de Y, con una mancuerna por mano y el pecho apoyado en el banco.",
                       "role": "STABILIZER"
                     }
                   ],

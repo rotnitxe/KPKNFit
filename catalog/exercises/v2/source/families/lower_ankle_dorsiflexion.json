@@ -45,6 +45,7 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
+                  "note": "Principal: El tobillo alterna dorsiflexión al subir la punta y flexión plantar al bajar, con el peso del cuerpo y la resistencia de la banda sobre los pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
+                  "note": "Secundaria: La subtalar ajusta el reparto del apoyo mientras la punta de ambos pies sube y baja, con el peso del cuerpo como única carga del trabajo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla transmite la carga del peso corporal al tobillo sin ser el motor del movimiento, con los dos pies compartiendo el esfuerzo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "ankle_dorsiflexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "tibialis_anterior",
+                  "note": "Principal: La cara anterior de la espinilla acorta en concéntrico al elevar la punta del pie y frena el descenso en excéntrico con el peso del cuerpo por carga."
+                }
+              ],
               "performanceProfileId": "calves_tibial_anterior__bodyweight__tibial_anterior",
               "primaryMuscles": [
                 "tibialis_anterior"
@@ -86,6 +95,7 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
+                      "note": "Principal: El tobillo alterna dorsiflexión al subir la punta y flexión plantar al bajar, con el peso del cuerpo y la resistencia de la banda sobre los pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
+                      "note": "Secundaria: La subtalar ajusta el reparto del apoyo mientras la punta de ambos pies sube y baja, con el peso del cuerpo como única carga del trabajo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla transmite la carga del peso corporal al tobillo sin ser el motor del movimiento, con los dos pies compartiendo el esfuerzo.",
                       "role": "STABILIZER"
                     }
                   ],

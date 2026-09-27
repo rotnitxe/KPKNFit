@@ -45,6 +45,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión del codo sube la mancuerna hacia el hombro con el brazo por detrás del tronco, cargado desde el punto más estirado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo queda en supinación con la palma hacia arriba y sin giro, así que la mancuerna viaja con el agarre fijo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y por detrás del tronco mientras la mancuerna viaja, sin balanceo del brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea con el antebrazo bajo el peso de la mancuerna, con la palma hacia arriba y sin torcerse.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y la palma hacia arriba, el bíceps acorta en concéntrico desde el estiramiento que deja el brazo por detrás del tronco."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión con la mancuerna supinada y frena la bajada con tensión excéntrica sostenida."
+                }
+              ],
               "performanceProfileId": "biceps_curl_bayesian__dumbbells__supinated",
               "primaryMuscles": [
                 "biceps"
@@ -94,6 +108,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión del codo sube la mancuerna hacia el hombro con el brazo por detrás del tronco, cargado desde el punto más estirado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +116,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo queda en supinación con la palma hacia arriba y sin giro, así que la mancuerna viaja con el agarre fijo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +124,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y por detrás del tronco mientras la mancuerna viaja, sin balanceo del brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +132,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea con el antebrazo bajo el peso de la mancuerna, con la palma hacia arriba y sin torcerse.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -316,6 +334,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona la mancuerna neutra con el brazo por detrás del tronco, con tensión desde el inicio del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -323,6 +342,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: Con las palmas enfrentadas no hay pronación ni supinación, y el antebrazo sostiene una posición media fija.",
                   "role": "SECONDARY"
                 },
                 {
@@ -330,6 +350,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y detrás del tronco mientras la mancuerna sube, con el brazo libre de impulso.",
                   "role": "STABILIZER"
                 },
                 {
@@ -337,6 +358,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca queda alineada con el antebrazo en posición neutra, más holgada que con la palma girada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -344,6 +366,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y las palmas enfrentadas, el bíceps acorta en concéntrico aunque el braquial comparte más la flexión del codo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: Con el agarre neutro, el antebrazo reparte la carga entre sus flexores y frena cada mancuerna al bajar."
+                }
+              ],
               "performanceProfileId": "biceps_curl_bayesian__dumbbells__neutral",
               "primaryMuscles": [
                 "biceps"
@@ -365,6 +397,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona la mancuerna neutra con el brazo por detrás del tronco, con tensión desde el inicio del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -372,6 +405,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: Con las palmas enfrentadas no hay pronación ni supinación, y el antebrazo sostiene una posición media fija.",
                       "role": "SECONDARY"
                     },
                     {
@@ -379,6 +413,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y detrás del tronco mientras la mancuerna sube, con el brazo libre de impulso.",
                       "role": "STABILIZER"
                     },
                     {
@@ -386,6 +421,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca queda alineada con el antebrazo en posición neutra, más holgada que con la palma girada.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -587,6 +623,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona la mancuerna prona con el brazo por detrás del tronco, partiendo del punto más estirado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -594,6 +631,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronación del antebrazo mantiene la palma hacia abajo durante todo el recorrido de la mancuerna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -601,6 +639,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y por detrás del tronco mientras la mancuerna sube, con el codo quieto.",
                   "role": "STABILIZER"
                 },
                 {
@@ -608,6 +647,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca soporta la carga en pronación y se mantiene alineada con el antebrazo sin dejarse caer.",
                   "role": "STABILIZER"
                 }
               ],
@@ -615,6 +655,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y la palma hacia abajo, el bíceps acorta en concéntrico pero cede protagonismo al braquial desde el estiramiento."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: Con el agarre prono, el antebrazo trabaja de forma destacada y frena la bajada de cada mancuerna con tensión excéntrica."
+                }
+              ],
               "performanceProfileId": "biceps_curl_bayesian__dumbbells__pronated",
               "primaryMuscles": [
                 "biceps"
@@ -636,6 +686,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona la mancuerna prona con el brazo por detrás del tronco, partiendo del punto más estirado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -643,6 +694,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronación del antebrazo mantiene la palma hacia abajo durante todo el recorrido de la mancuerna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -650,6 +702,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y por detrás del tronco mientras la mancuerna sube, con el codo quieto.",
                       "role": "STABILIZER"
                     },
                     {
@@ -657,6 +710,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca soporta la carga en pronación y se mantiene alineada con el antebrazo sin dejarse caer.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -858,6 +912,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión del codo vence la tensión continua de la polea con el brazo por detrás del tronco, desde el estiramiento máximo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -865,6 +920,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo se mantiene en supinación con la palma hacia arriba mientras el asa de la polea sube sin girar.",
                   "role": "SECONDARY"
                 },
                 {
@@ -872,6 +928,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y detrás del tronco mientras la polea tira, con tensión constante sobre el brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -879,6 +936,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo contra el tirón constante de la polea, con la palma hacia arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -886,6 +944,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y la palma hacia arriba, el bíceps recibe tensión constante mientras acorta con el brazo por detrás del tronco."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión con el asa supinada y controla la fase excéntrica sin que la polea suelte tensión."
+                }
+              ],
               "performanceProfileId": "biceps_curl_bayesian__cable__supinated",
               "primaryMuscles": [
                 "biceps"
@@ -907,6 +975,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión del codo vence la tensión continua de la polea con el brazo por detrás del tronco, desde el estiramiento máximo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -914,6 +983,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo se mantiene en supinación con la palma hacia arriba mientras el asa de la polea sube sin girar.",
                       "role": "SECONDARY"
                     },
                     {
@@ -921,6 +991,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y detrás del tronco mientras la polea tira, con tensión constante sobre el brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -928,6 +999,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo contra el tirón constante de la polea, con la palma hacia arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1129,6 +1201,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona contra la polea con el asa en agarre neutro y el brazo por detrás del tronco, cargado de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1136,6 +1209,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: Las palmas enfrentadas mantienen el antebrazo en posición neutra, sin pronación ni supinación mientras el asa viaja.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1143,6 +1217,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y detrás del tronco mientras la polea tira con el asa en posición neutra.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1150,6 +1225,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca viaja alineada con el antebrazo en posición neutra y soporta el tirón continuo de la polea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1157,6 +1233,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y las palmas enfrentadas, el bíceps acorta con tensión constante mientras el braquial comparte la flexión del codo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el asa neutra y frena el retorno de la polea, que no da descanso en ningún punto del arco."
+                }
+              ],
               "performanceProfileId": "biceps_curl_bayesian__cable__neutral",
               "primaryMuscles": [
                 "biceps"
@@ -1178,6 +1264,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona contra la polea con el asa en agarre neutro y el brazo por detrás del tronco, cargado de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1185,6 +1272,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: Las palmas enfrentadas mantienen el antebrazo en posición neutra, sin pronación ni supinación mientras el asa viaja.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1192,6 +1280,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y detrás del tronco mientras la polea tira con el asa en posición neutra.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1199,6 +1288,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca viaja alineada con el antebrazo en posición neutra y soporta el tirón continuo de la polea.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1400,6 +1490,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona contra la polea con el asa prona y el brazo por detrás del tronco, con tensión viva en todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1407,6 +1498,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en pronación con la palma hacia abajo mientras sube el asa de la polea, sin giro.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1414,6 +1506,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado detrás del tronco contra el tirón constante de la polea, con el codo quieto.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1421,6 +1514,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca soporta la carga en pronación contra la polea y se mantiene alineada con el antebrazo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1428,6 +1522,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y la palma hacia abajo, el bíceps acorta en concéntrico aunque el braquial y el antebrazo asumen gran parte del esfuerzo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: Con el asa prona, el antebrazo aguanta la tensión constante de la polea en el punto más estirado y frena la bajada."
+                }
+              ],
               "performanceProfileId": "biceps_curl_bayesian__cable__pronated",
               "primaryMuscles": [
                 "biceps"
@@ -1449,6 +1553,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona contra la polea con el asa prona y el brazo por detrás del tronco, con tensión viva en todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1456,6 +1561,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en pronación con la palma hacia abajo mientras sube el asa de la polea, sin giro.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1463,6 +1569,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado detrás del tronco contra el tirón constante de la polea, con el codo quieto.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1470,6 +1577,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca soporta la carga en pronación contra la polea y se mantiene alineada con el antebrazo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1698,6 +1806,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona con los codos altos y las manos suben hacia las sienes venciendo la tensión constante de las poleas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1705,6 +1814,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo sostiene cada asa sin pronar ni supinar mientras el brazo cruza el pecho y sube hacia la sien.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1712,6 +1822,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y elevado en cruz mientras las poleas tiran de forma bilateral.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1719,6 +1830,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo mientras cada asa tira hacia delante y arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1726,6 +1838,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con los brazos en cruz entre las poleas, el bíceps acorta llevando las manos hacia las sienes, con los codos altos y tensión constante."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión sosteniendo cada asa y frena el retorno de la polea con tensión excéntrica."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie frente al tirón bilateral de las poleas, que empujan el torso hacia delante."
+                }
+              ],
               "performanceProfileId": "biceps_curl_crucifijo__cable__curl_biceps",
               "primaryMuscles": [
                 "biceps"
@@ -1747,6 +1873,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona con los codos altos y las manos suben hacia las sienes venciendo la tensión constante de las poleas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1754,6 +1881,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo sostiene cada asa sin pronar ni supinar mientras el brazo cruza el pecho y sube hacia la sien.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1761,6 +1889,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y elevado en cruz mientras las poleas tiran de forma bilateral.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1768,6 +1897,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo mientras cada asa tira hacia delante y arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1990,6 +2120,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona mientras la barra sube pegada al torso y los codos viajan hacia atrás, con el hombro fuera del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1997,6 +2128,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en supinación con las palmas arriba mientras la barra se arrastra pegada al cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2004,6 +2136,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y con el codo retrasado mientras la barra sube pegada al torso.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2011,6 +2144,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la barra, que viaja pegada al cuerpo sin girar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2018,6 +2152,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la barra supinada arrastrada pegada al torso, el bíceps acorta con la contracción más localizada al final del recorrido."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre supino de la barra y frena su descenso mientras la carga viaja pegada al cuerpo."
+                }
+              ],
               "performanceProfileId": "biceps_curl_drag__barbell__curl_drag",
               "primaryMuscles": [
                 "biceps"
@@ -2039,6 +2183,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona mientras la barra sube pegada al torso y los codos viajan hacia atrás, con el hombro fuera del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2046,6 +2191,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en supinación con las palmas arriba mientras la barra se arrastra pegada al cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2053,6 +2199,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y con el codo retrasado mientras la barra sube pegada al torso.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2060,6 +2207,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la barra, que viaja pegada al cuerpo sin girar.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2276,6 +2424,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona cada mancuerna con el tronco sentado y firme en el banco plano, sin balanceo posible.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2283,6 +2432,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo acompaña con pronación o supinación según el agarre de cada mancuerna, que viaja por su cuenta.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2290,6 +2440,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado junto al torso sentado mientras cada mancuerna sube, sin impulso del tronco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2297,6 +2448,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo cada mancuerna, que corrige su propia trayectoria.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2304,6 +2456,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y el tronco sentado en el banco plano, el bíceps acorta en concéntrico sin impulso del cuerpo ni ayuda del otro brazo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión de cada mancuerna y frena la bajada con tensión excéntrica, brazo por brazo."
+                }
+              ],
               "performanceProfileId": "biceps_curl_sentado_banco_plano__dumbbells",
               "primaryMuscles": [
                 "biceps"
@@ -2325,6 +2487,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona cada mancuerna con el tronco sentado y firme en el banco plano, sin balanceo posible.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2332,6 +2495,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo acompaña con pronación o supinación según el agarre de cada mancuerna, que viaja por su cuenta.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2339,6 +2503,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado junto al torso sentado mientras cada mancuerna sube, sin impulso del tronco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2346,6 +2511,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo cada mancuerna, que corrige su propia trayectoria.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2545,6 +2711,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona contra la polea con el tronco sentado y firme en el banco plano, con tensión en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2552,6 +2719,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo acompaña con pronación o supinación según el agarre del asa, que no da descanso al subir ni al bajar.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2559,6 +2727,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado junto al torso sentado mientras la polea tira, sin balanceo del brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2566,6 +2735,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo contra el tirón continuo de la polea sobre el asa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2573,6 +2743,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y el tronco sentado en el banco plano, el bíceps acorta con tensión constante y sin impulso posible del cuerpo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión contra la polea y frena la vuelta del asa con tensión continua hasta el final."
+                }
+              ],
               "performanceProfileId": "biceps_curl_sentado_banco_plano__cable",
               "primaryMuscles": [
                 "biceps"
@@ -2594,6 +2774,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona contra la polea con el tronco sentado y firme en el banco plano, con tensión en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2601,6 +2782,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo acompaña con pronación o supinación según el agarre del asa, que no da descanso al subir ni al bajar.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2608,6 +2790,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado junto al torso sentado mientras la polea tira, sin balanceo del brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2615,6 +2798,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo contra el tirón continuo de la polea sobre el asa.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2840,6 +3024,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona el asa de la polea baja hacia delante con los brazos partiendo de detrás del cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2847,6 +3032,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo acompaña la pronación o supinación del agarre mientras el asa de la polea baja viaja al frente.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2854,6 +3040,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado al pasar de la extensión detrás del cuerpo a la flexión, contra el tirón de la polea baja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2861,6 +3048,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo mientras la polea baja tira del asa desde detrás del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2868,6 +3056,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la espalda hacia la polea baja, el bíceps acorta con tensión constante desde un estiramiento enorme con los brazos detrás del cuerpo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el asa y frena el retorno de la polea baja cuando los brazos vuelven hacia detrás del cuerpo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco erguido y estable mientras la polea baja tira de los brazos hacia atrás."
+                }
+              ],
               "performanceProfileId": "biceps_curl_superman__cable__curl_biceps",
               "primaryMuscles": [
                 "biceps"
@@ -2889,6 +3091,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona el asa de la polea baja hacia delante con los brazos partiendo de detrás del cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2896,6 +3099,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo acompaña la pronación o supinación del agarre mientras el asa de la polea baja viaja al frente.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2903,6 +3107,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado al pasar de la extensión detrás del cuerpo a la flexión, contra el tirón de la polea baja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2910,6 +3115,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo mientras la polea baja tira del asa desde detrás del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3130,6 +3336,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona para acercar la cabeza a las asas del TRX, con el cuerpo inclinado como carga y las palmas arriba.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3137,6 +3344,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en supinación con las palmas arriba sobre las asas, sin giro durante la subida.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3144,6 +3352,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado mientras el cuerpo se acerca a las asas, con el hombro estable bajo la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3151,6 +3360,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo colgada de las asas del TRX con la palma hacia arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3158,6 +3368,20 @@
               "laterality": "BILATERAL",
               "loadMode": "suspension",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con las asas del TRX y las palmas arriba, el bíceps acorta para acercar la cabeza a las manos usando el propio cuerpo como carga."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre supino de las asas y frena el retorno del cuerpo inclinado con tensión excéntrica."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Secundario: El core sostiene el cuerpo inclinado bajo las asas con la cadera firme mientras el codo flexiona la subida."
+                }
+              ],
               "performanceProfileId": "biceps_curl_trx__trx__curl_de_biceps_en_trx",
               "primaryMuscles": [
                 "biceps"
@@ -3179,6 +3403,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona para acercar la cabeza a las asas del TRX, con el cuerpo inclinado como carga y las palmas arriba.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3186,6 +3411,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en supinación con las palmas arriba sobre las asas, sin giro durante la subida.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3193,6 +3419,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado mientras el cuerpo se acerca a las asas, con el hombro estable bajo la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3200,6 +3427,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo colgada de las asas del TRX con la palma hacia arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3416,6 +3644,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona para subir el disco en copa hacia el pecho, con las palmas al techo y los codos quietos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3423,6 +3652,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en supinación con la palma mirando al techo, sin giro mientras sostiene el disco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3430,6 +3660,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado junto al torso mientras el disco sube y baja en copa, de forma bilateral.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3437,6 +3668,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca sostiene el disco en copa y se mantiene alineada con el antebrazo bajo la carga vertical del peso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3444,6 +3676,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con el disco sostenido en copa y la palma al techo, el bíceps acorta el peso en concéntrico con los codos quietos junto al torso."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el disco en copa con firmeza y frena la bajada del peso con tensión excéntrica."
+                }
+              ],
               "performanceProfileId": "biceps_curl_waiter__plate__curl_waiter",
               "primaryMuscles": [
                 "biceps"
@@ -3465,6 +3707,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona para subir el disco en copa hacia el pecho, con las palmas al techo y los codos quietos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3472,6 +3715,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en supinación con la palma mirando al techo, sin giro mientras sostiene el disco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3479,6 +3723,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado junto al torso mientras el disco sube y baja en copa, de forma bilateral.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3486,6 +3731,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca sostiene el disco en copa y se mantiene alineada con el antebrazo bajo la carga vertical del peso.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3702,6 +3948,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona las mancuernas con las palmas arriba y las desciende con las palmas abajo tras el giro en el punto alto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3709,6 +3956,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo rota de supinación a pronación en el punto alto, girando las mancuernas entre la subida y la bajada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3716,6 +3964,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado junto al torso mientras las mancuernas suben y bajan con los agarres girados.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3723,6 +3972,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca absorbe el giro de las mancuernas en el punto alto y se mantiene alineada con el antebrazo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3730,6 +3980,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas, el bíceps acorta en la subida con las palmas arriba y luego frena la bajada ya con las palmas hacia abajo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo protagoniza la bajada en pronación y gira las mancuernas en el punto alto del recorrido."
+                }
+              ],
               "performanceProfileId": "biceps_curl_zottman__dumbbells__curl_zottman",
               "primaryMuscles": [
                 "biceps"
@@ -3751,6 +4011,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona las mancuernas con las palmas arriba y las desciende con las palmas abajo tras el giro en el punto alto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3758,6 +4019,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo rota de supinación a pronación en el punto alto, girando las mancuernas entre la subida y la bajada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3765,6 +4027,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado junto al torso mientras las mancuernas suben y bajan con los agarres girados.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3772,6 +4035,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca absorbe el giro de las mancuernas en el punto alto y se mantiene alineada con el antebrazo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -3988,6 +4252,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona la mancuerna apoyado en el muslo, con el brazo trabajando por separado hasta la contracción total.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3995,6 +4260,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en supinación con la palma hacia arriba mientras la mancuerna sube apoyada en el muslo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4002,6 +4268,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y quieto sobre el muslo mientras la mancuerna viaja por un solo brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4009,6 +4276,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la mancuerna, con la palma hacia arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4016,6 +4284,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la mancuerna y el codo clavado en el muslo, el bíceps acorta en concéntrico aislado, sin impulso posible del tronco."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión de la mancuerna con la palma arriba y frena su bajada con tensión excéntrica."
+                }
+              ],
               "performanceProfileId": "concentration_curl__dumbbells",
               "primaryMuscles": [
                 "biceps"
@@ -4037,6 +4315,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona la mancuerna apoyado en el muslo, con el brazo trabajando por separado hasta la contracción total.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4044,6 +4323,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en supinación con la palma hacia arriba mientras la mancuerna sube apoyada en el muslo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4051,6 +4331,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y quieto sobre el muslo mientras la mancuerna viaja por un solo brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4058,6 +4339,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la mancuerna, con la palma hacia arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4257,6 +4539,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona el asa de la polea con el apoyo en el muslo, con tensión constante hasta la contracción más corta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4264,6 +4547,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo acompaña la pronación o supinación del agarre del asa mientras la polea mantiene la carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4271,6 +4555,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y apoyado sobre el muslo mientras la polea tira de un solo brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4278,6 +4563,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo contra el tirón constante de la polea sobre el asa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4285,6 +4571,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y el codo apoyado en el muslo, el bíceps acorta con tensión constante y aislamiento total de un solo brazo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el asa contra la polea y controla la fase excéntrica sin que la tensión desaparezca."
+                }
+              ],
               "performanceProfileId": "concentration_curl__cable",
               "primaryMuscles": [
                 "biceps"
@@ -4306,6 +4602,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona el asa de la polea con el apoyo en el muslo, con tensión constante hasta la contracción más corta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4313,6 +4610,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo acompaña la pronación o supinación del agarre del asa mientras la polea mantiene la carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4320,6 +4618,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y apoyado sobre el muslo mientras la polea tira de un solo brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4327,6 +4626,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo contra el tirón constante de la polea sobre el asa.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4552,6 +4852,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona la barra desde la extensión casi total con el brazo apoyado en el banco inclinado, sin impulso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4559,6 +4860,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en supinación con las palmas arriba sobre el banco, sin giro mientras la barra viaja.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4566,6 +4868,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en el banco inclinado, que detiene el hombro durante la flexión.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4573,6 +4876,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la barra, que exige un agarre recto y fijo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4580,6 +4884,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la barra y los brazos apoyados en el banco inclinado, el bíceps acorta contra la gravedad desde la extensión casi total."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre de la barra sobre el apoyo y frena la bajada con tensión excéntrica."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco estable sobre el banco inclinado mientras la barra sube y baja sin impulso."
+                }
+              ],
               "performanceProfileId": "preacher_curl__barbell__curl_biceps_predicador",
               "primaryMuscles": [
                 "biceps"
@@ -4601,6 +4919,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona la barra desde la extensión casi total con el brazo apoyado en el banco inclinado, sin impulso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4608,6 +4927,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en supinación con las palmas arriba sobre el banco, sin giro mientras la barra viaja.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4615,6 +4935,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en el banco inclinado, que detiene el hombro durante la flexión.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4622,6 +4943,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la barra, que exige un agarre recto y fijo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -4824,6 +5146,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona la barra EZ desde la extensión casi total con el brazo apoyado en el banco inclinado y sin impulso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -4831,6 +5154,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo sostiene la posición intermedia del agarre girado de la barra EZ, entre supinación y pronación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -4838,6 +5162,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en el banco inclinado mientras la barra EZ viaja sin balanceo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -4845,6 +5170,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo gracias al agarre girado de la barra EZ sobre el apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -4852,6 +5178,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la barra EZ y los brazos apoyados en el banco inclinado, el bíceps acorta contra la gravedad con la muñeca girada."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre girado de la barra EZ y frena su bajada desde la extensión casi total."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco firme sobre el banco inclinado mientras la barra EZ sube y baja."
+                }
+              ],
               "performanceProfileId": "preacher_curl__ez_bar__curl_biceps_predicador",
               "primaryMuscles": [
                 "biceps"
@@ -4873,6 +5213,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona la barra EZ desde la extensión casi total con el brazo apoyado en el banco inclinado y sin impulso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -4880,6 +5221,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo sostiene la posición intermedia del agarre girado de la barra EZ, entre supinación y pronación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -4887,6 +5229,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en el banco inclinado mientras la barra EZ viaja sin balanceo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -4894,6 +5237,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo gracias al agarre girado de la barra EZ sobre el apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5096,6 +5440,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona cada mancuerna desde la extensión casi total, con el brazo apoyado en el banco inclinado y sin impulso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5103,6 +5448,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo acompaña con pronación o supinación según el agarre de cada mancuerna sobre el banco inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5110,6 +5456,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en el banco inclinado, que frena el hombro de cada brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5117,6 +5464,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo cada mancuerna, que corrige su propia línea de recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5124,6 +5472,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y los brazos apoyados en el banco inclinado, el bíceps acorta por separado desde la extensión casi total."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña cada mancuerna sobre el apoyo y frena su bajada con tensión excéntrica."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco estable sobre el banco inclinado mientras cada mancuerna trabaja por su lado."
+                }
+              ],
               "performanceProfileId": "preacher_curl__dumbbells__curl_biceps_predicador",
               "primaryMuscles": [
                 "biceps"
@@ -5145,6 +5507,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona cada mancuerna desde la extensión casi total, con el brazo apoyado en el banco inclinado y sin impulso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5152,6 +5515,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo acompaña con pronación o supinación según el agarre de cada mancuerna sobre el banco inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -5159,6 +5523,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en el banco inclinado, que frena el hombro de cada brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -5166,6 +5531,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo cada mancuerna, que corrige su propia línea de recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5368,6 +5734,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona sobre el recorrido guiado de la máquina, con el brazo apoyado y sin espacio para el impulso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5375,6 +5742,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo mantiene el agarre fijo que marca la máquina, sin pronar ni supinar durante la flexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5382,6 +5750,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en la máquina, que detiene el hombro mientras el brazo trabaja.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5389,6 +5758,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo sobre el agarre guiado de la máquina, con recorrido fijo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5396,6 +5766,20 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: En la máquina con apoyo de brazos, el bíceps acorta contra el recorrido guiado, sin dedicar esfuerzo a equilibrar la carga."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo empuja el apoyo de la máquina y frena su retorno con tensión excéntrica constante."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco firme contra la máquina mientras el recorrido guía el brazo."
+                }
+              ],
               "performanceProfileId": "preacher_curl__machine__curl_biceps_predicador",
               "primaryMuscles": [
                 "biceps"
@@ -5417,6 +5801,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona sobre el recorrido guiado de la máquina, con el brazo apoyado y sin espacio para el impulso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5424,6 +5809,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo mantiene el agarre fijo que marca la máquina, sin pronar ni supinar durante la flexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -5431,6 +5817,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y apoyado en la máquina, que detiene el hombro mientras el brazo trabaja.",
                       "role": "STABILIZER"
                     },
                     {
@@ -5438,6 +5825,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo sobre el agarre guiado de la máquina, con recorrido fijo.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5666,6 +6054,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: El codo flexiona cada mancuerna con el brazo colgando en vertical, bajo el hombro y sin ayuda del tronco apoyado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5673,6 +6062,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en supinación con la palma hacia arriba mientras la mancuerna sube desde el brazo colgado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5680,6 +6070,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se mantiene centrado y colgado bajo el hombro, con el pecho apoyado en el banco inclinado.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5687,6 +6078,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la mancuerna, con la palma hacia arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5694,6 +6086,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y la palma arriba, boca abajo sobre el banco inclinado, el bíceps acorta desde el estiramiento máximo del brazo colgado."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión con la mancuerna supinada y frena su bajada vertical con tensión excéntrica."
+                }
+              ],
               "performanceProfileId": "spider_curl__dumbbells__supinated",
               "primaryMuscles": [
                 "biceps"
@@ -5715,6 +6117,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: El codo flexiona cada mancuerna con el brazo colgando en vertical, bajo el hombro y sin ayuda del tronco apoyado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5722,6 +6125,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en supinación con la palma hacia arriba mientras la mancuerna sube desde el brazo colgado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -5729,6 +6133,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se mantiene centrado y colgado bajo el hombro, con el pecho apoyado en el banco inclinado.",
                       "role": "STABILIZER"
                     },
                     {
@@ -5736,6 +6141,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca se mantiene alineada con el antebrazo bajo la mancuerna, con la palma hacia arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -5938,6 +6344,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión se cumple con el brazo colgando bajo el hombro; las mancuernas en neutro cargan el arco desde el estiramiento profundo sin impulso del tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -5945,6 +6352,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: Con las palmas enfrentadas la pronosupinación queda en su punto intermedio durante toda la serie, sin rotación del antebrazo con cada mancuerna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -5952,6 +6360,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra bajo el hombro con el pecho apoyado en el banco inclinado, mientras el brazo cuelga y las mancuernas viajan por su eje.",
                   "role": "STABILIZER"
                 },
                 {
@@ -5959,6 +6368,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano con el antebrazo en posición neutra, y cada mancuerna permite corregir por separado esa alineación en los dos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -5966,6 +6376,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: El bíceps acorta el codo con mancuernas en agarre neutro mientras el brazo cuelga en vertical, y frena la bajada desde el punto más estirado."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la flexión con las palmas enfrentadas y regula el descenso independiente de cada mancuerna durante todo el arco."
+                }
+              ],
               "performanceProfileId": "spider_curl__dumbbells__neutral",
               "primaryMuscles": [
                 "biceps"
@@ -5987,6 +6407,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión se cumple con el brazo colgando bajo el hombro; las mancuernas en neutro cargan el arco desde el estiramiento profundo sin impulso del tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -5994,6 +6415,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: Con las palmas enfrentadas la pronosupinación queda en su punto intermedio durante toda la serie, sin rotación del antebrazo con cada mancuerna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6001,6 +6423,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra bajo el hombro con el pecho apoyado en el banco inclinado, mientras el brazo cuelga y las mancuernas viajan por su eje.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6008,6 +6431,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano con el antebrazo en posición neutra, y cada mancuerna permite corregir por separado esa alineación en los dos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -6210,6 +6634,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión ocurre con el brazo colgando y las palmas al suelo; cada mancuerna carga el arco completo sin ayuda del tronco apoyado en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -6217,6 +6642,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronoación sostenida bloquea la rotación del antebrazo durante la subida y la bajada, con cada mancuerna sosteniendo esa posición aparte.",
                   "role": "SECONDARY"
                 },
                 {
@@ -6224,6 +6650,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Con el pecho apoyado en el banco inclinado, el húmero permanece centrado bajo el hombro mientras el brazo cuelga en vertical.",
                   "role": "STABILIZER"
                 },
                 {
@@ -6231,6 +6658,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Con las palmas abajo la muñeca sostiene la alineación del dorso de la mano con el antebrazo, y cada lado la corrige con su mancuerna.",
                   "role": "STABILIZER"
                 }
               ],
@@ -6238,6 +6666,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con las palmas al suelo el bíceps acorta el codo con menos ventaja mecánica, y frena el descenso de cada mancuerna desde el brazo colgado."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo gana protagonismo con las palmas abajo: sostiene la muñeca extendida y regula la bajada de cada mancuerna por su cuenta."
+                }
+              ],
               "performanceProfileId": "spider_curl__dumbbells__pronated",
               "primaryMuscles": [
                 "biceps"
@@ -6259,6 +6697,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión ocurre con el brazo colgando y las palmas al suelo; cada mancuerna carga el arco completo sin ayuda del tronco apoyado en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6266,6 +6705,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronoación sostenida bloquea la rotación del antebrazo durante la subida y la bajada, con cada mancuerna sosteniendo esa posición aparte.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6273,6 +6713,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Con el pecho apoyado en el banco inclinado, el húmero permanece centrado bajo el hombro mientras el brazo cuelga en vertical.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6280,6 +6721,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Con las palmas abajo la muñeca sostiene la alineación del dorso de la mano con el antebrazo, y cada lado la corrige con su mancuerna.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -6482,6 +6924,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: Con el brazo colgando del banco, la flexión recibe carga de la polea incluso en el estiramiento más profundo, sin tramos sin tensión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -6489,6 +6932,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre supino mantiene el antebrazo en supinación durante todo el recorrido, y el cable impide que esa rotación se relaje en la bajada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -6496,6 +6940,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero permanece centrado bajo el hombro con el pecho apoyado; la polea tira en línea con el brazo y no lo arrastra fuera de su eje.",
                   "role": "STABILIZER"
                 },
                 {
@@ -6503,6 +6948,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca alinea la mano supina con el antebrazo mientras el cable tira de forma continua, con el mismo eje de empuje en cada repetición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -6510,6 +6956,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: La polea mantiene tensión constante sobre el bíceps desde el punto más estirado; con las palmas arriba él acorta el codo y frena el retorno."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la supinación sostenida sobre la polea y ayuda a frenar el descenso con la mano girada hacia el cuerpo en todo el arco."
+                }
+              ],
               "performanceProfileId": "spider_curl__cable__supinated",
               "primaryMuscles": [
                 "biceps"
@@ -6531,6 +6987,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: Con el brazo colgando del banco, la flexión recibe carga de la polea incluso en el estiramiento más profundo, sin tramos sin tensión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6538,6 +6995,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre supino mantiene el antebrazo en supinación durante todo el recorrido, y el cable impide que esa rotación se relaje en la bajada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6545,6 +7003,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero permanece centrado bajo el hombro con el pecho apoyado; la polea tira en línea con el brazo y no lo arrastra fuera de su eje.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6552,6 +7011,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca alinea la mano supina con el antebrazo mientras el cable tira de forma continua, con el mismo eje de empuje en cada repetición.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -6754,6 +7214,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión trabaja con el brazo colgado y la polea cargando en todo el arco, incluso con el codo casi estirado bajo el hombro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -6761,6 +7222,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre neutro deja la pronosupinación quieta en su punto central mientras el cable exige tensión continua al antebrazo durante la serie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -6768,6 +7230,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra bajo el hombro con el pecho apoyado en el banco, y la polea tira en línea con el brazo sin desplazarlo del eje.",
                   "role": "STABILIZER"
                 },
                 {
@@ -6775,6 +7238,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Con las palmas enfrentadas la muñeca conserva su alineación neutra, y la polea mantiene la carga sobre esa línea en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -6782,6 +7246,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y las palmas enfrentadas el bíceps acorta el codo bajo tensión constante y frena el retorno desde el arco más estirado."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo reparte el esfuerzo en posición neutra y regula el descenso de la manija mientras la polea continúa tirando sin pausa."
+                }
+              ],
               "performanceProfileId": "spider_curl__cable__neutral",
               "primaryMuscles": [
                 "biceps"
@@ -6803,6 +7277,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión trabaja con el brazo colgado y la polea cargando en todo el arco, incluso con el codo casi estirado bajo el hombro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -6810,6 +7285,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre neutro deja la pronosupinación quieta en su punto central mientras el cable exige tensión continua al antebrazo durante la serie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -6817,6 +7293,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra bajo el hombro con el pecho apoyado en el banco, y la polea tira en línea con el brazo sin desplazarlo del eje.",
                       "role": "STABILIZER"
                     },
                     {
@@ -6824,6 +7301,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Con las palmas enfrentadas la muñeca conserva su alineación neutra, y la polea mantiene la carga sobre esa línea en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7026,6 +7504,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión se cumple con el brazo colgando y las palmas al suelo; la polea carga el arco completo sin respiro en ningún punto del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -7033,6 +7512,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronoación sostenida deja el antebrazo rotado durante toda la serie, y el cable impone tensión incluso con el codo casi estirado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -7040,6 +7520,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Con el pecho apoyado en el banco y el brazo vertical, el húmero se centra bajo la tracción constante de la polea sin balancearse.",
                   "role": "STABILIZER"
                 },
                 {
@@ -7047,6 +7528,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Con las palmas abajo la muñeca alinea el dorso de la mano con el antebrazo y resiste la tracción continua del cable en cada repetición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -7054,6 +7536,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la polea y las palmas abajo el bíceps trabaja con menor ventaja mecánica, pero aún acorta el codo y frena la vuelta con tensión continua."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo asume buena parte del esfuerzo con las palmas al suelo, sosteniendo la muñeca mientras el cable tira sin descanso en todo el arco."
+                }
+              ],
               "performanceProfileId": "spider_curl__cable__pronated",
               "primaryMuscles": [
                 "biceps"
@@ -7075,6 +7567,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión se cumple con el brazo colgando y las palmas al suelo; la polea carga el arco completo sin respiro en ningún punto del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -7082,6 +7575,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronoación sostenida deja el antebrazo rotado durante toda la serie, y el cable impone tensión incluso con el codo casi estirado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -7089,6 +7583,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Con el pecho apoyado en el banco y el brazo vertical, el húmero se centra bajo la tracción constante de la polea sin balancearse.",
                       "role": "STABILIZER"
                     },
                     {
@@ -7096,6 +7591,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Con las palmas abajo la muñeca alinea el dorso de la mano con el antebrazo y resiste la tracción continua del cable en cada repetición.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7298,6 +7794,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: Con la barra, la flexión mueve la misma carga en los dos brazos colgados a la vez, sin que el tronco apoyado aporte impulso al movimiento.",
                   "role": "PRIMARY"
                 },
                 {
@@ -7305,6 +7802,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre supino mantiene el antebrazo en supinación sobre la barra, sin rotación posible durante la subida ni durante la bajada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -7312,6 +7810,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Los húmeros se centran bajo los hombros con el pecho apoyado en el banco mientras la barra viaja en vertical por el eje del brazo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -7319,6 +7818,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Con la barra las dos muñecas comparten un mismo eje en supinación y deben alinearse igual a ambos lados durante todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -7326,6 +7826,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: La barra en supino obliga al bíceps a acortar el codo con los dos brazos a la vez, y a frenar juntos el descenso desde el punto más estirado."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene la supinación sobre la barra y ayuda a frenar la bajada cuando la carga compartida empuja las manos hacia el suelo."
+                }
+              ],
               "performanceProfileId": "spider_curl__barbell__supinated",
               "primaryMuscles": [
                 "biceps"
@@ -7347,6 +7857,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: Con la barra, la flexión mueve la misma carga en los dos brazos colgados a la vez, sin que el tronco apoyado aporte impulso al movimiento.",
                       "role": "PRIMARY"
                     },
                     {
@@ -7354,6 +7865,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre supino mantiene el antebrazo en supinación sobre la barra, sin rotación posible durante la subida ni durante la bajada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -7361,6 +7873,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Los húmeros se centran bajo los hombros con el pecho apoyado en el banco mientras la barra viaja en vertical por el eje del brazo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -7368,6 +7881,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Con la barra las dos muñecas comparten un mismo eje en supinación y deben alinearse igual a ambos lados durante todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7570,6 +8084,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La barra en neutro carga la flexión en los dos brazos colgados a la vez, con el arco completo bajo el pecho apoyado en el banco inclinado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -7577,6 +8092,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La posición neutra bloquea la pronosupinación en el centro del recorrido, sin rotación del antebrazo sobre la barra en ningún momento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -7584,6 +8100,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El pecho apoyado y la barra compartida mantienen ambos húmeros centrados bajo sus cavidades mientras el brazo cuelga en vertical.",
                   "role": "STABILIZER"
                 },
                 {
@@ -7591,6 +8108,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Con la barra en neutro las muñecas quedan alineadas con los antebrazos y comparten el mismo eje de empuje en los dos lados.",
                   "role": "STABILIZER"
                 }
               ],
@@ -7598,6 +8116,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la barra de agarre neutro el bíceps acorta el codo repartiendo el trabajo con el braquial, y frena la bajada de la carga compartida."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene las palmas enfrentadas sobre la barra y regula el descenso conjunto con la muñeca en su posición más cómoda."
+                }
+              ],
               "performanceProfileId": "spider_curl__barbell__neutral",
               "primaryMuscles": [
                 "biceps"
@@ -7619,6 +8147,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La barra en neutro carga la flexión en los dos brazos colgados a la vez, con el arco completo bajo el pecho apoyado en el banco inclinado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -7626,6 +8155,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La posición neutra bloquea la pronosupinación en el centro del recorrido, sin rotación del antebrazo sobre la barra en ningún momento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -7633,6 +8163,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El pecho apoyado y la barra compartida mantienen ambos húmeros centrados bajo sus cavidades mientras el brazo cuelga en vertical.",
                       "role": "STABILIZER"
                     },
                     {
@@ -7640,6 +8171,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Con la barra en neutro las muñecas quedan alineadas con los antebrazos y comparten el mismo eje de empuje en los dos lados.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -7842,6 +8374,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión mueve la barra con los brazos colgando y las palmas al suelo, sin aporte del tronco para compensar la parte alta de la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -7849,6 +8382,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre prono mantiene el antebrazo en pronación durante toda la serie, de modo que la rotación proximal permanece inactiva bajo la barra.",
                   "role": "SECONDARY"
                 },
                 {
@@ -7856,6 +8390,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Los húmeros se centran bajo los hombros con el pecho apoyado mientras la barra vertical reparte la carga por igual entre ambos brazos.",
                   "role": "STABILIZER"
                 },
                 {
@@ -7863,6 +8398,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Con las palmas abajo las muñecas sostienen la alineación del dorso de la mano con la barra, en un ángulo más exigente que en supinación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -7870,6 +8406,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la barra y las palmas al suelo el bíceps acorta el codo con menos ventaja mecánica y frena la carga compartida durante la bajada."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo trabaja de forma decisiva con las palmas abajo, sosteniendo la barra y regulando el descenso hacia el suelo del brazo colgado."
+                }
+              ],
               "performanceProfileId": "spider_curl__barbell__pronated",
               "primaryMuscles": [
                 "biceps"
@@ -7891,6 +8437,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión mueve la barra con los brazos colgando y las palmas al suelo, sin aporte del tronco para compensar la parte alta de la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -7898,6 +8445,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre prono mantiene el antebrazo en pronación durante toda la serie, de modo que la rotación proximal permanece inactiva bajo la barra.",
                       "role": "SECONDARY"
                     },
                     {
@@ -7905,6 +8453,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Los húmeros se centran bajo los hombros con el pecho apoyado mientras la barra vertical reparte la carga por igual entre ambos brazos.",
                       "role": "STABILIZER"
                     },
                     {
@@ -7912,6 +8461,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Con las palmas abajo las muñecas sostienen la alineación del dorso de la mano con la barra, en un ángulo más exigente que en supinación.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -8141,6 +8691,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la barra desde los muslos hasta los hombros con el brazo al costado; la barra recta obliga a los dos codos a viajar iguales.",
                   "role": "PRIMARY"
                 },
                 {
@@ -8148,6 +8699,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La barra recta mantiene el antebrazo en supinación durante todo el arco, sin rotación posible mientras las manos viajan pegadas al eje.",
                   "role": "SECONDARY"
                 },
                 {
@@ -8155,6 +8707,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Los húmeros se mantienen centrados junto al tronco de pie; la barra delante del cuerpo exige control para que el hombro no se adelante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -8162,6 +8715,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Las muñecas alinean las manos con los antebrazos sobre la barra recta y sostienen esa línea mientras la carga sube y baja por delante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -8169,6 +8723,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: El bíceps acorta el codo subiendo la barra recta hacia los hombros con los codos pegados al costado, y frena su descenso con el tronco quieto."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre supino de la barra durante toda la serie y ayuda a frenar la bajada cuando la carga empuja las manos al suelo."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco vertical y de pie, sin balanceos, mientras la barra desplaza la carga por delante del cuerpo con los codos fijos."
+                }
+              ],
               "performanceProfileId": "standing_biceps_curl__barbell__curl_biceps",
               "primaryMuscles": [
                 "biceps"
@@ -8190,6 +8758,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la barra desde los muslos hasta los hombros con el brazo al costado; la barra recta obliga a los dos codos a viajar iguales.",
                       "role": "PRIMARY"
                     },
                     {
@@ -8197,6 +8766,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La barra recta mantiene el antebrazo en supinación durante todo el arco, sin rotación posible mientras las manos viajan pegadas al eje.",
                       "role": "SECONDARY"
                     },
                     {
@@ -8204,6 +8774,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Los húmeros se mantienen centrados junto al tronco de pie; la barra delante del cuerpo exige control para que el hombro no se adelante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -8211,6 +8782,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Las muñecas alinean las manos con los antebrazos sobre la barra recta y sostienen esa línea mientras la carga sube y baja por delante.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -8414,6 +8986,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la barra EZ hacia los hombros con los codos al costado; su empuñadura girada reparte la carga por igual en los dos brazos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -8421,6 +8994,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La barra EZ sitúa el antebrazo entre supinación y pronación, así que la rotación proximal trabaja en un punto intermedio y constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -8428,6 +9002,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Los húmeros se centran junto al tronco de pie mientras la barra EZ, con su empuñadura girada, mantiene la carga cerca del eje corporal.",
                   "role": "STABILIZER"
                 },
                 {
@@ -8435,6 +9010,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Las muñecas viajan más cómodas sobre las empuñaduras giradas de la barra EZ, que libera la torsión típica de la barra recta.",
                   "role": "STABILIZER"
                 }
               ],
@@ -8442,6 +9018,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: La barra EZ lleva las palmas a una posición girada intermedia; el bíceps acorta el codo y frena la bajada con la carga repartida entre los brazos."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo adopta el ángulo semi-prono de la barra EZ y sostiene ese agarre girado durante la subida y el descenso controlado de la carga."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco erguido y estable mientras la barra EZ viaja por delante del cuerpo con los codos quietos al costado."
+                }
+              ],
               "performanceProfileId": "standing_biceps_curl__ez_bar__curl_biceps",
               "primaryMuscles": [
                 "biceps"
@@ -8463,6 +9053,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la barra EZ hacia los hombros con los codos al costado; su empuñadura girada reparte la carga por igual en los dos brazos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -8470,6 +9061,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La barra EZ sitúa el antebrazo entre supinación y pronación, así que la rotación proximal trabaja en un punto intermedio y constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -8477,6 +9069,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Los húmeros se centran junto al tronco de pie mientras la barra EZ, con su empuñadura girada, mantiene la carga cerca del eje corporal.",
                       "role": "STABILIZER"
                     },
                     {
@@ -8484,6 +9077,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Las muñecas viajan más cómodas sobre las empuñaduras giradas de la barra EZ, que libera la torsión típica de la barra recta.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -8687,6 +9281,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube cada mancuerna con el codo al costado; al ser independientes, los dos codos corrigen su propio arco de recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -8694,6 +9289,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronosupinación participa de verdad con mancuernas: la palma puede girar al subir, y cada antebrazo regula esa rotación por su cuenta.",
                   "role": "SECONDARY"
                 },
                 {
@@ -8701,6 +9297,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Los húmeros se centran junto al tronco mientras cada mancuerna tira por su cuenta, lo que exige control propio en cada hombro.",
                   "role": "STABILIZER"
                 },
                 {
@@ -8708,6 +9305,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Cada muñeca alinea su mano con su antebrazo sin el eje común de una barra, y corrige su posición según la trayectoria de su mancuerna.",
                   "role": "STABILIZER"
                 }
               ],
@@ -8715,6 +9313,20 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Cada mancuerna permite que el bíceps acorte el codo por su cuenta y frene el descenso; la palma puede girar durante la subida del arco."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo acompaña la rotación de cada mancuerna durante el arco y sostiene el agarre mientras la carga desciende por separado en cada lado."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core sostiene el tronco de pie y vertical cuando cada brazo mueve su propia carga, sin compensar el peso de un lado con el otro."
+                }
+              ],
               "performanceProfileId": "standing_biceps_curl__dumbbells__curl_biceps",
               "primaryMuscles": [
                 "biceps"
@@ -8736,6 +9348,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube cada mancuerna con el codo al costado; al ser independientes, los dos codos corrigen su propio arco de recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -8743,6 +9356,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronosupinación participa de verdad con mancuernas: la palma puede girar al subir, y cada antebrazo regula esa rotación por su cuenta.",
                       "role": "SECONDARY"
                     },
                     {
@@ -8750,6 +9364,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Los húmeros se centran junto al tronco mientras cada mancuerna tira por su cuenta, lo que exige control propio en cada hombro.",
                       "role": "STABILIZER"
                     },
                     {
@@ -8757,6 +9372,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Cada muñeca alinea su mano con su antebrazo sin el eje común de una barra, y corrige su posición según la trayectoria de su mancuerna.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -8960,6 +9576,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión trabaja con el cable cargando en todo el recorrido, desde el brazo casi extendido hasta la mano cerca del hombro con el codo al costado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -8967,6 +9584,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre supino mantiene el antebrazo en supinación mientras el cable tira de forma constante, sin margen para la rotación en la serie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -8974,6 +9592,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al tronco de pie mientras el cable tira hacia la máquina, sin dejar que el hombro se adelante al codo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -8981,6 +9600,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca conserva la alineación de la mano con el antebrazo sobre el accesorio de la polea, con tensión continua en cada punto del arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -8988,6 +9608,20 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: La polea mantiene tensión constante en el bíceps durante toda la subida y la bajada; él acorta el codo y frena el retorno sin zonas muertas."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre mientras el cable tira sin pausa, y ayuda a frenar el descenso con tensión presente en cada punto del arco."
+                },
+                {
+                  "muscleId": "core",
+                  "note": "Estabilizador: El core mantiene el tronco de pie y vertical frente a la tracción constante de la polea, que tira del cuerpo hacia su punto de anclaje."
+                }
+              ],
               "performanceProfileId": "standing_biceps_curl__cable__curl_biceps",
               "primaryMuscles": [
                 "biceps"
@@ -9009,6 +9643,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión trabaja con el cable cargando en todo el recorrido, desde el brazo casi extendido hasta la mano cerca del hombro con el codo al costado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -9016,6 +9651,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre supino mantiene el antebrazo en supinación mientras el cable tira de forma constante, sin margen para la rotación en la serie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -9023,6 +9659,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al tronco de pie mientras el cable tira hacia la máquina, sin dejar que el hombro se adelante al codo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -9030,6 +9667,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca conserva la alineación de la mano con el antebrazo sobre el accesorio de la polea, con tensión continua en cada punto del arco.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -9260,6 +9898,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la barra H con los codos cerca del costado y el pulgar hacia arriba; ambos brazos comparten una misma referencia de empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -9267,6 +9906,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre neutro deja la pronosupinación en su punto intermedio mientras la barra H mantiene las dos manos enfrentadas en todo el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -9274,6 +9914,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Los húmeros se centran junto al costado con la barra H subiendo en vertical, sin que el hombro impulse la carga ni la acompañe.",
                   "role": "STABILIZER"
                 },
                 {
@@ -9281,6 +9922,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Las muñecas quedan neutras sobre la barra H, una posición que reparte la carga de las dos manos sin forzar la rotación de la muñeca.",
                   "role": "STABILIZER"
                 }
               ],
@@ -9288,6 +9930,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la barra H y las palmas enfrentadas el bíceps acorta el codo en línea vertical y frena la bajada de una carga que los dos brazos comparten."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre neutro sobre las empuñaduras de la barra H y regula el descenso conjunto sin girar la muñeca en ningún momento."
+                }
+              ],
               "performanceProfileId": "hammer_curl__h_bar",
               "primaryMuscles": [
                 "biceps"
@@ -9309,6 +9961,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la barra H con los codos cerca del costado y el pulgar hacia arriba; ambos brazos comparten una misma referencia de empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -9316,6 +9969,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre neutro deja la pronosupinación en su punto intermedio mientras la barra H mantiene las dos manos enfrentadas en todo el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -9323,6 +9977,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Los húmeros se centran junto al costado con la barra H subiendo en vertical, sin que el hombro impulse la carga ni la acompañe.",
                       "role": "STABILIZER"
                     },
                     {
@@ -9330,6 +9985,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Las muñecas quedan neutras sobre la barra H, una posición que reparte la carga de las dos manos sin forzar la rotación de la muñeca.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -9534,6 +10190,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube cada mancuerna con el pulgar hacia arriba y el codo cerca del costado; cada brazo corrige su propia trayectoria de empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -9541,6 +10198,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La posición neutra mantiene el antebrazo en rotación intermedia, y las mancuernas permiten que cada lado sostenga esa posición por separado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -9548,6 +10206,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Cada húmero se centra junto al costado mientras su mancuerna sube por su cuenta, sin balanceo del hombro ni del tronco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -9555,6 +10214,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: Cada muñeca permanece neutra alineada con su antebrazo, mientras la mancuerna cuelga lateralmente y exige control propio en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -9562,6 +10222,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con mancuernas y palmas enfrentadas el bíceps acorta el codo por cada lado y frena la bajada con el pulgar apuntando hacia arriba."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre neutro de cada mancuerna y regula el descenso independiente, con la carga lateral al eje de la mano."
+                }
+              ],
               "performanceProfileId": "hammer_curl__dumbbells",
               "primaryMuscles": [
                 "biceps"
@@ -9583,6 +10253,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube cada mancuerna con el pulgar hacia arriba y el codo cerca del costado; cada brazo corrige su propia trayectoria de empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -9590,6 +10261,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La posición neutra mantiene el antebrazo en rotación intermedia, y las mancuernas permiten que cada lado sostenga esa posición por separado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -9597,6 +10269,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Cada húmero se centra junto al costado mientras su mancuerna sube por su cuenta, sin balanceo del hombro ni del tronco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -9604,6 +10277,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: Cada muñeca permanece neutra alineada con su antebrazo, mientras la mancuerna cuelga lateralmente y exige control propio en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -9808,6 +10482,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión trabaja con el cable activo en el punto más cerrado, con el pulgar hacia arriba y el codo cerca del costado durante todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -9815,6 +10490,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre neutro mantiene el antebrazo en rotación intermedia mientras la polea continúa tirando al inicio y al final del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -9822,6 +10498,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al costado frente a la tracción continua del cable, que no cede ni con la flexión del codo completa.",
                   "role": "STABILIZER"
                 },
                 {
@@ -9829,6 +10506,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca neutra sostiene la línea de la mano con la manija, y el cable constante exige esa alineación durante todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -9836,6 +10514,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: La polea con agarre neutro mantiene tensión en el bíceps incluso con el codo casi cerrado; él acorta y frena el retorno con el cable activo."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene las palmas enfrentadas sobre la manija mientras el cable tira sin pausa, y regula el descenso con tensión constante."
+                }
+              ],
               "performanceProfileId": "hammer_curl__cable",
               "primaryMuscles": [
                 "biceps"
@@ -9857,6 +10545,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión trabaja con el cable activo en el punto más cerrado, con el pulgar hacia arriba y el codo cerca del costado durante todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -9864,6 +10553,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre neutro mantiene el antebrazo en rotación intermedia mientras la polea continúa tirando al inicio y al final del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -9871,6 +10561,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al costado frente a la tracción continua del cable, que no cede ni con la flexión del codo completa.",
                       "role": "STABILIZER"
                     },
                     {
@@ -9878,6 +10569,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca neutra sostiene la línea de la mano con la manija, y el cable constante exige esa alineación durante todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -10082,6 +10774,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la mano con el pulgar hacia arriba mientras la banda se tensiona; el codo permanece cerca del costado en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -10089,6 +10782,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre neutro bloquea la pronosupinación en el centro del recorrido durante toda la tensión creciente de la banda elástica.",
                   "role": "SECONDARY"
                 },
                 {
@@ -10096,6 +10790,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al costado mientras la banda tira con fuerza creciente hacia su punto de anclaje en cada repetición.",
                   "role": "STABILIZER"
                 },
                 {
@@ -10103,6 +10798,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca neutra alinea la mano con la banda elástica, cuya resistencia variable exige un control firme al final del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -10110,6 +10806,16 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con banda y palmas enfrentadas el bíceps acorta el codo y frena el retorno elástico, con más exigencia a medida que el arco se cierra."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene el agarre neutro de la banda y regula la bajada cuando la resistencia elástica crece al acercarse la mano al hombro."
+                }
+              ],
               "performanceProfileId": "hammer_curl__band",
               "primaryMuscles": [
                 "biceps"
@@ -10131,6 +10837,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la mano con el pulgar hacia arriba mientras la banda se tensiona; el codo permanece cerca del costado en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -10138,6 +10845,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre neutro bloquea la pronosupinación en el centro del recorrido durante toda la tensión creciente de la banda elástica.",
                       "role": "SECONDARY"
                     },
                     {
@@ -10145,6 +10853,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al costado mientras la banda tira con fuerza creciente hacia su punto de anclaje en cada repetición.",
                       "role": "STABILIZER"
                     },
                     {
@@ -10152,6 +10861,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca neutra alinea la mano con la banda elástica, cuya resistencia variable exige un control firme al final del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -10356,6 +11066,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la kettlebell con el pulgar hacia arriba y el codo cerca del costado; la carga descentrada exige un arco bien controlado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -10363,6 +11074,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El agarre neutro mantiene el antebrazo en rotación intermedia mientras la kettlebell cuelga y tiende a girar bajo la mano.",
                   "role": "SECONDARY"
                 },
                 {
@@ -10370,6 +11082,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al costado con una carga colgante que exige más control del hombro que las mancuernas del mismo arco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -10377,6 +11090,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca neutra trabaja con más exigencia porque la kettlebell cuelga por debajo del agarre y altera el equilibrio de la mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -10384,6 +11098,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "biceps",
+                  "note": "Principal: Con la kettlebell en posición neutra el bíceps acorta el codo con la carga colgando bajo la mano, y frena su descenso con el pulgar arriba."
+                },
+                {
+                  "muscleId": "forearm",
+                  "note": "Secundario: El antebrazo sostiene un agarre más exigente porque el centro de masa queda bajo la mano, y regula la kettlebell durante todo el arco."
+                }
+              ],
               "performanceProfileId": "hammer_curl__kettlebell",
               "primaryMuscles": [
                 "biceps"
@@ -10405,6 +11129,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la kettlebell con el pulgar hacia arriba y el codo cerca del costado; la carga descentrada exige un arco bien controlado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -10412,6 +11137,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El agarre neutro mantiene el antebrazo en rotación intermedia mientras la kettlebell cuelga y tiende a girar bajo la mano.",
                       "role": "SECONDARY"
                     },
                     {
@@ -10419,6 +11145,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al costado con una carga colgante que exige más control del hombro que las mancuernas del mismo arco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -10426,6 +11153,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca neutra trabaja con más exigencia porque la kettlebell cuelga por debajo del agarre y altera el equilibrio de la mano.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -10657,6 +11385,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube cada mancuerna con las palmas al suelo y el codo al costado; el antebrazo impone el tope de la carga en cada lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -10664,6 +11393,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronoación sostenida bloquea la rotación del antebrazo durante todo el arco, y cada mancuerna obliga a sostener esa posición aparte.",
                   "role": "SECONDARY"
                 },
                 {
@@ -10671,6 +11401,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: Cada húmero se centra junto al costado mientras la mancuerna sube con el dorso de la mano al frente, sin balanceo del tronco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -10678,6 +11409,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca prona sostiene la alineación del dorso de la mano con el antebrazo, el punto que antes cede cuando la carga sube.",
                   "role": "STABILIZER"
                 }
               ],
@@ -10685,6 +11417,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo lidera con las palmas al suelo: acorta el codo con el braquiorradial y frena el descenso de cada mancuerna con el dorso al frente."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión con menor protagonismo en prono y ayuda a frenar la bajada, aunque el antebrazo marca el límite del movimiento."
+                }
+              ],
               "performanceProfileId": "reverse_curl__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -10706,6 +11448,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube cada mancuerna con las palmas al suelo y el codo al costado; el antebrazo impone el tope de la carga en cada lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -10713,6 +11456,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronoación sostenida bloquea la rotación del antebrazo durante todo el arco, y cada mancuerna obliga a sostener esa posición aparte.",
                       "role": "SECONDARY"
                     },
                     {
@@ -10720,6 +11464,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: Cada húmero se centra junto al costado mientras la mancuerna sube con el dorso de la mano al frente, sin balanceo del tronco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -10727,6 +11472,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca prona sostiene la alineación del dorso de la mano con el antebrazo, el punto que antes cede cuando la carga sube.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -10930,6 +11676,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión trabaja con tensión constante de la polea en todo el recorrido, con las palmas al suelo y el codo cerca del costado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -10937,6 +11684,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: El antebrazo permanece en pronación sostenida mientras el cable tira sin pausa, sin margen para la rotación durante toda la serie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -10944,6 +11692,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al costado frente a la tracción continua del cable, que no cede ni con el codo casi estirado.",
                   "role": "STABILIZER"
                 },
                 {
@@ -10951,6 +11700,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca prona resiste la tensión continua del cable con el dorso de la mano alineado, un trabajo presente en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -10958,6 +11708,16 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: Con la polea y las palmas al suelo el antebrazo acorta el codo y sostiene la línea de la mano mientras el cable tira sin zonas muertas."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión con menor ventaja mecánica en prono y ayuda a frenar el retorno constante que impone el cable en el arco."
+                }
+              ],
               "performanceProfileId": "reverse_curl__cable",
               "primaryMuscles": [
                 "forearm"
@@ -10979,6 +11739,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión trabaja con tensión constante de la polea en todo el recorrido, con las palmas al suelo y el codo cerca del costado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -10986,6 +11747,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: El antebrazo permanece en pronación sostenida mientras el cable tira sin pausa, sin margen para la rotación durante toda la serie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -10993,6 +11755,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al costado frente a la tracción continua del cable, que no cede ni con el codo casi estirado.",
                       "role": "STABILIZER"
                     },
                     {
@@ -11000,6 +11763,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca prona resiste la tensión continua del cable con el dorso de la mano alineado, un trabajo presente en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -11203,6 +11967,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la mano contra la banda elástica, más suave al inicio y más exigente al cerrar el ángulo con las palmas hacia el suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -11210,6 +11975,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronación sostenida mantiene el antebrazo bloqueado durante todo el recorrido mientras la banda aumenta la tensión sobre esa posición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -11217,6 +11983,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al costado con las palmas al suelo mientras la banda tira con fuerza creciente hacia su punto de anclaje.",
                   "role": "STABILIZER"
                 },
                 {
@@ -11224,6 +11991,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca prona alinea el dorso de la mano con la banda y resiste con más firmeza cuando la resistencia elástica sube al final.",
                   "role": "STABILIZER"
                 }
               ],
@@ -11231,6 +11999,16 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo acorta el codo contra la resistencia creciente de la banda y sostiene la muñeca prona cuando la elástica tira más al final."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión con las palmas al suelo y frena el retorno elástico, con más carga a medida que el ángulo del codo se cierra."
+                }
+              ],
               "performanceProfileId": "reverse_curl__band",
               "primaryMuscles": [
                 "forearm"
@@ -11252,6 +12030,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la mano contra la banda elástica, más suave al inicio y más exigente al cerrar el ángulo con las palmas hacia el suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -11259,6 +12038,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronación sostenida mantiene el antebrazo bloqueado durante todo el recorrido mientras la banda aumenta la tensión sobre esa posición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -11266,6 +12046,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al costado con las palmas al suelo mientras la banda tira con fuerza creciente hacia su punto de anclaje.",
                       "role": "STABILIZER"
                     },
                     {
@@ -11273,6 +12054,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca prona alinea el dorso de la mano con la banda y resiste con más firmeza cuando la resistencia elástica sube al final.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -11476,6 +12258,7 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
+                  "note": "Principal: La flexión sube la kettlebell con las palmas al suelo y el codo al costado; la carga colgante exige un arco controlado en cada repetición.",
                   "role": "PRIMARY"
                 },
                 {
@@ -11483,6 +12266,7 @@
                     "Pronación O Supinación"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Secundaria: La pronoación sostenida bloquea la rotación mientras la kettlebell cuelga y tiende a girar bajo la mano durante todo el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -11490,6 +12274,7 @@
                     "Centrado Del Húmero"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Estabilizadora: El húmero se centra junto al costado con una carga colgante que exige más control del hombro que la misma carga con mancuernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -11497,6 +12282,7 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
+                  "note": "Estabilizadora: La muñeca prona sostiene una carga descentrada bajo la mano, con el dorso alineado y más exigencia que con una mancuerna.",
                   "role": "STABILIZER"
                 }
               ],
@@ -11504,6 +12290,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: Con la kettlebell prona el antebrazo acorta el codo y estabiliza una carga que cuelga bajo la mano, lo que exige control constante del agarre."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps asiste la flexión con menos protagonismo en prono y ayuda a frenar la bajada de una carga descentrada bajo la mano."
+                }
+              ],
               "performanceProfileId": "reverse_curl__kettlebell",
               "primaryMuscles": [
                 "forearm"
@@ -11525,6 +12321,7 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
+                      "note": "Principal: La flexión sube la kettlebell con las palmas al suelo y el codo al costado; la carga colgante exige un arco controlado en cada repetición.",
                       "role": "PRIMARY"
                     },
                     {
@@ -11532,6 +12329,7 @@
                         "Pronación O Supinación"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Secundaria: La pronoación sostenida bloquea la rotación mientras la kettlebell cuelga y tiende a girar bajo la mano durante todo el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -11539,6 +12337,7 @@
                         "Centrado Del Húmero"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Estabilizadora: El húmero se centra junto al costado con una carga colgante que exige más control del hombro que la misma carga con mancuernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -11546,6 +12345,7 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
+                      "note": "Estabilizadora: La muñeca prona sostiene una carga descentrada bajo la mano, con el dorso alineado y más exigencia que con una mancuerna.",
                       "role": "STABILIZER"
                     }
                   ],

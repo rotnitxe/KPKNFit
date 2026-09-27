@@ -45,6 +45,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca sostiene la alineación de la mano mientras la palma gira hacia arriba con las mancuernas bilaterales, sin sumar flexión ni extensión al arco corto de rotación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo queda anclado al costado y ofrece estabilidad isométrica, de modo que las mancuernas bilaterales no arrastran flexión del brazo y el giro nace del antebrazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo durante el giro con mancuernas bilaterales y se fija de forma isométrica para que la rotación permanezca pura.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo gira la palma hacia arriba con las mancuernas bilaterales, acortándose de forma concéntrica mientras el codo permanece fijo al costado sin acompañar."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps actúa como sinergista de la supinación, aportando fuerza concéntrica al giro de la palma mientras las mancuernas bilaterales cargan cada antebrazo."
+                }
+              ],
               "performanceProfileId": "supination__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -86,6 +99,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca sostiene la alineación de la mano mientras la palma gira hacia arriba con las mancuernas bilaterales, sin sumar flexión ni extensión al arco corto de rotación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo queda anclado al costado y ofrece estabilidad isométrica, de modo que las mancuernas bilaterales no arrastran flexión del brazo y el giro nace del antebrazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo durante el giro con mancuernas bilaterales y se fija de forma isométrica para que la rotación permanezca pura.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -299,6 +315,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca guía la palma hacia arriba con la polea baja unilateral y conserva su alineación, recibiendo tensión continua también en el extremo del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -306,6 +323,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo del lado que trabaja permanece pegado al costado y sostiene estabilidad isométrica frente a la tracción constante de la polea baja durante toda la rotación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -313,6 +331,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo del lado que trabaja con la polea baja, fijada de forma isométrica para que la mano gire sin arrastrar el hombro.",
                   "role": "STABILIZER"
                 }
               ],
@@ -320,6 +339,16 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo gira la palma hacia arriba con una polea baja unilateral, acortándose de forma concéntrica mientras la tensión constante acompaña el arco completo."
+                },
+                {
+                  "muscleId": "biceps",
+                  "note": "Secundario: El bíceps colabora en la supinación como sinergista mientras la polea baja carga solo el lado que trabaja, sin empujes ni compensaciones del brazo contrario."
+                }
+              ],
               "performanceProfileId": "supination__cable",
               "primaryMuscles": [
                 "forearm"
@@ -340,6 +369,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca guía la palma hacia arriba con la polea baja unilateral y conserva su alineación, recibiendo tensión continua también en el extremo del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -347,6 +377,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo del lado que trabaja permanece pegado al costado y sostiene estabilidad isométrica frente a la tracción constante de la polea baja durante toda la rotación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -354,6 +385,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo del lado que trabaja con la polea baja, fijada de forma isométrica para que la mano gire sin arrastrar el hombro.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -580,6 +612,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca acompaña el descenso de la palma con las mancuernas bilaterales, conservando su alineación neutral y sin sumar movimientos de flexión al arco de rotación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -587,6 +620,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo fijo al costado aporta estabilidad isométrica mientras las mancuernas bilaterales imponen rotación al antebrazo, sin que el brazo pierda su posición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -594,6 +628,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal organiza la pronación con mancuernas bilaterales y sostiene la orientación del antebrazo de forma isométrica durante el giro descendente.",
                   "role": "STABILIZER"
                 }
               ],
@@ -601,6 +636,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo gira la palma hacia abajo con las mancuernas bilaterales, venciendo la carga de forma concéntrica mientras el codo actúa como ancla fija en el costado."
+                }
+              ],
               "performanceProfileId": "pronation__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -621,6 +662,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca acompaña el descenso de la palma con las mancuernas bilaterales, conservando su alineación neutral y sin sumar movimientos de flexión al arco de rotación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -628,6 +670,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo fijo al costado aporta estabilidad isométrica mientras las mancuernas bilaterales imponen rotación al antebrazo, sin que el brazo pierda su posición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -635,6 +678,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal organiza la pronación con mancuernas bilaterales y sostiene la orientación del antebrazo de forma isométrica durante el giro descendente.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -830,6 +874,7 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
+                  "note": "Principal: La muñeca lleva la palma hacia abajo con la polea baja unilateral, alineada y bajo tensión constante, sin sumar movimientos de flexión o extensión al giro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -837,6 +882,7 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
+                  "note": "Secundaria: El codo del lado que trabaja permanece anclado al costado y ofrece estabilidad isométrica frente a la tracción de la polea baja durante toda la rotación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -844,6 +890,7 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
+                  "note": "Estabilizadora: La radiocubital proximal dirige la orientación del antebrazo en la pronación unilateral con polea baja y se fija de forma isométrica sin arrastrar el hombro.",
                   "role": "STABILIZER"
                 }
               ],
@@ -851,6 +898,12 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "wrist_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo tuerce la palma hacia abajo con una polea baja unilateral, produciendo la pronación de forma concéntrica bajo una tensión continua y muy graduable."
+                }
+              ],
               "performanceProfileId": "pronation__cable",
               "primaryMuscles": [
                 "forearm"
@@ -871,6 +924,7 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
+                      "note": "Principal: La muñeca lleva la palma hacia abajo con la polea baja unilateral, alineada y bajo tensión constante, sin sumar movimientos de flexión o extensión al giro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -878,6 +932,7 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
+                      "note": "Secundaria: El codo del lado que trabaja permanece anclado al costado y ofrece estabilidad isométrica frente a la tracción de la polea baja durante toda la rotación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -885,6 +940,7 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
+                      "note": "Estabilizadora: La radiocubital proximal dirige la orientación del antebrazo en la pronación unilateral con polea baja y se fija de forma isométrica sin arrastrar el hombro.",
                       "role": "STABILIZER"
                     }
                   ],

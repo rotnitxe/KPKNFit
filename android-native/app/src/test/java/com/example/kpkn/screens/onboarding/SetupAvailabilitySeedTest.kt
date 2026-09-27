@@ -4,11 +4,18 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.db.toEntity
+import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.NutritionPlan
+import com.example.kpkn.data.models.PlateStock
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.onboarding.SetupCommitCoordinator
+import com.example.kpkn.data.onboarding.SetupCommitRequest
 import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftScope
@@ -23,8 +30,11 @@ import com.example.kpkn.domain.onboarding.SetupRingsMapping
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupTrainingOptions
+import com.example.kpkn.domain.onboarding.SetupValueState
+import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -78,6 +88,13 @@ class SetupAvailabilitySeedTest {
         assertEquals(suggested, draft.trainingOptions.availability)
         assertFalse(SetupStepId.HOME_EQUIPMENT in draft.declaredSteps)
         assertFalse(draft.isStepDeclared(SetupStepId.HOME_EQUIPMENT))
+        // El paso que decide la disponibilidad ES AVAILABILITY: un prefill
+        // sembrado desde Settings no es ni una declaración ni una respuesta.
+        assertFalse(SetupStepId.AVAILABILITY in draft.declaredSteps)
+        assertFalse(draft.isStepDeclared(SetupStepId.AVAILABILITY))
+        assertNull(draft.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertNull(draft.stepProgress.answers[SetupStepId.HOME_EQUIPMENT])
+        assertNull(draft.stepSelections[SetupStepId.AVAILABILITY])
         assertEquals(
             SetupPatchField.Unchanged,
             buildSettingsPatch(vm, draft, Settings(equipmentAvailability = suggested)).equipmentAvailability,
@@ -197,6 +214,549 @@ class SetupAvailabilitySeedTest {
                 setOf(SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS),
             ),
         )
+    }
+
+    @Test
+    fun confirmed_current_availability_persists_the_exact_declared_categories() = runTest {
+        val vm = viewModel(Settings())
+
+        vm.initialize(SetupWizardMode.FULL, draftId = "declared-availability")
+        advanceUntilIdle()
+
+        val chosen = EquipmentAvailability(setOf(EquipmentCategory.BARBELL, EquipmentCategory.MACHINES))
+        val confirmed = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "gym")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("BARBELL", "MACHINES"))
+            .touchStep(SetupStepId.AVAILABILITY)
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+
+        assertEquals(chosen, confirmed.trainingOptions.availability)
+        assertEquals(
+            SetupAnswerProvenance.USER_DECLARED,
+            confirmed.stepProgress.answers[SetupStepId.AVAILABILITY],
+        )
+        assertEquals(
+            SetupPatchField.Set(chosen),
+            buildSettingsPatch(vm, confirmed, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun accepted_untouched_gym_seed_persists_all_categories_without_declaring() = runTest {
+        val vm = viewModel(Settings())
+        val seeded = vm.state.value.draft.withStepChoice(SetupStepId.EQUIPMENT, "gym")
+
+        // La semilla de «gimnasio completo» no es una respuesta: sigue sin
+        // selección guardada y sin procedencia hasta que el usuario continúa.
+        assertEquals(EquipmentAvailability(EquipmentCategory.entries.toSet()), seeded.trainingOptions.availability)
+        assertNull(seeded.stepSelections[SetupStepId.AVAILABILITY])
+        assertNull(seeded.stepProgress.answers[SetupStepId.AVAILABILITY])
+
+        val accepted = seeded.confirmCurrentStep(SetupStepId.AVAILABILITY)
+
+        assertEquals(SetupAnswerProvenance.SUGGESTED, accepted.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertFalse("Aceptar una sugerencia no la convierte en declaración", accepted.isStepDeclared(SetupStepId.AVAILABILITY))
+        assertEquals(
+            SetupPatchField.Set(EquipmentAvailability(EquipmentCategory.entries.toSet())),
+            buildSettingsPatch(vm, accepted, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun confirmed_bodyweight_only_persists_explicit_empty_and_not_null() = runTest {
+        val vm = viewModel(Settings())
+
+        vm.initialize(SetupWizardMode.FULL, draftId = "bodyweight-only")
+        advanceUntilIdle()
+
+        val confirmed = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "gym")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("bodyweight_only"))
+            .touchStep(SetupStepId.AVAILABILITY)
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+
+        assertEquals(EquipmentAvailability(emptySet()), confirmed.trainingOptions.availability)
+        assertEquals(
+            SetupPatchField.Set(EquipmentAvailability(emptySet())),
+            buildSettingsPatch(vm, confirmed, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun explicit_no_material_environment_persists_empty_without_home_equipment() = runTest {
+        val vm = viewModel(Settings())
+
+        for (label in listOf("none", "Sin material")) {
+            val confirmed = vm.state.value.draft
+                .withStepChoice(SetupStepId.EQUIPMENT, label)
+                .confirmCurrentStep(SetupStepId.EQUIPMENT)
+
+            assertEquals("env=$label", EquipmentAvailability(emptySet()), confirmed.trainingOptions.availability)
+            assertEquals(
+                "env=$label",
+                SetupAnswerProvenance.SUGGESTED,
+                confirmed.stepProgress.answers[SetupStepId.EQUIPMENT],
+            )
+            assertEquals(
+                "env=$label must persist the explicit no-material choice",
+                SetupPatchField.Set(EquipmentAvailability(emptySet())),
+                buildSettingsPatch(vm, confirmed, Settings()).equipmentAvailability,
+            )
+            // La ruta no es legacy: NUNCA se fabrica una respuesta retirada.
+            assertNull(confirmed.stepProgress.answers[SetupStepId.HOME_EQUIPMENT])
+            assertFalse(SetupStepId.HOME_EQUIPMENT in confirmed.declaredSteps)
+            assertFalse(confirmed.wizChat.acceptedAnswers.any { it.questionId == WizChatQuestionId.T_HOME_EQUIPMENT })
+        }
+    }
+
+    @Test
+    fun unknown_blank_or_unconfirmed_environment_never_persists_empty() = runTest {
+        val vm = viewModel(Settings())
+        val empty = EquipmentAvailability(emptySet())
+        val cases = listOf(
+            "null availability under no-material" to SetupWizardDraft(trainingEnvironment = "none"),
+            "blank environment" to SetupWizardDraft(trainingEnvironment = "   "),
+            "unknown environment, declared equipment" to SetupWizardDraft(
+                trainingEnvironment = "en el parque",
+                trainingOptions = SetupTrainingOptions(availability = empty),
+            ).touchStep(SetupStepId.EQUIPMENT),
+            "unconfirmed no-material seed" to SetupWizardDraft(
+                trainingEnvironment = "none",
+                trainingOptions = SetupTrainingOptions(availability = empty),
+                stepSelections = mapOf(SetupStepId.EQUIPMENT to listOf("none")),
+            ),
+        )
+
+        cases.forEach { (label, draft) ->
+            assertEquals(
+                label,
+                SetupPatchField.Unchanged,
+                buildSettingsPatch(vm, draft, Settings()).equipmentAvailability,
+            )
+        }
+    }
+
+    @Test
+    fun environment_change_invalidates_only_the_stale_availability_confirmation() = runTest {
+        val vm = viewModel(Settings())
+        val stock = EquipmentInventory(
+            barbellWeightKg = 20.0,
+            plates = listOf(PlateStock(weightKg = 10.0, countPerSide = 2)),
+        )
+        val underGym = SetupWizardDraft(
+            trainingOptions = SetupTrainingOptions(availability = null, inventory = stock),
+        )
+            .withStepChoice(SetupStepId.EQUIPMENT, "gym")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("BARBELL"))
+            .touchStep(SetupStepId.AVAILABILITY)
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+            .touchStep(SetupStepId.DAYS)
+            .withStepChoices(SetupStepId.WEEKDAYS, setOf("Lunes", "Martes"))
+            .recordStepAnswer(SetupStepId.GOAL, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+
+        assertEquals(SetupAnswerProvenance.USER_DECLARED, underGym.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertEquals(
+            SetupPatchField.Set(EquipmentAvailability(setOf(EquipmentCategory.BARBELL))),
+            buildSettingsPatch(vm, underGym, Settings()).equipmentAvailability,
+        )
+
+        val reseeded = underGym.withStepChoice(SetupStepId.EQUIPMENT, "machines")
+
+        // La semilla nueva NO puede heredar la confirmación del entorno anterior.
+        assertEquals(
+            setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS),
+            reseeded.trainingOptions.availability?.categories,
+        )
+        assertNull(reseeded.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertFalse(SetupStepId.AVAILABILITY in reseeded.declaredSteps)
+        assertNull(reseeded.stepSelections[SetupStepId.AVAILABILITY])
+        assertEquals(
+            SetupPatchField.Unchanged,
+            buildSettingsPatch(vm, reseeded, Settings()).equipmentAvailability,
+        )
+
+        // Reafirmar bajo el entorno nuevo vuelve a autorizar, y solo AVAILABILITY.
+        val reconfirmed = reseeded.confirmCurrentStep(SetupStepId.AVAILABILITY)
+        assertEquals(SetupAnswerProvenance.SUGGESTED, reconfirmed.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertEquals(
+            SetupPatchField.Set(EquipmentAvailability(setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS))),
+            buildSettingsPatch(vm, reconfirmed, Settings()).equipmentAvailability,
+        )
+
+        // Respuestas, declaraciones, selecciones, stock y cursor ajenos: intactos.
+        assertEquals(SetupAnswerProvenance.USER_DECLARED, reconfirmed.stepProgress.answers[SetupStepId.GOAL])
+        assertTrue(SetupStepId.DAYS in reconfirmed.declaredSteps)
+        assertEquals(setOf("Lunes", "Martes"), reconfirmed.stepSelections[SetupStepId.WEEKDAYS]?.toSet())
+        assertEquals(stock, reconfirmed.trainingOptions.inventory)
+        assertEquals("machines", reconfirmed.trainingEnvironment)
+        assertEquals(underGym.stepProgress.currentStepId, reseeded.stepProgress.currentStepId)
+        assertEquals(underGym.stepProgress.visited, reseeded.stepProgress.visited)
+    }
+
+    @Test
+    fun reselecting_the_same_environment_preserves_the_confirmed_categories_and_persists_them() = runTest {
+        val vm = viewModel(Settings())
+        // Valor esperado INDEPENDIENTE: el subconjunto que el usuario declaró.
+        val chosen = EquipmentAvailability(setOf(EquipmentCategory.BARBELL, EquipmentCategory.CABLE))
+        val underGym = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "gym")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("BARBELL", "CABLE"))
+            .touchStep(SetupStepId.AVAILABILITY)
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+        assertEquals(chosen, underGym.trainingOptions.availability)
+        assertEquals(
+            SetupPatchField.Set(chosen),
+            buildSettingsPatch(vm, underGym, Settings()).equipmentAvailability,
+        )
+
+        // Re-pulsar la MISMA tarjeta de entorno no puede re-sembrar: manda el
+        // material declarado y lo que se persiste es ESE subconjunto, no el
+        // preset completo del gimnasio.
+        val sameEnvironment = underGym.withStepChoice(SetupStepId.EQUIPMENT, "gym")
+
+        assertEquals("gym", sameEnvironment.trainingEnvironment)
+        assertEquals(chosen, sameEnvironment.trainingOptions.availability)
+        assertFalse(
+            "Re-pulsar «gym» no debe ampliar el material declarado a las ${EquipmentCategory.entries.size} categorías del preset",
+            sameEnvironment.trainingOptions.availability == EquipmentAvailability(EquipmentCategory.entries.toSet()),
+        )
+        assertEquals(SetupAnswerProvenance.USER_DECLARED, sameEnvironment.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertTrue(SetupStepId.AVAILABILITY in sameEnvironment.declaredSteps)
+        assertEquals(
+            SetupPatchField.Set(chosen),
+            buildSettingsPatch(vm, sameEnvironment, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun reselecting_the_same_environment_keeps_explicit_bodyweight_only_empty() = runTest {
+        val vm = viewModel(Settings())
+        val bodyweightOnly = EquipmentAvailability(emptySet())
+        val underGym = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "gym")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("bodyweight_only"))
+            .touchStep(SetupStepId.AVAILABILITY)
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+        assertEquals(bodyweightOnly, underGym.trainingOptions.availability)
+
+        val sameEnvironment = underGym.withStepChoice(SetupStepId.EQUIPMENT, "gym")
+
+        assertEquals(
+            "«Solo peso corporal» es un vacío explícito y no un preset de gimnasio",
+            bodyweightOnly,
+            sameEnvironment.trainingOptions.availability,
+        )
+        assertEquals(SetupAnswerProvenance.USER_DECLARED, sameEnvironment.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertEquals(
+            SetupPatchField.Set(bodyweightOnly),
+            buildSettingsPatch(vm, sameEnvironment, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun reselecting_the_same_environment_keeps_the_no_material_empty_and_confirmed() = runTest {
+        val vm = viewModel(Settings())
+        val noMaterial = EquipmentAvailability(emptySet())
+        val confirmed = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "none")
+            .confirmCurrentStep(SetupStepId.EQUIPMENT)
+        assertEquals(noMaterial, confirmed.trainingOptions.availability)
+
+        val sameEnvironment = confirmed.withStepChoice(SetupStepId.EQUIPMENT, "none")
+
+        assertEquals("none", sameEnvironment.trainingEnvironment)
+        assertEquals(noMaterial, sameEnvironment.trainingOptions.availability)
+        assertEquals(SetupAnswerProvenance.SUGGESTED, sameEnvironment.stepProgress.answers[SetupStepId.EQUIPMENT])
+        assertEquals(
+            SetupPatchField.Set(noMaterial),
+            buildSettingsPatch(vm, sameEnvironment, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun reselecting_the_same_environment_keeps_an_accepted_suggestion_still_suggested() = runTest {
+        val vm = viewModel(Settings())
+        val custom = EquipmentAvailability(setOf(EquipmentCategory.KETTLEBELL))
+        val accepted = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "machines")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("KETTLEBELL"))
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+        assertEquals(SetupAnswerProvenance.SUGGESTED, accepted.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertFalse(accepted.isStepDeclared(SetupStepId.AVAILABILITY))
+        assertEquals(custom, accepted.trainingOptions.availability)
+
+        val sameEnvironment = accepted.withStepChoice(SetupStepId.EQUIPMENT, "machines")
+
+        assertEquals(custom, sameEnvironment.trainingOptions.availability)
+        assertEquals(SetupAnswerProvenance.SUGGESTED, sameEnvironment.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertFalse(
+            "Aceptar una sugerencia no la convierte en declaración",
+            sameEnvironment.isStepDeclared(SetupStepId.AVAILABILITY),
+        )
+        assertEquals(
+            SetupPatchField.Set(custom),
+            buildSettingsPatch(vm, sameEnvironment, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun reselecting_the_same_environment_from_missing_material_seeds_it_without_confirming() = runTest {
+        val vm = viewModel(Settings())
+        val gymSeed = EquipmentAvailability(EquipmentCategory.entries.toSet())
+        // Registro obsoleto: AVAILABILITY confirmó en su día, pero el borrador
+        // ya no tiene material. Sin invalidarlo, la semilla nueva quedaría
+        // confirmada por un registro que ya no describe este valor.
+        val stale = SetupWizardDraft(trainingEnvironment = "gym").copy(
+            stepProgress = SetupStepProgress(
+                answers = mapOf(SetupStepId.AVAILABILITY to SetupAnswerProvenance.USER_DECLARED),
+            ),
+            declaredSteps = setOf(SetupStepId.AVAILABILITY),
+        )
+        assertNull(stale.trainingOptions.availability)
+
+        val seeded = stale.withStepChoice(SetupStepId.EQUIPMENT, "gym")
+
+        assertEquals("Sembrar desde «sin material» sigue siendo posible", gymSeed, seeded.trainingOptions.availability)
+        assertNull(seeded.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertFalse(SetupStepId.AVAILABILITY in seeded.declaredSteps)
+        assertEquals(
+            SetupPatchField.Unchanged,
+            buildSettingsPatch(vm, seeded, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun confirmed_gym_then_home_environment_leaves_availability_unchanged() = runTest {
+        val vm = viewModel(Settings())
+        val underGym = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "gym")
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("BARBELL"))
+            .touchStep(SetupStepId.AVAILABILITY)
+            .confirmCurrentStep(SetupStepId.AVAILABILITY)
+
+        val atHome = underGym.withStepChoice(SetupStepId.EQUIPMENT, "home")
+
+        assertNull(atHome.trainingOptions.availability)
+        assertEquals(
+            SetupPatchField.Unchanged,
+            buildSettingsPatch(vm, atHome, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun stale_legacy_home_equipment_cannot_authorize_an_unconfirmed_current_seed() = runTest {
+        val vm = viewModel(Settings())
+        val staleLegacy = vm.state.value.draft
+            .withStepChoice(SetupStepId.EQUIPMENT, "machines")
+            .recordStepAnswer(SetupStepId.HOME_EQUIPMENT, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+
+        assertEquals("machines", staleLegacy.trainingEnvironment)
+        assertNull(staleLegacy.stepProgress.answers[SetupStepId.AVAILABILITY])
+        assertEquals(
+            SetupPatchField.Unchanged,
+            buildSettingsPatch(vm, staleLegacy, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun each_current_equipment_marker_disables_legacy_authorization() = runTest {
+        val vm = viewModel(Settings())
+        val live = EquipmentAvailability(setOf(EquipmentCategory.BARBELL, EquipmentCategory.CABLE))
+        val legacyOnly = SetupWizardDraft(trainingOptions = SetupTrainingOptions(availability = live))
+            .recordStepAnswer(SetupStepId.HOME_EQUIPMENT, SetupAnswerProvenance.USER_DECLARED, SetupValueState.DECLARED)
+        val legacyAnswer = legacyOnly.stepProgress.answers[SetupStepId.HOME_EQUIPMENT]
+        assertEquals(SetupAnswerProvenance.USER_DECLARED, legacyAnswer)
+
+        val disabled = listOf(
+            "declaredSteps + EQUIPMENT" to legacyOnly.copy(declaredSteps = setOf(SetupStepId.EQUIPMENT)),
+            "answers[EQUIPMENT]" to legacyOnly.copy(
+                stepProgress = legacyOnly.stepProgress.copy(
+                    answers = legacyOnly.stepProgress.answers + (SetupStepId.EQUIPMENT to SetupAnswerProvenance.SUGGESTED),
+                ),
+            ),
+            "stepSelections[EQUIPMENT]" to legacyOnly.copy(
+                stepSelections = mapOf(SetupStepId.EQUIPMENT to listOf("gym")),
+            ),
+            "stepSelections[AVAILABILITY] sin confirmar" to legacyOnly.copy(
+                stepSelections = mapOf(SetupStepId.AVAILABILITY to listOf("BARBELL")),
+            ),
+        )
+        disabled.forEach { (label, draft) ->
+            assertEquals(
+                "$label must not authorize the current seed",
+                SetupPatchField.Unchanged,
+                buildSettingsPatch(vm, draft, Settings()).equipmentAvailability,
+            )
+        }
+
+        // Precedencia: una confirmación actual gana; la autorización legacy
+        // solo sobrevive cuando no hay ninguna señal del flujo actual.
+        val currentWins = listOf(
+            "declaredSteps + AVAILABILITY" to legacyOnly.copy(declaredSteps = setOf(SetupStepId.AVAILABILITY)),
+            "answers[AVAILABILITY] = SUGGESTED" to legacyOnly.copy(
+                stepProgress = legacyOnly.stepProgress.copy(
+                    answers = legacyOnly.stepProgress.answers + (SetupStepId.AVAILABILITY to SetupAnswerProvenance.SUGGESTED),
+                ),
+            ),
+        )
+        currentWins.forEach { (label, draft) ->
+            assertEquals(
+                label,
+                SetupPatchField.Set(live),
+                buildSettingsPatch(vm, draft, Settings()).equipmentAvailability,
+            )
+        }
+    }
+
+    @Test
+    fun derived_or_engine_result_availability_record_is_not_a_confirmation() = runTest {
+        val vm = viewModel(Settings())
+        val empty = EquipmentAvailability(emptySet())
+        val gymSeed = EquipmentAvailability(setOf(EquipmentCategory.MACHINES))
+        val cases = listOf(
+            "DERIVED under no-material" to SetupWizardDraft(
+                trainingEnvironment = "none",
+                trainingOptions = SetupTrainingOptions(availability = empty),
+                stepProgress = SetupStepProgress(
+                    answers = mapOf(SetupStepId.AVAILABILITY to SetupAnswerProvenance.DERIVED),
+                ),
+            ),
+            "DERIVED with a gym seed" to SetupWizardDraft(
+                trainingEnvironment = "gym",
+                trainingOptions = SetupTrainingOptions(availability = gymSeed),
+                stepProgress = SetupStepProgress(
+                    answers = mapOf(SetupStepId.AVAILABILITY to SetupAnswerProvenance.DERIVED),
+                ),
+            ),
+            // Un resultado de motor en AVAILABILITY tampoco devuelve la
+            // autorización al espejo legacy: es señal del flujo actual.
+            "ENGINE_RESULT + legacy HOME_EQUIPMENT, sin entorno" to SetupWizardDraft(
+                trainingOptions = SetupTrainingOptions(availability = gymSeed),
+                stepProgress = SetupStepProgress(
+                    answers = mapOf(
+                        SetupStepId.HOME_EQUIPMENT to SetupAnswerProvenance.USER_DECLARED,
+                        SetupStepId.AVAILABILITY to SetupAnswerProvenance.ENGINE_RESULT,
+                    ),
+                ),
+            ),
+        )
+
+        cases.forEach { (label, draft) ->
+            assertEquals(
+                label,
+                SetupPatchField.Unchanged,
+                buildSettingsPatch(vm, draft, Settings()).equipmentAvailability,
+            )
+        }
+    }
+
+    @Test
+    fun valid_legacy_only_home_equipment_still_persists_categories_after_resume() = runTest {
+        val vm = viewModel(Settings())
+        val live = EquipmentAvailability(setOf(EquipmentCategory.BARBELL, EquipmentCategory.CABLE))
+        val legacyOnly = SetupWizardDraft(trainingOptions = SetupTrainingOptions(availability = live))
+            .recordStepAnswer(SetupStepId.HOME_EQUIPMENT, SetupAnswerProvenance.SUGGESTED, SetupValueState.ESTIMATED)
+
+        // Compatibilidad legacy: sin entorno actual y sin ninguna señal del
+        // flujo nuevo, la respuesta legacy sigue autorizando las categorías.
+        assertNull(legacyOnly.trainingEnvironment)
+        assertTrue(legacyOnly.declaredSteps.isEmpty())
+        assertNull(legacyOnly.stepSelections[SetupStepId.EQUIPMENT])
+        assertNull(legacyOnly.stepSelections[SetupStepId.AVAILABILITY])
+        assertEquals(
+            SetupPatchField.Set(live),
+            buildSettingsPatch(vm, legacyOnly, Settings()).equipmentAvailability,
+        )
+
+        // Y sobrevive al viaje real por el serializador del borrador (reanudar).
+        val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+        val resumed = json.decodeFromString<SetupWizardDraft>(json.encodeToString(legacyOnly))
+        assertEquals(live, resumed.trainingOptions.availability)
+        assertEquals(SetupAnswerProvenance.SUGGESTED, resumed.stepProgress.answers[SetupStepId.HOME_EQUIPMENT])
+        assertEquals(
+            SetupPatchField.Set(live),
+            buildSettingsPatch(vm, resumed, Settings()).equipmentAvailability,
+        )
+    }
+
+    @Test
+    fun confirmed_current_availability_reaches_real_settings_without_touching_numeric_stock() = runTest {
+        assertAvailabilityReachesRealSettings(
+            commitId = "commit-availability-owner",
+            environment = "home",
+            selected = setOf("KETTLEBELL", "BAND"),
+            expected = EquipmentAvailability(setOf(EquipmentCategory.KETTLEBELL, EquipmentCategory.BAND)),
+        )
+    }
+
+    @Test
+    fun confirmed_bodyweight_only_reaches_real_settings_as_explicit_empty() = runTest {
+        // Mismo camino real completo para el vacío EXPLÍCITO: reductor ->
+        // confirmación -> parche privado real -> coordinador -> Settings.
+        assertAvailabilityReachesRealSettings(
+            commitId = "commit-availability-explicit-empty",
+            environment = "gym",
+            selected = setOf("bodyweight_only"),
+            expected = EquipmentAvailability(emptySet()),
+        )
+    }
+
+    private suspend fun assertAvailabilityReachesRealSettings(
+        commitId: String,
+        environment: String,
+        selected: Set<String>,
+        expected: EquipmentAvailability,
+    ) {
+        val db = KpknDatabase.createInMemory(app)
+        try {
+            val stock = EquipmentInventory(
+                barbellWeightKg = 20.0,
+                plates = listOf(PlateStock(weightKg = 10.0, countPerSide = 2)),
+            )
+            val existing = Settings(
+                username = "Perfil previo",
+                barbellWeight = 17.5,
+                availablePlates = listOf(5.0, 2.5),
+                equipmentInventory = stock,
+                equipmentAvailability = EquipmentAvailability(setOf(EquipmentCategory.BARBELL)),
+            )
+            db.settingsDao().upsert(existing.toEntity())
+
+            // Reductor real -> confirmación real -> parche real -> Room real.
+            val vm = viewModel(Settings())
+            val patch = buildSettingsPatch(
+                vm,
+                SetupWizardDraft()
+                    .withStepChoice(SetupStepId.EQUIPMENT, environment)
+                    .withStepChoices(SetupStepId.AVAILABILITY, selected)
+                    .touchStep(SetupStepId.AVAILABILITY)
+                    .confirmCurrentStep(SetupStepId.AVAILABILITY),
+                existing,
+            )
+            assertEquals(SetupPatchField.Set(expected), patch.equipmentAvailability)
+
+            SetupCommitCoordinator(db).commit(
+                SetupCommitRequest(
+                    commitId = commitId,
+                    draftId = null,
+                    settings = Settings(username = "stale request snapshot"),
+                    program = null,
+                    nutritionPlan = null,
+                    activateProgram = false,
+                    activateNutrition = false,
+                    settingsPatch = patch,
+                ),
+            )
+
+            val saved = checkNotNull(db.settingsDao().get()?.toSettings())
+            assertEquals(expected, saved.equipmentAvailability)
+            assertEquals("Perfil previo", saved.username)
+            assertEquals(stock, saved.equipmentInventory)
+            assertEquals(17.5, saved.barbellWeight, 0.0)
+            assertEquals(listOf(5.0, 2.5), saved.availablePlates)
+        } finally {
+            db.close()
+        }
     }
 
     private fun viewModel(settings: Settings): SetupWizardViewModel =

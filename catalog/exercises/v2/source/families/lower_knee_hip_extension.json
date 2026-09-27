@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
+                  "note": "Principal: La rodilla flexiona y se extiende con las espinillas apoyadas en el GHD, donde el peso corporal y los pies anclados cargan el arco de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Secundaria: La cadera flexiona y extiende el tronco en bloque sobre el GHD mientras el peso corporal se desplaza entero hacia atrás y regresa con los pies fijos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
+                  "note": "Estabilizadora: El tobillo queda sujeto por el apoyo del GHD y transmite el anclaje de los pies mientras el peso corporal viaja hacia atrás y vuelve.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar sostiene la línea del tronco mientras el cuerpo desciende en bloque sobre el GHD, con el peso corporal extendido hacia atrás.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,20 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "knee_hip_extension",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: Los isquiosurales frenan el descenso del cuerpo extendido sobre el GHD y concentran la vuelta flexionando la rodilla con las espinillas apoyadas."
+                },
+                {
+                  "muscleId": "gluteus_maximus",
+                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al subir el cuerpo desde el GHD y regula el descenso en bloque con los pies anclados."
+                },
+                {
+                  "muscleId": "erector_spinae",
+                  "note": "Estabilizador: Los erectores del raquis sostienen el tronco en bloque durante el descenso y la subida en el GHD, con los pies anclados y el peso corporal como carga."
+                }
+              ],
               "performanceProfileId": "glute_ham_raise",
               "primaryMuscles": [
                 "hamstrings"
@@ -93,6 +111,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
+                      "note": "Principal: La rodilla flexiona y se extiende con las espinillas apoyadas en el GHD, donde el peso corporal y los pies anclados cargan el arco de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -100,6 +119,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Secundaria: La cadera flexiona y extiende el tronco en bloque sobre el GHD mientras el peso corporal se desplaza entero hacia atrás y regresa con los pies fijos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -107,6 +127,7 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
+                      "note": "Estabilizadora: El tobillo queda sujeto por el apoyo del GHD y transmite el anclaje de los pies mientras el peso corporal viaja hacia atrás y vuelve.",
                       "role": "STABILIZER"
                     },
                     {
@@ -114,6 +135,7 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar sostiene la línea del tronco mientras el cuerpo desciende en bloque sobre el GHD, con el peso corporal extendido hacia atrás.",
                       "role": "STABILIZER"
                     }
                   ],

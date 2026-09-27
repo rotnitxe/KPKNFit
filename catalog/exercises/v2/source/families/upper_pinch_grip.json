@@ -45,6 +45,7 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Principal: La zona lumbar resiste la extensión y la rotación mientras el peso de los discos lisos tira hacia abajo desde la presión de los dedos y el pulgar.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Secundaria: La sacroilíaca aporta control de pelvis mientras los discos lisos cuelgan de la presión de los dedos y el pulgar en el agarre bilateral sostenido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
+                  "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de los discos lisos, sujetos solo por la presión de los dedos y el pulgar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,12 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "pinch_grip",
+              "muscleNotes": [
+                {
+                  "muscleId": "forearm",
+                  "note": "Principal: El antebrazo aprieta los discos lisos entre los dedos y el pulgar en isometría bilateral, sin asa ni superficie que ayude a la presión del agarre."
+                }
+              ],
               "performanceProfileId": "forearms_pinza_de_discos__plate__pinza_de_discos",
               "primaryMuscles": [
                 "forearm"
@@ -86,6 +95,7 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Principal: La zona lumbar resiste la extensión y la rotación mientras el peso de los discos lisos tira hacia abajo desde la presión de los dedos y el pulgar.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +103,7 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Secundaria: La sacroilíaca aporta control de pelvis mientras los discos lisos cuelgan de la presión de los dedos y el pulgar en el agarre bilateral sostenido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -100,6 +111,7 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
+                      "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de los discos lisos, sujetos solo por la presión de los dedos y el pulgar.",
                       "role": "STABILIZER"
                     }
                   ],

@@ -45,6 +45,7 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La cadera alterna flexión y extensión al proyectarse atrás y adelante, con la cuerda de la polea baja pasando entre las piernas y tirando en todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
+                  "note": "Secundaria: La rodilla combina una flexión ligera con la estabilidad de la pierna mientras la cadera se proyecta atrás, con la polea baja tirando entre las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La columna lumbar resiste la flexión del tronco mientras la cuerda tira hacia la polea, con la cadera empujando atrás y adelante de forma repetida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
+                  "note": "Estabilizadora: La sacroilíaca coordina la transferencia entre pelvis y tronco durante el gesto de bisagra, con la polea baja y la cuerda pasando entre las piernas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,12 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_hinge",
+              "muscleNotes": [
+                {
+                  "muscleId": "hamstrings",
+                  "note": "Principal: De espaldas a la polea baja con la cuerda entre las piernas, los isquiosurales extienden la cadera al volver arriba y frenan el descenso con tensión constante."
+                }
+              ],
               "performanceProfileId": "hams_pull_through__cable__pull_through",
               "primaryMuscles": [
                 "hamstrings"
@@ -94,6 +104,7 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La cadera alterna flexión y extensión al proyectarse atrás y adelante, con la cuerda de la polea baja pasando entre las piernas y tirando en todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +112,7 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
+                      "note": "Secundaria: La rodilla combina una flexión ligera con la estabilidad de la pierna mientras la cadera se proyecta atrás, con la polea baja tirando entre las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +120,7 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La columna lumbar resiste la flexión del tronco mientras la cuerda tira hacia la polea, con la cadera empujando atrás y adelante de forma repetida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -115,6 +128,7 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
+                      "note": "Estabilizadora: La sacroilíaca coordina la transferencia entre pelvis y tronco durante el gesto de bisagra, con la polea baja y la cuerda pasando entre las piernas.",
                       "role": "STABILIZER"
                     }
                   ],

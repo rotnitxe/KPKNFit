@@ -492,7 +492,7 @@ object SetupStepDefinitions {
         ),
         SetupStepDefinition(
             id = SetupStepId.PRIORITIES, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
-            title = "¿Qué te gusta más entrenar o quieres mejorar?",
+            title = "¿Qué grupos musculares te gusta más entrenar o deseas mejorar?",
             subtitle = "Puedes elegir todo el cuerpo o un enfoque. Solo cambia el orden de los ejercicios.",
             control = SetupControlKind.POINT_BUDGET,
             options = ORDER_MUSCLE_OPTIONS,

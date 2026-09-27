@@ -45,6 +45,7 @@
                     "Flexión"
                   ],
                   "jointId": "cadera",
+                  "note": "Principal: La flexión de cadera sube las piernas rectas o dobladas hacia la cintura colgando de la barra, con el peso corporal de los miembros como carga del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
+                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad lumbopélvica mientras el cuerpo cuelga de la barra, sin balanceos al subir ni al bajar las piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Posición Del Miembro"
                   ],
                   "jointId": "rodilla",
+                  "note": "Estabilizadora: La rodilla fija la posición del miembro al colgar de la barra, extendida o doblada, y cada posición cambia la palanca que el abdomen debe frenar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -66,6 +69,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "hip_flexion",
+              "muscleNotes": [
+                {
+                  "muscleId": "abdominals",
+                  "note": "Principal: Colgado de la barra, el abdomen enrolla la pelvis al subir las piernas y frena el descenso, con el peso corporal como única carga y sin impulso disponible."
+                },
+                {
+                  "muscleId": "hip_flexors",
+                  "note": "Secundario: Los flexores de cadera inician la subida de las piernas al colgar de la barra, rectas o dobladas, mientras el abdomen se ocupa del giro pélvico posterior."
+                }
+              ],
               "performanceProfileId": "core_elevacion_piernas__bodyweight__elevacion_piernas",
               "primaryMuscles": [
                 "abdominals"
@@ -86,6 +99,7 @@
                         "Flexión"
                       ],
                       "jointId": "cadera",
+                      "note": "Principal: La flexión de cadera sube las piernas rectas o dobladas hacia la cintura colgando de la barra, con el peso corporal de los miembros como carga del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -93,6 +107,7 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
+                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad lumbopélvica mientras el cuerpo cuelga de la barra, sin balanceos al subir ni al bajar las piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -100,6 +115,7 @@
                         "Posición Del Miembro"
                       ],
                       "jointId": "rodilla",
+                      "note": "Estabilizadora: La rodilla fija la posición del miembro al colgar de la barra, extendida o doblada, y cada posición cambia la palanca que el abdomen debe frenar.",
                       "role": "STABILIZER"
                     }
                   ],

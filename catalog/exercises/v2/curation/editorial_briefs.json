@@ -651,26 +651,6 @@
       },
       "description": "El Press de Banca Plano es el empuje horizontal de referencia: pectoral, deltoide anterior y tríceps contra la mayor carga que puedas mover tumbado. Se ejecuta con los pies firmes en el suelo: la barra baja al pecho con los codos bajo la muñeca y sube en línea casi vertical hasta bloquear los brazos. Hay días en que conviene cambiar de escenario: con mancuernas cada brazo se responsabiliza de su lado y los desbalances salen a la luz, perfecto como accesorio del press principal; y la Smith, con su recorrido guiado, es el lugar más seguro para visitar el fallo muscular. El medidor más honesto de la fuerza de empuje y un constructor de pecho que nunca falla."
     },
-    "paused_bench_press": {
-      "configurations": {
-        "paused_bench_press__barbell": {
-          "benefits": [
-            "La pausa sobre el pecho elimina el rebote y refuerza el control del press plano.",
-            "Entrenamiento directo del punto débil del empuje horizontal con barra."
-          ],
-          "description": "Con barra, tumbado en el banco, la barra descansa sobre el pecho unos dos segundos antes de cada empuje. La pausa elimina el rebote y obliga a producir fuerza desde el pecho.",
-          "executionCues": [
-            "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
-          ],
-          "setupCues": [
-            "Preparación: pies firmes, escápulas retraídas y barra sobre el pecho antes de cada repetición."
-          ],
-          "techniqueSummary": "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar. El banco fija la espalda y la carga desciende al pecho antes de volver con los antebrazos alineados.",
-          "variantRationale": "Pausa completa sobre el pecho, no a un palmo como en Spoto: refuerza el control del press plano y la potencia desde el pecho."
-        }
-      },
-      "description": "El Press de Banca con Pausa detiene la barra sobre el pecho antes de cada empuje: sin rebote el pectoral y el tríceps producen fuerza desde abajo. Se ejecuta como el press plano con barra, aguantando la carga quieto sobre el pecho unos dos segundos y empujando sin ayuda elástica. Diferente del Spoto, que pausa a un palmo del pecho. La variante de powerlifting y técnica para dominar el punto más débil del press."
-    },
     "biceps_curl_bayesian": {
       "configurations": {
         "biceps_curl_bayesian__cable__neutral": {
@@ -3893,36 +3873,6 @@
           "techniqueSummary": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
           "variantRationale": "Máquina sentado de un lado a la vez: concentra cada glúteo medio y corrige desequilibrios entre caderas. Muy útil para quien entrena asimétrico."
         },
-        "hip_abduction__standing__machine__bilateral": {
-          "benefits": [
-            "La máquina fija la línea de la apertura y el trabajo del glúteo medio se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna abre.",
-            "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
-          ],
-          "description": "Con máquina, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna abre. El glúteo medio concentra el esfuerzo y la carga se dosifica sin distracciones.",
-          "executionCues": [
-            "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
-          ],
-          "setupCues": [
-            "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de abrir."
-          ],
-          "techniqueSummary": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
-          "variantRationale": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. La versión de pie de la máquina de abducción."
-        },
-        "hip_abduction__standing__machine__unilateral": {
-          "benefits": [
-            "La máquina fija la línea de la apertura y el trabajo a una pierna aísla cada glúteo medio para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna abre.",
-            "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
-          ],
-          "description": "Con máquina, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre caderas. El apoyo de pie exige estabilizar la pelvis mientras el glúteo medio de la pierna que abre concentra el esfuerzo.",
-          "executionCues": [
-            "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
-          ],
-          "setupCues": [
-            "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de abrir."
-          ],
-          "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
-          "variantRationale": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. Ideal para corregir asimetrías de cadera."
-        },
         "hip_abduction__standing__band__bilateral": {
           "benefits": [
             "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo medio. A dos lados, el trabajo del glúteo medio admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo del glúteo medio.",
@@ -3982,6 +3932,36 @@
           ],
           "techniqueSummary": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. La pierna se separa sin girar la pelvis; la posición sentada, de pie o unilateral cambia cuánto debe estabilizarse la cadera.",
           "variantRationale": "Polea de pie con una pierna: el glúteo medio trabaja concentrado con tensión continua. Útil para igualar ambos lados de la cadera."
+        },
+        "hip_abduction__standing__machine__bilateral": {
+          "benefits": [
+            "La máquina fija la línea de la apertura y el trabajo del glúteo medio se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna abre.",
+            "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+          ],
+          "description": "Con máquina, a dos lados y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna abre. El glúteo medio concentra el esfuerzo y la carga se dosifica sin distracciones.",
+          "executionCues": [
+            "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de abrir."
+          ],
+          "techniqueSummary": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie con ambas piernas: la pierna se separa contra la almohadilla con el glúteo medio concentrado y la pelvis estable. La versión de pie de la máquina de abducción."
+        },
+        "hip_abduction__standing__machine__unilateral": {
+          "benefits": [
+            "La máquina fija la línea de la apertura y el trabajo a una pierna aísla cada glúteo medio para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna abre.",
+            "El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
+          ],
+          "description": "Con máquina, a un lado y de pie, la pierna se separa del centro contra la resistencia y el glúteo medio hace el trabajo. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre caderas. El apoyo de pie exige estabilizar la pelvis mientras el glúteo medio de la pierna que abre concentra el esfuerzo.",
+          "executionCues": [
+            "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de abrir."
+          ],
+          "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que la apertura se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie de un lado a la vez: la pierna se separa contra la almohadilla con el glúteo medio concentrado y comparas cada lado. Ideal para corregir asimetrías de cadera."
         }
       },
       "description": "Las Abducciones de Pierna trabajan el costado de la cadera que nadie ve pero todos necesitan: el glúteo medio separa la pierna del centro contra resistencia y estabiliza la pelvis en cada paso que das. Se hacen en la máquina de abducción, sentado, abriendo las piernas con pausa y regresando sin que las almohadillas golpeen. Con banda o polea la misma idea cabe en casa o de pie. El escudo invisible de rodillas y cadera, y el pincel que redondea el lateral del glúteo."
@@ -4017,36 +3997,6 @@
           ],
           "techniqueSummary": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
           "variantRationale": "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. Útil para piernas parejas."
-        },
-        "hip_adduction__standing__machine__bilateral": {
-          "benefits": [
-            "La máquina fija la línea del cierre y el trabajo de los aductores se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
-            "Equilibrio muscular real para una cadera a prueba de giros."
-          ],
-          "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
-          "executionCues": [
-            "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
-          ],
-          "setupCues": [
-            "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
-          ],
-          "techniqueSummary": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
-          "variantRationale": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. La versión de pie de la máquina de aducción."
-        },
-        "hip_adduction__standing__machine__unilateral": {
-          "benefits": [
-            "La máquina fija la línea del cierre y el trabajo a una pierna aísla cada aductor para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
-            "Equilibrio muscular real para una cadera a prueba de giros."
-          ],
-          "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
-          "executionCues": [
-            "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
-          ],
-          "setupCues": [
-            "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
-          ],
-          "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
-          "variantRationale": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. Ideal para corregir asimetrías del muslo interno."
         },
         "hip_adduction__standing__band__bilateral": {
           "benefits": [
@@ -4107,6 +4057,36 @@
           ],
           "techniqueSummary": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo.",
           "variantRationale": "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. Útil para centrarse en un lado."
+        },
+        "hip_adduction__standing__machine__bilateral": {
+          "benefits": [
+            "La máquina fija la línea del cierre y el trabajo de los aductores se concentra sin compensaciones. De pie, el lado que sostiene el cuerpo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+            "Equilibrio muscular real para una cadera a prueba de giros."
+          ],
+          "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
+          "executionCues": [
+            "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
+          ],
+          "techniqueSummary": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. La versión de pie de la máquina de aducción."
+        },
+        "hip_adduction__standing__machine__unilateral": {
+          "benefits": [
+            "La máquina fija la línea del cierre y el trabajo a una pierna aísla cada aductor para corregir asimetrías. De pie, la cadera de apoyo estabiliza la pelvis mientras la otra pierna cruza hacia dentro.",
+            "Equilibrio muscular real para una cadera a prueba de giros."
+          ],
+          "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
+          "executionCues": [
+            "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+          ],
+          "setupCues": [
+            "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
+          ],
+          "techniqueSummary": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline.",
+          "variantRationale": "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. Ideal para corregir asimetrías del muslo interno."
         }
       },
       "description": "Las Aducciones de Pierna llevan la pierna hacia el centro contra resistencia y cargan la cara interna del muslo, esa zona que la sentadilla roza pero no termina de tocar. Se ejecutan en la máquina de aducción, cerrando las piernas con control y soltando despacio. La polea baja y la banda ofrecen el mismo trabajo de pie o en casa. Equilibrio muscular real para una cadera a prueba de giros."
@@ -4494,7 +4474,27 @@
           "variantRationale": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Útil para centrarse en un brazo a la vez."
         }
       },
-      "description": "La Extensión Katana desenfunda el brazo como una espada: de pie ante la polea, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Se ejecuta a un brazo, con el torso ligeramente girado y la trayectoria limpia de principio a fin. Con banda el mismo gesto se monta en cualquier parte. Elegante y distinto, con una congestión final sorprendente."
+      "description": "La Extensión Katana desenfunda el brazo como una espada: de pie ante la polea, el codo se extiende llevando las manos arriba con los cables cruzados. Se ejecuta con dos poleas independientes a altura media, torso estable y trayectoria limpia de principio a fin. Elegante y distinto, con una congestión final sorprendente."
+    },
+    "knee_push_up": {
+      "configurations": {
+        "knee_push_up__default": {
+          "benefits": [
+            "El pectoral y el tríceps trabajan con el peso corporal repartido entre manos y rodillas, sin barra, mancuernas, banda ni máquina.",
+            "El deltoide anterior asiste la aducción horizontal del hombro y acompaña al pectoral en la parte alta del recorrido."
+          ],
+          "description": "Con las rodillas y las manos apoyadas en el suelo, el torso baja y sube con el empuje de los brazos mientras la cadera queda suspendida entre rodillas y hombros. La palma abierta apoya el peso de la muñeca y el codo queda a unos 45 grados del tronco, así que cada bajada tiene la misma lentitud. El pecho se acerca al suelo sin tocarlo y vuelve sin rebotar, con la línea recta de la rodilla a la cabeza como única referencia.",
+          "executionCues": [
+            "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera."
+          ],
+          "setupCues": [
+            "Preparación: Rodillas en el suelo, manos algo más abiertas que los hombros y una línea recta desde la rodilla hasta la cabeza."
+          ],
+          "techniqueSummary": "Rodillas en el suelo y manos algo más abiertas que los hombros: el pecho baja hasta cerca del suelo con los codos a unos 45 grados del tronco y la vuelta termina con los hombros firmes, sin dejar caer la cadera.",
+          "variantRationale": "El apoyo en las rodillas reparte el peso corporal con las manos y acorta la palanca, de modo que el empuje horizontal se practica con menos carga y con el mismo patrón de la flexión completa."
+        }
+      },
+      "description": "Las Flexiones con Rodillas Apoyadas (modified push-up) son la versión de las flexiones de brazos en la que las rodillas descansan en el suelo y el torso se mueve entre las rodillas y la cabeza: mismo empuje horizontal de pectoral, deltoide anterior y tríceps, con menos carga sobre los brazos. La línea recta de la rodilla a la cabeza es la referencia, y el pecho baja hasta cerca del suelo antes de volver a subir. Es la forma de entrada al empuje con el peso corporal cuando la flexión completa todavía no es posible con técnica limpia, y por eso se trabaja con muchas repeticiones y sin carga externa."
     },
     "lat_pulldown": {
       "configurations": {
@@ -5086,6 +5086,26 @@
       },
       "description": "La Extensión de Tríceps Overhead sube la carga por encima de la cabeza y la baja por detrás de la nuca: la cabeza larga del tríceps trabaja desde su punto más estirado. Se ejecuta con barra, mancuerna o polea, con los codos mirando arriba y la extensión completa al final. De pie o sentado cambia la estabilidad, no el estímulo. El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
     },
+    "paused_bench_press": {
+      "configurations": {
+        "paused_bench_press__barbell": {
+          "benefits": [
+            "La pausa sobre el pecho elimina el rebote y refuerza el control del press plano.",
+            "Entrenamiento directo del punto débil del empuje horizontal con barra."
+          ],
+          "description": "Con barra, tumbado en el banco, la barra descansa sobre el pecho unos dos segundos antes de cada empuje. La pausa elimina el rebote y obliga a producir fuerza desde el pecho.",
+          "executionCues": [
+            "Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+          ],
+          "setupCues": [
+            "Preparación: Detén la barra sobre el pecho unos dos segundos sin relajar el torso antes de empujar."
+          ],
+          "techniqueSummary": "Pausa estable de unos dos segundos sobre el pecho en cada repetición: sin rebote y con tensión sostenida antes de empujar.",
+          "variantRationale": "La pausa sobre el pecho convierte el press plano en trabajo de punto débil y control de plataforma."
+        }
+      },
+      "description": "El Press de Banca con Pausa detiene la barra sobre el pecho unos dos segundos en cada repetición: sin rebote, con el pectoral y el tríceps produciendo fuerza desde el punto más exigente del recorrido. Variante de método sobre el press plano con barra."
+    },
     "pendlay_row": {
       "configurations": {
         "pendlay_row__barbell": {
@@ -5459,34 +5479,34 @@
     "pullover": {
       "configurations": {
         "pullover__bilateral__cable": {
-          "description": "De pie frente a una polea alta, la barra recorre un arco desde sobre la cabeza hasta los muslos con los brazos casi extendidos. La tensión continua permite aislar el dorsal sin convertirlo en un jalón de codos flexionados.",
           "benefits": [
             "La polea conserva resistencia a lo largo del arco y permite percibir la extensión de hombro en el dorsal ancho sin depender de la gravedad.",
             "La postura de pie exige fijar costillas y pelvis, de modo que el torso acompaña el gesto sin sustituir el trabajo del dorsal."
           ],
-          "techniqueSummary": "Con barra recta y agarre prono a la anchura de los hombros, los brazos conservan una leve flexión mientras descienden en arco hacia los muslos; el tronco se inclina apenas y no cambia de posición.",
-          "variantRationale": "El trabajo bilateral distribuye la resistencia de la barra entre ambos dorsales y ofrece una trayectoria simétrica para comparar el control escapular.",
+          "description": "De pie frente a una polea alta, la barra recorre un arco desde sobre la cabeza hasta los muslos con los brazos casi extendidos. La tensión continua permite aislar el dorsal sin convertirlo en un jalón de codos flexionados.",
+          "executionCues": [
+            "Agarre prono a la anchura de los hombros, brazos casi rectos; la barra describe un arco continuo hasta los muslos sin balanceo del tronco."
+          ],
           "setupCues": [
             "Preparación: La barra recta cuelga de una polea alta y el cuerpo queda un paso detrás de la vertical del cable."
           ],
-          "executionCues": [
-            "Agarre prono a la anchura de los hombros, brazos casi rectos; la barra describe un arco continuo hasta los muslos sin balanceo del tronco."
-          ]
+          "techniqueSummary": "Con barra recta y agarre prono a la anchura de los hombros, los brazos conservan una leve flexión mientras descienden en arco hacia los muslos; el tronco se inclina apenas y no cambia de posición.",
+          "variantRationale": "El trabajo bilateral distribuye la resistencia de la barra entre ambos dorsales y ofrece una trayectoria simétrica para comparar el control escapular."
         },
         "pullover__unilateral__cable": {
-          "description": "Con una empuñadura y de pie frente a la polea alta, un brazo dibuja el arco hacia el costado de la cadera mientras el torso permanece estable. La tensión constante deja visible cualquier diferencia entre dorsales.",
           "benefits": [
             "La empuñadura individual permite recorrer el arco de cada hombro por separado y detectar diferencias de movilidad o control escapular.",
             "La polea mantiene carga desde la posición alta hasta la cadera, por lo que el dorsal recibe tensión sin necesitar impulso del tronco."
           ],
-          "techniqueSummary": "La mano toma una empuñadura de polea alta con el brazo casi recto; el hombro lleva el brazo en arco hacia la cadera mientras las costillas permanecen estables.",
-          "variantRationale": "El trabajo unilateral reduce la ayuda del lado dominante y permite que cada dorsal complete la extensión de hombro con su propia trayectoria.",
+          "description": "Con una empuñadura y de pie frente a la polea alta, un brazo dibuja el arco hacia el costado de la cadera mientras el torso permanece estable. La tensión constante deja visible cualquier diferencia entre dorsales.",
+          "executionCues": [
+            "Brazo casi recto y hombro bajo; la empuñadura recorre un arco continuo hasta la cadera sin girar el pecho hacia el cable."
+          ],
           "setupCues": [
             "Preparación: La empuñadura queda en una polea alta y el cuerpo se sitúa un paso detrás de la vertical del cable."
           ],
-          "executionCues": [
-            "Brazo casi recto y hombro bajo; la empuñadura recorre un arco continuo hasta la cadera sin girar el pecho hacia el cable."
-          ]
+          "techniqueSummary": "La mano toma una empuñadura de polea alta con el brazo casi recto; el hombro lleva el brazo en arco hacia la cadera mientras las costillas permanecen estables.",
+          "variantRationale": "El trabajo unilateral reduce la ayuda del lado dominante y permite que cada dorsal complete la extensión de hombro con su propia trayectoria."
         }
       },
       "description": "El Pull Over de Pie en Polea lleva los brazos casi extendidos desde arriba hasta los muslos para aislar la extensión de hombro del dorsal bajo tensión continua."
@@ -5815,10 +5835,10 @@
       "configurations": {
         "quads_sentadilla_hack__barbell": {
           "benefits": [
-            "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
             "La fábrica de cuádriceps que nunca pasa de moda."
           ],
-          "description": "Con barra, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+          "description": "Con barra detrás del cuerpo y sin máquina que la guíe, el cuádriceps extiende la rodilla en cada repetición mientras la persona equilibra y sostiene ese peso. Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
           "executionCues": [
             "Hack con barra por detrás: sin máquina, el equilibrio suma trabajo al cuádriceps. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
           ],
@@ -5848,7 +5868,7 @@
             "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
             "La fábrica de cuádriceps que nunca pasa de moda."
           ],
-          "description": "Con máquina Smith, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+          "description": "Con máquina Smith, la guía fija la trayectoria de la barra pero no sostiene el torso, así que el cuádriceps extiende la rodilla en cada repetición con el peso que lleva el cuerpo encima. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
           "executionCues": [
             "Smith en posición hack: el guiado sostiene la barra y las piernas empujan. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
           ],
@@ -5940,6 +5960,26 @@
         }
       },
       "description": "La Sentadilla Pistola Asistida en TRX pone una red bajo la hazaña: las asas sostienen parte del equilibrio mientras una pierna hace todo el recorrido. Se ejecuta agarrando las cintas con los brazos extendidos, bajando a una pierna y usándolas solo lo justo para subir. El cuádriceps aprende el rango completo sin el miedo al suelo. El puente honesto entre la zancada y la pistola libre."
+    },
+    "quads_sentadilla_sin_carga": {
+      "configurations": {
+        "quads_sentadilla_sin_carga__default": {
+          "benefits": [
+            "Cuádriceps y glúteo mayor trabajan sin carga externa, con el peso corporal como única resistencia y sin preparación de material entre series.",
+            "El tronco estabiliza la columna durante todo el recorrido igual que en la sentadilla con barra, así que la técnica se puede practicar en casa con un suelo despejado."
+          ],
+          "description": "Con los pies en el suelo y sin nada que sostener, las rodillas se flexionan mientras la cadera baja en bloque y el torso se mantiene firme de la cadera a la cabeza. Los pies a la anchura de los hombros o algo más abiertos dan una base estable; la profundidad llega hasta donde la cadera y el tobillo lo permiten, y más allá la pelvis se echa hacia atrás. El trabajo de los músculos del tronco no desaparece por no haber carga: acompaña cada bajada y cada subida.",
+          "executionCues": [
+            "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical."
+          ],
+          "setupCues": [
+            "Preparación: Pies en el suelo a la anchura de los hombros, manos al frente o en la cintura, tronco firme de la cadera a la cabeza."
+          ],
+          "techniqueSummary": "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical.",
+          "variantRationale": "Es la misma sentadilla de rodillas y cadera que la variante con barra, sin carga externa: por eso conserva el patrón y el objetivo, pero no obliga a preparar ni cargar material entre series y la técnica se sostiene desde el primer mes."
+        }
+      },
+      "description": "La Sentadilla Sin Carga (bodyweight squat) es la sentadilla bilateral que se hace con el propio peso corporal, sin barra, mancuernas ni máquina: la misma flexión y extensión de rodilla y cadera que sostiene el patrón, con los pies en el suelo y el tronco firme. El tronco trabaja con la misma exigencia durante todo el recorrido, porque sus músculos estabilizan la columna y el torso mientras la carga del propio peso recorre la pierna. Es la versión de la sentadilla para empezar a trabajar las piernas sin nada que preparar, y por eso se practica con muchas repeticiones y sin carga externa."
     },
     "quads_sentadilla_somersault": {
       "configurations": {
@@ -6354,7 +6394,7 @@
           "variantRationale": "Kettlebell con las palmas hacia abajo: el centro de la carga queda bajo la mano y aumenta la exigencia de estabilización del antebrazo. Es una variante poco habitual para quien busca un agarre más desafiante que el de una mancuerna."
         }
       },
-      "description": "El Curl Invertido pone las palmas a mirar al suelo: el protagonista pasa a ser el antebrazo y el braquial, y el bíceps trabaja en desventaja mecánica. Se ejecuta como un curl normal pero con el dorso de la mano liderando la subida, con cargas más modestas de lo habitual. La barra H o la banda permiten la misma idea con otro tacto. El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
+      "description": "El Curl Invertido pone las palmas a mirar al suelo: el protagonista pasa a ser el antebrazo y el braquial, y el bíceps trabaja en desventaja mecánica. Se ejecuta como un curl normal pero con el dorso de la mano liderando la subida, con cargas más modestas de lo habitual. La banda o la polea permiten la misma idea con otro tacto. El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
     },
     "reverse_hyper": {
       "configurations": {
@@ -6965,6 +7005,26 @@
         }
       },
       "description": "El Curl de Isquiosurales Sentado trabaja el isquio desde una cadera flexionada, una posición que alarga el músculo antes de empezar y cambia el estímulo respecto al tumbado. Se ejecuta en la máquina sentada, llevando los talones por debajo del asiento contra la almohadilla y regresando sin rebote. Con polea se monta una versión casera igual de válida. La postura cómoda para la espalda y dura para la parte trasera."
+    },
+    "seated_machine_pullover": {
+      "configurations": {
+        "seated_machine_pullover__machine": {
+          "benefits": [
+            "El asiento, respaldo y arco guiado reducen la demanda de equilibrio y hacen más fácil concentrar el esfuerzo en el dorsal ancho.",
+            "Los apoyos de codo separan el agarre de la fuerza principal, por lo que la extensión de hombro no depende de apretar las manos."
+          ],
+          "description": "Sentado contra el respaldo, los apoyos de codo recorren un arco guiado desde arriba hasta los costados de la cintura. La máquina descarga el equilibrio y permite que el dorsal ancho conduzca la extensión de hombro completa.",
+          "executionCues": [
+            "La espalda permanece apoyada; los codos impulsan las almohadillas hacia abajo y adelante hasta la línea de las costillas, sin tirar solo de las manos."
+          ],
+          "setupCues": [
+            "Preparación: El asiento se ajusta para que el hombro coincida con el eje de giro y los codos lleguen cómodos a sus apoyos."
+          ],
+          "techniqueSummary": "Con el asiento alineado al eje de giro, los codos descansan en las almohadillas y descienden desde arriba hasta la línea de las costillas sin despegar la espalda del respaldo.",
+          "variantRationale": "La máquina dedicada conserva el arco de pullover mientras fija el torso y conduce los codos, una alternativa distinta al cable de pie y a la banca."
+        }
+      },
+      "description": "El Pull Over Sentado en Máquina fija el torso contra un respaldo y lleva los codos desde arriba hasta la cintura en un arco guiado que concentra la extensión de hombro en el dorsal ancho."
     },
     "seated_shoulder_press": {
       "configurations": {
@@ -7898,21 +7958,6 @@
     },
     "tate_press": {
       "configurations": {
-        "tate_press__cable": {
-          "benefits": [
-            "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-            "El favorito de Dave Tate para llenar la parte trasera del brazo desde otro ángulo."
-          ],
-          "description": "Con polea, con las palmas al frente y los codos en abanico, la carga empuja desde el pecho mezclando press y extensión. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-          "executionCues": [
-            "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-          ],
-          "setupCues": [
-            "Preparación: Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final."
-          ],
-          "techniqueSummary": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-          "variantRationale": "Polea acostado con los codos cerrándose hacia dentro: la tensión continua mantiene al tríceps activo en el tramo final. La resistencia ajustable permite buscar contracción sin depender de una carga libre sobre la cara."
-        },
         "tate_press__dumbbells": {
           "benefits": [
             "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
@@ -8030,13 +8075,13 @@
           ],
           "description": "Con banda elástica, la banda a la espalda aporta una tensión que crece hasta el final del empuje. El pectoral trabaja con la banda, cuya resistencia crece con el recorrido.",
           "executionCues": [
-            "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control."
           ],
           "setupCues": [
-            "Preparación: Bandas atadas a la barra: tensión extra arriba, justo donde empujas más."
+            "Preparación: La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco."
           ],
-          "techniqueSummary": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-          "variantRationale": "Bandas atadas a la barra: tensión extra arriba, justo donde empujas más. El press con resistencia variable."
+          "techniqueSummary": "La banda elástica rodea la espalda y se sujeta con las dos manos, y el empuje horizontal sale de ahí sin barra ni banco. Las manos empujan al frente mientras la resistencia de la banda crece con el estiramiento, sobre todo hacia el final del recorrido. El ejercicio se puede hacer tumbado o de pie, siempre con la misma banda, y la vuelta se realiza cerrando los codos con control.",
+          "variantRationale": "La diferencia de esta variante es el tipo de resistencia: no es fija, la banda ofrece menos tensión al inicio del empuje y más a medida que se estira, de modo que el final del recorrido es donde más resistencia ofrece. La dificultad se regula con la banda o con la separación de las manos, sin añadir material."
         }
       },
       "description": "El Press con Banda de Resistencia monta el empuje horizontal sin banco ni pesas: la banda a la espalda y las manos empujando al frente con la tensión creciendo al extender. Se ejecuta tumbado o de pie, con la banda apretando más cuanto más lejos van las manos. El pectoral trabaja con resistencia progresiva y portátil. El press de viaje y de calentamiento, siempre listo en la mochila."
@@ -8630,26 +8675,6 @@
         }
       },
       "description": "El Press Z es el press de hombros sentado en el suelo con las piernas extendidas: sin respaldo ni apoyo, el deltoide empuja la barra mientras el core impide que el cuerpo se incline. Se ejecuta con la espalda vertical, empujando hasta el bloqueo completo sin rebote de piernas. La dificultad convierte cargas modestas en pesadas de verdad. La escuela de la fuerza de hombro pura y la postura impecable."
-    },
-    "seated_machine_pullover": {
-      "configurations": {
-        "seated_machine_pullover__machine": {
-          "description": "Sentado contra el respaldo, los apoyos de codo recorren un arco guiado desde arriba hasta los costados de la cintura. La máquina descarga el equilibrio y permite que el dorsal ancho conduzca la extensión de hombro completa.",
-          "benefits": [
-            "El asiento, respaldo y arco guiado reducen la demanda de equilibrio y hacen más fácil concentrar el esfuerzo en el dorsal ancho.",
-            "Los apoyos de codo separan el agarre de la fuerza principal, por lo que la extensión de hombro no depende de apretar las manos."
-          ],
-          "techniqueSummary": "Con el asiento alineado al eje de giro, los codos descansan en las almohadillas y descienden desde arriba hasta la línea de las costillas sin despegar la espalda del respaldo.",
-          "variantRationale": "La máquina dedicada conserva el arco de pullover mientras fija el torso y conduce los codos, una alternativa distinta al cable de pie y a la banca.",
-          "setupCues": [
-            "Preparación: El asiento se ajusta para que el hombro coincida con el eje de giro y los codos lleguen cómodos a sus apoyos."
-          ],
-          "executionCues": [
-            "La espalda permanece apoyada; los codos impulsan las almohadillas hacia abajo y adelante hasta la línea de las costillas, sin tirar solo de las manos."
-          ]
-        }
-      },
-      "description": "El Pull Over Sentado en Máquina fija el torso contra un respaldo y lleva los codos desde arriba hasta la cintura en un arco guiado que concentra la extensión de hombro en el dorsal ancho."
     }
   },
   "schemaVersion": 1,

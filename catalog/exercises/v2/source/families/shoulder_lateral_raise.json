@@ -45,6 +45,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: La abducción del hombro con leve flexión se carga aquí; las mancuernas sentado imponen la línea del arco sin ayuda del tronco en la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -52,6 +53,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba para acompañar el arco; sentado con mancuernas, el tronco inmóvil traslada ese ajuste solo a la cintura escapular.",
                   "role": "SECONDARY"
                 },
                 {
@@ -59,6 +61,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular en esta articulación da soporte al arco lateral; con mancuernas sentado, la carga independiente exige un apoyo simétrico.",
                   "role": "SECONDARY"
                 },
                 {
@@ -66,6 +69,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo queda en extensión relativa y sostiene la palanca del brazo; con mancuernas sentado, esa posición isométrica dirige el esfuerzo al hombro.",
                   "role": "STABILIZER"
                 }
               ],
@@ -73,6 +77,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide eleva los brazos a los lados en concéntrico y frena la bajada en excéntrico; con mancuernas sentado, el torso fijo impide el impulso."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la abducción con rotación superior de la escápula; sentado con mancuernas, cada lado guía su brazo y el reparto de trabajo se equilibra."
+                }
+              ],
               "performanceProfileId": "lateral_raise_seated__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -94,6 +108,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: La abducción del hombro con leve flexión se carga aquí; las mancuernas sentado imponen la línea del arco sin ayuda del tronco en la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -101,6 +116,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba para acompañar el arco; sentado con mancuernas, el tronco inmóvil traslada ese ajuste solo a la cintura escapular.",
                       "role": "SECONDARY"
                     },
                     {
@@ -108,6 +124,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular en esta articulación da soporte al arco lateral; con mancuernas sentado, la carga independiente exige un apoyo simétrico.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,6 +132,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo queda en extensión relativa y sostiene la palanca del brazo; con mancuernas sentado, esa posición isométrica dirige el esfuerzo al hombro.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -317,6 +335,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce contra resistencia constante; la polea sentado elimina el impulso posible y carga el arco desde el inicio del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -324,6 +343,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba al ritmo del arco; con polea sentado, la tensión constante obliga a un control escapular continuo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -331,6 +351,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular estabiliza el punto de anclaje del arco; la polea sentado mantiene carga en todo el recorrido y exige ese apoyo constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -338,6 +359,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa transmite al hombro la tensión de la polea; sentado, esa posición fija concentra el trabajo en la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -345,6 +367,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide concentra la abducción y frena el retorno; la polea sentado mantiene tensión constante en todo el arco, incluso en el tramo más alto."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio aporta rotación superior de la escápula durante la subida; con polea sentado, la carga constante no da tregua y la fatiga se acumula en el hombro."
+                }
+              ],
               "performanceProfileId": "lateral_raise_seated__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -366,6 +398,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce contra resistencia constante; la polea sentado elimina el impulso posible y carga el arco desde el inicio del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -373,6 +406,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba al ritmo del arco; con polea sentado, la tensión constante obliga a un control escapular continuo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -380,6 +414,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular estabiliza el punto de anclaje del arco; la polea sentado mantiene carga en todo el recorrido y exige ese apoyo constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -387,6 +422,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa transmite al hombro la tensión de la polea; sentado, esa posición fija concentra el trabajo en la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -589,6 +625,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce por la línea que dicta el brazo de la máquina; sentado y sin libertad de trayectoria, la carga se concentra en el deltoide.",
                   "role": "PRIMARY"
                 },
                 {
@@ -596,6 +633,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba dentro del patrón guiado; en la máquina sentado, el movimiento prediseñado simplifica ese ajuste escapular.",
                   "role": "SECONDARY"
                 },
                 {
@@ -603,6 +641,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la abducción dentro del recorrido fijo; la máquina sentado reparte la carga de forma previsible sobre esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -610,6 +649,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; sentado, esa posición estable impide que la palanca pierda línea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -617,6 +657,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide impulsa la abducción y controla la bajada; la máquina sentado fija la trayectoria y lleva el estímulo directo al paquete lateral del hombro."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio colabora con rotación superior de la escápula; en la máquina sentado, el recorrido guiado reduce su papel asistente y carga más el deltoide."
+                }
+              ],
               "performanceProfileId": "lateral_raise_seated__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -638,6 +688,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce por la línea que dicta el brazo de la máquina; sentado y sin libertad de trayectoria, la carga se concentra en el deltoide.",
                       "role": "PRIMARY"
                     },
                     {
@@ -645,6 +696,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba dentro del patrón guiado; en la máquina sentado, el movimiento prediseñado simplifica ese ajuste escapular.",
                       "role": "SECONDARY"
                     },
                     {
@@ -652,6 +704,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la abducción dentro del recorrido fijo; la máquina sentado reparte la carga de forma previsible sobre esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -659,6 +712,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; sentado, esa posición estable impide que la palanca pierda línea.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -861,6 +915,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce con la carga colgada de la mano; la kettlebell sentado añade inestabilidad al arco y el torso inmóvil impide compensar.",
                   "role": "PRIMARY"
                 },
                 {
@@ -868,6 +923,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba bajo una carga que oscila; con kettlebell sentado, ese balanceo exige un control fino de la cintura escapular.",
                   "role": "SECONDARY"
                 },
                 {
@@ -875,6 +931,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; la kettlebell sentado suma inestabilidad y trabaja esta articulación más que otras variantes.",
                   "role": "SECONDARY"
                 },
                 {
@@ -882,6 +939,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa sujeta el peso colgado de la mano; con kettlebell sentado, el agarre denso mantiene fija esa palanca.",
                   "role": "STABILIZER"
                 }
               ],
@@ -889,6 +947,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide eleva los brazos en concéntrico y frena la carga al bajar; con kettlebell sentado, el centro de peso colgado exige un agarre firme."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la abducción y rota la escápula hacia arriba; con kettlebell sentado, la inestabilidad del peso colgado obliga a más control escapular."
+                }
+              ],
               "performanceProfileId": "lateral_raise_seated__kettlebell",
               "primaryMuscles": [
                 "deltoid"
@@ -910,6 +978,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce con la carga colgada de la mano; la kettlebell sentado añade inestabilidad al arco y el torso inmóvil impide compensar.",
                       "role": "PRIMARY"
                     },
                     {
@@ -917,6 +986,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba bajo una carga que oscila; con kettlebell sentado, ese balanceo exige un control fino de la cintura escapular.",
                       "role": "SECONDARY"
                     },
                     {
@@ -924,6 +994,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; la kettlebell sentado suma inestabilidad y trabaja esta articulación más que otras variantes.",
                       "role": "SECONDARY"
                     },
                     {
@@ -931,6 +1002,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa sujeta el peso colgado de la mano; con kettlebell sentado, el agarre denso mantiene fija esa palanca.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1160,6 +1232,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce con los codos suaves y la carga libre; de pie con mancuernas, la línea del arco la decide cada brazo sin ayuda del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1167,6 +1240,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba mientras el cuerpo mantiene el equilibrio de pie; las mancuernas libres demandan ese ajuste en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1174,6 +1248,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular sostiene el arco lateral de pie; con mancuernas libres, la carga simétrica pide un apoyo firme de esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1181,6 +1256,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa forma la palanca del brazo; de pie con mancuernas, esa posición isométrica sostiene la trayectoria lateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1188,6 +1264,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide abre los brazos a los lados y frena el descenso; de pie con mancuernas, cada lado sostiene su propia línea sin apoyo del respaldo."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio rota la escápula hacia arriba durante la subida; de pie con mancuernas, el equilibrio del cuerpo aumenta su participación en el arco."
+                }
+              ],
               "performanceProfileId": "lateral_raise_standing__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -1209,6 +1295,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce con los codos suaves y la carga libre; de pie con mancuernas, la línea del arco la decide cada brazo sin ayuda del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1216,6 +1303,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba mientras el cuerpo mantiene el equilibrio de pie; las mancuernas libres demandan ese ajuste en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1223,6 +1311,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular sostiene el arco lateral de pie; con mancuernas libres, la carga simétrica pide un apoyo firme de esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1230,6 +1319,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa forma la palanca del brazo; de pie con mancuernas, esa posición isométrica sostiene la trayectoria lateral.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1432,6 +1522,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce contra la polea en todo el recorrido; de pie, sin respaldo que limite el torso, la tensión constante no da puntos muertos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1439,6 +1530,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba bajo carga continua; de pie con polea, la cintura escapular sostiene el arco sin pausas de descarga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1446,6 +1538,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña el arco lateral de pie; la polea mantiene la carga en todo el recorrido y esta articulación la absorbe de forma constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1453,6 +1546,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa guía el cable hacia el hombro; de pie, esa palanca fija traslada la tensión constante de la polea a la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1460,6 +1554,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide impulsa la abducción y frena el retorno; de pie con polea, la tensión constante carga el hombro desde el inicio del arco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio asiste la subida con rotación superior escapular; de pie con polea, la resistencia constante mantiene activo al hombro y a su fijador."
+                }
+              ],
               "performanceProfileId": "lateral_raise_standing__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -1481,6 +1585,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce contra la polea en todo el recorrido; de pie, sin respaldo que limite el torso, la tensión constante no da puntos muertos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1488,6 +1593,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba bajo carga continua; de pie con polea, la cintura escapular sostiene el arco sin pausas de descarga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1495,6 +1601,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña el arco lateral de pie; la polea mantiene la carga en todo el recorrido y esta articulación la absorbe de forma constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1502,6 +1609,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa guía el cable hacia el hombro; de pie, esa palanca fija traslada la tensión constante de la polea a la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1704,6 +1812,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce por el arco que marca la máquina; de pie, con el recorrido guiado, la carga entra directa en el deltoide lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1711,6 +1820,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba dentro de una trayectoria definida; de pie en la máquina, el ajuste escapular acompaña el ritmo del brazo guiado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1718,6 +1828,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular da soporte al arco guiado de la máquina; de pie, la carga previsible se reparte de modo constante sobre esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1725,6 +1836,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; de pie, esa posición fija concentra el recorrido en la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1732,6 +1844,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide concentra la abducción dentro del recorrido guiado; de pie en la máquina, la trayectoria fija lleva el esfuerzo al paquete lateral."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio rota la escápula hacia arriba como apoyo; de pie en la máquina, el guiado del brazo reduce la demanda sobre este músculo."
+                }
+              ],
               "performanceProfileId": "lateral_raise_standing__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -1753,6 +1875,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce por el arco que marca la máquina; de pie, con el recorrido guiado, la carga entra directa en el deltoide lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1760,6 +1883,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba dentro de una trayectoria definida; de pie en la máquina, el ajuste escapular acompaña el ritmo del brazo guiado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1767,6 +1891,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular da soporte al arco guiado de la máquina; de pie, la carga previsible se reparte de modo constante sobre esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1774,6 +1899,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; de pie, esa posición fija concentra el recorrido en la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1976,6 +2102,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro abduce con la carga colgando de la mano; de pie con kettlebell, la inestabilidad del peso suma trabajo al arco lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1983,6 +2110,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba mientras el peso oscila; de pie con kettlebell, la cintura escapular corrige ese vaivén en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1990,6 +2118,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; de pie con kettlebell, esta articulación sostiene el arco con más inestabilidad.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1997,6 +2126,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa sujeta el agarre de la kettlebell; de pie, esa palanca fija traslada el peso colgado a la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2004,6 +2134,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide abre los brazos en concéntrico y controla el descenso; de pie con kettlebell, el peso colgado exige un control fino del arco."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio rota la escápula hacia arriba y ayuda a estabilizar la subida; de pie con kettlebell, el balanceo del peso activa aún más su labor."
+                }
+              ],
               "performanceProfileId": "lateral_raise_standing__kettlebell",
               "primaryMuscles": [
                 "deltoid"
@@ -2025,6 +2165,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro abduce con la carga colgando de la mano; de pie con kettlebell, la inestabilidad del peso suma trabajo al arco lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2032,6 +2173,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba mientras el peso oscila; de pie con kettlebell, la cintura escapular corrige ese vaivén en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2039,6 +2181,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; de pie con kettlebell, esta articulación sostiene el arco con más inestabilidad.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2046,6 +2189,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa sujeta el agarre de la kettlebell; de pie, esa palanca fija traslada el peso colgado a la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2275,6 +2419,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro recorre la abducción completa hasta el tramo alto; con polea cruzada por detrás, la resistencia se mantiene presente por debajo del punto de partida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2282,6 +2427,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba a lo largo de un arco más largo; con polea cruzada por detrás, ese ajuste acompaña el recorrido ampliado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2289,6 +2435,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada hasta el tramo alto; con polea por detrás, la carga constante llega también al descenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2296,6 +2443,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa sostiene la palanca en todo el arco ampliado; con polea cruzada por detrás, esa posición guía la trayectoria amplia.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2303,6 +2451,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide abduce hasta llevar los brazos por encima de la cabeza y frena todo el descenso; la polea cruzada por detrás carga el arco ampliado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio rota la escápula hacia arriba en el tramo alto del arco; con polea cruzada por detrás, la tensión viva lo mantiene activo al bajar."
+                }
+              ],
               "performanceProfileId": "lateral_raise_super_rom__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -2324,6 +2482,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro recorre la abducción completa hasta el tramo alto; con polea cruzada por detrás, la resistencia se mantiene presente por debajo del punto de partida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2331,6 +2490,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba a lo largo de un arco más largo; con polea cruzada por detrás, ese ajuste acompaña el recorrido ampliado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2338,6 +2498,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada hasta el tramo alto; con polea por detrás, la carga constante llega también al descenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2345,6 +2506,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa sostiene la palanca en todo el arco ampliado; con polea cruzada por detrás, esa posición guía la trayectoria amplia.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2546,6 +2708,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro lleva la abducción más allá de la horizontal; con mancuernas de recorrido completo, la carga libre acompaña el arco hasta arriba.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2553,6 +2716,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba en un arco ampliado; con mancuernas, la carga libre exige ese ajuste en el tramo alto y en el descenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2560,6 +2724,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular sostiene la abducción ampliada hasta arriba; con mancuernas de recorrido completo, esta articulación acompaña todo el arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2567,6 +2732,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa forma la palanca del recorrido completo; con mancuernas, esa posición isométrica guía los brazos hasta arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2574,6 +2740,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide impulsa la abducción hasta arriba y frena cada retorno; con mancuernas de recorrido completo, cada brazo corrige su propia línea."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio rota la escápula hacia arriba en el tramo alto; con mancuernas de recorrido completo, la subida por encima de la cabeza amplía su papel."
+                }
+              ],
               "performanceProfileId": "lateral_raise_super_rom__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -2595,6 +2771,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro lleva la abducción más allá de la horizontal; con mancuernas de recorrido completo, la carga libre acompaña el arco hasta arriba.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2602,6 +2779,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba en un arco ampliado; con mancuernas, la carga libre exige ese ajuste en el tramo alto y en el descenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2609,6 +2787,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular sostiene la abducción ampliada hasta arriba; con mancuernas de recorrido completo, esta articulación acompaña todo el arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2616,6 +2795,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa forma la palanca del recorrido completo; con mancuernas, esa posición isométrica guía los brazos hasta arriba.",
                       "role": "STABILIZER"
                     }
                   ],
@@ -2817,6 +2997,7 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
+                  "note": "Principal: El hombro recorre la abducción completa bajo el guiado de la máquina; el arco ampliado mantiene la carga desde el inicio hasta el tramo alto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2824,6 +3005,7 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
+                  "note": "Secundaria: La escápula rota hacia arriba a lo largo del arco guiado; en la máquina de recorrido completo, ese ajuste acompaña la subida hasta arriba.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2831,6 +3013,7 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
+                  "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada dentro del guiado; la máquina reparte la carga de forma regular sobre esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2838,6 +3021,7 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
+                  "note": "Estabilizadora: El codo en extensión relativa acompaña el brazo de la máquina; en el recorrido completo, esa posición fija sostiene la palanca hasta arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2845,6 +3029,16 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
+              "muscleNotes": [
+                {
+                  "muscleId": "deltoid",
+                  "note": "Principal: El deltoide abduce por encima de la cabeza dentro del guiado y controla el descenso; la máquina de recorrido completo carga todo el arco ampliado."
+                },
+                {
+                  "muscleId": "trapezius",
+                  "note": "Secundario: El trapecio rota la escápula hacia arriba en el tramo alto; en la máquina de recorrido completo, el guiado acompaña esa subida sin exigir equilibrio extra."
+                }
+              ],
               "performanceProfileId": "lateral_raise_super_rom__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -2866,6 +3060,7 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
+                      "note": "Principal: El hombro recorre la abducción completa bajo el guiado de la máquina; el arco ampliado mantiene la carga desde el inicio hasta el tramo alto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2873,6 +3068,7 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
+                      "note": "Secundaria: La escápula rota hacia arriba a lo largo del arco guiado; en la máquina de recorrido completo, ese ajuste acompaña la subida hasta arriba.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2880,6 +3076,7 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
+                      "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada dentro del guiado; la máquina reparte la carga de forma regular sobre esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2887,6 +3084,7 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
+                      "note": "Estabilizadora: El codo en extensión relativa acompaña el brazo de la máquina; en el recorrido completo, esa posición fija sostiene la palanca hasta arriba.",
                       "role": "STABILIZER"
                     }
                   ],
