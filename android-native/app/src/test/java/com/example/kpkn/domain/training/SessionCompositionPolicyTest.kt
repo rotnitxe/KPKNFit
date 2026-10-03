@@ -2,9 +2,13 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.protocols.CatalogIds
+import com.example.kpkn.data.protocols.CompositionSeverity
+import com.example.kpkn.data.protocols.DayRecipe
 import com.example.kpkn.data.protocols.DayArchetypes
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.data.protocols.PlanLoadReference
+import com.example.kpkn.data.protocols.PlanLoadReferenceKind
 import com.example.kpkn.data.protocols.RecipeCompositionExemption
 import com.example.kpkn.data.protocols.RecipeCompositionProfile
 import com.example.kpkn.data.protocols.SetRecipe
@@ -647,5 +651,224 @@ class SessionCompositionPolicyTest {
             assertEquals(com.example.kpkn.data.protocols.CompositionSeverity.SOFT, findings.single().severity)
             assertFalse(findings.single().message.contains("volumen alto"))
         }
+    }
+
+    // ─── B.S1: H11 sobre kg resueltos, H11b (Epley) y ámbitos de exención en glob anclado ───
+
+    /** Día de fuerza: un T1 de sentadilla y dos accesorios por RPE (así solo se mide la intensidad del T1). */
+    private fun intensityDay(label: String, t1Sets: List<SetRecipe>): DayRecipe = day(
+        label,
+        listOf(
+            slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, t1Sets, 240, LiftSlot.SQUAT, isCompetitionLift = true),
+            slot("row", SlotRole.T3_ACCESSORY, CatalogIds.PENDLAY, rpeSets(3, 8, 8.0), 120),
+            slot("ghr", SlotRole.T3_ACCESSORY, CatalogIds.GHR, rpeSets(3, 8, 8.0), 90),
+        ),
+    )
+
+    private fun intensityRecipe(
+        days: List<DayRecipe>,
+        trainingMaxPercent: Double = 0.90,
+        exemptions: List<RecipeCompositionExemption> = emptyList(),
+    ) = TrainingPlanRecipe(
+        id = "intensity",
+        weeks = listOf(weekRecipe(1, 0, "Base", BlockGoal.INTENSIFICATION, days)),
+        trainingMaxPercent = trainingMaxPercent,
+        exemptions = exemptions,
+    )
+
+    private fun intensityFindings(
+        rule: String,
+        t1Sets: List<SetRecipe>,
+        trainingMaxPercent: Double = 0.90,
+        exemptions: List<RecipeCompositionExemption> = emptyList(),
+    ): List<CompositionFinding> = ProgramRecipeValidator.hardFindings(
+        intensityRecipe(listOf(intensityDay("Intensidad", t1Sets)), trainingMaxPercent, exemptions),
+        metadata,
+    ).filter { it.rule == rule }
+
+    private fun pct1rm(count: Int, reps: Int, percent: Double) =
+        repeatPercentSets(count, reps, percent, 180, basis = LoadBasis.PERCENT_1RM)
+
+    private fun topSetOf(percent: Double, reps: Int) =
+        SetRecipe(reps = reps, percent = percent, isTopSet = true, loadBasis = LoadBasis.PERCENT_OF_TOP_SET)
+
+    @Test
+    fun h11b_rejects_five_reps_at_90_percent_1rm_and_accepts_four() {
+        val five = intensityFindings("H11b", pct1rm(3, 5, 90.0))
+        assertEquals("un hallazgo por serie: $five", 3, five.size)
+        assertTrue(five.all { it.severity == CompositionSeverity.HARD && it.scope == "w1/Intensidad" })
+        assertTrue(five.first().message, five.first().message.contains("5 reps") && five.first().message.contains("como máximo 4"))
+        assertTrue(intensityFindings("H11b", pct1rm(3, 4, 90.0)).isEmpty())
+        // 5 reps al 90 % no rompe H11 (no pasa del 92 %): solo lo caza Epley.
+        assertTrue(intensityFindings("H11", pct1rm(3, 5, 90.0)).isEmpty())
+    }
+
+    @Test
+    fun h11b_skips_amrap_rep_max_warmups_and_sets_without_a_1rm_base() {
+        val sets = listOf(
+            SetRecipe(reps = 5, percent = 90.0, amrap = true, loadBasis = LoadBasis.PERCENT_1RM),
+            SetRecipe(reps = 5, percent = 90.0, loadBasis = LoadBasis.REP_MAX),
+            SetRecipe(reps = 5, percent = 95.0, isWarmup = true, loadBasis = LoadBasis.PERCENT_1RM),
+            SetRecipe(reps = 8, rir = 2, loadBasis = LoadBasis.RPE),
+        )
+        assertTrue(intensityFindings("H11b", sets).isEmpty())
+    }
+
+    @Test
+    fun h11b_uses_the_lower_bound_of_a_rep_range() {
+        // 8–12 reps al 75 % del 1RM: caben 11. Pasa porque manda la cota inferior (8), aunque la superior (12) no.
+        val inside = listOf(SetRecipe(repsMin = 8, repsMax = 12, percent = 75.0, loadBasis = LoadBasis.PERCENT_1RM))
+        assertTrue(intensityFindings("H11b", inside).isEmpty())
+        val beyond = listOf(SetRecipe(repsMin = 12, repsMax = 15, percent = 75.0, loadBasis = LoadBasis.PERCENT_1RM))
+        val findings = intensityFindings("H11b", beyond)
+        assertEquals(1, findings.size)
+        assertTrue(findings.single().message, findings.single().message.contains("12 reps"))
+    }
+
+    @Test
+    fun h11b_converts_tm_to_1rm_with_the_recipe_training_max() {
+        val five = listOf(SetRecipe(reps = 5, percent = 100.0, isTopSet = true, loadBasis = LoadBasis.PERCENT_TM))
+        // TM al 90 %: 100 % TM = 90 % del 1RM, caben 4.
+        assertEquals(1, intensityFindings("H11b", five, trainingMaxPercent = 0.90).size)
+        // TM al 87 % (≈ 5RM): 100 % TM = 87 % del 1RM, caben 5.
+        assertTrue(intensityFindings("H11b", five, trainingMaxPercent = 0.87).isEmpty())
+        assertTrue(intensityFindings("H11", five, trainingMaxPercent = 0.90).isEmpty())
+    }
+
+    @Test
+    fun h11b_is_never_exemptable() {
+        val sets = pct1rm(1, 5, 90.0)
+        listOf("*", "w*", "w*/Intensidad", "w1/Intensidad").forEach { scope ->
+            val findings = intensityFindings(
+                "H11b",
+                sets,
+                exemptions = listOf(RecipeCompositionExemption("H11b", scope, "no debe silenciarse")),
+            )
+            assertEquals("el ámbito '$scope' no puede silenciar H11b", 1, findings.size)
+        }
+    }
+
+    @Test
+    fun h11_measures_percent_of_top_set_in_resolved_kg() {
+        fun volume(percent: Double) = repeatPercentSets(5, 5, percent, 240, basis = LoadBasis.PERCENT_OF_TOP_SET)
+        // Top set al 102,5 con TM 1,0: es el 102,5 % del 1RM aunque el valor crudo (≤ 105) pase el techo del top set.
+        val over = intensityFindings("H11", listOf(topSetOf(102.5, 3)), trainingMaxPercent = 1.0)
+        assertEquals(1, over.size)
+        assertTrue(over.single().message, over.single().message.contains("del top set") && over.single().message.contains("1RM"))
+        // Cinco repeticiones por encima del 92 % del 1RM.
+        assertEquals(1, intensityFindings("H11", listOf(topSetOf(95.0, 5)), trainingMaxPercent = 1.0).size)
+        // El mismo top set con TM al 87 %: 95 % TM = 82,65 % del 1RM, sin hallazgo.
+        assertTrue(intensityFindings("H11", listOf(topSetOf(95.0, 5)), trainingMaxPercent = 0.87).isEmpty())
+        // Volumen colgado del top set de otro día: 5 × 100 sobre un top de 102,5 resuelve a 102,5 % TM.
+        val monday = intensityDay("Volumen", volume(100.0))
+        val friday = intensityDay("Intensidad PR", listOf(topSetOf(102.5, 3)))
+        val recipe = intensityRecipe(listOf(monday, friday), trainingMaxPercent = 1.0)
+        val findings = ProgramRecipeValidator.hardFindings(recipe, metadata)
+            .filter { it.rule == "H11" && it.scope == "w1/Volumen" }
+        assertEquals("el volumen resuelto a 102,5 % del 1RM debe fallar: $findings", 5, findings.size)
+        // Texas con TM al 87 %: lunes 5 × 90 y viernes top 5 × 100 (87 % del 1RM) no incumplen ni H11 ni H11b.
+        val texas = intensityRecipe(
+            listOf(intensityDay("Volumen", volume(90.0)), intensityDay("Intensidad PR", listOf(topSetOf(100.0, 5)))),
+            trainingMaxPercent = 0.87,
+        )
+        val ok = ProgramRecipeValidator.hardFindings(texas, metadata).filter { it.rule == "H11" || it.rule == "H11b" }
+        assertTrue(ok.joinToString("\n"), ok.isEmpty())
+        // ...pero con TM al 90 % el mismo top de 5 repeticiones es el 90 % del 1RM y Epley lo rechaza.
+        val strict = ProgramRecipeValidator.hardFindings(texas.copy(trainingMaxPercent = 0.90), metadata)
+            .filter { it.rule == "H11b" }
+        assertEquals(1, strict.size)
+    }
+
+    @Test
+    fun exemption_scope_is_an_anchored_glob() {
+        fun finding(rule: String, scope: String) = CompositionFinding(CompositionSeverity.HARD, rule, scope, "m")
+        fun silenced(rule: String, scope: String, pattern: String): Boolean = SessionCompositionPolicy
+            .applyExemptions(listOf(finding(rule, scope)), listOf(RecipeCompositionExemption(rule, pattern, "justificación")))
+            .isEmpty()
+        // "*" lo silencia todo.
+        assertTrue(silenced("H6", "w3/S1", "*"))
+        assertTrue(silenced("W3", "w3", "*"))
+        assertTrue(silenced("W5", "block0/Base", "*"))
+        // "w*" casa semana y día, no bloque.
+        assertTrue(silenced("W3", "w3", "w*"))
+        assertTrue(silenced("H6", "w3/S1", "w*"))
+        assertFalse(silenced("W5", "block0/w", "w*"))
+        // "w*/S1": ese día en cualquier semana; ni S10, ni otra etiqueta que acabe parecido, ni la semana.
+        assertTrue(silenced("H6", "w1/S1", "w*/S1"))
+        assertTrue(silenced("H6", "w12/S1", "w*/S1"))
+        assertFalse(silenced("H6", "w1/S10", "w*/S1"))
+        assertFalse(silenced("H6", "w1/XS1", "w*/S1"))
+        assertFalse(silenced("H6", "w1", "w*/S1"))
+        // Etiquetas con barra y con cola.
+        assertTrue(silenced("H2", "w5/Sentadilla/Banca", "w*/Sentadilla/Banca"))
+        assertFalse(silenced("H2", "w5/Sentadilla/Banca 2", "w*/Sentadilla/Banca"))
+        assertTrue(silenced("H2", "w5/Sentadilla/Banca 2", "w*/Sentadilla/Banca*"))
+        // Bloques.
+        assertTrue(silenced("W5", "block0/Conjugate", "block*/Conjugate"))
+        assertFalse(silenced("W5", "block0/Switching", "block*/Conjugate"))
+        // Sin '*' el ámbito solo casa con el texto exacto: se acabaron contains y startsWith.
+        assertFalse(silenced("W5", "block0/Conjugate", "Conjugate"))
+        assertFalse(silenced("H6", "w1/S1", "S1"))
+        assertTrue(silenced("H6", "w1/S1", "w1/S1"))
+        assertFalse(silenced("H6", "w1/S10", "w1/S1"))
+        // Los caracteres de expresión regular son literales.
+        assertFalse(silenced("H6", "w1/axb", "w*/a.b"))
+        assertTrue(silenced("H6", "w1/a.b", "w*/a.b"))
+        // La regla también tiene que coincidir.
+        val otherRule = SessionCompositionPolicy.applyExemptions(
+            listOf(finding("H2", "w1/S1")),
+            listOf(RecipeCompositionExemption("H6", "*", "j")),
+        )
+        assertEquals(1, otherRule.size)
+    }
+
+    @Test
+    fun h11_and_h11b_survive_any_exemption() {
+        fun finding(rule: String) = CompositionFinding(CompositionSeverity.HARD, rule, "w1/Intensidad", "m")
+        val kept = SessionCompositionPolicy.applyExemptions(
+            listOf(finding("H11"), finding("H11b"), finding("H6")),
+            listOf("H11", "H11b", "H6").map { RecipeCompositionExemption(it, "*", "j") },
+        )
+        assertEquals(listOf("H11", "H11b"), kept.map { it.rule })
+    }
+
+    @Test
+    fun h11_and_h11b_do_not_measure_sets_with_an_observed_working_set_or_bodyweight_reference() {
+        fun referenced(kind: PlanLoadReferenceKind) = listOf(
+            SetRecipe(
+                reps = 5,
+                percent = 100.0,
+                loadBasis = LoadBasis.PERCENT_TM,
+                reference = PlanLoadReference(kind = kind, configurationId = CatalogIds.SQ_LOW),
+            ),
+        )
+        // Control: sin referencia, 5 reps al 100 % del TM con TM = 1RM rompen H11 (3+ reps sobre el 92 %) y H11b (caben 1).
+        val plain = listOf(SetRecipe(reps = 5, percent = 100.0, loadBasis = LoadBasis.PERCENT_TM))
+        assertEquals(1, intensityFindings("H11", plain, trainingMaxPercent = 1.0).size)
+        assertEquals(1, intensityFindings("H11b", plain, trainingMaxPercent = 1.0).size)
+        // Con una referencia de trabajo observado o de lastre la serie no se expresa sobre el 1RM: no se mide.
+        listOf(PlanLoadReferenceKind.OBSERVED_WORKING_SET, PlanLoadReferenceKind.BODYWEIGHT_EXTERNAL).forEach { kind ->
+            assertTrue("$kind: H11", intensityFindings("H11", referenced(kind), trainingMaxPercent = 1.0).isEmpty())
+            assertTrue("$kind: H11b", intensityFindings("H11b", referenced(kind), trainingMaxPercent = 1.0).isEmpty())
+        }
+        // Una referencia 1RM o TM del mismo ejercicio sí es una base de 1RM: se sigue midiendo.
+        listOf(PlanLoadReferenceKind.EXERCISE_1RM, PlanLoadReferenceKind.EXERCISE_TM).forEach { kind ->
+            assertEquals("$kind: H11", 1, intensityFindings("H11", referenced(kind), trainingMaxPercent = 1.0).size)
+            assertEquals("$kind: H11b", 1, intensityFindings("H11b", referenced(kind), trainingMaxPercent = 1.0).size)
+        }
+    }
+
+    @Test
+    fun h11b_does_not_repeat_what_h11_already_flags_above_100_percent_1rm() {
+        // 1 rep al 102,5 % del 1RM: lo caza H11 y H11b se calla (antes añadía «caben como máximo 0»).
+        val single = pct1rm(1, 1, 102.5)
+        assertEquals(1, intensityFindings("H11", single).size)
+        assertTrue(intensityFindings("H11b", single).isEmpty())
+        // Lo mismo con un TM que resuelve por encima del 1RM: 110 % TM con TM = 1RM (antes «caben como máximo -2»).
+        val overTm = listOf(SetRecipe(reps = 5, percent = 110.0, loadBasis = LoadBasis.PERCENT_TM))
+        assertTrue(intensityFindings("H11", overTm, trainingMaxPercent = 1.0).isNotEmpty())
+        assertTrue(intensityFindings("H11b", overTm, trainingMaxPercent = 1.0).isEmpty())
+        // En el 100 % exacto Epley sigue midiendo: 2 reps al 100 % del 1RM no caben (cabe 1).
+        assertEquals(1, intensityFindings("H11b", pct1rm(1, 2, 100.0)).size)
     }
 }

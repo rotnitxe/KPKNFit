@@ -312,20 +312,20 @@ object AuthoredPhulPhatRecipes {
         return listOf(
             RecipeCompositionExemption(
                 rule = "H5a",
-                scope = "Inferior fuerza",
+                scope = "w*/Inferior fuerza",
                 justification = "§10.2: el día inferior de fuerza publica sentadilla y peso muerto pesados el mismo día; " +
                     "AUTHORED_EXACT conserva los dos axiales de la tabla sin tocar H11.",
                 sourceUrl = url,
             ),
             RecipeCompositionExemption(
                 rule = "H1",
-                scope = "Superior hipertrofia",
+                scope = "w*/Superior hipertrofia",
                 justification = "§10.2: la tabla publica las aperturas antes de los remos; el orden de la fuente se conserva.",
                 sourceUrl = url,
             ),
             RecipeCompositionExemption(
                 rule = "H3",
-                scope = "Inferior hipertrofia",
+                scope = "w*/Inferior hipertrofia",
                 justification = "§10.2: la tabla encadena sentadilla frontal, zancada y extensión de cuádriceps en el mismo día.",
                 sourceUrl = url,
             ),
@@ -619,39 +619,39 @@ object AuthoredPhulPhatRecipes {
             RecipeCompositionExemption(rule = rule, scope = scope, justification = justification, sourceUrl = url)
         return listOf(
             scoped(
-                "H6", "Pecho/brazos hipertrofia",
+                "H6", "w*/Pecho/brazos hipertrofia",
                 "§10.3: el ejemplo publicado agrupa 10 ejercicios en el día de pecho/brazos (oráculo 28 series).",
             ),
             scoped(
-                "H1", "Superior fuerza",
+                "H1", "w*/Superior fuerza",
                 "§10.3: la tabla ordena el remo pesado antes del press de banca pesado del mismo día.",
             ),
             scoped(
-                "H1", "Inferior fuerza",
+                "H1", "w*/Inferior fuerza",
                 "§10.3: la tabla ordena la extensión de cuádriceps antes del peso muerto de piernas rígidas.",
             ),
             scoped(
-                "H1", "Inferior hipertrofia",
+                "H1", "w*/Inferior hipertrofia",
                 "§10.3: la tabla ordena la extensión de cuádriceps antes del peso muerto rumano.",
             ),
             scoped(
-                "H3", "Superior fuerza",
+                "H3", "w*/Superior fuerza",
                 "§10.3: remo, dominada lastrada y rack chin seguidos por la misma dominante (dorsal).",
             ),
             scoped(
-                "H3", "Inferior fuerza",
+                "H3", "w*/Inferior fuerza",
                 "§10.3: sentadilla, hack y extensión de cuádriceps seguidos por la misma dominante.",
             ),
             scoped(
-                "H3", "Espalda/hombros hipertrofia",
+                "H3", "w*/Espalda/hombros hipertrofia",
                 "§10.3: el día concentra cinco movimientos de espalda con la misma dominante.",
             ),
             scoped(
-                "H3", "Inferior hipertrofia",
+                "H3", "w*/Inferior hipertrofia",
                 "§10.3: sentadilla rápida, hack, prensa y extensión con la misma dominante (cuádriceps).",
             ),
             scoped(
-                "H3", "Pecho/brazos hipertrofia",
+                "H3", "w*/Pecho/brazos hipertrofia",
                 "§10.3: cuatro movimientos de pecho seguidos y tres de bíceps seguidos en la tabla.",
             ),
         )

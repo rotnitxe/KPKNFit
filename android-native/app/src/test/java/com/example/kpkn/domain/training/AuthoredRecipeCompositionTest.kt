@@ -53,13 +53,20 @@ class AuthoredRecipeCompositionTest {
                     exemption.scope == "*",
                 )
                 assertFalse(
-                    "${recipe.id}: H11 nunca es exentable",
-                    exemption.rule == "H11",
+                    "${recipe.id}: H11 y H11b nunca son exentables",
+                    exemption.rule == "H11" || exemption.rule == "H11b",
                 )
                 assertTrue("${recipe.id}: ámbito vacío", exemption.scope.isNotBlank())
-                assertTrue(
-                    "${recipe.id}: el ámbito '${exemption.scope}' no corresponde a ningún día de la receta",
-                    recipe.weeks.first().days.any { day -> day.label.contains(exemption.scope) },
+                // Glob anclado `w*/{día}`: debe casar con UN solo día real de la receta (un comodín como
+                // `w*` casaría con todos y dejaría de ser una exención por día).
+                val firstWeek = recipe.weeks.first()
+                val matchingDays = firstWeek.days.filter { day ->
+                    SessionCompositionPolicy.scopeMatches(exemption.scope, "w${firstWeek.weekNumber}/${day.label}")
+                }
+                assertEquals(
+                    "${recipe.id}: el ámbito '${exemption.scope}' debe corresponder a un único día real de la receta (casa con ${matchingDays.map { it.label }})",
+                    1,
+                    matchingDays.size,
                 )
                 assertTrue(
                     "${recipe.id}: exención de ${exemption.rule} sin justificación de la tabla",
@@ -76,12 +83,12 @@ class AuthoredRecipeCompositionTest {
         val phul = AuthoredPhulPhatRecipes.phulOriginal
         assertTrue(
             "PHUL H5a dos axiales en el día inferior de fuerza",
-            phul.exemptions.any { it.rule == "H5a" && it.scope == "Inferior fuerza" },
+            phul.exemptions.any { it.rule == "H5a" && it.scope == "w*/Inferior fuerza" },
         )
         val phat = AuthoredPhulPhatRecipes.phatOriginal
         assertTrue(
             "PHAT H6 10 ejercicios en pecho/brazos",
-            phat.exemptions.any { it.rule == "H6" && it.scope == "Pecho/brazos hipertrofia" },
+            phat.exemptions.any { it.rule == "H6" && it.scope == "w*/Pecho/brazos hipertrofia" },
         )
     }
 

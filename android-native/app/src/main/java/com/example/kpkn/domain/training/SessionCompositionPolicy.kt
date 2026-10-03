@@ -64,6 +64,9 @@ object SessionCompositionPolicy {
     /** H11: 102,5 % del top set (Madcow viernes) es un triple sobre el 5RM, no un 1RM. */
     const val MAX_PERCENT_OF_TOP_SET = 105.0
 
+    /** Reglas de seguridad de intensidad: ninguna exención las silencia. */
+    private val NON_EXEMPTABLE_RULES = setOf("H11", "H11b")
+
     fun minimumRestSeconds(
         role: SlotRole,
         heavy: Boolean,
@@ -85,8 +88,18 @@ object SessionCompositionPolicy {
         recipe: TrainingPlanRecipe,
         metadata: ExerciseCompositionMetadataProvider,
         extraExemptions: List<RecipeCompositionExemption> = emptyList(),
+    ): List<CompositionFinding> =
+        applyExemptions(evaluateRecipeRaw(recipe, metadata), recipe.exemptions + extraExemptions)
+
+    /**
+     * Hallazgos de la receta **sin** filtrar por exenciones. Los tests lo usan para
+     * inventariar H11/H11b y para comprobar que migrar el ámbito de una exención
+     * no pierde ni amplía lo que silencia.
+     */
+    internal fun evaluateRecipeRaw(
+        recipe: TrainingPlanRecipe,
+        metadata: ExerciseCompositionMetadataProvider,
     ): List<CompositionFinding> {
-        val exemptions = recipe.exemptions + extraExemptions
         val raw = mutableListOf<CompositionFinding>()
         recipe.weeks.forEach { week ->
             week.days.forEach { day ->
@@ -95,7 +108,7 @@ object SessionCompositionPolicy {
             raw += evaluateWeek(week, recipe, metadata)
         }
         raw += evaluateBlocks(recipe)
-        return applyExemptions(raw, exemptions)
+        return raw
     }
 
     /**
@@ -135,7 +148,8 @@ object SessionCompositionPolicy {
         findings += checkH8(resolved, week.blockGoal, scope)
         findings += checkH9(resolved, scope)
         findings += checkH10(resolved, scope)
-        findings += checkH11(resolved, scope, trainingMaxPercent)
+        findings += checkH11(resolved, week, scope, trainingMaxPercent)
+        findings += checkH11b(resolved, week, scope, trainingMaxPercent)
         findings += checkSoft(resolved, scope)
         return findings
     }
@@ -555,25 +569,23 @@ object SessionCompositionPolicy {
      * de prescripción, no una fidelidad de autor.
      *
      * PERCENT_TM se convierte a %1RM con [trainingMaxPercent] (TM 90 % → 105 % TM ≈ 94,5 % 1RM).
-     * PERCENT_OF_TOP_SET es relativo al PR de la semana (Texas/Madcow), no al 1RM.
+     * PERCENT_OF_TOP_SET se mide dos veces: el valor crudo contra su techo propio (es relativo
+     * al PR de la semana, no al 1RM) y los kg resueltos, es decir, el porcentaje que resuelve
+     * [PercentResolver] convertido a %1RM con el mismo par de umbrales que PERCENT_TM.
      */
     private fun checkH11(
         resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
+        week: WeekRecipe,
         scope: String,
         trainingMaxPercent: Double,
     ): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
-        val tmFraction = if (trainingMaxPercent > 0.0) trainingMaxPercent else 0.90
         resolved.forEach { (slot, _, _) ->
             slot.workingSets().forEach { set ->
                 val pct = set.percent ?: return@forEach
                 val reps = set.reps ?: set.repsMax ?: 0
                 val basis = set.loadBasis
-                val implied1rm = when (basis) {
-                    LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX -> pct
-                    LoadBasis.PERCENT_TM -> pct * tmFraction
-                    LoadBasis.PERCENT_OF_TOP_SET, LoadBasis.RPE, LoadBasis.REP_MAX -> null
-                }
+                val implied1rm = PercentBasis.effective1RmPercent(set, slot, week, trainingMaxPercent)
                 when (basis) {
                     LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX -> {
                         if (pct > MAX_PERCENT_1RM) {
@@ -596,8 +608,45 @@ object SessionCompositionPolicy {
                         if (pct > MAX_PERCENT_OF_TOP_SET) {
                             findings += hard("H11", scope, "${slot.id} $reps reps @ $pct % del top set > $MAX_PERCENT_OF_TOP_SET")
                         }
+                        if (implied1rm != null && implied1rm > MAX_PERCENT_1RM) {
+                            findings += hard("H11", scope, "${slot.id} $reps reps @ $pct % del top set = ${"%.1f".format(implied1rm)} % 1RM > $MAX_PERCENT_1RM")
+                        } else if (implied1rm != null && reps >= 3 && implied1rm > MAX_PERCENT_1RM_FOR_TRIPLE_PLUS) {
+                            findings += hard("H11", scope, "${slot.id} $reps reps @ $pct % del top set = ${"%.1f".format(implied1rm)} % 1RM > $MAX_PERCENT_1RM_FOR_TRIPLE_PLUS (3+ reps)")
+                        }
                     }
                     else -> { }
+                }
+            }
+        }
+        return findings
+    }
+
+    /**
+     * H11b (Epley). Un set de trabajo no puede pedir más repeticiones de las que caben al
+     * %1RM efectivo: `reps > floor(30 × (100 ÷ p − 1)) + 1` es un 5×90 %, no una fidelidad de
+     * autor. Igual que H11, no es exentable.
+     *
+     * Quedan fuera los AMRAP (el autor pide «tantas como salgan») y `REP_MAX`; en un rango de
+     * repeticiones manda la cota inferior, porque es lo mínimo que se promete hacer. Los sets
+     * sin base de 1RM (RPE o sin porcentaje) no se miden.
+     */
+    private fun checkH11b(
+        resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
+        week: WeekRecipe,
+        scope: String,
+        trainingMaxPercent: Double,
+    ): List<CompositionFinding> {
+        val findings = mutableListOf<CompositionFinding>()
+        resolved.forEach { (slot, _, _) ->
+            slot.workingSets().forEach { set ->
+                if (set.amrap || set.loadBasis == LoadBasis.REP_MAX) return@forEach
+                val p = PercentBasis.effective1RmPercent(set, slot, week, trainingMaxPercent) ?: return@forEach
+                // Por encima del 100 % del 1RM ya salta H11: no se duplica aquí con un «caben como máximo 0».
+                if (p > MAX_PERCENT_1RM) return@forEach
+                val reps = set.reps ?: set.repsMin ?: return@forEach
+                val maxReps = PercentBasis.maxRepsByEpley(p)
+                if (reps > maxReps) {
+                    findings += hard("H11b", scope, "${slot.id} $reps reps @ ${"%.1f".format(p)} % 1RM: por Epley caben como máximo $maxReps")
                 }
             }
         }
@@ -1242,15 +1291,50 @@ object SessionCompositionPolicy {
         return accessory
     }
 
+    /**
+     * Quita los hallazgos que una exención declara. H11 y H11b nunca se filtran: son errores
+     * de prescripción, no fidelidad de autor.
+     *
+     * El ámbito de la exención es `"*"` (todo) o un glob ANCLADO en los dos extremos: el asterisco
+     * casa con cualquier secuencia de caracteres (la barra incluida) y el resto es literal. Ya no
+     * hay `contains` ni `startsWith`: un ámbito sin asterisco solo casa con ese texto exacto.
+     *
+     * La política emite cuatro formas de ámbito:
+     * - `w{n}/{día}`: hallazgo de un día (reglas H, META, TAXONOMY y las S de día).
+     * - `w{n}`: hallazgo de una semana (reglas W salvo W5, las S de semana y los BLOCK de semana
+     *   del plan propio).
+     * - `block{i}/{bloque}`: hallazgo de un bloque (BLOCK y W5).
+     * - `native`: literal, sin números. Es el BLOCK global «El plan propio requiere exactamente
+     *   semanas 1–6» de `checkNativeBlockSemantics`: cuelga de la receta entera y no de una semana,
+     *   un día o un bloque. `w*` y los ámbitos de bloque no lo casan: lo silencian `"*"` o el
+     *   literal `native`.
+     *
+     * Como el asterisco casa también la barra, `w*` silencia a la vez los hallazgos de semana y los
+     * de día (ambos empiezan por `w`). Para un solo día de cualquier semana se escribe `w*` seguido
+     * de la barra y la etiqueta del día (p. ej. la del día «Test»), y para un bloque `block*`
+     * seguido de la barra y su nombre (p. ej. «Conjugate»).
+     */
     fun applyExemptions(
         findings: List<CompositionFinding>,
         exemptions: List<RecipeCompositionExemption>,
-    ): List<CompositionFinding> = findings.filter { finding ->
-        if (finding.rule == "H11") return@filter true
-        exemptions.none { exemption ->
-            exemption.rule == finding.rule &&
-                (exemption.scope == "*" || exemption.scope == finding.scope || finding.scope.startsWith(exemption.scope) || finding.scope.contains(exemption.scope))
+    ): List<CompositionFinding> {
+        val matchers = exemptions.map { it.rule to scopeMatcher(it.scope) }
+        return findings.filter { finding ->
+            if (finding.rule in NON_EXEMPTABLE_RULES) return@filter true
+            matchers.none { (rule, matches) -> rule == finding.rule && matches(finding.scope) }
         }
+    }
+
+    /** `true` si el ámbito de una exención ([pattern]) casa con el ámbito de un hallazgo ([scope]). */
+    internal fun scopeMatches(pattern: String, scope: String): Boolean = scopeMatcher(pattern)(scope)
+
+    private fun scopeMatcher(pattern: String): (String) -> Boolean {
+        if (pattern == "*") return { true }
+        val regex = Regex(
+            "^" + pattern.split("*").joinToString(".*") { Regex.escape(it) } + "$",
+            RegexOption.DOT_MATCHES_ALL,
+        )
+        return { scope -> regex.matches(scope) }
     }
 
     private fun hard(rule: String, scope: String, message: String) =

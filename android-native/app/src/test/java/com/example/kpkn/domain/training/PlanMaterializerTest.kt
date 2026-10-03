@@ -250,10 +250,44 @@ class PlanMaterializerTest {
         val monday = squatOf("Volumen 5x5")
         val wednesday = squatOf("Recuperación")
         val friday = squatOf("Intensidad PR")
-        val tm = 200.0
-        assertEquals(tm * 1.00, friday.sets.first().weight ?: -1.0, 0.001)
-        assertEquals(tm * 0.90, monday.sets.first().weight ?: -1.0, 0.001)
-        assertEquals(tm * 0.72, wednesday.sets.first().weight ?: -1.0, 0.001)
+        // D7: el TM de Texas es el 87 % del 1RM (≈ 5RM). Con 1RM 200 kg el TM es 174 kg.
+        val tm = 200.0 * 0.87
+        assertEquals(174.0, tm, 0.01)
+        assertEquals(174.0, friday.sets.first().weight ?: -1.0, 0.01)
+        assertEquals(156.6, monday.sets.first().weight ?: -1.0, 0.01)
+        assertEquals(125.28, wednesday.sets.first().weight ?: -1.0, 0.01)
+        assertEquals(tm * 0.90, monday.sets.first().weight ?: -1.0, 0.01)
+        assertEquals(tm * 0.72, wednesday.sets.first().weight ?: -1.0, 0.01)
+    }
+
+    @Test
+    fun madcow_week4_resolves_against_the_5rm_tm_and_never_exceeds_the_friday_triple() {
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "madcow-5x5" }
+        val program = PlanMaterializer.materialize(
+            Program(id = "mc", name = "Madcow"),
+            protocol.recipe!!,
+            CatalogCompositionTestSupport.metadata,
+            SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+        val week = program.macrocycles.first().blocks.first().mesocycles.first().weeks[3]
+        val byName = week.sessions.associateBy { it.name }
+        fun squatOf(sessionName: String) = byName.getValue(sessionName).allExercises().first {
+            it.catalogConfigurationId == CatalogIds.SQ_LOW
+        }
+        val monday = squatOf("Volumen")
+        val friday = squatOf("Intensidad")
+        // D7: TM al 87 % del 1RM → 174 kg. El 5.º set del lunes es el 100 % del TM y el triple del viernes el 102,5 %.
+        assertEquals(174.0, monday.sets[4].weight ?: -1.0, 0.01)
+        assertEquals(178.35, friday.sets[4].weight ?: -1.0, 0.01)
+        // La rampa del lunes sube de 87 a 174 kg sin escalar dos veces.
+        assertEquals(
+            listOf(87.0, 108.75, 130.5, 152.25, 174.0),
+            monday.sets.map { it.weight ?: -1.0 }.map { Math.round(it * 100) / 100.0 },
+        )
+        // Ningún set de la semana supera el triple del viernes (174 × 1,025).
+        val heaviest = week.sessions.flatMap { it.allExercises() }.flatMap { it.sets }.mapNotNull { it.weight }.maxOrNull() ?: -1.0
+        assertTrue("el set más pesado de la semana es $heaviest kg", heaviest <= 174.0 * 1.025 + 0.01)
     }
 
     @Test

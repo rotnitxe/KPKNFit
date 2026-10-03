@@ -185,7 +185,7 @@ object ClassicPlProtocols {
 
     val westside = run {
         val exemptions = listOf(
-            RecipeCompositionExemption("W5", "Conjugate", "Rotación de Max Effort cada 1-3 semanas por definición"),
+            RecipeCompositionExemption("W5", "block*/Conjugate", "Rotación de Max Effort cada 1-3 semanas por definición"),
         )
         val meLower = listOf(CatalogIds.SQ_BOX, CatalogIds.GM, CatalogIds.DL_DEF, CatalogIds.SQ_SSB)
         val meUpper = listOf(CatalogIds.BP_FLOOR, CatalogIds.BP_CHAINS, CatalogIds.BP_INC, CatalogIds.JM)

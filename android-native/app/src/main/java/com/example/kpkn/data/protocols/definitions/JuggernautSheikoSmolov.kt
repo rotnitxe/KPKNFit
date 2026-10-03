@@ -146,12 +146,12 @@ object JuggernautProtocol {
 object RemainingVerifiedProtocols {
     val sheiko = run {
         val exemptions = listOf(
-            RecipeCompositionExemption("H2", "Sentadilla/Banca", "Sheiko repite el mismo levantamiento en la sesión"),
-            RecipeCompositionExemption("H3", "Sentadilla/Banca", "Volumen técnico 70-80 % por diseño"),
-            RecipeCompositionExemption("H4", "Sentadilla/Banca", "Variantes del mismo replacementGroup"),
-            RecipeCompositionExemption("H5b", "Peso muerto/Banca", "Días SQ+PM de #30"),
-            RecipeCompositionExemption("H6", "Sentadilla/Banca", "25-35 series de práctica técnica"),
-            RecipeCompositionExemption("H6", "Peso muerto/Banca", "25-35 series de práctica técnica"),
+            RecipeCompositionExemption("H2", "w*/Sentadilla/Banca*", "Sheiko repite el mismo levantamiento en la sesión"),
+            RecipeCompositionExemption("H3", "w*/Sentadilla/Banca*", "Volumen técnico 70-80 % por diseño"),
+            RecipeCompositionExemption("H4", "w*/Sentadilla/Banca*", "Variantes del mismo replacementGroup"),
+            RecipeCompositionExemption("H5b", "w*/Peso muerto/Banca", "Días SQ+PM de #30"),
+            RecipeCompositionExemption("H6", "w*/Sentadilla/Banca*", "25-35 series de práctica técnica"),
+            RecipeCompositionExemption("H6", "w*/Peso muerto/Banca", "25-35 series de práctica técnica"),
         )
         fun rm(count: Int, reps: Int, pct: Double) = List(count) {
             SetRecipe(reps = reps, percent = pct, loadBasis = LoadBasis.PERCENT_1RM)
@@ -411,13 +411,13 @@ object RemainingVerifiedProtocols {
 
     val smolov = run {
         val exemptions = listOf(
-            RecipeCompositionExemption("H6", "S1", "Especialización 1-2 ejercicios"),
-            RecipeCompositionExemption("H6", "S2", "Especialización 1-2 ejercicios"),
-            RecipeCompositionExemption("H6", "S3", "Especialización 1-2 ejercicios"),
-            RecipeCompositionExemption("H6", "S4", "Especialización 1-2 ejercicios"),
-            RecipeCompositionExemption("H6", "Test", "Especialización 1-2 ejercicios"),
-            RecipeCompositionExemption("W3", "w", "4 sentadillas pesadas/semana"),
-            RecipeCompositionExemption("W6", "w", "Programa de especialización de sentadilla"),
+            RecipeCompositionExemption("H6", "w*/S1", "Especialización 1-2 ejercicios"),
+            RecipeCompositionExemption("H6", "w*/S2", "Especialización 1-2 ejercicios"),
+            RecipeCompositionExemption("H6", "w*/S3", "Especialización 1-2 ejercicios"),
+            RecipeCompositionExemption("H6", "w*/S4", "Especialización 1-2 ejercicios"),
+            RecipeCompositionExemption("H6", "w*/Test", "Especialización 1-2 ejercicios"),
+            RecipeCompositionExemption("W3", "w*", "4 sentadillas pesadas/semana"),
+            RecipeCompositionExemption("W6", "w*", "Programa de especialización de sentadilla"),
         )
         fun squatDay(label: String, weekday: Int, sets: List<SetRecipe>, box: Boolean = false) = day(
             label, weekday = weekday, slots = listOf(
@@ -491,7 +491,7 @@ object RemainingVerifiedProtocols {
             }
             val intense = listOf(
                 listOf(
-                    n(1, 3, 65.0) + n(1, 4, 75.0) + n(4, 3, 85.0) + n(1, 5, 90.0),
+                    n(1, 3, 65.0) + n(1, 4, 75.0) + n(4, 3, 85.0) + n(1, 2, 90.0),
                     n(1, 3, 60.0) + n(1, 3, 70.0) + n(1, 4, 80.0) + n(1, 3, 90.0) + n(5, 2, 85.0),
                     n(1, 4, 65.0) + n(1, 4, 70.0) + n(4, 5, 80.0),
                 ),
@@ -678,10 +678,10 @@ object RemainingVerifiedProtocols {
                     )),
                 ))
             }
-            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, listOf(RecipeCompositionExemption("H2", "Peso muerto", "DL + speed + SLDL + good morning"), RecipeCompositionExemption("H3", "Peso muerto", "Cuatro bisagras por diseño")), claimedDaysPerWeek = 1, claimedLevel = "avanzado")
+            TrainingPlanRecipe("coan-phillipi-dl", weeks, 1.0, mapOf(LiftSlot.DEADLIFT to CatalogIds.DL), ProgressionRule.None, listOf(RecipeCompositionExemption("H2", "w*/Peso muerto", "DL + speed + SLDL + good morning"), RecipeCompositionExemption("H3", "w*/Peso muerto", "Cuatro bisagras por diseño")), claimedDaysPerWeek = 1, claimedLevel = "avanzado")
         },
         ProtocolFidelitySpec(10, 1, requiresPercent = true, claimedLevel = "avanzado", percentAnchors = mapOf("w10" to listOf(100.0))),
         kind = ProtocolKind.SPECIALIZATION,
-        exemptions = listOf(RecipeCompositionExemption("H2", "Peso muerto", "DL + speed + SLDL + good morning"), RecipeCompositionExemption("H3", "Peso muerto", "Cuatro bisagras por diseño")),
+        exemptions = listOf(RecipeCompositionExemption("H2", "w*/Peso muerto", "DL + speed + SLDL + good morning"), RecipeCompositionExemption("H3", "w*/Peso muerto", "Cuatro bisagras por diseño")),
     )
 }

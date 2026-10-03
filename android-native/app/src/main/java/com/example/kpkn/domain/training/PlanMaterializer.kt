@@ -1228,7 +1228,9 @@ object PlanMaterializer {
         idProvider: IdProvider,
         stableSetId: String? = null,
     ): ExerciseSet {
-        val percent = resolvePercent(set, slot, week)
+        // Porcentaje respecto del TM; la regla vive en PercentResolver para que la
+        // política de composición (H11/H11b) mida exactamente lo mismo que se materializa.
+        val percent = PercentResolver.resolve(set, slot, week)
         val weight = percent?.let { TrainingMaxResolver.loadKg(it, tm) }
         val range = if (set.repsMin != null && set.repsMax != null) RepRange(set.repsMin, set.repsMax) else null
         val mode = when {
@@ -1252,24 +1254,6 @@ object PlanMaterializer {
             isTopSet = set.isTopSet,
             loadBasis = set.loadBasis,
         )
-    }
-
-    private fun resolvePercent(set: SetRecipe, slot: SlotRecipe, week: WeekRecipe): Double? {
-        val raw = set.percent ?: return null
-        if (set.loadBasis != LoadBasis.PERCENT_OF_TOP_SET) return raw
-        if (set.isTopSet) return raw
-        val sameLift = week.days.flatMap { day ->
-            day.slots.filter { it.lift.liftSlot != null && it.lift.liftSlot == slot.lift.liftSlot }
-        }
-        val top = sameLift.flatMap { it.sets }.firstOrNull { it.isTopSet }?.percent ?: 100.0
-        val isVolume = slot.sets.none { it.isTopSet } && slot.sets.count { !it.isWarmup } >= 5
-        if (isVolume) return raw / 100.0 * top
-        val volumeSlot = sameLift.firstOrNull { candidate ->
-            candidate.sets.none { it.isTopSet } && candidate.sets.count { !it.isWarmup } >= 5
-        }
-        val volumeFactor = volumeSlot?.sets?.firstOrNull { !it.isWarmup }?.percent ?: 90.0
-        val volumeResolved = volumeFactor / 100.0 * top
-        return raw / 100.0 * volumeResolved
     }
 
     /** Receta weekday 1-7 relativa al lunes; [startDay] rota el microciclo sin reordenar días. */

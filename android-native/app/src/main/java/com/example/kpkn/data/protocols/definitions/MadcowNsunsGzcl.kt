@@ -34,7 +34,7 @@ object MadcowProtocol {
         SetRecipe(
             reps = if (index == ramp.lastIndex) lastReps else reps,
             percent = top * pct / 100.0,
-            loadBasis = LoadBasis.PERCENT_OF_TOP_SET,
+            loadBasis = LoadBasis.PERCENT_TM,
         )
     }
 
@@ -59,16 +59,16 @@ object MadcowProtocol {
                         kpknAssist("pallof", CatalogIds.PALLOF, 3, 10, 60),
                     )),
                     day("Recuperación", weekday = 3, slots = listOf(
-                        slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.75, basis = LoadBasis.PERCENT_OF_TOP_SET), 180, LiftSlot.SQUAT, isCompetitionLift = true),
-                        slot("inc", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, repeatPercentSets(4, 5, top * 0.7, 150, basis = LoadBasis.PERCENT_OF_TOP_SET), 150, LiftSlot.BENCH, supplementalOf = "sq"),
-                        slot("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, percentSets(180, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.75, basis = LoadBasis.PERCENT_OF_TOP_SET), 180, LiftSlot.DEADLIFT, isCompetitionLift = true),
+                        slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.75, basis = LoadBasis.PERCENT_TM), 180, LiftSlot.SQUAT, isCompetitionLift = true),
+                        slot("inc", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP_INC, repeatPercentSets(4, 5, top * 0.7, 150, basis = LoadBasis.PERCENT_TM), 150, LiftSlot.BENCH, supplementalOf = "sq"),
+                        slot("dl", SlotRole.T2_SUPPLEMENTAL, CatalogIds.DL, percentSets(180, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.75, basis = LoadBasis.PERCENT_TM), 180, LiftSlot.DEADLIFT, isCompetitionLift = true),
                         kpknAssist("chin", CatalogIds.CHIN, 3, 8, 120),
                         kpknAssist("face", CatalogIds.FACE, 3, 15, 60),
                     )),
                     day("Intensidad", weekday = 5, slots = listOf(
-                        slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(240, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.875, 3 to top * 1.025, basis = LoadBasis.PERCENT_OF_TOP_SET).mapIndexed { index, set ->
+                        slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(240, 5 to top * 0.5, 5 to top * 0.625, 5 to top * 0.75, 5 to top * 0.875, 3 to top * 1.025, basis = LoadBasis.PERCENT_TM).mapIndexed { index, set ->
                             if (index == 4) set.copy(isTopSet = true) else set
-                        } + listOf(SetRecipe(reps = 8, percent = top * 0.75, loadBasis = LoadBasis.PERCENT_OF_TOP_SET)), 240, LiftSlot.SQUAT, isCompetitionLift = true),
+                        } + listOf(SetRecipe(reps = 8, percent = top * 0.75, loadBasis = LoadBasis.PERCENT_TM)), 240, LiftSlot.SQUAT, isCompetitionLift = true),
                         slot("bp", SlotRole.T2_SUPPLEMENTAL, CatalogIds.BP, rampSets(top * 0.9, lastReps = 3), 180, LiftSlot.BENCH, isCompetitionLift = true, supplementalOf = "sq"),
                         slot("row", SlotRole.T3_ACCESSORY, CatalogIds.ROW, rpeSets(5, 5, 8.0), 120),
                         kpknAssist("ghr", CatalogIds.GHR, 3, 8, 90),
@@ -80,7 +80,9 @@ object MadcowProtocol {
         return TrainingPlanRecipe(
             id = "madcow-5x5",
             weeks = weeks,
-            trainingMaxPercent = 1.0,
+            // D7: TM al 87 % del 1RM (≈ 5RM). Los porcentajes de las rampas ya son absolutos
+            // (top × pct ÷ 100, con el +2,5 %/semana incluido): se leen tal cual sobre el TM.
+            trainingMaxPercent = 0.87,
             liftSlots = sbdSlots(),
             progression = ProgressionRule.WeeklyPercent(2.5),
             claimedDaysPerWeek = 3,
