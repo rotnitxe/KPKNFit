@@ -1,6 +1,6 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado con el gate 1.** Recoge hallazgos por
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 8.** Recoge hallazgos por
 > lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0 bajo
 > Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de los 55
 > hallazgos con id: **16 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **32 REPORTADO**; la divergencia de `\b`
@@ -109,6 +109,17 @@ cierre. Ver «Plan de remediación».
   - **#28** (A-Q11): "un sandwich de jamón y queso y una coca cola" se resuelve en `gen019` pan blanco 100 g, `gen094`
     jamón cocido 100 g y `gen047` queso cheddar 30 g (AUTO) y pierde la coca cola.
   - **#42**: "una taza de té sin azúcar" da "té sin azúcar (estimado)" 192 g/729,6 kcal (NEEDS_REVIEW).
+- **Delta de la sonda tras WP-N2/N3/N4** (gate 7; salida de `app/build/reports/nutrition-reliability/blind-probe.json`
+  a las 03:08, no versionada): 13 de las 60 entradas difieren de esta línea base. 11 mejoran (#1, #2, #6, #7, #8, #34,
+  #35, #37, #38, #47, #48) y 2 (#22, #36) solo cambian el texto del tag o de la normalización con el mismo resultado;
+  ninguna empeora. La línea base oficial sigue siendo la del gate 1, para medir el delta final. Ejemplos:
+  - **#6**: "al menos 2 huevos" ya no deja el fantasma "al": se normaliza a "2 huevos" y resuelve `gen007` x2 (100 g/154
+    kcal) sin excluirlo.
+  - **#7**: "Desayuno: 2 huevos. Almuerzo: arroz con pollo." da tres ítems: `gen007` x2 (100 g/154 kcal), `gen005` arroz
+    (198 g/257 kcal) y `gen004` pollo (126 g/209 kcal, corte pendiente).
+  - **#34**: "huevo poché" pasa de fantasma de 350 g/542,5 kcal a huevo COCIDO: `gen007` 50 g/77 kcal (AUTO).
+  - **#37**: "tres tomates" pasa de "tomat (estimado)" 350 g/560 kcal a `gen026` Tomate (tag `tomate`, 80 g/14 kcal,
+    AUTO); la cantidad sigue sin escalar (tarea de WP-N8).
 
 ### Qué se verificó y cómo
 
@@ -732,7 +743,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP.
+divide el WP. Avance tras los gates 1 a 8: 22 de 45 paquetes cerrados (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
 
@@ -983,6 +994,14 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 | Fecha | Gate | Resultado | Commit |
 |---|---|---|---|
 | 2026-10-03, 01:07-01:20 (hora local) | Gate 1 (fase 1A) | BUILD SUCCESSFUL en 13 min 26 s; 778 tests, 0 fallos; `BlindMealCorpusProbeTest` 2/2 bajo Gradle (línea base oficial de la sonda WP-N0). Paquetes cerrados: WP-0, WP-N0, WP-U1, U3, U4, U5, U6 y WP-S3 (con U2) | `97c464ad0` "feat(nutrition): fase 1A del sistema de alimentos — fecha sigue a hoy, arranque sin bloquear datos, ruta de widget, AUGE y sonda ciega", rama `consolidation/2026-10-02-wizard-session-repair` |
+| 2026-10-03, 01:36-01:46 | Gate 2 | BUILD SUCCESSFUL en 9 min 55 s; 740 tests, 0 fallos; sonda idéntica a la línea base (120/120). Paquetes cerrados: N1 y S7 | `0c3ae41a5` "perf(nutrition): WP-N1 — regex precompiladas, normalizador único y análisis fuera del hilo principal" |
+| 2026-10-03, 01:58-02:09 | Gate 3 | BUILD SUCCESSFUL en 10 min 21 s; 720 tests, 0 fallos; sonda idéntica. Paquetes cerrados: S1 y U16 | `774c083ad` "fix(nutrition): WP-S1/U16 — el tap de búsqueda conserva la ficha tocada y los errores del logger son visibles" |
+| 2026-10-03, 02:14-02:22 | Gate 4 | FALLÓ por el bloqueo de `classes.jar` por un arnés externo, no por el código. Sin paquetes cerrados | - |
+| 2026-10-03, 02:24-02:30 | Gate 4b | BUILD SUCCESSFUL en 5 min 21 s; 0 fallos. Paquete cerrado: S5. Hallazgo extra: los triggers FTS heredados rompían UPDATE y DELETE sobre `global_foods` | `c0b9d8a77` "fix(nutrition): WP-S5 — limpieza de triggers FTS heredados al abrir la base, sin migración" |
+| 2026-10-03, 02:35-02:46 | Gate 5 | BUILD SUCCESSFUL en 10 min 53 s; 59 tests nuevos, 0 fallos. Paquete cerrado: U14 (alarmas one-shot, receptor con Room, boot receiver, canales para API < 26) | `13ee5107a` "fix(nutrition): WP-U14 — recordatorios de comidas y alerta de macros fiables" |
+| 2026-10-03, 02:50-03:01 | Gate 6 | BUILD SUCCESSFUL en 11 min 12 s; 0 fallos; sonda idéntica. Paquete cerrado: S4 | `607932ac9` "fix(nutrition): WP-S4 — FoodIndex por generaciones con invalidación en publicación, import y refresh" |
+| 2026-10-03, 03:05-03:15 | Gate 7 | BUILD SUCCESSFUL en 9 min 23 s (más `compileBaseDebugAndroidTestKotlin`); 0 fallos; la sonda mejora en 11 casos (#1, #2, #6, #7, #8, #34, #35, #37, #38, #47, #48) y no empeora en ninguno (ver «Línea base»). Paquetes cerrados: N2, N3 y N4 (4 expectativas golden corregidas) | `9a46378c3` "fix(nutrition): WP-N2/N3/N4 — negación vs límites, separadores de oración, singularizador con lema y regex portables" |
+| 2026-10-03, 03:20-03:31 | Gate 8 | BUILD SUCCESSFUL en 10 min 21 s; 0 fallos. Paquetes cerrados: U8, U10 y U13 | `dcd037e09` "fix(nutrition): WP-U8/U10/U13 — intents no se reprocesan al recrear, slider de gramos anclado, comida por defecto según la hora" |
 
 Detalle del gate 1:
 
@@ -992,26 +1011,39 @@ Detalle del gate 1:
   `SetupExecutableAvailabilityMatrixTest` 17, `T006PersistenceAndUseIntegrationTest` 7 y `BlindMealCorpusProbeTest` 2.
 - Hallazgos que cubren esos paquetes según el plan: C1 (WP-U1), C3 (WP-U3), C4 (WP-U4), C14 (WP-U5), C13 (WP-U6) y B3 y
   C2 (WP-S3 con U2).
-- Pendiente de la fase 1A: `bumpCatalogGeneration` (WP-S4) y `verifyDatasetKnowledge` (WP-S10/S11); ver «Límites».
+- Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
+  (WP-S10/S11); ver «Límites».
+
+Avance acumulado (gates 1 a 8):
+
+- Paquetes cerrados: 22 de 45 (N 5/14, S 5/12, U 11/17, D 0/1, WP-0 1/1): WP-0; N0 a N4; S1, S3, S4, S5 y S7; U1 a U6
+  (U2 dentro de S3), U8, U10, U13, U14 y U16.
+- Pendientes (23): N5 a N13; S2, S6 y S8 a S12 (S12 diferido); U7, U9, U11, U12, U15 y U17; D1.
+- Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y no empeora en
+  ninguno (ver «Línea base»).
+- Gate 4: el fallo fue de infraestructura (`classes.jar` bloqueado por un arnés externo); el gate 4b es la repetición
+  verde del mismo paquete (S5).
+- Hallazgo extra (WP-S5): los triggers FTS heredados rompían UPDATE y DELETE sobre `global_foods`; B11 solo anticipaba
+  doble escritura FTS y un índice posiblemente inconsistente.
 
 ## Límites
 
 - **Sin QA en dispositivo ni en emulador.** Los gates registrados son pruebas JVM bajo Gradle; no hay QA de dispositivo
   o emulador registrado. Los criterios de cierre en dispositivo (arranque en caliente, búsqueda < 150 ms, medianoche,
   widget, AUGE) son metas, no mediciones.
-- **Sonda WP-N0.** Corrió bajo Gradle (`BlindMealCorpusProbeTest` 2/2, gate 1) y su salida es la línea base oficial. Los
-  `expect` de las 60 descripciones son objetivos posteriores a la remediación y la sonda no los afirma. La divergencia
-  de `\b` no se puede medir en la JVM (entrada #34): sigue pendiente de un test instrumentado en dispositivo
-  (`FoodParserAndroidTest`, WP-N4). Los hallazgos REPORTADO esperan confirmación en los tests de su paquete.
+- **Sonda WP-N0.** Corrió bajo Gradle (`BlindMealCorpusProbeTest` 2/2, gate 1) y su salida es la línea base oficial, que
+  sigue siendo la referencia para el delta final. Los `expect` de las 60 descripciones son objetivos posteriores a la
+  remediación y la sonda no los afirma. La divergencia de `\b` no se puede medir en la JVM (entrada #34): WP-N4 (gate 7)
+  añade `RegexEs.bounded` y el test instrumentado `FoodParserAndroidTest`, y el gate compiló los androidTest
+  (`compileBaseDebugAndroidTestKotlin`), pero no hay ejecución en dispositivo registrada. Los hallazgos REPORTADO
+  esperan confirmación en los tests de su paquete.
 - **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
   master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`); queda pendiente para WP-S10/WP-S11.
-- **WP-S3 deja pendiente `bumpCatalogGeneration`.** Se completa con WP-S4 (generaciones e invalidación de `FoodIndex`).
 - **Cifras de lectura estática.** Los conteos de regex y los tiempos de rendimiento en dispositivo salen de leer el
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y el gate 1 (778 tests) de «Registro de
-  ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 8 de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
