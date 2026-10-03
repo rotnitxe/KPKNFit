@@ -1,6 +1,6 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 25.** Recoge hallazgos
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 27b.** Recoge hallazgos
 > por lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0
 > bajo Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de
 > los 55 hallazgos con id: **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de
@@ -216,10 +216,22 @@ cierre. Ver «Plan de remediación».
     pasa de 220 g/352 kcal a 220 g/418 kcal (perfil HOT_DOG, 190 kcal/100 g; sigue en revisión).
   - **Sándwich acotado** (#28): "un sandwich de jamón y queso y una coca cola" conserva `gen019` 100 g, `gen094` 100 g y
     `gen047` 30 g y suma la cola como mención propia, `off_coca_cola_original_350ml` 40 g/17 kcal AUTO; la cantidad de
-    la cola no corresponde a la lata de 350 ml (a revisar).
+    la cola no correspondía a la lata de 350 ml (WP-N11b lo corrige: 350 g/147 kcal).
   - **Pregunta de corte** (#23): "pollo" conserva su línea (`gen004` 150 g/249 kcal, NEEDS_CONFIRMATION, pregunta
     `cut`); la sonda no registra las opciones, pero `StapleOntologyTest` fija que ahora son solo cortes cocidos
     (`gen004`, `gen003tc` y `gen003e`).
+- **Delta de la sonda tras WP-N11b** (`blind-probe.json` de build tras el gate 27b, no versionada): 48 de las 60
+  entradas difieren de la línea base oficial en algún campo: 42 en la línea de resultado (las 40 que ya diferían más #27
+  y #53) y 6 solo en campos internos (#13, #31, #41, #54, #56 y #59). Frente al estado tras el gate 25, WP-N11b cambia
+  cuatro líneas (#27, #28, #50 y #53). Ningún caso pierde una ficha ni gana un fantasma frente a la línea base. La línea
+  base oficial sigue siendo la del gate 1. Ejemplos:
+  - **Porción por pieza de un postre** (#27): "tres leches" pasa de `sn_cr_tresleches` 350 g/980 kcal a 100 g/280 kcal
+    (sigue NEEDS_REVIEW con pregunta de identidad).
+  - **Bebida junto a un plato** (#28, #50, #53): la cola de "un sandwich de jamón y queso y una coca cola" pasa de
+    40 g/17 kcal a la lata, 350 g/147 kcal (los componentes del sándwich no cambian); la taza de la bebida ya no se
+    reparte a los demás alimentos: "pan con palta y un té" da el pan con palta de 120 g/280 kcal en lugar de 220 g/513
+    kcal (el té sigue en 220 g/2 kcal) y "avena con leche y plátano" pasa de avena 220 g/856 kcal y plátano 220 g/196
+    kcal a 40 g/156 kcal y 120 g/107 kcal (la leche sigue en 220 g/134 kcal).
 
 ### Qué se verificó y cómo
 
@@ -854,7 +866,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP. Avance tras los gates 1 a 25: 42 de los 45 paquetes del plan cerrados, más S2b
+divide el WP. Avance tras los gates 1 a 27b: 43 de los 45 paquetes del plan cerrados, más S2b
 (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
@@ -1134,8 +1146,11 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 | 2026-10-03, 12:35-13:02 | Gate 23b | BUILD SUCCESSFUL en 6 min 47 s (más `compileBaseDebugAndroidTestKotlin`), tras ~19 min de espera de `classes.jar` y del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~12:55 a 13:02); filtros `screens.nutrition.*`, `telemetry.nutrition.*`, `data.diagnostics.*`, `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 116 suites, 1.363 tests, 0 fallos y 1 omitida (`assumeTrue` en `CookingSingleApplicationTest`, hasta que llegue el hunk de WP-N11). Suites nuevas: `NutritionLabelsTest` 10, `NutritionTelemetrySanitizerTest` 14, `NutritionTelemetryErrorEventsTest` 4, `NutritionPlanGoalsToSettingsTest` 5, `StaticCatalogProvenanceTest` 12, `FoodDataManifestTest` 8 y `GlobalSkuClassificationTest` 2; ampliadas: `NutritionViewModelTest` 29 (+2), `FoodImporterGateTest` 15 (+4), `NutritionRepositoryStartupTest` 14 (+3), `CookingSingleApplicationTest` 30 (+5) y `FoodInterpretationV2Test` 7 (+2). La tarea `generateFoodDataManifest`, colgada de `preBuild`, tenía generado y al día `build/generated/foodDataManifest/food_data/manifest.json` (881 bytes). La sonda no cambia ninguna línea frente al estado tras WP-N9: N10b solo cambia el nombre registrado de #12 y S10a la etiqueta de fuente de 14 entradas (ver «Línea base»). Paquetes cerrados: U17 y S10, más el seguimiento N10b. S10: 151 filas estáticas de 100 g/ml sin etiquetar pasan a `PER_100G_AS_SOLD`, así que tocar un resultado de búsqueda registra la porción doméstica (pechuga 150 g, arroz 120 g, mantequilla 10 g) y no "100 g" (regla de S1); `gen019` Pan Blanco declara su unidad de 100 g; el Charquicán duplicado `cl039` se fusionó en `cl015` con una redirección de id; las instalaciones existentes reimportan el catálogo una vez (meta "v10" a "v10+<sha256>") | `336a8f59e` "refactor(nutrition): WP-U17 — higiene de la página de Nutrición: código muerto, accesibilidad, telemetría sin mensajes y cálculo fuera del hilo principal"; `7d698feee` "fix(nutrition): WP-N10b — "asado" conserva su nombre y la preparación solo cuenta cuando la fila ya está preparada"; `b27741706` "fix(nutrition): WP-S10a — isGlobalSku decide por prefijo de id, no por el texto de la fuente"; `fac6cb462` "feat(nutrition): WP-S10 — procedencia del catálogo estático, huella del catálogo por manifiesto sha256 y retiro del pipeline v2" |
 | 2026-10-03, 13:06-13:21 | Gate 24 | BUILD SUCCESSFUL en 2 min 27 s, tras ~11,5 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~13:19 a 13:21; la compilación estaba al día y solo se ejecutó el test); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 109 suites, 1.310 tests, 0 fallos y 0 omitidas (la prueba de N10b "asado convierte una vez" ya está activa y verde). Suites nuevas: `NutritionHeuristicEstimatorProfileTest` 12, `SandwichMentionBoundaryTest` 12, `SmartFoodResolverPlainLocalFloorTest` 4, `PhoneticIdentityEvidenceTest` 2 y `FlavouredMentionHeadNounTest` 11; ampliadas: `PhoneticEsTest` 11 (+3), `StapleOntologyTest` 21 (+6) y `SearchPickContractTest` 13 (+4, S10c); `CookingSingleApplicationTest` 30; precisión@1 49/50. Frente al estado tras el gate 23, la sonda cambia en cinco líneas (#10, #12, #26, #28 y #51); 40 de las 60 difieren de la línea base oficial en la línea de resultado y ninguna pierde una ficha ni gana un fantasma (ver «Línea base»). Paquetes cerrados: N11 y el seguimiento S10c (solo pruebas) | `140c75db0` "fix(nutrition): WP-N11 — higiene de identidad: perfiles por palabra completa, vocales fonéticas, sándwich acotado, cortes por estado y cabeza nominal para sabores"; `94eec56dd` "test(nutrition): WP-S10c — fija los gramajes al tocar un resultado tras la procedencia por 100 g" |
 | 2026-10-03, 14:06-14:23 | Gate 25 | BUILD SUCCESSFUL en 12 min 27 s, tras ~4,75 min esperando que `classes.jar` quedara libre (Gradle corrió de ~14:11 a 14:23); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 112 suites, 1.356 tests, 0 fallos y 0 omitidas. Suites nuevas: `FoodKnowledgeParityTest` 11 (asset == copia Kotlin, tabla a tabla), `FoodKnowledgeAssetTest` 19 y `FoodKnowledgeInstallTest` 16; `AssetInventoryTest` 3 (la allow-list incluye ya `food_knowledge_v1.json`); `NutritionRepositoryStartupTest` 14. La sonda es idéntica a la del estado tras WP-N11 en todos los campos (sin cambio de comportamiento, por diseño). Paquete cerrado: N13, secciones 1 y 2 (15 archivos: el asset nuevo `food_data/food_knowledge_v1.json`, de 12 KB, con frases protegidas, typos y sinónimos, unidades domésticas, contenedores, utensilios y densidades; `FoodKnowledge.kt`, `FoodKnowledgeDefaults.kt` (la copia Kotlin, que sigue como respaldo) y `FoodKnowledgeStore.kt`; contrato `docs/contracts/food_knowledge_v1.md`) | `763f59b46` "feat(nutrition): WP-N13 (1-2) — conocimiento de alimentos en un asset versionado: frases protegidas, typos/sinónimos, unidades domésticas, contenedores, utensilios y densidades" |
+| 2026-10-03, 15:14-15:26 | Gate 26 | FALLÓ (BUILD FAILED en 11 min 38 s; filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`) solo en la guarda nueva `NoDoubleOutcomeAssertionsTest` («no assertion of domain nutrition accepts two outcomes», `NoDoubleOutcomeAssertionsTest.kt:210`): una aserción legítima de «al menos uno de» en `FoodKnowledgeAssetTest.kt:160`, escrita por N13 después de la foto en la que N12 contó los `||`. El resto, verde: 115 suites y 1.685 tests con 1 fallo. Es el motivo del seguimiento N12b (3 archivos: la aserción reescrita sin `||`, `SandwichMentionBoundaryTest` línea 95 estrechada a un `assertEquals` de `gen146` y la entrada obsoleta de la allow-list borrada; la guarda queda en 2 encontradas, 2 permitidas y 0 infractoras) | - |
+| 2026-10-03, 15:45-15:59 | Gate 27 | FALLÓ al compilar los tests (BUILD FAILED en 8 min 48 s en `compileBaseDebugUnitTestKotlin`, tras ~4,5 min esperando que `classes.jar` quedara libre) por una edición en curso de otra sesión: `SetupWizardActivationGateTest` usa `setupRejectionOf`, que pasó de `private` a `internal` en `SetupWizardViewModel.kt` entre la compilación principal y la de tests (ambos archivos ajenos y sin commitear). Ningún test corrió. Se reencoló como gate 27b | - |
+| 2026-10-03, 16:00-16:21 | Gate 27b | BUILD SUCCESSFUL en 13 min 19 s, tras ~8 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:08 a 16:21); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.722 tests, 0 fallos. `GoldenCorpusTest` 320 (parametrizado; eran 4) y `GoldenCorpusInvariantsTest` 4; `BlindMealCorpusTest` 7; `NoDoubleOutcomeAssertionsTest` 2; `DessertPiecePortionTest` 16, `SandwichFillingMentionTest` 14 y `FatMarkerAndDrinkPortionTest` 7; `NutritionMetricsContractTest` 5 (E16 robusta a la carga; precisión@1 como aserción dura de 49/50 como mínimo). Corpus ciego: identidad 97,6 %, cobertura 100 %, gramos 83,1 %, kcal 68,7 % y pregunta 95,2 % (ver «Corpus ciego permanente»). Frente al estado tras el gate 25, la sonda cambia en cuatro líneas (#27, #28, #50 y #53); 42 de las 60 difieren de la línea base oficial en la línea de resultado y ninguna pierde una ficha ni gana un fantasma (ver «Línea base»). Paquete cerrado: N12; seguimientos cerrados: N11b y N12b | `6420f5983` "fix(nutrition): WP-N11b — porciones por pieza de postres y hot dogs sin ficha, sándwich de un relleno o lista expandido a pan + rellenos, marcador de grasa por palabra y bebidas con su porción junto a un plato"; `25e8cf787` "test(nutrition): WP-N12 — suite endurecida: golden parametrizado, sin aserciones de doble resultado, bandas exactas con masa declarada, corpus ciego permanente con umbrales y E16 robusto a carga" |
 
-Nota sobre las horas: las de los gates 3 a 25 son las marcas de creación (inicio) y de última escritura (fin) de los
+Nota sobre las horas: las de los gates 3 a 27b son las marcas de creación (inicio) y de última escritura (fin) de los
 logs de cada gate (no versionados), en hora local; incluyen los pasos previos a Gradle (aplicar el parche y esperar el
 candado de Gradle o a que `classes.jar` quede libre). Las filas de los gates 3 a 18 se corrigieron con los logs: las
 horas anotadas durante la ejecución diferían de las que muestran los logs y los commits hasta 13 minutos en los gates 3
@@ -1152,25 +1167,24 @@ Detalle del gate 1:
 - Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
   (WP-S10/S11); ver «Límites».
 
-Avance acumulado (gates 1 a 25):
+Avance acumulado (gates 1 a 27b):
 
-- Paquetes cerrados: 42 de los 45 del plan, más S2b (añadido en la ejecución): WP-0; N0 a N6, N8 a N11 y N13 (secciones
-  1 y 2); S1 a S11 y S2b; U1 a U17; D1. Por bloque: WP-0 1/1, N 12/14, S 11/12 más S2b, U 17/17, D 1/1. Cerrados también
-  los seguimientos N10b, S10a y S10c.
-- Pendientes del plan (3): N7, N12 (en curso) y S12 (diferido). Seguimientos nuevos, fuera del plan: S9b, N8b, S1b y
-  N11b (en curso: porciones de postres y hot dogs sin fila, sándwich de un solo relleno junto a otro ítem y marcador de
-  «mayo» por token), y las secciones 3 a 6 de N13, incrementales (la 3, `dishCompositions`, después de N11b) (ver
-  «Límites»).
+- Paquetes cerrados: 43 de los 45 del plan, más S2b (añadido en la ejecución): WP-0; N0 a N6 y N8 a N13 (N13: secciones
+  1 y 2); S1 a S11 y S2b; U1 a U17; D1. Por bloque: WP-0 1/1, N 13/14, S 11/12 más S2b, U 17/17, D 1/1.
+- Pendientes del plan (2): N7 (en curso) y S12 (diferido). Seguimientos cerrados, fuera del plan: N10b, N11b, S10a, S10c
+  y N12b; en curso: S9b y la sección 3 de N13 (`dishCompositions`; las secciones 4 a 6 son incrementales); abiertos:
+  N8b, N10c, S1b y D1b (ver «Límites» y «Corpus ciego permanente»).
 - Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y el gate 11 repite
   esa salida; tras el gate 14 difiere de la línea base en 27 casos, con WP-N6/N8 en 30, con WP-N10 en 37, con WP-N9 en
-  42, tras el gate 23 en 45 y con WP-N11 en 47 (40 en la línea de resultado y 7 solo en campos internos); los gates 19 y
-  23 no cambian ninguna línea y el gate 25 deja la sonda idéntica a la de WP-N11. Con WP-N11 ningún caso pierde una
-  ficha ni gana un fantasma frente a la línea base: #10, que WP-N9 dejó como una mención sin ficha, vuelve a resolver
-  (`gen193`) (ver «Línea base»).
+  42, tras el gate 23 en 45, con WP-N11 en 47 y con WP-N11b en 48 (42 en la línea de resultado y 6 solo en campos
+  internos); los gates 19 y 23 no cambian ninguna línea y el gate 25 deja la sonda idéntica a la de WP-N11. Con WP-N11 y
+  WP-N11b ningún caso pierde una ficha ni gana un fantasma frente a la línea base: #10, que WP-N9 dejó como una mención
+  sin ficha, vuelve a resolver (`gen193`) (ver «Línea base»).
 - Cobertura del catálogo estático: de 118/174 términos con ficha en WP-0 a 169/174 tras WP-D1 (gate 19; criterio de
   frase completa, más estricto que el grep de WP-0); quedan sin ficha mate, tallarines, negrita, pre entreno y pap (ver
   «Sonda de cobertura de términos cotidianos»).
-- Precisión@1 de identidad: 45/47 en la línea base y en el gate 11; 48/50 en los gates 12 y 14; 49/50 en el gate 24.
+- Precisión@1 de identidad: 45/47 en la línea base y en el gate 11; 48/50 en los gates 12 y 14; 49/50 en el gate 24 y,
+  desde WP-N12, como aserción dura (49/50 como mínimo) verde en el gate 27b.
 - Gate 4: el fallo fue de infraestructura (`classes.jar` bloqueado por un arnés externo); el gate 4b es la repetición
   verde del mismo paquete (S5).
 - Gate 12: el fallo fue de comportamiento (`SearchGoldenCorpusTest` #36 "coca cola": la ficha genérica `gen146` con alias
@@ -1182,11 +1196,87 @@ Avance acumulado (gates 1 a 25):
   porque sus suites estaban verdes.
 - Gates 22 y 23: no corrieron por el candado de Gradle (salida 125 tras 25 y 45 min de espera, sin que Gradle
   arrancara); los gates 22b (N9) y 23b (U17, N10b y S10) son sus repeticiones verdes.
+- Gate 26: falló solo la guarda nueva `NoDoubleOutcomeAssertionsTest`, por una aserción legítima de «al menos uno de»
+  que N13 escribió después de la foto de N12; se corrigió con el seguimiento N12b. Gate 27: no compiló los tests por una
+  edición en curso de otra sesión; el gate 27b (N12, N12b y N11b) es su repetición verde.
 - Hallazgo extra (WP-S5): los triggers FTS heredados rompían UPDATE y DELETE sobre `global_foods`; B11 solo anticipaba
   doble escritura FTS y un índice posiblemente inconsistente.
 - Documentación: `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md` y `docs/REPO_STRUCTURE.md` están al día con
   el flujo de importación (WP-S3, S8 y la huella por manifiesto de S10), con los assets de `food_data/` (WP-S11) y con
   el asset de conocimiento de WP-N13 (`food_knowledge_v1.json`, contrato en `docs/contracts/food_knowledge_v1.md`).
+
+## Corpus ciego permanente
+
+`BlindMealCorpusTest` (WP-N12) convierte en compuerta permanente las 60 descripciones de la sonda WP-N0; la sonda
+(`BlindMealCorpusProbeTest`) sigue como diagnóstico, sin expectativas. Corre la misma cadena en vivo
+(`parseMealDescription` y `TagResolver.resolveAll`) y la compara con referencias que no salen del motor: entradas de
+USDA FoodData Central (SR Legacy y Foundation), la tabla chilena INTA (marraqueta, 272 kcal/100 g), tablas publicadas de
+platos chilenos y la suma de componentes USDA en los platos compuestos. Cada mención lleva su masa y su energía de
+referencia y la fuente de esa energía (`kcalSource`), que quedan en el informe
+`app/build/reports/nutrition-reliability/blind-corpus.json` (de build, no versionado). El libro primario del INTA no
+está disponible sin conexión: se cita su copia pública, no se verificó.
+
+- **Alcance.** 60 casos y 83 menciones, con cinco dimensiones contadas por separado: identidad (por mención: la fila
+  resuelta es el id esperado, y una mención sin fila debe seguir siendo una estimación con nombre), cobertura (por
+  descripción: cada mención tiene su tag y no sobra ninguno), gramos (±25 % de la referencia), kcal (±20 %; ±0,5 kcal si
+  la masa y el perfil están declarados; nunca con menos de 2 kcal de margen) y pregunta (`hasMaterialQuestion()`
+  coincide con el sí o no de la referencia).
+- **Modos.** Se mide en cuatro: con el snapshot real de `dataset_knowledge.bin` y sin él, cada uno con historial vacío y
+  con un perfil de calibración que recuerda identidades. Los cuatro dan el mismo resultado.
+- **Guardas.** Ninguna descripción se copia del dataset semántico; los controles #13, #31 y #51 se comprueban uno a uno
+  en identidad y pregunta, y «completo» es una trampa: el plato entero recordado no debe sustituir al «sin mayo»
+  declarado.
+
+Resultado frente a los criterios de cierre del plan (punto 1 de «Criterios de cierre»):
+
+| Dimensión | Mínimo del plan | Umbral del test | Antes de WP-N11b (gate 26, N12 sola) | Tras WP-N11b (gate 27b) | Frente al plan |
+|---|---|---|---|---|---|
+| Identidad | 90 % | 90 | 81/83 = 97,6 % | 81/83 = 97,6 % | cumple |
+| Cobertura | 90 % | 90 | 60/60 = 100 % | 60/60 = 100 % | cumple |
+| Gramos | 80 % | 75 | 65/83 = 78,3 % | 69/83 = 83,1 % | cumple tras WP-N11b |
+| kcal | 80 % | 60 | 53/83 = 63,9 % | 57/83 = 68,7 % | **no cumple** |
+| Pregunta | 90 % | 90 | 79/83 = 95,2 % | 79/83 = 95,2 % | cumple |
+
+Identidad, cobertura y pregunta usan como umbral el mínimo del plan (90); gramos (75) y kcal (60) quedan en el piso
+medido, porque estaban por debajo del mínimo de 80 %. Tras WP-N11b los gramos superan el mínimo y las kcal no (68,7 %
+frente a 80 %). El informe sugiere subir los umbrales a 80 (gramos) y 65 (kcal), pero el test los conserva en 75 y 60.
+
+**Casos que fallan, por causa.** Tras WP-N11b fallan 2 menciones en identidad, 14 en gramos, 26 en kcal y 4 en pregunta;
+la referencia de cada una está en el informe y se reparten en seguimientos:
+
+- **WP-N8b, porciones por defecto.** Un plato nombrado sin «un plato de» toma 99 g ("porotos con riendas" #40,
+  referencia 350 g; "lentejas" #41 y "un guiso de lentejas" #13: 99 y 120 g frente a 198 g). Otras porciones lejos de la
+  referencia: "ensalada de repollo" 350 g frente a 150 g (#26), "asado" 100 g frente a 150 g (#12), "plato grande de
+  arroz" 150 g frente a 296 g (#20), "un pan con queso" 40 g frente a 130 g (#54), mantequilla 15 g frente a 10 g (#46)
+  y "tres leches" 100 g frente a 150 g (#27). Los componentes del sándwich usan porciones sueltas: pan 100 g y jamón
+  100 g frente a 60 g y 40 g (#28). Un plural pelado ("wevos", "huevos revueltos") vale un huevo (#25 y #32; la
+  referencia pide al menos dos: decisión de producto).
+- **WP-N8b, identidad.** #49 "empanada de queso" resuelve a `gen047` (queso cheddar) en lugar del plato (30 g/121 kcal
+  frente a 180 g/380 kcal, y sin pregunta); #59 "yogur griego" queda sin resolver (se esperaba `gen017`).
+- **WP-N10c, cocción.** #49 "empanada de pino al horno" aplica x1,15 a una fila de plato ya horneado (518 kcal frente a
+  430); #4 "150 g salmón a la parrilla": la conversión única crudo a cocido da 400 kcal frente a 309 (USDA, salmón
+  cocido: 206 kcal/100 g), porque el pescado graso y las carnes conservan las kcal por gramo al cocinarse (pierden
+  grasa) y el modelo de rendimiento las sobreestima.
+- **WP-D1b, datos.** `cl007` "porotos granados" tiene 149 kcal/100 g, que parece alto (#39: 522 kcal frente a 347).
+- **Sin causa asignada todavía** (solo kcal): #1 (450 kcal frente a 356), #8 "pollo a la plancha" (266 frente a 214,5) y
+  "papas a lo pobre" (206 frente a 630), #10 (207 frente a 279: la referencia cuenta dos bolas de 66 g), #22 (195 frente
+  a 252), #33 (101 frente a 70) y el arroz de #41, #48 y #60 (315 frente a 260).
+- **Pregunta.** Se pregunta sin que la referencia lo pida en #11 "arroz" (mitad del plato), #27 y #59, y no se pregunta
+  en #49 "empanada de queso".
+
+**Otros cambios de WP-N12 y N12b.**
+
+- `GoldenCorpusTest` es parametrizado (una fila con nombre por caso: de 4 a 320 pruebas; el plan preveía pasar de 719 a
+  ~1.040 tests) y sus invariantes viven en `GoldenCorpusInvariantsTest` (4).
+- Las expectativas que fijaban bugs se corrigieron (Fluency "arroz": `stateAssumed` y COOKED; Everyday: arroz AUTO sin
+  pregunta y pollo NEEDS_CONFIRMATION con corte; ContextDetector: SNACK_ITEM y GENERAL; FoodParser: tag exacto) y las
+  bandas de ±0,5 kcal solo se usan con masa y perfil declarados ("2 hallullas" 160 g/420 kcal, "100 g hallulla"
+  262,5 kcal, "200 g pechuga a la plancha" 346 kcal, "dos marraquetas" 520 kcal, "3 huevos" 231 kcal).
+- `NoDoubleOutcomeAssertionsTest` impide que un `assertTrue` o `assert` de `domain/nutrition` acepte dos resultados con
+  `||` (12 aserciones estrechadas en 8 clases; tras N12b queda una allow-list de 2 condicionales legítimas).
+- E16 (`NutritionMetricsContractTest`) ya es robusta a la carga: 2 calentamientos y la mediana del p95 de 3 lotes contra
+  un presupuesto de 50 ms escalado por un factor de carga (nunca menor que 1; con carga mayor que x8 se omite por
+  `Assume`); la precisión@1 pasa a aserción dura de 49/50 como mínimo.
 
 ## Límites
 
@@ -1205,8 +1295,8 @@ Avance acumulado (gates 1 a 25):
 - **WP-S9b, nuevo y pendiente.** Tras WP-S9 (gate 13), 60 alimentos foundation no tienen fila de energía (8 de ellos
   aceites) y 10 tienen carbohidrato negativo: quedan fuera del import (436 - 60 - 10 = 366, la cifra importada). La
   energía por Atwater sigue pendiente.
-- **WP-N8b, nuevo y pendiente.** Los topes por ítem frenan los conteos grandes: "3 completos" y "5 manzanas" quedan en
-  revisión.
+- **WP-N8b, abierto.** Los topes por ítem frenan los conteos grandes ("3 completos" y "5 manzanas" quedan en revisión) y
+  reúne las porciones por defecto y las identidades que fallan en el corpus ciego (ver «Corpus ciego permanente»).
 - **Plural corto de 3 letras.** El plural corto con conteo se corrigió en el gate 17; "tés" y "tes" sin conteo siguen
   sin resolverse.
 - **Límites de WP-U11 (gate 21), tras WP-U17.** `MealHistoryScreen` sigue de solo lectura. WP-U17 (gate 23) pasó
@@ -1219,17 +1309,16 @@ Avance acumulado (gates 1 a 25):
 - **Seguimientos de WP-N9.** Los platos protegidos sin fila en el catálogo caen a los valores por defecto del marcador
   (papas con mayo 15 g, tortilla de maíz 350 g); "2 pasteles de choclo" (frase en plural sin fila plural) sigue como
   estimación; queda opcional endurecer `CookingStateResolver.findPreparedVariant` con búsquedas exactas primero.
-- **Prueba de latencia E16 sensible a la carga.** `NutritionMetricsContractTest` ("E16 p95 de resolucion completa bajo
-  50 ms") falla con la máquina cargada: 58 ms en la corrida completa de otra sesión a las 12:10 y entre 71 y 221 ms en
-  los arneses de los escritores, mientras la precisión@1 se mantiene en 49/50. WP-N12 la hará robusta a la carga y la
-  dejará fuera del gate ordinario.
 - **WP-S1b, nuevo y pendiente.** WP-S10 encontró que, con una fila estática y una consulta con kg o litro explícito,
   `eatenGramsForSearchPick` (`HouseholdPortions.kt`) devuelve el `servingSize` de la fila (100 g) en lugar de la masa
   pedida; es la regla de S1, anterior a S10.
-- **WP-N11b, nuevo y en curso.** Porciones de postres y hot dogs sin fila, sándwich de un solo relleno junto a otro ítem
-  y marcador de «mayo» por token. Efectos de WP-N11 que esperan a N11b (corrida ampliada de 3.141 entradas del
-  escritor): un postre sin fila con la porción genérica de 350 g llega a ~1.085 kcal ("un pie de manzana") y "un
-  sandwich de queso y un jugo" ya no se expande (987 kcal); ambos quedan NEEDS_REVIEW.
+- **Restos de WP-N11b (cerrado en el gate 27b).** Flan, mousse y budín usan la densidad de postre (310 kcal/100 g) y
+  necesitan un perfil de natilla; "un completo y una coca cola" sigue registrando la cola con 100 g (`ContextDetector`
+  no conoce "coca cola"); "hotdog" en una palabra cae en la fila de vienesa; el manjar toma 200 g (clasificado como
+  leche); "mayo" no tiene alias en Mayonesa.
+- **WP-N10c, nuevo y abierto.** Cocción: x1,15 sobre una fila de plato ya horneado y rendimiento de crudo a cocido que
+  sobreestima el pescado graso y las carnes (#49 y #4 del corpus ciego; ver «Corpus ciego permanente»).
+- **WP-D1b, nuevo y abierto.** Datos: `cl007` "porotos granados" con 149 kcal/100 g parece alto (#39 del corpus ciego).
 - **Doble fuente del conocimiento (WP-N13, secciones 1 y 2).** El asset `food_knowledge_v1.json` (mantenido a mano, sin
   generador) y la copia Kotlin `FoodKnowledgeDefaults.kt` coexisten: la copia es el respaldo si el asset falla y se
   borrará cuando `FoodKnowledgeParityTest` lo permita; antes hay que adelantar la instalación al inicio de la app,
@@ -1239,7 +1328,7 @@ Avance acumulado (gates 1 a 25):
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 25 de «Registro de ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 27b de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
