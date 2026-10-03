@@ -1,9 +1,9 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 8.** Recoge hallazgos por
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 14.** Recoge hallazgos por
 > lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0 bajo
 > Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de los 55
-> hallazgos con id: **16 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **32 REPORTADO**; la divergencia de `\b`
+> hallazgos con id: **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de `\b`
 > (sin id) es **INFERIDO** (ver «Qué se verificó y cómo»).
 
 | Campo | Valor |
@@ -120,17 +120,33 @@ cierre. Ver «Plan de remediación».
   - **#34**: "huevo poché" pasa de fantasma de 350 g/542,5 kcal a huevo COCIDO: `gen007` 50 g/77 kcal (AUTO).
   - **#37**: "tres tomates" pasa de "tomat (estimado)" 350 g/560 kcal a `gen026` Tomate (tag `tomate`, 80 g/14 kcal,
     AUTO); la cantidad sigue sin escalar (tarea de WP-N8).
+- **Delta de la sonda tras WP-N5** (gate 14; `blind-probe.json` de build, no versionada): 27 de las 60 entradas difieren de
+  la línea base oficial: las 13 de WP-N2/N3/N4 (#1 cambia otra vez) y 14 nuevas de bebidas y unidades (#3, #5, #9, #14,
+  #15, #16, #17, #18, #19, #42, #43, #45, #50, #55); ninguna empeora. La línea base oficial sigue siendo la del gate 1.
+  Ejemplos:
+  - **Agua** (#3, #9, #17, #18, #45): "un vaso de agua" pasa de 250 g/400 kcal estimadas a `gen143` Agua 250 g/0 kcal
+    (AUTO); "agua con gas" queda en una sola ficha de 0 kcal (`gen151`, 250 g) en lugar de dos fantasmas; "1 lt de agua"
+    da 1.000 g/0 kcal; "una botella de agua" 500 g/0 kcal (antes 750 g/1.200 kcal); "2 litros de agua" 2.000 g/0 kcal
+    (antes 750 g/1.200 kcal).
+  - **Té y café** (#42, #43, #50, #1): "una taza de té sin azúcar" pasa de 192 g/729,6 kcal a `gen144` 240 g/2 kcal;
+    "café sin azúcar" de 836 kcal a `gen059` 220 g/4 kcal; el té verde de #50 baja de 3 a 2 kcal; el "café con leche" de
+    #1 resuelve `gen145` 247,2 g/91 kcal.
+  - **Unidades y contenedores** (#5, #14, #15, #16): "una lata de coca cola" usa 350 g/147 kcal (antes 200 g/84 kcal);
+    "500 cc de leche" se normaliza a "500 ml" y da `gen016` 515 g/314 kcal; "medio litro de jugo de naranja" da `gen103`
+    500 g/225 kcal; "cuarto de kilo de carne molida" da `gen010` 250 g/542 kcal.
+  - **Jugo de naranja** (#19, #55): `gen103` pasa de 0,75 a 0,45 kcal/g ("un jugo de naranja" de 100 g/75 kcal a 250
+    g/112 kcal; "jugo natural de naranja grande" 440 g, de 330 a 198 kcal).
 
 ### Qué se verificó y cómo
 
 | Etiqueta | Criterio | Hallazgos |
 |---|---|---|
-| **CONFIRMADO POR SONDA (Gradle)** | La sonda WP-N0 (`BlindMealCorpusProbeTest`, bajo Gradle, `blind-probe-baseline.json`) reproduce el síntoma sobre el código de partida | A-P1..P5, A-Q1..Q4, A-Q6, A-Q9..Q11, A-C1..C3 (16 de los 20 A) |
+| **CONFIRMADO POR SONDA (Gradle)** | La sonda WP-N0 (`BlindMealCorpusProbeTest`, bajo Gradle, `blind-probe-baseline.json`) reproduce el síntoma sobre el código de partida | A-P1..P5, A-Q1..Q6, A-Q9..Q11, A-C1..C3 (17 de los 20 A) |
 | **VERIFICADO** | El plan lo marca como verificado: lectura directa del código ("Verificación directa"), confirmación explícita de la exploración o grep con 0 referencias | Las aserciones `tomat`/`huevo poché`; B1, B2, B3; C1, C2, C3, C4; módulos muertos con 0 referencias |
-| **REPORTADO** | Hallado por revisión de código de los agentes de exploración; se confirma o refuta en las pruebas de cada paquete (WP-N*, WP-S*, WP-U*) | El resto: A-P6, A-Q5, A-Q7 y A-Q8 (la sonda no los reproduce o no es concluyente), B4..B13 y C5..C22 |
+| **REPORTADO** | Hallado por revisión de código de los agentes de exploración; se confirma o refuta en las pruebas de cada paquete (WP-N*, WP-S*, WP-U*) | El resto: A-P6, A-Q7 y A-Q8 (la sonda no los reproduce o no es concluyente), B4..B13 y C5..C22 |
 | **INFERIDO** | Deducción por diferencias de plataforma o lectura sin ejecución | Divergencia de `\b` JVM vs Android (ALTA prioridad de verificación) |
 
-A-P1, A-Q1 y A-Q2 pasaron de VERIFICADO a CONFIRMADO POR SONDA (Gradle); A-P2..A-P5, A-Q3, A-Q4, A-Q6, A-Q9..A-Q11 y
+A-P1, A-Q1 y A-Q2 pasaron de VERIFICADO a CONFIRMADO POR SONDA (Gradle); A-P2..A-P5, A-Q3..A-Q6, A-Q9..A-Q11 y
 A-C1..A-C3, de REPORTADO. Las demás etiquetas no cambian.
 
 El diseño del bloque N re-leyó todos los hallazgos A-* y los reprodujo por lectura; esa re-lectura no cambia su
@@ -274,7 +290,7 @@ cocción, umbrales, Room, repositorio, severidad baja) llevan solo la etiqueta.
 
 | Informe | Hallazgos con id | CONFIRMADO POR SONDA (Gradle) | VERIFICADO | REPORTADO | INFERIDO |
 |---|---|---|---|---|---|
-| A. Descripciones | 20 (A-P1..P6, A-Q1..Q11, A-C1..C3) | 16: A-P1..P5, A-Q1..Q4, A-Q6, A-Q9..Q11, A-C1..C3 | — | 4: A-P6, A-Q5, A-Q7, A-Q8 | divergencia de `\b` (sin id) |
+| A. Descripciones | 20 (A-P1..P6, A-Q1..Q11, A-C1..C3) | 17: A-P1..P5, A-Q1..Q6, A-Q9..Q11, A-C1..C3 | — | 3: A-P6, A-Q7, A-Q8 | divergencia de `\b` (sin id) |
 | B. Búsqueda y datos | 13 (B1..B13) | — | B1, B2, B3 | 10 | — |
 | C. Página, ViewModel y servicios | 22 (C1..C22) | — | C1, C2, C3, C4 | 18 | — |
 
@@ -288,7 +304,7 @@ Main) -> `SemanticPortionRetriever.retrieve` (solo telemetría/rango no renderiz
 `NutritionRepository.saveNutritionLog`. `NutritionViewModel` NO participa en el parseo. Home guarda directo al
 repositorio (`HomeScreen.kt:502-513`).
 
-La sonda WP-N0 bajo Gradle (línea base oficial, ver «Línea base») confirmó 16 de los 20 hallazgos A; A-P6, A-Q5, A-Q7 y
+La sonda WP-N0 bajo Gradle (línea base oficial, ver «Línea base») confirmó 17 de los 20 hallazgos A; A-P6, A-Q7 y
 A-Q8 siguen REPORTADO porque la sonda no los reproduce o no es concluyente. La divergencia de `\b` sigue sin poder
 medirse en la JVM (entrada #34). Cada hallazgo anota la entrada de la sonda que lo cubre como "Sonda #n (Gradle)" y,
 cuando la confirmación no abarca todos sus ejemplos, dice cuáles no se probaron.
@@ -367,10 +383,12 @@ cuando la confirmación no abarca todos sus ejemplos, dice cuáles no se probaro
   de 350 ml. Sonda #5, #18 (Gradle): "una lata de coca cola" se normaliza a "1 lata", usa la referencia `can` de 200 g
   (en vez de 350) y resuelve OFF Coca-Cola 350 ml en 200 g/84 kcal; "una botella de agua" usa la referencia `botella` de
   750 g (en vez de 500). No se probó "cartón".
-- **A-Q5 · REPORTADO** — Densidad de líquidos: `detectDensityCategory` prueba FRUIT/VEG antes que LIQUID (`:547-559`):
-  "un vaso de jugo de naranja" => 150 g (x0,6). Sonda #3, #15, #19 (Gradle, no concluyente): "un jugo de naranja" da
-  100 g y "medio litro de jugo de naranja" queda como tag "litro de jugo de naranja" de 50 g; ninguna entrada trae "vaso
-  de jugo" ni se observa el factor 0,6 (150 g = 250 ml x 0,6).
+- **A-Q5 · CONFIRMADO POR SONDA (Gradle)** — Densidad de líquidos: `detectDensityCategory` prueba FRUIT/VEG antes que
+  LIQUID (`:547-559`): "un vaso de jugo de naranja" => 150 g (x0,6). Sonda #15, #19, #55 (Gradle): `gen103` (45 kcal/100
+  ml) da 0,75 kcal/g en la línea base ("un jugo de naranja" 100 g/75 kcal; "jugo natural de naranja grande" 440 g/330
+  kcal) porque su referencia de 100 ml se convierte en 60 g con la densidad 0,6 de FRUIT (`NutrientBasis`); con densidad
+  1,0 serían 0,45 kcal/g, el valor de la sonda tras WP-N5 (250 g/112 kcal; 440 g/198 kcal). "medio litro de jugo de
+  naranja" (#15) queda como tag "litro de jugo de naranja" de 50 g. La sonda no incluye "un vaso de jugo" (150 g).
 - **A-Q6 · CONFIRMADO POR SONDA (Gradle)** — Defaults implausibles: "un poco de arroz" = 15 g; "un plato de
   cazuela/porotos" ≈ 200 g; "grande" = x2,0 en parser, x1,5 en chip, x1,25 en opción V2. Sonda #20, #21, #55 (Gradle):
   "plato grande de arroz" (preset LARGE) da 180 g y "un plato de arroz" 212,5 g, es decir 0,85x en vez de 1,25x; "jugo
@@ -743,7 +761,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP. Avance tras los gates 1 a 8: 22 de 45 paquetes cerrados (ver «Registro de ejecución»).
+divide el WP. Avance tras los gates 1 a 14: 29 de 45 paquetes cerrados, 28 del plan más S2b (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
 
@@ -1002,6 +1020,12 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 | 2026-10-03, 02:50-03:01 | Gate 6 | BUILD SUCCESSFUL en 11 min 12 s; 0 fallos; sonda idéntica. Paquete cerrado: S4 | `607932ac9` "fix(nutrition): WP-S4 — FoodIndex por generaciones con invalidación en publicación, import y refresh" |
 | 2026-10-03, 03:05-03:15 | Gate 7 | BUILD SUCCESSFUL en 9 min 23 s (más `compileBaseDebugAndroidTestKotlin`); 0 fallos; la sonda mejora en 11 casos (#1, #2, #6, #7, #8, #34, #35, #37, #38, #47, #48) y no empeora en ninguno (ver «Línea base»). Paquetes cerrados: N2, N3 y N4 (4 expectativas golden corregidas) | `9a46378c3` "fix(nutrition): WP-N2/N3/N4 — negación vs límites, separadores de oración, singularizador con lema y regex portables" |
 | 2026-10-03, 03:20-03:31 | Gate 8 | BUILD SUCCESSFUL en 10 min 21 s; 0 fallos. Paquetes cerrados: U8, U10 y U13 | `dcd037e09` "fix(nutrition): WP-U8/U10/U13 — intents no se reprocesan al recrear, slider de gramos anclado, comida por defecto según la hora" |
+| 2026-10-03, 03:36-03:46 | Gate 9 | BUILD SUCCESSFUL en 10 min 00 s; 0 fallos. Paquete cerrado: U15 | `6b5242d48` "feat(nutrition): WP-U15 — totales inciertos se muestran como estimación con rango" |
+| 2026-10-03, 03:49-04:01 | Gate 10 | BUILD SUCCESSFUL en 12 min 04 s; 0 fallos. Paquetes cerrados: U9 y U12 | `e49380b48` "fix(nutrition): WP-U9/U12 — los alimentos añadidos por búsqueda sobreviven al re-análisis y los utensilios guardados no se pisan" |
+| 2026-10-03, 04:05-04:16 | Gate 11 | BUILD SUCCESSFUL en 10 min 19 s; 0 fallos; `SearchGoldenCorpusTest` 49 (1 @Ignore hasta WP-S6, "banana"); precisión@1 45/47; sonda idéntica a la de N2-N4. Paquete cerrado: S2 | `e8213f10b` "feat(nutrition): WP-S2 — ranking de búsqueda nuevo, filtro antes del límite y corpus dorado de 44 consultas" |
+| 2026-10-03, 04:20-04:31 | Gate 12 | FALLÓ solo en `SearchGoldenCorpusTest` #36 "coca cola": la ficha genérica `gen146` con alias "coca cola" superaba a las filas OFF Coca-Cola. Resto verde: `ZeroEnergyAndBeverageTest` 31/31, precisión@1 48/50. Es el motivo de WP-S2b | - |
+| 2026-10-03, 04:36-04:48 | Gate 13 | BUILD SUCCESSFUL en 11 min 22 s (solo capa de datos); 0 fallos. Paquete cerrado: S9 | `130fdb706` "feat(nutrition): WP-S9 — calidad del catálogo USDA: nombres en español, azúcar/grasa por prioridad de id, porciones y categoría" |
+| 2026-10-03, 04:52-05:05 | Gate 14 | BUILD SUCCESSFUL en 12 min 19 s (más `compileBaseDebugAndroidTestKotlin`); 0 fallos; `SearchGoldenCorpusTest` 51 (1 @Ignore), `FoodSearchRankerTest` 23, precisión@1 48/50; la sonda difiere de la línea base en 27 casos (ver «Línea base»). Paquetes cerrados: N5 y S2b | `d001a7951` "feat(nutrition): WP-N5 — alimentos de 0 kcal, bebidas con fuente, unidades lt/cc/kilogramo, contenedores y densidad de líquidos"; `073c76063` "fix(nutrition): WP-S2b — una marca nombrada en la búsqueda gana sobre los alias genéricos" |
 
 Detalle del gate 1:
 
@@ -1014,15 +1038,19 @@ Detalle del gate 1:
 - Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
   (WP-S10/S11); ver «Límites».
 
-Avance acumulado (gates 1 a 8):
+Avance acumulado (gates 1 a 14):
 
-- Paquetes cerrados: 22 de 45 (N 5/14, S 5/12, U 11/17, D 0/1, WP-0 1/1): WP-0; N0 a N4; S1, S3, S4, S5 y S7; U1 a U6
-  (U2 dentro de S3), U8, U10, U13, U14 y U16.
-- Pendientes (23): N5 a N13; S2, S6 y S8 a S12 (S12 diferido); U7, U9, U11, U12, U15 y U17; D1.
-- Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y no empeora en
-  ninguno (ver «Línea base»).
+- Paquetes cerrados: 29 de 45 (28 del plan y S2b, que se añadió en la ejecución; N 6/14, S 7/12 más S2b, U 14/17, D 0/1,
+  WP-0 1/1): WP-0; N0 a N5; S1 a S5, S7, S9 y S2b; U1 a U6 (U2 dentro de S3), U8 a U10 y U12 a U16.
+- Pendientes del plan (17): N6 a N13; S6, S8, S10, S11 y S12 (S12 diferido); U7, U11 y U17; D1. Nuevo, fuera del plan:
+  S9b (ver «Límites»).
+- Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y el gate 11 repite esa
+  salida; tras el gate 14 difiere de la línea base en 27 casos y no empeora en ninguno (ver «Línea base»).
+- Precisión@1 de identidad: 45/47 en la línea base y en el gate 11; 48/50 en los gates 12 y 14.
 - Gate 4: el fallo fue de infraestructura (`classes.jar` bloqueado por un arnés externo); el gate 4b es la repetición
   verde del mismo paquete (S5).
+- Gate 12: el fallo fue de comportamiento (`SearchGoldenCorpusTest` #36 "coca cola": la ficha genérica `gen146` con alias
+  "coca cola" superaba a las filas OFF) y dio lugar a WP-S2b, cerrado en el gate 14.
 - Hallazgo extra (WP-S5): los triggers FTS heredados rompían UPDATE y DELETE sobre `global_foods`; B11 solo anticipaba
   doble escritura FTS y un índice posiblemente inconsistente.
 
@@ -1034,16 +1062,19 @@ Avance acumulado (gates 1 a 8):
 - **Sonda WP-N0.** Corrió bajo Gradle (`BlindMealCorpusProbeTest` 2/2, gate 1) y su salida es la línea base oficial, que
   sigue siendo la referencia para el delta final. Los `expect` de las 60 descripciones son objetivos posteriores a la
   remediación y la sonda no los afirma. La divergencia de `\b` no se puede medir en la JVM (entrada #34): WP-N4 (gate 7)
-  añade `RegexEs.bounded` y el test instrumentado `FoodParserAndroidTest`, y el gate compiló los androidTest
+  añade `RegexEs.bounded` y el test instrumentado `FoodParserAndroidTest`, y los gates 7 y 14 compilaron los androidTest
   (`compileBaseDebugAndroidTestKotlin`), pero no hay ejecución en dispositivo registrada. Los hallazgos REPORTADO
   esperan confirmación en los tests de su paquete.
 - **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
   master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`); queda pendiente para WP-S10/WP-S11.
+- **WP-S9b, nuevo y pendiente.** Tras WP-S9 (gate 13), 60 alimentos foundation no tienen fila de energía (8 de ellos
+  aceites) y 10 tienen carbohidrato negativo: quedan fuera del import (436 - 60 - 10 = 366, la cifra importada). La
+  energía por Atwater sigue pendiente.
 - **Cifras de lectura estática.** Los conteos de regex y los tiempos de rendimiento en dispositivo salen de leer el
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 8 de «Registro de ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 14 de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
