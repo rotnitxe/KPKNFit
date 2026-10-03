@@ -102,8 +102,13 @@ data class SetupStepContext(
     val inventoryGroups: Set<SetupInventoryGroup> = emptySet(),
     /** Categorías de material (gimnasio, casa o máquinas), sin cuestionario de stock. */
     val asksAvailability: Boolean = false,
-    /** Cardio branch (goal mixto o elección explícita de incluir cardio). */
+    /** Cardio branch (goal mixto, Atleta completo o elección explícita de incluir cardio). */
     val wantsCardio: Boolean = false,
+    /**
+     * GOAL = Atleta completo (§15.1): las preferencias de cardio forman parte
+     * de su ruta. HEALTH/MIXED legacy conserva [mixedTraining] sin convertirse.
+     */
+    val completeAthleteGoal: Boolean = false,
     /** NUTRITION_START: automatic | self_defined | tracking_only. */
     val nutritionStartChoice: String? = null,
     /** NUTRITION_DIRECTION: deficit | maintenance | surplus; drives NUTRITION_RHYTHM. */
@@ -122,6 +127,9 @@ data class SetupStepContext(
 }
 
 object SetupStepGraph {
+
+    /** Persisted with [SetupStepProgress] so older cursors are repaired once. */
+    const val REVISION: Int = 3
 
     private val blocks: Map<SetupStepId, SetupWizardBlock> = mapOf(
         SetupStepId.NAME to SetupWizardBlock.BASICS,
@@ -322,32 +330,42 @@ object SetupStepGraph {
             ))
             add(SetupStepId.MILESTONE_BASICS)
         }
-        // Bloque 2: Entreno
+        // Bloque 2: Entreno (§15.1): EXPERIENCE → EQUIPMENT (entorno,
+        // categorías y aparatos/soportes) → GOAL → DAYS → SESSION_TIME →
+        // cardio si Atleta → CALIBRATION → SPLIT → PLAN → ajustes → revisión.
+        // ROUTE desaparece de los recorridos nuevos: el enum y sus lecturas
+        // legacy (`programRoute`/`trainingPath`) siguen intactos, pero la
+        // creación unificada usa CUSTOMIZABLE + PERSONALIZE.
         if (context.includeTraining) {
             add(SetupStepId.EXPERIENCE)
-            add(SetupStepId.ROUTE)
+            // Material ANTES de perfiles: la elegibilidad de GOAL depende del
+            // material confirmado (P-106). El subpanel de aparatos vive dentro
+            // de AVAILABILITY (subpanel de EQUIPMENT, no pasos INVENTORY_*).
+            add(SetupStepId.EQUIPMENT)
+            if (context.asksAvailability) add(SetupStepId.AVAILABILITY)
+            context.inventoryGroups.sortedBy(SetupStepDefinitions::stepOf).forEach { group ->
+                add(SetupStepDefinitions.stepOf(group))
+            }
             add(SetupStepId.GOAL)
+            addAll(listOf(SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
+            if (context.wantsCardio || context.mixedTraining || context.completeAthleteGoal) {
+                addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
+            }
+            // CALIBRATION comes after the schedule/cardio constraints (§15.1).
             // El estilo solo se pregunta si el objetivo no lo infiere.
             if (!context.goalStyleInferred) add(SetupStepId.STYLE)
             addAll(listOf(
                 SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
                 SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
             ))
-            add(SetupStepId.EQUIPMENT)
-            if (context.asksAvailability) add(SetupStepId.AVAILABILITY)
-            context.inventoryGroups.sortedBy(SetupStepDefinitions::stepOf).forEach { group ->
-                add(SetupStepDefinitions.stepOf(group))
-            }
-            addAll(listOf(SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME))
-            if (context.wantsCardio || context.mixedTraining) {
-                addAll(listOf(SetupStepId.CARDIO_TYPE, SetupStepId.CARDIO_TIME))
-            }
             add(SetupStepId.PRIORITIES)
-            add(SetupStepId.SPLIT)
-            // El plan aparece antes de marcas: un candidato es válido sin marcas completas.
-            add(SetupStepId.PLAN)
+            // Marcas refinan cargas; se preguntan después de la calibración de
+            // volumen y antes de SPLIT/PLAN, sin bloquear su disponibilidad.
             add(SetupStepId.TRAINING_MAX)
             if (context.hasTrainingMarks) add(SetupStepId.TRAINING_MARKS)
+            add(SetupStepId.SPLIT)
+            // El plan aparece antes de ajustes y marcas: un candidato es válido sin marcas completas.
+            add(SetupStepId.PLAN)
             add(SetupStepId.AUTOREGULATION)
             if (context.autoregulationOn) add(SetupStepId.AUTOREGULATION_CONFIRM)
             add(SetupStepId.WARMUPS)
@@ -645,7 +663,7 @@ enum class SetupPreviewKind {
 }
 
 /** Physiological sources of change; navigation is intentionally not one of them. */
-enum class SetupChangeSource { WEIGHT, BODY_COMPOSITION, EQUIPMENT, FREQUENCY, PROTOCOL, PRIORITIES, CALENDAR, SENSATIONS }
+enum class SetupChangeSource { WEIGHT, BODY_COMPOSITION, EQUIPMENT, FREQUENCY, PROTOCOL, SPLIT, PRIORITIES, CALENDAR, SENSATIONS }
 
 /** What has to be revalidated after one [SetupChangeSource]. */
 data class SetupDependencyImpact(
@@ -658,6 +676,10 @@ data class SetupDependencyImpact(
  * Concrete dependency rules: what an earlier change invalidates. Answers that
  * are still valid stay untouched; incompatible selections are only marked
  * pending and dependent previews are invalidated.
+ *
+ * T-005 / AC-T005-03: material, días, tiempo y split invalidan TODOS sus
+ * dependientes (tarjetas de candidatos, split, receta y preview); ninguna
+ * respuesta se borra y ninguna tarjeta obsoleta queda publicada.
  */
 object SetupDependencyRules {
     fun impactOf(source: SetupChangeSource): SetupDependencyImpact = when (source) {
@@ -678,27 +700,54 @@ object SetupDependencyRules {
                 SetupPreviewKind.EXPENDITURE, SetupPreviewKind.NUTRITION_REFERENCES,
             ),
         )
-        // Equipo/inventario → revalida ejercicios, cargas y calentamientos.
+        // Equipo/inventario/aparatos → revalida candidatos, split, ejercicios,
+        // cargas y calentamientos; la selección actual queda por revisar.
         SetupChangeSource.EQUIPMENT -> SetupDependencyImpact(
-            stalePreviews = setOf(SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS),
-            pendingSteps = setOf(SetupStepId.PLAN),
+            stalePreviews = setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
+                SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES,
+                SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS,
+            ),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.SPLIT),
         )
-        // Frecuencia → revalida días, candidato y split.
+        // Frecuencia → revalida días, candidato, split, receta y preview.
         SetupChangeSource.FREQUENCY -> SetupDependencyImpact(
-            stalePreviews = setOf(SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT),
-            pendingSteps = setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN),
+            stalePreviews = setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
+                SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            pendingSteps = setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN, SetupStepId.SPLIT),
         )
-        // Protocolo (objetivo, experiencia, marcas, plan, autoregulación…) →
-        // revalida marcas, split, receta y selección.
+        // Protocolo (objetivo, experiencia, marcas, minutos…) → revalida
+        // candidatos, marcas, split, receta y preview.
         SetupChangeSource.PROTOCOL -> SetupDependencyImpact(
-            stalePreviews = setOf(SetupPreviewKind.MARKS, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE),
+            stalePreviews = setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.MARKS,
+                SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
+                SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
             pendingSteps = setOf(SetupStepId.TRAINING_MAX, SetupStepId.TRAINING_MARKS, SetupStepId.PLAN),
+        )
+        // Split (reparto elegido o patrón personalizado) → parejas (plan, split)
+        // y preview dejan de estar vigentes hasta re-preparar.
+        SetupChangeSource.SPLIT -> SetupDependencyImpact(
+            stalePreviews = setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
+                SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.SPLIT),
         )
         // Prioridades → solo reordena ejercicios, nunca los cambia.
         SetupChangeSource.PRIORITIES -> SetupDependencyImpact(reorderOnly = true)
-        // Calendario → recalcula el reparto nutricional previsto.
+        // Calendario → recalcula reparto nutricional y los elementos de
+        // entrenamiento que dependen de las fechas elegidas.
         SetupChangeSource.CALENDAR -> SetupDependencyImpact(
-            stalePreviews = setOf(SetupPreviewKind.NUTRITION_DISTRIBUTION),
+            stalePreviews = setOf(
+                SetupPreviewKind.NUTRITION_DISTRIBUTION,
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT,
+                SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            pendingSteps = setOf(SetupStepId.PLAN, SetupStepId.SPLIT),
         )
         // Sensaciones → solo Rings.
         SetupChangeSource.SENSATIONS -> SetupDependencyImpact(
@@ -723,6 +772,10 @@ data class SetupInputFootprint(
     val inventory: Set<String> = emptySet(),
     /** Null = unanswered/legacy; empty = explicitly no declared categories. */
     val equipmentAvailability: Set<String>? = null,
+    /** Subpanel de aparatos (§13.2): presencia por clave curada, ordenada. */
+    val equipmentApparatus: Map<String, String> = emptyMap(),
+    /** Subpanel de soportes (§13.2): presencia por clave curada, ordenada. */
+    val equipmentSupports: Map<String, String> = emptyMap(),
     val daysPerWeek: Int? = null,
     val selectedWeekdays: Set<Int> = emptySet(),
     val minutesPerSession: Int? = null,
@@ -743,6 +796,7 @@ data class SetupInputFootprint(
     val priorityPoints: Map<String, Int> = emptyMap(),
     val selectedSplitId: String? = null,
     val customSplitPattern: List<String> = emptyList(),
+    val customSplitName: String? = null,
     val autoregulationMode: String? = null,
     val warmupsPreference: String? = null,
     val sessionsSignature: List<String> = emptyList(),
@@ -771,9 +825,14 @@ object SetupChangeDetector {
         ) add(SetupChangeSource.WEIGHT)
         if (old.bodyFatPercent != new.bodyFatPercent) add(SetupChangeSource.BODY_COMPOSITION)
         if (old.equipment != new.equipment || old.trainingEnvironment != new.trainingEnvironment ||
-            old.inventory != new.inventory || old.equipmentAvailability != new.equipmentAvailability
+            old.inventory != new.inventory || old.equipmentAvailability != new.equipmentAvailability ||
+            old.equipmentApparatus != new.equipmentApparatus || old.equipmentSupports != new.equipmentSupports
         ) add(SetupChangeSource.EQUIPMENT)
         if (old.daysPerWeek != new.daysPerWeek) add(SetupChangeSource.FREQUENCY)
+        if (old.selectedSplitId != new.selectedSplitId ||
+            old.customSplitPattern != new.customSplitPattern ||
+            old.customSplitName != new.customSplitName
+        ) add(SetupChangeSource.SPLIT)
         if (old.programRoute != new.programRoute || old.trainingPath != new.trainingPath ||
             old.knowsTrainingMarks != new.knowsTrainingMarks || old.marks != new.marks ||
             old.selectedCatalogId != new.selectedCatalogId || old.minutesPerSession != new.minutesPerSession ||
@@ -810,6 +869,8 @@ data class SetupStepProgress(
     val pendingReview: Set<SetupStepId> = emptySet(),
     val stalePreviews: Set<SetupPreviewKind> = emptySet(),
     val origin: SetupProgressOrigin = SetupProgressOrigin.NOT_CONVERTIBLE,
+    /** Missing on pre-r2 drafts; [SetupDraftCompatibility] upgrades it idempotently. */
+    val graphRevision: Int = 1,
     val revision: Int = 0,
     val terminal: Boolean = false,
 ) {
@@ -822,6 +883,7 @@ data class SetupStepProgress(
                 currentStepId = first,
                 visited = listOf(first),
                 origin = origin,
+                graphRevision = SetupStepGraph.REVISION,
             )
         }
     }

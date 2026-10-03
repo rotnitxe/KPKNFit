@@ -1,10 +1,13 @@
 package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.domain.onboarding.SetupChangeDetector
+import com.example.kpkn.domain.onboarding.SetupChangeSource
 import com.example.kpkn.domain.onboarding.SetupDependencyRules
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
 import com.example.kpkn.domain.onboarding.SetupStepContext
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupStepProgress
 import com.example.kpkn.domain.onboarding.SetupValueState
@@ -28,6 +31,20 @@ import org.junit.Test
 class SetupWizardStateTest {
 
     private fun ctx(): SetupStepContext = SetupStepContext(nutritionStarted = true)
+
+    private fun progressAt(step: SetupStepId, context: SetupStepContext): SetupStepProgress {
+        val route = SetupStepGraph.stepIds(context)
+        require(step in route)
+        var progress = SetupStepProgress.initial(context)
+        route.takeWhile { it != step }.forEach { previous ->
+            progress = progress.at(previous, context).recordAnswer(
+                previous,
+                SetupAnswerProvenance.USER_DECLARED,
+                SetupValueState.DECLARED,
+            )
+        }
+        return progress.at(step, context)
+    }
 
     private fun baseDraft(): SetupWizardDraft {
         val context = ctx()
@@ -99,12 +116,17 @@ class SetupWizardStateTest {
         val base = baseDraft()
         val changed = base.copy(equipment = setOf(SetupEquipment.BARBELL)).withChangeImpacts(base)
 
+        // AC-T005-03: el material invalida TODOS los dependientes (tarjetas,
+        // split, receta y preview), no solo ejercicios/cargas.
         assertEquals(
-            setOf(SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS),
+            setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
+                SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS,
+            ),
             changed.stepProgress.stalePreviews,
         )
         // La selección que ya no tiene por qué ser compatible queda pendiente.
-        assertEquals(setOf(SetupStepId.PLAN), changed.stepProgress.pendingReview)
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
     }
 
     @Test
@@ -112,8 +134,18 @@ class SetupWizardStateTest {
         val base = baseDraft()
         val changed = base.copy(daysPerWeek = 4).withChangeImpacts(base)
 
-        assertEquals(setOf(SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT), changed.stepProgress.stalePreviews)
-        assertEquals(setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN), changed.stepProgress.pendingReview)
+        // AC-T005-03: los días revalidan candidatos, split, receta y preview.
+        assertEquals(
+            setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
+                SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            changed.stepProgress.stalePreviews,
+        )
+        assertEquals(
+            setOf(SetupStepId.WEEKDAYS, SetupStepId.PLAN, SetupStepId.SPLIT),
+            changed.stepProgress.pendingReview,
+        )
     }
 
     @Test
@@ -122,7 +154,10 @@ class SetupWizardStateTest {
         val changed = base.copy(programRoute = SetupProgramRoute.PROTOCOL).withChangeImpacts(base)
 
         assertEquals(
-            setOf(SetupPreviewKind.MARKS, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE),
+            setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.MARKS, SetupPreviewKind.SPLIT,
+                SetupPreviewKind.RECIPE, SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
             changed.stepProgress.stalePreviews,
         )
         // El cambio de protocolo revalida marcas, split y receta, y deja la
@@ -131,6 +166,42 @@ class SetupWizardStateTest {
             setOf(SetupStepId.TRAINING_MAX, SetupStepId.TRAINING_MARKS, SetupStepId.PLAN),
             changed.stepProgress.pendingReview,
         )
+    }
+
+    @Test
+    fun changingSplitInvalidatesCandidatesSplitAndPreview() {
+        val base = baseDraft()
+        val changed = base.copy(selectedSplitId = "ppl_x6").withChangeImpacts(base)
+
+        // AC-T005-03: el split invalida parejas (plan, split) y preview.
+        assertEquals(
+            setOf(
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
+                SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            changed.stepProgress.stalePreviews,
+        )
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
+        // Y la huella sí detecta el cambio (antes ni siquiera se comparaba).
+        assertFalse(
+            SetupChangeDetector.sourcesFor(base.inputFootprint(), changed.inputFootprint()).isEmpty(),
+        )
+    }
+
+    @Test
+    fun changingApparatusPresenceInvalidatesMaterialDependents() {
+        val base = baseDraft()
+        val withApparatus = base
+            .withStepChoices(SetupStepId.AVAILABILITY, setOf("MACHINES"))
+            .withApparatusPresence("hack_squat", ApparatusPresence.PRESENT, isSupport = false)
+        val changed = withApparatus
+            .withApparatusPresence("hack_squat", ApparatusPresence.ABSENT, isSupport = false)
+            .withChangeImpacts(withApparatus)
+
+        // AC-T005-03: el subpanel §13.2 forma parte del material.
+        assertTrue(SetupChangeSource.EQUIPMENT in
+            SetupChangeDetector.sourcesFor(withApparatus.inputFootprint(), changed.inputFootprint()))
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
     }
 
     @Test
@@ -144,12 +215,19 @@ class SetupWizardStateTest {
     }
 
     @Test
-    fun changingCalendarRecalculatesOnlyTheNutritionDistribution() {
+    fun changingCalendarRecalculatesNutritionAndTrainingDependents() {
         val base = baseDraft()
         val changed = base.copy(selectedWeekdays = setOf(1, 4)).withChangeImpacts(base)
 
-        assertEquals(setOf(SetupPreviewKind.NUTRITION_DISTRIBUTION), changed.stepProgress.stalePreviews)
-        assertTrue(changed.stepProgress.pendingReview.isEmpty())
+        assertEquals(
+            setOf(
+                SetupPreviewKind.NUTRITION_DISTRIBUTION,
+                SetupPreviewKind.PLAN_CANDIDATES, SetupPreviewKind.SPLIT, SetupPreviewKind.RECIPE,
+                SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS,
+            ),
+            changed.stepProgress.stalePreviews,
+        )
+        assertEquals(setOf(SetupStepId.PLAN, SetupStepId.SPLIT), changed.stepProgress.pendingReview)
     }
 
     @Test
@@ -245,7 +323,8 @@ class SetupWizardStateTest {
 
     @Test
     fun resumingRestoresTheExactStepAnswersUnitsAndSelections() {
-        val base = baseDraft().copy(
+        val original = baseDraft()
+        val base = original.copy(
             weightUnit = "lb",
             manualMuscleOverrides = mapOf("Pecho" to 3),
             manualEnergyOverride = 2,
@@ -253,7 +332,10 @@ class SetupWizardStateTest {
             selectedCatalogId = "plan-x",
             equipment = setOf(SetupEquipment.DUMBBELLS),
             nutritionDraft = NutritionWizardDraft(mode = "create", targetWeightText = "70"),
-            stepProgress = baseDraft().stepProgress.withPendingReview(setOf(SetupStepId.PLAN)),
+            // The cursor must have a confirmed prefix; otherwise §15.4 correctly
+            // repairs an out-of-order persisted cursor to its first pending step.
+            stepProgress = progressAt(SetupStepId.DAYS, original.stepContext())
+                .withPendingReview(setOf(SetupStepId.PLAN)),
         )
         val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
         val payload = json.encodeToString(base)

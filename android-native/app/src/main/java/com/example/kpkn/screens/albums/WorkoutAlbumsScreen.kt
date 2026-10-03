@@ -45,9 +45,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.kpkn.data.media.WorkoutAlbum
+import com.example.kpkn.data.media.WorkoutAlbumGrouping
+import com.example.kpkn.data.media.WorkoutMediaPendingRetryAlbum
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.rememberLocalMediaImageSource
 import java.io.File
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +118,7 @@ fun WorkoutAlbumsScreen(
                     }
                 }
             }
-            if (state.albums.isEmpty() && !state.isLoading) {
+            if (state.albums.isEmpty() && state.pendingRetries.isEmpty() && !state.isLoading) {
                 Text(
                     "Todavía no hay fotos ni vídeos de entrenamiento.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -124,6 +130,21 @@ fun WorkoutAlbumsScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                    if (state.pendingRetries.isNotEmpty()) {
+                        item(key = "pending-media-heading") {
+                            Text(
+                                "Medios pendientes de guardar",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        items(state.pendingRetries, key = { "pending:${it.historyKey}" }) { pending ->
+                            PendingCaptureRetryRow(
+                                pending = pending,
+                                onRetry = { viewModel.retryPendingCaptures(pending.sessionKey) },
+                            )
+                        }
+                    }
                     items(state.albums, key = { it.albumKey }) { album ->
                         AlbumRow(album = album, onClick = { onOpenAlbum(album.albumKey) })
                     }
@@ -134,7 +155,59 @@ fun WorkoutAlbumsScreen(
 }
 
 @Composable
+private fun PendingCaptureRetryRow(
+    pending: WorkoutMediaPendingRetryAlbum,
+    onRetry: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    pending.sessionName?.trim()?.takeIf(String::isNotEmpty) ?: "Sesión de entrenamiento",
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    buildString {
+                        append(WorkoutAlbumGrouping.dateLabel(pending.createdAtMs))
+                        append(" · ")
+                        append(pending.pendingCount)
+                        append(if (pending.pendingCount == 1) " medio pendiente" else " medios pendientes")
+                        if (!pending.workoutLogId.isNullOrBlank()) append(" · Sesión finalizada")
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    pending.errorMessage,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            OutlinedButton(onClick = onRetry) {
+                Text("Reintentar")
+            }
+        }
+    }
+}
+
+@Composable
 private fun AlbumRow(album: WorkoutAlbum, onClick: () -> Unit) {
+    val coverPath = album.coverThumbPath
+    val resolvedCover by produceState<File?>(initialValue = null, key1 = coverPath) {
+        value = null
+        value = withContext(Dispatchers.IO) {
+            coverPath?.let(::File)?.takeIf { it.isFile }
+        }
+    }
+    val cover = resolvedCover
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
@@ -145,11 +218,10 @@ private fun AlbumRow(album: WorkoutAlbum, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val cover = album.coverThumbPath?.let(::File)?.takeIf { it.isFile }
             val coverIsVideoFile = cover != null && cover.extension.lowercase() in setOf("mp4", "webm", "mov", "m4v", "3gp")
             if (cover != null && !coverIsVideoFile) {
-                AsyncImage(
-                    model = cover,
+                LocalMediaImage(
+                    source = rememberLocalMediaImageSource(cover),
                     contentDescription = album.title,
                     modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
                     contentScale = ContentScale.Crop,

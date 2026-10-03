@@ -228,7 +228,7 @@ internal fun restPageInsertIndex(
         }
         val completedPageIdx = pages.indexOfLast { page ->
             when (page.type) {
-                LivePageType.CARDIO -> parsed.setIdx == 0 && page.exerciseId == parsed.exerciseId
+                LivePageType.CARDIO -> page.exerciseId == parsed.exerciseId && page.setIndex == parsed.setIdx
                 LivePageType.NORMAL -> page.exerciseId == parsed.exerciseId &&
                     page.setIndex == parsed.setIdx &&
                     (normalizedSide == null || page.side == normalizedSide)

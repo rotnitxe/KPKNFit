@@ -90,7 +90,7 @@ class WorkoutSessionHydrator(
         val side: String?,
     )
 
-    fun loadSession(): Boolean {
+    suspend fun loadSession(): Boolean {
         val program = repository.getProgramById(programId) ?: return false
         var foundSession: Session? = null
         var foundWeekId = ""
@@ -270,7 +270,19 @@ class WorkoutSessionHydrator(
             mobilityCompletedExerciseIds = migratedMobilityCompletedExerciseIds,
             mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
         )
-        val restoredResumeStep = resumedState?.let { ports.firstIncompleteStep(resumeProbe) }
+        val resumeSteps = WorkoutStepRules.buildSteps(
+            session = restoredSession,
+            visibleExercises = exercisesForMode,
+            omittedSetKeys = restoredOmittedSetKeys,
+        )
+        val restoredResumeStep = resumedState?.let {
+            preferredProtectedCardioResumeStep(
+                timer = restoredCardioTimerState,
+                exercises = exercisesForMode,
+                completedSets = restoredCompletedSets,
+                availableSteps = resumeSteps,
+            ) ?: ports.firstIncompleteStep(resumeProbe)
+        }
         val restoredExerciseIdx = restoredResumeStep
             ?.let { step -> exercisesForMode.indexOfFirst { it.id == step.exerciseId }.takeIf { it >= 0 } }
             ?: 0
@@ -495,6 +507,10 @@ class WorkoutSessionHydrator(
                 StartWorkoutResult.Corrupt -> {
                     persistBlocked = true
                     updateState { it.copy(pendingOngoingCorrupt = true) }
+                }
+                is StartWorkoutResult.Failed, StartWorkoutResult.NotFound -> {
+                    persistBlocked = true
+                    updateState { it.copy(startPersistenceError = "No se pudo iniciar el entreno. Reintenta.") }
                 }
             }
         }

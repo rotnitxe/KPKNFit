@@ -59,7 +59,7 @@ import com.example.kpkn.data.models.TechnicalAspect
 import com.example.kpkn.domain.exercises.TechnicalAspectEngine
 import com.example.kpkn.domain.exercises.VariantGroup
 import com.example.kpkn.domain.exercises.VariantGroupIndex
-import com.example.kpkn.domain.exercises.VariantPreferenceStore
+import com.example.kpkn.data.preferences.PreferenceStores
 import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
 import com.example.kpkn.ui.components.CanonicalKnowledgeOverlay
 
@@ -70,7 +70,7 @@ fun CatalogSelectionWizard(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    val prefStore = remember { VariantPreferenceStore.getInstance(context) }
+    val prefStore = remember { PreferenceStores.variantPreferences(context) }
 
     val group = remember(initialExercise) {
         initialExercise.variantGroupId?.let { VariantGroupIndex.getGroup(it) }

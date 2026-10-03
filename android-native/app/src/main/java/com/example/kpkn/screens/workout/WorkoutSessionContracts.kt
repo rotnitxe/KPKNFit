@@ -1,8 +1,11 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.DropSetData
+import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.domain.workout.WorkoutTagResolver
@@ -35,6 +38,47 @@ data class PreparationReport(
 )
 
 @Serializable
+enum class WorkoutTechniqueDraftKind {
+    SCHEDULED_DROP,
+    SCHEDULED_REST_PAUSE,
+    GUIDED_DROP,
+    GUIDED_REST_PAUSE,
+}
+
+/** Nullable members let old Room JSON decode safely even if a future writer stored a partial draft. */
+@Serializable
+data class WorkoutTechniqueMainCaptureDraft(
+    val loadMode: LoadModeV2? = null,
+    val unitMode: UnitModeV2? = null,
+    val weight: Double? = null,
+    val value: Double? = null,
+    val intensity: Double? = null,
+    val amrapOverride: Boolean? = null,
+    val bodyWeight: Double? = null,
+    val side: String? = null,
+)
+
+/** In-progress technique rows are part of the active set draft until Room acknowledges the set. */
+@Serializable
+data class WorkoutTechniqueProgressDraft(
+    val kind: WorkoutTechniqueDraftKind? = null,
+    val phaseIndex: Int? = null,
+    val phaseCount: Int? = null,
+    val mainCapture: WorkoutTechniqueMainCaptureDraft? = null,
+    val dropRows: List<DropSetData>? = null,
+    val restPauseRows: List<RestPauseData>? = null,
+    val dropWeightText: String? = null,
+    val dropRepsText: String? = null,
+    val restPauseRepsText: String? = null,
+    val restRemainingSeconds: Int? = null,
+    /** The final row is already captured and a retry must submit it without appending again. */
+    val awaitingCommit: Boolean? = null,
+    /** Exact rows for a pending guided commit. Empty is an explicit skip; null means legacy/no snapshot. */
+    val commitDropRows: List<DropSetData>? = null,
+    val commitRestPauseRows: List<RestPauseData>? = null,
+)
+
+@Serializable
 data class WorkoutSetDraft(
     val weightText: String? = null,
     val valueText: String? = null,
@@ -55,6 +99,8 @@ data class WorkoutSetDraft(
     val amrapReachFailure: Boolean? = null,
     val amrapReserveReps: Int? = null,
     val notes: String? = null,
+    /** Missing in legacy payloads; null means no multi-phase technique is in progress. */
+    val techniqueProgress: WorkoutTechniqueProgressDraft? = null,
 )
 
 @Serializable

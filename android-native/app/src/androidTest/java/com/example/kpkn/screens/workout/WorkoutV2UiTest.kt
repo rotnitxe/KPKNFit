@@ -46,18 +46,20 @@ class WorkoutV2UiTest {
                     onSetBodyWeight = {},
                     initialBodyWeight = 80.0,
                     recordActionHolder = RecordActionHolder(),
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
 
-        composeRule.onNodeWithText("Técnica").performClick()
-        composeRule.onNodeWithText("Dropsets").performClick()
-        composeRule.onNodeWithText("Dropsets activos")
-        composeRule.onNodeWithText("Restpauses")
-                    composeRule.onNodeWithText("Opciones avanzadas").performClick()
-        composeRule.onNodeWithText("Error de ejecución")
-        composeRule.onNodeWithText("AMRAP").performClick()
+        // The former "Técnica" tab is now the "Opciones avanzadas" face of the
+        // card (see SetExecutionCardUiTest.advancedOptionsCtaUsesNewCopyAndHidesReportLabel).
+        // AMRAP is no longer a manual toggle there: it only comes from the plan.
+        composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Añadir drop-sets").performClick()
+        composeRule.onNodeWithText("Drop-sets").assertExists()
+        composeRule.onNodeWithText("Añadir rest-pause").assertExists()
+        composeRule.onNodeWithText("Error de ejecución").assertExists()
     }
 
     @Test
@@ -92,7 +94,7 @@ class WorkoutV2UiTest {
                     onSetBodyWeight = {},
                     initialBodyWeight = 82.0,
                     recordActionHolder = RecordActionHolder(),
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -134,14 +136,17 @@ class WorkoutV2UiTest {
                     onSetBodyWeight = {},
                     initialBodyWeight = 80.0,
                     recordActionHolder = RecordActionHolder(),
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
 
-        composeRule.onNodeWithText("Técnica").performClick()
-        composeRule.onNodeWithText("Dropsets").performClick()
-        composeRule.onNodeWithText("Dropsets activos")
+        composeRule.onNodeWithText("Opciones avanzadas").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Añadir drop-sets").performClick()
+        // The chip flips from the "add" call to the active label once toggled on.
+        composeRule.onNodeWithText("Drop-sets").assertExists()
+        composeRule.onNodeWithText("Añadir drop-sets").assertDoesNotExist()
     }
 
     @Test
@@ -228,7 +233,10 @@ class WorkoutV2UiTest {
 
         composeRule.onNodeWithText("Serie 1/2").assertExists()
         composeRule.onNodeWithText("0/2").assertExists()
-        composeRule.onNodeWithText("Izq").assertExists()
+        // Unilateral sets render as the set label plus an L / R dot pair
+        // (UnilateralSetStackNode); the old "Izq" side chip no longer exists.
+        composeRule.onNodeWithText("L").assertExists()
+        composeRule.onNodeWithText("R").assertExists()
     }
 
     @Test
@@ -253,8 +261,9 @@ class WorkoutV2UiTest {
             }
         }
 
-        composeRule.onNodeWithText("Preparación").assertExists()
-        composeRule.onNodeWithText("Series efectivas").assertExists()
+        // ActivityCloudArea labels are rendered upper-case.
+        composeRule.onNodeWithText("PREPARACIÓN").assertExists()
+        composeRule.onNodeWithText("SERIES EFECTIVAS").assertExists()
     }
 
 }

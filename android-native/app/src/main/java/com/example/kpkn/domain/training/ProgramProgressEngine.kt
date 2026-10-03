@@ -15,6 +15,7 @@ import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.OneRmResolution
 import com.example.kpkn.data.models.OneRmResolutionStatus
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
@@ -47,7 +48,11 @@ object ProgramProgressEngine {
     )
 
     fun resolveCurrentWeekInstances(program: Program, cycleNumber: Int): List<WeekInstance> =
-        ProgramCurrentWeekResolver.cyclicInstances(program, cycleNumber)
+        if (program.requiresNativeWeekInstances()) {
+            ProgramCurrentWeekResolver.nativeComplexInstances(program, cycleNumber)
+        } else {
+            ProgramCurrentWeekResolver.cyclicInstances(program, cycleNumber)
+        }
 
     /**
      * Semanas de loop que deben entrenarse al cerrar el ciclo [cycleNumber]
@@ -283,14 +288,18 @@ object ProgramProgressEngine {
         if (nextIndex in instances.indices) {
             val next = instances[nextIndex]
             val location = hierarchy.locateWeek(next.templateWeekId)
-            val updatedRun = (workingProgram.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+            // §14.5/AC-G4: una propuesta pendiente jamás se descarta en silencio
+            // al avanzar: queda con estado terminal «expirada» y motivo.
+            val progressed = ProgramAutoregulationEngine.expirePending(
+                workingProgram,
+                reason = "Caducada al avanzar de semana: la propuesta no se resolvió antes del avance.",
+            )
+            val updatedRun = (progressed.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
                 cycleNumber = cycleNumber,
                 weekInstanceId = next.instanceId,
                 weekId = next.templateWeekId,
                 completedSessionIds = emptySet(),
-                pendingAction = workingProgram.runState?.pendingAction?.takeIf {
-                    it.type != PendingProgramActionType.CONFIRM_AUTOREGULATION
-                },
+                pendingAction = progressed.runState?.pendingAction,
             )
             val advanced = workingProgram.copy(runState = updatedRun)
             val regulated = applyWeeklyAutoregulation(
@@ -543,34 +552,38 @@ object ProgramProgressEngine {
 
         // Complex programs have a real finite cursor.  A late/out-of-order log is
         // retained in history but cannot jump the active phase.
-        val canonicalWeekId = program.runState?.weekId
+        val canonicalWeekId = program.runState?.weekId?.let { templateWeekIdFromInstance(it) ?: it }
             ?: activeState?.currentWeekId?.let { templateWeekIdFromInstance(it) ?: it }
         if (!canonicalWeekId.isNullOrBlank() && canonicalWeekId != location.week.id) {
             return ProgressAdvanceResult(program, activeState)
         }
 
         val runId = program.runState?.runId ?: activeState?.programRunId
+        val cycleForInstance = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
         val weekComplete = isWeekInstanceComplete(
             week = location.week,
             logs = logs,
             programId = program.id,
             instanceId = weekInstanceId,
-            cycleNumber = 1,
+            cycleNumber = cycleForInstance,
             programRunId = runId,
         )
         if (!weekComplete) {
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, location.week.id)
+            val (activeWeekId, activeWeekInstanceId) = program.complexActiveWeekFields(cycleNumber, location.week.id)
             val updatedRun = program.runState?.copy(
-                weekInstanceId = location.week.id,
-                weekId = location.week.id,
+                weekInstanceId = runWeekInstanceId,
+                weekId = runWeekId,
                 macrocycleId = location.macrocycleId,
                 blockId = location.blockId,
                 mesocycleId = location.mesocycleId,
                 completedSessionIds = (program.runState?.completedSessionIds ?: emptySet()) + completedSession.id,
             ) ?: ProgramRunState(
                 runId = runId ?: newRunId(),
-                cycleNumber = 1,
-                weekInstanceId = location.week.id,
-                weekId = location.week.id,
+                cycleNumber = cycleNumber,
+                weekInstanceId = runWeekInstanceId,
+                weekId = runWeekId,
                 macrocycleId = location.macrocycleId,
                 blockId = location.blockId,
                 mesocycleId = location.mesocycleId,
@@ -579,38 +592,58 @@ object ProgramProgressEngine {
             return ProgressAdvanceResult(
                 program = program.copy(runState = updatedRun),
                 activeState = activeState?.copy(
-                    currentWeekId = location.week.id,
-                    currentWeekInstanceId = location.week.id,
+                    currentWeekId = activeWeekId,
+                    currentWeekInstanceId = activeWeekInstanceId,
                     currentBlockId = location.blockId,
                     currentMacrocycleId = location.macrocycleId,
                     currentMesocycleId = location.mesocycleId,
                     currentMacrocycleIndex = location.macroIndex,
                     currentBlockIndex = location.blockIndex,
                     currentMesocycleIndex = location.globalMesoIndex,
+                    currentCycleNumber = cycleNumber,
                 ),
             )
         }
 
         val block = program.macrocycles.getOrNull(location.macroIndex)?.blocks?.getOrNull(location.blockIndex)
             ?: return ProgressAdvanceResult(program, activeState)
+        val orderedWeeks = hierarchy.orderedWeeks()
+        val globalWeekPos = orderedWeeks.indexOfFirst { it.week.id == location.week.id }
         val weeksInBlock = block.mesocycles.flatMap { it.weeks }
         val weekPos = weeksInBlock.indexOfFirst { it.id == location.week.id }
-        if (weekPos >= 0 && weekPos < weeksInBlock.lastIndex) {
-            val nextWeek = weeksInBlock[weekPos + 1]
-            val nextLocation = hierarchy.locateWeek(nextWeek.id)
-            val updatedRun = (program.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
-                cycleNumber = 1,
-                weekInstanceId = nextWeek.id,
-                weekId = nextWeek.id,
+        if (weekPos < 0 && globalWeekPos < 0) return ProgressAdvanceResult(program, activeState)
+        val hasNextInGlobal = program.requiresNativeWeekInstances() &&
+            globalWeekPos >= 0 &&
+            globalWeekPos < orderedWeeks.lastIndex
+        val hasNextInBlock = weekPos >= 0 && weekPos < weeksInBlock.lastIndex
+        if (hasNextInGlobal || hasNextInBlock) {
+            val nextLocation = if (program.requiresNativeWeekInstances() && hasNextInGlobal) {
+                orderedWeeks[globalWeekPos + 1]
+            } else {
+                val nextWeek = weeksInBlock[weekPos + 1]
+                hierarchy.locateWeek(nextWeek.id) ?: return ProgressAdvanceResult(program, activeState)
+            }
+            val nextWeek = nextLocation.week
+            // §14.5/AC-G4: una propuesta pendiente jamás se descarta en silencio
+            // al avanzar: queda con estado terminal «expirada» y motivo.
+            val progressed = ProgramAutoregulationEngine.expirePending(
+                program,
+                reason = "Caducada al avanzar de semana: la propuesta no se resolvió antes del avance.",
+            )
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, nextWeek.id)
+            val (activeWeekId, activeWeekInstanceId) = program.complexActiveWeekFields(cycleNumber, nextWeek.id)
+            val updatedRun = (progressed.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+                cycleNumber = cycleNumber,
+                weekInstanceId = runWeekInstanceId,
+                weekId = runWeekId,
                 macrocycleId = nextLocation?.macrocycleId,
                 blockId = nextLocation?.blockId ?: block.id,
                 mesocycleId = nextLocation?.mesocycleId,
                 completedSessionIds = emptySet(),
-                pendingAction = program.runState?.pendingAction?.takeIf {
-                    it.type != PendingProgramActionType.CONFIRM_AUTOREGULATION
-                },
+                pendingAction = progressed.runState?.pendingAction,
             )
-            val advanced = program.copy(runState = updatedRun)
+            val advanced = progressed.copy(runState = updatedRun)
             val regulated = applyWeeklyAutoregulation(
                 program = advanced,
                 completedWeek = location.week,
@@ -622,14 +655,15 @@ object ProgramProgressEngine {
             return ProgressAdvanceResult(
                 program = regulated.program,
                 activeState = activeState?.copy(
-                    currentWeekId = nextWeek.id,
-                    currentWeekInstanceId = nextWeek.id,
+                    currentWeekId = activeWeekId,
+                    currentWeekInstanceId = activeWeekInstanceId,
                     currentBlockId = nextLocation?.blockId ?: block.id,
                     currentMacrocycleId = nextLocation?.macrocycleId ?: location.macrocycleId,
                     currentMesocycleId = nextLocation?.mesocycleId ?: location.mesocycleId,
                     currentMacrocycleIndex = nextLocation?.macroIndex ?: location.macroIndex,
                     currentBlockIndex = nextLocation?.blockIndex ?: location.blockIndex,
                     currentMesocycleIndex = nextLocation?.globalMesoIndex ?: location.globalMesoIndex,
+                    currentCycleNumber = cycleNumber,
                     programRunId = updatedRun.runId,
                 ),
                 advancedWeek = true,
@@ -637,8 +671,21 @@ object ProgramProgressEngine {
             )
         }
 
+        if (program.requiresNativeWeekInstances()) {
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            val progressed = ProgramAutoregulationEngine.expirePending(
+                program,
+                reason = "Caducada al cerrar el ciclo $cycleNumber: la propuesta no se resolvió.",
+            )
+            return completeCycle(progressed, activeState, cycleNumber, logs)
+        }
+
         if (program.isSimpleLinearProgram) {
-            val completedRun = (program.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+            val progressedComplete = ProgramAutoregulationEngine.expirePending(
+                program,
+                reason = "Caducada al completar el programa: la propuesta no se resolvió.",
+            )
+            val completedRun = (progressedComplete.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
                 cycleNumber = 1,
                 weekInstanceId = null,
                 weekId = null,
@@ -647,10 +694,10 @@ object ProgramProgressEngine {
                 mesocycleId = location.mesocycleId,
                 completedSessionIds = emptySet(),
                 status = ProgramRunStatus.COMPLETED,
-                pendingAction = null,
+                pendingAction = progressedComplete.runState?.pendingAction,
             )
             return ProgressAdvanceResult(
-                program = program.copy(runState = completedRun),
+                program = progressedComplete.copy(runState = completedRun),
                 activeState = activeState?.copy(
                     status = com.example.kpkn.data.models.ProgramStatus.COMPLETED,
                     programRunId = completedRun.runId,
@@ -669,11 +716,13 @@ object ProgramProgressEngine {
         )
         var working = decision.updatedProgram ?: program
         if (decision.kind == BlockTransitionEngine.DecisionKind.HOLD_INCOMPLETE) {
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, location.week.id)
             return ProgressAdvanceResult(
                 program = working.copy(
                     runState = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
-                        weekInstanceId = location.week.id,
-                        weekId = location.week.id,
+                        weekInstanceId = runWeekInstanceId,
+                        weekId = runWeekId,
                         macrocycleId = location.macrocycleId,
                         blockId = location.blockId,
                         mesocycleId = location.mesocycleId,
@@ -683,6 +732,13 @@ object ProgramProgressEngine {
             )
         }
         val nextBlockId = decision.nextBlockId
+        // §14.5/AC-G4: antes de que esta transición sustituya la acción pendiente
+        // (test 1RM o descarga) la autoregulación no resuelta queda expirada con
+        // motivo, nunca descartada en silencio.
+        working = ProgramAutoregulationEngine.expirePending(
+            working,
+            reason = "Caducada al cambiar de bloque: la propuesta no se resolvió antes de la transición.",
+        )
         val nextBlock = nextBlockId?.let { id -> working.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == id } }
         val nextWeek = nextBlock?.mesocycles?.flatMap { it.weeks }?.firstOrNull()
         val workingHierarchy = ProgramHierarchyIndex(working)
@@ -694,10 +750,12 @@ object ProgramProgressEngine {
                 message = decision.message,
                 nextBlockId = nextBlockId,
             )
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, location.week.id)
             val pendingRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
-                cycleNumber = 1,
-                weekInstanceId = location.week.id,
-                weekId = location.week.id,
+                cycleNumber = cycleNumber,
+                weekInstanceId = runWeekInstanceId,
+                weekId = runWeekId,
                 macrocycleId = location.macrocycleId,
                 blockId = location.blockId,
                 mesocycleId = location.mesocycleId,
@@ -721,10 +779,12 @@ object ProgramProgressEngine {
                 message = decision.message,
                 nextBlockId = nextBlockId,
             )
+            val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+            val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, location.week.id)
             val pendingRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
-                cycleNumber = 1,
-                weekInstanceId = location.week.id,
-                weekId = location.week.id,
+                cycleNumber = cycleNumber,
+                weekInstanceId = runWeekInstanceId,
+                weekId = runWeekId,
                 macrocycleId = location.macrocycleId,
                 blockId = location.blockId,
                 mesocycleId = location.mesocycleId,
@@ -739,7 +799,11 @@ object ProgramProgressEngine {
         }
 
         if (nextWeek == null) {
-            val completedRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+            val progressedEnd = ProgramAutoregulationEngine.expirePending(
+                working,
+                reason = "Caducada al cerrar el bloque: la propuesta no se resolvió.",
+            )
+            val completedRun = (progressedEnd.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
                 cycleNumber = 1,
                 weekInstanceId = null,
                 weekId = null,
@@ -748,27 +812,34 @@ object ProgramProgressEngine {
                 mesocycleId = location.mesocycleId,
                 completedSessionIds = emptySet(),
                 status = ProgramRunStatus.COMPLETED,
-                pendingAction = null,
+                pendingAction = progressedEnd.runState?.pendingAction,
             )
             return ProgressAdvanceResult(
-                program = working.copy(runState = completedRun),
+                program = progressedEnd.copy(runState = completedRun),
                 activeState = activeState?.copy(status = com.example.kpkn.data.models.ProgramStatus.COMPLETED, programRunId = completedRun.runId),
                 advancedCycle = true,
             )
         }
 
-        val updatedRun = (working.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
-            cycleNumber = 1,
-            weekInstanceId = nextWeek.id,
-            weekId = nextWeek.id,
+        val progressedBlock = ProgramAutoregulationEngine.expirePending(
+            working,
+            reason = "Caducada al avanzar de semana: la propuesta no se resolvió antes del avance.",
+        )
+        val cycleNumber = program.runState?.cycleNumber ?: activeState?.currentCycleNumber ?: 1
+        val (runWeekId, runWeekInstanceId) = program.complexWeekRunFields(cycleNumber, nextWeek.id)
+        val (activeWeekId, activeWeekInstanceId) = program.complexActiveWeekFields(cycleNumber, nextWeek.id)
+        val updatedRun = (progressedBlock.runState ?: ProgramRunState(runId = runId ?: newRunId())).copy(
+            cycleNumber = cycleNumber,
+            weekInstanceId = runWeekInstanceId,
+            weekId = runWeekId,
             macrocycleId = nextLocation?.macrocycleId,
             blockId = nextLocation?.blockId ?: nextBlockId,
             mesocycleId = nextLocation?.mesocycleId,
             completedSessionIds = emptySet(),
             status = ProgramRunStatus.ACTIVE,
-            pendingAction = null,
+            pendingAction = progressedBlock.runState?.pendingAction,
         )
-        working = working.copy(runState = updatedRun)
+        working = progressedBlock.copy(runState = updatedRun)
         val regulated = applyWeeklyAutoregulation(
             program = working,
             completedWeek = location.week,
@@ -780,14 +851,15 @@ object ProgramProgressEngine {
         return ProgressAdvanceResult(
             program = regulated.program,
             activeState = activeState?.copy(
-                currentWeekId = nextWeek.id,
-                currentWeekInstanceId = nextWeek.id,
+                currentWeekId = activeWeekId,
+                currentWeekInstanceId = activeWeekInstanceId,
                 currentBlockId = nextBlockId ?: activeState.currentBlockId,
                 currentMacrocycleId = nextLocation?.macrocycleId ?: activeState.currentMacrocycleId,
                 currentMesocycleId = nextLocation?.mesocycleId ?: activeState.currentMesocycleId,
                 currentMacrocycleIndex = nextLocation?.macroIndex ?: activeState.currentMacrocycleIndex,
                 currentBlockIndex = nextLocation?.blockIndex ?: activeState.currentBlockIndex,
                 currentMesocycleIndex = nextLocation?.globalMesoIndex ?: activeState.currentMesocycleIndex,
+                currentCycleNumber = cycleNumber,
                 programRunId = updatedRun.runId,
             ),
             advancedWeek = true,
@@ -831,12 +903,22 @@ object ProgramProgressEngine {
         accept: Boolean,
         metadata: ExerciseCompositionMetadataProvider? = null,
         only: AutoregulationProposal? = null,
+        /**
+         * Evidencia real de semanas entrenadas (§14.5). null = derivarla del
+         * run (nunca del mero `runState.weekId`: colisión R-202).
+         */
+        executedWeekIds: Set<String>? = null,
+        executedSessionIds: Set<String> = emptySet(),
+        nowMs: Long = System.currentTimeMillis(),
     ): ProgressAdvanceResult {
         val resolved = ProgramAutoregulationEngine.resolvePending(
             program = program,
             accept = accept,
             metadata = metadata,
             only = only,
+            executedWeekIds = executedWeekIds,
+            executedSessionIds = executedSessionIds,
+            nowMs = nowMs,
         )
         return ProgressAdvanceResult(program = resolved, activeState = null)
     }
@@ -885,13 +967,36 @@ object ProgramProgressEngine {
         val firstInstance = nextInstances.firstOrNull()
         val firstLocation = firstInstance?.let { hierarchy.locateWeek(it.templateWeekId) }
 
-        val updatedProgram = withAdvancedLoop.copy(
+        // §14.5/AC-G4: nada se descarta en silencio al cerrar ciclo. Los
+        // pendientes no resueltos quedan expirados con motivo y el audit
+        // append-only (más la resolución 1RM) sobrevive al cierre.
+        val progressed = ProgramAutoregulationEngine.expirePending(
+            withAdvancedLoop,
+            reason = "Caducada al cerrar el ciclo $cycleNumber: la propuesta no se resolvió.",
+        )
+        // §12.1: la progresión propia se procesa EXACTAMENTE UNA vez por cierre
+        // de ciclo, registrado de forma idempotente (sin duplicar ocurrencias ni
+        // propuestas en cierres repetidos).
+        val firstOccurrence = firstInstance
+            ?.let { instance ->
+                hierarchy.locateWeek(instance.templateWeekId)?.week?.progressionIndex
+                    ?: (nextInstances.indexOfFirst { it.instanceId == instance.instanceId } + 1)
+            }
+            ?: 1
+        val continued = registerNativeContinuationOnce(progressed, newCycle, firstOccurrence, logs = logs)
+        val priorRun = continued.runState
+
+        val updatedProgram = continued.copy(
             runState = ProgramRunState(
                 runId = stableRunId,
                 cycleNumber = newCycle,
                 weekInstanceId = firstInstance?.instanceId,
                 weekId = firstInstance?.templateWeekId,
                 status = ProgramRunStatus.ACTIVE,
+                pendingAction = priorRun?.pendingAction,
+                autoregulationAudit = priorRun?.autoregulationAudit.orEmpty(),
+                oneRmResolution = priorRun?.oneRmResolution,
+                oneRmAuditTrail = priorRun?.oneRmAuditTrail.orEmpty(),
             ),
         ).let { LoopEngine.syncOccurrences(it) }
 
@@ -914,6 +1019,55 @@ object ProgramProgressEngine {
         )
     }
     fun newRunId(idProvider: IdProvider = UuidIdProvider): String = "run_${idProvider.newId()}"
+
+    /**
+     * §12.1: continúa la progresión propia KPKN al cerrar ciclo, registrándola
+     * EXACTAMENTE UNA vez por (ciclo, ocurrencia). El registro es idempotente:
+     * repetir el cierre no duplica la entrada ni las propuestas, y nunca toca
+     * las semanas ya entrenadas (solo añade la receta efectiva de la nueva
+     * ocurrencia, sin reescribir logs ni IDs históricos).
+     *
+     * [cycleNumber] es el ciclo NUEVO. Antes de registrar la marca (y solo si
+     * todavía no existe) se arrastra la progresión del ciclo cerrado
+     * ([NativeWorkoutProgressionRuntime.carryForwardToNextCycle]): caducan las
+     * propuestas nativas pendientes con motivo y las últimas referencias de
+     * carga/variante por identidad pasan a las sesiones que el ciclo nuevo
+     * reutiliza. La marca `native-progression-c<N>` es la guarda de idempotencia.
+     */
+    internal fun registerNativeContinuationOnce(
+        program: Program,
+        cycleNumber: Int,
+        weekOccurrence: Int,
+        nowMs: Long = System.currentTimeMillis(),
+        logs: List<WorkoutLog> = emptyList(),
+    ): Program {
+        val recipe = program.sourceRecipe ?: return program
+        if (recipe.nativeProgression == null) return program
+        val proposalId = "native-progression-c$cycleNumber"
+        val existing = PlanMaterializer.effectiveWeekRecipeFor(program, weekOccurrence, cycleNumber)
+        if (existing?.appliedProposals?.any { it.proposalId == proposalId } == true) return program
+        val carried = NativeWorkoutProgressionRuntime.carryForwardToNextCycle(
+            program = program,
+            logs = logs,
+            closedCycle = cycleNumber - 1,
+            nowMs = nowMs,
+        )
+        return PlanMaterializer.withEffectiveWeekRecipe(
+            program = carried,
+            weekOccurrence = weekOccurrence,
+            cycleNumber = cycleNumber,
+            weekRecipe = null,
+            applied = listOf(
+                com.example.kpkn.data.models.AppliedRecipeProposal(
+                    proposalId = proposalId,
+                    kind = "NATIVE_PROGRESSION",
+                    summary = "Continuación de ${ProgramHierarchyIndex(carried).orderedWeeks().size} semanas registrada una vez al cerrar el ciclo ${cycleNumber - 1} " +
+                        "(configuraciones y últimas referencias mantenidas, propuestas pendientes caducadas, historial intacto).",
+                    acceptedAtMs = nowMs,
+                ),
+            ),
+        )
+    }
 
     /**
      * If the cursor sits on a loop week that is no longer actionable (postponed/cancelled),
@@ -989,4 +1143,107 @@ object ProgramProgressEngine {
             ),
         )
     }
+
+    private fun Program.complexWeekRunFields(
+        cycleNumber: Int,
+        templateWeekId: String,
+    ): Pair<String, String> = if (requiresNativeWeekInstances()) {
+        templateWeekId to coerceNativeWeekInstanceId(cycleNumber, templateWeekId, null)
+    } else {
+        templateWeekId to templateWeekId
+    }
+
+    private fun Program.complexActiveWeekFields(
+        cycleNumber: Int,
+        templateWeekId: String,
+    ): Pair<String, String> = if (requiresNativeWeekInstances()) {
+        val inst = coerceNativeWeekInstanceId(cycleNumber, templateWeekId, null)
+        inst to inst
+    } else {
+        templateWeekId to templateWeekId
+    }
+
+    /**
+     * Re-alinea el cursor nativo con evidencia real de logs cuando el run apunta
+     * a una semana futura sin trabajo (p. ej. colisión R-202 o instancia desfasada
+     * tras rechazar autoregulación). No adelanta el cursor más allá de la evidencia.
+     */
+    fun reconcileNativeRunCursorWithLogs(program: Program, logs: List<WorkoutLog>): Program {
+        if (!program.requiresNativeWeekInstances()) return program
+        val run = program.runState ?: return program
+        val cycle = run.cycleNumber
+        val runId = run.runId
+        val hierarchy = ProgramHierarchyIndex(program)
+        val ordered = hierarchy.orderedWeeks()
+        if (ordered.isEmpty()) return program
+
+        val runTemplate = run.weekId?.let { templateWeekIdFromInstance(it) ?: it } ?: return program
+        val runIndex = ordered.indexOfFirst { it.week.id == runTemplate }
+        if (runIndex < 0) return program
+
+        fun weekFullyLogged(location: ProgramHierarchyLocation): Boolean {
+            val week = location.week
+            val inst = instanceIdFor(cycle, week.id)
+            val instanceLogs = logsForInstance(logs, program.id, inst, cycle, runId)
+            val required = week.sessions.filter { it.requirement == SessionRequirement.REQUIRED }
+            return when {
+                required.isNotEmpty() ->
+                    required.all { req -> instanceLogs.any { it.sessionId == req.id } }
+                week.executionKind == WeekExecutionKind.REST -> false
+                instanceLogs.isNotEmpty() -> true
+                else -> false
+            }
+        }
+
+        var lastTrainedIndex = -1
+        ordered.forEachIndexed { index, location ->
+            if (weekFullyLogged(location)) lastTrainedIndex = index
+        }
+        val expectedIndex = (lastTrainedIndex + 1).coerceAtMost(ordered.lastIndex)
+        val expectedLocation = ordered[expectedIndex]
+        val expectedTemplate = expectedLocation.week.id
+        val coerced = coerceNativeWeekInstanceId(cycle, expectedTemplate, run.weekInstanceId)
+
+        if (runIndex <= expectedIndex && runTemplate == expectedTemplate && run.weekInstanceId == coerced) {
+            return program
+        }
+        if (runIndex > expectedIndex || runTemplate != expectedTemplate || run.weekInstanceId != coerced) {
+            return program.copy(
+                runState = run.copy(
+                    weekId = expectedTemplate,
+                    weekInstanceId = coerced,
+                    macrocycleId = expectedLocation.macrocycleId,
+                    blockId = expectedLocation.blockId,
+                    mesocycleId = expectedLocation.mesocycleId,
+                    completedSessionIds = emptySet(),
+                ),
+            )
+        }
+        return program
+    }
+}
+
+/** Native COMPLEX plans always address weeks through cycle-scoped instance ids. */
+fun Program.requiresNativeWeekInstances(): Boolean =
+    structure == ProgramStructure.COMPLEX && (
+        sourceRecipe?.nativeProgression != null || hasNativeCuratedBlock()
+        )
+
+fun coerceNativeWeekInstanceId(
+    cycleNumber: Int,
+    templateWeekId: String,
+    candidate: String?,
+): String {
+    val template = ProgramProgressEngine.templateWeekIdFromInstance(templateWeekId) ?: templateWeekId
+    candidate?.takeIf { it.startsWith("inst_") }?.let { inst ->
+        val instTemplate = ProgramProgressEngine.templateWeekIdFromInstance(inst) ?: inst
+        if (instTemplate == template) return inst
+    }
+    candidate?.takeIf { !it.startsWith("inst_") }?.let { plain ->
+        val plainTemplate = ProgramProgressEngine.templateWeekIdFromInstance(plain) ?: plain
+        if (plainTemplate == template) {
+            return ProgramProgressEngine.instanceIdFor(cycleNumber, template)
+        }
+    }
+    return ProgramProgressEngine.instanceIdFor(cycleNumber, template)
 }

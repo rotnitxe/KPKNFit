@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
@@ -173,62 +174,228 @@ sealed interface TrainingValidation {
 }
 
 /**
- * **Equipo efectivo compartido**: la única API de equipo para el readiness y
- * los candidatos del wizard (M2) y para el filtro real del motor
- * ([SimpleCyclePersonalizer]); una sola salida para no poder divergir.
+ * Origen de la evidencia de UN token emitido por
+ * [TrainingOptions.resolveEffectiveEquipment]: la UI lo muestra para que el
+ * usuario pueda corregirlo (§13.1 regla 2 «su origen se muestra y puede
+ * corregirse»).
+ */
+enum class EffectiveEquipmentOrigin {
+    /** Peso corporal: siempre disponible, no exige material. */
+    BODYWEIGHT,
+    /** Categoría confirmada en el wizard (§13.1 regla 1: delimita). */
+    CONFIRMED_CATEGORY,
+    /** Clave de aparato confirmada `PRESENT` (§13.1 regla 2). */
+    CONFIRMED_APPARATUS,
+    /** Clave de soporte confirmada `PRESENT` (§13.1 regla 2). */
+    CONFIRMED_SUPPORT,
+    /** Inventario previo exacto, admitido dentro de categorías confirmadas (regla 3). */
+    DECLARED_INVENTORY,
+    /** Perfil legacy (chips o inventario) para LEER programas previos (regla 4). */
+    LEGACY_PROFILE,
+    /** Paraguas legacy del chip `support` sobre la clase de soportes (AC-C3). */
+    LEGACY_SUPPORT_ATTESTATION,
+}
+
+/**
+ * Evidencia de UN requisito de soporte (§13.2): `PRESENT` está acreditado,
+ * `ABSENT` fue negado explícitamente o cae en una categoría sin ese ítem, y
+ * `UNKNOWN` simplemente falta confirmar. La UI distingue así `APPARATUS_ABSENT`
+ * de `APPARATUS_UNKNOWN` (§15.2).
+ */
+enum class RequirementEvidence { PRESENT, ABSENT, UNKNOWN }
+
+/**
+ * Resultado estructurado del resolver (§13.1): tokens, origen de cada evidencia
+ * y estado de cada requisito del vocabulario. [tokens] es exactamente lo que
+ * consumen readiness, candidatos, el filtro del motor y la guardia de recetas
+ * fijas; el resto viaja para que ninguna ruta tenga que re-inferirlo.
+ */
+data class EffectiveEquipmentResult(
+    /** Tokens de material acreditados, en orden de emisión. */
+    val tokens: Set<String>,
+    /** Origen de cada token emitido. */
+    val origins: Map<String, EffectiveEquipmentOrigin>,
+    /** Estado de cada requisito del vocabulario (`KNOWN_REQUIREMENTS`). */
+    val requirements: Map<String, RequirementEvidence>,
+) {
+    /** Requisitos acreditados. */
+    val presentRequirements: Set<String>
+        get() = requirements.filterValues { it == RequirementEvidence.PRESENT }.keys
+
+    /** Requisitos negados explícitamente (o sin su categoría). */
+    val missingRequirements: Set<String>
+        get() = requirements.filterValues { it == RequirementEvidence.ABSENT }.keys
+
+    /** Requisitos sin confirmar: aún no se sabe si existen. */
+    val unknownRequirements: Set<String>
+        get() = requirements.filterValues { it == RequirementEvidence.UNKNOWN }.keys
+}
+
+/**
+ * **Resolutor único de equipo efectivo** (§13.1): la única API de equipo para el
+ * readiness y los candidatos del wizard (M2) y para el filtro real del motor
+ * ([SimpleCyclePersonalizer]); una sola implementación para no poder divergir.
+ * No es estado mutable: una función pura sobre [TrainingOptions] + el perfil
+ * legacy que trae el draft.
  *
- * Contrato:
- * - [TrainingOptions.availability] no nula → bodyweight + categorías elegidas,
- *   sin importar inventario o equipo legacy. No emite `general_gym`,
- *   `free_weights` ni `machine_config:*`.
- * - [TrainingOptions.inventory] **null** → compatibilidad legacy: se devuelve el
- *   perfil tal cual (solo normalización de vocabulario: `bands`→`band`,
- *   `smith`→`smith_machine`). No se añade ni se quita nada.
+ * Reglas:
+ * 1. Las categorías confirmadas delimitan el equipo disponible: una categoría
+ *    desmarcada no se reintroduce desde el inventario antiguo. Una respuesta
+ *    confirmada con categorías vacías es solo cuerpo.
+ * 2. Dentro de las categorías permitidas, la presencia concreta reciente manda:
+ *    `PRESENT` habilita SOLO el mapeo curado de esa clave y `ABSENT` elimina el
+ *    aparato y sus configuraciones aunque exista inventario previo; `UNKNOWN`
+ *    no niega la evidencia exacta del inventario, pero deja su origen visible.
+ * 3. El inventario previo aporta presencia verificable (máquina con
+ *    `configurationId`, estación por `equipmentKind`, implemento) solo dentro de
+ *    categorías confirmadas y sin contradicción; nunca aporta kilos que no
+ *    están escritos ni acredita nada genérico.
+ * 4. Sin disponibilidad nueva se conserva la compatibilidad legacy para LEER
+ *    programas previos (chips + inventario, con el paraguas de `support` de
+ *    [LEGACY_SUPPORT_ATTESTED_REQUIREMENTS]); `general_gym` nunca sobrevive a
+ *    una declaración de inventario.
+ * 5. `bodyweight` se emite siempre en la ruta nueva (no necesita material) y
+ *    `machine_config:<id>` SOLO desde el mapeo curado o desde el inventario
+ *    exacto, jamás porque se marcó `MACHINES`.
+ */
+fun TrainingOptions.resolveEffectiveEquipment(legacyEquipment: Set<String>): EffectiveEquipmentResult =
+    availability?.let { resolveWithAvailability(it) } ?: resolveWithLegacy(legacyEquipment)
+
+/**
+ * Equipo efectivo compartido: vista `[Set<String>]` de
+ * [TrainingOptions.resolveEffectiveEquipment] (una sola implementación, sin
+ * segunda salida) para readiness, candidatos, el filtro real del motor y la
+ * guardia de recetas fijas.
+ *
+ * Contrato de los tokens:
+ * - [TrainingOptions.availability] no nula → `bodyweight` + categorías
+ *   confirmadas + mapeo curado de las claves `PRESENT`. No emite `general_gym`
+ *   ni `free_weights`, y `machine_config:<id>` solo desde mapeo curado o
+ *   inventario exacto.
+ * - [TrainingOptions.inventory] **null** (y sin availability) → perfil legacy
+ *   intacto, solo normalizado (`bands`→`band`, `smith`→`smith_machine`).
  * - [TrainingOptions.inventory] **declarado** → manda lo que el material real
- *   acredita. Siempre `bodyweight` (no necesita material: la ruta 100 % peso
- *   corporal sigue viva y el readiness nunca queda vacío), más `barbell`,
- *   `dumbbells` y `kettlebell` cuando existen; `supportEquipment` aporta sus
- *   ids canónicos (`support`, `pull_up_bar`, `band`, `ball`, `cardio`).
- *   Maquinaria: la **presencia** `machine` sigue atestiguada por
- *   `machines.isNotEmpty()` (informativa, sin aprobar ejercicios) y, además,
- *   `machines[].equipmentKind` acredita la estación declarada (`cable` o
- *   `smith_machine`, multi-ejercicio) y `machines[].configurationId` emite el
- *   token [machineConfigToken] con la configuración real del catálogo.
- *   `general_gym` (reclamo «todo el gimnasio») se excluye siempre.
- * - **Selección nativa categórica** permite variantes aprobadas `machine` sin
- *   afirmar una configuración concreta. En modo inventario legacy,
- *   `machine_config:<configurationId>` es lo único que desbloquea UNA máquina
- *   concreta (leg curl ≠ chest press ≠ prensa). Las recetas fijas conservan su
- *   guardia exacta en `missingFixedRecipeEquipment`.
- * - Disponibilidad legacy explícita **sin modelo de inventario** (`band`,
- *   `pull_up_bar`, `support`, `ball`, `cardio`…) se conserva; con
- *   `supportEquipment` declarado se acredita además la presencia real.
- * - Con `availability == null` y `inventory == null` se devuelve el perfil
- *   intacto (compatibilidad legacy exacta, incluido `general_gym` y `machine`).
+ *   acredita: `bodyweight` siempre (la ruta 100 % peso corporal sigue viva),
+ *   `barbell`/`dumbbells`/`kettlebell` si existen, `machine` como presencia
+ *   informativa (sin aprobar ejercicios), estaciones por `equipmentKind` y
+ *   `machine_config:<configurationId>` por la configuración real declarada.
+ *   `general_gym` se excluye siempre.
+ * - Con `support` acreditado (chip/inventario legacy), la clase de soportes
+ *   legacy queda atestiguada (§13.1 regla 4); en la ruta de disponibilidad NO
+ *   existe ese paraguas.
  * - Solo **acreditación de presencia**: aquí no se resuelven cargas (eso es
  *   `PlanMaterializer.realizeWarmupLoads` + `WarmupFeasibility`, con matching
  *   `configurationId` ↔ ejercicio).
  */
-fun TrainingOptions.effectiveEquipment(legacyEquipment: Set<String>): Set<String> {
-    availability?.let { declaredAvailability ->
-        return buildSet {
-            add(KIND_BODYWEIGHT)
-            EquipmentCategory.entries.forEach { category ->
-                if (category in declaredAvailability.categories) add(category.canonicalToken())
+fun TrainingOptions.effectiveEquipment(legacyEquipment: Set<String>): Set<String> =
+    resolveEffectiveEquipment(legacyEquipment).tokens
+
+/** Ruta nueva: categorías confirmadas + presencia concreta + inventario acotado. */
+private fun TrainingOptions.resolveWithAvailability(declared: EquipmentAvailability): EffectiveEquipmentResult {
+    val origins = LinkedHashMap<String, EffectiveEquipmentOrigin>()
+    fun put(token: String, origin: EffectiveEquipmentOrigin) {
+        // La última escritura gana: la evidencia más concreta y más reciente
+        // (clave > inventario > categoría) es la que se muestra.
+        origins[token] = origin
+    }
+
+    put(KIND_BODYWEIGHT, EffectiveEquipmentOrigin.BODYWEIGHT)
+    // Regla 1: las categorías delimitan. Una categoría con TODAS sus claves
+    // concretas ausentes pierde su token: la ausencia explícita gana.
+    EquipmentCategory.entries.forEach { category ->
+        // Regla 1: las categorías delimitan; una desmarcada en una respuesta
+        // confirmada no se reintroduce (ni siquiera su token).
+        if (category !in declared.categories) return@forEach
+        val owners = equipmentKeysOf(category)
+        val denied = owners.isNotEmpty() &&
+            owners.all { declared.presenceOf(it.key) == ApparatusPresence.ABSENT }
+        if (!denied) put(category.canonicalToken(), EffectiveEquipmentOrigin.CONFIRMED_CATEGORY)
+    }
+    // Regla 3: inventario previo admitido solo dentro de categorías
+    // confirmadas y sin una ausencia explícita que lo contradiga.
+    inventory?.let { stock ->
+        val hasBar = stock.barbellWeightKg?.let { it.isFinite() && it > 0.0 } == true || stock.plates.isNotEmpty()
+        if (hasBar && EquipmentCategory.BARBELL in declared.categories) {
+            put(KIND_BARBELL, EffectiveEquipmentOrigin.DECLARED_INVENTORY)
+        }
+        if (stock.dumbbells.isNotEmpty() && EquipmentCategory.DUMBBELLS in declared.categories) {
+            put(KIND_DUMBBELLS, EffectiveEquipmentOrigin.DECLARED_INVENTORY)
+        }
+        if (stock.kettlebells.isNotEmpty() && EquipmentCategory.KETTLEBELL in declared.categories) {
+            put(KIND_KETTLEBELL, EffectiveEquipmentOrigin.DECLARED_INVENTORY)
+        }
+        stock.machines.forEach { machine ->
+            val station = machine.equipmentKind?.trim().orEmpty()
+            val stationCategory = when (station) {
+                KIND_CABLE -> EquipmentCategory.CABLE
+                KIND_SMITH -> EquipmentCategory.SMITH_MACHINE
+                else -> null
             }
+            if (stationCategory != null && stationCategory in declared.categories) {
+                put(station, EffectiveEquipmentOrigin.DECLARED_INVENTORY)
+            }
+            val configurationId = machine.configurationId?.trim()?.takeIf { it.isNotBlank() } ?: return@forEach
+            val category = stationCategory ?: EquipmentCategory.MACHINES
+            if (category !in declared.categories) return@forEach
+            if (configurationDeniedByAbsentKey(configurationId, declared)) return@forEach
+            put(machineConfigToken(configurationId), EffectiveEquipmentOrigin.DECLARED_INVENTORY)
         }
     }
+    // Regla 2: presencia concreta reciente. `PRESENT` habilita únicamente el
+    // mapeo curado de su clave; `UNKNOWN` no acredita nada nuevo (y las claves
+    // sin id verificado no habilitan nada: regla STOP, nunca se inventa).
+    EFFECTIVE_EQUIPMENT_KEYS.forEach { spec ->
+        if (declared.presenceOf(spec.key) != ApparatusPresence.PRESENT) return@forEach
+        val gate = if (spec.category == null) {
+            // Sin categoría propia: exige una respuesta confirmada, no vacía.
+            declared.categories.isNotEmpty()
+        } else {
+            spec.category in declared.categories
+        }
+        if (!gate) return@forEach
+        val origin = if (spec.machineConfigurations.isNotEmpty()) {
+            EffectiveEquipmentOrigin.CONFIRMED_APPARATUS
+        } else {
+            EffectiveEquipmentOrigin.CONFIRMED_SUPPORT
+        }
+        spec.machineConfigurations.forEach { put(machineConfigToken(it), origin) }
+        spec.attestedTokens.forEach { put(it, origin) }
+    }
+    return EffectiveEquipmentResult(
+        tokens = origins.keys.toSet(),
+        origins = origins.toMap(),
+        requirements = requirementEvidence(origins.keys, declared),
+    )
+}
+
+/** Ruta legacy: perfil de chips + inventario declarado, con paraguas de soportes. */
+private fun TrainingOptions.resolveWithLegacy(legacyEquipment: Set<String>): EffectiveEquipmentResult {
     val legacy = legacyEquipment.mapTo(LinkedHashSet<String>()) { normalizeLegacyEquipmentKind(it) }
-    val declared = inventory ?: return legacy
+    val origins = LinkedHashMap<String, EffectiveEquipmentOrigin>()
+    fun put(kind: String, origin: EffectiveEquipmentOrigin) {
+        // Primera escritura gana: el origen declarado se conserva.
+        if (kind !in origins) origins[kind] = origin
+    }
+
+    val declared = inventory
+    if (declared == null) {
+        legacy.forEach { put(it, EffectiveEquipmentOrigin.LEGACY_PROFILE) }
+        applyLegacySupportUmbrella(origins)
+        return EffectiveEquipmentResult(
+            tokens = origins.keys.toSet(),
+            origins = origins.toMap(),
+            requirements = requirementEvidence(origins.keys, availability = null),
+        )
+    }
     val hasBar = declared.barbellWeightKg?.let { it.isFinite() && it > 0.0 } == true || declared.plates.isNotEmpty()
     val hasMachines = declared.machines.isNotEmpty()
-    val kinds = linkedSetOf(KIND_BODYWEIGHT)
-    if (hasBar) kinds += KIND_BARBELL
-    if (declared.dumbbells.isNotEmpty()) kinds += KIND_DUMBBELLS
-    if (declared.kettlebells.isNotEmpty()) kinds += KIND_KETTLEBELL
+    put(KIND_BODYWEIGHT, EffectiveEquipmentOrigin.BODYWEIGHT)
+    if (hasBar) put(KIND_BARBELL, EffectiveEquipmentOrigin.LEGACY_PROFILE)
+    if (declared.dumbbells.isNotEmpty()) put(KIND_DUMBBELLS, EffectiveEquipmentOrigin.LEGACY_PROFILE)
+    if (declared.kettlebells.isNotEmpty()) put(KIND_KETTLEBELL, EffectiveEquipmentOrigin.LEGACY_PROFILE)
     // Presencia de maquinaria (informativa; NO aprueba ejercicios: eso lo
     // decide el token de configuración en el filtro del motor y en la guardia).
-    if (hasMachines) kinds += KIND_MACHINE
+    if (hasMachines) put(KIND_MACHINE, EffectiveEquipmentOrigin.LEGACY_PROFILE)
     // Maquinaria desde SUS campos declarados (M4): estación multi-ejercicio por
     // `equipmentKind` (`cable`/`smith_machine` son válidos por ser estación) y
     // máquina concreta por `configurationId` → token interno. El nombre de la
@@ -236,33 +403,89 @@ fun TrainingOptions.effectiveEquipment(legacyEquipment: Set<String>): Set<String
     // no aprueba ninguna máquina (leg curl ≠ chest press ≠ prensa).
     declared.machines.forEach { machine ->
         val station = machine.equipmentKind?.trim().orEmpty()
-        if (station == KIND_CABLE || station == KIND_SMITH) kinds += station
-        machine.configurationId?.trim()?.takeIf { it.isNotBlank() }?.let { kinds += machineConfigToken(it) }
+        if (station == KIND_CABLE || station == KIND_SMITH) put(station, EffectiveEquipmentOrigin.LEGACY_PROFILE)
+        machine.configurationId?.trim()?.takeIf { it.isNotBlank() }
+            ?.let { put(machineConfigToken(it), EffectiveEquipmentOrigin.DECLARED_INVENTORY) }
     }
     // Material auxiliar declarado a mano (ids canónicos: support, pull_up_bar,
     // band, ball, cardio): presencia acreditada, sin auto-relleno del default.
     declared.supportEquipment.forEach { id ->
-        if (id.isNotBlank()) kinds += normalizeLegacyEquipmentKind(id)
+        if (id.isNotBlank()) put(normalizeLegacyEquipmentKind(id), EffectiveEquipmentOrigin.LEGACY_PROFILE)
     }
     legacy.forEach { kind ->
         when {
             // Reclamo «todo el gimnasio»: nunca sobrevive a una declaración.
             kind == KIND_GENERAL_GYM -> Unit
-            kind in kinds -> Unit
+            kind in origins -> Unit
             // Sin modelo de inventario: disponibilidad explícita del usuario.
-            kind !in INVENTORY_ATTESTED_KINDS -> kinds += kind
-            kind == KIND_BARBELL && hasBar -> kinds += kind
-            kind == KIND_DUMBBELLS && declared.dumbbells.isNotEmpty() -> kinds += kind
-            kind == KIND_KETTLEBELL && declared.kettlebells.isNotEmpty() -> kinds += kind
+            kind !in INVENTORY_ATTESTED_KINDS -> put(kind, EffectiveEquipmentOrigin.LEGACY_PROFILE)
+            kind == KIND_BARBELL && hasBar -> put(kind, EffectiveEquipmentOrigin.LEGACY_PROFILE)
+            kind == KIND_DUMBBELLS && declared.dumbbells.isNotEmpty() -> put(kind, EffectiveEquipmentOrigin.LEGACY_PROFILE)
+            kind == KIND_KETTLEBELL && declared.kettlebells.isNotEmpty() -> put(kind, EffectiveEquipmentOrigin.LEGACY_PROFILE)
             // Maquinaria del perfil: solo con maquinaria real declarada (el
             // kind genérico sigue sin aprobar nada por sí mismo).
-            kind in MACHINE_KINDS && hasMachines -> kinds += kind
+            kind in MACHINE_KINDS && hasMachines -> put(kind, EffectiveEquipmentOrigin.LEGACY_PROFILE)
             // Acreditable por el modelo y sin presencia real: no se concede.
             else -> Unit
         }
     }
-    return kinds
+    applyLegacySupportUmbrella(origins)
+    return EffectiveEquipmentResult(
+        tokens = origins.keys.toSet(),
+        origins = origins.toMap(),
+        requirements = requirementEvidence(origins.keys, availability = null),
+    )
 }
+
+/**
+ * Paraguas legacy (§13.1 regla 4, AC-C3): con el chip/inventario `support`
+ * acreditado, la CLASE de soportes legacy queda atestiguada para poder LEER
+ * programas previos sin rechazarlos por un requisito que el vocabulario
+ * antiguo no podía expresar. Solo en las rutas legacy/inventario: la ruta de
+ * disponibilidad atestigua por clave (AC-C2).
+ */
+private fun applyLegacySupportUmbrella(origins: LinkedHashMap<String, EffectiveEquipmentOrigin>) {
+    if (KIND_SUPPORT !in origins) return
+    LEGACY_SUPPORT_ATTESTED_REQUIREMENTS.forEach { requirement ->
+        if (requirement !in origins) {
+            origins[requirement] = EffectiveEquipmentOrigin.LEGACY_SUPPORT_ATTESTATION
+        }
+    }
+}
+
+/**
+ * Estado de cada requisito del vocabulario para el resultado estructurado:
+ * - `PRESENT`: el token está entre los acreditados (o el perfil legacy reclama
+ *   `general_gym`, que en esa ruta solo sirve para leer programas previos).
+ * - `ABSENT`: una clave que lo acredita está `ABSENT` o su categoría está
+ *   confirmada y el token se cayó por ausencias.
+ * - `UNKNOWN`: falta confirmar (nunca se niega sin una respuesta explícita).
+ */
+private fun requirementEvidence(
+    tokens: Set<String>,
+    availability: EquipmentAvailability?,
+): Map<String, RequirementEvidence> {
+    val legacyBlanket = availability == null && KIND_GENERAL_GYM in tokens
+    return KNOWN_REQUIREMENTS.associateWith { requirement ->
+        when {
+            requirement in tokens || legacyBlanket -> RequirementEvidence.PRESENT
+            availability == null -> RequirementEvidence.UNKNOWN
+            EFFECTIVE_EQUIPMENT_KEYS.any {
+                requirement in it.attestedTokens &&
+                    availability.presenceOf(it.key) == ApparatusPresence.ABSENT
+            } -> RequirementEvidence.ABSENT
+            else -> {
+                val category = EquipmentCategory.entries.firstOrNull { it.canonicalToken() == requirement }
+                if (category != null && category in availability.categories && requirement !in tokens) {
+                    RequirementEvidence.ABSENT
+                } else {
+                    RequirementEvidence.UNKNOWN
+                }
+            }
+        }
+    }
+}
+
 
 private fun EquipmentCategory.canonicalToken(): String = when (this) {
     EquipmentCategory.BARBELL -> KIND_BARBELL
@@ -272,7 +495,7 @@ private fun EquipmentCategory.canonicalToken(): String = when (this) {
     EquipmentCategory.CABLE -> KIND_CABLE
     EquipmentCategory.SMITH_MACHINE -> KIND_SMITH
     EquipmentCategory.BAND -> KIND_BAND
-    EquipmentCategory.SUPPORT -> "support"
+    EquipmentCategory.SUPPORT -> KIND_SUPPORT
     EquipmentCategory.PULL_UP_BAR -> "pull_up_bar"
     EquipmentCategory.BALL -> "ball"
     EquipmentCategory.CARDIO -> "cardio"
@@ -280,6 +503,8 @@ private fun EquipmentCategory.canonicalToken(): String = when (this) {
 
 /** Kind de equipo: peso corporal, siempre disponible sin material. */
 private const val KIND_BODYWEIGHT = "bodyweight"
+/** Aparatos/soportes: el chip legacy que acredita la clase de soportes. */
+private const val KIND_SUPPORT = "support"
 /** Reclamo «todo el gimnasio»; nunca se asume con inventario declarado. */
 private const val KIND_GENERAL_GYM = "general_gym"
 private const val KIND_BARBELL = "barbell"

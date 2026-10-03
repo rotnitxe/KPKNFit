@@ -19,10 +19,16 @@ import org.junit.Test
 
 class ExercisePickerVisibleDefinitionsTest {
 
-    private fun definition(id: String, name: String, region: ExerciseBodyRegionV2 = ExerciseBodyRegionV2.LOWER) =
+    private fun definition(
+        id: String,
+        name: String,
+        region: ExerciseBodyRegionV2 = ExerciseBodyRegionV2.LOWER,
+        familyId: String = "family",
+        primaryMuscles: List<String> = listOf("muscle"),
+    ) =
         ExerciseDefinitionV2(
             id = id,
-            familyId = "family",
+            familyId = familyId,
             kind = ExerciseDefinitionKindV2.PARENT,
             canonicalName = name,
             description = "Descripción de prueba para la definición del catálogo.",
@@ -39,7 +45,7 @@ class ExercisePickerVisibleDefinitionsTest {
                         laterality = ExerciseLateralityV2.BILATERAL,
                         equipmentId = "test",
                         loadMode = "external",
-                        primaryMuscles = listOf("muscle"),
+                        primaryMuscles = primaryMuscles,
                         efc = 1.0,
                         cnc = 1.0,
                         ssc = 0.0,
@@ -49,7 +55,6 @@ class ExercisePickerVisibleDefinitionsTest {
                         resistanceProfile = "test",
                         setupCues = listOf("Setup."),
                         executionCues = listOf("Execute."),
-                        commonMistakes = listOf("Error."),
                         performanceProfileId = "${id}_profile",
                     ),
                     evidence = CatalogEvidenceV2(
@@ -75,7 +80,6 @@ class ExercisePickerVisibleDefinitionsTest {
             ExerciseFamilyV2(
                 id = "family",
                 canonicalName = "Familia",
-                description = "Familia de prueba.",
                 definitions = listOf(
                     definition("zebra", "Zebra"),
                     definition("alpha", "Alpha"),
@@ -147,5 +151,52 @@ class ExercisePickerVisibleDefinitionsTest {
         )
 
         assertEquals(listOf("alpha", "zebra"), visible.map { it.id })
+    }
+
+    @Test
+    fun prepared_blank_projection_filters_and_sorts_definitions_across_families() {
+        val base = catalog()
+        val otherFamilyDefinition = definition(
+            id = "beta",
+            name = "Beta",
+            region = ExerciseBodyRegionV2.UPPER,
+            familyId = "upper-family",
+            primaryMuscles = listOf("shoulder"),
+        )
+        val catalog = base.copy(
+            families = base.families + ExerciseFamilyV2(
+                id = "upper-family",
+                canonicalName = "Familia superior",
+                definitions = listOf(otherFamilyDefinition),
+                evidence = CatalogEvidenceV2(
+                    reviewStatus = CatalogReviewStatusV2.APPROVED,
+                    confidence = CatalogConfidenceV2.HIGH,
+                    evidenceRefs = listOf("test"),
+                ),
+            ),
+        )
+
+        val allFamilies = prepareCatalogDefinitionProjection(catalog, null, null)
+        val upperShoulder = prepareCatalogDefinitionProjection(
+            catalog,
+            filterRegion = ExerciseBodyRegionV2.UPPER.name,
+            filterMuscle = "shoulder",
+        )
+        val visible = visibleDefinitionsForQuery(
+            catalog = catalog,
+            query = "",
+            searchSettled = false,
+            searchHits = emptyList(),
+            filterRegion = ExerciseBodyRegionV2.UPPER.name,
+            filterMuscle = "shoulder",
+            definitionsById = upperShoulder.definitionsById,
+            previousStable = emptyList(),
+            blankQueryDefinitions = upperShoulder.blankQueryDefinitions,
+        )
+
+        assertEquals(listOf("alpha", "beta", "zebra"), allFamilies.blankQueryDefinitions.map { it.id })
+        assertEquals(setOf("alpha", "beta", "zebra"), allFamilies.definitionsById.keys)
+        assertEquals(listOf("beta"), upperShoulder.blankQueryDefinitions.map { it.id })
+        assertEquals(listOf("beta"), visible.map { it.id })
     }
 }

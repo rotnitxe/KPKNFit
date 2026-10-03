@@ -4,13 +4,27 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.CatalogIds
+import com.example.kpkn.data.protocols.DayRecipe
+import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.SlotRole
+import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.percentSets
+import com.example.kpkn.data.protocols.slot
+import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.IdProvider
+import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.data.preferences.programSnapshotStore
+import com.example.kpkn.ui.components.SnackbarType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -19,9 +33,12 @@ import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -32,6 +49,14 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [34])
 class ProgramDetailViewModelTest {
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun installCatalogCompositionSupport() {
+            CatalogCompositionTestSupport.install()
+        }
+    }
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
@@ -98,6 +123,183 @@ class ProgramDetailViewModelTest {
                 )),
             )),
         ),
+    )
+
+    private class RestoreSessionIds : IdProvider {
+        private var next = 0
+        override fun newId(): String = "restore-${++next}"
+    }
+
+    private fun restoreRecipe(programId: String) = TrainingPlanRecipe(
+        id = "restore-recipe-$programId",
+        weeks = listOf(
+            weekRecipe(
+                1,
+                0,
+                "Base",
+                BlockGoal.ACCUMULATION,
+                listOf(
+                    DayRecipe(
+                        id = "restore-target-day",
+                        label = "Día receta seleccionado",
+                        weekday = 1,
+                        slots = listOf(
+                            slot(
+                                "restore-target-bench",
+                                SlotRole.T1_MAIN,
+                                CatalogIds.BP,
+                                percentSets(150, 5 to 75.0, 5 to 75.0),
+                                150,
+                                LiftSlot.BENCH,
+                                isCompetitionLift = true,
+                            ),
+                        ),
+                    ),
+                    DayRecipe(
+                        id = "restore-sibling-day",
+                        label = "Día receta vecino",
+                        weekday = 3,
+                        slots = listOf(
+                            slot(
+                                "restore-sibling-bench",
+                                SlotRole.T1_MAIN,
+                                CatalogIds.BP,
+                                percentSets(150, 5 to 70.0, 5 to 70.0),
+                                150,
+                                LiftSlot.BENCH,
+                                isCompetitionLift = true,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        claimedDaysPerWeek = 2,
+    )
+
+    private fun materializedRestoreProgram(programId: String): Program = PlanMaterializer.materialize(
+        Program(id = programId, name = "Restore $programId", structure = ProgramStructure.COMPLEX),
+        restoreRecipe(programId),
+        CatalogCompositionTestSupport.metadata,
+        RestoreSessionIds(),
+        strict = false,
+    )
+
+    private fun weeksOf(program: Program) =
+        program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+
+    private fun replaceRestoreFixtureSessions(
+        program: Program,
+        weekId: String,
+        replacements: Map<String, Session>,
+    ): Program = program.copy(
+        macrocycles = program.macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(
+                                weeks = meso.weeks.map { week ->
+                                    if (week.id != weekId) week
+                                    else week.copy(sessions = week.sessions.map { replacements[it.id] ?: it })
+                                },
+                            )
+                        },
+                    )
+                },
+            )
+        },
+    )
+
+    private fun sessionIdentity(session: Session): List<String?> = buildList<String?> {
+        add(session.id)
+        session.parts.forEach { add(it.id) }
+        session.allExercises().forEach { exercise ->
+            add(exercise.id)
+            add(exercise.occurrenceId)
+            exercise.sets.forEach { add(it.id) }
+            exercise.warmupSets.forEach { add(it.id) }
+        }
+    }
+
+    private fun sessionJson(session: Session): String = Json.encodeToString(Session.serializer(), session)
+
+    private data class ManualRestoreFixture(
+        val weekId: String,
+        val plannedTarget: Session,
+        val targetId: String,
+        val siblingId: String,
+        val siblingJson: String,
+    )
+
+    private fun manuallyEdit(session: Session, label: String): Session {
+        fun editPrescription(exercise: Exercise) = exercise.copy(
+            sets = exercise.sets.map { it.copy(targetReps = 99) },
+        )
+        return session.copy(
+            name = label,
+            description = "$label editada manualmente",
+            exercises = session.exercises.map(::editPrescription),
+            parts = session.parts.map { part -> part.copy(exercises = part.exercises.map(::editPrescription)) },
+        )
+    }
+
+    private suspend fun seedManualRestoreFixture(programId: String): ManualRestoreFixture {
+        val generated = materializedRestoreProgram(programId)
+        repository.addProgram(generated)
+        repository.flushPendingWrites()
+
+        val persistedPlan = repository.getProgramById(programId) ?: error("programa de prueba ausente")
+        assertNotNull("el fixture debe conservar la receta fuente", persistedPlan.sourceRecipe)
+        val planWeek = weeksOf(persistedPlan).single()
+        val plannedTarget = planWeek.sessions[0]
+        val plannedSibling = planWeek.sessions[1]
+        val changedSessions = replaceRestoreFixtureSessions(
+            persistedPlan,
+            planWeek.id,
+            mapOf(
+                plannedTarget.id to manuallyEdit(plannedTarget, "Sesión personalizada"),
+                plannedSibling.id to manuallyEdit(plannedSibling, "Vecina personalizada"),
+            ),
+        )
+        val withTargetOverride = PlanMaterializer.withManualSessionOverride(
+            changedSessions,
+            plannedTarget.id,
+            planWeek.id,
+            weekOccurrence = 1,
+            recipeDayId = "restore-target-day",
+            nowMs = 1L,
+        )
+        val marked = PlanMaterializer.withManualSessionOverride(
+            withTargetOverride,
+            plannedSibling.id,
+            planWeek.id,
+            weekOccurrence = 1,
+            recipeDayId = "restore-sibling-day",
+            nowMs = 2L,
+        )
+        repository.updateProgramNow(marked)
+
+        val stored = repository.getProgramById(programId) ?: error("programa editado ausente")
+        val storedWeek = weeksOf(stored).single { it.id == planWeek.id }
+        val storedSibling = storedWeek.sessions.single { it.id == plannedSibling.id }
+        return ManualRestoreFixture(
+            weekId = storedWeek.id,
+            plannedTarget = plannedTarget,
+            targetId = plannedTarget.id,
+            siblingId = plannedSibling.id,
+            siblingJson = sessionJson(storedSibling),
+        )
+    }
+
+    private fun siblingWorkoutLog(programId: String, fixture: ManualRestoreFixture, sessionId: String) = WorkoutLog(
+        id = "restore-log-$programId",
+        programId = programId,
+        sessionId = sessionId,
+        sessionName = sessionId,
+        date = "2026-09-29T10:00:00Z",
+        durationMinutes = 45,
+        weekId = fixture.weekId,
     )
 
     @Before
@@ -755,7 +957,7 @@ class ProgramDetailViewModelTest {
     }
 
     @Test
-    fun acceptAutoregulation_clears_pending_confirm_action() {
+    fun acceptAutoregulation_clears_pending_confirm_action() = runBlocking {
         val id = nextId()
         val seeded = makeProgram(id).copy(
             runState = ProgramRunState(
@@ -778,8 +980,518 @@ class ProgramDetailViewModelTest {
         val vm = ProgramDetailViewModel(id)
         assertEquals(PendingProgramActionType.CONFIRM_AUTOREGULATION, vm.program.value?.runState?.pendingAction?.type)
         vm.acceptAutoregulation()
+        withTimeout(5_000) {
+            repository.programs.first { programs ->
+                programs.firstOrNull { it.id == id }?.runState?.pendingAction == null
+            }
+        }
+        withTimeout(5_000) {
+            vm.blockTransitionBanner.first { it == null }
+        }
         assertNull(repository.getProgramById(id)?.runState?.pendingAction)
         assertNull(vm.blockTransitionBanner.value)
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_restores_only_selected_session_and_preserves_sibling_and_history() = runBlocking {
+        val id = nextId()
+        val fixture = seedManualRestoreFixture(id)
+        repository.addWorkoutLog(siblingWorkoutLog(id, fixture, fixture.siblingId))
+        repository.flushPendingWrites()
+        val historyBefore = repository.getLogsForProgram(id)
+        assertEquals(listOf(fixture.siblingId), historyBefore.map { it.sessionId })
+
+        val beforeProgram = repository.getProgramById(id)!!
+        val beforeWeek = weeksOf(beforeProgram).single { it.id == fixture.weekId }
+        val editedTarget = beforeWeek.sessions.single { it.id == fixture.targetId }
+        val siblingBefore = beforeWeek.sessions.single { it.id == fixture.siblingId }
+        assertEquals("Sesión personalizada", editedTarget.name)
+        val editedPrescription = editedTarget.allExercises().flatMap { it.sets }
+        assertEquals(fixture.plannedTarget.allExercises().flatMap { it.sets }.size, editedPrescription.size)
+        assertTrue(editedPrescription.isNotEmpty())
+        assertTrue(editedPrescription.all { it.targetReps == 99 })
+        assertEquals(fixture.siblingJson, sessionJson(siblingBefore))
+        assertEquals(setOf(fixture.targetId, fixture.siblingId), beforeProgram.manualSessionOverrides.map { it.sessionId }.toSet())
+
+        val vm = ProgramDetailViewModel(id)
+        vm.restoreManualSessionFromPlan(fixture.targetId)
+
+        withTimeout(10_000) {
+            vm.uiState.first { it.snackbarMessage?.startsWith("Sesión restaurada desde el plan.") == true }
+        }
+        val restoredProgram = repository.getProgramById(id)!!
+        val restoredWeek = weeksOf(restoredProgram).single { it.id == fixture.weekId }
+        val restoredTarget = restoredWeek.sessions.single { it.id == fixture.targetId }
+        val restoredSibling = restoredWeek.sessions.single { it.id == fixture.siblingId }
+
+        assertEquals("la receta devuelve el contenido completo de la sesión seleccionada", fixture.plannedTarget, restoredTarget)
+        assertEquals("los IDs de sesión, ejercicios y series siguen estables", sessionIdentity(fixture.plannedTarget), sessionIdentity(restoredTarget))
+        assertEquals("la sesión vecina permanece byte a byte", fixture.siblingJson, sessionJson(restoredSibling))
+        assertEquals(listOf(fixture.siblingId), restoredProgram.manualSessionOverrides.map { it.sessionId })
+        assertEquals(historyBefore, repository.getLogsForProgram(id))
+        assertEquals(fixture.siblingId, repository.getLogsForProgram(id).single().sessionId)
+        assertTrue(vm.uiState.value.snackbarMessage.orEmpty().contains("las sesiones vecinas y el historial se conservaron"))
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_blocks_logged_session_without_changing_plan_or_history() = runBlocking {
+        val id = nextId()
+        val fixture = seedManualRestoreFixture(id)
+        repository.addWorkoutLog(siblingWorkoutLog(id, fixture, fixture.targetId))
+        repository.flushPendingWrites()
+        val beforeProgram = repository.getProgramById(id)!!
+        val historyBefore = repository.getLogsForProgram(id)
+
+        val vm = ProgramDetailViewModel(id)
+        vm.restoreManualSessionFromPlan(fixture.targetId)
+
+        withTimeout(10_000) {
+            vm.uiState.first {
+                it.snackbarMessage == "La sesión ya se inició o tiene registros; su prescripción histórica se conserva."
+            }
+        }
+
+        assertEquals(beforeProgram, repository.getProgramById(id))
+        assertEquals(historyBefore, repository.getLogsForProgram(id))
+        assertEquals(fixture.targetId, repository.getLogsForProgram(id).single().sessionId)
+        assertTrue(repository.getProgramById(id)!!.manualSessionOverrides.any { it.sessionId == fixture.targetId })
+    }
+
+    // ─── Restaurar sesión desde el plan: casos de consolidación ───────────
+
+    private fun restoreDays(targetPercent: Double, siblingPercent: Double): List<DayRecipe> = listOf(
+        DayRecipe(
+            id = "restore-target-day",
+            label = "Día receta seleccionado",
+            weekday = 1,
+            slots = listOf(
+                slot(
+                    "restore-target-bench",
+                    SlotRole.T1_MAIN,
+                    CatalogIds.BP,
+                    percentSets(150, 5 to targetPercent, 5 to targetPercent),
+                    150,
+                    LiftSlot.BENCH,
+                    isCompetitionLift = true,
+                ),
+            ),
+        ),
+        DayRecipe(
+            id = "restore-sibling-day",
+            label = "Día receta vecino",
+            weekday = 3,
+            slots = listOf(
+                slot(
+                    "restore-sibling-bench",
+                    SlotRole.T1_MAIN,
+                    CatalogIds.BP,
+                    percentSets(150, 5 to siblingPercent, 5 to siblingPercent),
+                    150,
+                    LiftSlot.BENCH,
+                    isCompetitionLift = true,
+                ),
+            ),
+        ),
+    )
+
+    private fun twoWeekRestoreRecipe(programId: String) = TrainingPlanRecipe(
+        id = "restore-recipe-$programId",
+        weeks = listOf(
+            weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, restoreDays(75.0, 70.0)),
+            weekRecipe(2, 0, "Base", BlockGoal.ACCUMULATION, restoreDays(75.0, 70.0)),
+        ),
+        claimedDaysPerWeek = 2,
+    )
+
+    private fun sessionOverride(
+        sessionId: String,
+        weekId: String?,
+        weekOccurrence: Int?,
+        recipeDayId: String?,
+        scope: ManualOverrideScope = ManualOverrideScope.SESSION,
+        reason: String = "Edición manual",
+    ) = ManualSessionOverride(
+        sessionId = sessionId,
+        weekId = weekId,
+        weekOccurrence = weekOccurrence,
+        recipeDayId = recipeDayId,
+        scope = scope,
+        reason = reason,
+        createdAtMs = 1L,
+    )
+
+    private fun prescription(session: Session): List<Triple<Int?, Double?, Double?>> =
+        session.allExercises().flatMap { exercise ->
+            exercise.sets.map { Triple(it.targetReps, it.targetPercentageRM, it.weight) }
+        }
+
+    private fun appendSession(program: Program, weekId: String, session: Session): Program = program.copy(
+        macrocycles = program.macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(
+                                weeks = meso.weeks.map { week ->
+                                    if (week.id == weekId) week.copy(sessions = week.sessions + session) else week
+                                },
+                            )
+                        },
+                    )
+                },
+            )
+        },
+    )
+
+    /**
+     * Fixture general de «Restaurar desde el plan»: receta de una o dos semanas,
+     * receta efectiva aceptada para la ocurrencia 2, overrides configurables y un
+     * gancho para torcer el programa (receta ausente, sesión creada por el usuario,
+     * día movido...). Edita la sesión objetivo y la vecina de la semana probada.
+     */
+    private suspend fun seedRestoreFixture(
+        programId: String,
+        twoWeeks: Boolean = false,
+        acceptEffectiveRecipe: Boolean = false,
+        targetOverrides: (targetId: String, weekId: String, weekOccurrence: Int) -> List<ManualSessionOverride> =
+            { targetId, weekId, occurrence -> listOf(sessionOverride(targetId, weekId, occurrence, "restore-target-day")) },
+        tweak: (Program, String) -> Program = { program, _ -> program },
+    ): ManualRestoreFixture {
+        val recipe = if (twoWeeks) twoWeekRestoreRecipe(programId) else restoreRecipe(programId)
+        val generated = PlanMaterializer.materialize(
+            Program(id = programId, name = "Restore $programId", structure = ProgramStructure.COMPLEX),
+            recipe,
+            CatalogCompositionTestSupport.metadata,
+            RestoreSessionIds(),
+            strict = false,
+        )
+        repository.addProgram(generated)
+        repository.flushPendingWrites()
+        var program = repository.getProgramById(programId) ?: error("programa de prueba ausente")
+        val weekIndex = if (twoWeeks) 1 else 0
+        val occurrence = weekIndex + 1
+        if (twoWeeks && acceptEffectiveRecipe) {
+            // Una propuesta aceptada: la ocurrencia 2 pasa a una receta efectiva 5 puntos más pesada
+            // y su semana se reconstruye con ella (como hace la aceptación AUGE).
+            val base = recipe.weeks[1]
+            val effective = base.copy(
+                days = base.days.map { day ->
+                    day.copy(
+                        slots = day.slots.map { slot ->
+                            slot.copy(sets = slot.sets.map { set -> set.copy(percent = set.percent?.plus(5.0)) })
+                        },
+                    )
+                },
+            )
+            program = PlanMaterializer.withEffectiveWeekRecipe(
+                program = program,
+                weekOccurrence = occurrence,
+                cycleNumber = 1,
+                weekRecipe = effective,
+                applied = listOf(
+                    AppliedRecipeProposal(
+                        proposalId = "accepted-effective",
+                        kind = "SCALE_WEEK_VOLUME",
+                        summary = "aceptada en la prueba",
+                        acceptedAtMs = 1L,
+                    ),
+                ),
+            )
+            program = PlanMaterializer.rematerializeWeek(
+                program = program,
+                weekId = weeksOf(program)[weekIndex].id,
+                recipe = recipe,
+                weekOccurrence = occurrence,
+            )
+        }
+        val week = weeksOf(program)[weekIndex]
+        val plannedTarget = week.sessions[0]
+        val plannedSibling = week.sessions[1]
+        var edited = replaceRestoreFixtureSessions(
+            program,
+            week.id,
+            mapOf(
+                plannedTarget.id to manuallyEdit(plannedTarget, "Sesión personalizada"),
+                plannedSibling.id to manuallyEdit(plannedSibling, "Vecina personalizada"),
+            ),
+        )
+        edited = edited.copy(
+            manualSessionOverrides = edited.manualSessionOverrides +
+                targetOverrides(plannedTarget.id, week.id, occurrence),
+        )
+        edited = PlanMaterializer.withManualSessionOverride(
+            edited,
+            plannedSibling.id,
+            week.id,
+            weekOccurrence = occurrence,
+            recipeDayId = "restore-sibling-day",
+            nowMs = 2L,
+        )
+        edited = tweak(edited, week.id)
+        repository.updateProgramNow(edited)
+
+        val stored = repository.getProgramById(programId) ?: error("programa editado ausente")
+        val storedWeek = weeksOf(stored).single { it.id == week.id }
+        return ManualRestoreFixture(
+            weekId = storedWeek.id,
+            plannedTarget = plannedTarget,
+            targetId = plannedTarget.id,
+            siblingId = plannedSibling.id,
+            siblingJson = sessionJson(storedWeek.sessions.single { it.id == plannedSibling.id }),
+        )
+    }
+
+    private suspend fun restoreAndAwait(vm: ProgramDetailViewModel, sessionId: String, expectedMessage: (String) -> Boolean): String {
+        vm.restoreManualSessionFromPlan(sessionId)
+        return withTimeout(10_000) {
+            vm.uiState.first { state -> state.snackbarMessage?.let(expectedMessage) == true }.snackbarMessage!!
+        }
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_week_two_with_accepted_effective_recipe_restores_the_effective_prescription() = runBlocking {
+        val id = nextId()
+        val fixture = seedRestoreFixture(id, twoWeeks = true, acceptEffectiveRecipe = true)
+        val before = repository.getProgramById(id)!!
+        assertEquals(listOf(2), before.effectiveWeekRecipes.map { it.weekOccurrence })
+        val beforeWeek = weeksOf(before).single { it.id == fixture.weekId }
+        assertEquals(1, weeksOf(before).indexOfFirst { it.id == fixture.weekId })
+        assertTrue(beforeWeek.sessions.single { it.id == fixture.targetId }.allExercises()
+            .flatMap { it.sets }.all { it.targetReps == 99 })
+        val plannedPercents = fixture.plannedTarget.allExercises().flatMap { it.sets }.map { it.targetPercentageRM }
+        assertTrue("la receta efectiva aceptada pesa 80 %, no el 75 % base: $plannedPercents",
+            plannedPercents.isNotEmpty() && plannedPercents.all { it == 80.0 })
+
+        val vm = ProgramDetailViewModel(id)
+        restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
+
+        val restored = repository.getProgramById(id)!!
+        val restoredWeek = weeksOf(restored).single { it.id == fixture.weekId }
+        val restoredTarget = restoredWeek.sessions.single { it.id == fixture.targetId }
+        assertEquals(prescription(fixture.plannedTarget), prescription(restoredTarget))
+        assertEquals(fixture.plannedTarget.name, restoredTarget.name)
+        assertEquals(sessionIdentity(fixture.plannedTarget), sessionIdentity(restoredTarget))
+        assertEquals("la sesión vecina permanece byte a byte", fixture.siblingJson,
+            sessionJson(restoredWeek.sessions.single { it.id == fixture.siblingId }))
+        assertEquals(listOf(fixture.siblingId), restored.manualSessionOverrides.map { it.sessionId })
+        // La semana 1 no se toca.
+        assertEquals(weeksOf(before)[0], weeksOf(restored)[0])
+        // La receta efectiva aceptada sigue siendo la misma.
+        assertEquals(before.effectiveWeekRecipes, restored.effectiveWeekRecipes)
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_override_born_from_editor_transfer_restores_the_destination_and_drops_its_receipt() = runBlocking {
+        val id = nextId()
+        val fixture = seedRestoreFixture(
+            id,
+            targetOverrides = { targetId, weekId, occurrence ->
+                listOf(
+                    sessionOverride(
+                        targetId, weekId, occurrence, "restore-target-day",
+                        reason = "[editor-transfer:transfer-7:abc123] sesión transferida desde otra semana",
+                    ),
+                )
+            },
+        )
+        assertTrue(repository.getProgramById(id)!!.manualSessionOverrides
+            .any { it.sessionId == fixture.targetId && it.reason.contains("[editor-transfer:") })
+
+        val vm = ProgramDetailViewModel(id)
+        restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
+
+        val restored = repository.getProgramById(id)!!
+        val restoredTarget = weeksOf(restored).single { it.id == fixture.weekId }.sessions.single { it.id == fixture.targetId }
+        assertEquals(fixture.plannedTarget, restoredTarget)
+        assertEquals(listOf(fixture.siblingId), restored.manualSessionOverrides.map { it.sessionId })
+        // El recibo de transferencia vivía dentro de la marca: se va con ella.
+        assertTrue(restored.manualSessionOverrides.none { it.reason.contains("[editor-transfer:") })
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_without_source_recipe_keeps_the_override_and_says_so() = runBlocking {
+        val id = nextId()
+        val fixture = seedRestoreFixture(id, tweak = { program, _ -> program.copy(sourceRecipe = null) })
+        val before = repository.getProgramById(id)!!
+
+        val vm = ProgramDetailViewModel(id)
+        val message = restoreAndAwait(vm, fixture.targetId) { it.startsWith("No se encontró la receta fuente") }
+
+        assertEquals("No se encontró la receta fuente; no se cambió la sesión.", message)
+        assertEquals(before, repository.getProgramById(id))
+        assertTrue(repository.getProgramById(id)!!.manualSessionOverrides.any { it.sessionId == fixture.targetId })
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_session_without_recipe_counterpart_is_not_reported_as_restored() = runBlocking {
+        val id = nextId()
+        val userSession = Session(
+            id = "user-created-session",
+            name = "Mi sesión propia",
+            dayOfWeek = 5,
+            assignedDays = listOf(5),
+            exercises = listOf(
+                Exercise(
+                    id = "user-created-exercise",
+                    name = "Remo propio",
+                    sets = listOf(ExerciseSet(id = "user-created-set", targetReps = 10)),
+                ),
+            ),
+        )
+        val fixture = seedRestoreFixture(
+            id,
+            targetOverrides = { _, _, _ -> emptyList() },
+            tweak = { program, weekId ->
+                appendSession(program, weekId, userSession).copy(
+                    manualSessionOverrides = program.manualSessionOverrides +
+                        sessionOverride(userSession.id, weekId, 1, recipeDayId = null),
+                )
+            },
+        )
+        val before = repository.getProgramById(id)!!
+        assertTrue(weeksOf(before).single { it.id == fixture.weekId }.sessions.any { it.id == userSession.id })
+
+        val vm = ProgramDetailViewModel(id)
+        val message = restoreAndAwait(vm, userSession.id) { it.startsWith("Esta sesión no tiene una sesión equivalente") }
+
+        assertTrue("sin éxito falso: $message", !message.startsWith("Sesión restaurada"))
+        assertEquals("ni el plan ni la marca cambian", before, repository.getProgramById(id))
+        assertTrue(repository.getProgramById(id)!!.manualSessionOverrides.any { it.sessionId == userSession.id })
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_session_moved_to_another_weekday_returns_to_its_recipe_day() = runBlocking {
+        val id = nextId()
+        val fixture = seedRestoreFixture(
+            id,
+            tweak = { program, weekId ->
+                val week = weeksOf(program).single { it.id == weekId }
+                val target = week.sessions[0]
+                replaceRestoreFixtureSessions(
+                    program,
+                    weekId,
+                    mapOf(target.id to target.copy(dayOfWeek = 2, assignedDays = listOf(2))),
+                )
+            },
+        )
+        val movedBefore = weeksOf(repository.getProgramById(id)!!).single { it.id == fixture.weekId }
+            .sessions.single { it.id == fixture.targetId }
+        assertEquals(2, movedBefore.dayOfWeek)
+
+        val vm = ProgramDetailViewModel(id)
+        restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
+
+        val restored = repository.getProgramById(id)!!
+        val restoredWeek = weeksOf(restored).single { it.id == fixture.weekId }
+        assertEquals("el día de la receta y su prescripción vuelven con la sesión", fixture.plannedTarget,
+            restoredWeek.sessions.single { it.id == fixture.targetId })
+        assertEquals(1, restoredWeek.sessions.single { it.id == fixture.targetId }.dayOfWeek)
+        assertEquals(fixture.siblingJson, sessionJson(restoredWeek.sessions.single { it.id == fixture.siblingId }))
+        assertEquals(restoredWeek.sessions.size, restoredWeek.sessions.map { it.id }.distinct().size)
+        assertEquals(2, restoredWeek.sessions.size)
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_template_future_occurrences_scope_restores_the_session_and_drops_that_scope() = runBlocking {
+        val id = nextId()
+        val fixture = seedRestoreFixture(
+            id,
+            targetOverrides = { targetId, _, _ ->
+                listOf(
+                    sessionOverride(
+                        targetId, null, null, null,
+                        scope = ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES,
+                        reason = "Edición de plantilla aplicada a futuras ocurrencias",
+                    ),
+                )
+            },
+        )
+        assertEquals(
+            listOf(ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES),
+            repository.getProgramById(id)!!.manualSessionOverrides.filter { it.sessionId == fixture.targetId }.map { it.scope },
+        )
+
+        val vm = ProgramDetailViewModel(id)
+        restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
+
+        val restored = repository.getProgramById(id)!!
+        assertEquals(fixture.plannedTarget, weeksOf(restored).single { it.id == fixture.weekId }
+            .sessions.single { it.id == fixture.targetId })
+        assertEquals(listOf(fixture.siblingId), restored.manualSessionOverrides.map { it.sessionId })
+    }
+
+    @Test
+    fun restoreManualSessionFromPlan_only_drops_the_session_scope_when_a_template_scope_also_exists() = runBlocking {
+        val id = nextId()
+        val fixture = seedRestoreFixture(
+            id,
+            targetOverrides = { targetId, weekId, occurrence ->
+                listOf(
+                    sessionOverride(targetId, weekId, occurrence, "restore-target-day"),
+                    sessionOverride(
+                        targetId, null, null, null,
+                        scope = ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES,
+                        reason = "Edición de plantilla aplicada a futuras ocurrencias",
+                    ),
+                )
+            },
+        )
+
+        val vm = ProgramDetailViewModel(id)
+        restoreAndAwait(vm, fixture.targetId) { it.startsWith("Sesión restaurada desde el plan.") }
+
+        val restored = repository.getProgramById(id)!!
+        assertEquals("el contenido vuelve a la receta aunque el alcance de plantilla siga marcado", fixture.plannedTarget,
+            weeksOf(restored).single { it.id == fixture.weekId }.sessions.single { it.id == fixture.targetId })
+        assertEquals(
+            listOf(ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES),
+            restored.manualSessionOverrides.filter { it.sessionId == fixture.targetId }.map { it.scope },
+        )
+        assertTrue(restored.manualSessionOverrides.any { it.sessionId == fixture.siblingId })
+    }
+
+    @Test
+    fun removeManualSessionOverride_scope_only_removes_the_chosen_scope_and_null_removes_all() {
+        val base = Program(
+            id = "scope-unit",
+            name = "Scope",
+            manualSessionOverrides = listOf(
+                sessionOverride("s1", null, null, null, ManualOverrideScope.SESSION),
+                sessionOverride("s1", null, null, null, ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES),
+                sessionOverride("s2", null, null, null, ManualOverrideScope.SESSION),
+            ),
+        )
+        fun keys(program: Program) = program.manualSessionOverrides.map { it.sessionId to it.scope }
+        assertEquals(
+            listOf("s1" to ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES, "s2" to ManualOverrideScope.SESSION),
+            keys(PlanMaterializer.removeManualSessionOverride(base, "s1", ManualOverrideScope.SESSION)),
+        )
+        assertEquals(
+            listOf("s1" to ManualOverrideScope.SESSION, "s2" to ManualOverrideScope.SESSION),
+            keys(PlanMaterializer.removeManualSessionOverride(base, "s1", ManualOverrideScope.TEMPLATE_FUTURE_OCCURRENCES)),
+        )
+        assertEquals(listOf("s2" to ManualOverrideScope.SESSION), keys(PlanMaterializer.removeManualSessionOverride(base, "s1")))
+    }
+
+    @Test
+    fun restoreBlockedSessionIds_cover_logged_and_in_progress_sessions_only() = runBlocking {
+        val id = nextId()
+        val fixture = seedManualRestoreFixture(id)
+        val vm = ProgramDetailViewModel(id)
+        assertEquals(emptySet<String>(), withTimeout(5_000) { vm.restoreBlockedSessionIds.first() })
+
+        repository.addWorkoutLog(siblingWorkoutLog(id, fixture, fixture.siblingId))
+        assertEquals(
+            setOf(fixture.siblingId),
+            withTimeout(5_000) { vm.restoreBlockedSessionIds.first { fixture.siblingId in it } },
+        )
+
+        val targetSession = weeksOf(repository.getProgramById(id)!!).single().sessions.single { it.id == fixture.targetId }
+        repository.startWorkout(OngoingWorkoutState(programId = id, session = targetSession, startTime = 11L))
+        assertEquals(
+            setOf(fixture.siblingId, fixture.targetId),
+            withTimeout(5_000) { vm.restoreBlockedSessionIds.first { fixture.targetId in it } },
+        )
     }
 
     @Test
@@ -870,5 +1582,353 @@ class ProgramDetailViewModelTest {
             .toSet()
         assertTrue(vm.uiState.value.selectedWeekId in weekIds)
         assertNotNull(vm.uiState.value.snackbarMessage)
+    }
+
+    // ─── Copias recuperables (ProgramSnapshotStore fuera de Main) ─────────
+
+    @Test
+    fun attachSnapshotStore_loads_saved_copies_and_refresh_picks_up_new_ones() = runBlocking {
+        val id = nextId()
+        val program = makeSimpleProgram(id)
+        repository.addProgram(program)
+        val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
+        store.push(program, "copia-1")
+        val vm = ProgramDetailViewModel(id)
+
+        // La carga ya no es síncrona: el estado llega cuando termina la lectura en IO.
+        vm.attachSnapshotStore(store)
+        val loaded = withTimeout(5_000) { vm.programSnapshots.first { it.isNotEmpty() } }
+        assertEquals(listOf("copia-1"), loaded.map { it.reason })
+
+        store.push(program, "copia-2")
+        vm.refreshProgramSnapshots()
+        val refreshed = withTimeout(5_000) { vm.programSnapshots.first { it.size == 2 } }
+        assertEquals(listOf("copia-1", "copia-2"), refreshed.map { it.reason })
+    }
+
+    @Test
+    fun replacing_protocol_records_the_previous_plan_as_a_recoverable_copy() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        val original = makeSimpleProgram(id)
+        repository.addProgram(original)
+        repository.flushPendingWrites()
+        val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
+        val vm = ProgramDetailViewModel(id)
+        vm.attachSnapshotStore(store)
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
+
+        vm.applyProtocolOverwrite(protocol, overwrite = true)
+        withTimeout(20_000) {
+            while (vm.uiState.value.snackbarMessage.isNullOrBlank()) delay(25)
+        }
+
+        val snapshots = withTimeout(5_000) { vm.programSnapshots.first { it.isNotEmpty() } }
+        assertEquals(1, snapshots.size)
+        assertTrue(snapshots.single().reason.startsWith("Antes de"))
+        assertEquals(original.name, snapshots.single().program.name)
+        assertEquals(snapshots.map { it.id }, store.list(id).map { it.id })
+    }
+
+    // ─── P1 · D2.3 / D2.8: «Reemplazar todo» con plantilla ────────────────
+
+    private suspend fun awaitSnackbar(vm: ProgramDetailViewModel): String {
+        withTimeout(20_000) {
+            while (vm.uiState.value.snackbarMessage.isNullOrBlank()) delay(25)
+        }
+        return vm.uiState.value.snackbarMessage.orEmpty()
+    }
+
+    private fun simpleTemplate() =
+        com.example.kpkn.data.programs.PROGRAM_TEMPLATES.first { it.id == "simple-1" }
+
+    @Test
+    fun applyProgramTemplate_overwrite_with_a_failing_snapshot_keeps_the_program_and_reports_it() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val context = CommitFailingContext(ApplicationProvider.getApplicationContext<Context>())
+        val vm = ProgramDetailViewModel(id)
+        vm.attachSnapshotStore(programSnapshotStore(context))
+
+        vm.applyProgramTemplate(simpleTemplate(), overwrite = true)
+
+        // Antes la excepción del guardado escapaba de runCatching y cerraba la app.
+        val message = awaitSnackbar(vm)
+        assertTrue(message, message.startsWith("No se pudo guardar la copia recuperable del programa"))
+        assertEquals(SnackbarType.DANGER, snackbarTypeFor(message))
+        assertTrue("el guardado de la copia sí se intentó", context.preferences.commitAttempts >= 1)
+        assertEquals("el programa queda intacto", before, repository.getProgramById(id))
+        assertTrue(vm.programSnapshots.value.isEmpty())
+        assertNull(vm.uiState.value.pendingOpenProgramId)
+    }
+
+    @Test
+    fun applyProtocolOverwrite_with_a_failing_snapshot_keeps_the_program_and_reports_it() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val context = CommitFailingContext(ApplicationProvider.getApplicationContext<Context>())
+        val vm = ProgramDetailViewModel(id)
+        vm.attachSnapshotStore(programSnapshotStore(context))
+        val protocol = com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.first { it.id == "gzclp" }
+
+        vm.applyProtocolOverwrite(protocol, overwrite = true)
+
+        // El reemplazo por protocolo ya se comportaba bien: esta prueba lo deja fijado.
+        val message = awaitSnackbar(vm)
+        assertTrue(message, message.startsWith("No se pudo guardar la copia recuperable del programa"))
+        assertEquals("el programa queda intacto", before, repository.getProgramById(id))
+        assertTrue(context.preferences.commitAttempts >= 1)
+    }
+
+    @Test
+    fun applyProgramTemplate_overwrite_without_a_snapshot_store_does_not_replace_the_program() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        vm.applyProgramTemplate(simpleTemplate(), overwrite = true)
+
+        assertEquals(ProgramDetailViewModel.SNAPSHOT_REQUIRED_MESSAGE, awaitSnackbar(vm))
+        assertEquals("sin copia recuperable no se reemplaza nada", before, repository.getProgramById(id))
+    }
+
+    @Test
+    fun applyProgramTemplate_overwrite_saves_the_previous_plan_as_a_recoverable_copy_and_then_replaces_it() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        val original = makeSimpleProgram(id)
+        repository.addProgram(original)
+        repository.flushPendingWrites()
+        val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
+        val vm = ProgramDetailViewModel(id)
+        vm.attachSnapshotStore(store)
+        val template = simpleTemplate()
+
+        vm.applyProgramTemplate(template, overwrite = true)
+
+        val message = awaitSnackbar(vm)
+        assertTrue(message, message.startsWith("Plantilla \"${template.name}\" aplicada"))
+        val snapshots = withTimeout(5_000) { vm.programSnapshots.first { it.isNotEmpty() } }
+        assertEquals(1, snapshots.size)
+        assertEquals("Antes de \"${template.name}\"", snapshots.single().reason)
+        assertEquals(original.name, snapshots.single().program.name)
+        assertEquals(template.id, repository.getProgramById(id)?.structureTemplateId)
+    }
+
+    @Test
+    fun applyProgramTemplate_overwrite_is_refused_while_a_session_is_in_progress() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        repository.flushPendingWrites()
+        val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
+        val vm = ProgramDetailViewModel(id)
+        vm.attachSnapshotStore(store)
+        val session = weeksOf(repository.getProgramById(id)!!).first().sessions.first()
+        repository.startWorkout(OngoingWorkoutState(programId = id, session = session, startTime = 11L))
+        val before = repository.getProgramById(id)!!
+
+        vm.applyProgramTemplate(simpleTemplate(), overwrite = true)
+
+        // Mismo aviso que con protocolo (D2.8).
+        assertEquals(ProgramDetailViewModel.SESSION_IN_PROGRESS_MESSAGE, awaitSnackbar(vm))
+        assertEquals("el programa no se toca", before, repository.getProgramById(id))
+        assertTrue("no se guarda copia de un reemplazo que no ocurrió", store.list(id).isEmpty())
+    }
+
+    @Test
+    fun applyProgramTemplate_ignores_a_second_tap_while_the_first_is_still_running() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        repository.flushPendingWrites()
+        val store = programSnapshotStore(ApplicationProvider.getApplicationContext<Context>())
+        val vm = ProgramDetailViewModel(id)
+        vm.attachSnapshotStore(store)
+        val template = simpleTemplate()
+
+        vm.applyProgramTemplate(template, overwrite = true)
+        vm.applyProgramTemplate(template, overwrite = true)
+
+        awaitSnackbar(vm)
+        withTimeout(5_000) { vm.programSnapshots.first { it.isNotEmpty() } }
+        delay(300)
+        assertEquals("dos toques seguidos guardan una sola copia", 1, store.list(id).size)
+    }
+
+    // ─── P1 · D2.9: el flujo de comentarios es de solo lectura ────────────
+
+    @Test
+    fun feedbacks_are_exposed_read_only() {
+        val vm = ProgramDetailViewModel(nextId())
+
+        assertFalse("feedbacks no debe ser un MutableStateFlow público", vm.feedbacks is MutableStateFlow<*>)
+        assertTrue(vm.feedbacks.value.isEmpty())
+    }
+
+    // ─── P1 · H-UI: tarjeta de progresión legible ─────────────────────────
+
+    private fun nativeProposalProgram(id: String, notices: List<NativeProgressionResolution> = emptyList()): Program {
+        val configurationId = "bench_press__dumbbell"
+        val identity = NativeProgressionIdentity(
+            recipeId = "hui-recipe",
+            recipeContentVersion = 1,
+            configurationId = configurationId,
+            loadMode = LoadModeV2.LOAD,
+            unitMode = UnitModeV2.REPS,
+            side = "bilateral",
+            execution = "standard",
+            slotPurpose = "F",
+            quantityConvention = LoadQuantityConvention.PER_IMPLEMENT,
+        )
+        val exercise = Exercise(
+            id = "$id-ex",
+            name = "Press de banca con mancuernas",
+            catalogConfigurationId = configurationId,
+            recipeDayId = "hui-day",
+            recipeSlotId = "hui-slot",
+        )
+        val proposal = NativeProgressionProposal(
+            proposalId = "$id-p1",
+            kind = NativeProgressionProposalKind.INCREASE_LOAD,
+            identity = identity,
+            sourceSessionId = "${id}_s1",
+            sourceLogIds = listOf("$id-l1", "$id-l2"),
+            targetLoadKg = 22.0,
+            explanation = com.example.kpkn.domain.training.NativeProgressionText.loadIncrease(
+                times = 2,
+                topReps = 12,
+                fromKg = 20.0,
+                toKg = 22.0,
+                unit = "kg por mancuerna",
+                assistance = false,
+            ),
+            createdAtMs = 1L,
+        )
+        return Program(
+            id = id,
+            name = "Progresión $id",
+            structure = ProgramStructure.COMPLEX,
+            macrocycles = listOf(
+                Macrocycle(
+                    id = "${id}_mc",
+                    name = "Macro",
+                    blocks = listOf(
+                        Block(
+                            id = "${id}_b",
+                            name = "Bloque",
+                            mesocycles = listOf(
+                                Mesocycle(
+                                    id = "${id}_m",
+                                    name = "Meso",
+                                    weeks = listOf(
+                                        ProgramWeek(
+                                            id = "${id}_w",
+                                            name = "Semana 1",
+                                            sessions = listOf(
+                                                Session(id = "${id}_s1", name = "Día 1", exercises = listOf(exercise)),
+                                                Session(
+                                                    id = "${id}_s2",
+                                                    name = "Día 2",
+                                                    exercises = listOf(exercise.copy(id = "$id-ex2")),
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            nativeProgressionProposals = listOf(proposal),
+            nativeProgressionAudit = notices,
+        )
+    }
+
+    @Test
+    fun nativeProgressionCard_names_the_exercise_in_plain_language_without_internal_ids() {
+        val id = nextId()
+        repository.addProgram(nativeProposalProgram(id))
+        val vm = ProgramDetailViewModel(id)
+
+        val card = vm.nativeProgressionCard.value
+
+        assertEquals(1, card.pendingCount)
+        assertEquals("1 progresión por revisar", card.pendingLabel)
+        val item = card.proposals.single()
+        assertEquals("Press de banca con mancuernas", item.title)
+        assertEquals(
+            "Lo hiciste dos veces con 12 reps en todas las series. Propuesta: subir de 20 a 22 kg por mancuerna.",
+            item.body,
+        )
+        assertFalse("nunca se imprime el identificador de la configuración", (item.title + item.body).contains("__"))
+        assertFalse((item.title + item.body).contains("hui-slot"))
+    }
+
+    @Test
+    fun rejectNativeProgressionProposal_confirms_with_the_exercise_name() = runBlocking {
+        val id = nextId()
+        repository.addProgram(nativeProposalProgram(id))
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.rejectNativeProgressionProposal("$id-p1")
+
+        assertEquals(
+            "Propuesta rechazada. Press de banca con mancuernas se queda como está.",
+            awaitSnackbar(vm),
+        )
+        val audit = repository.getProgramById(id)!!.nativeProgressionAudit.single()
+        assertEquals(NativeProgressionResolutionStatus.REJECTED, audit.status)
+        assertFalse("rechazar no deja un aviso pendiente de leer", audit.userFacingNotice)
+        val card = withTimeout(5_000) { vm.nativeProgressionCard.first { it.proposals.isEmpty() } }
+        assertTrue(card.notices.isEmpty())
+    }
+
+    @Test
+    fun acceptNativeProgressionProposal_that_no_longer_applies_explains_why_and_the_notice_can_be_dismissed() = runBlocking {
+        val id = nextId()
+        // Sin receta de origen la propuesta ya no tiene a qué aplicarse: caduca sin tocar el plan.
+        repository.addProgram(nativeProposalProgram(id))
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.acceptNativeProgressionProposal("$id-p1")
+
+        val message = awaitSnackbar(vm)
+        assertTrue(message, message.startsWith("No se aplicó la propuesta de Press de banca con mancuernas. "))
+        assertEquals(SnackbarType.SUGGESTION, snackbarTypeFor(message))
+        val card = withTimeout(5_000) { vm.nativeProgressionCard.first { it.notices.isNotEmpty() } }
+        assertEquals("Press de banca con mancuernas", card.notices.single().title)
+        assertTrue(card.proposals.isEmpty())
+
+        vm.dismissNativeProgressionNotice("$id-p1")
+
+        withTimeout(5_000) { vm.nativeProgressionCard.first { it.notices.isEmpty() } }
+        val audit = repository.getProgramById(id)!!.nativeProgressionAudit.single()
+        assertEquals("el registro se conserva", NativeProgressionResolutionStatus.EXPIRED, audit.status)
+        assertFalse(audit.userFacingNotice)
+    }
+
+    @Test
+    fun snackbarTypeFor_marks_refusals_red_and_expired_proposals_as_suggestions() {
+        assertEquals(SnackbarType.DANGER, snackbarTypeFor("No se pudo aplicar la plantilla. Intenta de nuevo."))
+        assertEquals(SnackbarType.DANGER, snackbarTypeFor(ProgramDetailViewModel.SESSION_IN_PROGRESS_MESSAGE))
+        assertEquals(SnackbarType.DANGER, snackbarTypeFor(ProgramDetailViewModel.SNAPSHOT_REQUIRED_MESSAGE))
+        assertEquals(
+            SnackbarType.SUGGESTION,
+            snackbarTypeFor("No se aplicó la propuesta de Remo. Ya no quedan sesiones sin entrenar donde aplicar la propuesta."),
+        )
+        assertEquals(SnackbarType.SUCCESS, snackbarTypeFor("Propuesta rechazada. Remo se queda como está."))
     }
 }

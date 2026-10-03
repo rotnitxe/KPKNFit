@@ -11,6 +11,8 @@ import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftScope
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.SetupStepGraph
+import com.example.kpkn.domain.onboarding.SetupValueState
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -71,6 +73,18 @@ class SetupWizardOrchestrationTest {
 
     private fun vm(environment: SetupWizardEnvironment = FakeSetupWizardEnvironment()) =
         SetupWizardViewModel(app, handle, persistence, environment)
+
+    private fun progressAtReview(draft: SetupWizardDraft) =
+        SetupStepGraph.stepIds(draft.stepContext())
+            .dropLast(1)
+            .fold(draft.stepProgress) { progress, step ->
+                progress.at(step, draft.stepContext()).recordAnswer(
+                    step,
+                    SetupAnswerProvenance.USER_DECLARED,
+                    SetupValueState.DECLARED,
+                )
+            }
+            .at(SetupStepId.REVIEW_ACTIVATE, draft.stepContext())
 
     // --- name → Continuar → Atrás → save/resume ------------------------------
 
@@ -312,9 +326,13 @@ class SetupWizardOrchestrationTest {
         // `SetupWizardDraft.revision` es Int (DTO del payload); la fila usa Long.
         val nextRevision = restored.revision + 1
         val atReview = restored.copy(
-            stepProgress = restored.stepProgress.at(SetupStepId.REVIEW_ACTIVATE, restored.stepContext()),
+            // A real final-review draft has a confirmed route prefix. Without
+            // that persisted evidence, §15.4 correctly resumes at the first
+            // unanswered step instead of trusting this synthetic cursor.
+            stepProgress = progressAtReview(restored),
             revision = nextRevision,
         )
+        val answersAtReview = atReview.stepProgress.answers
         persistence.rows[id] = FakeSetupWizardPersistence.Row(
             payloadJson = json.encodeToString(atReview),
             revision = nextRevision.toLong(),
@@ -357,8 +375,8 @@ class SetupWizardOrchestrationTest {
         assertEquals(SetupStepId.REVIEW_ACTIVATE, third.state.value.currentStep)
         // La intención se consume en el borrador confirmado (y persistido).
         assertNull(third.state.value.draft.reviewReturnStep)
-        // Solo el paso editado se reconfirmó: nadie recontestó nada más.
-        assertEquals(setOf(SetupStepId.NAME), third.state.value.draft.stepProgress.answers.keys)
+        // La edición no pierde ni añade respuestas ajenas al paso editado.
+        assertEquals(answersAtReview, third.state.value.draft.stepProgress.answers)
     }
 
     // --- fakes ----------------------------------------------------------------

@@ -46,7 +46,6 @@ class ExercisePickerSelectedRowsRestoreTest {
             resistanceProfile = "test",
             setupCues = listOf("Setup."),
             executionCues = listOf("Execute."),
-            commonMistakes = listOf("Error."),
             performanceProfileId = id,
         ),
         evidence = evidence(),
@@ -76,7 +75,6 @@ class ExercisePickerSelectedRowsRestoreTest {
             ExerciseFamilyV2(
                 id = "horizontal_pull",
                 canonicalName = "Remo",
-                description = "Familia de remo.",
                 definitions = listOf(tBarRow),
                 evidence = evidence(),
             ),

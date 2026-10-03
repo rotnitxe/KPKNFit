@@ -21,7 +21,7 @@ private const val ACCUMULATION_MIN_SETS = 10
 private const val LOW_VOLUME_MAX_SETS = 12
 private const val LOW_VOLUME_TARGET_SETS_PER_EXERCISE = 2
 /** Must match the approved exercise_catalog_v2.json asset (identidad V2 de ejercicios). */
-internal const val TEMPLATE_CATALOG_REVISION = "v2-approved-2026-08-12-a"
+internal const val TEMPLATE_CATALOG_REVISION = "v2-approved-2026-09-29-a"
 /** Revisión del paquete de plantillas de sesión (v4: cuarentena + gates P0/P1 + recetas PL verificables). */
 internal const val SESSION_TEMPLATE_PACKAGE_REVISION = "v4-approved-2026-08-21-a"
 

@@ -254,6 +254,40 @@ class NutritionViewModelTest {
         assertEquals("p2", active?.id)
     }
 
+    @Test
+    fun `activating a different plan the same day replaces todays stored goal`() {
+        fun plan(id: String, kcal: Int) = NutritionPlan(
+            id = id,
+            name = "Plan $id",
+            calorieTarget = kcal,
+            proteinGoal = 150,
+            carbGoal = 200,
+            fatGoal = 60,
+            isActive = true,
+            createdAt = java.time.Instant.now().toString(),
+        )
+
+        vm.createPlan(plan("goal-a", 2000))
+        awaitStoredTodayGoal { goal -> goal != null && goal.planId == "goal-a" && goal.calorieTargetKcal == 2000 }
+
+        // Un plan DISTINTO el mismo día: la meta de hoy en Room pasa a ser la suya.
+        vm.createPlan(plan("goal-b", 2600))
+        awaitStoredTodayGoal { goal -> goal != null && goal.planId == "goal-b" && goal.calorieTargetKcal == 2600 }
+    }
+
+    /** activatePlan fija la meta en Dispatchers.IO; espera a que Room la refleje. */
+    private fun awaitStoredTodayGoal(timeoutMs: Long = 5_000, condition: (DailyGoalSnapshot?) -> Boolean) {
+        val today = java.time.LocalDate.now().toString()
+        val deadline = System.currentTimeMillis() + timeoutMs
+        var last: DailyGoalSnapshot? = null
+        while (System.currentTimeMillis() < deadline) {
+            last = kotlinx.coroutines.runBlocking { nutritionRepo.getDailyGoalSnapshot(today) }
+            if (condition(last)) return
+            Thread.sleep(10)
+        }
+        fail("La meta de hoy guardada no cumplió la condición en ${timeoutMs}ms; última=$last")
+    }
+
     // ─── Date Selection ────────────────────────────────────────────────────
 
     @Test

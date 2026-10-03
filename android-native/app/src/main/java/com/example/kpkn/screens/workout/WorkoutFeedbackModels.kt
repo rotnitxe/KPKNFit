@@ -42,6 +42,8 @@ data class SetAdvancedFeedback(
     /** Nullable live override: null follows the planned set, false disables planned AMRAP. */
     val amrapOverride: Boolean? = null,
     val amrapMinimumReps: Int? = null,
+    /** False si el atleta no movió el selector de reserva (llegó relleno con lo planificado): no cuenta como «reserva cumplida». */
+    val intensityAdjusted: Boolean = true,
     val timerElapsedSeconds: Int? = null,
     val timerTargetSeconds: Int? = null,
     val rom: Int? = null,

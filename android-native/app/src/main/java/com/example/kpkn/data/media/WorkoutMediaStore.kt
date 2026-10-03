@@ -3,6 +3,7 @@ package com.example.kpkn.data.media
 import android.content.Context
 import com.example.kpkn.data.models.WorkoutMediaKind
 import java.io.File
+import java.io.IOException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -32,14 +33,28 @@ class WorkoutMediaStore(private val filesDir: File) {
     ): File {
         val ext = extension?.lowercase()?.trim('.')?.takeIf { it.isNotBlank() }
             ?: if (kind == WorkoutMediaKind.VIDEO) "mp4" else "jpg"
-        return File(monthDir(createdAtMs).apply { mkdirs() }, "$id.$ext")
+        val directory = monthDir(createdAtMs)
+        if (!directory.isDirectory && !directory.mkdirs() && !directory.isDirectory) {
+            throw IOException("No se pudo preparar el almacenamiento de medios.")
+        }
+        return File(directory, "$id.$ext")
     }
 
     fun thumbFile(id: String): File =
-        File(thumbsDir().apply { mkdirs() }, "$id.jpg")
+        thumbsDir().let { directory ->
+            if (!directory.isDirectory && !directory.mkdirs() && !directory.isDirectory) {
+                throw IOException("No se pudo preparar las miniaturas de medios.")
+            }
+            File(directory, "$id.jpg")
+        }
 
-    fun poseSidecarFile(id: String, createdAtMs: Long): File =
-        File(monthDir(createdAtMs).apply { mkdirs() }, "$id${PoseTrajectoryAnalysis.SIDECAR_SUFFIX}")
+    fun poseSidecarFile(id: String, createdAtMs: Long): File {
+        val directory = monthDir(createdAtMs)
+        if (!directory.isDirectory && !directory.mkdirs() && !directory.isDirectory) {
+            throw IOException("No se pudo preparar el almacenamiento de medios.")
+        }
+        return File(directory, "$id${PoseTrajectoryAnalysis.SIDECAR_SUFFIX}")
+    }
 
     fun isManagedPath(file: File): Boolean {
         val rootPath = canonicalPath(root())
@@ -51,8 +66,19 @@ class WorkoutMediaStore(private val filesDir: File) {
      * Copies [source] into the private tree. Does not delete or mutate [source].
      * If the destination already exists, it is left untouched.
      */
-    fun copyIntoStore(source: File, id: String, kind: WorkoutMediaKind, createdAtMs: Long): File {
-        val dest = destinationFile(id, kind, createdAtMs, source.extension)
+    fun copyIntoStore(
+        source: File,
+        id: String,
+        kind: WorkoutMediaKind,
+        createdAtMs: Long,
+        destinationExtension: String? = null,
+    ): File {
+        val dest = destinationFile(
+            id,
+            kind,
+            createdAtMs,
+            destinationExtension ?: source.extension,
+        )
         if (!dest.exists()) {
             source.inputStream().use { input ->
                 dest.outputStream().use { output -> input.copyTo(output) }

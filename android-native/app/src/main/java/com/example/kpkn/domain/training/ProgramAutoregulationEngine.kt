@@ -4,7 +4,9 @@ import com.example.kpkn.data.models.AutoregulationAuditEntry
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
+import com.example.kpkn.data.models.AppliedRecipeProposal
 import com.example.kpkn.data.models.LoadAdvisoryLevel
+import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramAction
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.PowerliftingProfile
@@ -68,6 +70,8 @@ object ProgramAutoregulationEngine {
         executedWeekIds: Set<String>,
         metadata: ExerciseCompositionMetadataProvider? = null,
         nowMs: Long = System.currentTimeMillis(),
+        /** Evidencia a nivel de sesión (§14.5): sesiones iniciadas/registradas del objetivo. */
+        executedSessionIds: Set<String> = emptySet(),
     ): AutoregulationEvaluation {
         if (proposals.isEmpty() || program.autoregulationMode == AutoregulationMode.OFF) {
             return AutoregulationEvaluation(proposals = emptyList(), program = program)
@@ -112,46 +116,302 @@ object ProgramAutoregulationEngine {
                     recipe = recipe,
                     executedWeekIds = executedWeekIds,
                     metadata = provider,
+                    executedSessionIds = executedSessionIds,
+                    nowMs = nowMs,
                 )
-                val run = mutated.runState?.copy(autoregulationAudit = audit, pendingAction = null)
-                    ?: mutated.runState
+                // §14.5/AC-G4: AUTO también deja estado terminal por propuesta; nunca
+                // se declara «aplicada» una propuesta sin efecto observable.
+                val outcomes = outcomeEntries(
+                    before = program,
+                    after = mutated,
+                    proposals = proposals,
+                    targetWeekId = nextWeekId,
+                    protectedWeekIds = executedWeekIds,
+                    mode = program.autoregulationMode,
+                    nowMs = nowMs,
+                )
+                val baseRun = mutated.runState
+                    ?: com.example.kpkn.data.models.ProgramRunState(runId = ProgramProgressEngine.newRunId())
+                val run = baseRun.copy(autoregulationAudit = audit + outcomes, pendingAction = null)
                 AutoregulationEvaluation(
                     proposals = proposals,
                     program = mutated.copy(runState = run),
-                    applied = true,
+                    applied = outcomes.any { it.resolution == PendingActionResolutionStatus.APPLIED },
                 )
             }
             AutoregulationMode.OFF -> AutoregulationEvaluation(emptyList(), program)
         }
     }
 
+    /**
+     * Resuelve la acción `CONFIRM_AUTOREGULATION` pendiente (§14.5): rechazar y
+     * aceptar dejan SIEMPRE estado terminal con motivo en `runState.autoregulationAudit`.
+     *
+     * @param executedWeekIds evidencia real de semanas entrenadas. Si es null se
+     *   deriva del propio run (sesiones realmente completadas), nunca del mero
+     *   `runState.weekId`: esa es la colisión R-202 (avance asigna el run a la
+     *   semana siguiente vacía y la protección la marcaba como ejecutada).
+     */
     fun resolvePending(
         program: Program,
         accept: Boolean,
         metadata: ExerciseCompositionMetadataProvider? = null,
         only: AutoregulationProposal? = null,
+        executedWeekIds: Set<String>? = null,
+        executedSessionIds: Set<String> = emptySet(),
+        nowMs: Long = System.currentTimeMillis(),
     ): Program {
-        val action = program.runState?.pendingAction ?: return program
+        val run = program.runState ?: return program
+        val action = run.pendingAction ?: return program
         if (action.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) return program
+        val resolved = if (only == null) action.proposals else action.proposals.filter { it == only }
         val remaining = if (only == null) emptyList() else action.proposals.filterNot { it == only }
         val nextPending = if (remaining.isEmpty()) null else action.copy(proposals = remaining)
+
         if (!accept) {
-            return program.copy(runState = program.runState?.copy(pendingAction = nextPending))
+            return program.withResolutionEntries(
+                pending = nextPending,
+                entries = resolved.map { proposal ->
+                    resolutionEntry(
+                        proposal = proposal,
+                        status = PendingActionResolutionStatus.REJECTED,
+                        reason = "Rechazada por el atleta: ${proposal.explanation}",
+                        targetWeekId = action.targetWeekId,
+                        mode = program.autoregulationMode,
+                        nowMs = nowMs,
+                    )
+                },
+            )
         }
-        val recipe = program.sourceRecipe ?: return program.copy(runState = program.runState?.copy(pendingAction = nextPending))
-        val executed = program.runState?.weekId?.let { setOf(it) }.orEmpty()
-        val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
-            ?: return program.copy(runState = program.runState?.copy(pendingAction = nextPending))
-        val applied = applyMutations(
-            program = program.copy(runState = program.runState?.copy(pendingAction = nextPending)),
-            nextWeekId = action.targetWeekId,
-            proposals = if (only == null) action.proposals else listOf(only),
-            recipe = recipe,
-            executedWeekIds = executed,
-            metadata = provider,
+
+        fun expired(reason: String): Program = program.withResolutionEntries(
+            pending = nextPending,
+            entries = resolved.map { proposal ->
+                resolutionEntry(proposal, PendingActionResolutionStatus.EXPIRED, reason, action.targetWeekId, program.autoregulationMode, nowMs)
+            },
         )
-        return applied
+
+        val recipe = program.sourceRecipe
+            ?: return expired("No aplicada: el programa no tiene receta fuente.")
+        val provider = metadata ?: runCatching { CompositionMetadataHolder.resolve() }.getOrNull()
+            ?: return expired("No aplicada: sin metadatos de composición del catálogo.")
+        val evidence = executedWeekIds ?: derivedExecutedWeekIds(program)
+        val mutated = applyMutations(
+            program = program.copy(runState = run.copy(pendingAction = nextPending)),
+            nextWeekId = action.targetWeekId,
+            proposals = resolved,
+            recipe = recipe,
+            executedWeekIds = evidence,
+            metadata = provider,
+            executedSessionIds = executedSessionIds,
+            nowMs = nowMs,
+        )
+        val outcomes = outcomeEntries(
+            before = program,
+            after = mutated,
+            proposals = resolved,
+            targetWeekId = action.targetWeekId,
+            protectedWeekIds = evidence,
+            mode = program.autoregulationMode,
+            nowMs = nowMs,
+        )
+        return mutated.withResolutionEntries(pending = mutated.runState?.pendingAction, entries = outcomes)
     }
+
+    /**
+     * Estado terminal «expirada» (§14.5/AC-G4) para una acción pendiente que
+     * otra transición sustituye: avance de semana, cierre de ciclo o cambio de
+     * bloque. Idempotente: sin acción `CONFIRM_AUTOREGULATION` no añade nada.
+     */
+    fun expirePending(
+        program: Program,
+        reason: String,
+        nowMs: Long = System.currentTimeMillis(),
+    ): Program {
+        val run = program.runState ?: return program
+        val action = run.pendingAction ?: return program
+        if (action.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) return program
+        val entries = if (action.proposals.isEmpty()) {
+            listOf(
+                AutoregulationAuditEntry(
+                    atMs = nowMs,
+                    mode = program.autoregulationMode,
+                    kinds = emptyList(),
+                    weekId = action.targetWeekId,
+                    resolution = PendingActionResolutionStatus.EXPIRED,
+                    resolutionReason = reason,
+                ),
+            )
+        } else {
+            action.proposals.map { proposal ->
+                resolutionEntry(
+                    proposal = proposal,
+                    status = PendingActionResolutionStatus.EXPIRED,
+                    reason = reason,
+                    targetWeekId = action.targetWeekId,
+                    mode = program.autoregulationMode,
+                    nowMs = nowMs,
+                )
+            }
+        }
+        return program.copy(
+            runState = run.copy(
+                pendingAction = null,
+                autoregulationAudit = run.autoregulationAudit + entries,
+            ),
+        )
+    }
+
+    /** §14.5: evidencia de semanas con trabajo real, derivada del propio run. */
+    internal fun derivedExecutedWeekIds(program: Program): Set<String> {
+        val run = program.runState ?: return emptySet()
+        // `completedSessionIds` solo se llena con sesiones realmente completadas
+        // en la semana del cursor; vacío = semana todavía sin trabajo (R-202).
+        if (run.completedSessionIds.isEmpty()) return emptySet()
+        val ids = mutableSetOf<String>()
+        listOfNotNull(run.weekId, run.weekInstanceId).forEach { id ->
+            ids += id
+            ids += ProgramProgressEngine.templateWeekIdFromInstance(id) ?: id
+        }
+        return ids
+    }
+
+    private fun resolutionEntry(
+        proposal: AutoregulationProposal,
+        status: PendingActionResolutionStatus,
+        reason: String,
+        targetWeekId: String?,
+        mode: AutoregulationMode,
+        nowMs: Long,
+    ): AutoregulationAuditEntry = AutoregulationAuditEntry(
+        atMs = nowMs,
+        mode = mode,
+        kinds = listOf(proposal.kind),
+        weekId = targetWeekId,
+        resolution = status,
+        resolutionReason = reason,
+    )
+
+    private fun Program.withResolutionEntries(
+        pending: PendingProgramAction?,
+        entries: List<AutoregulationAuditEntry>,
+    ): Program {
+        val current = runState
+            ?: return copy(
+                runState = com.example.kpkn.data.models.ProgramRunState(
+                    runId = ProgramProgressEngine.newRunId(),
+                    pendingAction = pending,
+                    autoregulationAudit = entries,
+                ),
+            )
+        return copy(
+            runState = current.copy(
+                pendingAction = pending,
+                autoregulationAudit = current.autoregulationAudit + entries,
+            ),
+        )
+    }
+
+    /**
+     * Estado terminal de cada propuesta (AC-G4): una propuesta solo se marca
+     * APPLIED si su efecto es observable (perfil de TM, semana objetivo o
+     * inserción de descarga); si la semana objetivo está protegida por trabajo
+     * real o el mecanismo no aplica (p. ej. intensidad sobre receta RIR sin
+     * porcentajes), queda EXPIRED con el motivo concreto.
+     */
+    internal fun outcomeEntries(
+        before: Program,
+        after: Program,
+        proposals: List<AutoregulationProposal>,
+        targetWeekId: String?,
+        protectedWeekIds: Set<String>,
+        mode: AutoregulationMode,
+        nowMs: Long,
+    ): List<AutoregulationAuditEntry> {
+        if (proposals.isEmpty()) return emptyList()
+        val beforeWeek = targetWeekId?.let { id -> weekWithId(before, id) }
+        val afterWeek = targetWeekId?.let { id -> weekWithId(after, id) }
+        val protectedTarget = targetWeekId != null && targetWeekId in protectedWeekIds
+        val profileChanged = after.powerliftingProfile != before.powerliftingProfile
+        val deloadChanged = blockSignature(before) != blockSignature(after)
+        val percentsBefore = percentSignature(beforeWeek)
+        val percentsAfter = percentSignature(afterWeek)
+        val countsBefore = setCountSignature(beforeWeek)
+        val countsAfter = setCountSignature(afterWeek)
+        val techniqueBefore = techniqueSignature(beforeWeek)
+        val techniqueAfter = techniqueSignature(afterWeek)
+        val hasPercent = percentsBefore.any { it != null }
+        val trainedReason = "No aplicada: la semana objetivo ya tiene sesiones entrenadas; su prescripción se conserva (§14.5)."
+        return proposals.map { proposal ->
+            val (status, reason) = when (proposal.kind) {
+                AutoregulationProposalKind.ADJUST_TM,
+                AutoregulationProposalKind.PROMOTE_TM,
+                -> when {
+                    profileChanged -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
+                    else -> PendingActionResolutionStatus.EXPIRED to
+                        "No aplicada: el programa no tiene perfil de cargas para ajustar el TM."
+                }
+
+                AutoregulationProposalKind.INSERT_DELOAD -> when {
+                    deloadChanged -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
+                    else -> PendingActionResolutionStatus.EXPIRED to "No aplicada: no se pudo insertar la descarga propuesta."
+                }
+
+                AutoregulationProposalKind.SCALE_WEEK_INTENSITY,
+                AutoregulationProposalKind.DELAY_PEAK,
+                -> when {
+                    percentsBefore != percentsAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
+                    !hasPercent -> PendingActionResolutionStatus.EXPIRED to
+                        "No aplicable: la prescripción de esa semana no usa porcentajes (RIR/esfuerzo); " +
+                        "usa una propuesta explícita de carga/esfuerzo de la misma configuración (§12.4)."
+                    else -> PendingActionResolutionStatus.EXPIRED to "Sin efecto observable sobre la semana objetivo."
+                }
+
+                AutoregulationProposalKind.SCALE_WEEK_VOLUME -> when {
+                    countsBefore != countsAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
+                    proposal.volumeFactor == null || proposal.volumeFactor!! >= 1.0 ->
+                        PendingActionResolutionStatus.EXPIRED to "No aplicable: el factor de volumen propuesto no reduce la semana."
+                    else -> PendingActionResolutionStatus.EXPIRED to
+                        "Sin efecto observable: la semana no perdió series (respetando SPEED y mínimos)."
+                }
+
+                AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT -> when {
+                    techniqueBefore != techniqueAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
+                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
+                    else -> PendingActionResolutionStatus.EXPIRED to
+                        "No aplicada: el cambio de variante no alteró la prescripción de la semana objetivo."
+                }
+            }
+            resolutionEntry(proposal, status, reason, targetWeekId, mode, nowMs)
+        }
+    }
+
+    private fun percentSignature(week: ProgramWeek?): List<Double?> =
+        week?.sessions?.flatMap { it.allExercises() }?.flatMap { it.sets }?.map { it.targetPercentageRM }.orEmpty()
+
+    private fun setCountSignature(week: ProgramWeek?): List<Int> =
+        week?.sessions?.flatMap { it.allExercises() }?.map { it.sets.size }.orEmpty()
+
+    private fun techniqueSignature(week: ProgramWeek?): List<String?> =
+        week?.sessions?.flatMap { it.allExercises() }?.map { it.techniqueModifier?.name ?: it.variantName }.orEmpty()
+
+    private fun weekWithId(program: Program, weekId: String): ProgramWeek? {
+        program.macrocycles.forEach { macro ->
+            macro.blocks.forEach { block ->
+                block.mesocycles.forEach { meso ->
+                    meso.weeks.firstOrNull { it.id == weekId }?.let { return it }
+                }
+            }
+        }
+        return null
+    }
+
+    private fun blockSignature(program: Program): List<Pair<String, String?>> =
+        program.macrocycles.flatMap { it.blocks }.map { it.id to it.goal?.name }
 
     fun collectAmrapHits(week: ProgramWeek, logs: List<WorkoutLog>): List<AmrapHit> {
         val weekLogs = logs.filter { it.weekId == week.id || it.weekInstanceId == week.id }
@@ -219,6 +479,9 @@ object ProgramAutoregulationEngine {
         recipe: TrainingPlanRecipe,
         executedWeekIds: Set<String>,
         metadata: ExerciseCompositionMetadataProvider,
+        /** Evidencia a nivel de sesión (§14.5); esas sesiones no se reconstruyen. */
+        executedSessionIds: Set<String> = emptySet(),
+        nowMs: Long = System.currentTimeMillis(),
     ): Program {
         var working = program
         var profile = working.powerliftingProfile
@@ -266,6 +529,7 @@ object ProgramAutoregulationEngine {
         }
 
         if (nextWeekId != null && (intensity != 1.0 || volume != 1.0 || swap || delayPeak || proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM })) {
+            val beforeWeeks = working.macrocycles
             working = PlanMaterializer.rematerializeWeek(
                 program = working,
                 weekId = nextWeekId,
@@ -274,7 +538,32 @@ object ProgramAutoregulationEngine {
                 intensityScale = intensity,
                 volumeFactor = volume,
                 executedWeekIds = executedWeekIds,
+                executedSessionIds = executedSessionIds,
             )
+            // §14.4: la receta efectiva aprobada se persiste JUNTO a las sesiones;
+            // nunca se deja el cambio solo en `recipeForNext`. La upsert es por
+            // (ocurrencia, ciclo), así que repetir no duplica entradas.
+            if (working.macrocycles !== beforeWeeks && working.macrocycles != beforeWeeks) {
+                val source = PlanMaterializer.weekRecipeSourceFor(working, recipeForNext, nextWeekId)
+                if (source != null) {
+                    working = PlanMaterializer.withEffectiveWeekRecipe(
+                        program = working,
+                        weekOccurrence = source.weekOccurrence,
+                        cycleNumber = source.cycleNumber,
+                        weekRecipe = PlanMaterializer.scaleWeekRecipe(source.weekRecipe, intensity, volume),
+                        applied = proposals
+                            .filter { it.kind != AutoregulationProposalKind.INSERT_DELOAD }
+                            .map { proposal ->
+                                AppliedRecipeProposal(
+                                    proposalId = "${proposal.kind.name}:${proposal.liftSlot.orEmpty()}:$nextWeekId",
+                                    kind = proposal.kind.name,
+                                    summary = proposal.explanation,
+                                    acceptedAtMs = nowMs,
+                                )
+                            },
+                    )
+                }
+            }
         }
 
         if (proposals.any { it.kind == AutoregulationProposalKind.INSERT_DELOAD }) {

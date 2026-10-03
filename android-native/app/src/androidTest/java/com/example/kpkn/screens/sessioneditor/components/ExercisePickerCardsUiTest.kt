@@ -88,16 +88,17 @@ class ExercisePickerCardsUiTest {
         }
 
         composeRule.onNodeWithText("Información del ejercicio").assertExists()
-        composeRule.onNodeWithText("Volumen equivalente por serie").assertExists()
+        composeRule.onNodeWithText("Músculos · aporte por 1 serie").assertExists()
 
         composeRule.onNodeWithText("Cerrado").performClick()
         assertEquals(1, aspectChangeCount)
         assertEquals(0, selectionCount)
 
-        composeRule.onNodeWithText("Deltoides · anterior").performClick()
-        composeRule.onNodeWithText("hombro", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("Deltoides").performClick()
+        composeRule.onNodeWithContentDescription("Cerrar definición").assertExists()
         composeRule.onNodeWithText("biomechanicalReason", substring = true).assertDoesNotExist()
         assertEquals(0, selectionCount)
+        composeRule.onNodeWithContentDescription("Cerrar definición").performClick()
 
         composeRule.onNodeWithText("Press de banca").performClick()
         assertEquals(1, selectionCount)

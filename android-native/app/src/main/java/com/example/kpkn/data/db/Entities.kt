@@ -245,7 +245,15 @@ fun NutritionLogEntity.toNutritionLog(): NutritionLog = dbJson.decodeFromString(
 @Entity(tableName = "nutrition_plans")
 data class NutritionPlanEntity(@PrimaryKey val id: String, val name: String, val isActive: Boolean, val data: String)
 fun NutritionPlan.toEntity() = NutritionPlanEntity(id = id, name = name, isActive = isActive, data = dbJson.encodeToString(this))
-fun NutritionPlanEntity.toNutritionPlan(): NutritionPlan = dbJson.decodeFromString(data)
+
+/**
+ * La columna [NutritionPlanEntity.isActive] es la ÚNICA verdad del plan activo.
+ * `deactivateAllPlans` solo actualiza la columna, así que el JSON de un plan ya
+ * desactivado conserva `"isActive":true`: por eso el valor del JSON se ignora y
+ * todos los lectores (repositorio, alta, vista previa) reciben el de la columna.
+ */
+fun NutritionPlanEntity.toNutritionPlan(): NutritionPlan =
+    dbJson.decodeFromString<NutritionPlan>(data).copy(isActive = isActive)
 
 @Entity(tableName = "nutrition_active_state")
 data class NutritionActiveStateEntity(@PrimaryKey val rowId: Int = 1, val activePlanId: String?)
@@ -629,7 +637,11 @@ data class NutritionCalibrationProfileEntity(
     val updatedAt: Long = 0L,
 )
 
-/** Historical food-goal values. Rows are keyed by date and inserted once. */
+/**
+ * Historical food-goal values. Rows are keyed by date and inserted once; only
+ * TODAY's row can be replaced, by activating a different plan (see
+ * `NutritionDao.pinTodayGoalSnapshot`).
+ */
 @Entity(
     tableName = "daily_goal_snapshots",
     indices = [Index("planId")],

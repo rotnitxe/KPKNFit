@@ -145,6 +145,12 @@ data class WorkoutEditingState(
 )
 
 data class WorkoutUiState(
+    val persistenceRevision: Long = 0L,
+    val isStartingWorkout: Boolean = false,
+    val isCancellingWorkout: Boolean = false,
+    val wasCancelled: Boolean = false,
+    val cancellationError: String? = null,
+    val startPersistenceError: String? = null,
     val session: Session? = null,
     val activeMode: WeekVariant = WeekVariant.A,
     val programId: String = "",

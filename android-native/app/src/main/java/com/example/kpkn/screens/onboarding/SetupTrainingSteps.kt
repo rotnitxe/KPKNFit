@@ -27,7 +27,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PowerliftingProfile
@@ -40,10 +42,13 @@ import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -95,11 +100,6 @@ fun SetupTrainingStepContent(
 
         SetupStepId.AVAILABILITY -> TrainingAvailabilityStep(state = state, vm = vm)
 
-        SetupStepId.INVENTORY_BARBELL -> InventoryBarbellStep(step = step, state = state, vm = vm)
-        SetupStepId.INVENTORY_PLATES -> InventoryPlatesStep(step = step, state = state, vm = vm)
-        SetupStepId.INVENTORY_DUMBBELLS -> InventoryDumbbellsStep(step = step, state = state, vm = vm)
-        SetupStepId.INVENTORY_KETTLEBELLS -> InventoryKettlebellsStep(step = step, state = state, vm = vm)
-        SetupStepId.INVENTORY_MACHINES -> InventoryMachinesStep(step = step, state = state, vm = vm)
         SetupStepId.WEEKDAYS -> TrainingWeekdaysStep(state = state, vm = vm)
         SetupStepId.SESSION_TIME -> TrainingSessionTimeStep(state = state, vm = vm)
         SetupStepId.PRIORITIES -> TrainingPrioritiesStep(state = state, vm = vm)
@@ -170,6 +170,8 @@ private fun TrainingChoiceStep(step: SetupStepId, state: SetupWizardState, vm: S
         return
     }
     val selected = state.draft.selectedValues(step)
+    LegacyGoalSuggestion(step = step, state = state)
+    BikePresenceConfirmation(step = step, state = state, vm = vm)
     if (SetupStepDefinitions.control(step) == SetupControlKind.MULTI_CHOICE) {
         SetupBodyMultiChoiceCards(
             step = step,
@@ -187,6 +189,65 @@ private fun TrainingChoiceStep(step: SetupStepId, state: SetupWizardState, vm: S
     SetupBodySkipAction(step = step, vm = vm)
 }
 
+/**
+ * T-005 / §15.4 — GOAL legacy (HEALTH/MIXED): se SUGIERE «Atleta completo»
+ * sin seleccionarlo nunca; la respuesta original se conserva como dato.
+ */
+@Composable
+private fun LegacyGoalSuggestion(step: SetupStepId, state: SetupWizardState) {
+    if (step != SetupStepId.GOAL) return
+    val goal = state.draft.goal
+    if (goal != SetupGoal.HEALTH && goal != SetupGoal.MIXED) return
+    TrainingNotice(
+        text = "Tu objetivo anterior «${goal.label}» corresponde hoy a «Atleta completo». " +
+            "Elígelo solo si quieres actualizarlo: tu respuesta se conserva hasta entonces.",
+        tone = TrainingNoticeTone.INFO,
+    )
+}
+
+/**
+ * T-005 / §15.1 — BIKE_OUTDOOR exige confirmar acceso a bicicleta con
+ * PRESENCIA si no consta: no se hereda de la categoría «Cardio» ni del resto
+ * del material de gimnasio. Solo presencia, sin kilos ni cantidades.
+ */
+@Composable
+private fun BikePresenceConfirmation(step: SetupStepId, state: SetupWizardState, vm: SetupWizardViewModel) {
+    if (step != SetupStepId.CARDIO_TYPE) return
+    if ("BIKE_OUTDOOR" !in state.draft.selectedValues(step)) return
+    val presence = SetupApparatusPanel.presenceOf(
+        state.draft.trainingOptions.availability,
+        SetupApparatusPanel.OUTDOOR_BIKE_KEY,
+    )
+    if (presence == ApparatusPresence.PRESENT) return
+
+    fun write(value: ApparatusPresence) {
+        vm.updateStep(SetupStepId.CARDIO_TYPE) { draft ->
+            draft.withApparatusPresence(SetupApparatusPanel.OUTDOOR_BIKE_KEY, value, isSupport = false)
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
+        TrainingNotice(
+            text = if (presence == ApparatusPresence.ABSENT) {
+                "Confirmaste que no tienes bicicleta: elige otro tipo de cardio o corrige aquí."
+            } else {
+                "¿Tienes acceso a una bicicleta? Confírmalo para continuar con bicicleta al aire libre."
+            },
+            tone = TrainingNoticeTone.INFO,
+        )
+        WizardChoiceCard(
+            title = "Sí, tengo bicicleta",
+            selected = presence == ApparatusPresence.PRESENT,
+            onClick = { write(ApparatusPresence.PRESENT) },
+        )
+        WizardChoiceCard(
+            title = "No tengo bicicleta",
+            selected = presence == ApparatusPresence.ABSENT,
+            onClick = { write(ApparatusPresence.ABSENT) },
+        )
+    }
+}
+
 /** WEEKDAYS: multiselección con contador de días; tocar nunca avanza de paso. */
 @Composable
 private fun TrainingWeekdaysStep(state: SetupWizardState, vm: SetupWizardViewModel) {
@@ -197,19 +258,22 @@ private fun TrainingWeekdaysStep(state: SetupWizardState, vm: SetupWizardViewMod
     }
     val selected = state.draft.selectedValues(step)
     val target = state.draft.daysPerWeek
-    SetupBodyHint(
-        text = if (target == null) {
-            "Días elegidos: ${selected.size}"
-        } else {
-            "Elige $target días · ${selected.size} de $target elegidos"
-        },
-    )
+    SetupBodyHint(text = weekdaysCounterText(target = target, selectedCount = selected.size))
     SetupBodyMultiChoiceCards(
         step = step,
         selected = selected,
         onSelect = { value -> vm.toggleStepChoice(step, value) },
     )
 }
+
+/** Contador del paso WEEKDAYS; con un solo día el sustantivo y el participio van en singular. */
+internal fun weekdaysCounterText(target: Int?, selectedCount: Int): String =
+    if (target == null) {
+        "Días elegidos: $selectedCount"
+    } else {
+        "Elige ${SpanishPlurals.days(target)} · $selectedCount de $target " +
+            SpanishPlurals.choose(target, "elegido", "elegidos")
+    }
 
 /** SESSION_TIME: un número por paso; el crudo se conserva en `inputTexts`. */
 @Composable
@@ -274,6 +338,95 @@ private fun TrainingAvailabilityStep(state: SetupWizardState, vm: SetupWizardVie
         selected = AVAILABILITY_BODYWEIGHT in selected,
         onClick = { vm.toggleStepChoice(step, AVAILABILITY_BODYWEIGHT) },
     )
+    // §13.2: subpanel de aparatos DENTRO del paso de material (subpanel de
+    // EQUIPMENT), después de las categorías. Solo presencia Sí/No/No sé: aquí
+    // no hay kilos ni cantidades (AC-T005-01).
+    TrainingApparatusPanel(state = state, vm = vm)
+}
+
+/**
+ * Subpanel «¿Qué tienes disponible?» (§13.2): presencia agrupada de las claves
+ * curadas relevantes a las categorías elegidas. Omitir deja UNKNOWN (nunca
+ * PRESENT) y «No tengo otros» marca ausentes los ítems visibles desconocidos.
+ */
+@Composable
+private fun TrainingApparatusPanel(state: SetupWizardState, vm: SetupWizardViewModel) {
+    val availability = state.draft.trainingOptions.availability ?: return
+    if (availability.categories.isEmpty()) return
+    val items = remember(availability.categories) { SetupApparatusPanel.itemsFor(availability.categories) }
+    if (items.isEmpty()) return
+
+    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
+        Text(
+            text = "¿Qué tienes disponible? (solo presencia, sin kilos ni cantidades)",
+            style = WizardTypography.cardTitle,
+            color = WizardColors.text,
+            modifier = Modifier.testTag("setup-apparatus-panel"),
+        )
+        Text(
+            text = "Puedes continuar con «No lo sé»: los planes te dirán qué falta confirmar.",
+            style = WizardTypography.bodySmall,
+            color = WizardColors.textMuted,
+        )
+        items.groupBy { it.group }.entries
+            .sortedBy { SetupApparatusPanel.groupOrder.indexOf(it.key).let { index -> if (index < 0) Int.MAX_VALUE else index } }
+            .forEach { (group, groupItems) ->
+                Text(text = group, style = WizardTypography.cardSubtitle, color = WizardColors.textMuted)
+                groupItems.forEach { item ->
+                    val presence = SetupApparatusPanel.presenceOf(availability, item.key)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(WizardColors.cardFill, WizardShapes.card)
+                            .border(WizardColors.unselectedBorderWidth, WizardColors.cardBorder, WizardShapes.card)
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .testTag("setup-apparatus-${item.key}"),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = item.label,
+                            style = WizardTypography.cardSubtitle,
+                            color = WizardColors.text,
+                            modifier = Modifier.weight(1f),
+                        )
+                        PresenceButton("Sí", presence == ApparatusPresence.PRESENT) {
+                            vm.updateStep(SetupStepId.AVAILABILITY) { draft ->
+                                draft.withApparatusPresence(item.key, ApparatusPresence.PRESENT, item.isSupport)
+                            }
+                        }
+                        PresenceButton("No", presence == ApparatusPresence.ABSENT) {
+                            vm.updateStep(SetupStepId.AVAILABILITY) { draft ->
+                                draft.withApparatusPresence(item.key, ApparatusPresence.ABSENT, item.isSupport)
+                            }
+                        }
+                        PresenceButton("No sé", presence == ApparatusPresence.UNKNOWN) {
+                            vm.updateStep(SetupStepId.AVAILABILITY) { draft ->
+                                draft.withApparatusPresence(item.key, ApparatusPresence.UNKNOWN, item.isSupport)
+                            }
+                        }
+                    }
+                }
+            }
+        TextButton(
+            onClick = { vm.updateStep(SetupStepId.AVAILABILITY) { draft -> draft.markVisibleApparatusAbsent(items) } },
+            modifier = Modifier.testTag("setup-apparatus-none-others"),
+        ) {
+            Text("No tengo otros", color = WizardColors.text, style = WizardTypography.cardSubtitle)
+        }
+    }
+}
+
+@Composable
+private fun PresenceButton(label: String, selected: Boolean, onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
+        Text(
+            text = label,
+            style = WizardTypography.bodySmall,
+            color = if (selected) WizardColors.text else WizardColors.textMuted,
+            fontWeight = if (selected) FontWeight.Bold else null,
+            modifier = Modifier.testTag("setup-apparatus-presence-$label"),
+        )
+    }
 }
 
 // ─── PRIORITIES: bolsa de orden (5 en total, 2 por músculo) ─────────────────
@@ -628,7 +781,7 @@ private fun CustomSplitEditor(step: SetupStepId, state: SetupWizardState, vm: Se
     Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
         if (defined < target) {
             TrainingNotice(
-                text = "Define el foco de tus $target días ($defined de $target).",
+                text = customSplitPendingText(target = target, defined = defined),
                 tone = TrainingNoticeTone.ERROR,
             )
         }
@@ -663,6 +816,13 @@ private fun CustomSplitEditor(step: SetupStepId, state: SetupWizardState, vm: Se
         }
     }
 }
+
+/** Aviso del split personalizado; con un solo día no se escribe «tus 1 días». */
+internal fun customSplitPendingText(target: Int, defined: Int): String = SpanishPlurals.choose(
+    target,
+    "Define el foco de tu día ($defined de $target).",
+    "Define el foco de tus $target días ($defined de $target).",
+)
 
 private fun <T> List<T>.replaceAt(index: Int, value: T): List<T> =
     toMutableList().also { rows -> if (index in rows.indices) rows[index] = value }
@@ -705,12 +865,7 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             onAction = { vm.retryFailedOperation(SetupRetryOperation.CANDIDATES) },
         )
 
-        candidates.isEmpty() -> TrainingNotice(
-            text = "Ahora mismo no hay un plan compatible con tus respuestas. Puedes revisar días, tiempo o equipo y volver a intentarlo.",
-            tone = TrainingNoticeTone.ERROR,
-            actionLabel = "Reintentar",
-            onAction = { vm.retryFailedOperation(SetupRetryOperation.CANDIDATES) },
-        )
+        candidates.isEmpty() -> CandidateIncompatibility(state = state, vm = vm)
 
         else -> {
             val selected = draft.selectedValues(step)
@@ -724,13 +879,93 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             }
             val hidden = state.availablePlanCandidates.size - state.planCandidates.size
             if (hidden > 0) {
+                // §15.2: el límite de tarjetas es visual; paginar NO rematerializa
+                // (los Ready viven en `availablePlanCandidates` y en la caché).
                 TextButton(onClick = { vm.showMoreCandidates() }) {
                     Text("Ver más opciones ($hidden)", color = WizardColors.text, style = WizardTypography.cardTitle)
                 }
             }
+            CandidateCountsLine(state = state)
         }
     }
 }
+
+/** §15.2: evaluados / viables / no viables (nunca «publicados» de un subconjunto). */
+@Composable
+private fun CandidateCountsLine(state: SetupWizardState) {
+    val counts = state.candidateCounts
+    if (counts.evaluated == 0) return
+    Text(
+        text = candidateCountsText(counts),
+        style = WizardTypography.bodySmall,
+        color = WizardColors.textMuted,
+        modifier = Modifier.testTag("setup-candidate-counts"),
+    )
+}
+
+/** «3 planes evaluados · 2 viables · 1 no viable»: cada cifra concuerda con su sustantivo. */
+internal fun candidateCountsText(counts: SetupCandidateCounts): String =
+    "${SpanishPlurals.withNoun(counts.evaluated, "plan evaluado", "planes evaluados")} · " +
+        "${SpanishPlurals.withNoun(counts.viable, "viable", "viables")} · " +
+        SpanishPlurals.withNoun(counts.nonViable, "no viable", "no viables")
+
+/**
+ * T-005 / §15.2: incompatibilidad con ACCIONES concretas, antes de revisión y
+ * sin tocar las respuestas del usuario. Cada motivo cerrado lleva su acción:
+ * error de catálogo → reintentar; falta de aparato → el panel de material;
+ * tiempo insuficiente → otros planes o editar el tiempo.
+ */
+@Composable
+private fun CandidateIncompatibility(state: SetupWizardState, vm: SetupWizardViewModel) {
+    val rejection = state.candidateRejections.firstOrNull()
+    val summary = state.errors["candidates"]
+        ?: "Ahora mismo no hay un plan compatible con tus respuestas."
+    Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
+        val message = when {
+            rejection == null -> summary
+            rejection.stage == SetupCandidateRejectionStage.CATALOG ||
+                rejection.reasonCode == PlanRejectionReason.CATALOG_NOT_READY ->
+                "No encontramos plan por un error de catálogo. Puedes reintentar sin cambiar tus respuestas."
+
+            rejection.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN -> {
+                val key = rejection.apparatusKey
+                if (key != null) "Falta confirmar material: ${labelForApparatus(key)}. $summary" else "Falta confirmar material. $summary"
+            }
+
+            rejection.reasonCode == PlanRejectionReason.APPARATUS_ABSENT ->
+                "Este plan pide material que declaraste ausente. $summary"
+
+            rejection.reasonCode == PlanRejectionReason.TIME_BUDGET && rejection.requiredMinutes != null ->
+                "Este plan necesita ${rejection.requiredMinutes} min por sesión; elegiste ${state.draft.minutesPerSession ?: "—"} min."
+
+            else -> summary
+        }
+        TrainingNotice(
+            text = message,
+            tone = TrainingNoticeTone.ERROR,
+            actionLabel = when {
+                rejection?.needsApparatusConfirmation == true -> "Confirmar material"
+                rejection?.reasonCode == PlanRejectionReason.TIME_BUDGET -> "Editar tiempo"
+                else -> "Reintentar"
+            },
+            onAction = {
+                when {
+                    rejection?.needsApparatusConfirmation == true -> vm.editStep(SetupStepId.AVAILABILITY)
+                    rejection?.reasonCode == PlanRejectionReason.TIME_BUDGET -> vm.editStep(SetupStepId.SESSION_TIME)
+                    else -> vm.retryFailedOperation(SetupRetryOperation.CANDIDATES)
+                }
+            },
+        )
+        rejection?.reason?.takeIf { it.isNotBlank() && it != message }?.let { detail ->
+            Text(text = detail, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
+        }
+        CandidateCountsLine(state = state)
+    }
+}
+
+private fun labelForApparatus(key: String): String =
+    SetupApparatusPanel.itemsFor(com.example.kpkn.data.models.EquipmentCategory.entries.toSet())
+        .firstOrNull { it.key == key }?.label ?: key
 
 private fun planCandidateSubtitle(candidate: SetupPlanCandidate): String =
     (listOf(candidate.subtitle) + candidate.reasons)
@@ -765,7 +1000,7 @@ private fun FromScratchSessions(state: SetupWizardState) {
                 }
                 session.exercises.forEach { item ->
                     Text(
-                        text = "${item.name} · ${item.sets ?: "—"} series × ${item.reps ?: "—"} reps",
+                        text = scratchExerciseLine(name = item.name, sets = item.sets, reps = item.reps),
                         style = WizardTypography.cardSubtitle,
                         color = WizardColors.textMuted,
                     )
@@ -774,6 +1009,10 @@ private fun FromScratchSessions(state: SetupWizardState) {
         }
     }
 }
+
+/** Línea de un ejercicio montado a mano: «Sentadilla · 1 serie × 1 rep» o «· 3 series × 8 reps». */
+internal fun scratchExerciseLine(name: String, sets: Int?, reps: Int?): String =
+    "$name · ${sets?.let(SpanishPlurals::sets) ?: "— series"} × ${reps?.let(SpanishPlurals::reps) ?: "— reps"}"
 
 // ─── TRAINING_MAX / TRAINING_MARKS ──────────────────────────────────────────
 
@@ -1173,9 +1412,9 @@ private fun ProgramSessions(program: Program) {
     }
 }
 
-private fun exerciseSummary(exercise: Exercise): String = buildString {
-    append(exercise.sets.size)
-    append(" series")
+/** «1 serie × 1 rep» / «3 series × 8 rep» de la vista previa del programa. */
+internal fun exerciseSummary(exercise: Exercise): String = buildString {
+    append(SpanishPlurals.sets(exercise.sets.size))
     val first = exercise.sets.firstOrNull()
     val reps = first?.targetReps
     val duration = first?.targetDuration
@@ -1266,7 +1505,7 @@ private fun warmupSummary(draft: SetupWizardDraft): String {
     return when {
         warmup == null -> "Estándar del plan"
         warmup.isEmpty() -> "Sin calentamiento automático"
-        else -> "Personalizado (${warmup.size} pasos)"
+        else -> "Personalizado (${SpanishPlurals.steps(warmup.size)})"
     }
 }
 

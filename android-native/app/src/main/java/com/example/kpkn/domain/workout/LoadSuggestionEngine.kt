@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.workout
 
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.abs
@@ -11,6 +12,17 @@ import kotlin.math.roundToInt
  * Android/Room lookups stay in the ViewModel adapter.
  */
 object LoadSuggestionEngine {
+
+    /** Native recipes own their §12.4 progression; unresolved manual loads also bypass generic suggestions. */
+    fun shouldDeferToNativeProgression(exercise: Exercise, setIdx: Int, side: String? = null): Boolean {
+        if (exercise.nativeProgressionManaged) return true
+        val requiredSides = exercise.sets.getOrNull(setIdx)?.manualLoadRequiredSides.orEmpty()
+        return if (side.isNullOrBlank()) {
+            requiredSides.isNotEmpty()
+        } else {
+            side in requiredSides || "bilateral" in requiredSides
+        }
+    }
 
     data class Suggestion(
         val suggestedWeight: Double,

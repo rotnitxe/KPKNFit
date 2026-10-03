@@ -336,6 +336,29 @@ data class Exercise(
     val slotRole: com.example.kpkn.data.protocols.SlotRole? = null,
     /** Optional recipe technique; default null keeps pre-F2 JSON valid. */
     val techniqueModifier: com.example.kpkn.data.protocols.TechniqueModifier? = null,
+    /**
+     * Convención de cantidad de carga (§14.2): TOTAL_EXTERNAL / PER_IMPLEMENT /
+     * ADDITIONAL_BODYWEIGHT / ASSISTANCE. UNSPECIFIED en datos viejos hasta que
+     * la convención sea inequívoca; no cambia el significado de entradas
+     * antiguas en silencio.
+     */
+    val loadQuantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+    /**
+     * Prescripción de carga explícita/pendiente (§14.2). null = resolución
+     * legacy sin cambios; `state=PENDING` = peso por elegir en entrenamiento
+     * (peso null ≠ 0 kg). Una carga de trabajo 3–5 reps vive en una referencia
+     * OBSERVED_WORKING_SET, NUNCA en [reference1RM], que sigue significando 1RM.
+     */
+    val loadReference: com.example.kpkn.data.protocols.PlanLoadReference? = null,
+    /**
+     * `DayRecipe.id` / `SlotRecipe.id` de origen: identidad estable
+     * (recipeId, contentVersion, weekOccurrence, dayId, slotId) de §14.4 para
+     * reconstruir sin depender de nombre o configuración repetida.
+     */
+    val recipeDayId: String? = null,
+    val recipeSlotId: String? = null,
+    /** Uses the native recipe's explicit §12.4 load-progression policy, not generic workout increments. */
+    val nativeProgressionManaged: Boolean = false,
 )
 
 @Serializable
@@ -622,6 +645,14 @@ data class ExerciseSet(
     val isTopSet: Boolean = false,
     /** Optional recipe load basis; default null keeps pre-F2 JSON valid. */
     val loadBasis: com.example.kpkn.data.protocols.LoadBasis? = null,
+    /**
+     * Convención de cantidad para ESTA serie (§14.2). UNSPECIFIED = hereda la
+     * del ejercicio; los payloads antiguos decodifican igual y no cambian su
+     * significado.
+     */
+    val loadQuantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+    /** Sides whose next load must be chosen manually after an accepted stock-unknown proposal. */
+    val manualLoadRequiredSides: Set<String> = emptySet(),
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }

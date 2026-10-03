@@ -1,7 +1,6 @@
 package com.example.kpkn.screens.sessioneditor
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -44,6 +43,7 @@ import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import com.example.kpkn.domain.workout.normalizeEditorScheduledTechniques
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -58,7 +58,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.LocalDate
 import java.util.UUID
@@ -79,8 +78,27 @@ internal data class PersistedSessionEditorDraft(
     val selectedExercisesIds: Set<String> = emptySet(),
     val savedAtMs: Long = System.currentTimeMillis(),
     val pendingTransferToDays: PendingTransferToDays? = null,
+    /** Null marks a pre-split legacy draft; new drafts pin their committed editor-pref baseline. */
+    val committedPartRuleDefaults: Map<String, SessionEditorRuleDefaults>? = null,
+    val committedRuleLimits: SessionEditorRuleLimits? = null,
+    /**
+     * Complete committed global defaults (Room's core + confirmed extras) at the time
+     * the draft was written. Null marks a draft from before the global extras were
+     * versioned: its [ruleDefaults] win as a whole, as they always did.
+     */
+    val committedRuleBaseline: SessionEditorCommittedRuleBaseline? = null,
 )
 
+private sealed interface SessionEditorLoadResult {
+    data class Loaded(val state: SessionEditorUiState) : SessionEditorLoadResult
+    data class Failed(val message: String) : SessionEditorLoadResult
+    data object WaitingForRepository : SessionEditorLoadResult
+}
+
+
+/** A session is on screen and no load failure is showing: no load result may replace it. */
+private fun SessionEditorUiState.isLoadedWithoutFailure(): Boolean =
+    session != null && loadErrorMessage == null
 
 class SessionEditorViewModel(
     application: Application,
@@ -116,7 +134,7 @@ class SessionEditorViewModel(
     internal val nutritionRepository = runCatching { NutritionRepository.getInstance() }.getOrNull()
     internal val templateRepository = SessionTemplateRepository.getInstance(application)
     private val ruleTemplateStore = RuleTemplateStore.getInstance(application)
-    private val trainedVersionStore = TrainedSessionVersionStore.getInstance(application)
+    internal val trainedVersionStore = TrainedSessionVersionStore.getInstance(application)
 
     /** Combined (system + user) template list, updated reactively. */
     val allTemplates: StateFlow<List<SessionTemplate>> = templateRepository.allTemplates
@@ -128,26 +146,169 @@ class SessionEditorViewModel(
         get() = catalogExerciseIndex()
     private var augeJob: Job? = null
     private var autoSaveJob: Job? = null
+    @Volatile
     private var loadSessionJob: Job? = null
     /** One template command at a time; prevents stale async REPLACE overwrites. */
     internal var templateApplyJob: Job? = null
     private var textHistoryDebounceJob: Job? = null
     private var textHistoryBaseline: Session? = null
+    @Volatile
+    internal var activeDurableSaveKey: String? = null
+    internal var sessionSwitchGeneration: Long = 0L
+    private var loadSessionGeneration: Long = 0L
+    private val draftStore by lazy { SessionEditorDraftStore.getInstance(getApplication()) }
+
+    /**
+     * [roomSession] is the session exactly as Room holds it (never a newer copy from
+     * the draft): the eight core defaults always come from it, only the extras come
+     * from the preference record (see [resolveGlobalRuleDefaults]).
+     */
+    internal suspend fun loadEditorRulePreferencesFor(
+        sessionId: String,
+        persistedDraft: PersistedSessionEditorDraft?,
+        roomSession: Session?,
+    ): ResolvedSessionEditorRulePreferences {
+        val key = sessionEditorRulePreferencesStorageKey(programId, sessionId)
+        val storedRead = draftStore.readRulePreferencesResult(key)
+        val stored = (storedRead as? RulePreferencesRead.Present)?.value
+        val savedBaselineInDraft = persistedDraft?.let { draft ->
+            val committedParts = draft.committedPartRuleDefaults
+            val committedLimits = draft.committedRuleLimits
+            if (committedParts != null && committedLimits != null) {
+                SessionEditorRulePreferences(committedParts, committedLimits)
+            } else {
+                null
+            }
+        }
+        val legacyBaseline = persistedDraft?.takeIf { savedBaselineInDraft == null }?.let { draft ->
+            // Older builds only stored current per-part settings and limits in the recovery draft.
+            // They had no commit boundary for these editor-only controls, so preserve them as the
+            // installed baseline while migrating to the separate preference store.
+            SessionEditorRulePreferences(
+                partRuleDefaults = draft.partRuleDefaults,
+                ruleLimits = draft.ruleLimits,
+            )
+        }
+        val global = resolveGlobalRuleDefaults(roomSession, stored, persistedDraft)
+        val committed = (stored ?: savedBaselineInDraft ?: legacyBaseline ?: SessionEditorRulePreferences())
+            .copy(globalRuleExtras = global.savedExtras)
+        // Only an ABSENT record is migrated from the draft. An unreadable one is left
+        // untouched: it may belong to a newer build, and overwriting it would destroy it.
+        if (storedRead == RulePreferencesRead.Absent && persistedDraft != null) {
+            runCatching { draftStore.writeRulePreferences(key, committed) }
+        }
+        val current = persistedDraft?.let { draft ->
+            SessionEditorRulePreferences(
+                partRuleDefaults = draft.partRuleDefaults,
+                ruleLimits = draft.ruleLimits,
+                globalRuleExtras = global.current.extras(),
+            )
+        } ?: committed
+        return ResolvedSessionEditorRulePreferences(current = current, committed = committed, global = global)
+    }
+
+    /**
+     * Discard rewrites the preference record with the committed baseline only when the
+     * stored record differs from it. When it already matches, no disk commit happens
+     * and no write revision is claimed (a claimed revision would invalidate an
+     * in-flight save of the same session). Returns false when a needed write failed.
+     */
+    internal suspend fun preserveEditorRuleBaselineForDiscard(
+        sessionId: String,
+        baseline: SessionEditorRulePreferences,
+    ): Boolean {
+        val key = sessionEditorRulePreferencesStorageKey(programId, sessionId)
+        val stored = try {
+            draftStore.readRulePreferencesResult(key)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Throwable) {
+            RulePreferencesRead.Unreadable
+        }
+        if (!discardMustWriteRulePreferences(stored, baseline)) return true
+        val revision = nextEditorRulePreferencesWriteRevision(sessionId)
+        return try {
+            persistEditorRulePreferences(sessionId, baseline, revision = revision)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * Best-effort fan-out of the global extras to the clones a MESOCYCLE save wrote.
+     * Their core defaults already travel inside the cloned `Session`; the extras live
+     * in per-session preference records, so they are copied here. Only the extras are
+     * replaced (a clone's own parts/limits stay), an unreadable record is left alone and
+     * a record that already matches is not rewritten. Failures are ignored on purpose:
+     * the clones keep default extras and the committed content is unaffected.
+     */
+    internal suspend fun propagateGlobalRuleExtrasToClones(
+        cloneSessionIds: Collection<String>,
+        extras: SessionEditorGlobalRuleExtras,
+    ): Int {
+        var propagated = 0
+        for (cloneId in cloneSessionIds) {
+            try {
+                val key = sessionEditorRulePreferencesStorageKey(programId, cloneId)
+                val existing: SessionEditorRulePreferences? = when (val read = draftStore.readRulePreferencesResult(key)) {
+                    is RulePreferencesRead.Present -> read.value
+                    RulePreferencesRead.Absent -> SessionEditorRulePreferences()
+                    RulePreferencesRead.Unreadable -> null
+                }
+                if (existing == null) continue
+                val confirmed = (existing.globalRuleExtras ?: SessionEditorGlobalRuleExtras()).atCurrentVersion()
+                if (confirmed == extras.atCurrentVersion()) continue
+                if (draftStore.writeRulePreferences(key, existing.copy(globalRuleExtras = extras))) propagated++
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Throwable) {
+                // Best effort only.
+            }
+        }
+        return propagated
+    }
+
+    internal suspend fun persistEditorRulePreferences(
+        sessionId: String,
+        preferences: SessionEditorRulePreferences,
+        revision: Long? = null,
+    ): Boolean = draftStore.writeRulePreferences(
+        key = sessionEditorRulePreferencesStorageKey(programId, sessionId),
+        value = preferences,
+        revision = revision,
+    )
+
+    internal fun nextEditorRulePreferencesWriteRevision(sessionId: String): Long =
+        draftStore.nextRulePreferencesWriteRevision(sessionEditorRulePreferencesStorageKey(programId, sessionId))
 
     internal fun scheduleAutoSave() {
         autoSaveJob?.cancel()
+        val state = _uiState.value
+        val payload = createPersistedDraft(state) ?: return
+        val (key, draft) = payload
+        val generation = draftStore.writer.invalidate(key)
         autoSaveJob = viewModelScope.launch {
             delay(2000)
             if (!_uiState.value.autoSaveEnabled) return@launch
-            withContext(Dispatchers.IO) {
-                persistRecoverableSession()
+            val outcome = draftStore.writer.enqueueWrite(key, generation, draft).await()
+            if (outcome.status == DraftWriteStatus.FAILED && isCurrentDraftKey(key)) {
+                updateUi { it.copy(snackbarMessage = "No se pudo guardar el borrador. Vuelve a intentarlo.") }
             }
         }
     }
 
     fun setAutoSaveEnabled(enabled: Boolean) {
-        _uiState.update { it.copy(autoSaveEnabled = enabled) }
-        if (enabled) scheduleAutoSave()
+        viewModelScope.launch(Dispatchers.Main.immediate) {
+            _uiState.update { it.copy(autoSaveEnabled = enabled) }
+            if (enabled) {
+                scheduleAutoSave()
+            } else {
+                invalidateDraftWritesFor(_uiState.value)
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) { draftStore.setAutoSaveEnabled(enabled) }
     }
 
     private data class CachedWeeklyMetrics(
@@ -175,9 +336,6 @@ class SessionEditorViewModel(
         return r
     }
 
-    internal val draftPrefs by lazy {
-        getApplication<Application>().getSharedPreferences(SESSION_EDITOR_DRAFT_PREFS, Context.MODE_PRIVATE)
-    }
     internal val draftJson = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -205,11 +363,14 @@ class SessionEditorViewModel(
     }
 
     internal fun updateUi(transform: (SessionEditorUiState) -> SessionEditorUiState) {
-        _uiState.update(transform)
+        _uiState.update { current ->
+            val next = transform(current)
+            next.copy(hasUnsavedChanges = next.hasMeaningfulDraftChanges())
+        }
     }
 
     internal fun replaceUiState(state: SessionEditorUiState) {
-        _uiState.value = state
+        _uiState.value = state.copy(hasUnsavedChanges = state.hasMeaningfulDraftChanges())
     }
 
     internal fun draftStorageKey(
@@ -225,7 +386,7 @@ class SessionEditorViewModel(
         sessionId = sessionId,
     )
 
-    internal fun persistedDraftFor(
+    internal suspend fun persistedDraftFor(
         weekId: String,
         macroIndex: Int,
         mesoIndex: Int,
@@ -237,8 +398,10 @@ class SessionEditorViewModel(
             mesoIndex = mesoIndex,
             sessionId = sessionId,
         )
-        val raw = draftPrefs.getString(key, null) ?: return null
-        val decoded = runCatching { draftJson.decodeFromString<PersistedSessionEditorDraft>(raw) }.getOrNull() ?: return null
+        val decoded = withContext(Dispatchers.IO) {
+            val raw = draftStore.readRaw(key) ?: return@withContext null
+            runCatching { draftJson.decodeFromString<PersistedSessionEditorDraft>(raw) }.getOrNull()
+        } ?: return null
         return decoded.takeIf {
             it.programId == programId &&
                 it.sessionId == sessionId &&
@@ -248,8 +411,8 @@ class SessionEditorViewModel(
         }
     }
 
-    internal fun persistDraft(state: SessionEditorUiState = _uiState.value): Boolean {
-        val session = state.session ?: return false
+    private fun createPersistedDraft(state: SessionEditorUiState): Pair<String, PersistedSessionEditorDraft>? {
+        val session = state.session ?: return null
         val payload = PersistedSessionEditorDraft(
             programId = programId,
             sessionId = session.id,
@@ -263,6 +426,10 @@ class SessionEditorViewModel(
             ruleLimits = state.ruleLimits,
             selectedExercisesIds = state.selectedExercisesIds,
             pendingTransferToDays = state.pendingTransferToDays,
+            committedPartRuleDefaults = state.savedPartRuleDefaults,
+            committedRuleLimits = state.savedRuleLimits,
+            // Built here, from an immutable state snapshot, never while encoding in IO.
+            committedRuleBaseline = SessionEditorCommittedRuleBaseline(ruleDefaults = state.committedRuleDefaults()),
         )
         val key = draftStorageKey(
             weekId = state.weekId,
@@ -270,71 +437,177 @@ class SessionEditorViewModel(
             mesoIndex = state.mesoIndex,
             sessionId = session.id,
         )
-        return runCatching {
-            draftPrefs.edit().putString(key, draftJson.encodeToString(payload)).commit()
-        }.getOrDefault(false)
+        return key to payload
     }
 
-    internal fun persistRecoverableSession(state: SessionEditorUiState = _uiState.value): Boolean {
-        val session = state.session?.ensureModifiedTimestamp() ?: return false
-        return persistDraft(
-            state.copy(
-                session = session,
-                hasUnsavedChanges = true,
-            ),
-        )
+    private fun isCurrentDraftKey(key: String): Boolean {
+        val state = _uiState.value
+        val session = state.session ?: return false
+        return key == draftStorageKey(state.weekId, state.macroIndex, state.mesoIndex, session.id)
     }
 
-    internal fun clearPersistedDraft(
+    internal fun persistDraft(state: SessionEditorUiState = _uiState.value): Boolean {
+        val (key, payload) = createPersistedDraft(state) ?: return false
+        val write = draftStore.writer.enqueueLatestWrite(key, payload)
+        viewModelScope.launch {
+            val outcome = write.await()
+            if (outcome.status == DraftWriteStatus.FAILED && isCurrentDraftKey(key)) {
+                updateUi { it.copy(snackbarMessage = "No se pudo guardar el borrador. Vuelve a intentarlo.") }
+            }
+        }
+        return true
+    }
+
+    internal fun invalidateDraftWritesFor(state: SessionEditorUiState) {
+        autoSaveJob?.cancel()
+        val session = state.session ?: return
+        val key = draftStorageKey(state.weekId, state.macroIndex, state.mesoIndex, session.id)
+        draftStore.writer.invalidate(key)
+    }
+
+    internal suspend fun persistRecoverableSession(state: SessionEditorUiState = _uiState.value): Boolean {
+        val (key, payload) = createPersistedDraft(state) ?: return false
+        return draftStore.writer.writeLatest(key, payload).status == DraftWriteStatus.WRITTEN
+    }
+
+    internal suspend fun clearPersistedDraft(
         weekId: String,
         macroIndex: Int,
         mesoIndex: Int,
         sessionId: String,
-    ) {
+    ): Boolean {
         val key = draftStorageKey(
             weekId = weekId,
             macroIndex = macroIndex,
             mesoIndex = mesoIndex,
             sessionId = sessionId,
         )
-        draftPrefs.edit().remove(key).commit()
+        return draftStore.writer.clear(key).status == DraftWriteStatus.WRITTEN
+    }
+
+    internal suspend fun clearPersistedDraftAtGeneration(key: String, generation: Long): DraftWriteOutcome =
+        draftStore.writer.clearAtGeneration(key, generation)
+
+    internal fun draftGeneration(key: String): Long = draftStore.writer.currentGeneration(key)
+
+    internal suspend fun persistRecoverableSessionAtGeneration(
+        state: SessionEditorUiState,
+        key: String,
+        generation: Long,
+    ): DraftWriteOutcome {
+        val payload = createPersistedDraft(state) ?: return DraftWriteOutcome(DraftWriteStatus.FAILED)
+        if (payload.first != key) return DraftWriteOutcome(DraftWriteStatus.STALE)
+        return draftStore.writer.enqueueWrite(key, generation, payload.second).await()
     }
 
     fun saveDraftForExit() {
-        persistRecoverableSession()
+        val state = _uiState.value
+        // A clean lifecycle transition must not recreate the draft that Save or
+        // Discard just removed. Explicit editor-only draft writes already use
+        // persistDraft and continue in the application-lifetime writer.
+        if (!state.hasUnsavedChanges) return
+        val (key, payload) = createPersistedDraft(state) ?: return
+        if (key == activeDurableSaveKey) return
+        autoSaveJob?.cancel()
+        val generation = draftStore.writer.invalidate(key)
+        val write = draftStore.writer.enqueueWrite(key, generation, payload)
+        viewModelScope.launch {
+            val outcome = write.await()
+            if (outcome.status == DraftWriteStatus.FAILED && isCurrentDraftKey(key)) {
+                updateUi { it.copy(snackbarMessage = "No se pudo guardar el borrador. Vuelve a intentarlo.") }
+            }
+        }
+    }
+
+    suspend fun saveDraftForExitAndAwait(): Boolean {
+        autoSaveJob?.cancel()
+        val state = _uiState.value
+        if (!state.hasUnsavedChanges) {
+            val session = state.session ?: return true
+            val key = draftStorageKey(state.weekId, state.macroIndex, state.mesoIndex, session.id)
+            val latest = draftStore.writer.awaitLatest(key)
+            if (latest?.status == DraftWriteStatus.FAILED) {
+                val retried = persistRecoverableSession(state)
+                if (!retried) {
+                    updateUi { it.copy(snackbarMessage = "No se pudo guardar el borrador. Vuelve a intentarlo.") }
+                }
+                return retried
+            }
+            return true
+        }
+        val saved = persistRecoverableSession(state)
+        if (!saved) {
+            updateUi { it.copy(snackbarMessage = "No se pudo guardar el borrador. Vuelve a intentarlo.") }
+        }
+        return saved
     }
 
     override fun onCleared() {
-        persistRecoverableSession()
+        autoSaveJob?.cancel()
+        val state = _uiState.value
+        if (state.hasUnsavedChanges) createPersistedDraft(state)?.let { (key, payload) ->
+            if (key == activeDurableSaveKey) return@let
+            draftStore.writer.enqueueLatestWrite(key, payload)
+        }
         super.onCleared()
     }
 
+    /**
+     * Restarts the load only when there is something to recover: nothing on screen yet, or a
+     * failure showing. With a session already loaded and no failure, a restarted load could
+     * only race the live editor, and its result would be discarded by [publishLoadedState]
+     * anyway.
+     */
     fun retryLoadSession() {
-        _uiState.update { it.copy(loadErrorMessage = null) }
+        if (_uiState.value.isLoadedWithoutFailure()) return
+        // Over an empty editor the failure is cleared so the screen shows progress; over a
+        // loaded one it stays until the new result replaces it.
+        _uiState.update { if (it.session == null) it.copy(loadErrorMessage = null) else it }
         loadSession()
     }
 
     fun discardDraftForCurrentSession() {
+        viewModelScope.launch {
+            if (!discardDraftForCurrentSessionAndAwait()) {
+                updateUi { it.copy(snackbarMessage = "No se pudo descartar el borrador. Vuelve a intentarlo.") }
+            }
+        }
+    }
+
+    suspend fun discardDraftForCurrentSessionAndAwait(): Boolean {
         val state = _uiState.value
-        val session = state.session ?: return
-        clearPersistedDraft(
+        val session = state.session ?: return false
+        val preferencesPreserved = preserveEditorRuleBaselineForDiscard(session.id, state.toSavedRulePreferences())
+        if (!preferencesPreserved) {
+            updateUi { it.copy(snackbarMessage = "No se pudieron preservar las preferencias del editor; el borrador sigue disponible.") }
+            return false
+        }
+        val cleared = clearPersistedDraft(
             weekId = state.weekId,
             macroIndex = state.macroIndex,
             mesoIndex = state.mesoIndex,
             sessionId = session.id,
         )
+        if (!cleared) {
+            updateUi { it.copy(snackbarMessage = "No se pudo descartar el borrador. Vuelve a intentarlo.") }
+            return false
+        }
         val restored = state.originalSession
         _uiState.update {
             it.copy(
                 session = restored,
                 pendingTransferToDays = null,
                 hasUnsavedChanges = false,
+                ruleDefaults = state.committedRuleDefaults(),
+                partRuleDefaults = state.savedPartRuleDefaults,
+                ruleLimits = state.savedRuleLimits,
                 activeVariant = WeekVariant.A,
                 availableVariants = restored?.let(::computeAvailableVariants) ?: listOf(WeekVariant.A),
             )
         }
         textHistoryBaseline = null
         textHistoryDebounceJob?.cancel()
+        return true
     }
 
     init {
@@ -384,25 +657,73 @@ class SessionEditorViewModel(
     }
 
     internal fun loadSession() {
+        if (_uiState.value.session?.id?.let { it != sessionId } == true) return
         loadSessionJob?.cancel()
+        val loadGeneration = ++loadSessionGeneration
+        val switchGeneration = sessionSwitchGeneration
         loadSessionJob = viewModelScope.launch {
-            val loadedState = withContext(Dispatchers.IO) {
+            val result = withContext(Dispatchers.IO) {
                 loadSessionInternal()
-            } ?: return@launch
-            replaceUiState(loadedState)
-            refreshDerivedStateImmediate()
-            loadHistory()
+            }
+            if (loadGeneration != loadSessionGeneration || switchGeneration != sessionSwitchGeneration) {
+                return@launch
+            }
+            if (_uiState.value.session?.id?.let { it != sessionId } == true) return@launch
+            when (result) {
+                is SessionEditorLoadResult.Loaded -> {
+                    if (!publishLoadedState(result.state)) return@launch
+                    refreshDerivedStateImmediate()
+                    loadHistory()
+                }
+                is SessionEditorLoadResult.Failed -> updateUi { current ->
+                    // A late failure must not push an already loaded editor onto its error screen.
+                    if (current.isLoadedWithoutFailure()) current else current.copy(loadErrorMessage = result.message)
+                }
+                SessionEditorLoadResult.WaitingForRepository -> Unit
+            }
         }
     }
 
-    private fun loadSessionInternal(): SessionEditorUiState? {
+    /**
+     * A load only ever fills an editor that has nothing on screen (no session yet) or that is
+     * showing a load failure; it never replaces a session that is already loaded. Redundant
+     * reloads (a retry racing the first load, a repository emission, a resume) would otherwise
+     * reset the active variant, the rule defaults and any unsaved edit to the persisted
+     * snapshot. The check and the swap are one atomic update, so the rule holds whichever
+     * thread the load resumes on. Returns false when the result was discarded.
+     */
+    private fun publishLoadedState(loaded: SessionEditorUiState): Boolean {
+        val next = loaded.copy(hasUnsavedChanges = loaded.hasMeaningfulDraftChanges())
+        var published = false
+        _uiState.update { current ->
+            published = !current.isLoadedWithoutFailure()
+            if (published) next else current
+        }
+        return published
+    }
+
+    /**
+     * Suspends until the most recently started session load has published its result or been
+     * discarded. A caller that needs a settled editor joins the load that is really in flight
+     * instead of polling [uiState] and starting another one.
+     */
+    internal suspend fun awaitSessionLoadSettled() {
+        loadSessionJob?.join()
+    }
+
+    internal fun invalidateInitialSessionLoadForSwitch() {
+        loadSessionGeneration++
+        loadSessionJob?.cancel()
+    }
+
+    private suspend fun loadSessionInternal(): SessionEditorLoadResult {
         val program = repository.getProgramById(programId)
         if (program == null) {
             if (repository.isReady.value) {
                 Log.w("SessionEditor", "Program not found. programId=$programId sessionId=$sessionId")
-                _uiState.update { it.copy(loadErrorMessage = "No pudimos recuperar este programa.") }
+                return SessionEditorLoadResult.Failed("No pudimos recuperar este programa.")
             }
-            return null
+            return SessionEditorLoadResult.WaitingForRepository
         }
         val located = locateSession(program, sessionId, draftWeekId, draftMacroIndex, draftMesoIndex)
         val targetWeekId = located?.week?.id ?: draftWeekId.orEmpty()
@@ -411,17 +732,26 @@ class SessionEditorViewModel(
         val week = located?.week ?: findWeek(program, targetMacroIndex, targetMesoIndex, targetWeekId)
         if (week == null && targetWeekId.isNotBlank() && repository.isReady.value) {
             Log.w("SessionEditor", "Week not found. programId=$programId weekId=$targetWeekId sessionId=$sessionId")
-            _uiState.update { it.copy(loadErrorMessage = "No pudimos recuperar la semana de esta sesión.") }
-            return null
+            return SessionEditorLoadResult.Failed("No pudimos recuperar la semana de esta sesión.")
         }
         val existing = located?.session
         val fallbackDraft = existing ?: createDraftSession(sessionId, draftDayOfWeek)
+        val savedSession = existing ?: fallbackDraft
         val persistedDraft = persistedDraftFor(
             weekId = targetWeekId,
             macroIndex = targetMacroIndex,
             mesoIndex = targetMesoIndex,
             sessionId = fallbackDraft.id,
         )
+        // The editor's baseline (what "unchanged" means) is Room's session after the
+        // same normalization the dirty check uses; the core global defaults come from it.
+        val originalSession = SupersetRules.normalizeSession(
+            savedSession
+                .normalizeEditorScheduledTechniques()
+                .normalizeMobilityCompatibility()
+                .normalizedIdentityFields(),
+        )
+        val editorRulePreferences = loadEditorRulePreferencesFor(fallbackDraft.id, persistedDraft, originalSession)
         // D3: los programas históricos pueden traer espejo suelto+grupo; el
         // colapso por-id corre al abrir (nombres se reconcilian al guardar).
         val draft = SupersetRules.normalizeSession(
@@ -442,15 +772,15 @@ class SessionEditorViewModel(
                 session = draft.ensureModifiedTimestamp(),
             )
         }
-        val resolvedRuleDefaults = persistedDraft?.ruleDefaults
-            ?: draft.persistedRuleDefaults?.let(SessionEditorRuleDefaults::fromPersisted)
-            ?: draft.inferredEditorRuleDefaults()
-        val resolvedPartRuleDefaults = persistedDraft?.partRuleDefaults ?: emptyMap()
-        val resolvedRuleLimits = persistedDraft?.ruleLimits ?: SessionEditorRuleLimits()
-        val loadedFromDraft = persistedDraft != null && persistedDraft.session != existing
+        val resolvedRuleDefaults = editorRulePreferences.global.current
+        val resolvedPartRuleDefaults = editorRulePreferences.current.partRuleDefaults
+        val resolvedRuleLimits = editorRulePreferences.current.ruleLimits
         val roadmapOptions = buildRoadmapOptions(program)
         val cloneDayOptions = buildCloneDayOptions(program, currentSessionId = draft.id)
         val cloneSourceOptions = buildCloneSourceOptions(program, currentSessionId = draft.id)
+        val localDraftHistory = runCatching { trainedVersionStore.loadForSession(draft.id) }
+            .onFailure { error -> Log.w("SessionEditor", "Unable to load trained session history", error) }
+            .getOrDefault(emptyList())
 
         val allProgramExerciseCandidates = program.macrocycles
             .flatMap { it.blocks }
@@ -488,15 +818,10 @@ class SessionEditorViewModel(
         val competitionMovementIds = buildCompetitionMovementIds(program)
         val competitionKeyDaysInWeek = buildCompetitionKeyDaysInWeek(program, week)
 
-        return SessionEditorUiState(
+        return SessionEditorLoadResult.Loaded(SessionEditorUiState(
             programSnapshotForVolume = program,
             session = draft,
-            originalSession = SupersetRules.normalizeSession(
-                (existing ?: draft)
-                    .normalizeEditorScheduledTechniques()
-                    .normalizeMobilityCompatibility()
-                    .normalizedIdentityFields(),
-            ),
+            originalSession = originalSession,
             loadErrorMessage = null,
             programId = programId,
             draftBundle = SessionDraftBundle(
@@ -520,12 +845,15 @@ class SessionEditorViewModel(
             cloneDayOptions = cloneDayOptions,
             cloneSourceOptions = cloneSourceOptions,
             selectedSiblingSessionId = draft.id,
-            localDraftHistory = trainedVersionStore.loadForSession(draft.id),
+            localDraftHistory = localDraftHistory,
             ruleDefaults = resolvedRuleDefaults,
             partRuleDefaults = resolvedPartRuleDefaults,
             ruleLimits = resolvedRuleLimits,
+            savedPartRuleDefaults = editorRulePreferences.committed.partRuleDefaults,
+            savedRuleLimits = editorRulePreferences.committed.ruleLimits,
+            savedRuleExtras = editorRulePreferences.global.savedExtras,
             ruleTemplates = ruleTemplateStore.loadAll(),
-            hasUnsavedChanges = loadedFromDraft,
+            autoSaveEnabled = draftStore.autoSaveEnabled(),
             isSimpleProgram = program.isSimpleTemporalProgram,
             protocolLabel = program.sourceProtocolId?.let { id ->
                 com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }
@@ -540,7 +868,7 @@ class SessionEditorViewModel(
             availableVariants = computeAvailableVariants(draft),
             activeVariant = WeekVariant.A,
             pendingTransferToDays = persistedDraft?.pendingTransferToDays,
-        )
+        ))
     }
 
     private fun buildCompetitionMovementIds(program: Program): Set<String> {
@@ -589,11 +917,10 @@ class SessionEditorViewModel(
             val transformed = transform(current).normalizeSession()
             if (transformed == current) return
             val updated = transformed.copy(lastModifiedAtMs = System.currentTimeMillis())
-            _uiState.update { s ->
+            updateUi { s ->
                 s.copy(
                     session = updated,
                     dayOfWeek = updated.dayOfWeek ?: s.dayOfWeek,
-                    hasUnsavedChanges = updated != s.originalSession,
                 )
             }
         } else {
@@ -608,11 +935,10 @@ class SessionEditorViewModel(
                 WeekVariant.D -> base.copy(sessionD = updatedVariant)
                 else -> base
             }
-            _uiState.update { s ->
+            updateUi { s ->
                 s.copy(
                     session = updatedBase,
                     dayOfWeek = updatedVariant.dayOfWeek ?: s.dayOfWeek,
-                    hasUnsavedChanges = updatedBase != s.originalSession,
                 )
             }
         }
@@ -863,11 +1189,10 @@ class SessionEditorViewModel(
             val current = state.session ?: return
             val updated = transform(current)
             if (updated == current) return
-            _uiState.update { s ->
+            updateUi { s ->
                 s.copy(
                     session = updated,
                     dayOfWeek = updated.dayOfWeek ?: s.dayOfWeek,
-                    hasUnsavedChanges = updated != s.originalSession,
                 )
             }
         } else {
@@ -881,11 +1206,10 @@ class SessionEditorViewModel(
                 WeekVariant.D -> base.copy(sessionD = updatedVariant)
                 else -> base
             }
-            _uiState.update { s ->
+            updateUi { s ->
                 s.copy(
                     session = updatedBase,
                     dayOfWeek = updatedVariant.dayOfWeek ?: s.dayOfWeek,
-                    hasUnsavedChanges = updatedBase != s.originalSession,
                 )
             }
         }
@@ -1097,11 +1421,10 @@ calculateSessionTimeBreakdown(
     /** Opens the template browser sheet. */
 
     fun restoreDraftSnapshot(snapshot: SessionDraftSnapshot) {
-        _uiState.update { state ->
+        updateUi { state ->
             val restoredSession = snapshot.session
             state.copy(
                 session = restoredSession,
-                hasUnsavedChanges = restoredSession != state.originalSession,
                 sheet = SessionEditorSheet.NONE,
                 snackbarMessage = "Versión restaurada · ${formatHistoryTimestamp(snapshot.savedAtMs)}",
             )
@@ -1115,8 +1438,16 @@ calculateSessionTimeBreakdown(
     /** Reloads trained versions for the current session (e.g. after finishing a workout). */
     fun refreshTrainedVersions() {
         val sessionId = _uiState.value.activeVariantSession?.id ?: _uiState.value.session?.id ?: return
-        _uiState.update {
-            it.copy(localDraftHistory = trainedVersionStore.loadForSession(sessionId))
+        viewModelScope.launch {
+            val history = runCatching { trainedVersionStore.loadForSessionOnIo(sessionId) }
+                .onFailure { error -> Log.w("SessionEditor", "Unable to load trained session history", error) }
+                .getOrNull() ?: return@launch
+            withContext(Dispatchers.Main) {
+                val currentId = _uiState.value.activeVariantSession?.id ?: _uiState.value.session?.id
+                if (currentId == sessionId) {
+                    _uiState.update { it.copy(localDraftHistory = history) }
+                }
+            }
         }
     }
 

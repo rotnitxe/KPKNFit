@@ -83,6 +83,12 @@ data class NutritionPlanEditorUiState(
     val savedPlanId: String? = null,
     /** Estado explícito del reparto semanal vigente ([NutritionDayDistribution]). */
     val distributionStatus: NutritionDistributionStatus? = null,
+    /**
+     * Calorías que ya tiene FIJADAS hoy el plan que se edita; null si hoy aún no
+     * está fijado. Con valor, lo que se guarde en este plan vale desde mañana (la
+     * pantalla lo avisa); el editor nunca reescribe la meta de hoy del mismo plan.
+     */
+    val todayGoalFixedKcal: Int? = null,
     /** Identificador de idempotencia de la operación de edición en curso. */
     val activeCommitId: String? = null,
 )
@@ -427,6 +433,8 @@ class NutritionPlanEditorViewModel(
                 base = base,
                 weeklyTargets = targets,
                 distributionStatus = distribution?.status,
+                todayGoalFixedKcal = fixedEvidence[today]?.calorieTargetKcal
+                    ?.takeIf { draft.mode == NutritionPlanEditorMode.ACTIVE_PLAN },
                 errors = if (it.errors.containsKey("commit")) it.errors else editorErrorsOf(draft, base),
             )
         }

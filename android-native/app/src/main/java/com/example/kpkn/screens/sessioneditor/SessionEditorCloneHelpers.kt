@@ -1,7 +1,197 @@
 package com.example.kpkn.screens.sessioneditor
 
 import com.example.kpkn.data.models.*
+import com.example.kpkn.domain.training.PlanMaterializer
 import java.util.UUID
+
+internal data class SessionTransferAffectedTarget(
+    val option: SessionCloneDayOption,
+    val session: Session,
+)
+
+internal data class SessionTransferOutcome(
+    val program: Program,
+    val affectedTargets: List<SessionTransferAffectedTarget>,
+    val transferReceipt: String? = null,
+    /** All selected live destinations, including ones already carrying this receipt. */
+    val receiptTargets: List<SessionTransferAffectedTarget> = affectedTargets,
+)
+
+private data class SessionTransferLocation(val weekId: String, val dayOfWeek: Int)
+
+/** Resolve target identities against the supplied current program before each write. */
+internal fun applySessionTransfersToProgram(
+    program: Program,
+    currentSessionId: String,
+    pending: PendingTransferToDays,
+): SessionTransferOutcome {
+    var updatedProgram = program
+    val affected = mutableListOf<SessionTransferAffectedTarget>()
+    val receiptTargets = mutableListOf<SessionTransferAffectedTarget>()
+    val receipt = transferReceiptFor(pending)
+    val selectedLocations = pending.targetKeys.mapNotNull(::transferLocationFromOptionKey).toSet()
+    val currentTargets = buildCloneDayOptions(program, currentSessionId)
+        .filter {
+            !it.isCurrentSessionDay &&
+                (it.key in pending.targetKeys || SessionTransferLocation(it.weekId, it.dayOfWeek) in selectedLocations)
+        }
+        .distinctBy { it.weekId to it.dayOfWeek }
+
+    currentTargets.forEach { target ->
+        val liveExisting = updatedProgram.findWeekById(target.weekId)
+            ?.sessions
+            ?.firstOrNull { it.id == target.existingSessionId || (target.existingSessionId == null && it.dayOfWeek == target.dayOfWeek) }
+        if (liveExisting != null && receipt != null && updatedProgram.hasTransferReceipt(liveExisting.id, receipt, target.weekId)) {
+            // Room may have committed the transfer before a caller/lifecycle
+            // failed to acknowledge it. The receipt makes an APPEND retry safe.
+            receiptTargets += SessionTransferAffectedTarget(target, liveExisting)
+            return@forEach
+        }
+        val nextProgram = applySessionTransferTarget(
+            program = updatedProgram,
+            source = pending.sourceSession,
+            target = target,
+            selectedExerciseIds = pending.selectedExerciseIds,
+            applyMode = pending.applyMode,
+        )
+        val resultingSession = nextProgram.findWeekById(target.weekId)
+            ?.sessions
+            ?.firstOrNull { it.id == target.existingSessionId || (target.existingSessionId == null && it.dayOfWeek == target.dayOfWeek) }
+        if (resultingSession != null && nextProgram != updatedProgram) {
+            updatedProgram = nextProgram
+            val affectedTarget = SessionTransferAffectedTarget(target, resultingSession)
+            affected += affectedTarget
+            receiptTargets += affectedTarget
+        }
+    }
+
+    return SessionTransferOutcome(updatedProgram, affected, receipt, receiptTargets)
+}
+
+/** Stable marker carried by the SESSION override so a committed transfer can be retried safely. */
+internal fun transferReceiptFor(pending: PendingTransferToDays): String =
+    "[editor-transfer:${pending.transferId}:${pending.sourceSession.withoutGeneratedEditorTimestamps().hashCode().toUInt().toString(16)}]"
+
+internal fun Program.hasTransferReceipt(sessionId: String, receipt: String, weekId: String? = null): Boolean =
+    manualSessionOverrides.any { override ->
+        override.sessionId == sessionId &&
+            override.scope == ManualOverrideScope.SESSION &&
+            (weekId == null || override.weekId == weekId) &&
+            receipt in override.reason
+    }
+
+internal fun Program.weekOccurrenceFor(weekId: String): Int? {
+    for (macro in macrocycles) {
+        for (block in macro.blocks) {
+            for (meso in block.mesocycles) {
+                val index = meso.weeks.indexOfFirst { it.id == weekId }
+                if (index >= 0) return PlanMaterializer.weekOccurrenceOf(meso.weeks[index], index)
+            }
+        }
+    }
+    return null
+}
+
+/** Resolves only the destination day from the current occurrence's recipe snapshot. */
+internal fun Program.recipeDayIdForTarget(weekId: String, dayOfWeek: Int): String? {
+    val recipe = sourceRecipe ?: return null
+    val source = PlanMaterializer.weekRecipeSourceFor(this, recipe, weekId) ?: return null
+    val startDay = resolvedSchedulePlan().weekStartDay ?: this.startDay ?: 1
+    return source.weekRecipe.days.firstNotNullOfOrNull { day ->
+        val authoredWeekday = day.weekday ?: return@firstNotNullOfOrNull null
+        val resolvedWeekday = ((startDay - 1) + (authoredWeekday - 1)).mod(7) + 1
+        day.id.takeIf { resolvedWeekday == dayOfWeek }
+    }
+}
+
+internal fun Program.destinationRecipeDayId(weekId: String, dayOfWeek: Int, existing: Session?): String? {
+    val existingOverride = existing?.let { session ->
+        manualSessionOverrides.firstOrNull {
+            it.sessionId == session.id && it.scope == ManualOverrideScope.SESSION && (it.weekId == null || it.weekId == weekId)
+        }?.recipeDayId
+    }
+    // APPEND/REPLACE must retain an existing destination's authored metadata;
+    // only a newly created target derives its identity from today's recipe.
+    return existingOverride
+        ?: existing?.allExercises()?.mapNotNull { it.recipeDayId }?.firstOrNull()
+        ?: recipeDayIdForTarget(weekId, dayOfWeek)
+}
+
+internal fun Program.recordTransferReceipt(sessionId: String, receipt: String): Program {
+    if (hasTransferReceipt(sessionId, receipt)) return this
+    return copy(
+        manualSessionOverrides = manualSessionOverrides.map { override ->
+            if (override.sessionId == sessionId && override.scope == ManualOverrideScope.SESSION) {
+                override.copy(reason = listOf(override.reason, receipt).filter(String::isNotBlank).distinct().joinToString(" · "))
+            } else {
+                override
+            }
+        },
+    )
+}
+
+private fun transferLocationFromOptionKey(key: String): SessionTransferLocation? {
+    val parts = key.split('|')
+    if (parts.size < 4) return null
+    val day = parts.last().toIntOrNull() ?: return null
+    val weekId = parts[2]
+    return weekId.takeIf(String::isNotBlank)?.let { SessionTransferLocation(it, day) }
+}
+
+internal fun applySessionTransferTarget(
+    program: Program,
+    source: Session,
+    target: SessionCloneDayOption,
+    selectedExerciseIds: Set<String>?,
+    applyMode: SessionCloneApplyMode,
+): Program {
+    val payload = buildClonePayload(source, selectedExerciseIds)
+    return program.updateWeekById(target.weekId) { week ->
+        val sessions = week.sessions.toMutableList()
+        val existingIndex = target.existingSessionId?.let { existingId -> sessions.indexOfFirst { it.id == existingId } } ?: -1
+        if (existingIndex >= 0) {
+            val existing = sessions[existingIndex]
+            sessions[existingIndex] = mergeSessionWithPayload(
+                base = existing,
+                source = source,
+                payload = payload,
+                selectedExerciseIds = selectedExerciseIds,
+                applyMode = applyMode,
+            ).copy(dayOfWeek = target.dayOfWeek)
+        } else {
+            sessions += createSessionForTargetDay(
+                source = source,
+                dayOfWeek = target.dayOfWeek,
+                payload = payload,
+                selectedExerciseIds = selectedExerciseIds,
+            )
+        }
+        week.copy(sessions = normalizeEditorMainSessions(sessions))
+    }
+}
+
+internal fun Program.findWeekById(weekId: String): ProgramWeek? =
+    macrocycles.asSequence()
+        .flatMap { it.blocks.asSequence() }
+        .flatMap { it.mesocycles.asSequence() }
+        .flatMap { it.weeks.asSequence() }
+        .firstOrNull { it.id == weekId }
+
+internal fun normalizeEditorMainSessions(sessions: List<Session>): List<Session> {
+    val distinctSessions = sessions.distinctBy { it.id }
+    val mainByDay = mutableMapOf<Int, String>()
+    val fallbackByDay = mutableMapOf<Int, String>()
+    distinctSessions.forEach { session ->
+        val day = session.dayOfWeek ?: 1
+        fallbackByDay.putIfAbsent(day, session.id)
+        if (session.isMainSession && day !in mainByDay) mainByDay[day] = session.id
+    }
+    fallbackByDay.forEach { (day, id) -> mainByDay.putIfAbsent(day, id) }
+    return distinctSessions.map { session ->
+        val day = session.dayOfWeek ?: 1
+        session.copy(isMainSession = mainByDay[day] == session.id)
+    }
+}
 
 internal fun Session.buildCloneExerciseOptions(): List<SessionCloneExerciseOption> {
     val fromParts = parts.flatMap { part ->
@@ -243,7 +433,8 @@ internal fun buildCloneDayOptions(
     program.macrocycles.forEachIndexed { macroIndex, macro ->
         macro.blocks.forEach { block ->
             block.mesocycles.forEach { meso ->
-                meso.weeks.forEach { week ->
+                meso.weeks.forEachIndexed { weekIndex, week ->
+                    val occurrence = PlanMaterializer.weekOccurrenceOf(week, weekIndex)
                     (1..7).forEach { day ->
                         val existing = week.sessions.firstOrNull { it.dayOfWeek == day }
                         options += SessionCloneDayOption(
@@ -260,6 +451,8 @@ internal fun buildCloneDayOptions(
                             existingSessionName = existing?.name,
                             existingExerciseCount = existing?.allExercises()?.size ?: 0,
                             isCurrentSessionDay = existing?.id == currentSessionId,
+                            destinationRecipeDayId = program.destinationRecipeDayId(week.id, day, existing),
+                            weekOccurrence = occurrence,
                         )
                     }
                 }

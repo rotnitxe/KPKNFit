@@ -1,0 +1,59 @@
+{
+  "generatedAtUtc": "2026-10-01T00:00:54.1491265Z",
+  "generator": "ffmpeg version 8.1-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "assets": [
+    {
+      "file": "kpkn-qa-photo.png",
+      "mimeType": "image/png",
+      "bytes": 2007,
+      "sha256": "cfd4f64f4b08cd112fdc89460a68acdb91b42a463e88dbe5cfe64b1336528d74",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 640,
+            "height": 480,
+            "pix_fmt": "rgb24",
+            "avg_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "2007"
+        }
+      },
+      "generationCommand": "ffmpeg -hide_banner -loglevel error -n -f lavfi -i \"color=c=0x243B67:size=640x480:d=1\" -vf \"drawbox=x=0:y=0:w=320:h=240:color=0xE85D4A:t=fill,drawbox=x=320:y=0:w=320:h=240:color=0xF4C95D:t=fill,drawbox=x=0:y=240:w=320:h=240:color=0x4FAF78:t=fill,drawbox=x=320:y=240:w=320:h=240:color=0xE8EDF4:t=fill\" -frames:v 1 -pix_fmt rgb24 -f image2 kpkn-qa-photo.png"
+    },
+    {
+      "file": "kpkn-qa-video.mp4",
+      "mimeType": "video/mp4",
+      "bytes": 95975,
+      "sha256": "3b207e7a875db26e52a3b59691b4fec883525dbd2a890097f59162b8618041f3",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 320,
+            "height": 240,
+            "pix_fmt": "yuv420p",
+            "avg_frame_rate": "15/1"
+          }
+        ],
+        "format": {
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "duration": "2.000000",
+          "size": "95975"
+        }
+      },
+      "generationCommand": "ffmpeg -hide_banner -loglevel error -n -f lavfi -i \"testsrc2=size=320x240:rate=15:duration=2\" -an -c:v libx264 -profile:v baseline -level:v 3.0 -pix_fmt yuv420p -preset ultrafast -crf 28 -movflags +faststart -r 15 -t 2 -f mp4 kpkn-qa-video.mp4"
+    }
+  ]
+}

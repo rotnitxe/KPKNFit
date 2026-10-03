@@ -68,6 +68,73 @@ data class SessionEditorRuleDefaults(
     }
 }
 
+/**
+ * The ten global editor defaults that Room does NOT store. Room's
+ * [SessionPersistedRuleDefaults] stays the authority of the eight core fields
+ * (see [SessionEditorRuleDefaults.toPersisted]); these extras live only in the
+ * per-session editor preference record, in the same commit as the part defaults
+ * and limits. Public because [SessionEditorUiState] exposes it.
+ *
+ * [version] versions this payload so a later build can migrate it.
+ */
+@Serializable
+data class SessionEditorGlobalRuleExtras(
+    val version: Int = CURRENT_VERSION,
+    val scope: RuleScope = RuleScope.ALL_SESSION,
+    val intensityType: DefaultIntensityType = DefaultIntensityType.RPE,
+    val compoundRestSeconds: Int? = null,
+    val compoundReps: Int? = null,
+    val compoundRpe: Double? = null,
+    val compoundIntensityType: DefaultIntensityType? = null,
+    val isolationRestSeconds: Int? = null,
+    val isolationReps: Int? = null,
+    val isolationRpe: Double? = null,
+    val isolationIntensityType: DefaultIntensityType? = null,
+) {
+    companion object {
+        const val CURRENT_VERSION: Int = 1
+    }
+}
+
+/** Values compare equal regardless of the payload version that carried them. */
+internal fun SessionEditorGlobalRuleExtras.atCurrentVersion(): SessionEditorGlobalRuleExtras =
+    if (version == SessionEditorGlobalRuleExtras.CURRENT_VERSION) {
+        this
+    } else {
+        copy(version = SessionEditorGlobalRuleExtras.CURRENT_VERSION)
+    }
+
+fun SessionEditorRuleDefaults.extras(): SessionEditorGlobalRuleExtras = SessionEditorGlobalRuleExtras(
+    scope = scope,
+    intensityType = intensityType,
+    compoundRestSeconds = compoundRestSeconds,
+    compoundReps = compoundReps,
+    compoundRpe = compoundRpe,
+    compoundIntensityType = compoundIntensityType,
+    isolationRestSeconds = isolationRestSeconds,
+    isolationReps = isolationReps,
+    isolationRpe = isolationRpe,
+    isolationIntensityType = isolationIntensityType,
+)
+
+/** Overlays only the extras; the eight core fields of the receiver are kept. */
+fun SessionEditorRuleDefaults.withExtras(extras: SessionEditorGlobalRuleExtras): SessionEditorRuleDefaults = copy(
+    scope = extras.scope,
+    intensityType = extras.intensityType,
+    compoundRestSeconds = extras.compoundRestSeconds,
+    compoundReps = extras.compoundReps,
+    compoundRpe = extras.compoundRpe,
+    compoundIntensityType = extras.compoundIntensityType,
+    isolationRestSeconds = extras.isolationRestSeconds,
+    isolationReps = extras.isolationReps,
+    isolationRpe = extras.isolationRpe,
+    isolationIntensityType = extras.isolationIntensityType,
+)
+
+/** True when both share the eight Room-persisted core fields, ignoring the extras. */
+fun SessionEditorRuleDefaults.sameCoreAs(other: SessionEditorRuleDefaults): Boolean =
+    toPersisted() == other.toPersisted()
+
 @Serializable
 data class SessionEditorRuleLimits(
     val maxRPE: Double? = null,
@@ -219,6 +286,15 @@ data class SessionEditorUiState(
     val ruleDefaults: SessionEditorRuleDefaults = SessionEditorRuleDefaults(),
     val partRuleDefaults: Map<String, SessionEditorRuleDefaults> = emptyMap(),
     val ruleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
+    /** Last committed editor-only settings; drafts compare against this baseline. */
+    val savedPartRuleDefaults: Map<String, SessionEditorRuleDefaults> = emptyMap(),
+    val savedRuleLimits: SessionEditorRuleLimits = SessionEditorRuleLimits(),
+    /**
+     * Last committed global extras (scope, RIR/intensity type, compound/isolation
+     * overrides). Room only owns the eight core fields, so dirtiness of the extras
+     * is judged against this baseline and never creates a program override.
+     */
+    val savedRuleExtras: SessionEditorGlobalRuleExtras = SessionEditorGlobalRuleExtras(),
     /** Plantillas de reglas (defaults) persistidas en el dispositivo. */
     val ruleTemplates: List<RuleTemplate> = emptyList(),
     /** 0 = REGLAS, 1 = TIEMPO al abrir el sheet. */

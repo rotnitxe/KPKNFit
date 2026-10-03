@@ -14,17 +14,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.LocalMediaImageSource
+import com.example.kpkn.ui.components.localMediaImageSource
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun WorkoutMediaThumb(
@@ -32,7 +38,11 @@ fun WorkoutMediaThumb(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val preview = mediaPreviewFile(media)
+    // Archivo + clave de caché de Coil resueltos juntos en IO (sin FileKeyer en Main).
+    val preview by produceState<LocalMediaImageSource?>(null, media.filePath, media.thumbPath, media.kind) {
+        value = null
+        value = withContext(Dispatchers.IO) { mediaPreviewSource(media) }
+    }
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -40,8 +50,8 @@ fun WorkoutMediaThumb(
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
     ) {
         if (preview != null) {
-            AsyncImage(
-                model = preview,
+            LocalMediaImage(
+                source = preview,
                 contentDescription = media.exerciseName ?: media.id,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -84,6 +94,10 @@ fun WorkoutMediaThumb(
         }
     }
 }
+
+/** Igual que [mediaPreviewFile] más la clave de caché de Coil. Bloqueante: solo en IO. */
+internal fun mediaPreviewSource(media: WorkoutMedia): LocalMediaImageSource? =
+    mediaPreviewFile(media)?.let(::localMediaImageSource)
 
 internal fun mediaPreviewFile(media: WorkoutMedia): File? {
     val thumb = media.thumbPath?.let(::File)?.takeIf { it.isFile && it.length() > 0L }

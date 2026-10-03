@@ -88,7 +88,7 @@ class WorkoutSetRecorder(
         /** Applies a scheduled technique's next-load prescription to the live card. */
         fun applyScheduledLoadOverride(exerciseId: String, setIdx: Int, side: String?, load: Double)
         fun refreshLoadSuggestions(state: WorkoutUiState, onlyExerciseId: String? = null)
-        suspend fun persistOngoingStateAndAwait(): WorkoutPersistResult
+        suspend fun persistOngoingStateAndAwait(snapshot: WorkoutUiState, onCommitted: () -> Unit): WorkoutPersistResult
         fun nextSet(stopRest: Boolean = true)
         fun nextIncompleteStepAfter(state: WorkoutUiState): WorkoutStep?
         fun sessionForActiveMode(base: Session, mode: WeekVariant): Session
@@ -133,34 +133,56 @@ class WorkoutSetRecorder(
         expectedExerciseId: String? = null,
         expectedSetIdx: Int? = null,
         expectedSide: String? = null,
-    ) {
+    ): RecordSetResult {
         val state = getState()
         val allExercises = ports.visibleExercises(state)
         val exercise = allExercises.getOrNull(state.currentExerciseIdx)
         if (exercise == null) {
             ports.onRecordingRejected("No hay ejercicio activo para registrar.")
-            return
+            return RecordSetResult.Rejected("No hay ejercicio activo para registrar.")
         }
         val targetSetIdx = setIdxOverride ?: state.currentSetIdx
         if (expectedExerciseId != null && expectedExerciseId != exercise.id) {
             ports.onRecordingRejected("El ejercicio cambió. Vuelve a la serie activa.")
-            return
+            return RecordSetResult.Rejected("El ejercicio cambió. Vuelve a la serie activa.")
         }
         if (expectedSetIdx != null && expectedSetIdx != targetSetIdx) {
             ports.onRecordingRejected("La serie cambió. Vuelve a la serie activa.")
-            return
+            return RecordSetResult.Rejected("La serie cambió. Vuelve a la serie activa.")
         }
         val initialSide = if (exercise.isEffectivelyUnilateral()) side ?: expectedSide ?: "left" else null
         if (exercise.isEffectivelyUnilateral() && expectedSide != null && expectedSide != initialSide) {
             ports.onRecordingRejected("Cambia al lado activo antes de registrar.")
-            return
+            return RecordSetResult.Rejected("Cambia al lado activo antes de registrar.")
+        }
+        val techniqueDraftKey = workoutSetKey(exercise.id, targetSetIdx, initialSide)
+        val fallbackTechniqueDraftKey = workoutSetKey(exercise.id, targetSetIdx)
+        val hasPendingTechniqueProgress =
+            state.setDrafts[techniqueDraftKey]?.techniqueProgress != null ||
+                state.setDrafts[fallbackTechniqueDraftKey]?.techniqueProgress != null
+        if (hasPendingTechniqueProgress) {
+            val preflush = try {
+                ports.persistOngoingStateAndAwait(state) {}
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                ports.onRecordingRejected("No se pudo guardar el progreso de la técnica. Tus datos se conservan; reintenta.")
+                return RecordSetResult.PersistenceFailed(error)
+            }
+            if (!preflush.succeeded) {
+                val cause = (preflush as? WorkoutPersistResult.Failed)?.cause
+                    ?: StaleWorkoutExecutionException()
+                ports.onRecordingRejected("No se pudo guardar el progreso de la técnica. Tus datos se conservan; reintenta.")
+                return RecordSetResult.PersistenceFailed(cause)
+            }
         }
         val recordingKey = buildCompletedSetKey(exercise.id, targetSetIdx, initialSide)
         if (!tryStartRecording(recordingKey)) {
             ports.onRecordingRejected("Espera a que termine el registro anterior.")
-            return
+            return RecordSetResult.Rejected("Espera a que termine el registro anterior.")
         }
         updateState { it.copy(recordingSetKey = recordingKey) }
+        var durableResult: RecordSetResult? = null
         try {
             val plannedSet = exercise.sets.getOrNull(targetSetIdx)
             val scheduledPlan = plannedSet?.scheduledTechniquePlan()
@@ -200,11 +222,11 @@ class WorkoutSetRecorder(
             val isFailedEntry = advanced.isFailedSet || advanced.executionError
             if (resolvedLoadMode != LoadModeV2.BODYWEIGHT && weight <= 0.0 && !isFailedEntry) {
                 ports.onRecordingRejected("Carga inválida. Revisa el peso antes de registrar.")
-                return
+                return RecordSetResult.Rejected("Carga inválida. Revisa el peso antes de registrar.")
             }
             if (resolvedUnitMode != UnitModeV2.TIME && value <= 0.0 && !isFailedEntry) {
                 ports.onRecordingRejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
-                return
+                return RecordSetResult.Rejected("Reps/tiempo inválidos. Revisa el valor antes de registrar.")
             }
             val actualValue = when (resolvedUnitMode) {
                 UnitModeV2.TIME -> value.coerceAtLeast(0.0)
@@ -252,9 +274,7 @@ class WorkoutSetRecorder(
                 techSubTags = techSubTags,
             )
 
-            val isFirstEvaluationInSession = contextKey !in evaluatedContextKeys.also {
-                it.add(contextKey)
-            }
+            val isFirstEvaluationInSession = contextKey !in evaluatedContextKeys
 
             val actualIntensityMode = advanced.actualIntensityMode ?: when {
                 advanced.reachedFailure -> IntensityMode.FAILURE
@@ -323,6 +343,7 @@ class WorkoutSetRecorder(
                 executionError = advanced.executionError,
                 skipped = advanced.skipped,
                 superSetWithExerciseId = advanced.superSetWithExerciseId,
+                intensityAdjusted = advanced.intensityAdjusted,
             )
 
             val resolvedBarWeightKg = if (!resolvedTagId.isNullOrBlank()) {
@@ -411,7 +432,7 @@ class WorkoutSetRecorder(
                 actualReps < amrapMinimumReps
             val recordedAfterAdvanced = applyAdvancedFeedback(
                 base = CompletedSet(
-                    id = UUID.randomUUID().toString(),
+                    id = state.completedSets[recordingKey]?.id ?: UUID.randomUUID().toString(),
                     weight = outcome.augeEquivalentLoad,
                     reps = actualReps,
                     timeSeconds = durationSeconds,
@@ -493,7 +514,7 @@ class WorkoutSetRecorder(
                 )
             ) {
                 ports.onRecordingRejected("No hay cambios para actualizar.")
-                return
+                return RecordSetResult.Rejected("No hay cambios para actualizar.")
             }
             val newDeviations = plannedSet?.let {
                 WorkoutPlanDeviationSupport.detect(
@@ -513,7 +534,7 @@ class WorkoutSetRecorder(
                 )
             } ?: emptyList()
 
-            updateState { current ->
+            val applyRecorded: (WorkoutUiState) -> WorkoutUiState = { current ->
                 val mergedCompleted = current.completedSets + (key to completedSet)
                 val recordedExerciseIdx = allExercises.indexOfFirst { it.id == exercise.id }
                 val newEnergy = ports.recomputeLiveEnergy(
@@ -551,32 +572,62 @@ class WorkoutSetRecorder(
                     )?.id,
                 )
             }
-            ports.clearDraftForSet(exercise.id, targetSetIdx, resolvedSide)
-            updateState { current ->
-                current.copy(
-                    persistedLoadModeBySet = current.persistedLoadModeBySet + (workoutSetKey(exercise.id, targetSetIdx) to resolvedLoadMode),
-                    persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
-                )
+            val submitted = getState()
+            val draftKey = workoutSetKey(exercise.id, targetSetIdx, resolvedSide)
+            val fallbackKey = workoutSetKey(exercise.id, targetSetIdx)
+            val candidate = applyRecorded(submitted).copy(
+                setDrafts = submitted.setDrafts.minus(draftKey).minus(fallbackKey),
+                persistedLoadModeBySet = submitted.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
+                persistedLoadModeByExercise = submitted.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
+            )
+            val publishRecorded: () -> Unit = {
+                updateState { current ->
+                    val remainingDrafts = current.setDrafts.filter { (draftId, draft) ->
+                        draftId !in setOf(draftKey, fallbackKey) || submitted.setDrafts[draftId] != draft
+                    }
+                    current.copy(
+                        completedSets = current.completedSets + (key to completedSet),
+                        currentExerciseIdx = candidate.currentExerciseIdx,
+                        currentSetIdx = candidate.currentSetIdx,
+                        activeStepKey = candidate.activeStepKey,
+                        setAdvancedFeedback = current.setAdvancedFeedback + (key to advanced),
+                        planDeviations = current.planDeviations + newDeviations,
+                        setJustLoggedKey = key,
+                        lastSetOutcomeV2 = candidate.lastSetOutcomeV2,
+                        lastHomologatedResultV3 = candidate.lastHomologatedResultV3,
+                        imbalanceNotice = candidate.imbalanceNotice,
+                        liveEnergySummary = candidate.liveEnergySummary,
+                        continuityFeedbackExerciseId = candidate.continuityFeedbackExerciseId,
+                        setDrafts = remainingDrafts,
+                        persistedLoadModeBySet = current.persistedLoadModeBySet + (fallbackKey to resolvedLoadMode),
+                        persistedLoadModeByExercise = current.persistedLoadModeByExercise + (exercise.id to resolvedLoadMode),
+                    )
+                }
             }
-            ports.persistLoadModeToProfile(exercise.id, resolvedLoadMode)
-            if (weight > 0.0) {
+            val persistResult = ports.persistOngoingStateAndAwait(candidate, publishRecorded)
+            if (!persistResult.succeeded) {
+                val cause = (persistResult as? WorkoutPersistResult.Failed)?.cause
+                    ?: IllegalStateException("El entreno ya no está activo.")
+                ports.onRecordingRejected("No se pudo guardar la serie. Tus datos se conservan; vuelve a registrar para reintentar.")
+                return RecordSetResult.PersistenceFailed(cause)
+            }
+            durableResult = if (wasExistingSet) RecordSetResult.Updated(key) else RecordSetResult.Created(key)
+            if (persistResult is WorkoutPersistResult.UiPublicationFailed) publishRecorded()
+            evaluatedContextKeys.add(contextKey)
+            fun ancillary(name: String, effect: () -> Unit) {
+                try { effect() } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (error: Throwable) {
+                    KpknDiagnosticLogger.event(
+                        namespace = "workout", name = "set_post_commit_effect_failed",
+                        fields = mapOf("setKey" to key, "effect" to name, "exceptionType" to error.javaClass.name),
+                    )
+                }
+            }
+            ancillary("load_profile") { ports.persistLoadModeToProfile(exercise.id, resolvedLoadMode) }
+            if (weight > 0.0) ancillary("manual_load_override") {
                 ports.registerManualLoadOverride(exercise.id, targetSetIdx, resolvedSide, weight)
             }
-            ports.refreshLoadSuggestions(getState(), onlyExerciseId = exercise.id)
-            val persistResult = ports.persistOngoingStateAndAwait()
-            if (!persistResult.succeeded) {
-                KpknDiagnosticLogger.event(
-                    namespace = "workout",
-                    name = "set_recorded_aborted",
-                    fields = mapOf(
-                        "sessionId" to state.session?.id,
-                        "exerciseId" to exercise.id,
-                        "setIndex" to targetSetIdx,
-                        "persistResult" to persistResult.javaClass.simpleName,
-                    ),
-                )
-                return
-            }
+            ancillary("load_suggestions") { ports.refreshLoadSuggestions(getState(), onlyExerciseId = exercise.id) }
 
             KpknDiagnosticLogger.event(
                 namespace = "workout",
@@ -939,6 +990,16 @@ class WorkoutSetRecorder(
             )
             ports.checkPaceCoachAlert()
             ports.onSetRecordedMilestone(exercise, weight, actualReps)
+            return checkNotNull(durableResult)
+        } catch (error: kotlinx.coroutines.CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            val committed = durableResult ?: throw error
+            KpknDiagnosticLogger.event(
+                namespace = "workout", name = "set_post_commit_effect_failed",
+                fields = mapOf("setKey" to recordingKey, "exceptionType" to error.javaClass.name),
+            )
+            return committed
         } finally {
             finishRecording(recordingKey)
             updateState { current ->

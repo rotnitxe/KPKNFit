@@ -29,12 +29,47 @@ import com.example.kpkn.services.workout.WorkoutRestAlertManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.time.Instant
 import java.util.concurrent.TimeoutException
+
+/**
+ * Guidance for the P0 empty-session guard: a session without recorded sets is
+ * never saved.  The finish sheet shows it while the guard would block, so the
+ * block is never silent.
+ */
+internal const val FINISH_EMPTY_SESSION_GUIDANCE =
+    "Registra al menos una serie para terminar o abandona sin guardar."
+
+/** Aviso cuando guardar falla por un error inesperado: nunca se muestra el texto técnico de la excepción. */
+internal const val FINISH_SAVE_FAILED_MESSAGE =
+    "No se pudo guardar la sesión. Tu entreno sigue en curso: inténtalo de nuevo."
+
+/** Aviso cuando no se puede calcular el resumen de recuperación de la hoja final. */
+internal const val FINISH_PREVIEW_FAILED_MESSAGE =
+    "No se pudo calcular el estado muscular. Cierra e inténtalo de nuevo."
+
+/** Errores del guardado que ya traen un texto en español pensado para la persona. */
+private val FINISH_USER_FACING_MESSAGES = setOf(
+    "La ejecución activa cambió; vuelve a abrir la sesión.",
+    "No hay una sesión activa que conservar.",
+)
+
+/** Texto para la persona cuando guardar falla (mensaje conocido en español o el genérico). */
+internal fun finishFailureMessage(error: Throwable): String =
+    error.message?.takeIf { it in FINISH_USER_FACING_MESSAGES } ?: FINISH_SAVE_FAILED_MESSAGE
+
+/** Single source of the predicate that makes [WorkoutFinishController.finish] abort. */
+internal fun isFinishBlockedForEmptySession(completedExercises: List<CompletedExercise>): Boolean =
+    completedExercises.isEmpty()
+
+/** Message for the finish sheet, or null when the session has sets and can be saved. */
+internal fun finishEmptySessionGuidance(completedExercises: List<CompletedExercise>): String? =
+    FINISH_EMPTY_SESSION_GUIDANCE.takeIf { isFinishBlockedForEmptySession(completedExercises) }
 
 /**
  * Owns workout finish flow: build log, persist, performance snapshots, volume-advance gate.
@@ -64,6 +99,7 @@ class WorkoutFinishController(
     private val persistOngoing: suspend () -> Unit = {},
     private val workoutMediaRepository: com.example.kpkn.data.repository.WorkoutMediaRepository? = null,
     private val mediaSessionKey: () -> String = { "" },
+    private val clearActiveWorkout: () -> Unit = { ActiveWorkoutHolder.clear() },
 ) {
     fun finish(
         notes: String,
@@ -73,7 +109,7 @@ class WorkoutFinishController(
         onFailure: (Exception) -> Unit = {},
     ) {
         val initialState = getState()
-        if (initialState.isFinishingWorkout || initialState.isComplete || initialState.session == null) return
+        if (!canStartWorkoutRecording(initialState) || initialState.session == null) return
         if (!initialState.logAlreadyWrittenId.isNullOrBlank()) {
             if (initialState.showVolumeAdvanceModal && initialState.pendingVolumeAdvances.isNotEmpty()) {
                 updateState { it.copy(isFinishingWorkout = false, showFinishSheet = false) }
@@ -85,6 +121,11 @@ class WorkoutFinishController(
         updateState { it.copy(isFinishingWorkout = true, finishWarning = null) }
 
         scope.launch {
+            var durableLogId: String? = null
+            var retainedVolumeModal = false
+            var committedStressScore = 0.0
+            var committedVolumeAdvances: List<MuscleAdvance> = emptyList()
+            var onCompleteAttempted = false
             try {
                 if (!awaitRecordingIdle(10_000L)) {
                     val warning = "No pude cerrar la sesión porque una serie sigue grabándose. Reintentá cuando termine."
@@ -105,7 +146,7 @@ class WorkoutFinishController(
                             finishWarning = warning,
                         )
                     }
-                    onFailure(TimeoutException(warning))
+                    runCatching { onFailure(TimeoutException(warning)) }
                     return@launch
                 }
 
@@ -132,7 +173,7 @@ class WorkoutFinishController(
 
         // Guard P0 de sesión vacía: sin series completadas no se persiste un log hueco
         // (drenaría 0 y taparía el problema); se aborta con feedback al usuario.
-                if (completedExercises.isEmpty()) {
+                if (isFinishBlockedForEmptySession(completedExercises)) {
             KpknDiagnosticLogger.event(
                 namespace = "workout",
                 name = "finish_blocked_empty_session",
@@ -408,90 +449,37 @@ class WorkoutFinishController(
                     volumeDeltas = volumeDeltas,
                     volumeAdvanceHandled = state.volumeAdvanceHandled,
                 )
-                repository.finalizeWorkout(log, clearOngoing = !keepOngoingForVolume)
-                runCatching {
-                    val key = mediaSessionKey()
-                    val mediaRepo = workoutMediaRepository
-                    if (mediaRepo != null && key.isNotBlank()) {
-                        mediaRepo.attachToLog(key, log.id)
-                        mediaRepo.markPrFlags(
-                            sessionKey = key,
-                            completedSets = state.completedSets,
-                            milestones = log.sessionMilestones,
-                        )
-                    }
-                }
-                KpknDiagnosticLogger.event(
-                    namespace = "auge",
-                    name = "post_persisted_auto",
-                    fields = mapOf(
-                        "finishOperationId" to finishOperationId,
-                        "logId" to log.id,
-                        "inputHash" to automaticImpact.setInputHash,
-                        "completionInstantIso" to completionInstantIso,
-                        "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
-                    ),
-                    sessionId = sessionId,
-                )
-                KpknDiagnosticLogger.event(
-                    namespace = "workout",
-                    name = "session_finished",
-                    fields = mapOf(
-                        "programId" to programId,
-                        "workoutSessionId" to sessionId,
-                        "logId" to log.id,
-                        "completedExerciseCount" to log.completedExercises.size,
-                        "completedSetCount" to log.completedExercises.sumOf { it.sets.size },
-                        "setsDone" to log.completedExercises.sumOf { it.sets.size },
-                        "setsPlanned" to activeSession.allExercises().sumOf { it.sets.size },
-                        "durationMs" to durationMs,
-                        "durationMinutes" to durationMinutes,
-                        "totalVolume" to totalVolume,
-                        "volumeKg" to totalVolume,
-                        "savedLogId" to log.id,
-                        "stressScore" to stressScore,
-                        "finishOperationId" to finishOperationId,
-                        "completionInstantIso" to completionInstantIso,
-                        "inputHash" to automaticImpact.setInputHash,
-                        "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
-                        "involvedVolumeMuscles" to automaticImpact.involvedVolumeMuscles,
-                    ),
-                    sessionId = sessionId,
-                )
-                runCatching {
-                    com.example.kpkn.screens.sessioneditor.TrainedSessionVersionStore
-                        .getInstance(appContext)
-                        .maybeAppendAfterTraining(
-                            sessionId = sessionId,
-                            session = activeSession,
-                            reason = "Sesión entrenada",
-                        )
-                }
-                updatePredictionBias(closingFeedback)
-                restAlertManager.cancelRestAlerts()
-                restTimer.clearActiveTimerId()
-
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        state.contextualPerformanceCache.values.forEach { repository.upsertContextPerformanceState(it) }
-                        state.globalPerformanceCache.values.forEach { repository.upsertGlobalPerformanceState(it) }
-                        performanceRangeStore.persistFinishedSessionPerformance(
-                            completedExercises = log.completedExercises,
-                            sessionId = sessionId,
-                            postExerciseFeedbackByExerciseId = getState().postExerciseFeedbackByExerciseId,
-                        )
-                    } catch (error: Exception) {
-                        error.printStackTrace()
-                    }
+                val retainOngoingForVolume = keepOngoingForVolume && state.programId.isNotBlank()
+                retainedVolumeModal = retainOngoingForVolume
+                committedStressScore = stressScore
+                committedVolumeAdvances = volumeDeltas
+                val mediaKey = mediaSessionKey().takeIf { it.isNotBlank() }
+                withContext(NonCancellable) {
+                    repository.finalizeWorkout(
+                        log,
+                        clearOngoing = !retainOngoingForVolume,
+                        mediaSessionKey = mediaKey,
+                        retainedOngoingTransform = if (retainOngoingForVolume) {
+                            { ongoing ->
+                                ongoing.copy(
+                                    pendingVolumeAdvances = volumeDeltas,
+                                    showVolumeAdvanceModal = true,
+                                    showFinishSheet = false,
+                                    finishResumeSnapshot = null,
+                                    logAlreadyWrittenId = log.id,
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                        expectedExecutionStartTimeMs = state.startTimeMs,
+                    )
+                    // Mark the commit before returning to the caller's cancellable context.
+                    durableLogId = log.id
                 }
 
-                val currentState = getState()
-                val currentSession = currentState.session
-                if (keepOngoingForVolume &&
-                    currentSession != null &&
-                    currentState.programId.isNotEmpty()
-                ) {
-                    deferOnComplete(onComplete)
+                if (retainOngoingForVolume) {
+                    runPostCommitSafely(log.id, "defer_volume_completion") { deferOnComplete(onComplete) }
                     updateState {
                         it.copy(
                             pendingVolumeAdvances = volumeDeltas,
@@ -502,22 +490,128 @@ class WorkoutFinishController(
                             logAlreadyWrittenId = log.id,
                         )
                     }
-                    persistOngoing()
-                    return@launch
+                } else {
+                    // The log and ongoing clear are durable. Publish success before
+                    // diagnostics, history, timer cleanup, or user callbacks run.
+                    updateState {
+                        it.copy(
+                            isComplete = true,
+                            showFinishSheet = false,
+                            sessionStressScore = stressScore,
+                            isFinishingWorkout = false,
+                            finishResumeSnapshot = null,
+                            logAlreadyWrittenId = log.id,
+                        )
+                    }
                 }
-                prepareVoiceDiagnosticExport()
-                updateState {
-                    it.copy(
-                        isComplete = true,
-                        showFinishSheet = false,
-                        sessionStressScore = stressScore,
-                        isFinishingWorkout = false,
-                        finishResumeSnapshot = null,
+
+                runPostCommitSafely(log.id, "post_persisted_diagnostics") {
+                    KpknDiagnosticLogger.event(
+                        namespace = "auge",
+                        name = "post_persisted_auto",
+                        fields = mapOf(
+                            "finishOperationId" to finishOperationId,
+                            "logId" to log.id,
+                            "inputHash" to automaticImpact.setInputHash,
+                            "completionInstantIso" to completionInstantIso,
+                            "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
+                        ),
+                        sessionId = sessionId,
+                    )
+                    KpknDiagnosticLogger.event(
+                        namespace = "workout",
+                        name = "session_finished",
+                        fields = mapOf(
+                            "programId" to programId,
+                            "workoutSessionId" to sessionId,
+                            "logId" to log.id,
+                            "completedExerciseCount" to log.completedExercises.size,
+                            "completedSetCount" to log.completedExercises.sumOf { it.sets.size },
+                            "setsDone" to log.completedExercises.sumOf { it.sets.size },
+                            "setsPlanned" to activeSession.allExercises().sumOf { it.sets.size },
+                            "durationMs" to durationMs,
+                            "durationMinutes" to durationMinutes,
+                            "totalVolume" to totalVolume,
+                            "volumeKg" to totalVolume,
+                            "savedLogId" to log.id,
+                            "stressScore" to stressScore,
+                            "finishOperationId" to finishOperationId,
+                            "completionInstantIso" to completionInstantIso,
+                            "inputHash" to automaticImpact.setInputHash,
+                            "automaticMuscularDrain" to automaticImpact.globalMuscularDrain,
+                            "involvedVolumeMuscles" to automaticImpact.involvedVolumeMuscles,
+                        ),
+                        sessionId = sessionId,
                     )
                 }
-                ActiveWorkoutHolder.clear()
-                onComplete()
+                runPostCommitSafely(log.id, "prediction_bias") { updatePredictionBias(closingFeedback) }
+                runPostCommitSafely(log.id, "cancel_rest_alerts") { restAlertManager.cancelRestAlerts() }
+                runPostCommitSafely(log.id, "clear_rest_timer") { restTimer.clearActiveTimerId() }
+                schedulePostCommitPersistence(log, activeSession, state)
+
+                if (retainOngoingForVolume) return@launch
+
+                runPostCommitSafely(log.id, "prepare_voice_diagnostics") { prepareVoiceDiagnosticExport() }
+                runPostCommitSafely(log.id, "clear_active_workout") { clearActiveWorkout() }
+                onCompleteAttempted = true
+                runPostCommitSafely(log.id, "completion_callback") { onComplete() }
             } catch (error: Exception) {
+                val savedLogId = durableLogId
+                if (error is CancellationException && savedLogId == null) {
+                    // The scope was cancelled (screen left / ViewModel cleared) before the Room
+                    // commit. Nothing was saved and nothing failed: release the "finishing" latch so
+                    // the next «Terminar» works, never show the cancellation text as a warning, and
+                    // rethrow so structured concurrency keeps working.
+                    KpknDiagnosticLogger.event(
+                        namespace = "workout",
+                        name = "session_finish_cancelled",
+                        fields = mapOf(
+                            "programId" to programId,
+                            "workoutSessionId" to sessionId,
+                            "exceptionType" to error.javaClass.name,
+                        ),
+                        sessionId = sessionId,
+                    )
+                    runCatching { updateState { it.copy(isFinishingWorkout = false) } }
+                    throw error
+                }
+                if (savedLogId != null) {
+                    // The Room commit already succeeded. Keep the terminal/modal
+                    // state and never report an ancillary failure as a save failure.
+                    reportPostCommitFailure(savedLogId, "finish_post_commit", error)
+                    runCatching {
+                        updateState {
+                            if (retainedVolumeModal) {
+                                it.copy(
+                                    pendingVolumeAdvances = committedVolumeAdvances,
+                                    showVolumeAdvanceModal = true,
+                                    showFinishSheet = false,
+                                    isFinishingWorkout = false,
+                                    finishResumeSnapshot = null,
+                                    logAlreadyWrittenId = savedLogId,
+                                )
+                            } else {
+                                it.copy(
+                                    isComplete = true,
+                                    showFinishSheet = false,
+                                    sessionStressScore = committedStressScore,
+                                    isFinishingWorkout = false,
+                                    finishResumeSnapshot = null,
+                                    logAlreadyWrittenId = savedLogId,
+                                )
+                            }
+                        }
+                    }
+                    if (!retainedVolumeModal) {
+                        runPostCommitSafely(savedLogId, "clear_active_workout_recovery") { clearActiveWorkout() }
+                        if (!onCompleteAttempted) {
+                            onCompleteAttempted = true
+                            runPostCommitSafely(savedLogId, "completion_callback_recovery") { onComplete() }
+                        }
+                    }
+                    if (error is CancellationException) throw error
+                    return@launch
+                }
                 error.printStackTrace()
                 KpknDiagnosticLogger.event(
                     namespace = "workout",
@@ -533,11 +627,73 @@ class WorkoutFinishController(
                 updateState {
                     it.copy(
                         isFinishingWorkout = false,
-                        finishWarning = error.message ?: "No se pudo guardar la sesión.",
+                        finishWarning = finishFailureMessage(error),
                     )
                 }
                 // (P0) El caller (p.ej. cierre por voz) puede avisar que el save falló.
-                if (error !is CancellationException) onFailure(error)
+                runCatching { onFailure(error) }
+            }
+        }
+    }
+
+    private fun schedulePostCommitPersistence(
+        log: WorkoutLog,
+        activeSession: Session,
+        state: WorkoutUiState,
+    ) {
+        val contextualPerformance = state.contextualPerformanceCache.values.toList()
+        val globalPerformance = state.globalPerformanceCache.values.toList()
+        val feedbackSnapshot = state.postExerciseFeedbackByExerciseId.toMap()
+        runCatching {
+            repository.ongoingPersistenceScope.launch {
+                runCatching {
+                    com.example.kpkn.screens.sessioneditor.TrainedSessionVersionStore
+                        .getInstance(appContext)
+                        .maybeAppendAfterTraining(
+                            sessionId = sessionId,
+                            session = activeSession,
+                            reason = "Sesión entrenada",
+                        )
+                }.onFailure { error -> reportPostCommitFailure(log.id, "trained_session_history", error) }
+
+                runCatching {
+                    contextualPerformance.forEach { repository.upsertContextPerformanceState(it) }
+                    globalPerformance.forEach { repository.upsertGlobalPerformanceState(it) }
+                    performanceRangeStore.persistFinishedSessionPerformance(
+                        completedExercises = log.completedExercises,
+                        sessionId = sessionId,
+                        postExerciseFeedbackByExerciseId = feedbackSnapshot,
+                    )
+                }.onFailure { error -> reportPostCommitFailure(log.id, "performance_snapshots", error) }
+            }
+        }.onFailure { error -> reportPostCommitFailure(log.id, "enqueue_finish_persistence", error) }
+    }
+
+    private fun runPostCommitSafely(logId: String, operation: String, action: () -> Unit) {
+        runCatching(action).onFailure { error -> reportPostCommitFailure(logId, operation, error) }
+    }
+
+    private fun reportPostCommitFailure(logId: String, operation: String, error: Throwable) {
+        runCatching {
+            KpknDiagnosticLogger.event(
+                namespace = "workout",
+                name = "session_finish_auxiliary_failed",
+                fields = mapOf(
+                    "programId" to programId,
+                    "workoutSessionId" to sessionId,
+                    "logId" to logId,
+                    "operation" to operation,
+                    "exceptionType" to error.javaClass.name,
+                    "exceptionMessage" to error.message,
+                ),
+                sessionId = sessionId,
+            )
+        }
+        runCatching {
+            updateState { state ->
+                if (state.finishWarning != null) state else state.copy(
+                    finishWarning = "Entreno guardado, pero no se pudo completar una actualización secundaria.",
+                )
             }
         }
     }

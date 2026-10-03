@@ -13,44 +13,55 @@ import androidx.core.content.ContextCompat
 import com.example.kpkn.R
 import com.example.kpkn.domain.cardio.CardioGpsMilestoneEngine
 import com.example.kpkn.navigation.KpknDeepLinks
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /** Posts deduplicated kilometre notifications and safely no-ops without notification permission. */
 class CardioGpsMilestoneNotifier(context: Context) {
     private val appContext = context.applicationContext
-    private val preferences = appContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+    private val preferences by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        appContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+    }
+    private val notificationMutex = Mutex()
 
-    fun notifyReached(sessionKey: String, distanceMeters: Double, targetDistanceKm: Double?) {
-        if (sessionKey.isBlank()) return
-        val distanceKm = distanceMeters / 1_000.0
-        val emitted = readEmitted(sessionKey)
-        val reached = CardioGpsMilestoneEngine.reachedKilometres(
-            distanceKm = distanceKm,
-            alreadyEmitted = emitted,
-            targetDistanceKm = targetDistanceKm,
-        )
-        if (reached.isEmpty() || !canPost()) return
-        ensureChannel()
-        val editor = preferences.edit()
-        reached.forEach { kilometre ->
-            val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Hito de cardio")
-                .setContentText("Alcanzaste $kilometre km")
-                .setContentIntent(
-                    KpknDeepLinks.pendingActivityIntent(
-                        context = appContext,
-                        requestCode = notificationId(sessionKey, kilometre),
-                        path = "training",
-                    ),
+    suspend fun notifyReached(sessionKey: String, distanceMeters: Double, targetDistanceKm: Double?) {
+        withContext(Dispatchers.IO) {
+            notificationMutex.withLock {
+                if (sessionKey.isBlank()) return@withLock
+                val distanceKm = distanceMeters / 1_000.0
+                val emitted = readEmitted(sessionKey)
+                val reached = CardioGpsMilestoneEngine.reachedKilometres(
+                    distanceKm = distanceKm,
+                    alreadyEmitted = emitted,
+                    targetDistanceKm = targetDistanceKm,
                 )
-                .setAutoCancel(true)
-                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .build()
-            runCatching { NotificationManagerCompat.from(appContext).notify(notificationId(sessionKey, kilometre), notification) }
-            editor.putBoolean(key(sessionKey, kilometre), true)
+                if (reached.isEmpty() || !canPost()) return@withLock
+                ensureChannel()
+                val editor = preferences.edit()
+                reached.forEach { kilometre ->
+                    val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("Hito de cardio")
+                        .setContentText("Alcanzaste $kilometre km")
+                        .setContentIntent(
+                            KpknDeepLinks.pendingActivityIntent(
+                                context = appContext,
+                                requestCode = notificationId(sessionKey, kilometre),
+                                path = "training",
+                            ),
+                        )
+                        .setAutoCancel(true)
+                        .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .build()
+                    runCatching { NotificationManagerCompat.from(appContext).notify(notificationId(sessionKey, kilometre), notification) }
+                    editor.putBoolean(key(sessionKey, kilometre), true)
+                }
+                editor.apply()
+            }
         }
-        editor.apply()
     }
 
     private fun readEmitted(sessionKey: String): Set<Int> =

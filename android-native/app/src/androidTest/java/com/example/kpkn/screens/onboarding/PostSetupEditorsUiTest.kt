@@ -89,9 +89,11 @@ import kotlin.math.abs
  *  1. Editor de programa: guarda el nombre → reabre → sesiones/IDs/receta
  *     intactos; y si el programa desaparece, el editor informa el error en vez
  *     de resucitar una fila en blanco.
- *  2. Editor de nutrición («Objetivos propios»): editar un macro deja HOY y
- *     PASADO congelados en su snapshot (insert-once) y recalcula el
- *     presupuesto desde MAÑANA.
+ *  2. Editor de nutrición («Objetivos propios»): editar un macro del MISMO plan
+ *     deja HOY y PASADO congelados en su snapshot, avisa en pantalla de que el
+ *     cambio vale desde MAÑANA y recalcula el presupuesto desde MAÑANA. (Activar
+ *     un plan DISTINTO el mismo día sí cambia la meta de hoy: lo cubren las
+ *     pruebas JVM del coordinador y el recorrido largo del asistente.)
  *
  * Datos: entradas con PREFIJO único por ejecución, cleanup SOLO de las
  * entradas propias y restauración del estado activo/ajustes previos del QA.
@@ -124,6 +126,10 @@ class PostSetupEditorsUiTest {
     /** true solo si el guard pasó y el estado QA quedó capturado: el cleanup
      *  no restaura nada cuando el test fue descartado (Assume) por seguridad. */
     private var qaStateCaptured = false
+
+    /** Metas diarias que había ANTES de que la prueba fijara las suyas, por fecha
+     *  (null = no había fila): el cleanup las devuelve. */
+    private val previousGoalSnapshots = mutableMapOf<String, DailyGoalSnapshot?>()
 
     @Before
     fun setUp() {
@@ -202,6 +208,27 @@ class PostSetupEditorsUiTest {
                 nutrition.deleteNutritionPlan(planId)
                 awaitCondition { db.nutritionDao().getAllPlans().none { it.id == planId } }
             }
+        }
+        // 2b) Metas diarias: la prueba fijó las de HOY y AYER para su plan (reemplazando
+        //     las que el QA tuviera). Se devuelven las previas ANTES de reactivar el plan
+        //     anterior, y solo si la fila sigue siendo de ESTE plan.
+        step("restaurar metas diarias") {
+            val planId = ownPlanId ?: return@step
+            previousGoalSnapshots.forEach { (date, previous) ->
+                val current = runBlocking { db.nutritionDao().getDailyGoalSnapshot(date) }
+                if (current?.planId != planId) return@forEach
+                runBlocking {
+                    if (previous != null) {
+                        db.nutritionDao().replaceDailyGoalSnapshot(previous.toEntity())
+                    } else {
+                        db.openHelper.writableDatabase.execSQL(
+                            "DELETE FROM daily_goal_snapshots WHERE date = ? AND planId = ?",
+                            arrayOf<Any>(date, planId),
+                        )
+                    }
+                }
+            }
+            runBlocking { nutrition.publishNutritionPlanCommit() }
         }
         // 3) Restaurar el plan activo previo (la alta desactivó el anterior).
         step("restaurar plan activo") {
@@ -332,10 +359,12 @@ class PostSetupEditorsUiTest {
         val yesterday = today.minusDays(1)
         val tomorrow = today.plusDays(1)
 
-        // Snapshots de HOY y PASADO para ESTE plan (INSERT IGNORE: si el QA ya
-        // tiene fila propia, se conserva la suya y nunca se pisa).
-        snapshotInForce(planId, today, FIXTURE_KCAL)
-        snapshotInForce(planId, yesterday, FIXTURE_KCAL)
+        // Snapshots de HOY y PASADO para ESTE plan: la prueba los FIJA ella misma
+        // (reemplaza lo que la BD compartida de QA traiga de otro plan y lo devuelve
+        // en el cleanup), así siempre parte de «este plan ya fijó hoy», el caso de la
+        // regla «editar el MISMO plan vale desde mañana».
+        pinGoalForThisPlan(planId, today, FIXTURE_KCAL)
+        pinGoalForThisPlan(planId, yesterday, FIXTURE_KCAL)
         runBlocking { nutrition.publishNutritionPlanCommit() }
 
         val planBefore = nutrition.nutritionPlans.value.firstOrNull { it.id == planId }
@@ -344,6 +373,8 @@ class PostSetupEditorsUiTest {
         val yesterdayBefore = runBlocking { nutrition.getDailyGoalSnapshot(yesterday.toString()) }
         assertNotNull("HOY tiene snapshot congelado", todayBefore)
         assertNotNull("el PASADO tiene snapshot congelado", yesterdayBefore)
+        assertEquals("HOY quedó fijado por ESTE plan", planId, todayBefore?.planId)
+        assertEquals("el PASADO quedó fijado por ESTE plan", planId, yesterdayBefore?.planId)
         val tomorrowBefore = runBlocking { nutrition.getDailyGoalSnapshot(tomorrow.toString()) }
         val budgetBefore = planDayTargetForDate(
             planBefore!!,
@@ -371,6 +402,12 @@ class PostSetupEditorsUiTest {
         // Tras el scroll se confirma el campo aislado en pantalla y se reescribe.
         val macroField = fieldNearLabel(MACRO_LABEL)
         macroField.assertIsDisplayed()
+        // Aviso de la regla «editar el mismo plan vale desde mañana»: hoy ya está fijado
+        // por este plan, así que la pantalla lo dice antes de que se edite nada.
+        composeRule.waitUntilAtLeastOneExists(
+            hasText("La meta de hoy ya quedó fijada en $FIXTURE_KCAL kcal", substring = true),
+            30_000L,
+        )
         macroField.performTextReplacement(NEW_PROTEIN.toString())
         // En pantalla la base revisada adopta el macro con su total Atwater.
         val expectedBaseKcal = atwaterKcal(
@@ -404,9 +441,10 @@ class PostSetupEditorsUiTest {
         )
         assertEquals(CalculationOrigin.MANUAL, planAfter.calculationOrigin)
 
-        // HOY y PASADO: sus snapshots siguen idénticos (insert-once).
+        // HOY y PASADO: sus snapshots siguen idénticos (el plan editado es el MISMO
+        // que los fijó, así que no se reemplazan).
         assertEquals(
-            "HOY no se reescribe al editar el plan",
+            "HOY no se reescribe al editar el MISMO plan",
             todayBefore,
             runBlocking { nutrition.getDailyGoalSnapshot(today.toString()) },
         )
@@ -415,15 +453,18 @@ class PostSetupEditorsUiTest {
             yesterdayBefore,
             runBlocking { nutrition.getDailyGoalSnapshot(yesterday.toString()) },
         )
-        // Cuando la evidencia de HOY pertenece a ESTE plan, el plan editado la
-        // conserva también en su previsión (si el QA ya tenía fila ajena, no
-        // se fija y esta comprobación no aplica).
-        if (todayBefore?.planId == planId) {
-            assertEquals(
-                todayBefore!!.calorieTargetKcal,
-                planDayTargetForDate(planAfter, today, NutritionGoalSource.PLAN_FORECAST).calorieTargetKcal,
-            )
-        }
+        // La caché que lee el Home (publishNutritionPlanCommit) tampoco cambió HOY.
+        assertEquals(
+            "la caché de metas diarias conserva la de HOY",
+            todayBefore,
+            nutrition.dailyGoalSnapshots.value.firstOrNull { it.date == today.toString() },
+        )
+        // La evidencia de HOY pertenece a ESTE plan: el plan editado la conserva
+        // también en su previsión (el cambio vale desde mañana).
+        assertEquals(
+            todayBefore!!.calorieTargetKcal,
+            planDayTargetForDate(planAfter, today, NutritionGoalSource.PLAN_FORECAST).calorieTargetKcal,
+        )
 
         // MAÑANA en adelante: editar el plan no crea ni cambia snapshots del
         // futuro, así que su presupuesto sale del plan editado.
@@ -525,13 +566,19 @@ class PostSetupEditorsUiTest {
         assertNotNull("Room tiene la fila del programa tras el alta", awaitRoomProgram(program.id))
     }
 
-    /** Snapshot de un día: si el QA ya tiene fila se conserva (INSERT IGNORE). */
-    private fun snapshotInForce(planId: String, date: LocalDate, kcal: Int): DailyGoalSnapshot? {
-        val existing = runBlocking { nutrition.getDailyGoalSnapshot(date.toString()) }
-        if (existing != null) return existing
+    /**
+     * Meta de un día FIJADA para este plan: reemplaza la fila que hubiera (la BD
+     * compartida de QA suele traer la de otro plan). La fila previa se recuerda
+     * para que el cleanup la devuelva.
+     */
+    private fun pinGoalForThisPlan(planId: String, date: LocalDate, kcal: Int): DailyGoalSnapshot? {
+        val key = date.toString()
+        if (key !in previousGoalSnapshots) {
+            previousGoalSnapshots[key] = runBlocking { nutrition.getDailyGoalSnapshot(key) }
+        }
         runBlocking {
             withTimeout(30_000L) {
-                db.nutritionDao().insertDailyGoalSnapshot(
+                db.nutritionDao().replaceDailyGoalSnapshot(
                     DailyGoalSnapshot(
                         date = date.toString(),
                         planId = planId,

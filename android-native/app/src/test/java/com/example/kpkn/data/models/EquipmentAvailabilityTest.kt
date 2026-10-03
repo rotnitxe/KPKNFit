@@ -1,5 +1,6 @@
 package com.example.kpkn.data.models
 
+import com.example.kpkn.domain.training.EquipmentKeys
 import com.example.kpkn.domain.training.TrainingOptions
 import com.example.kpkn.domain.training.effectiveEquipment
 import kotlinx.serialization.decodeFromString
@@ -58,5 +59,57 @@ class EquipmentAvailabilityTest {
         assertNotEquals(oldSettings.equipmentAvailability, roundTrip.equipmentAvailability)
         assertEquals(EquipmentAvailability(emptySet()), roundTrip.equipmentAvailability)
         assertTrue(json.encodeToString(explicitEmpty).contains("\"categories\":[]"))
+    }
+
+    @Test
+    fun presence_of_a_key_is_tri_state_and_absence_beats_presence() {
+        val availability = EquipmentAvailability(
+            categories = setOf(EquipmentCategory.MACHINES),
+            apparatus = mapOf(
+                EquipmentKeys.LEG_PRESS to ApparatusPresence.PRESENT,
+                EquipmentKeys.HACK_SQUAT to ApparatusPresence.ABSENT,
+                EquipmentKeys.LEG_EXTENSION to ApparatusPresence.UNKNOWN,
+            ),
+            supports = mapOf(
+                EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT,
+                // Contradicción entre mapas: la ausencia gana siempre.
+                EquipmentKeys.HACK_SQUAT to ApparatusPresence.PRESENT,
+            ),
+        )
+
+        assertEquals(ApparatusPresence.PRESENT, availability.presenceOf(EquipmentKeys.LEG_PRESS))
+        assertEquals(ApparatusPresence.ABSENT, availability.presenceOf(EquipmentKeys.HACK_SQUAT))
+        assertEquals(ApparatusPresence.UNKNOWN, availability.presenceOf(EquipmentKeys.LEG_EXTENSION))
+        assertEquals("Clave ausente = sin confirmar", ApparatusPresence.UNKNOWN, availability.presenceOf(EquipmentKeys.DUAL_CABLE))
+
+        assertTrue(availability.hasExplicitPresence)
+        assertFalse(EquipmentAvailability(setOf(EquipmentCategory.MACHINES)).hasExplicitPresence)
+        assertFalse(EquipmentAvailability().hasExplicitPresence)
+    }
+
+    @Test
+    fun presence_fields_round_trip_and_absent_fields_decode_to_empty_maps() {
+        val json = Json { encodeDefaults = true }
+        val declared = json.decodeFromString<EquipmentAvailability>(
+            """
+            {"categories":["MACHINES"],"apparatus":{"leg_press":"PRESENT","hack_squat":"ABSENT"},
+             "supports":{"bench_flat":"PRESENT"}}
+            """.trimIndent(),
+        )
+        assertEquals(setOf(EquipmentCategory.MACHINES), declared.categories)
+        assertEquals(ApparatusPresence.PRESENT, declared.presenceOf(EquipmentKeys.LEG_PRESS))
+        assertEquals(ApparatusPresence.ABSENT, declared.presenceOf(EquipmentKeys.HACK_SQUAT))
+        assertEquals(ApparatusPresence.PRESENT, declared.presenceOf(EquipmentKeys.BENCH_FLAT))
+
+        // Persistencia previa (§13.1): sin los campos nuevos decodifican `{}`.
+        val legacy = json.decodeFromString<EquipmentAvailability>("""{"categories":["SUPPORT"]}""")
+        assertEquals(emptyMap<String, ApparatusPresence>(), legacy.apparatus)
+        assertEquals(emptyMap<String, ApparatusPresence>(), legacy.supports)
+        assertEquals(ApparatusPresence.UNKNOWN, legacy.presenceOf(EquipmentKeys.BENCH_FLAT))
+        assertFalse(legacy.hasExplicitPresence)
+
+        assertEquals(declared, json.decodeFromString<EquipmentAvailability>(json.encodeToString(declared)))
+        assertTrue(json.encodeToString(declared).contains("\"apparatus\""))
+        assertTrue(json.encodeToString(declared).contains("\"supports\""))
     }
 }

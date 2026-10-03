@@ -34,6 +34,20 @@ object LocaleManager {
     private val _recreateEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /**
+     * Idioma guardado en memoria. Se rellena en la primera lectura del proceso
+     * ([Application.attachBaseContext], antes de que StrictMode esté activo) y se
+     * actualiza en [persist].
+     *
+     * Evita que cada [Activity.attachBaseContext] (arranque en frío y cada recreación)
+     * vuelva a llamar a `Context.getSharedPreferences` desde el hilo principal: sobre el
+     * ContextImpl nuevo de la Activity esa llamada resuelve la ruta del archivo con
+     * `File.exists` sobre el directorio de datos (DiskReadViolation), aunque el archivo de
+     * preferencias ya esté cargado; por eso precalentar el archivo en segundo plano no lo evita.
+     */
+    @Volatile
+    private var cachedLanguage: String? = null
+
+    /**
      * Emite un evento cuando la Activity debe recrearse (solo API ≤ 32).
      * Colectar desde MainActivity con lifecycleScope.
      */
@@ -76,15 +90,25 @@ object LocaleManager {
             .edit()
             .putString(KEY_LANGUAGE, language)
             .apply()
+        cachedLanguage = language
     }
 
     /**
      * Devuelve el código de idioma guardado ("system", "es", "en", …).
      * Seguro de called desde [attachBaseContext] antes de que Room esté listo.
      */
-    fun getSavedLanguage(context: Context): String =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    fun getSavedLanguage(context: Context): String {
+        cachedLanguage?.let { return it }
+        val saved = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getString(KEY_LANGUAGE, LANGUAGE_SYSTEM) ?: LANGUAGE_SYSTEM
+        cachedLanguage = saved
+        return saved
+    }
+
+    /** Solo para tests: simula un proceso nuevo (sin idioma en memoria). */
+    internal fun clearCachedLanguageForTests() {
+        cachedLanguage = null
+    }
 
     /**
      * Envuelve un [Context] con el locale persistido.

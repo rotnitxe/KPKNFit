@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -107,7 +108,7 @@ internal fun WorkoutV2Body(
     onExpandSetup: () -> Unit,
     onExpandReplace: () -> Unit,
     onExpandEdit: () -> Unit,
-    onRequestCardioGps: () -> Unit = {},
+    onRequestCardioGps: (exerciseId: String, setIndex: Int) -> Unit = { _, _ -> },
     exerciseReadinessMap: Map<String, ExerciseReadiness> = emptyMap(),
     recordActionHolder: RecordActionHolder = remember { RecordActionHolder() },
     recordFabHolder: RecordFabHolder = remember { RecordFabHolder() },
@@ -133,6 +134,7 @@ internal fun WorkoutV2Body(
     onRequestLiveTagListConsumed: () -> Unit = {},
     skipExerciseLabel: String? = null,
     onSkipExercise: (() -> Unit)? = null,
+    onRetryPendingCaptures: () -> Unit = {},
 ) {
     val allUserTags by viewModel.allUserTags.collectAsStateWithLifecycle()
     val cardioGpsState by viewModel.cardioGpsState.collectAsStateWithLifecycle()
@@ -144,14 +146,12 @@ internal fun WorkoutV2Body(
         uiState.restModalState?.kind != RestTimerKind.WARMUP
     val warmupRestActive = uiState.isRestTimerRunning &&
         uiState.restModalState?.kind == RestTimerKind.WARMUP
-    val currentCardioGpsKey = currentExercise?.id?.let(viewModel::cardioGpsSessionKey)
-    val currentCardioGpsState = cardioGpsState.takeIf { it.sessionKey == currentCardioGpsKey }
     LaunchedEffect(currentExercise?.id, currentExercise?.cardioDetails?.requiresGps) {
         currentExercise
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
             ?.let(viewModel::restoreCardioGpsIfAvailable)
     }
-    var pendingUpdateAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var pendingUpdateAction by remember { mutableStateOf<Pair<() -> Unit, () -> Unit>?>(null) }
     var tagManagerTagId by remember { mutableStateOf<String?>(null) }
     var showTagListOverlay by remember { mutableStateOf(false) }
     var showCreateTagDialog by remember { mutableStateOf(false) }
@@ -211,10 +211,19 @@ internal fun WorkoutV2Body(
         mutableStateOf<Pair<com.example.kpkn.domain.sessionassistant.SeriesTechnique, Pair<String, Int>>?>(null)
     }
     var warmupWeightDrafts by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val recordActionScopeOwner = remember(
+        uiState.programId,
+        uiState.weekId,
+        uiState.startTimeMs,
+        currentExercise?.id,
+    ) { Any() }
+
+    DisposableEffect(recordActionScopeOwner, recordActionHolder) {
+        onDispose { recordActionHolder.clearIfOwner(recordActionScopeOwner) }
+    }
 
     LaunchedEffect(currentExercise?.id) {
         warmupWeightDrafts = emptyMap()
-        recordActionHolder.action = null
     }
     LaunchedEffect(warmupWeightDrafts) {
         viewModel.updateRelatorWarmupDrafts(warmupWeightDrafts)
@@ -224,6 +233,7 @@ internal fun WorkoutV2Body(
         onDispose {
             recordFabHolder.visible = false
             recordFabHolder.isUpdateMode = false
+            recordFabHolder.activePageKey = null
         }
     }
 
@@ -549,46 +559,122 @@ internal fun WorkoutV2Body(
                             workingSetVisualHeightPx.intValue = 0
                         }
                         val cardioDetails = currentExercise.cardioDetails
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            if (cardioDetails != null) {
-                                CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
-                                    CardioLiveCard(
-                                    modifier = Modifier.fillMaxSize(),
-                                    details = cardioDetails,
-                                    completedSet = uiState.completedSets["${currentExercise.id}_0"],
-                                    accentColor = sessionAccentColor,
-                                    executionState = overlayCardioTimerTick(
-                                        uiState.cardioTimerState?.takeIf { it.exerciseId == currentExercise.id },
-                                        tickRemaining,
-                                        tickElapsed,
-                                    ),
-                                    liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == currentExercise.id },
-                                    onStartTimer = {
-                                        val isLibre = !cardioDetails.hasIntervals() && cardioDetails.targetDurationSeconds == null
-                                        viewModel.startCardioTimer(
-                                            currentExercise.id,
-                                            if (isLibre) 0 else cardioDetails.effectiveDurationSeconds(),
+                        val cardioSetIndices = WorkoutStepRules.cardioSetIndices(currentExercise)
+                        val currentCardioSetIndex = uiState.currentSetIdx
+                            .takeIf { it in cardioSetIndices }
+                            ?: cardioSetIndices.firstOrNull()
+                            ?: 0
+                        val currentCardioSetId = currentExercise.sets.getOrNull(currentCardioSetIndex)?.id
+                        val currentCardioSetUi = cardioSetUiStateForPage(
+                            exerciseId = currentExercise.id,
+                            setIndex = currentCardioSetIndex,
+                            setId = currentCardioSetId,
+                            completedSets = uiState.completedSets,
+                            timerState = uiState.cardioTimerState,
+                        )
+                        if (cardioSetIndices.isEmpty()) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    "Este ejercicio de cardio no tiene series configuradas.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                )
+                            }
+                        } else {
+                        val cardioPageActionIsCurrent = {
+                            viewModel.isCurrentCardioPageAction(currentExercise.id, currentCardioSetIndex)
+                        }
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            if (cardioSetIndices.size > 1) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    cardioSetIndices.forEach { setIndex ->
+                                        val isCompleted =
+                                            WorkoutStepRules.cardioCompletionKey(currentExercise.id, setIndex) in uiState.completedSets
+                                        FilterChip(
+                                            selected = setIndex == currentCardioSetIndex,
+                                            onClick = {
+                                                viewModel.selectWorkoutStep(
+                                                    WorkoutStepRules.cardioStepKey(currentExercise.id, setIndex),
+                                                )
+                                            },
+                                            label = {
+                                                Text(
+                                                    "Serie ${setIndex + 1}" +
+                                                        if (isCompleted) " · Registrada" else "",
+                                                )
+                                            },
                                         )
-                                    },
-                                    onPauseTimer = viewModel::pauseCardioTimer,
-                                    onSkipBlock = viewModel::skipCardioBlock,
-                                    onRequestRecord = { duration, distance, heartRate ->
-                                        viewModel.requestCardioRecord(currentExercise.id, duration, distance, heartRate)
-                                    },
-                                    onCancelRecord = viewModel::cancelCardioRecord,
-                                    gpsState = currentCardioGpsState,
-                                    onRequestGps = onRequestCardioGps,
-                                    onPauseGps = viewModel::pauseCardioGps,
-                                    onResumeGps = viewModel::resumeCardioGps,
-                                    onRecord = { duration, distance, heartRate ->
-                                        viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
-                                    },
-                                    )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            if (cardioDetails != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                ) {
+                                    key(cardioPageIdentity(currentExercise.id, currentCardioSetIndex, currentCardioSetId)) {
+                                    CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
+                                        CardioLiveCard(
+                                            modifier = Modifier.fillMaxSize(),
+                                            details = cardioDetails,
+                                            completedSet = currentCardioSetUi.completedSet,
+                                            accentColor = sessionAccentColor,
+                                            executionState = overlayCardioTimerTick(
+                                                currentCardioSetUi.timerState,
+                                                tickRemaining,
+                                                tickElapsed,
+                                            ),
+                                            liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf {
+                                                cardioHealthState.exerciseId == currentExercise.id
+                                            },
+                                            onStartTimer = {
+                                                if (cardioPageActionIsCurrent()) {
+                                                    val isLibre = !cardioDetails.hasIntervals() &&
+                                                        cardioDetails.targetDurationSeconds == null
+                                                    viewModel.startCardioTimer(
+                                                        currentExercise.id,
+                                                         if (isLibre) 0 else cardioDetails.effectiveDurationSeconds(),
+                                                        currentCardioSetIndex,
+                                                    )
+                                                }
+                                            },
+                                            onPauseTimer = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioTimer(currentExercise.id, currentCardioSetIndex) },
+                                            onSkipBlock = { if (cardioPageActionIsCurrent()) viewModel.skipCardioBlock(currentExercise.id, currentCardioSetIndex) },
+                                            onRequestRecord = { duration, distance, heartRate ->
+                                                if (cardioPageActionIsCurrent()) {
+                                                    viewModel.requestCardioRecord(currentExercise.id, duration, distance, heartRate, currentCardioSetIndex)
+                                                }
+                                            },
+                                            onCancelRecord = { if (cardioPageActionIsCurrent()) viewModel.cancelCardioRecord(currentExercise.id, currentCardioSetIndex) },
+                                            gpsState = cardioGpsState.takeIf { it.sessionKey == viewModel.cardioGpsSessionKey(currentExercise.id, currentCardioSetIndex) },
+                                            onRequestGps = { if (cardioPageActionIsCurrent()) onRequestCardioGps(currentExercise.id, currentCardioSetIndex) },
+                                            onPauseGps = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioGps(currentExercise.id, currentCardioSetIndex) },
+                                            onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(currentExercise.id, currentCardioSetIndex) },
+                                            onRecord = { duration, distance, heartRate ->
+                                                if (cardioPageActionIsCurrent()) {
+                                                    viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex)
+                                                } else {
+                                                    false
+                                                }
+                                            },
+                                        )
+                                    }
+                                    }
                                 }
                             } else {
                                 Column(
                                     modifier = Modifier
-                                        .fillMaxSize()
+                                        .fillMaxWidth()
+                                        .weight(1f)
                                         .padding(24.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center,
@@ -600,11 +686,14 @@ internal fun WorkoutV2Body(
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                                     )
                                     Spacer(Modifier.height(12.dp))
-                                    TextButton(onClick = { viewModel.skipCardioBlock() }) {
+                                    TextButton(onClick = {
+                                        if (cardioPageActionIsCurrent()) viewModel.skipCardioBlock(currentExercise.id, currentCardioSetIndex)
+                                    }) {
                                         Text("Volver al roadmap")
                                     }
                                 }
                             }
+                        }
                         }
                     } else {
 
@@ -755,7 +844,15 @@ internal fun WorkoutV2Body(
                                 }
                             }
                         } else if (pagerExercise.isCardio) {
-                            list.add(WorkoutSetSwipePage(type = LivePageType.CARDIO, setIndex = 0, exerciseId = pagerExercise.id))
+                            WorkoutStepRules.cardioSetIndices(pagerExercise).forEach { setIndex ->
+                                list.add(
+                                    WorkoutSetSwipePage(
+                                        type = LivePageType.CARDIO,
+                                        setIndex = setIndex,
+                                        exerciseId = pagerExercise.id,
+                                    ),
+                                )
+                            }
                         } else {
                             val pagerIsUnilateral = pagerExercise.isEffectivelyUnilateral()
                             pagerExercise.sets.forEachIndexed { i, set ->
@@ -853,7 +950,7 @@ internal fun WorkoutV2Body(
                                             !isAnyMobilityActive &&
                                             !isAnyWarmupActive &&
                                             (
-                                                activeKey == WorkoutStepRules.cardioStepKey(pageExId) ||
+                                                activeKey == WorkoutStepRules.cardioStepKey(pageExId, page.setIndex) ||
                                                     (activeKey == null && page.setIndex == uiState.currentSetIdx)
                                                 )
                                     }
@@ -890,6 +987,13 @@ internal fun WorkoutV2Body(
                             setPagerPages,
                         ) {
                             val settledPage = setPagerPages.getOrNull(pagerState.settledPage)
+                            recordFabHolder.activePageKey = settledPage?.let { page ->
+                                workoutRecordPageKey(
+                                    page = page,
+                                    fallbackExerciseId = currentExercise.id,
+                                    supersetGroupId = currentSupersetGroupId,
+                                )
+                            }
                             recordFabHolder.visible = shouldShowWorkoutRecordFab(
                                 pageType = settledPage?.type,
                                 showingPostExerciseCard = showingPostExerciseCard,
@@ -1001,7 +1105,7 @@ internal fun WorkoutV2Body(
                             val targetExerciseId = targetPage.exerciseId ?: currentExercise.id
                             if (targetPage.type != LivePageType.REST) {
                                 val key = when (targetPage.type) {
-                                    LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(targetExerciseId)
+                                    LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(targetExerciseId, targetPage.setIndex)
                                     LivePageType.NORMAL -> WorkoutStepRules.workingStepKey(
                                         targetExerciseId,
                                         targetPage.setIndex,
@@ -1012,6 +1116,7 @@ internal fun WorkoutV2Body(
                                     LivePageType.REST -> ""
                                 }
                                 if (key.isNotBlank()) {
+                                    RepairBenchmarkTrace.selectionRequested(key)
                                     viewModel.selectWorkoutStep(key)
                                 }
                             }
@@ -1206,21 +1311,29 @@ internal fun WorkoutV2Body(
                                     }
                                 }
                             } else if (pagerExercise.isCardio) {
-                                val isDone = uiState.completedSets.containsKey("${pagerExercise.id}_0")
-                                val cardioPageIdx = setPagerPages.indexOfFirst { it.type == LivePageType.CARDIO }.coerceAtLeast(0)
-                                list.add(
-                                    TimelineElement.BilateralSet(
-                                        pageIndex = cardioPageIdx,
-                                        label = "C",
-                                        state = if (isDone) {
-                                            WorkoutSetCardVisualState.COMPLETED
-                                        } else if (!isAnyMobilityActive && !isAnyWarmupActive) {
-                                            WorkoutSetCardVisualState.ACTIVE
-                                        } else {
-                                            WorkoutSetCardVisualState.FUTURE
-                                        },
+                                WorkoutStepRules.cardioSetIndices(pagerExercise).forEach { setIndex ->
+                                    val isDone = WorkoutStepRules.cardioCompletionKey(pagerExercise.id, setIndex) in uiState.completedSets
+                                    val isActive = !isAnyMobilityActive && !isAnyWarmupActive && (
+                                        uiState.activeStepKey == WorkoutStepRules.cardioStepKey(pagerExercise.id, setIndex) ||
+                                            (uiState.activeStepKey == null && uiState.currentSetIdx == setIndex)
+                                        )
+                                    val cardioPageIdx = setPagerPages.indexOfFirst {
+                                        it.type == LivePageType.CARDIO && it.exerciseId == pagerExercise.id && it.setIndex == setIndex
+                                    }.coerceAtLeast(0)
+                                    list.add(
+                                        TimelineElement.BilateralSet(
+                                            pageIndex = cardioPageIdx,
+                                            label = "C${setIndex + 1}",
+                                            state = if (isDone) {
+                                                WorkoutSetCardVisualState.COMPLETED
+                                            } else if (isActive) {
+                                                WorkoutSetCardVisualState.ACTIVE
+                                            } else {
+                                                WorkoutSetCardVisualState.FUTURE
+                                            },
+                                        )
                                     )
-                                )
+                                }
                             } else {
                                 pagerExercise.sets.forEachIndexed { setIdx, _ ->
                                     if (WorkoutStepRules.isSetOmitted(pagerExercise.id, setIdx, uiState.omittedSetKeys)) {
@@ -1493,6 +1606,24 @@ internal fun WorkoutV2Body(
                                     }
                                     .drawWithContent {
                                         drawContent()
+                                        val visiblePage = setPagerPages.getOrNull(pagerState.settledPage)
+                                        val visibleStepKey = visiblePage?.let { pageSpec ->
+                                            val exerciseId = pageSpec.exerciseId ?: currentExercise.id
+                                            workoutPagerStepKey(exerciseId, pageSpec)
+                                        }
+                                        val requestedStepKey = uiState.activeStepKey
+                                        if (
+                                            uiState.session != null &&
+                                            requestedStepKey != null &&
+                                            !pagerState.isScrollInProgress &&
+                                            pagerState.settledPage == activeSwipePageIndex &&
+                                            visibleStepKey == requestedStepKey
+                                        ) {
+                                            RepairBenchmarkTrace.workoutBodyDrawn(
+                                                activeStepKey = requestedStepKey,
+                                                completedSetCount = uiState.completedSets.size,
+                                            )
+                                        }
                                         if (totalSetPages > 1 && size.width > 0f) {
                                             val fade = (
                                                 edgeFadeWidth.toPx() / size.width
@@ -1520,7 +1651,7 @@ internal fun WorkoutV2Body(
                                 val page = setPagerPages.getOrNull(index)
                                 val pageExerciseId = page?.exerciseId ?: currentExercise.id
                                 when (page?.type) {
-                                    LivePageType.CARDIO -> "${pageExerciseId}:cardio"
+                                    LivePageType.CARDIO -> "${pageExerciseId}:cardio:${page.setIndex}"
                                     LivePageType.NORMAL -> "$pageExerciseId:${page.setIndex}:${page.side ?: "B"}"
                                     LivePageType.WARMUP -> "${currentSupersetGroupId ?: currentExercise.id}:warmup:phase"
                                     LivePageType.MOBILITY -> "${currentSupersetGroupId ?: currentExercise.id}:mobility:phase"
@@ -1535,6 +1666,11 @@ internal fun WorkoutV2Body(
                                         setIndex = uiState.currentSetIdx,
                                         side = activeSide,
                                     )
+                                val recordActionPageKey = workoutRecordPageKey(
+                                    page = pageSpec,
+                                    fallbackExerciseId = currentExercise.id,
+                                    supersetGroupId = currentSupersetGroupId,
+                                )
                                 val pageOffset = (
                                     (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
                                 ).absoluteValue.coerceIn(0f, 1f)
@@ -1602,16 +1738,7 @@ internal fun WorkoutV2Body(
                                     onAddTimerSeconds = { seconds -> viewModel.addMobilityTimerSeconds(seconds) },
                                     onResetTimer = { viewModel.resetMobilityGlobalTimer(firstMobilityEx.id) },
                                     onSkip = {
-                                        prepMobilityMembers.forEach { member ->
-                                            member.mobilitySeries.forEach { mobility ->
-                                                viewModel.setMobilityExerciseCompleted(
-                                                    exerciseId = member.id,
-                                                    mobilityId = mobility.id,
-                                                    completed = true,
-                                                )
-                                            }
-                                        }
-                                        viewModel.advanceAfterPreparation(firstMobilityEx.id)
+                                        viewModel.skipMobilityPreparationForExercises(prepMobilityMembers.map { it.id })
                                     },
                                     onContinue = {
                                         viewModel.advanceAfterPreparation(firstMobilityEx.id)
@@ -1634,6 +1761,8 @@ internal fun WorkoutV2Body(
                                         null
                                     },
                                     recordActionHolder = recordActionHolder,
+                                    recordActionScopeOwner = recordActionScopeOwner,
+                                    recordActionPageKey = recordActionPageKey,
                                     recordFabHolder = recordFabHolder,
                                     isActivePage = isActivePage,
                                     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
@@ -1689,12 +1818,7 @@ internal fun WorkoutV2Body(
                                         viewModel.markWarmupComplete(row.exerciseId, row.warmup.id, completed)
                                     },
                                     onSkip = {
-                                        prepWarmupMembers.forEach { member ->
-                                            member.warmupSets.forEach { wu ->
-                                                viewModel.markWarmupComplete(member.id, wu.id, true)
-                                            }
-                                        }
-                                        viewModel.advanceAfterPreparation(firstWarmupEx.id)
+                                        viewModel.skipWarmupPreparationForExercises(prepWarmupMembers.map { it.id })
                                     },
                                     onContinue = {
                                         viewModel.advanceAfterPreparation(firstWarmupEx.id)
@@ -1720,6 +1844,8 @@ internal fun WorkoutV2Body(
                                         null
                                     },
                                     recordActionHolder = recordActionHolder,
+                                    recordActionScopeOwner = recordActionScopeOwner,
+                                    recordActionPageKey = recordActionPageKey,
                                     recordFabHolder = recordFabHolder,
                                     isActivePage = isActivePage,
                                     onWeightDraft = { row, text ->
@@ -1730,41 +1856,65 @@ internal fun WorkoutV2Body(
                                 )
                             }
                             LivePageType.CARDIO -> {
-                                val completed = uiState.completedSets["${pageExercise.id}_0"]
+                                val pageSetIndex = pageSpec.setIndex
+                                val pageSetId = pageExercise.sets.getOrNull(pageSetIndex)?.id
+                                val cardioPageActionIsCurrent = {
+                                    viewModel.isCurrentCardioPageAction(pageExercise.id, pageSetIndex)
+                                }
+                                val pageCardioGpsKey = viewModel.cardioGpsSessionKey(pageExercise.id, pageSetIndex)
+                                val pageCardioGpsState = cardioGpsState.takeIf { it.sessionKey == pageCardioGpsKey }
+                                val pageCardioUiState = cardioSetUiStateForPage(
+                                    exerciseId = pageExercise.id,
+                                    setIndex = pageSetIndex,
+                                    setId = pageSetId,
+                                    completedSets = uiState.completedSets,
+                                    timerState = uiState.cardioTimerState,
+                                )
                                 val cardioDetails = cardioDetailsOrNull(pageExercise)
                                 if (cardioDetails != null) {
+                                key(cardioPageIdentity(pageExercise.id, pageSetIndex, pageSetId)) {
                                 CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
                                 CardioLiveCard(
                                     details = cardioDetails,
-                                    completedSet = completed,
+                                    completedSet = pageCardioUiState.completedSet,
                                     accentColor = sessionAccentColor,
                                     executionState = overlayCardioTimerTick(
-                                        uiState.cardioTimerState?.takeIf { it.exerciseId == pageExercise.id },
+                                        pageCardioUiState.timerState,
                                         tickRemaining,
                                         tickElapsed,
                                     ),
                                     liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == pageExercise.id },
                                     onStartTimer = {
-                                        viewModel.startCardioTimer(
-                                            pageExercise.id,
-                                            cardioDetails.effectiveDurationSeconds(),
-                                        )
+                                        if (cardioPageActionIsCurrent()) {
+                                            viewModel.startCardioTimer(
+                                                pageExercise.id,
+                                                cardioDetails.effectiveDurationSeconds(),
+                                                pageSetIndex,
+                                            )
+                                        }
                                     },
-                                    onPauseTimer = viewModel::pauseCardioTimer,
-                                    onSkipBlock = { viewModel.skipCardioBlock() },
+                                    onPauseTimer = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioTimer(pageExercise.id, pageSetIndex) },
+                                    onSkipBlock = { if (cardioPageActionIsCurrent()) viewModel.skipCardioBlock(pageExercise.id, pageSetIndex) },
                                     onRequestRecord = { duration, distance, heartRate ->
-                                        viewModel.requestCardioRecord(pageExercise.id, duration, distance, heartRate)
+                                        if (cardioPageActionIsCurrent()) {
+                                            viewModel.requestCardioRecord(pageExercise.id, duration, distance, heartRate, pageSetIndex)
+                                        }
                                     },
-                                    onCancelRecord = viewModel::cancelCardioRecord,
-                                    gpsState = currentCardioGpsState,
-                                    onRequestGps = onRequestCardioGps,
-                                    onPauseGps = viewModel::pauseCardioGps,
-                                    onResumeGps = viewModel::resumeCardioGps,
+                                    onCancelRecord = { if (cardioPageActionIsCurrent()) viewModel.cancelCardioRecord(pageExercise.id, pageSetIndex) },
+                                    gpsState = pageCardioGpsState,
+                                    onRequestGps = { if (cardioPageActionIsCurrent()) onRequestCardioGps(pageExercise.id, pageSetIndex) },
+                                    onPauseGps = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioGps(pageExercise.id, pageSetIndex) },
+                                    onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(pageExercise.id, pageSetIndex) },
                                     onRecord = { duration, distance, heartRate ->
-                                        viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
+                                        if (cardioPageActionIsCurrent()) {
+                                            viewModel.recordCardioSetUsingGps(duration, distance, heartRate, pageExercise.id, pageSetIndex)
+                                        } else {
+                                            false
+                                        }
                                     },
                                     modifier = Modifier.fillMaxSize(),
                                 )
+                                }
                                 }
                                 }
                             }
@@ -1871,40 +2021,65 @@ internal fun WorkoutV2Body(
                                     }
                                 ]
                                 if (targetExercise.isCardio) {
+                                    val cardioPageActionIsCurrent = {
+                                        viewModel.isCurrentCardioPageAction(targetExercise.id, activeSetIndex)
+                                    }
+                                    val targetCardioGpsKey = viewModel.cardioGpsSessionKey(targetExercise.id, activeSetIndex)
+                                    val targetCardioGpsState = cardioGpsState.takeIf {
+                                        it.sessionKey == targetCardioGpsKey
+                                    }
+                                    val cardioPageUiState = cardioSetUiStateForPage(
+                                        exerciseId = targetExercise.id,
+                                        setIndex = activeSetIndex,
+                                        setId = targetExercise.sets.getOrNull(activeSetIndex)?.id,
+                                        completedSets = uiState.completedSets,
+                                        timerState = uiState.cardioTimerState,
+                                    )
                                     val cardioDetails = cardioDetailsOrNull(targetExercise)
                                     if (cardioDetails != null) {
+                                    key(cardioPageIdentity(targetExercise.id, activeSetIndex, targetExercise.sets.getOrNull(activeSetIndex)?.id)) {
                                     CardioTimerTickReader(viewModel) { tickRemaining, tickElapsed ->
                                     CardioLiveCard(
                                         details = cardioDetails,
-                                        completedSet = sessionCompletedSet,
+                                        completedSet = cardioPageUiState.completedSet,
                                         accentColor = sessionAccentColor,
                                         executionState = overlayCardioTimerTick(
-                                            uiState.cardioTimerState?.takeIf { it.exerciseId == targetExercise.id },
+                                            cardioPageUiState.timerState,
                                             tickRemaining,
                                             tickElapsed,
                                         ),
                                         liveHeartRateBpm = cardioHealthState.heartRateBpm.takeIf { cardioHealthState.exerciseId == targetExercise.id },
                                         onStartTimer = {
-                                            viewModel.startCardioTimer(
-                                                targetExercise.id,
-                                                cardioDetails.effectiveDurationSeconds(),
-                                            )
+                                            if (cardioPageActionIsCurrent()) {
+                                                viewModel.startCardioTimer(
+                                                    targetExercise.id,
+                                                    cardioDetails.effectiveDurationSeconds(),
+                                                    activeSetIndex,
+                                                )
+                                            }
                                         },
-                                        onPauseTimer = viewModel::pauseCardioTimer,
-                                        onSkipBlock = { viewModel.skipCardioBlock() },
+                                        onPauseTimer = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioTimer(targetExercise.id, activeSetIndex) },
+                                        onSkipBlock = { if (cardioPageActionIsCurrent()) viewModel.skipCardioBlock(targetExercise.id, activeSetIndex) },
                                         onRequestRecord = { duration, distance, heartRate ->
-                                            viewModel.requestCardioRecord(targetExercise.id, duration, distance, heartRate)
+                                            if (cardioPageActionIsCurrent()) {
+                                                viewModel.requestCardioRecord(targetExercise.id, duration, distance, heartRate, activeSetIndex)
+                                            }
                                         },
-                                        onCancelRecord = viewModel::cancelCardioRecord,
-                                        gpsState = currentCardioGpsState,
-                                        onRequestGps = onRequestCardioGps,
-                                        onPauseGps = viewModel::pauseCardioGps,
-                                        onResumeGps = viewModel::resumeCardioGps,
+                                        onCancelRecord = { if (cardioPageActionIsCurrent()) viewModel.cancelCardioRecord(targetExercise.id, activeSetIndex) },
+                                        gpsState = targetCardioGpsState,
+                                        onRequestGps = { if (cardioPageActionIsCurrent()) onRequestCardioGps(targetExercise.id, activeSetIndex) },
+                                        onPauseGps = { if (cardioPageActionIsCurrent()) viewModel.pauseCardioGps(targetExercise.id, activeSetIndex) },
+                                        onResumeGps = { if (cardioPageActionIsCurrent()) viewModel.resumeCardioGps(targetExercise.id, activeSetIndex) },
                                         onRecord = { duration, distance, heartRate ->
-                                            viewModel.recordCardioSetUsingGps(duration, distance, heartRate)
+                                            if (cardioPageActionIsCurrent()) {
+                                                viewModel.recordCardioSetUsingGps(duration, distance, heartRate, targetExercise.id, activeSetIndex)
+                                            } else {
+                                                false
+                                            }
                                         },
                                         modifier = Modifier.fillMaxSize(),
                                     )
+                                    }
                                     }
                                     }
                                 } else {
@@ -1917,6 +2092,8 @@ internal fun WorkoutV2Body(
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,
                                     recordActionHolder = recordActionHolder,
+                                    recordActionScopeOwner = recordActionScopeOwner,
+                                    recordActionPageKey = recordActionPageKey,
                                     recordFabHolder = recordFabHolder,
                                     adaptActionHolder = adaptActionHolder,
                                     ghostSet = activeGhostSet,
@@ -2013,7 +2190,7 @@ internal fun WorkoutV2Body(
                                             side = cardSide,
                                         )
                                     },
-                                    onRecordV2 = { loadMode: LoadModeV2, unitMode: UnitModeV2, weight: Double, value: Double, intensity: Double?, advanced: SetAdvancedFeedback, amrap: Boolean, bodyWeight: Double?, side: String? ->
+                                    onRecordV2 = { loadMode: LoadModeV2, unitMode: UnitModeV2, weight: Double, value: Double, intensity: Double?, advanced: SetAdvancedFeedback, amrap: Boolean, bodyWeight: Double?, side: String?, onResult: (RecordSetResult) -> Unit ->
                                         val updateKey = if (side != null) {
                                             "${targetExercise.id}_${activeSetIndex}_${side.take(1).uppercase()}"
                                         } else {
@@ -2021,7 +2198,7 @@ internal fun WorkoutV2Body(
                                         }
                                         val action: () -> Unit = {
                                             viewModel.launchWorkoutCommand {
-                                                viewModel.recordSetV2(
+                                                val result = viewModel.recordSetV2(
                                                     weight = weight,
                                                     value = value,
                                                     intensity = intensity,
@@ -2039,11 +2216,14 @@ internal fun WorkoutV2Body(
                                                     expectedSetIdx = activeSetIndex,
                                                     expectedSide = side ?: cardSide,
                                                 )
+                                                onResult(result)
                                             }
                                             Unit
                                         }
                                         if (uiState.completedSets.containsKey(updateKey)) {
-                                            pendingUpdateAction = action
+                                            pendingUpdateAction = action to {
+                                                onResult(RecordSetResult.Rejected("Actualización cancelada."))
+                                            }
                                         } else {
                                             action.invoke()
                                         }
@@ -2076,6 +2256,7 @@ internal fun WorkoutV2Body(
                                         viewModel.omitSet(targetExercise.id, activeSetIndex)
                                     },
                                     mediaCapture = viewModel.mediaCapture,
+                                    onRetryPendingCaptures = onRetryPendingCaptures,
                                     openMediaFace = isSettledPage && openMediaFaceExerciseId == targetExercise.id,
                                     onMediaFaceConsumed = { viewModel.mediaCapture.consumeOpenMediaFace() },
                                     sessionMilestones = uiState.sessionMilestones,
@@ -2203,22 +2384,30 @@ internal fun WorkoutV2Body(
         )
     }
 
-    if (pendingUpdateAction != null) {
+    pendingUpdateAction?.let { pending ->
         KpknAlertDialog(
-            onDismissRequest = { pendingUpdateAction = null },
+            onDismissRequest = {
+                pendingUpdateAction = null
+                pending.second()
+            },
             title = { Text("Actualizar serie") },
             text = { Text("Esta serie ya estaba registrada. ¿Quieres actualizarla?") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val action = pendingUpdateAction
+                        val action = pendingUpdateAction?.first
                         pendingUpdateAction = null
                         action?.invoke()
                     }
                 ) { Text("Actualizar") }
             },
             dismissButton = {
-                TextButton(onClick = { pendingUpdateAction = null }) { Text("Cancelar") }
+                TextButton(
+                    onClick = {
+                        pendingUpdateAction = null
+                        pending.second()
+                    },
+                ) { Text("Cancelar") }
             },
         )
     }

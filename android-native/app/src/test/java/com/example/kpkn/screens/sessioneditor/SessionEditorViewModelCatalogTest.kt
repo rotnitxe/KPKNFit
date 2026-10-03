@@ -106,12 +106,7 @@ class SessionEditorViewModelCatalogTest {
             draftMesoIndex = 0,
             draftDayOfWeek = null,
         )
-        withTimeout(5_000) {
-            while (vm.uiState.value.session == null) {
-                vm.retryLoadSession()
-                delay(50)
-            }
-        }
+        vm.awaitSessionLoaded()
 
         vm.addExerciseToPart(
             partId = null,

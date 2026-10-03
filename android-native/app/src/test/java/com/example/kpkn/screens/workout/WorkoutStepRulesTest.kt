@@ -42,6 +42,82 @@ class WorkoutStepRulesTest {
     }
 
     @Test
+    fun buildSteps_expandsCardioSetsAndKeepsLegacyFirstKey() {
+        val cardio = Exercise(
+            id = "run",
+            name = "Carrera",
+            sets = listOf(ExerciseSet("run-a"), ExerciseSet("run-b")),
+            cardioDetails = CardioDetails(type = CardioType.RUN_OUTDOOR),
+        )
+        val session = Session(id = "s", name = "Sesión", exercises = listOf(cardio))
+        val steps = WorkoutStepRules.buildSteps(session)
+
+        assertEquals(listOf(0, 1), steps.map { it.setIndex })
+        assertEquals(listOf("run_cardio", "run_cardio_set_1"), steps.map { it.stepKey })
+        assertEquals(listOf(WorkoutStepType.CARDIO, WorkoutStepType.CARDIO), steps.map { it.type })
+        assertEquals("run_cardio", WorkoutStepRules.cardioStepKey("run", 0))
+        assertEquals("run_1", WorkoutStepRules.cardioCompletionKey("run", 1))
+        assertEquals(
+            "run_cardio_set_1",
+            WorkoutStepRules.firstIncompleteStep(
+                session = session,
+                completedSets = mapOf("run_0" to CompletedSet(id = "run_0")),
+            )?.stepKey,
+        )
+    }
+
+    @Test
+    fun cardioSetIndices_preservesLegacyMissingSets_butSkipsExplicitAllEmptySlots() {
+        val legacy = Exercise(
+            id = "legacy-run",
+            name = "Carrera",
+            sets = emptyList(),
+            cardioDetails = CardioDetails(type = CardioType.RUN_OUTDOOR),
+        )
+        val removedSlots = Exercise(
+            id = "removed-run",
+            name = "Carrera",
+            sets = listOf(ExerciseSet("removed-a", isEmptySlot = true), ExerciseSet("removed-b", isEmptySlot = true)),
+            cardioDetails = CardioDetails(type = CardioType.RUN_OUTDOOR),
+        )
+
+        assertEquals(listOf(0), WorkoutStepRules.cardioSetIndices(legacy))
+        assertEquals(emptyList<Int>(), WorkoutStepRules.cardioSetIndices(removedSlots))
+        assertEquals(listOf("legacy-run_cardio"), WorkoutStepRules.buildSteps(
+            Session(id = "s", name = "Sesión", exercises = listOf(legacy)),
+        ).map { it.stepKey })
+        assertEquals(emptyList<String>(), WorkoutStepRules.buildSteps(
+            Session(id = "s", name = "Sesión", exercises = listOf(removedSlots)),
+        ).map { it.stepKey })
+    }
+
+    @Test
+    fun buildSteps_expandsCardioSetsInsideSuperset_withoutChangingStrengthRoundOrder() {
+        val cardio = Exercise(
+            id = "run",
+            name = "Carrera",
+            sets = listOf(ExerciseSet("run-a"), ExerciseSet("run-b")),
+            cardioDetails = CardioDetails(type = CardioType.RUN_OUTDOOR),
+        )
+        val strength = Exercise(
+            id = "press",
+            name = "Press",
+            sets = listOf(ExerciseSet("press-a"), ExerciseSet("press-b")),
+        )
+        val session = SupersetRules.createSuperset(
+            session = Session(id = "s", name = "Sesión", exercises = listOf(cardio, strength)),
+            groupId = "group",
+            exerciseIds = listOf("run", "press"),
+            restBetweenExercises = 0,
+            restAfterSuperset = 90,
+            rounds = 2,
+        )
+
+        val steps = WorkoutStepRules.buildSteps(session)
+        assertEquals(listOf("run_cardio", "run_cardio_set_1", "press_0", "press_1"), steps.map { it.stepKey })
+    }
+
+    @Test
     fun buildSteps_ordersMobilityWarmupBeforeWorkingSets() {
         val exercise = Exercise(
             id = "squat",

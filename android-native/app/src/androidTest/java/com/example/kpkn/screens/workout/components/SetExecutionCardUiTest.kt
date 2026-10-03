@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout.components
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -14,15 +15,24 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.DropSetData
+import com.example.kpkn.data.models.RestPauseData
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.screens.workout.RecordActionHolder
+import com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults
+import com.example.kpkn.screens.workout.RecordSetResult
 import com.example.kpkn.screens.workout.SetAdvancedFeedback
-import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.screens.workout.WorkoutSetDraft
+import com.example.kpkn.screens.workout.WorkoutTechniqueDraftKind
+import com.example.kpkn.screens.workout.WorkoutTechniqueMainCaptureDraft
+import com.example.kpkn.screens.workout.WorkoutTechniqueProgressDraft
+import com.example.kpkn.screens.workout.WeightSuggestion
 import com.example.kpkn.services.workout.VoiceSessionState
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,7 +42,7 @@ class SetExecutionCardUiTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun unilateralLockedSideStepperKeepsStableDraftValue() {
+    fun unilateralLockedSideWheelKeepsStableDraftValue() {
         var lastDraft: WorkoutSetDraft? = null
         composeRule.setContent {
             MaterialTheme {
@@ -50,14 +60,18 @@ class SetExecutionCardUiTest {
                     onDraftChange = { draft, _ -> lastDraft = draft },
                     onShowHistory = {},
                     onSetBodyWeight = {},
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
 
-        composeRule.onAllNodesWithContentDescription("Aumentar")[0].performClick()
-        composeRule.onAllNodesWithContentDescription("Aumentar")[0].performClick()
-        composeRule.onAllNodesWithContentDescription("Disminuir")[0].performClick()
+        composeRule.onNodeWithText("11").performClick()
+        composeRule.waitForIdle()
+        assertEquals("11", lastDraft?.valueText)
+        composeRule.onNodeWithText("12").performClick()
+        composeRule.waitForIdle()
+        assertEquals("12", lastDraft?.valueText)
+        composeRule.onNodeWithText("11").performClick()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("11").assertExists()
@@ -80,7 +94,7 @@ class SetExecutionCardUiTest {
                     isActivePage = true,
                     onShowHistory = {},
                     onSetBodyWeight = {},
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -161,8 +175,9 @@ class SetExecutionCardUiTest {
                     sideLocked = true,
                     onShowHistory = {},
                     onSetBodyWeight = {},
-                    onRecordV2 = { _: LoadModeV2, _: UnitModeV2, _: Double, _: Double, _: Double?, _: SetAdvancedFeedback, _: Boolean, _: Double?, side: String? ->
+                    onRecordV2 = { _: LoadModeV2, _: UnitModeV2, _: Double, _: Double, _: Double?, _: SetAdvancedFeedback, _: Boolean, _: Double?, side: String?, onResult: (RecordSetResult) -> Unit ->
                         recordedSide = side
+                        onResult(RecordSetResult.Created("bilateral-ex_0"))
                     },
                 )
             }
@@ -170,6 +185,66 @@ class SetExecutionCardUiTest {
 
         composeRule.runOnIdle { holder.action?.invoke() }
         composeRule.runOnIdle { assertEquals("right", recordedSide) }
+    }
+
+    @Test
+    fun romIsNotReportedWhenTheExerciseDoesNotTrackIt() {
+        // The ROM slider is hidden for this exercise, so a default of 100 would
+        // be sent as a measurement nobody took.
+        assertNull(recordOnce(bilateralExercise().copy(trackRom = false)).rom)
+    }
+
+    @Test
+    fun romStartsAtFullRangeWhenTheExerciseTracksIt() {
+        assertEquals(100, recordOnce(bilateralExercise().copy(trackRom = true)).rom)
+    }
+
+    @Test
+    fun record_action_rebinds_from_s1_to_s2_after_successful_ui_callback() {
+        val exercise = bilateralExercise()
+        val holder = RecordActionHolder()
+        val scopeOwner = Any()
+        val activeSet = mutableIntStateOf(0)
+        val recordedSetIndexes = mutableListOf<Int>()
+
+        composeRule.setContent {
+            MaterialTheme {
+                val setIndex = activeSet.intValue
+                SetInputCardV2(
+                    exercise = exercise,
+                    setIndex = setIndex,
+                    currentSet = bilateralSet(),
+                    ghostSet = null,
+                    weightSuggestion = null,
+                    initialBodyWeight = 80.0,
+                    recordActionHolder = holder,
+                    recordActionScopeOwner = scopeOwner,
+                    recordActionPageKey = "${exercise.id}:$setIndex:B",
+                    isActivePage = true,
+                    onShowHistory = {},
+                    onSetBodyWeight = {},
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, onResult ->
+                        recordedSetIndexes += setIndex
+                        activeSet.intValue = setIndex + 1
+                        onResult(RecordSetResult.Created("bilateral-ex_$setIndex"))
+                    },
+                )
+            }
+        }
+
+        composeRule.runOnIdle {
+            holder.actionForPage("${exercise.id}:0:B")?.invoke()
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            assertEquals(1, activeSet.intValue)
+            assertNull(holder.actionForPage("${exercise.id}:0:B"))
+            assertNotNull(holder.actionForPage("${exercise.id}:1:B"))
+            holder.actionForPage("${exercise.id}:1:B")?.invoke()
+        }
+        composeRule.waitForIdle()
+
+        assertEquals(listOf(0, 1), recordedSetIndexes)
     }
 
     @Test
@@ -237,7 +312,7 @@ class SetExecutionCardUiTest {
                     isActivePage = true,
                     onShowHistory = {},
                     onSetBodyWeight = {},
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -263,7 +338,7 @@ class SetExecutionCardUiTest {
                     isActivePage = true,
                     onShowHistory = {},
                     onSetBodyWeight = {},
-                    onRecordV2 = { _, _, _, _, _, _, _, _, _ -> },
+                    onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },
                 )
             }
         }
@@ -274,6 +349,231 @@ class SetExecutionCardUiTest {
         composeRule.onNodeWithText("Confirma las 3 reps de esta mini-serie.").assertDoesNotExist()
         composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").assertDoesNotExist()
     }
+
+    @Test
+    fun guidedDropFinalCommitRetryDoesNotAppendAnotherRow() {
+        val initialRows = listOf(DropSetData(weight = 15.0, reps = 8))
+        val finalRows = initialRows + DropSetData(weight = 12.5, reps = 6)
+        assertGuidedCommitRetry(
+            kind = WorkoutTechniqueDraftKind.GUIDED_DROP,
+            phaseIndex = 1,
+            phaseCount = 2,
+            dropRows = initialRows,
+            restRows = emptyList(),
+            dropWeightText = "12.5",
+            repsText = "6",
+            currentSet = guidedDropSet(),
+            expected = guidedExpectedFeedback(dropSets = finalRows),
+        )
+    }
+
+    @Test
+    fun guidedRestPauseFinalCommitRetryDoesNotAppendAnotherRow() {
+        // The restored row keeps the rest it was recorded with (20 s, different
+        // on purpose).  The row captured now carries the rest the guided
+        // countdown actually ran: the fixed configured pause, not a copy of
+        // the previous row.
+        val initialRows = listOf(RestPauseData(restTime = 20, reps = 8))
+        val finalRows = initialRows + RestPauseData(restTime = RestPausePlanDefaults.PauseSeconds, reps = 6)
+        assertGuidedCommitRetry(
+            kind = WorkoutTechniqueDraftKind.GUIDED_REST_PAUSE,
+            phaseIndex = 1,
+            phaseCount = 2,
+            dropRows = emptyList(),
+            restRows = initialRows,
+            dropWeightText = "",
+            repsText = "6",
+            currentSet = guidedRestPauseSet(),
+            expected = guidedExpectedFeedback(restPauses = finalRows),
+        )
+    }
+
+    @Test
+    fun guidedSkipRetryKeepsExplicitEmptyCommitSeparateFromEnteredRows() {
+        val partialRows = listOf(DropSetData(weight = 15.0, reps = 8))
+        assertGuidedCommitRetry(
+            kind = WorkoutTechniqueDraftKind.GUIDED_DROP,
+            phaseIndex = 0,
+            phaseCount = 2,
+            dropRows = partialRows,
+            restRows = emptyList(),
+            dropWeightText = "12.5",
+            repsText = "6",
+            currentSet = guidedDropSet(),
+            expected = guidedExpectedFeedback(),
+            skipOnFirstAttempt = true,
+            expectedFormDropRows = partialRows,
+        )
+    }
+
+    @Test
+    fun guidedRestPauseCountdownSkipRetryKeepsExplicitEmptyCommit() {
+        assertGuidedCommitRetry(
+            kind = WorkoutTechniqueDraftKind.GUIDED_REST_PAUSE,
+            phaseIndex = 0,
+            phaseCount = 2,
+            dropRows = emptyList(),
+            restRows = emptyList(),
+            dropWeightText = "",
+            repsText = "5",
+            currentSet = guidedRestPauseSet(),
+            expected = guidedExpectedFeedback(),
+            skipOnFirstAttempt = true,
+            restRemainingSeconds = 17,
+        )
+    }
+
+    private fun assertGuidedCommitRetry(
+        kind: WorkoutTechniqueDraftKind,
+        phaseIndex: Int,
+        phaseCount: Int,
+        dropRows: List<DropSetData>,
+        restRows: List<RestPauseData>,
+        dropWeightText: String,
+        repsText: String,
+        currentSet: ExerciseSet,
+        expected: SetAdvancedFeedback,
+        skipOnFirstAttempt: Boolean = false,
+        expectedFormDropRows: List<DropSetData> = expected.dropSets,
+        restRemainingSeconds: Int? = null,
+    ) {
+        val exercise = bilateralExercise()
+        val holder = RecordActionHolder()
+        val attempts = mutableListOf<SetAdvancedFeedback>()
+        val outcomes = mutableListOf<(RecordSetResult) -> Unit>()
+        var lastDraft: WorkoutSetDraft? = null
+        val progress = WorkoutTechniqueProgressDraft(
+            kind = kind,
+            phaseIndex = phaseIndex,
+            phaseCount = phaseCount,
+            mainCapture = WorkoutTechniqueMainCaptureDraft(
+                loadMode = LoadModeV2.LOAD,
+                unitMode = UnitModeV2.REPS,
+                weight = 20.0,
+                value = 8.0,
+                intensity = 8.0,
+                amrapOverride = false,
+            ),
+            dropRows = dropRows,
+            restPauseRows = restRows,
+            dropWeightText = dropWeightText,
+            dropRepsText = repsText,
+            restPauseRepsText = repsText,
+            restRemainingSeconds = restRemainingSeconds,
+        )
+        composeRule.setContent {
+            MaterialTheme {
+                SetInputCardV2(
+                    exercise = exercise,
+                    setIndex = 0,
+                    currentSet = currentSet,
+                    ghostSet = null,
+                    weightSuggestion = null,
+                    initialBodyWeight = 80.0,
+                    recordActionHolder = holder,
+                    isActivePage = true,
+                    initialDraft = WorkoutSetDraft(
+                        weightText = "20",
+                        valueText = "8",
+                        intensityText = "8",
+                        isDirty = true,
+                        techniqueProgress = progress,
+                    ),
+                    onDraftChange = { draft, _ -> lastDraft = draft },
+                    onShowHistory = {},
+                    onSetBodyWeight = {},
+                    onRecordV2 = { _, _, _, _, _, advanced, _, _, _, onResult ->
+                        attempts += advanced
+                        outcomes += onResult
+                    },
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        if (skipOnFirstAttempt) {
+            // Skipping discards the sub-sets, so the panel asks for an explicit
+            // confirmation before the empty commit is submitted.
+            composeRule.onNodeWithText("Saltar técnica y registrar solo la serie").performClick()
+            composeRule.onNodeWithText("Sí, solo la serie").performClick()
+        } else {
+            composeRule.runOnIdle { holder.action?.invoke() }
+        }
+        composeRule.waitForIdle()
+        assertEquals(1, attempts.size)
+        assertEquals(expected, attempts.single())
+        val pendingProgress = lastDraft?.techniqueProgress
+        assertEquals(true, pendingProgress?.awaitingCommit)
+        assertEquals(expectedFormDropRows, pendingProgress?.dropRows)
+        assertEquals(expected.dropSets, pendingProgress?.commitDropRows)
+        assertEquals(expected.restPauses, pendingProgress?.commitRestPauseRows)
+        assertEquals(expected.actualIntensityMode, attempts.single().actualIntensityMode)
+        assertEquals(expected.actualIntensityValue, attempts.single().actualIntensityValue)
+        assertEquals(expected.amrapMinimumReps, attempts.single().amrapMinimumReps)
+        assertEquals(expected.timerElapsedSeconds, attempts.single().timerElapsedSeconds)
+
+        composeRule.runOnIdle {
+            outcomes.single()(RecordSetResult.PersistenceFailed(IllegalStateException("Room final write failed")))
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { holder.action?.invoke() }
+        composeRule.waitForIdle()
+
+        assertEquals(listOf(expected, expected), attempts)
+        assertEquals(attempts.first(), attempts.last())
+        assertEquals(expected.dropSets, attempts.last().dropSets)
+        assertEquals(expected.restPauses, attempts.last().restPauses)
+        assertEquals(expected.actualIntensityMode, attempts.last().actualIntensityMode)
+        assertEquals(expected.actualIntensityValue, attempts.last().actualIntensityValue)
+        assertEquals(expected.amrapMinimumReps, attempts.last().amrapMinimumReps)
+        assertEquals(expected.timerElapsedSeconds, attempts.last().timerElapsedSeconds)
+        val retryProgress = lastDraft?.techniqueProgress
+        assertEquals(true, retryProgress?.awaitingCommit)
+        assertEquals(expectedFormDropRows, retryProgress?.dropRows)
+        assertEquals(expected.dropSets, retryProgress?.commitDropRows)
+        assertEquals(expected.restPauses, retryProgress?.commitRestPauseRows)
+        composeRule.runOnIdle { outcomes.last()(RecordSetResult.Created("bilateral-ex_0")) }
+        composeRule.waitForIdle()
+    }
+
+    private fun recordOnce(exercise: Exercise): SetAdvancedFeedback {
+        val holder = RecordActionHolder()
+        var recorded: SetAdvancedFeedback? = null
+        composeRule.setContent {
+            MaterialTheme {
+                SetInputCardV2(
+                    exercise = exercise,
+                    setIndex = 0,
+                    currentSet = bilateralSet(),
+                    ghostSet = null,
+                    weightSuggestion = null,
+                    initialBodyWeight = 80.0,
+                    recordActionHolder = holder,
+                    isActivePage = true,
+                    onShowHistory = {},
+                    onSetBodyWeight = {},
+                    onRecordV2 = { _, _, _, _, _, advanced, _, _, _, onResult ->
+                        recorded = advanced
+                        onResult(RecordSetResult.Created("bilateral-ex_0"))
+                    },
+                )
+            }
+        }
+        composeRule.runOnIdle { holder.action?.invoke() }
+        composeRule.waitForIdle()
+        return requireNotNull(recorded) { "The record action never reached onRecordV2" }
+    }
+
+    private fun guidedExpectedFeedback(
+        dropSets: List<DropSetData> = emptyList(),
+        restPauses: List<RestPauseData> = emptyList(),
+    ) = SetAdvancedFeedback(
+        dropSets = dropSets,
+        restPauses = restPauses,
+        actualIntensityMode = IntensityMode.RPE,
+        actualIntensityValue = 8.0,
+        amrapMinimumReps = 8,
+        timerElapsedSeconds = 8,
+    )
 
     private fun unilateralExercise() = Exercise(
         id = "uni-ex",
@@ -311,6 +611,10 @@ class SetExecutionCardUiTest {
         unitModeV2 = UnitModeV2.REPS,
         intensityMode = IntensityMode.RPE,
     )
+
+    private fun guidedDropSet() = bilateralSet().copy(isDropSet = true)
+
+    private fun guidedRestPauseSet() = bilateralSet().copy(isRestPause = true)
 
     private fun scheduledDropset() = ExerciseSet(
         id = "scheduled-drop-set",

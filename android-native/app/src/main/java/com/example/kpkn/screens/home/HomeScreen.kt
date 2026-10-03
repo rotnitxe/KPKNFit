@@ -369,6 +369,10 @@ fun HomeScreen(
                     viewModel.dismissCreateProgramSheet()
                     selectedProtocol = protocol
                 },
+                onSelectPlan = {
+                    viewModel.dismissCreateProgramSheet()
+                    onOpenSetupWizard()
+                },
             )
         }
         selectedProtocol?.let { protocol ->

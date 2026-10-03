@@ -53,7 +53,12 @@ class SetupTrainingPlannerTest {
         val candidates = SetupTrainingPlanner.candidates(input(reference = TrainingReference.POWERLIFTING))
         assertTrue(candidates.isNotEmpty())
         assertTrue(candidates.all { TrainingReference.POWERLIFTING in it.references })
-        assertTrue(candidates.none { it.source == CatalogSource.NATIVE })
+        // T-004 added a correctly-authored native strength profile; only native
+        // entries with real powerlifting metadata may enter this set.
+        assertTrue(candidates.any { it.id == "native:strength-foundation-v2" })
+        assertTrue(candidates.none {
+            it.source == CatalogSource.NATIVE && TrainingReference.POWERLIFTING !in it.references
+        })
         assertTrue(candidates.none { it.id == "template:body-12-3" })
         assertTrue(candidates.any { it.id == "template:power-16-4" || it.source == CatalogSource.PROTOCOL })
     }
@@ -81,12 +86,14 @@ class SetupTrainingPlannerTest {
         val homeStrength = SetupTrainingPlanner.candidates(
             input(reference = TrainingReference.POWERLIFTING, frequency = 3, equipment = setOf("bodyweight", "band")),
         )
-        // La disciplina nunca se sustituye: solo powerlifting real (el nativo es
-        // de hipertrofia y queda fuera). El material NO se decide en el planner
-        // (metadata gruesa `general_gym`): lo decide la guardia de materialización
-        // `missingFixedRecipeEquipment`, que con {bodyweight, band} rechaza una
-        // receta que exige barra/cable/máquina.
-        assertTrue(homeStrength.none { it.source == CatalogSource.NATIVE })
+        // No se sustituye la disciplina: el perfil nativo SBD está etiquetado
+        // como powerlifting real; los nativos históricos de hipertrofia quedan
+        // fuera. El material NO se decide en el planner (metadata gruesa
+        // `general_gym`): lo decide la guardia de materialización.
+        assertTrue(homeStrength.any { it.id == "native:strength-foundation-v2" })
+        assertTrue(homeStrength.none {
+            it.source == CatalogSource.NATIVE && TrainingReference.POWERLIFTING !in it.references
+        })
         assertTrue(homeStrength.all { TrainingReference.POWERLIFTING in it.references })
     }
 

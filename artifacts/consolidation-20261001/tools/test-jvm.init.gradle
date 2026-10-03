@@ -1,0 +1,26 @@
+// Init script used only by the consolidation runner; product build files stay untouched.
+// KPKN_TEST_HEAP   : max heap of the test JVM (default 2g)
+// KPKN_FORK_EVERY  : 1 = a fresh JVM per test class
+// KPKN_EXCLUDE     : comma-separated class patterns excluded from the run (e.g. *.SessionTemplateRepositoryTest)
+allprojects {
+    tasks.withType(org.gradle.api.tasks.testing.Test).configureEach {
+        maxHeapSize = System.getenv('KPKN_TEST_HEAP') ?: '2g'
+        maxParallelForks = 1
+        def fe = (System.getenv('KPKN_FORK_EVERY') ?: '0') as int
+        if (fe > 0) { forkEvery = fe }
+        def ex = System.getenv('KPKN_EXCLUDE')
+        if (ex) {
+            ex.split(',').collect { it.trim() }.findAll { it }.each { pattern ->
+                filter.excludeTestsMatching(pattern)
+            }
+        }
+        def tmo = System.getenv('KPKN_TASK_TIMEOUT_MIN')
+        if (tmo) { timeout = java.time.Duration.ofMinutes(tmo as long) }
+        testLogging {
+            events 'failed', 'skipped'
+            exceptionFormat = 'full'
+            showStandardStreams = false
+        }
+        ignoreFailures = false
+    }
+}

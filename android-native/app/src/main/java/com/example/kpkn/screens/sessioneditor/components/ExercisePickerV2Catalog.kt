@@ -68,6 +68,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -160,6 +161,38 @@ private data class CatalogSearchResultState(
     val isSettled: Boolean = false,
 )
 
+internal data class CatalogDefinitionProjection(
+    val definitionsById: Map<String, ExerciseDefinitionV2>,
+    val blankQueryDefinitions: List<ExerciseDefinitionV2>,
+)
+
+private data class CatalogDefinitionFilterKey(
+    val region: String?,
+    val muscle: String?,
+)
+
+/** Build the all-catalog projection away from Compose's main-thread pass. */
+internal fun prepareCatalogDefinitionProjection(
+    catalog: ExerciseCatalogV2,
+    filterRegion: String?,
+    filterMuscle: String?,
+): CatalogDefinitionProjection {
+    val definitions = catalog.families.flatMap { it.definitions }
+    val definitionsById = definitions.associateBy { it.id }
+    val filteredAndSorted = definitions.asSequence()
+        .filter { definition ->
+            val configurations = definition.configurations
+            (filterRegion == null || configurations.any { it.profile.bodyRegion.name == filterRegion }) &&
+                (filterMuscle == null || configurations.any { filterMuscle in it.profile.primaryMuscles })
+        }
+        .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
+        .toList()
+    return CatalogDefinitionProjection(
+        definitionsById = definitionsById,
+        blankQueryDefinitions = filteredAndSorted,
+    )
+}
+
 internal fun catalogSearchResultsAreCurrent(
     query: String,
     committedQuery: String,
@@ -182,6 +215,7 @@ internal fun visibleDefinitionsForQuery(
     filterMuscle: String?,
     definitionsById: Map<String, ExerciseDefinitionV2>,
     previousStable: List<ExerciseDefinitionV2>,
+    blankQueryDefinitions: List<ExerciseDefinitionV2>? = null,
 ): List<ExerciseDefinitionV2> {
     fun definitionMatchesFilter(definition: ExerciseDefinitionV2): Boolean {
         val configs = definition.configurations
@@ -191,7 +225,7 @@ internal fun visibleDefinitionsForQuery(
     }
 
     return when {
-        query.isBlank() -> catalog.families
+        query.isBlank() -> blankQueryDefinitions ?: catalog.families
             .flatMap { it.definitions }
             .filter(::definitionMatchesFilter)
             .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.canonicalName })
@@ -440,6 +474,30 @@ internal fun ExercisePickerV2Catalog(
     targetGroupName: String? = null,
 ) {
     val state by repository.state.collectAsStateWithLifecycle()
+    DisposableEffect(Unit) {
+        val repairBenchmarkIoWindow =
+            com.example.kpkn.screens.workout.RepairBenchmarkTrace.beginUiIoWindow("exercise_picker")
+        onDispose {
+            com.example.kpkn.screens.workout.RepairBenchmarkTrace.endUiIoWindow(repairBenchmarkIoWindow)
+        }
+    }
+    val repairBenchmarkPickerRequestId = remember {
+        com.example.kpkn.screens.workout.RepairBenchmarkTrace.pickerOpenRequested()
+    }
+    val repairBenchmarkSearchRequestId = remember { mutableStateOf(0L) }
+    val repairBenchmarkLatestSearchQuery = remember { mutableStateOf(query) }
+    val benchmarkOnSearch: (String) -> Unit = remember(
+        onSearch,
+        repairBenchmarkSearchRequestId,
+        repairBenchmarkLatestSearchQuery,
+    ) {
+        { nextQuery ->
+            repairBenchmarkLatestSearchQuery.value = nextQuery
+            repairBenchmarkSearchRequestId.value =
+                com.example.kpkn.screens.workout.RepairBenchmarkTrace.pickerSearchRequested()
+            onSearch(nextQuery)
+        }
+    }
     val retryScope = rememberCoroutineScope()
     // The editor/live hosts can still use the shared glass fallback, while the
     // navigation destination is a real page: no sampled backdrop, blur or sheet
@@ -487,7 +545,7 @@ internal fun ExercisePickerV2Catalog(
                         }
                         FloatingCatalogSearch(
                             value = query,
-                            onValueChange = onSearch,
+                            onValueChange = benchmarkOnSearch,
                             hazeState = glassHaze,
                             modifier = Modifier.align(Alignment.BottomCenter),
                         )
@@ -519,7 +577,7 @@ internal fun ExercisePickerV2Catalog(
                         }
                         FloatingCatalogSearch(
                             value = query,
-                            onValueChange = onSearch,
+                            onValueChange = benchmarkOnSearch,
                             hazeState = glassHaze,
                             modifier = Modifier.align(Alignment.BottomCenter),
                         )
@@ -531,7 +589,9 @@ internal fun ExercisePickerV2Catalog(
                         catalog = current.catalog,
                         repository = repository,
                         query = query,
-                        onSearch = onSearch,
+                        onSearch = benchmarkOnSearch,
+                        benchmarkSearchRequestId = repairBenchmarkSearchRequestId.value,
+                        benchmarkLatestRequestedQuery = repairBenchmarkLatestSearchQuery.value,
                         editingExisting = editingExisting,
                         selectedExercisesIds = selectedExercisesIds,
                         onSelect = onSelect,
@@ -548,6 +608,7 @@ internal fun ExercisePickerV2Catalog(
                         opaqueSurface = opaqueSurface,
                         hazeState = glassHaze,
                         targetGroupName = targetGroupName,
+                        benchmarkRequestId = repairBenchmarkPickerRequestId,
                     )
                 }
             }
@@ -813,15 +874,42 @@ private fun ColumnScope.CatalogReadyContent(
     opaqueSurface: Boolean,
     hazeState: HazeState?,
     targetGroupName: String? = null,
+    benchmarkRequestId: Long,
+    benchmarkSearchRequestId: Long,
+    benchmarkLatestRequestedQuery: String,
 ) {
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
-    val definitionsById = remember(catalog) {
-        catalog.families.flatMap { it.definitions }.associateBy { it.id }
-    }
     var filterRegion by rememberSaveable { mutableStateOf<String?>(null) }
     var filterMuscle by rememberSaveable { mutableStateOf<String?>(null) }
     var muscleFilterExpanded by rememberSaveable { mutableStateOf(false) }
+    val projectionCache = remember(catalog) {
+        object : LinkedHashMap<CatalogDefinitionFilterKey, CatalogDefinitionProjection>(8, 0.75f, true) {}
+    }
+    val projectionKey = remember(filterRegion, filterMuscle) {
+        CatalogDefinitionFilterKey(region = filterRegion, muscle = filterMuscle)
+    }
+    val catalogProjection by produceState<CatalogDefinitionProjection?>(
+        initialValue = projectionCache[projectionKey],
+        catalog,
+        projectionKey,
+        projectionCache,
+    ) {
+        value = projectionCache[projectionKey] ?: withContext(Dispatchers.Default) {
+            prepareCatalogDefinitionProjection(
+                catalog = catalog,
+                filterRegion = projectionKey.region,
+                filterMuscle = projectionKey.muscle,
+            )
+        }.also { prepared ->
+            projectionCache[projectionKey] = prepared
+            while (projectionCache.size > 8) {
+                projectionCache.remove(projectionCache.keys.first())
+            }
+        }
+    }
+    val definitionsById = catalogProjection?.definitionsById.orEmpty()
+    val blankQueryDefinitions = catalogProjection?.blankQueryDefinitions.orEmpty()
     val searchFilters = remember(filterRegion, filterMuscle) {
         ExerciseSearchFiltersV2(
             bodyRegions = filterRegion?.let { setOf(ExerciseBodyRegionV2.valueOf(it)) }.orEmpty(),
@@ -866,10 +954,12 @@ private fun ColumnScope.CatalogReadyContent(
                 }
             }
     }
-    val searchSettled = query.isBlank() || catalogSearchResultsAreCurrent(
-        query = query,
-        committedQuery = searchState.committedQuery,
-        isSettled = searchState.isSettled,
+    val searchSettled = catalogProjection != null && (
+        query.isBlank() || catalogSearchResultsAreCurrent(
+            query = query,
+            committedQuery = searchState.committedQuery,
+            isSettled = searchState.isSettled,
+        )
     )
     val searchHits = if (searchSettled) searchState.filteredHits else emptyList()
     val globalSearchHits = if (searchSettled) searchState.globalHits else emptyList()
@@ -883,12 +973,14 @@ private fun ColumnScope.CatalogReadyContent(
         filterMuscle = filterMuscle,
         definitionsById = definitionsById,
         previousStable = lastStableDefinitions,
+        blankQueryDefinitions = catalogProjection?.blankQueryDefinitions.orEmpty(),
     )
-    LaunchedEffect(definitions, searchSettled, query) {
+    LaunchedEffect(catalogProjection, definitions, searchSettled, query) {
         if (searchSettled || query.isBlank()) lastStableDefinitions = definitions
     }
     val initialDraftByDefinition = remember(
         catalog,
+        catalogProjection,
         initialCatalogDefinitionId,
         initialCatalogConfigurationId,
     ) {
@@ -950,7 +1042,7 @@ private fun ColumnScope.CatalogReadyContent(
             neverEqualPolicy(),
         )
     }
-    LaunchedEffect(catalog, selectedExercisesIds) {
+    LaunchedEffect(catalog, catalogProjection, selectedExercisesIds) {
         val next = restoreSelectedCatalogRows(
             catalog = catalog,
             definitionsById = definitionsById,
@@ -1046,7 +1138,23 @@ private fun ColumnScope.CatalogReadyContent(
     Box(Modifier.fillMaxWidth().weight(1f)) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().drawWithContent {
+                drawContent()
+                com.example.kpkn.screens.workout.RepairBenchmarkTrace.pickerResultsDrawn(
+                    requestId = benchmarkRequestId,
+                    definitionCount = definitions.size,
+                    searchSettled = searchSettled,
+                )
+                com.example.kpkn.screens.workout.RepairBenchmarkTrace.pickerSearchResultsDrawn(
+                    requestId = benchmarkSearchRequestId,
+                    query = query,
+                    latestRequestedQuery = benchmarkLatestRequestedQuery,
+                    committedQuery = searchState.committedQuery,
+                    projectionReady = catalogProjection != null,
+                    isSettled = searchState.isSettled,
+                    resultCount = definitions.size + visibleCustomExercises.size,
+                )
+            },
             verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(
                 top = 8.dp,

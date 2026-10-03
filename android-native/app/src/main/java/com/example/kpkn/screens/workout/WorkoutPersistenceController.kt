@@ -9,7 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
@@ -27,10 +28,17 @@ class WorkoutPersistenceController(
     private val writeOngoing: suspend ((OngoingWorkoutState) -> OngoingWorkoutState) -> WorkoutPersistResult,
     private val flushPendingWrites: suspend () -> Unit = {},
     private val persistDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO,
+    private val publishDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main.immediate,
 ) {
     private var debounceJob: Job? = null
     private var immediateCoalesceJob: Job? = null
     private val persistMutex = Mutex()
+    private var committedRevision = -1L
+    // Reject captures taken before a durable record was acknowledged in UI.
+    // This is an invalidation barrier, not a claim that concurrent UI edits reached Room.
+    private var uiCommitBarrierRevision = -1L
+    private var executionStartedAtMs: Long? = null
+    private var pendingUiCommit: WorkoutUiState? = null
 
     /**
      * - immediate=true (default): enqueue an IO write of the **latest** state. Consecutive
@@ -39,7 +47,7 @@ class WorkoutPersistenceController(
      * Durable waits use [persistAndAwait] (after a recorded set), not immediate=true.
      */
     fun persist(state: WorkoutUiState = getState(), immediate: Boolean = true) {
-        if (buildOngoingUpdate(state) == null) return
+        if (state.session == null) return
         if (immediate) {
             debounceJob?.cancel()
             debounceJob = null
@@ -57,13 +65,44 @@ class WorkoutPersistenceController(
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    suspend fun persistAndAwait(state: WorkoutUiState = getState()): WorkoutPersistResult {
+    /** A captured snapshot and its UI acknowledgement share the same write lane. */
+    suspend fun persistAndAwait(
+        state: WorkoutUiState = getState(),
+        onCommitted: (() -> Unit)? = null,
+    ): WorkoutPersistResult {
         debounceJob?.cancel()
         debounceJob = null
         immediateCoalesceJob?.cancel()
         immediateCoalesceJob = null
-        return persistFreshLocked()
+        return persistMutex.withLock {
+            withContext(NonCancellable) {
+                val result = persistSnapshot(state)
+                if (result.succeeded && onCommitted != null) {
+                    try {
+                        withContext(publishDispatcher) { onCommitted() }
+                        pendingUiCommit = null
+                    } catch (error: Throwable) {
+                        pendingUiCommit = state
+                        KpknDiagnosticLogger.event(
+                            namespace = "workout", name = "committed_ui_publication_failed",
+                            fields = mapOf("exceptionType" to error.javaClass.name), sessionId = sessionId,
+                        )
+                        return@withContext WorkoutPersistResult.UiPublicationFailed(error)
+                    }
+                    uiCommitBarrierRevision = maxOf(uiCommitBarrierRevision, getState().persistenceRevision)
+                }
+                result
+            }
+        }
+    }
+
+    suspend fun persistLatestAndAwait(): WorkoutPersistResult = persistFreshLocked()
+
+    /** The repository owns this scope, so a cleared VM cannot cancel a final snapshot. */
+    fun enqueueFinalSnapshot() {
+        debounceJob?.cancel()
+        immediateCoalesceJob?.cancel()
+        scope.launch(persistDispatcher) { persistFreshLocked() }
     }
 
     suspend fun flushForBackgroundSuspend() {
@@ -98,59 +137,36 @@ class WorkoutPersistenceController(
         }
     }
 
-    fun flushForBackgroundBlocking() {
-        try {
-            runBlocking(Dispatchers.IO) {
-                flushForBackgroundSuspend()
+    private suspend fun persistFreshLocked(): WorkoutPersistResult = persistMutex.withLock {
+        persistSnapshot(getState())
+    }
+
+    private suspend fun persistSnapshot(state: WorkoutUiState): WorkoutPersistResult {
+        pendingUiCommit?.let { committed ->
+            if (state.startTimeMs != committed.startTimeMs || committed.completedSets.any { (key, value) ->
+                    state.completedSets[key] != value
+                }) return WorkoutPersistResult.Skipped
+            pendingUiCommit = null
+        }
+        if (executionStartedAtMs != null && executionStartedAtMs != state.startTimeMs) return WorkoutPersistResult.Cancelled
+        if (state.persistenceRevision < maxOf(committedRevision, uiCommitBarrierRevision)) return WorkoutPersistResult.Skipped
+        val apply = buildOngoingUpdate(state) ?: return WorkoutPersistResult.Skipped
+        return try {
+            val result = writeOngoing(apply)
+            if (result.succeeded) {
+                executionStartedAtMs = state.startTimeMs
+                committedRevision = maxOf(committedRevision, state.persistenceRevision)
             }
+            result
         } catch (error: CancellationException) {
             throw error
         } catch (error: Throwable) {
             KpknDiagnosticLogger.event(
-                namespace = "workout",
-                name = "ongoing_flush_failed",
-                fields = mapOf(
-                    "workoutSessionId" to sessionId,
-                    "exceptionType" to error.javaClass.name,
-                    "exceptionMessage" to error.message,
-                ),
+                namespace = "workout", name = "ongoing_persist_failed",
+                fields = mapOf("workoutSessionId" to sessionId, "exceptionType" to error.javaClass.name),
                 sessionId = sessionId,
             )
-        }
-    }
-
-    private suspend fun persistFreshLocked(): WorkoutPersistResult {
-        return persistMutex.withLock {
-            val apply = buildOngoingUpdate(getState())
-            if (apply == null) {
-                KpknDiagnosticLogger.event(
-                    namespace = "workout",
-                    name = "ongoing_persist_skipped",
-                    fields = mapOf(
-                        "reason" to "no_session_or_identity",
-                        "workoutSessionId" to sessionId,
-                    ),
-                    sessionId = sessionId,
-                )
-                return@withLock WorkoutPersistResult.Skipped
-            }
-            try {
-                writeOngoing(apply)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                KpknDiagnosticLogger.event(
-                    namespace = "workout",
-                    name = "ongoing_persist_failed",
-                    fields = mapOf(
-                        "workoutSessionId" to sessionId,
-                        "exceptionType" to error.javaClass.name,
-                        "exceptionMessage" to error.message,
-                    ),
-                    sessionId = sessionId,
-                )
-                WorkoutPersistResult.Failed(error)
-            }
+            WorkoutPersistResult.Failed(error)
         }
     }
 
@@ -166,8 +182,8 @@ class WorkoutPersistenceController(
         )
         val activeSetId = activeExercise?.sets?.getOrNull(safeSetIdx)?.id
         return { ongoing ->
-            if (ongoing.programId != programId || ongoing.session.id != sessionId) {
-                ongoing
+            if (ongoing.programId != programId || ongoing.session.id != sessionId || ongoing.startTime != state.startTimeMs) {
+                throw StaleWorkoutExecutionException()
             } else {
                 ongoing.copy(
                     session = session,

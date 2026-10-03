@@ -1,27 +1,39 @@
 package com.example.kpkn.screens.onboarding
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Process
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasInsertTextAtCursorAction
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
@@ -38,22 +50,41 @@ import com.example.kpkn.data.db.toNutritionPlan
 import com.example.kpkn.data.db.toProgram
 import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.models.AutoregulationMode
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.BodyObservationQuality
 import com.example.kpkn.data.models.CalculationOrigin
+import com.example.kpkn.data.models.EquipmentAvailability
+import com.example.kpkn.data.models.EquipmentCategory
+import com.example.kpkn.data.models.NutritionPlan
+import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
 import com.example.kpkn.data.onboarding.persistenceFactory
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
+import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.training.ProgramExecutionContract
+import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.screens.onboarding.design.WizardHeightScale
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
+import com.example.kpkn.screens.home.HOME_PROGRAMS_ROW_TAG
+import com.example.kpkn.screens.home.HomeScreen
+import com.example.kpkn.screens.home.HomeViewModel
+import com.example.kpkn.screens.home.homeProgramCardTag
+import com.example.kpkn.ui.theme.AppThemeMode
+import com.example.kpkn.ui.theme.KPKNTheme
 import java.time.LocalDate
+import java.io.File
+import java.io.FileOutputStream
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.first
@@ -76,9 +107,10 @@ import org.junit.runner.RunWith
  * Entreno → Nutrición → Rings → Revisión y activación, con la activación REAL
  * (Room del dispositivo) al final.
  *
- * Matriz aprobada — recomendación/protocolo × automática/manual/solo registro:
- * seis altas, cada una en su propio `@Test` y todas sobre las mismas ayudas de
- * UI, con la condición de cada rama escrita de forma explícita.
+ * Recorridos actuales — plan nativo Fuerza y músculo a cinco días, Músculo E0
+ * de principiante a tres días y protocolo autorado del catálogo unificado,
+ * cruzados con automática/manual/solo registro. Ningún recorrido nuevo responde
+ * ROUTE: empieza por material y elige después uno de los cuatro perfiles.
  *
  * Reglas de esta prueba:
  *  - Solo interacción de UI: clic, tecleo y scroll (semántica o arrastre). Nunca
@@ -100,13 +132,10 @@ import org.junit.runner.RunWith
  *
  * Huecos conocidos que esta prueba NO rellena (falla con el error real si
  * aparecen, en lugar de fabricar material):
- *  - El inventario declara SOLO el material propio: barra 20 kg + soportes
- *    (`support`), discos 20/10/5/2.5 ×2, mancuernas 10 en pareja, una estación
- *    de polea (`cable`) con rango 10–90 kg, y «No tengo este material» en
- *    kettlebells. La máquina genérica exigiría configuración del catálogo y el
- *    token de guardia impide que «cualquier máquina» acredite «todas»: si una
- *    receta exige material que esta fixture no declara, el candidato no llega y
- *    el fallo reproduce el motivo real.
+ *  - La disponibilidad se declara por categorías y presencia, sin kilos ni
+ *    cantidades. «Gimnasio completo» declara las categorías, pero no confirma
+ *    aparatos; el testigo confirma banco, rack, barra de dominadas y polea
+ *    alta/baja por sus controles Sí, y deja hack squat desconocido.
  */
 @RunWith(AndroidJUnit4::class)
 class SetupWizardFullJourneyUiTest {
@@ -122,6 +151,8 @@ class SetupWizardFullJourneyUiTest {
 
     private lateinit var vm: SetupWizardViewModel
     private lateinit var wizardVisible: MutableState<Boolean>
+    private lateinit var homeVisible: MutableState<Boolean>
+    private lateinit var homeViewModel: HomeViewModel
     private val activations = AtomicInteger(0)
     private val cancellations = AtomicInteger(0)
 
@@ -131,6 +162,7 @@ class SetupWizardFullJourneyUiTest {
     fun setUp() {
         assertRunsOnQaUser10()
         app = ApplicationProvider.getApplicationContext()
+        assertCatalogCanBootstrapOffline()
         // Singletons reales que lee el entorno del wizard (el ComponentActivity
         // de la prueba no es MainActivity).
         ProgramRepository.init(app)
@@ -168,40 +200,152 @@ class SetupWizardFullJourneyUiTest {
         }
     }
 
-    // ─── Matriz: recomendación/protocolo × automática/manual/solo registro ───
+    /**
+     * The VM's exercise-catalog bootstrap reads the bundled approved asset.
+     * Make the device precondition explicit so a successful candidate scan is
+     * observed without validated Internet, rather than assumed to be offline.
+     */
+    private fun assertCatalogCanBootstrapOffline() {
+        val connectivity = checkNotNull(app.getSystemService(ConnectivityManager::class.java))
+        val activeNetwork = connectivity.activeNetwork
+        val capabilities = activeNetwork?.let { network -> connectivity.getNetworkCapabilities(network) }
+        val validatedInternet = capabilities?.let { network ->
+            network.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                network.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } == true
+        assertFalse(
+            "Este recorrido comprueba bootstrap local y exige el AVD de QA sin Internet validado " +
+                "(network=$activeNetwork, capabilities=$capabilities)",
+            validatedInternet,
+        )
+    }
+
+    /** App-specific external storage is isolated to QA10 and pullable without repository artifacts. */
+    private fun createQ6ScreenshotDirectory(scenario: PlanScenario): File {
+        val externalRoot = checkNotNull(app.getExternalFilesDir("q6-ui-captures")) {
+            "Q6 screenshots require mounted app-specific external files storage"
+        }
+        val outputDirectory = File(
+            externalRoot,
+            "${scenario.name.lowercase()}-${UUID.randomUUID()}",
+        )
+        check(outputDirectory.mkdirs() || outputDirectory.isDirectory) {
+            "No se pudo crear el directorio aislado de capturas Q6: ${outputDirectory.absolutePath}"
+        }
+        emitQ6Artifact("Q6_UI_ARTIFACT_DIR=${outputDirectory.absolutePath}")
+        return outputDirectory
+    }
+
+    /** Captures the actual visible Compose root as a PNG; null keeps other journeys unchanged. */
+    @OptIn(ExperimentalTestApi::class)
+    private fun captureQ6Screenshot(outputDirectory: File?, filename: String) {
+        if (outputDirectory == null) return
+        require(filename.matches(Regex("[a-z0-9-]+"))) { "Nombre de captura Q6 inválido: $filename" }
+        composeRule.waitForIdle()
+        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        val outputFile = File(outputDirectory, "$filename.png")
+        val encoded = FileOutputStream(outputFile).use { stream ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        }
+        bitmap.recycle()
+        check(encoded && outputFile.isFile && outputFile.length() > 0L) {
+            "No se pudo escribir la captura PNG Q6: ${outputFile.absolutePath}"
+        }
+        emitQ6Artifact("Q6_UI_SCREENSHOT=${outputFile.absolutePath}")
+    }
+
+    private fun emitQ6Artifact(message: String) {
+        println(message)
+        Log.i("KPKN_Q6_UI", message)
+    }
+
+    // ─── Matriz: perfil/fuente unificados × automática/manual/solo registro ──
 
     @Test
-    fun recommendedAutomaticActivatesNativeProgramAndPlan() =
-        runJourney(PlanRoute.RECOMMENDED, NutritionFlavor.AUTOMATIC)
+    fun fiveDayPowerbuildingAutomaticActivatesNativeProgramAndPlan() =
+        runJourney(PlanScenario.POWERBUILDING_FIVE_DAY, NutritionFlavor.AUTOMATIC, captureQ6Screenshots = true)
 
     @Test
-    fun recommendedSelfDefinedActivatesNativeProgramAndManualTargets() =
-        runJourney(PlanRoute.RECOMMENDED, NutritionFlavor.SELF_DEFINED)
+    fun fiveDayPowerbuildingSelfDefinedActivatesNativeProgramAndManualTargets() =
+        runJourney(PlanScenario.POWERBUILDING_FIVE_DAY, NutritionFlavor.SELF_DEFINED)
 
     @Test
-    fun recommendedTrackingOnlyActivatesProgramWithoutNutritionPlan() =
-        runJourney(PlanRoute.RECOMMENDED, NutritionFlavor.TRACKING_ONLY)
+    fun fiveDayPowerbuildingTrackingOnlyActivatesProgramWithoutNutritionPlan() =
+        runJourney(PlanScenario.POWERBUILDING_FIVE_DAY, NutritionFlavor.TRACKING_ONLY)
 
     @Test
-    fun protocolAutomaticActivatesProtocolProgramAndPlan() =
-        runJourney(PlanRoute.PROTOCOL, NutritionFlavor.AUTOMATIC)
+    fun e0BodyweightMuscleBeginnerThreeDayThirtyMinuteJourneyActivatesNativePlan() =
+        runJourney(PlanScenario.MUSCLE_E0_THREE_DAY, NutritionFlavor.TRACKING_ONLY, captureQ6Screenshots = true)
 
     @Test
-    fun protocolSelfDefinedActivatesProtocolProgramAndManualTargets() =
-        runJourney(PlanRoute.PROTOCOL, NutritionFlavor.SELF_DEFINED)
+    fun unifiedCatalogAutomaticStillActivatesAuthoredProtocolAndPlan() =
+        runJourney(PlanScenario.AUTHORED_STRENGTH_PROTOCOL, NutritionFlavor.AUTOMATIC)
 
     @Test
-    fun protocolTrackingOnlyActivatesProtocolProgramWithoutNutritionPlan() =
-        runJourney(PlanRoute.PROTOCOL, NutritionFlavor.TRACKING_ONLY)
+    fun unifiedCatalogSelfDefinedStillActivatesAuthoredProtocolAndManualTargets() =
+        runJourney(PlanScenario.AUTHORED_STRENGTH_PROTOCOL, NutritionFlavor.SELF_DEFINED)
 
-    /** Rama de NUTRITION_START y candidato de plan que exige cada variante. */
-    private enum class PlanRoute(
-        val label: String,
+    @Test
+    fun unifiedCatalogTrackingOnlyStillActivatesAuthoredProtocolWithoutNutritionPlan() =
+        runJourney(PlanScenario.AUTHORED_STRENGTH_PROTOCOL, NutritionFlavor.TRACKING_ONLY)
+
+    /** Perfil, calendario y testigo real elegido dentro de la biblioteca unificada. */
+    private enum class PlanScenario(
+        val goalLabel: String,
+        val experienceLabel: String,
         val candidateSource: String,
-        val expectedCandidateId: String? = null,
+        val expectedCandidateId: String,
+        val materialProfile: MaterialProfile,
+        val daysPerWeek: Int,
+        val minutesPerSession: Int,
+        val weekdayLabels: List<String>,
+        val weekdayIds: Set<Int>,
+        val assertExactWeeklySessions: Boolean = false,
     ) {
-        RECOMMENDED("Qué me lo recomiendes", "NATIVE"),
-        PROTOCOL("Elegir un protocolo", "PROTOCOL", expectedCandidateId = "protocol:coan-phillipi-dl"),
+        POWERBUILDING_FIVE_DAY(
+            goalLabel = "Fuerza y músculo",
+            experienceLabel = "Ya entreno con constancia",
+            candidateSource = "NATIVE",
+            expectedCandidateId = "native:powerbuilding-foundation-v2",
+            materialProfile = MaterialProfile.GYM,
+            daysPerWeek = 5,
+            minutesPerSession = 60,
+            weekdayLabels = listOf("Lunes", "Martes", "Jueves", "Viernes", "Sábado"),
+            weekdayIds = setOf(1, 2, 4, 5, 6),
+            assertExactWeeklySessions = true,
+        ),
+        MUSCLE_E0_THREE_DAY(
+            goalLabel = "Músculo",
+            experienceLabel = "Estoy empezando",
+            candidateSource = "NATIVE",
+            expectedCandidateId = "native:muscle-foundation-v2",
+            materialProfile = MaterialProfile.E0_BODYWEIGHT,
+            daysPerWeek = 3,
+            minutesPerSession = 30,
+            weekdayLabels = listOf("Lunes", "Miércoles", "Viernes"),
+            weekdayIds = setOf(1, 3, 5),
+            assertExactWeeklySessions = true,
+        ),
+        AUTHORED_STRENGTH_PROTOCOL(
+            goalLabel = "Fuerza",
+            experienceLabel = "Tengo experiencia",
+            candidateSource = "PROTOCOL",
+            expectedCandidateId = "protocol:coan-phillipi-dl",
+            materialProfile = MaterialProfile.GYM,
+            daysPerWeek = 1,
+            minutesPerSession = 60,
+            weekdayLabels = listOf("Jueves"),
+            weekdayIds = setOf(4),
+        ),
+    }
+
+    /** UI route into the material declarations used by a fresh draft. */
+    private enum class MaterialProfile(
+        val environmentChoiceLabel: String,
+        val availabilityChoiceLabel: String?,
+    ) {
+        GYM("Gimnasio completo", null),
+        E0_BODYWEIGHT("Entreno en casa", "Solo peso corporal"),
     }
 
     /** Modo de nutrición declarado en NUTRITION_START. */
@@ -209,10 +353,15 @@ class SetupWizardFullJourneyUiTest {
 
     // ─── Orquestación del recorrido ──────────────────────────────────────────
 
-    private fun runJourney(route: PlanRoute, flavor: NutritionFlavor) {
+    private fun runJourney(
+        scenario: PlanScenario,
+        flavor: NutritionFlavor,
+        captureQ6Screenshots: Boolean = false,
+    ) {
         // Snapshot de la DB compartida ANTES de tocar nada: todas las
         // aserciones posteriores son sobre filas propias de ESTA alta.
         val pre = roomSnapshot()
+        val screenshotDirectory = if (captureQ6Screenshots) createQ6ScreenshotDirectory(scenario) else null
 
         // Datos de la matriz: la recomendación automática exige ≥19 años
         // (NutritionIneligibility.UNDER_19), sexo de cálculo y los vitales.
@@ -236,11 +385,21 @@ class SetupWizardFullJourneyUiTest {
         assertEquals("modo FULL", SetupWizardMode.FULL, vm.state.value.mode)
 
         wizardVisible = mutableStateOf(false)
+        homeVisible = mutableStateOf(false)
+        homeViewModel = HomeViewModel().also { viewModelStore.put("setup-home-${UUID.randomUUID()}", it) }
         activations.set(0)
         cancellations.set(0)
         composeRule.setContent {
             if (!wizardVisible.value) {
                 SetupWelcomeScreen(onStart = { wizardVisible.value = true })
+            } else if (homeVisible.value) {
+                KPKNTheme {
+                    HomeScreen(
+                        themeMode = AppThemeMode.HIGH_CONTRAST,
+                        onThemeChange = {},
+                        viewModel = homeViewModel,
+                    )
+                }
             } else {
                 SetupWizardScreen(
                     mode = SetupWizardMode.FULL,
@@ -255,10 +414,18 @@ class SetupWizardFullJourneyUiTest {
 
         walkWelcome()
         walkBasics(ageText = ageText, weightKg = weightKg, equationSexLabel = equationSexLabel)
-        walkTraining(route = route)
+        walkTraining(scenario = scenario, screenshotDirectory = screenshotDirectory)
         walkNutrition(flavor = flavor)
         walkRings()
-        walkReviewAndActivate(flavor = flavor, pre = pre, draftId = draftId, weightKg = weightKg, ageText = ageText)
+        walkReviewAndActivate(
+            scenario = scenario,
+            flavor = flavor,
+            pre = pre,
+            draftId = draftId,
+            weightKg = weightKg,
+            ageText = ageText,
+            screenshotDirectory = screenshotDirectory,
+        )
     }
 
     // ─── Bienvenida ──────────────────────────────────────────────────────────
@@ -282,91 +449,241 @@ class SetupWizardFullJourneyUiTest {
         answerAndContinue(SetupStepId.AGE, SetupStepId.HEIGHT) {
             typeInto(SetupStepId.AGE, ageFieldLabel() to ageText)
         }
-        answerAndContinue(SetupStepId.HEIGHT, SetupStepId.WEIGHT) {
-            setHeightCm(TARGET_HEIGHT_CM)
-        }
-        answerAndContinue(SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX) {
-            setWeightKg(weightKg)
+        // Altura y peso: el PRODUCTO elige el layout según el hueco real de la
+        // viewport y la escala de fuente (`currentAnthropometryLayout` →
+        // `WizardAnthropometryFit.fits`, SetupWizardSteps.kt / WizardScaffold.kt):
+        //  - SEPARATE: paso HEIGHT con la rueda de altura y paso WEIGHT aparte.
+        //  - COMBINED: el paso HEIGHT muestra las reglas de altura y peso juntas y
+        //    su único CTA (`submitAnthropometryPair`) confirma ambas, así que el
+        //    cursor salta de HEIGHT a EQUATION_SEX sin pasar por WEIGHT.
+        // La prueba no fija la viewport: detecta qué control está en pantalla y
+        // conduce SOLO los controles reales de ese layout.
+        assertCurrentStep(SetupStepId.HEIGHT)
+        val layout = awaitAnthropometryLayout()
+        // Queda en stdout y logcat: la evidencia dice qué layout recorrió cada prueba.
+        println("WIZARD_ANTHROPOMETRY_LAYOUT=$layout")
+        Log.i("KPKN_Q6_UI", "WIZARD_ANTHROPOMETRY_LAYOUT=$layout")
+        when (layout) {
+            AnthropometryLayout.SEPARATE -> {
+                answerAndContinue(SetupStepId.HEIGHT, SetupStepId.WEIGHT) {
+                    setHeightCm(TARGET_HEIGHT_CM, layout)
+                }
+                answerAndContinue(SetupStepId.WEIGHT, SetupStepId.EQUATION_SEX) {
+                    setWeightKg(weightKg)
+                }
+            }
+            AnthropometryLayout.COMBINED -> {
+                answerAndContinue(SetupStepId.HEIGHT, SetupStepId.EQUATION_SEX) {
+                    setHeightCm(TARGET_HEIGHT_CM, layout)
+                    // El CTA combinado solo se habilita con el peso ya declarado
+                    // (`ctaReady` en SetupWizardSteps.kt): `continueTo` lo exige.
+                    setWeightKg(weightKg)
+                }
+                // El CTA único confirma las DOS medidas como declaradas por el usuario.
+                val answers = vm.state.value.draft.stepProgress.answers
+                assertEquals(
+                    "altura confirmada como declarada en el CTA combinado",
+                    SetupAnswerProvenance.USER_DECLARED,
+                    answers[SetupStepId.HEIGHT],
+                )
+                assertEquals(
+                    "peso confirmado como declarado en el CTA combinado",
+                    SetupAnswerProvenance.USER_DECLARED,
+                    answers[SetupStepId.WEIGHT],
+                )
+            }
         }
         answerAndContinue(SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT) {
             clickOption(SetupStepId.EQUATION_SEX, equationSexLabel)
         }
-        // Grasa corporal: desconocimiento EXPLÍCITO, nunca un porcentaje inventado.
-        answerAndContinue(SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
-            clickOption(SetupStepId.BODY_FAT, "No lo sé")
+        // Grasa corporal: omisión EXPLÍCITA («Omitir este paso»), nunca un porcentaje inventado.
+        // El paso ya no ofrece una tarjeta «No lo sé»: es la figura con slider más un campo
+        // opcional de medición exacta, y omitir deja la respuesta declarada sin valor.
+        // La figura de arranque (≈25 %) NO es una respuesta: sin dato previo en Ajustes el
+        // paso dice «Sin dato todavía» y Continuar sigue bloqueado hasta actuar (C1).
+        assertCurrentStep(SetupStepId.BODY_FAT)
+        if (vm.state.value.draft.importedBodyFatPercent == null) {
+            assertInTree("Sin dato todavía")
+            composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
         }
-        assertEquals(SetupBodyFatSource.UNKNOWN, vm.state.value.draft.bodyFatSource)
+        answerAndContinue(SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS) {
+            clickOption(SetupStepId.BODY_FAT, "Omitir este paso")
+            awaitUi("estado «Omitido» visible tras omitir la grasa corporal") { existsInTree("Omitido") }
+        }
+        val bodyFatDraft = vm.state.value.draft
+        assertEquals(
+            "omitir deja la fuente como omitida (limpia lo elegido)",
+            SetupBodyFatSource.UNKNOWN,
+            bodyFatDraft.bodyFatSource,
+        )
+        assertNull("omitir no fabrica un porcentaje de grasa", bodyFatDraft.bodyFatPercent)
+        assertTrue(
+            "omitir no deja fuente MEASURED ni VISUAL_ESTIMATE (fuente=${bodyFatDraft.bodyFatSource})",
+            bodyFatDraft.bodyFatSource != SetupBodyFatSource.MEASURED &&
+                bodyFatDraft.bodyFatSource != SetupBodyFatSource.VISUAL_ESTIMATE,
+        )
+        assertEquals(
+            "la omisión queda registrada como respuesta del usuario",
+            SetupAnswerProvenance.USER_DECLARED,
+            bodyFatDraft.stepProgress.answers[SetupStepId.BODY_FAT],
+        )
         answerAndContinue(SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
     }
 
     // ─── Bloque 2: Entreno ───────────────────────────────────────────────────
 
-    private fun walkTraining(route: PlanRoute) {
-        val protocolRoute = route == PlanRoute.PROTOCOL
-        answerAndContinue(SetupStepId.EXPERIENCE, SetupStepId.ROUTE) {
-            clickOption(
-                SetupStepId.EXPERIENCE,
-                if (protocolRoute) "Tengo experiencia" else "Ya entreno con constancia",
+    private fun walkTraining(scenario: PlanScenario, screenshotDirectory: File?) {
+        answerAndContinue(SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) {
+            clickOption(SetupStepId.EXPERIENCE, scenario.experienceLabel)
+        }
+        assertTrue(
+            "el recorrido productivo nuevo no contiene ROUTE",
+            SetupStepId.ROUTE !in SetupStepGraph.stepIds(vm.state.value.draft.stepContext()),
+        )
+
+        answerAndContinue(SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) {
+            clickOption(SetupStepId.EQUIPMENT, scenario.materialProfile.environmentChoiceLabel)
+        }
+        assertCurrentStep(SetupStepId.AVAILABILITY)
+        if (scenario.materialProfile == MaterialProfile.E0_BODYWEIGHT) {
+            assertInTree("Solo peso corporal")
+        } else {
+            assertInTree("¿Qué tienes disponible?", substring = true)
+        }
+        captureQ6Screenshot(screenshotDirectory, "material-options")
+        assertTrue(
+            "el paso GOAL aparece después del material",
+            SetupStepGraph.indexOf(SetupStepId.AVAILABILITY, vm.state.value.draft.stepContext()) <
+                SetupStepGraph.indexOf(SetupStepId.GOAL, vm.state.value.draft.stepContext()),
+        )
+
+        answerAndContinue(SetupStepId.AVAILABILITY, SetupStepId.GOAL) {
+            when (scenario.materialProfile) {
+                MaterialProfile.GYM -> {
+                    // «Gimnasio completo» confirma categorías, no aparatos concretos.
+                    // Confirmar solo los soportes/configuraciones que este testigo usa.
+                    confirmApparatus("bench_flat", isSupport = true)
+                    confirmApparatus("squat_rack", isSupport = true)
+                    confirmApparatus("pullup_bar", isSupport = true)
+                    confirmApparatus("cable_high_low", isSupport = false)
+                }
+                MaterialProfile.E0_BODYWEIGHT -> clickOption(
+                    SetupStepId.AVAILABILITY,
+                    checkNotNull(scenario.materialProfile.availabilityChoiceLabel),
+                )
+            }
+            captureQ6Screenshot(screenshotDirectory, "material-declared")
+        }
+        val declaredAvailability = checkNotNull(vm.state.value.draft.trainingOptions.availability)
+        when (scenario.materialProfile) {
+            MaterialProfile.GYM -> {
+                assertEquals(
+                    "el aparato no declarado sigue desconocido aunque se eligió categoría Máquinas",
+                    ApparatusPresence.UNKNOWN,
+                    declaredAvailability.apparatus["hack_squat"] ?: ApparatusPresence.UNKNOWN,
+                )
+            }
+            MaterialProfile.E0_BODYWEIGHT -> {
+                assertEquals("E0: categorías vacías confirmadas", emptySet<EquipmentCategory>(), declaredAvailability.categories)
+                assertTrue("E0: sin presencias inventadas", declaredAvailability.apparatus.isEmpty() && declaredAvailability.supports.isEmpty())
+                assertTrue("E0: sin perfiles legacy de equipo", vm.state.value.draft.equipment.isEmpty())
+            }
+        }
+
+        // La vuelta al material conserva respuestas/presencias; volver a avanzar
+        // llega de nuevo a GOAL sin pasar por ninguna ruta legacy.
+        composeRule.onNodeWithContentDescription(BACK_LABEL).performClick()
+        awaitState("Atrás desde perfiles vuelve al material", STEP_TIMEOUT_MS) {
+            it.currentStep == SetupStepId.AVAILABILITY
+        }
+        when (scenario.materialProfile) {
+            MaterialProfile.GYM -> assertEquals(
+                ApparatusPresence.PRESENT,
+                vm.state.value.draft.trainingOptions.availability?.supports?.get("bench_flat"),
+            )
+            MaterialProfile.E0_BODYWEIGHT -> assertEquals(
+                EquipmentAvailability(emptySet()),
+                vm.state.value.draft.trainingOptions.availability,
             )
         }
-        answerAndContinue(SetupStepId.ROUTE, SetupStepId.GOAL) {
-            clickOption(SetupStepId.ROUTE, route.label)
+        continueTo(SetupStepId.AVAILABILITY, SetupStepId.GOAL)
+
+        val visibleGoals = listOf("Fuerza", "Músculo", "Fuerza y músculo", "Atleta completo")
+        visibleGoals.forEach { assertInTree(it) }
+        assertFalse("no se ofrecen etiquetas legacy de meta", existsInTree("Salud y condición"))
+        assertFalse("no se ofrece Fuerza + cardio como quinta meta", existsInTree("Fuerza + cardio"))
+        captureQ6Screenshot(screenshotDirectory, "goal-profiles")
+        answerAndContinue(SetupStepId.GOAL, SetupStepId.DAYS) {
+            clickOption(SetupStepId.GOAL, scenario.goalLabel)
         }
-        // El objetivo infiere el estilo: el paso STYLE no entra en esta ruta.
-        answerAndContinue(SetupStepId.GOAL, SetupStepId.VOLUME_TECHNIQUE) {
-            // La rama de protocolos declara un perfil que sí tiene candidato
-            // publicado y ejecutable con este inventario: Coan-Phillipi, avanzado
-            // y de fuerza, con barra y polea. No hay protocolo de hipertrofia
-            // publicado para 3 días; los de fuerza de 3 días requieren además
-            // material que esta declaración finita no incluye.
-            clickOption(SetupStepId.GOAL, if (protocolRoute) "Fuerza" else "Músculo")
+        if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) {
+            assertEquals("E0 selecciona Músculo", "Músculo", vm.state.value.draft.goal?.label)
+            assertEquals("E0 selecciona nivel principiante", "Estoy empezando", vm.state.value.draft.experience?.label)
         }
-        answerAndContinue(SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) {
-            clickOption(SetupStepId.VOLUME_TECHNIQUE, "Bastante estable")
-        }
-        answerAndContinue(SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) {
-            clickOption(SetupStepId.VOLUME_CONSISTENCY, "Bastante constante")
-        }
-        answerAndContinue(SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) {
-            clickOption(SetupStepId.VOLUME_STRENGTH, "Intermedia")
-        }
-        answerAndContinue(SetupStepId.VOLUME_MOBILITY, SetupStepId.EQUIPMENT) {
-            clickOption(SetupStepId.VOLUME_MOBILITY, "Suficiente")
-        }
-        // Gimnasio completo: abre los cinco grupos de inventario.
-        answerAndContinue(SetupStepId.EQUIPMENT, SetupStepId.INVENTORY_BARBELL) {
-            clickOption(SetupStepId.EQUIPMENT, "Gimnasio completo")
-        }
-        walkInventory()
 
         answerAndContinue(SetupStepId.DAYS, SetupStepId.WEEKDAYS) {
-            clickOption(SetupStepId.DAYS, if (protocolRoute) "1 día" else "3 días")
+            clickOption(SetupStepId.DAYS, "${scenario.daysPerWeek} ${if (scenario.daysPerWeek == 1) "día" else "días"}")
+            captureQ6Screenshot(screenshotDirectory, "schedule-frequency")
         }
         answerAndContinue(SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
-            val weekdays = if (protocolRoute) listOf("Jueves") else listOf("Lunes", "Miércoles", "Viernes")
-            weekdays.forEach { weekday -> clickOption(SetupStepId.WEEKDAYS, weekday) }
+            scenario.weekdayLabels.forEach { weekday -> clickOption(SetupStepId.WEEKDAYS, weekday) }
+            captureQ6Screenshot(screenshotDirectory, "schedule-weekdays")
         }
-        answerAndContinue(SetupStepId.SESSION_TIME, SetupStepId.PRIORITIES) {
-            typeInto(SetupStepId.SESSION_TIME, sessionTimeFieldLabel() to "60")
+        assertCurrentStep(SetupStepId.SESSION_TIME)
+        composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
+        answerAndContinue(SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) {
+            typeInto(SetupStepId.SESSION_TIME, sessionTimeFieldLabel() to scenario.minutesPerSession.toString())
+            captureQ6Screenshot(screenshotDirectory, "session-time")
         }
-        // Bolsa de orden vacía: válida por contrato, sin puntos fabricados.
-        answerAndContinue(SetupStepId.PRIORITIES, SetupStepId.SPLIT)
-        answerAndContinue(SetupStepId.SPLIT, SetupStepId.PLAN) {
-            if (route == PlanRoute.RECOMMENDED) clickOption(SetupStepId.SPLIT, "Recomendado para ti")
-        }
-        answerAndContinue(SetupStepId.PLAN, SetupStepId.TRAINING_MAX) {
-            selectPlanCandidate(route.candidateSource)
-        }
-        route.expectedCandidateId?.let { expectedId ->
-            assertEquals(
-                "la ruta de protocolo selecciona el protocolo real compatible con el inventario declarado",
-                expectedId,
-                vm.state.value.draft.selectedCatalogId,
+        assertEquals("sesiones semanales declaradas", scenario.daysPerWeek, vm.state.value.draft.daysPerWeek)
+        assertEquals("días declarados", scenario.weekdayIds, vm.state.value.draft.selectedWeekdays)
+        assertEquals("minutos explícitos", scenario.minutesPerSession, vm.state.value.draft.minutesPerSession)
+
+        // El objetivo infiere el estilo, así que no se recorre STYLE.
+        answerAndContinue(SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) {
+            clickOption(
+                SetupStepId.VOLUME_TECHNIQUE,
+                if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) "Aprendiendo" else "Bastante estable",
             )
         }
-        answerAndContinue(SetupStepId.TRAINING_MAX, SetupStepId.AUTOREGULATION) {
+        answerAndContinue(SetupStepId.VOLUME_CONSISTENCY, SetupStepId.VOLUME_STRENGTH) {
+            clickOption(
+                SetupStepId.VOLUME_CONSISTENCY,
+                if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) "Irregular" else "Bastante constante",
+            )
+        }
+        answerAndContinue(SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) {
+            clickOption(
+                SetupStepId.VOLUME_STRENGTH,
+                if (scenario == PlanScenario.MUSCLE_E0_THREE_DAY) "Inicial" else "Intermedia",
+            )
+        }
+        answerAndContinue(SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) {
+            clickOption(SetupStepId.VOLUME_MOBILITY, "Suficiente")
+        }
+        // Bolsa de orden vacía: válida y sin puntos fabricados.
+        answerAndContinue(SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX)
+        answerAndContinue(SetupStepId.TRAINING_MAX, SetupStepId.SPLIT) {
             clickOption(SetupStepId.TRAINING_MAX, "Todavía no")
         }
+        answerAndContinue(SetupStepId.SPLIT, SetupStepId.PLAN) {
+            clickOption(SetupStepId.SPLIT, "Recomendado para ti")
+        }
+        awaitPlanCandidates()
+        composeRule.onNodeWithTag("setup-candidate-counts").assertIsDisplayed()
+        assertTrue("la evaluación local terminó con candidatos evaluados", vm.state.value.candidateCounts.evaluated > 0)
+        assertTrue("el candidato nativo publicado es viable", vm.state.value.candidateCounts.viable > 0)
+        assertNull("PLAN requiere una selección explícita", vm.state.value.draft.selectedCatalogId)
+        composeRule.onNodeWithTag(CTA).assertIsNotEnabled()
+        captureQ6Screenshot(screenshotDirectory, "plan-candidates")
+        answerAndContinue(SetupStepId.PLAN, SetupStepId.AUTOREGULATION) {
+            selectPlanCandidate(scenario)
+        }
+        assertEquals(
+            "selección exacta publicada en el catálogo unificado",
+            scenario.expectedCandidateId,
+            vm.state.value.draft.selectedCatalogId,
+        )
         // PROPOSE es el valor por defecto YA visible en pantalla y es la única
         // opción que el contrato acepta sin confirmación: Continuar es la
         // respuesta real, no se fabrica una confirmación de AUTO.
@@ -377,120 +694,6 @@ class SetupWizardFullJourneyUiTest {
         awaitTrainingPreviewReady()
         answerAndContinue(SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING)
         answerAndContinue(SetupStepId.MILESTONE_TRAINING, SetupStepId.NUTRITION_START)
-    }
-
-    /** Inventario finito y honesto: declara SOLO el material que este recorrido usa. */
-    private fun walkInventory() {
-        answerAndContinue(SetupStepId.INVENTORY_BARBELL, SetupStepId.INVENTORY_PLATES) {
-            declareBarbell(weightKg = 20)
-        }
-        answerAndContinue(SetupStepId.INVENTORY_PLATES, SetupStepId.INVENTORY_DUMBBELLS) {
-            // Cuatro filas reales, dos discos por lado (editor ≤2 campos).
-            listOf("20" to "2", "10" to "2", "5" to "2", "2.5" to "2").forEach { (kg, perSide) ->
-                addPlate(kg = kg, perSide = perSide)
-            }
-        }
-        answerAndContinue(SetupStepId.INVENTORY_DUMBBELLS, SetupStepId.INVENTORY_KETTLEBELLS) {
-            addDumbbell(weightKg = 10)
-        }
-        // Ausencia EXPLÍCITA: nunca material fantasma ni «general_gym» ilimitado.
-        answerAndContinue(SetupStepId.INVENTORY_KETTLEBELLS, SetupStepId.INVENTORY_MACHINES) {
-            clickOption(SetupStepId.INVENTORY_KETTLEBELLS, "No tengo este material")
-        }
-        // Coan-Phillipi exige barra para peso muerto/variantes y polea para el
-        // jalón; ambos están declarados. La estación se declara con TIPO
-        // explícito y cargas finitas.
-        answerAndContinue(SetupStepId.INVENTORY_MACHINES, SetupStepId.DAYS) {
-            declareCableStation()
-        }
-    }
-
-    /**
-     * Barra en sus DOS subfases (M4): peso → «¿Qué soportes tienes?» → Guardar.
-     * Rack y banco se acreditan como `support`, el id que valida el catálogo.
-     */
-    private fun declareBarbell(weightKg: Int) {
-        val fieldsBefore = editableFieldCount()
-        clickOption(SetupStepId.INVENTORY_BARBELL, BARBELL_ROW_LABEL)
-        awaitUi("fase 1 del subeditor de la barra") { editableFieldCount() > fieldsBefore }
-        typeInto(SetupStepId.INVENTORY_BARBELL, BARBELL_FIELD_LABEL to weightKg.toString())
-        clickOption(SetupStepId.INVENTORY_BARBELL, NEXT_LABEL)
-        clickOption(SetupStepId.INVENTORY_BARBELL, SUPPORT_CHOICE_LABEL)
-        clickOption(SetupStepId.INVENTORY_BARBELL, SAVE_LABEL)
-        awaitState("barra $weightKg kg con soportes y editor cerrado") { state ->
-            val inventory = state.draft.trainingOptions.inventory
-            inventory != null &&
-                inventory.barbellWeightKg == weightKg.toDouble() &&
-                SUPPORT_ID in inventory.supportEquipment &&
-                state.draft.stepEditors[SetupStepId.INVENTORY_BARBELL] == null
-        }
-    }
-
-    /**
-     * M4/M7: una máquina se declara con TIPO explícito y rango finito. Se usa la
-     * estación multi «Polea» (`cable`), que exige solo tipo + rango; la genérica
-     * (`machine`) exigiría además configuración del catálogo y una máquina sin
-     * tipo/configuración nunca acredita «todas las máquinas».
-     */
-    private fun declareCableStation() {
-        val fieldsBefore = editableFieldCount()
-        clickOption(SetupStepId.INVENTORY_MACHINES, MACHINE_ADD_LABEL)
-        awaitUi("subeditor de máquina abierto") { editableFieldCount() > fieldsBefore }
-        typeInto(SetupStepId.INVENTORY_MACHINES, MACHINE_NAME_FIELD_LABEL to STATION_NAME)
-        clickOption(SetupStepId.INVENTORY_MACHINES, MACHINE_KIND_CABLE_LABEL)
-        clickOption(SetupStepId.INVENTORY_MACHINES, NEXT_LABEL)
-        typeInto(
-            SetupStepId.INVENTORY_MACHINES,
-            MACHINE_MIN_FIELD_LABEL to MACHINE_MIN,
-            MACHINE_MAX_FIELD_LABEL to MACHINE_MAX,
-        )
-        clickOption(SetupStepId.INVENTORY_MACHINES, NEXT_LABEL)
-        typeInto(
-            SetupStepId.INVENTORY_MACHINES,
-            MACHINE_INC_FIELD_LABEL to MACHINE_INC,
-            MACHINE_BASE_FIELD_LABEL to MACHINE_BASE,
-        )
-        clickOption(SetupStepId.INVENTORY_MACHINES, SAVE_LABEL)
-        awaitState("estación de polea ${MACHINE_MIN}–${MACHINE_MAX} kg declarada") { state ->
-            val inventory = state.draft.trainingOptions.inventory
-            inventory != null &&
-                inventory.machines.any { machine ->
-                    machine.equipmentKind == MACHINE_KIND_CABLE_ID &&
-                        machine.minLoadKg == MACHINE_MIN.toDouble() &&
-                        machine.maxLoadKg == MACHINE_MAX.toDouble() &&
-                        machine.incrementKg == MACHINE_INC.toDouble() &&
-                        machine.baseLoadKg == MACHINE_BASE.toDouble()
-                } &&
-                state.draft.stepEditors[SetupStepId.INVENTORY_MACHINES] == null
-        }
-    }
-
-    private fun addPlate(kg: String, perSide: String) {
-        val fieldsBefore = editableFieldCount()
-        clickOption(SetupStepId.INVENTORY_PLATES, "Añadir disco")
-        awaitUi("subeditor de disco con dos campos") { editableFieldCount() >= fieldsBefore + 2 }
-        typeInto(
-            SetupStepId.INVENTORY_PLATES,
-            PLATE_WEIGHT_FIELD_LABEL to kg,
-            PLATE_COUNT_FIELD_LABEL to perSide,
-        )
-        clickOption(SetupStepId.INVENTORY_PLATES, SAVE_LABEL)
-        awaitState("disco $kg kg ×$perSide por lado") { state ->
-            state.draft.trainingOptions.inventory?.plates.orEmpty()
-                .any { row -> row.weightKg == kg.toDouble() && row.countPerSide == perSide.toInt() }
-        }
-    }
-
-    private fun addDumbbell(weightKg: Int) {
-        val fieldsBefore = editableFieldCount()
-        clickOption(SetupStepId.INVENTORY_DUMBBELLS, "Añadir mancuerna")
-        awaitUi("subeditor de mancuerna abierto") { editableFieldCount() > fieldsBefore }
-        typeInto(SetupStepId.INVENTORY_DUMBBELLS, DUMBBELL_FIELD_LABEL to weightKg.toString())
-        clickOption(SetupStepId.INVENTORY_DUMBBELLS, SAVE_LABEL)
-        awaitState("mancuerna $weightKg kg por unidad con pareja") { state ->
-            state.draft.trainingOptions.inventory?.dumbbells.orEmpty()
-                .any { row -> row.weightPerUnitKg == weightKg.toDouble() && row.pairAvailable }
-        }
     }
 
     // ─── Bloque 3: Nutrición ─────────────────────────────────────────────────
@@ -560,7 +763,8 @@ class SetupWizardFullJourneyUiTest {
                 assertEquals("kcal propias", MANUAL_KCAL.toInt(), manual.calorieTarget)
                 assertEquals(CalculationOrigin.MANUAL, manual.calculationOrigin)
                 awaitCaloriesShownInUi(manual.calorieTarget)
-                assertInTree("${manual.proteinGoal} g proteína")
+                // Resultado pinta UN solo Text («Referencia diaria: … kcal · P g proteína · …»).
+                assertInTree("${manual.proteinGoal} g proteína", substring = true)
                 answerAndContinue(SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION)
             }
 
@@ -662,11 +866,13 @@ class SetupWizardFullJourneyUiTest {
     // ─── Revisión y activación ───────────────────────────────────────────────
 
     private fun walkReviewAndActivate(
+        scenario: PlanScenario,
         flavor: NutritionFlavor,
         pre: RoomSnapshot,
         draftId: String,
         weightKg: Int,
         ageText: String,
+        screenshotDirectory: File?,
     ) {
         assertCurrentStep(SetupStepId.REVIEW_ACTIVATE)
         val ringsWasLoading = vm.state.value.ringsPreviewLoading
@@ -680,7 +886,6 @@ class SetupWizardFullJourneyUiTest {
         assertInTree("Sexo de cálculo")
         assertInTree("Grasa corporal")
         assertInTree("Sesiones · muestra 1ª semana")
-        assertFirstWeekExercisesShown()
 
         // Datos del plan según el modo (nada se rellena: se lee lo que hay).
         when (flavor) {
@@ -688,7 +893,8 @@ class SetupWizardFullJourneyUiTest {
             else -> {
                 val plan = checkNotNull(vm.state.value.nutritionPlanPreview) { "plan en revisión" }
                 awaitCaloriesShownInUi(plan.calorieTarget)
-                if (flavor == NutritionFlavor.SELF_DEFINED) assertInTree("${plan.proteinGoal} g proteína")
+                // Revisión: fila «Proteína (media)» con el valor solitario «P g» (SetupReviewStep).
+                if (flavor == NutritionFlavor.SELF_DEFINED) assertInTree("${plan.proteinGoal} g")
             }
         }
 
@@ -710,6 +916,23 @@ class SetupWizardFullJourneyUiTest {
         if (ringsWasLoading) {
             awaitState("baterías de RINGS calculadas", PREVIEW_TIMEOUT_MS) { it.ringsBatteriesPreview != null }
         }
+        val selectedPreview = checkNotNull(vm.state.value.programPreview) { "programa preparado para revisión" }
+        assertEquals("revisión del candidato seleccionado", scenario.expectedCandidateId, vm.state.value.draft.selectedCatalogId)
+        ProgramExecutionContract.requireExecutable(selectedPreview)
+        if (scenario.materialProfile == MaterialProfile.E0_BODYWEIGHT) {
+            assertBodyweightOnlyMaterialization(selectedPreview, "preview de revisión")
+        }
+        assertFirstWeekExercisesShown(scenario)
+        captureQ6Screenshot(screenshotDirectory, "review-preview")
+        // Lo que la revisión mostró ANTES de activar: contra esto se compara lo guardado, sin
+        // depender de lo que el VM conserve (o limpie) después del alta.
+        val reviewed = ReviewedActivation(
+            program = selectedPreview,
+            nutritionPlan = vm.state.value.nutritionPlanPreview,
+            todayCalorieTargetKcal = vm.state.value.nutritionPreparation?.days
+                ?.firstOrNull { day -> day.date == LocalDate.now() }
+                ?.calorieTargetKcal,
+        )
 
         composeRule.onNodeWithContentDescription(CTA_REVIEW_LABEL).assertExists()
         composeRule.onNodeWithTag(CTA).assertIsDisplayed().assertIsEnabled()
@@ -733,24 +956,98 @@ class SetupWizardFullJourneyUiTest {
         assertEquals("sin cancelaciones", 0, cancellations.get())
         assertTrue("sin errores tras el alta", vm.state.value.errors.isEmpty())
 
-        assertCommittedRoom(flavor = flavor, pre = pre, draftId = draftId, weightKg = weightKg)
+        // La shell del test sigue la misma salida: tras aceptar onDone presenta
+        // el Home real (no una imitación) y este observa el programa activo.
+        homeVisible.value = true
+        val activeProgramId = vm.state.value.draft.commitId
+        awaitUi("Home muestra el programa recién activado") {
+            homeViewModel.uiState.value.activeProgramId == activeProgramId
+        }
+        // El Home es un LazyColumn: «Tus Programas» es su 4º ítem y fuera de la ventana no está
+        // compuesto, así que `performScrollTo()` (exige un nodo existente) no basta.
+        // `SectionHeader` pinta `title.uppercase()` («TUS PROGRAMAS»): se compara sin distinguir mayúsculas.
+        scrollHomeTo("Tus Programas")
+        composeRule.onNodeWithText("Tus Programas", ignoreCase = true).assertIsDisplayed()
+        // La insignia vive en la fila horizontal de programas: el programa recién activado es
+        // la última tarjeta y no está compuesta hasta desplazar la fila (identidad por testTag).
+        assertActiveProgramCardOnHome(activeProgramId)
+        captureQ6Screenshot(screenshotDirectory, "home-active-program")
+
+        assertCommittedRoom(
+            scenario = scenario,
+            flavor = flavor,
+            pre = pre,
+            draftId = draftId,
+            weightKg = weightKg,
+            reviewed = reviewed,
+        )
+    }
+
+    /**
+     * Tarjeta del programa recién activado en la fila horizontal del Home. La BD compartida de
+     * QA acumula programas (21 o más) con nombres repetidos y el activo queda al final de un
+     * LazyRow, así que no está compuesto hasta desplazar la fila. Se desplaza a su ÍNDICE REAL
+     * en la lista del Home (sin `runCatching`: si el scroll falla, falla la prueba) y la tarjeta
+     * se identifica por su testTag único (lleva el id del programa) más la insignia ACTIVO y el
+     * nombre; nunca por un texto suelto, que se repite.
+     */
+    private fun assertActiveProgramCardOnHome(programId: String) {
+        awaitUi("la lista de programas del Home incluye el recién activado") {
+            homeViewModel.uiState.value.programs.any { program -> program.id == programId }
+        }
+        // La fila ya recibió la lista nueva: sin esperar la recomposición, el scroll podría
+        // pedir un índice que la fila todavía no tiene.
+        composeRule.waitForIdle()
+        val programs = homeViewModel.uiState.value.programs
+        val index = programs.indexOfFirst { program -> program.id == programId }
+        assertTrue(
+            "el programa $programId no está en la lista del Home (${programs.size} programas)",
+            index >= 0,
+        )
+        val programName = programs[index].name
+        composeRule.onNodeWithTag(HOME_PROGRAMS_ROW_TAG).performScrollToIndex(index)
+        composeRule.waitForIdle()
+        val cardTag = homeProgramCardTag(programId)
+        if (composeRule.onAllNodes(hasTestTag(cardTag)).fetchSemanticsNodes().isEmpty()) {
+            // El índice no compuso la tarjeta (p. ej. el scroll quedó a medio asentar): segunda
+            // vía, también por semántica y sin ocultar errores, buscando el nodo por su tag.
+            composeRule.onNodeWithTag(HOME_PROGRAMS_ROW_TAG).performScrollToNode(hasTestTag(cardTag))
+            composeRule.waitForIdle()
+        }
+        assertEquals(
+            "exactamente una tarjeta con la identidad del programa recién activado ($cardTag)",
+            1,
+            composeRule.onAllNodes(hasTestTag(cardTag)).fetchSemanticsNodes().size,
+        )
+        val identified = composeRule.onAllNodes(
+            hasTestTag(cardTag) and hasText("ACTIVO") and hasText(programName),
+        )
+        assertEquals(
+            "la tarjeta $cardTag debe mostrar la insignia ACTIVO y el nombre «$programName» " +
+                "(programas con ese nombre en la BD compartida: ${programs.count { it.name == programName }})",
+            1,
+            identified.fetchSemanticsNodes().size,
+        )
+        identified[0].assertIsDisplayed()
     }
 
     /** Revisión: TODOS los ejercicios reales de la primera semana del preview. */
-    private fun assertFirstWeekExercisesShown() {
+    private fun assertFirstWeekExercisesShown(scenario: PlanScenario) {
         val preview = vm.state.value.programPreview
         if (preview == null) {
             fail("La revisión no tiene programa: ${vm.state.value.describe()}")
             return
         }
-        val sessions = preview.macrocycles
-            .flatMap { it.blocks }
-            .flatMap { it.mesocycles }
-            .flatMap { it.weeks }
-            .firstOrNull()
-            ?.sessions
-            .orEmpty()
+        val sessions = firstWeekSessions(preview)
         assertTrue("la primera semana del preview está vacía", sessions.isNotEmpty())
+        if (scenario.assertExactWeeklySessions) {
+            assertEquals("sesiones reales de la primera semana", scenario.daysPerWeek, sessions.size)
+            assertEquals(
+                "días del preview = días elegidos",
+                scenario.weekdayIds,
+                sessions.mapNotNull { it.dayOfWeek }.toSet(),
+            )
+        }
         val exercises = sessions.flatMap { session -> session.allExercises() }
         assertTrue("el preview no trae ejercicios reales", exercises.isNotEmpty())
         exercises.forEach { exercise ->
@@ -758,13 +1055,63 @@ class SetupWizardFullJourneyUiTest {
         }
     }
 
+    private fun firstWeekSessions(program: Program): List<Session> = program.macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .firstOrNull()
+        ?.sessions
+        .orEmpty()
+
+    /** Cross-check every materialized configuration against the approved catalog for E0. */
+    private fun assertBodyweightOnlyMaterialization(program: Program, phase: String) {
+        val repository = ApprovedAssetExerciseCatalogRepositoryV2(app)
+        runBlocking { repository.load() }
+        val catalog = checkNotNull((repository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog) {
+            "$phase: el catálogo aprobado local no quedó listo"
+        }
+        val equipmentByConfiguration = catalog.families
+            .flatMap { it.definitions }
+            .flatMap { it.configurations }
+            .associate { it.id to it.profile.equipmentId }
+        val exercises = program.macrocycles
+            .flatMap { it.blocks }
+            .flatMap { it.mesocycles }
+            .flatMap { it.weeks }
+            .flatMap { it.sessions }
+            .flatMap { it.allExercises() }
+        assertTrue("$phase: programa E0 con ejercicios reales", exercises.isNotEmpty())
+        exercises.forEach { exercise ->
+            val configurationId = checkNotNull(exercise.catalogConfigurationId) {
+                "$phase: ${exercise.name} no conserva configuración del catálogo"
+            }
+            val equipmentId = checkNotNull(equipmentByConfiguration[configurationId]) {
+                "$phase: configuración $configurationId de ${exercise.name} no existe en catálogo"
+            }
+            assertEquals(
+                "$phase: ${exercise.name} no puede introducir material ajeno a E0",
+                "bodyweight",
+                equipmentId,
+            )
+        }
+    }
+
+    /** IDs prove that activation persisted the exact preview, not a regenerated lookalike. */
+    private fun sessionExerciseSignature(sessions: List<Session>): List<String> = sessions
+        .sortedBy { it.dayOfWeek }
+        .map { session ->
+            "${session.dayOfWeek}:${session.allExercises().joinToString(",") { exercise -> exercise.id }}"
+        }
+
     // ─── Aserciones sobre Room tras el alta real ─────────────────────────────
 
     private fun assertCommittedRoom(
+        scenario: PlanScenario,
         flavor: NutritionFlavor,
         pre: RoomSnapshot,
         draftId: String,
         weightKg: Int,
+        reviewed: ReviewedActivation,
     ) {
         val state = vm.state.value
         val commitId = state.draft.commitId
@@ -780,11 +1127,33 @@ class SetupWizardFullJourneyUiTest {
         }
         val program = programEntity.toProgram()
         ProgramExecutionContract.requireExecutable(program)
-        assertTrue(
-            "sesiones reales del programa",
-            program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
-                .flatMap { it.weeks }.flatMap { it.sessions }.isNotEmpty(),
+        if (scenario.materialProfile == MaterialProfile.E0_BODYWEIGHT) {
+            assertBodyweightOnlyMaterialization(program, "programa reabierto desde Room")
+        }
+        val roomFirstWeekSessions = firstWeekSessions(program)
+        assertTrue("sesiones reales del programa", roomFirstWeekSessions.isNotEmpty())
+        val previewProgram = reviewed.program
+        assertEquals("nombre guardado = nombre revisado", previewProgram.name, program.name)
+        val previewFirstWeekSessions = firstWeekSessions(previewProgram)
+        assertEquals(
+            "sesiones/ejercicios de la revisión = sesiones/ejercicios en Room",
+            sessionExerciseSignature(previewFirstWeekSessions),
+            sessionExerciseSignature(roomFirstWeekSessions),
         )
+        assertEquals("plan elegido en UI", scenario.expectedCandidateId, state.draft.selectedCatalogId)
+        if (scenario.assertExactWeeklySessions) {
+            assertEquals("frecuencia semanal materializada", scenario.daysPerWeek, roomFirstWeekSessions.size)
+            assertEquals(
+                "sesiones semanales persistidas en los días declarados",
+                scenario.weekdayIds,
+                roomFirstWeekSessions.mapNotNull { it.dayOfWeek }.toSet(),
+            )
+            assertEquals(
+                "calendario semanal persistido",
+                scenario.weekdayIds,
+                program.resolvedSchedulePlan().trainingDays,
+            )
+        }
         assertEquals("autorregulación PROPOSE", AutoregulationMode.PROPOSE, program.autoregulationMode)
         assertEquals(
             "el programa activo es el de ESTE alta",
@@ -829,52 +1198,43 @@ class SetupWizardFullJourneyUiTest {
         val settings = checkNotNull(room { room.settingsDao().get() }) { "settings no persistidos" }.toSettings()
         assertEquals(true, settings.onboardingCompleted)
         assertEquals(TEST_NAME, settings.username)
-        val inventory = checkNotNull(settings.equipmentInventory) { "inventario finito sin persistir" }
-        assertEquals("barra", 20.0, checkNotNull(inventory.barbellWeightKg) { "barra declarada" }, 0.001)
-        assertTrue("soportes declarados (rack/banco como «support»)", SUPPORT_ID in inventory.supportEquipment)
-        assertEquals("discos", setOf(20.0, 10.0, 5.0, 2.5), inventory.plates.map { it.weightKg }.toSet())
-        assertTrue("discos con cantidad por lado explícita", inventory.plates.all { (it.countPerSide ?: 0) == 2 })
-        assertEquals("una mancuerna", 1, inventory.dumbbells.size)
-        assertEquals(10.0, inventory.dumbbells.single().weightPerUnitKg, 0.001)
-        assertTrue("mancuerna en pareja", inventory.dumbbells.single().pairAvailable)
-        assertTrue("sin kettlebells fantasma", inventory.kettlebells.isEmpty())
-        // Una estación multi (polea) con tipo explícito y rango finito: nada de
-        // «cualquier máquina ⇒ todas las máquinas».
-        assertEquals("una estación de polea", 1, inventory.machines.size)
-        val station = inventory.machines.single()
-        assertEquals("tipo explícito", MACHINE_KIND_CABLE_ID, station.equipmentKind)
-        assertTrue(
-            "toda máquina declara su tipo (sin deducirlo del nombre)",
-            inventory.machines.all { !it.equipmentKind.isNullOrBlank() },
-        )
-        assertEquals(MACHINE_MIN.toDouble(), station.minLoadKg, 0.001)
-        assertEquals(
-            "tope superior obligatorio",
-            MACHINE_MAX.toDouble(),
-            checkNotNull(station.maxLoadKg) { "máquina declarada sin tope" },
-            0.001,
-        )
-        assertEquals(MACHINE_INC.toDouble(), station.incrementKg, 0.001)
-        assertEquals(MACHINE_BASE.toDouble(), station.baseLoadKg, 0.001)
-        assertTrue(
-            "cargas finitas",
-            listOf(station.minLoadKg, checkNotNull(station.maxLoadKg), station.incrementKg, station.baseLoadKg)
-                .all { it.isFinite() },
-        )
+        val availability = checkNotNull(settings.equipmentAvailability) { "disponibilidad confirmada en Room" }
+        when (scenario.materialProfile) {
+            MaterialProfile.GYM -> {
+                assertEquals("categorías declaradas desde la UI", EquipmentCategory.entries.toSet(), availability.categories)
+                assertEquals("banco confirmado", ApparatusPresence.PRESENT, availability.supports["bench_flat"])
+                assertEquals("rack confirmado", ApparatusPresence.PRESENT, availability.supports["squat_rack"])
+                assertEquals("barra de dominadas confirmada", ApparatusPresence.PRESENT, availability.supports["pullup_bar"])
+                assertEquals("polea alta/baja confirmada", ApparatusPresence.PRESENT, availability.apparatus["cable_high_low"])
+                assertEquals(
+                    "máquinas genéricas no confirman hack squat",
+                    ApparatusPresence.UNKNOWN,
+                    availability.apparatus["hack_squat"] ?: ApparatusPresence.UNKNOWN,
+                )
+            }
+            MaterialProfile.E0_BODYWEIGHT -> assertEquals(
+                "E0 confirmado por la opción de UI Solo peso corporal",
+                EquipmentAvailability(emptySet()),
+                availability,
+            )
+        }
 
         if (flavor == NutritionFlavor.TRACKING_ONLY) {
             assertEquals("flag de solo registro", true, settings.nutritionTrackingOnly)
             assertEquals("el gasto diario no cambia en solo registro", pre.dailyCalorieGoal, settings.dailyCalorieGoal)
-            val planIds = room { room.nutritionDao().getAllPlans() }.map { it.id }.toSet()
-            assertEquals("solo registro: ningún plan nuevo", pre.planIds, planIds)
-            assertEquals(
-                "solo registro: el plan activo sigue siendo el previo",
-                pre.activePlanId,
-                room { room.nutritionDao().getActiveState() }?.activePlanId,
+            val planRows = room { room.nutritionDao().getAllPlans() }
+            assertEquals("solo registro: ningún plan nuevo (los previos se conservan)", pre.planIds, planRows.map { it.id }.toSet())
+            // Solo registro DESACTIVA el plan que estuviera activo (el historial de planes se
+            // conserva): en la BD compartida de QA casi siempre había uno, así que el estado
+            // activo queda vacío y ninguna fila queda marcada activa.
+            assertNull(
+                "solo registro: el estado activo queda vacío (plan activo antes del alta: ${pre.activePlanId})",
+                room { room.nutritionDao().getActiveState() },
             )
+            assertTrue("solo registro: ningún plan queda marcado activo", planRows.none { it.isActive })
             assertNull(
                 "solo registro: ninguna fila de plan con el id de ESTE alta",
-                room { room.nutritionDao().getAllPlans() }.firstOrNull { it.id == commitId },
+                planRows.firstOrNull { it.id == commitId },
             )
             return
         }
@@ -885,7 +1245,7 @@ class SetupWizardFullJourneyUiTest {
         val plan = room { room.nutritionDao().getAllPlans() }.single { it.id == planId }.toNutritionPlan()
         assertTrue("plan activo", plan.isActive)
 
-        val previewPlan = checkNotNull(vm.state.value.nutritionPlanPreview) { "plan de la revisión" }
+        val previewPlan = checkNotNull(reviewed.nutritionPlan) { "plan de la revisión" }
         assertEquals("kcal persistidas = las revisadas", previewPlan.calorieTarget, plan.calorieTarget)
         if (flavor == NutritionFlavor.SELF_DEFINED) {
             assertEquals("kcal manuales", MANUAL_KCAL.toInt(), plan.calorieTarget)
@@ -903,13 +1263,35 @@ class SetupWizardFullJourneyUiTest {
         assertNotNull("hidratos duraderos", settings.dailyCarbGoal)
         assertNotNull("grasas duraderas", settings.dailyFatGoal)
 
-        val preparation = vm.state.value.nutritionPreparation
-        if (preparation != null && preparation.days.isNotEmpty()) {
-            val snapshot = room { room.nutritionDao().getDailyGoalSnapshot(LocalDate.now().toString()) }
-            assertNotNull("objetivo de HOY escrito en la transacción del alta", snapshot)
-            assertEquals(planId, snapshot?.planId)
+        // Meta de HOY: el alta la fija en la MISMA transacción. La BD compartida de QA suele traer
+        // la de otro plan (de una pasada anterior); activar un plan DISTINTO el mismo día la
+        // REEMPLAZA, así que la aserción es estricta: siempre la del plan recién activado.
+        val reviewedTodayKcal = reviewed.todayCalorieTargetKcal
+        if (reviewedTodayKcal != null) {
+            val today = LocalDate.now().toString()
+            val snapshot = checkNotNull(room { room.nutritionDao().getDailyGoalSnapshot(today) }) {
+                "objetivo de HOY escrito en la transacción del alta"
+            }
+            assertEquals("la meta de HOY es la del plan recién activado", planId, snapshot.planId)
+            assertEquals("kcal de HOY guardadas = las previsualizadas", reviewedTodayKcal, snapshot.calorieTargetKcal)
+            // La caché que lee el Home también se republicó (publishSetupCommit relee los snapshots).
+            val cachedToday = NutritionRepository.getInstance().dailyGoalSnapshots.value
+                .firstOrNull { cached -> cached.date == today }
+            assertEquals("la caché de metas diarias tiene la meta de HOY del plan nuevo", planId, cachedToday?.planId)
+            // Efecto visible: la meta diaria del Home ya es la del plan nuevo, no la ajena.
+            awaitUi("la meta diaria del Home es la del plan recién activado") {
+                homeViewModel.uiState.value.dailyCalorieGoal == snapshot.calorieTargetKcal
+            }
         }
     }
+
+    /** Lo que la revisión mostró ANTES de activar: contra esto se compara lo guardado. */
+    private data class ReviewedActivation(
+        val program: Program,
+        val nutritionPlan: NutritionPlan?,
+        /** Calorías previsualizadas para HOY; null si la revisión no traía objetivo de hoy. */
+        val todayCalorieTargetKcal: Int?,
+    )
 
     /** Conteos previos de la DB compartida: nunca se asume que empieza vacía. */
     private data class RoomSnapshot(
@@ -971,6 +1353,22 @@ class SetupWizardFullJourneyUiTest {
         awaitState("respuesta «$label» persistida en ${step.name}") { it.draft.revision > before }
     }
 
+    /** Confirm one exact apparatus through its real presence button in the UI. */
+    private fun confirmApparatus(key: String, isSupport: Boolean) {
+        val rowTag = "setup-apparatus-$key"
+        val before = vm.state.value.draft.revision
+        composeRule.onNodeWithTag(rowTag).performScrollTo()
+        val yesInRow = composeRule.onAllNodes(
+            hasText("Sí") and hasAnyAncestor(hasTestTag(rowTag)),
+        )
+        assertEquals("un botón Sí en la fila $key", 1, yesInRow.fetchSemanticsNodes().size)
+        yesInRow[0].performClick()
+        awaitState("presencia de $key guardada en el borrador") { it.draft.revision > before }
+        val availability = checkNotNull(vm.state.value.draft.trainingOptions.availability)
+        val presence = if (isSupport) availability.supports[key] else availability.apparatus[key]
+        assertEquals("presencia explícita de $key", ApparatusPresence.PRESENT, presence)
+    }
+
     /**
      * Escribe en los campos de texto del paso. El campo se localiza por su
      * rótulo cuando la semántica lo fusiona y, si no, por orden (con la
@@ -1020,15 +1418,86 @@ class SetupWizardFullJourneyUiTest {
         }
     }
 
-    /** Rueda de altura: tocar el valor central/literal declara exactamente ese cm. */
-    private fun setHeightCm(target: Int) {
-        if (heightCandidateCm() != target) {
-            scrollControlTo(WHEEL_CONTENT_DESCRIPTION, target - WizardHeightScale.MIN_CM)
+    /** Layout de altura/peso que el producto compone en el paso HEIGHT. */
+    private enum class AnthropometryLayout { SEPARATE, COMBINED }
+
+    /**
+     * Espera a que el producto resuelva el layout del paso HEIGHT y lo devuelve
+     * cuando lleva estable [LAYOUT_SETTLE_MS]. Mientras mide (`Pending`) no
+     * compone ningún control de altura; después compone la rueda (SEPARATE) o la
+     * regla (COMBINED), nunca las dos. La espera de estabilidad es defensiva: el
+     * hueco de la viewport (y con él el layout) depende de insets/IME, que pueden
+     * asentarse tras componer el paso.
+     */
+    private fun awaitAnthropometryLayout(): AnthropometryLayout {
+        var settled: AnthropometryLayout? = null
+        var seen: AnthropometryLayout? = null
+        var since = 0L
+        try {
+            composeRule.waitUntil(STEP_TIMEOUT_MS) {
+                val now = visibleAnthropometryLayout()
+                val tick = System.nanoTime() / NANOS_PER_MS
+                if (now == null || now != seen) {
+                    seen = now
+                    since = tick
+                }
+                if (now != null && tick - since >= LAYOUT_SETTLE_MS) {
+                    settled = now
+                    true
+                } else {
+                    false
+                }
+            }
+        } catch (error: Throwable) {
+            fail(
+                "El paso HEIGHT no muestra una única rueda o regla de altura estable " +
+                    "(rueda=${existsByContentDescription(WHEEL_CONTENT_DESCRIPTION)}, " +
+                    "regla=${existsByContentDescription(HEIGHT_RULE_CONTENT_DESCRIPTION)}) · " +
+                    "${vm.state.value.describe()} (${error.message})",
+            )
         }
-        if (heightCandidateCm() == target) {
-            composeRule.onNodeWithTag(HEIGHT_VALUE_TAG).performClick()
-        } else {
+        return checkNotNull(settled)
+    }
+
+    /** SEPARATE si solo está la rueda, COMBINED si solo está la regla; null si ninguna o ambas. */
+    private fun visibleAnthropometryLayout(): AnthropometryLayout? {
+        val wheel = existsByContentDescription(WHEEL_CONTENT_DESCRIPTION)
+        val rule = existsByContentDescription(HEIGHT_RULE_CONTENT_DESCRIPTION)
+        return when {
+            wheel && !rule -> AnthropometryLayout.SEPARATE
+            rule && !wheel -> AnthropometryLayout.COMBINED
+            else -> null
+        }
+    }
+
+    private fun heightControlDescription(layout: AnthropometryLayout): String = when (layout) {
+        AnthropometryLayout.SEPARATE -> WHEEL_CONTENT_DESCRIPTION
+        AnthropometryLayout.COMBINED -> HEIGHT_RULE_CONTENT_DESCRIPTION
+    }
+
+    private fun heightValueTag(layout: AnthropometryLayout): String = when (layout) {
+        AnthropometryLayout.SEPARATE -> HEIGHT_VALUE_TAG
+        AnthropometryLayout.COMBINED -> HEIGHT_RULE_VALUE_TAG
+    }
+
+    /**
+     * Altura: tocar el valor central declara exactamente ese cm. SEPARATE usa la
+     * rueda vertical y COMBINED la regla horizontal; las dos centran el índice
+     * `cm - MIN_CM` con la acción de scroll del `LazyList` contenido en el control.
+     */
+    private fun setHeightCm(target: Int, layout: AnthropometryLayout) {
+        centerControlOn(heightControlDescription(layout), target - WizardHeightScale.MIN_CM) {
+            heightCandidateCm(layout).takeIf { cm -> cm != Int.MIN_VALUE }?.let { cm -> cm - WizardHeightScale.MIN_CM }
+        }
+        if (heightCandidateCm(layout) == target) {
+            composeRule.onNodeWithTag(heightValueTag(layout)).performClick()
+        } else if (layout == AnthropometryLayout.SEPARATE) {
             composeRule.onNodeWithText(WizardHeightScale.formatCm(target)).performClick()
+        } else {
+            fail(
+                "La regla de altura no quedó centrada en $target cm " +
+                    "(candidato=${heightCandidateCm(layout)}) · ${vm.state.value.describe()}",
+            )
         }
         awaitState("altura declarada = $target cm") { it.draft.heightCm == target.toDouble() }
     }
@@ -1048,10 +1517,14 @@ class SetupWizardFullJourneyUiTest {
         )
     }
 
-    /** Centra el candidato de la regla y lo confirma con un toque real. */
+    /**
+     * Centra el candidato de la regla y lo confirma con un toque real. Es la
+     * misma regla en ambos layouts: el paso WEIGHT (SEPARATE) o la mitad
+     * inferior del par altura/peso del paso HEIGHT (COMBINED).
+     */
     private fun emitWeightCandidate(target: Int) {
-        if (weightCandidateKg() != target.toDouble()) {
-            scrollControlTo(RULE_CONTENT_DESCRIPTION, weightTickIndex(target))
+        centerControlOn(RULE_CONTENT_DESCRIPTION, weightTickIndex(target.toDouble())) {
+            weightCandidateKg().takeIf { kg -> kg.isFinite() }?.let { kg -> weightTickIndex(kg) }
         }
         if (weightCandidateKg() == target.toDouble()) {
             composeRule.onNodeWithTag(WEIGHT_VALUE_TAG).performClick()
@@ -1060,10 +1533,10 @@ class SetupWizardFullJourneyUiTest {
         }
     }
 
-    private fun weightTickIndex(targetKg: Int): Int {
+    private fun weightTickIndex(kg: Double): Int {
         val range = WizardWeightScale.displayRange(WizardMassUnit.KG)
         val firstStep = Math.round(range.start * TICKS_PER_KG).toInt()
-        return Math.round(targetKg * TICKS_PER_KG).toInt() - firstStep
+        return Math.round(kg * TICKS_PER_KG).toInt() - firstStep
     }
 
     /**
@@ -1078,8 +1551,27 @@ class SetupWizardFullJourneyUiTest {
         composeRule.waitForIdle()
     }
 
-    private fun heightCandidateCm(): Int =
-        candidateStateDescription(WHEEL_CONTENT_DESCRIPTION)
+    /**
+     * Deja [targetIndex] como ítem central del control. `scrollToItem` pega el
+     * ítem pedido al centro y el control elige como candidato el ítem más
+     * cercano al centro, que en un empate de media casilla puede ser el vecino
+     * (depende de la densidad): se relee el candidato del propio control
+     * ([centeredIndex], null si no se puede leer) y se corrige por la diferencia,
+     * como mucho [MAX_CENTER_ATTEMPTS] veces. Si ya está centrado no se toca.
+     */
+    private fun centerControlOn(contentDescription: String, targetIndex: Int, centeredIndex: () -> Int?) {
+        var requested = targetIndex
+        repeat(MAX_CENTER_ATTEMPTS) {
+            if (centeredIndex() == targetIndex) return
+            scrollControlTo(contentDescription, requested)
+            val centered = centeredIndex() ?: return
+            if (centered == targetIndex) return
+            requested = (requested + targetIndex - centered).coerceAtLeast(0)
+        }
+    }
+
+    private fun heightCandidateCm(layout: AnthropometryLayout): Int =
+        candidateStateDescription(heightControlDescription(layout))
             .substringBefore(".")
             .toIntOrNull()
             ?: Int.MIN_VALUE
@@ -1126,8 +1618,8 @@ class SetupWizardFullJourneyUiTest {
         }
     }
 
-    /** Candidatos reales; si no llegan, se reproduce el error REAL del motor. */
-    private fun selectPlanCandidate(preferredSource: String) {
+    /** Candidato exacto del catálogo real; paginar solo expande la UI, no recalcula. */
+    private fun selectPlanCandidate(scenario: PlanScenario) {
         awaitPlanCandidates()
         val state = vm.state.value
         val problem = state.previewError ?: state.errors["candidates"]
@@ -1136,26 +1628,33 @@ class SetupWizardFullJourneyUiTest {
             return
         }
         val all = state.availablePlanCandidates.ifEmpty { state.planCandidates }
-        val chosen = all.firstOrNull { it.source == preferredSource }
+        val chosen = all.firstOrNull { it.id == scenario.expectedCandidateId }
         if (chosen == null) {
             fail(
-                "No hay candidato $preferredSource entre ${all.map { "${it.source}=${it.title}" }}; " +
+                "No está publicado/viable ${scenario.expectedCandidateId} entre " +
+                    "${all.map { "${it.source}=${it.id}:${it.title}" }}; " +
                     "no se fabrica material para forzar uno (${state.describe()})",
             )
             return
         }
-        if (chosen.id !in vm.state.value.planCandidates.map { candidate -> candidate.id }) {
+        assertEquals("procedencia técnica del testigo", scenario.candidateSource, chosen.source)
+        var pageCount = 0
+        while (chosen.id !in vm.state.value.planCandidates.map { candidate -> candidate.id }) {
             if (!existsInTree(MORE_CANDIDATES_LABEL, substring = true)) {
                 fail(
-                    "El candidato $preferredSource «${chosen.title}» no está visible y la UI no ofrece " +
+                    "El candidato ${chosen.id} «${chosen.title}» no está visible y la UI no ofrece " +
                         "«$MORE_CANDIDATES_LABEL»",
                 )
                 return
             }
+            val visibleCount = vm.state.value.planCandidates.size
             composeRule.onNodeWithText(MORE_CANDIDATES_LABEL, substring = true).performClick()
             awaitState("candidato «${chosen.title}» visible") { current ->
-                chosen.id in current.planCandidates.map { candidate -> candidate.id }
+                chosen.id in current.planCandidates.map { candidate -> candidate.id } ||
+                    current.planCandidates.size > visibleCount
             }
+            pageCount += 1
+            assertTrue("la paginación alcanza un candidato del catálogo completo", pageCount <= all.size)
         }
         val before = vm.state.value.draft.revision
         ensureVisible(SetupStepId.PLAN, chosen.title)
@@ -1250,6 +1749,28 @@ class SetupWizardFullJourneyUiTest {
         )
     }
 
+    /**
+     * Lleva [text] a la ventana del Home real (LazyColumn): si el ítem no está compuesto se
+     * desplaza con `performScrollToNode` (ScrollToIndex + clave) en cada contenedor con scroll;
+     * si ya existe basta `performScrollTo()`.
+     */
+    private fun scrollHomeTo(text: String) {
+        val matcher = hasText(text, ignoreCase = true)
+        fun composed(): Boolean = composeRule.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
+        if (!composed()) {
+            val containers = composeRule.onAllNodes(hasScrollAction()).fetchSemanticsNodes().size
+            for (index in 0 until containers) {
+                runCatching {
+                    composeRule.onAllNodes(hasScrollAction())[index].performScrollToNode(matcher)
+                }
+                composeRule.waitForIdle()
+                if (composed()) break
+            }
+        }
+        composeRule.onNode(matcher).performScrollTo()
+        composeRule.waitForIdle()
+    }
+
     private fun isDisplayed(label: String): Boolean = try {
         composeRule.onNodeWithText(label).assertIsDisplayed()
         true
@@ -1263,14 +1784,14 @@ class SetupWizardFullJourneyUiTest {
         false
     }
 
-    private fun assertInTree(needle: String, substring: Boolean = false, what: String = needle) {
-        assertTrue("No aparece en la pantalla actual: «$what»", existsInTree(needle, substring))
+    private fun existsByContentDescription(contentDescription: String): Boolean = try {
+        composeRule.onAllNodesWithContentDescription(contentDescription).fetchSemanticsNodes().isNotEmpty()
+    } catch (error: Throwable) {
+        false
     }
 
-    private fun editableFieldCount(): Int = try {
-        composeRule.onAllNodes(hasInsertTextAtCursorAction()).fetchSemanticsNodes().size
-    } catch (error: Throwable) {
-        0
+    private fun assertInTree(needle: String, substring: Boolean = false, what: String = needle) {
+        assertTrue("No aparece en la pantalla actual: «$what»", existsInTree(needle, substring))
     }
 
     private fun editableTextOf(field: SemanticsNodeInteraction): String = try {
@@ -1319,9 +1840,15 @@ class SetupWizardFullJourneyUiTest {
     private companion object {
         const val CTA = "setup-continue"
         const val CTA_REVIEW_LABEL = "Activar y entrar a KPKN"
+        const val BACK_LABEL = "Volver al paso anterior"
+        // Layout SEPARATE (altura sola): rueda vertical de `WizardHeightWheel`.
         const val HEIGHT_VALUE_TAG = "setup-height-value"
-        const val WEIGHT_VALUE_TAG = "setup-weight-value"
         const val WHEEL_CONTENT_DESCRIPTION = "Rueda de altura en centímetros"
+        // Layout COMBINED (altura + peso juntos): regla horizontal de `WizardHeightRule`.
+        const val HEIGHT_RULE_VALUE_TAG = "setup-height-rule-value"
+        const val HEIGHT_RULE_CONTENT_DESCRIPTION = "Regla de altura en centímetros"
+        // Regla de peso: misma en ambos layouts (paso WEIGHT o mitad inferior del par).
+        const val WEIGHT_VALUE_TAG = "setup-weight-value"
         const val RULE_CONTENT_DESCRIPTION = "Regla de peso en kilogramos"
         const val MORE_CANDIDATES_LABEL = "Ver más opciones"
         const val NO_COMPATIBLE_PLAN_LABEL = "no hay un plan compatible"
@@ -1331,30 +1858,8 @@ class SetupWizardFullJourneyUiTest {
 
         const val ACTIVATION_CONFIRM_LABEL = "Confirmo la activación"
         const val RECIPE_CONFIRM_LABEL = "Confirmo la rotación y la duración reales"
-        const val SAVE_LABEL = "Guardar"
 
         const val NAME_FIELD_LABEL = "Nombre"
-        const val BARBELL_ROW_LABEL = "Barra"
-        const val BARBELL_FIELD_LABEL = "Peso de la barra (kg)"
-        const val NEXT_LABEL = "Siguiente"
-        const val SUPPORT_CHOICE_LABEL = "Soportes, rack o banco"
-        const val SUPPORT_ID = "support"
-        const val PLATE_WEIGHT_FIELD_LABEL = "Peso del disco (kg)"
-        const val PLATE_COUNT_FIELD_LABEL = "Discos por lado"
-        const val DUMBBELL_FIELD_LABEL = "Peso por unidad (kg)"
-        const val MACHINE_ADD_LABEL = "Añadir máquina o polea"
-        const val MACHINE_KIND_CABLE_LABEL = "Polea"
-        const val MACHINE_KIND_CABLE_ID = "cable"
-        const val STATION_NAME = "Estación de polea"
-        const val MACHINE_NAME_FIELD_LABEL = "Nombre de la máquina"
-        const val MACHINE_MIN_FIELD_LABEL = "Carga mínima (kg)"
-        const val MACHINE_MAX_FIELD_LABEL = "Carga máxima (kg) · opcional"
-        const val MACHINE_INC_FIELD_LABEL = "Incremento por paso (kg)"
-        const val MACHINE_BASE_FIELD_LABEL = "Carga base del carro (kg)"
-        const val MACHINE_MIN = "10"
-        const val MACHINE_MAX = "90"
-        const val MACHINE_INC = "2.5"
-        const val MACHINE_BASE = "20"
         const val CALORIES_FIELD_LABEL = "Calorías (kcal)"
         const val PROTEIN_FIELD_LABEL = "Proteína (g)"
         const val CARBS_FIELD_LABEL = "Hidratos (g)"
@@ -1374,6 +1879,9 @@ class SetupWizardFullJourneyUiTest {
         const val TICKS_PER_KG = 10.0
 
         const val MAX_TYPE_ATTEMPTS = 3
+        const val MAX_CENTER_ATTEMPTS = 3
+        const val LAYOUT_SETTLE_MS = 750L
+        const val NANOS_PER_MS = 1_000_000L
         const val MAX_SWIPES = 4
         const val STEP_TIMEOUT_MS = 30_000L
         const val TYPE_TIMEOUT_MS = 5_000L

@@ -28,6 +28,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +46,7 @@ import org.junit.runner.RunWith
  * borrador (`stepEditors`) y en la fila de Room; además «Guardar y salir» con
  * el editor abierto reanuda el mismo crudo en un VM nuevo.
  */
+@Ignore("Obsoleto: el inventario con pesos ya no forma parte del recorrido del wizard (plan de planes adaptativos r2 §13.1/§13.2/§15.1; SetupWizardDraft.inventoryGroups() = emptySet(), los pasos INVENTORY_* nunca están en la ruta). El código de inventario (SetupInventoryControls.kt) quedó inalcanzable; retirar junto con esta clase en una limpieza posterior.")
 @RunWith(AndroidJUnit4::class)
 class SetupInventoryTypingUiTest {
 

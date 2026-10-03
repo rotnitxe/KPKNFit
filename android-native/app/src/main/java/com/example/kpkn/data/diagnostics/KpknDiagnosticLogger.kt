@@ -80,7 +80,14 @@ object KpknDiagnosticLogger {
         val raw: String,
     )
 
+    private data class LiveSessionVoiceState(
+        val enabled: Boolean,
+        val generation: Long,
+    )
+
     private data class PendingEvent(
+        val context: Context,
+        val generation: Long,
         val area: String,
         val sessionId: String,
         val day: String,
@@ -127,12 +134,15 @@ object KpknDiagnosticLogger {
         Thread(runnable, "kpkn-jsonl-writer").apply { isDaemon = true }
     }
     private val sequence = AtomicLong(0L)
+    private val initializeGeneration = AtomicLong(0L)
+    private val readyGenerations = mutableSetOf<Long>()
     private val activeFiles = mutableMapOf<String, File>()
-    private val liveSessionVoice = mutableMapOf<String, Boolean>()
+    private val liveSessionVoice = mutableMapOf<String, LiveSessionVoiceState>()
 
     private var appContext: Context? = null
     private var screen: String = "unknown"
     private var currentSessionId: String? = null
+    private var currentSessionGeneration = 0L
     private var processStartedElapsedMs: Long = SystemClock.elapsedRealtime()
     private var initializedRoot: String? = null
     private var bootstrapRecorded = false
@@ -153,42 +163,84 @@ object KpknDiagnosticLogger {
         )
     }
 
+    /**
+     * Publishes the application context immediately so startup events can be
+     * accepted, then prepares directories and migration on the writer thread.
+     */
     fun initialize(context: Context) {
         val app = context.applicationContext
-        val rootPath = File(app.filesDir, LOG_ROOT).absolutePath
-        val shouldBootstrap = synchronized(lock) {
-            val changedRoot = initializedRoot != null && initializedRoot != rootPath
-            if (changedRoot) {
-                queue.clear()
-                activeFiles.clear()
-                liveSessionVoice.clear()
-                currentSessionId = null
-                bootstrapRecorded = false
-                writesSincePrune = 0
-            }
+        val generation = synchronized(lock) {
             appContext = app
             processStartedElapsedMs = SystemClock.elapsedRealtime()
-            initializedRoot = rootPath
-            File(app.filesDir, LOG_ROOT).mkdirs()
-            officialAreas.forEach { File(app.filesDir, "$LOG_ROOT/$it").mkdirs() }
-            if (!bootstrapRecorded) {
-                bootstrapRecorded = true
-                true
-            } else {
-                false
-            }
+            initializeGeneration.incrementAndGet()
         }
+        writer.execute { initializeStorage(app, generation) }
+    }
 
-        // Migration can walk large legacy trees; never make Application.onCreate wait for it.
-        writer.execute { migrateLegacyRoots(app) }
-        if (shouldBootstrap) {
+    private fun initializeStorage(app: Context, generation: Long) {
+        try {
+            val root = File(app.filesDir, LOG_ROOT)
+            val rootPath = root.absolutePath
+            check(root.isDirectory || root.mkdirs()) { "Unable to create diagnostic root: $root" }
             officialAreas.forEach { area ->
-                event(
-                    namespace = area,
-                    name = "area_bootstrap",
-                    fields = mapOf("writer" to "async", "flushIntervalMs" to FLUSH_INTERVAL_MS),
-                    priority = TelemetryPriority.CRITICAL,
-                )
+                val directory = File(root, area)
+                check(directory.isDirectory || directory.mkdirs()) {
+                    "Unable to create diagnostic area: $directory"
+                }
+            }
+
+            val initializationState = synchronized(lock) {
+                // This generation's root is ready even if a newer initialize call
+                // arrived while setup was running; queued events retain their own
+                // context and may drain only after this point.
+                readyGenerations += generation
+                if (generation != initializeGeneration.get() || appContext !== app) {
+                    false to false
+                } else {
+                    val changedRoot = initializedRoot != null && initializedRoot != rootPath
+                    if (changedRoot) {
+                        activeFiles.clear()
+                        liveSessionVoice.entries.removeAll { (_, state) -> state.generation < generation }
+                        if (currentSessionGeneration < generation) currentSessionId = null
+                        bootstrapRecorded = false
+                        writesSincePrune = 0
+                    }
+                    initializedRoot = rootPath
+                    val shouldBootstrap = if (!bootstrapRecorded) {
+                        bootstrapRecorded = true
+                        true
+                    } else {
+                        false
+                    }
+                    true to shouldBootstrap
+                }
+            }
+            if (!initializationState.first) return
+
+            if (initializationState.second) {
+                officialAreas.forEach { area ->
+                    eventForContext(
+                        context = app,
+                        generation = generation,
+                        namespace = area,
+                        name = "area_bootstrap",
+                        fields = mapOf("writer" to "async", "flushIntervalMs" to FLUSH_INTERVAL_MS),
+                        priority = TelemetryPriority.CRITICAL,
+                    )
+                }
+            }
+            // Migration may walk large legacy trees; it remains serialized off
+            // Main and runs after the canonical directories are ready.
+            writer.execute {
+                if (generation == initializeGeneration.get()) migrateLegacyRoots(app)
+            }
+        } catch (error: Exception) {
+            Log.e(TAG, "Unable to initialize diagnostic storage", error)
+            val shouldRetry = synchronized(lock) {
+                generation == initializeGeneration.get() || queue.any { it.generation == generation }
+            }
+            if (shouldRetry) {
+                writer.schedule({ initializeStorage(app, generation) }, 1L, TimeUnit.SECONDS)
             }
         }
     }
@@ -207,12 +259,20 @@ object KpknDiagnosticLogger {
 
     /** Starts a new app session; returns the new session id. */
     fun beginSession(): String = synchronized(lock) {
-        UUID.randomUUID().toString().also { currentSessionId = it }
+        UUID.randomUUID().toString().also {
+            currentSessionId = it
+            currentSessionGeneration = initializeGeneration.get()
+        }
     }
 
     fun registerLiveSession(sessionId: String, voiceEnabled: Boolean) {
         val safe = sessionId.trim()
-        if (safe.isNotEmpty()) synchronized(lock) { liveSessionVoice[safe] = voiceEnabled }
+        if (safe.isNotEmpty()) synchronized(lock) {
+            liveSessionVoice[safe] = LiveSessionVoiceState(
+                enabled = voiceEnabled,
+                generation = initializeGeneration.get(),
+            )
+        }
     }
 
     fun updateLiveSessionVoiceMode(sessionId: String, voiceEnabled: Boolean) {
@@ -226,7 +286,10 @@ object KpknDiagnosticLogger {
     }
 
     private fun activeSessionId(): String = synchronized(lock) {
-        currentSessionId ?: UUID.randomUUID().toString().also { currentSessionId = it }
+        currentSessionId ?: UUID.randomUUID().toString().also {
+            currentSessionId = it
+            currentSessionGeneration = initializeGeneration.get()
+        }
     }
 
     fun areaFor(namespace: String): String =
@@ -240,9 +303,10 @@ object KpknDiagnosticLogger {
     private fun resolveArea(namespace: String, sessionId: String?): String {
         val safe = namespace.safeNamespace()
         if (safe == "voice" || safe == "tts") return "voice"
-        if (safe == "workout" && sessionId != null && synchronized(lock) { liveSessionVoice[sessionId] == true }) {
-            return "voice"
-        }
+        val voiceEnabled = sessionId?.let { id ->
+            synchronized(lock) { liveSessionVoice[id]?.enabled == true }
+        } == true
+        if (safe == "workout" && voiceEnabled) return "voice"
         return areaFor(safe)
     }
 
@@ -254,10 +318,54 @@ object KpknDiagnosticLogger {
         sessionId: String? = null,
         reportId: String? = null,
         priority: TelemetryPriority = TelemetryPriority.NORMAL,
+    ): String? = enqueueEvent(
+        contextOverride = null,
+        generationOverride = null,
+        namespace = namespace,
+        name = name,
+        fields = fields,
+        traceId = traceId,
+        sessionId = sessionId,
+        reportId = reportId,
+        priority = priority,
+    )
+
+    private fun eventForContext(
+        context: Context,
+        generation: Long,
+        namespace: String,
+        name: String,
+        fields: Map<String, Any?> = emptyMap(),
+        traceId: String? = null,
+        sessionId: String? = null,
+        reportId: String? = null,
+        priority: TelemetryPriority = TelemetryPriority.NORMAL,
+    ): String? = enqueueEvent(
+        contextOverride = context,
+        generationOverride = generation,
+        namespace = namespace,
+        name = name,
+        fields = fields,
+        traceId = traceId,
+        sessionId = sessionId,
+        reportId = reportId,
+        priority = priority,
+    )
+
+    private fun enqueueEvent(
+        contextOverride: Context?,
+        generationOverride: Long?,
+        namespace: String,
+        name: String,
+        fields: Map<String, Any?>,
+        traceId: String?,
+        sessionId: String?,
+        reportId: String?,
+        priority: TelemetryPriority,
     ): String? {
         val pending = runCatching {
             synchronized(lock) {
-                val context = appContext ?: return@synchronized null
+                val context = contextOverride ?: appContext ?: return@synchronized null
                 val safeNamespace = namespace.safeNamespace()
                 val resolvedSessionId = sessionId ?: activeSessionId()
                 val area = resolveArea(safeNamespace, sessionId)
@@ -288,6 +396,8 @@ object KpknDiagnosticLogger {
                     },
                 ).toString()
                 PendingEvent(
+                    context = context,
+                    generation = generationOverride ?: initializeGeneration.get(),
                     area = area,
                     sessionId = resolvedSessionId,
                     day = DAY_FORMAT.format(timestamp),
@@ -376,7 +486,10 @@ object KpknDiagnosticLogger {
     private fun drainAll(forceSync: Boolean) {
         var drained = 0
         while (true) {
-            val pending = queue.poll() ?: break
+            val next = queue.peek() ?: break
+            val isReady = synchronized(lock) { next.generation in readyGenerations }
+            if (!isReady) return
+            val pending = queue.poll() ?: continue
             runCatching { writePending(pending, forceSync || pending.priority == TelemetryPriority.CRITICAL) }
                 .onFailure { error ->
                     lastWriteError = error.message ?: error.javaClass.simpleName
@@ -395,12 +508,12 @@ object KpknDiagnosticLogger {
     }
 
     private fun writePending(pending: PendingEvent, forceSync: Boolean) {
-        val context = synchronized(lock) { appContext } ?: return
+        val context = pending.context
         val directory = File(context.filesDir, "$LOG_ROOT/${pending.area}/${pending.day}").apply { mkdirs() }
         writesSincePrune += 1
         if (writesSincePrune >= 64) {
             writesSincePrune = 0
-            pruneArea(pending.area)
+            pruneArea(context, pending.area)
         }
         val file = activeFileFor(directory, pending.area, pending.sessionId)
         FileOutputStream(file, true).use { output ->
@@ -586,7 +699,8 @@ object KpknDiagnosticLogger {
     private fun activeFileFor(directory: File, area: String, sessionId: String?): File {
         val safeSession = sessionId.orEmpty().replace(Regex("[^a-zA-Z0-9_-]"), "_").take(40)
         val perSession = area == "voice" || area == "workout"
-        val key = if (perSession && safeSession.isNotBlank()) "$area:$safeSession" else area
+        val rootKey = directory.parentFile?.parentFile?.absolutePath.orEmpty()
+        val key = if (perSession && safeSession.isNotBlank()) "$rootKey|$area:$safeSession" else "$rootKey|$area"
         val active = activeFiles[key]
         val isCurrentDay = active?.parentFile?.name == directory.name
         if (active?.exists() == true && isCurrentDay && active.length() < MAX_FILE_BYTES) return active
@@ -596,8 +710,8 @@ object KpknDiagnosticLogger {
             .also { activeFiles[key] = it }
     }
 
-    private fun pruneArea(area: String) {
-        val root = synchronized(lock) { appContext?.let { File(it.filesDir, "$LOG_ROOT/$area") } } ?: return
+    private fun pruneArea(context: Context, area: String) {
+        val root = File(context.filesDir, "$LOG_ROOT/$area")
         val now = System.currentTimeMillis()
         val files = filesForAreaRoot(root).sortedByDescending(File::lastModified).toMutableList()
         files.filter { now - it.lastModified() > MAX_AGE_MS }.forEach { file ->

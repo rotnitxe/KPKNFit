@@ -269,21 +269,14 @@ fun clearSessionEditorDraft(
     mesoIndex: Int,
     sessionId: String,
 ) {
-    val prefs = context.applicationContext.getSharedPreferences(
-        SESSION_EDITOR_DRAFT_PREFS,
-        android.content.Context.MODE_PRIVATE,
+    val key = sessionEditorDraftStorageKey(
+        programId = programId,
+        weekId = weekId,
+        macroIndex = macroIndex,
+        mesoIndex = mesoIndex,
+        sessionId = sessionId,
     )
-    prefs.edit()
-        .remove(
-            sessionEditorDraftStorageKey(
-                programId = programId,
-                weekId = weekId,
-                macroIndex = macroIndex,
-                mesoIndex = mesoIndex,
-                sessionId = sessionId,
-            ),
-        )
-        .apply()
+    SessionEditorDraftStore.clearLater(context, key)
 }
 
 internal fun resolveNewestSession(

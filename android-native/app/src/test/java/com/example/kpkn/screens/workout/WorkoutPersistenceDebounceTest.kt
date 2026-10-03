@@ -29,7 +29,7 @@ class WorkoutPersistenceDebounceTest {
                 ),
             ),
         )
-        var current = WorkoutUiState(session = session, programId = "prog", currentSetIdx = 0)
+        var current = WorkoutUiState(session = session, startTimeMs = 0L, programId = "prog", currentSetIdx = 0)
         var writtenIndex: Int? = null
         val controller = WorkoutPersistenceController(
             scope = this,
@@ -62,7 +62,7 @@ class WorkoutPersistenceDebounceTest {
             name = "Push",
             exercises = listOf(Exercise(id = "ex", name = "Press", sets = listOf(ExerciseSet(id = "s0")))),
         )
-        var current = WorkoutUiState(session = session, programId = "prog", currentSetIdx = 0)
+        var current = WorkoutUiState(session = session, startTimeMs = 0L, programId = "prog", currentSetIdx = 0)
         val writes = mutableListOf<Int>()
         val controller = WorkoutPersistenceController(
             scope = this,
@@ -101,7 +101,7 @@ class WorkoutPersistenceDebounceTest {
                 ),
             ),
         )
-        var current = WorkoutUiState(session = session, programId = "prog", currentSetIdx = 0)
+        var current = WorkoutUiState(session = session, startTimeMs = 0L, programId = "prog", currentSetIdx = 0)
         val writes = mutableListOf<Int>()
         val controller = WorkoutPersistenceController(
             scope = this,
@@ -136,7 +136,7 @@ class WorkoutPersistenceDebounceTest {
             name = "Push",
             exercises = listOf(Exercise(id = "ex", name = "Press", sets = listOf(ExerciseSet(id = "s0")))),
         )
-        var current = WorkoutUiState(session = session, programId = "prog", currentSetIdx = 0)
+        var current = WorkoutUiState(session = session, startTimeMs = 0L, programId = "prog", currentSetIdx = 0)
         val writes = mutableListOf<Int>()
         val controller = WorkoutPersistenceController(
             scope = this,

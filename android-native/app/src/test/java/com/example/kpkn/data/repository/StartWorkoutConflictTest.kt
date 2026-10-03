@@ -10,6 +10,13 @@ import com.example.kpkn.data.models.OngoingWorkoutState
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.kpkn.screens.workout.WorkoutUiState
+import com.example.kpkn.screens.workout.awaitWorkoutStartupIdle
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -117,6 +124,78 @@ class StartWorkoutConflictTest {
         )
         assertEquals(StartWorkoutResult.Started, again)
         assertEquals(99L, repository.ongoingWorkout.value?.startTime)
+    }
+
+    @Test
+    fun failedStartPreservesOldRoomAndCacheUntilRetry() = runBlocking {
+        val repository = readyRepository()
+        val first = OngoingWorkoutState(programId = "", session = executableSession("first", "A"), startTime = 10L)
+        val next = OngoingWorkoutState(programId = "", session = executableSession("next", "B"), startTime = 20L)
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(first))
+        val db = repository.databaseForTests()
+        db.openHelper.writableDatabase.execSQL(
+            "CREATE TRIGGER fail_start BEFORE INSERT ON ongoing_workout BEGIN SELECT RAISE(ABORT, 'injected start failure'); END",
+        )
+        assertTrue(repository.startWorkout(next, replaceExisting = true) is StartWorkoutResult.Failed)
+        assertEquals("first", repository.ongoingWorkout.value!!.session.id)
+        assertEquals("first", db.stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.session.id)
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_start")
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(next, replaceExisting = true))
+        assertEquals("next", db.stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.session.id)
+    }
+
+    @Test
+    fun failedDeletePreservesRecoverableWorkoutAndRetryDeletesIt() = runBlocking {
+        val repository = readyRepository()
+        val expected = OngoingWorkoutState(programId = "", session = executableSession("session", "A"), startTime = 10L)
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(expected))
+        val db = repository.databaseForTests()
+        db.openHelper.writableDatabase.execSQL(
+            "CREATE TRIGGER fail_delete BEFORE DELETE ON ongoing_workout BEGIN SELECT RAISE(ABORT, 'injected delete failure'); END",
+        )
+        assertTrue(runCatching { repository.clearOngoingWorkoutAndFlush(expected) }.isFailure)
+        assertEquals("session", repository.ongoingWorkout.value!!.session.id)
+        assertEquals("session", db.stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.session.id)
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_delete")
+        repository.clearOngoingWorkoutAndFlush(expected)
+        assertEquals(null, repository.ongoingWorkout.value)
+        assertEquals(null, db.stateDao().getOngoingWorkout())
+    }
+
+    @Test
+    fun delayedDeleteDoesNotRemoveNewExecutionOfSameSession() = runBlocking {
+        val repository = readyRepository()
+        val old = OngoingWorkoutState(programId = "", session = executableSession("session", "A"), startTime = 10L)
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(old))
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(old.copy(startTime = 20L)))
+        assertTrue(runCatching { repository.clearOngoingWorkoutAndFlush(old) }.isFailure)
+        assertEquals(20L, repository.ongoingWorkout.value!!.startTime)
+        assertEquals(20L, repository.databaseForTests().stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.startTime)
+    }
+
+    @Test
+    fun cancellationWaitsForPendingStartAndDeletesCommittedSession() = runBlocking {
+        val repository = readyRepository()
+        val session = executableSession("starting", "A")
+        val state = MutableStateFlow(WorkoutUiState(session = session, isStartingWorkout = true))
+        val permit = CompletableDeferred<Unit>()
+        val start = launch {
+            permit.await()
+            assertEquals(StartWorkoutResult.Started, repository.startWorkout(
+                OngoingWorkoutState(programId = "", session = session, startTime = 10L),
+            ))
+            state.value = state.value.copy(isStartingWorkout = false)
+        }
+        val cancellation = async(start = CoroutineStart.UNDISPATCHED) {
+            assertTrue(awaitWorkoutStartupIdle(state))
+            repository.clearOngoingWorkoutAndFlush(repository.ongoingWorkout.value)
+        }
+        assertTrue(!cancellation.isCompleted)
+        permit.complete(Unit)
+        start.join()
+        cancellation.await()
+        assertEquals(null, repository.ongoingWorkout.value)
+        assertEquals(null, repository.databaseForTests().stateDao().getOngoingWorkout())
     }
 
     private suspend fun readyRepository(): ProgramRepository {

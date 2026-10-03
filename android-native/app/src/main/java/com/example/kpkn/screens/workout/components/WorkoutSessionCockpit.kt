@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout.components
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -58,6 +59,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,8 +69,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import coil.compose.AsyncImage
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.rememberLocalMediaImageSource
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.SessionChecklistItem
@@ -77,9 +79,9 @@ import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import com.example.kpkn.screens.workout.WorkoutRmCalcContent
+import com.example.kpkn.screens.workout.WorkoutMediaCaptureController
 import com.example.kpkn.screens.workout.sessionCalorieStatus
 import com.example.kpkn.screens.workout.toTrimmedNumberString
-import java.io.File
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -106,6 +108,11 @@ fun WorkoutSessionCockpit(
     onSessionNotesChange: (String) -> Unit,
     onSaveSessionNote: (String) -> Unit = {},
     onAddSessionPhoto: (Uri) -> Unit,
+    onBeginSessionCameraCapture: suspend () -> WorkoutMediaCaptureController.ExternalPhotoCapture? = { null },
+    onCompleteSessionCameraCapture: (String, Boolean) -> Unit = { _, _ -> },
+    onSessionCameraLaunchFailed: (String) -> Unit = {},
+    mediaCaptureError: String? = null,
+    onRetryPendingMediaCaptures: () -> Unit = {},
     onRemoveSessionPhoto: (String) -> Unit,
     onRemoveSessionMedia: (String) -> Unit = {},
     onAddChecklistItem: (String) -> Unit,
@@ -206,6 +213,11 @@ fun WorkoutSessionCockpit(
                     sessionPhotos = sessionPhotos,
                     sessionMedia = sessionMedia,
                     onAddPhoto = onAddSessionPhoto,
+                    onBeginCameraCapture = onBeginSessionCameraCapture,
+                    onCompleteCameraCapture = onCompleteSessionCameraCapture,
+                    onCameraLaunchFailed = onSessionCameraLaunchFailed,
+                    captureError = mediaCaptureError,
+                    onRetryPendingCaptures = onRetryPendingMediaCaptures,
                     onRemovePhoto = onRemoveSessionPhoto,
                     onRemoveMedia = onRemoveSessionMedia,
                     sessionAccentColor = sessionAccentColor,
@@ -344,28 +356,56 @@ private fun CockpitPhotosPage(
     sessionPhotos: List<String>,
     sessionMedia: List<WorkoutMedia>,
     onAddPhoto: (Uri) -> Unit,
+    onBeginCameraCapture: suspend () -> WorkoutMediaCaptureController.ExternalPhotoCapture?,
+    onCompleteCameraCapture: (String, Boolean) -> Unit,
+    onCameraLaunchFailed: (String) -> Unit,
+    captureError: String?,
+    onRetryPendingCaptures: () -> Unit,
     onRemovePhoto: (String) -> Unit,
     onRemoveMedia: (String) -> Unit,
     sessionAccentColor: Color,
     poseOverlayEnabled: Boolean = false,
 ) {
     val context = LocalContext.current
-    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    val scope = rememberCoroutineScope()
+    var pendingCameraCaptureId by rememberSaveable { mutableStateOf<String?>(null) }
+    var preparingCamera by remember { mutableStateOf(false) }
     var preview by remember { mutableStateOf<WorkoutMedia?>(null) }
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) onAddPhoto(uri)
     }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
-        val uri = pendingCameraUri
-        if (ok && uri != null) onAddPhoto(uri)
-        pendingCameraUri = null
+        val captureId = pendingCameraCaptureId
+        if (captureId != null) onCompleteCameraCapture(captureId, ok)
+        pendingCameraCaptureId = null
+    }
+    val startCameraCapture = {
+        if (!preparingCamera && pendingCameraCaptureId == null) {
+            preparingCamera = true
+            scope.launch {
+                val capture = try {
+                    onBeginCameraCapture()
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    null
+                } finally {
+                    preparingCamera = false
+                }
+                if (capture != null) {
+                    pendingCameraCaptureId = capture.id
+                    try {
+                        cameraLauncher.launch(capture.uri)
+                    } catch (_: Exception) {
+                        pendingCameraCaptureId = null
+                        onCameraLaunchFailed(capture.id)
+                    }
+                }
+            }
+        }
     }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            val uri = createSessionCameraUri(context) ?: return@rememberLauncherForActivityResult
-            pendingCameraUri = uri
-            cameraLauncher.launch(uri)
-        }
+        if (granted) startCameraCapture()
     }
 
     Column(
@@ -381,24 +421,40 @@ private fun CockpitPhotosPage(
                     val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                         PackageManager.PERMISSION_GRANTED
                     if (granted) {
-                        val uri = createSessionCameraUri(context) ?: return@TextButton
-                        pendingCameraUri = uri
-                        cameraLauncher.launch(uri)
+                        startCameraCapture()
                     } else {
                         permissionLauncher.launch(Manifest.permission.CAMERA)
                     }
                 },
+                enabled = !preparingCamera && pendingCameraCaptureId == null,
             ) {
                 Icon(Icons.Default.AddAPhoto, contentDescription = null, tint = sessionAccentColor)
                 Spacer(Modifier.size(6.dp))
                 Text("Cámara")
             }
             TextButton(
-                onClick = { galleryLauncher.launch("image/*") },
+                onClick = { galleryLauncher.launch(arrayOf("image/*")) },
             ) {
                 Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = sessionAccentColor)
                 Spacer(Modifier.size(6.dp))
                 Text("Galería")
+            }
+        }
+        if (!captureError.isNullOrBlank()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = captureError,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                TextButton(onClick = onRetryPendingCaptures) {
+                    Text("Reintentar")
+                }
             }
         }
         if (sessionMedia.isEmpty() && sessionPhotos.isEmpty()) {
@@ -428,8 +484,8 @@ private fun CockpitPhotosPage(
         } else {
             sessionPhotos.forEach { path ->
                 Box {
-                    AsyncImage(
-                        model = File(path),
+                    LocalMediaImage(
+                        source = rememberLocalMediaImageSource(File(path)),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -732,10 +788,3 @@ private fun CockpitSectionTitle(
     }
 }
 
-private fun createSessionCameraUri(context: android.content.Context): Uri? {
-    return runCatching {
-        val dir = File(context.cacheDir, "workout_camera").also { if (!it.exists()) it.mkdirs() }
-        val file = File(dir, "session_${System.currentTimeMillis()}.jpg")
-        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-    }.getOrNull()
-}

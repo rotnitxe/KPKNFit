@@ -9,6 +9,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -21,6 +22,8 @@ import androidx.media3.ui.PlayerView
 import com.example.kpkn.data.media.PoseTrajectoryAnalysis
 import com.example.kpkn.domain.biomechanics.PoseTrack
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.isActive
 import java.io.File
 
@@ -45,13 +48,16 @@ fun WorkoutVideoPlayer(
     DisposableEffect(player) {
         onDispose { player.release() }
     }
-    val loadedTrack = remember(file.absolutePath, poseSidecarPath, poseOverlayEnabled, poseTrack) {
-        if (!poseOverlayEnabled) {
-            null
-        } else {
-            poseTrack
-                ?: poseSidecarPath?.let { PoseTrajectoryAnalysis.readSidecar(File(it)) }
-                ?: PoseTrajectoryAnalysis.readSidecar(PoseTrajectoryAnalysis.sidecarFile(file))
+    val loadedTrack by produceState<PoseTrack?>(
+        if (poseOverlayEnabled) poseTrack else null,
+        file.absolutePath, poseSidecarPath, poseOverlayEnabled, poseTrack,
+    ) {
+        value = if (poseOverlayEnabled) poseTrack else null
+        value = if (!poseOverlayEnabled) null else poseTrack ?: withContext(Dispatchers.IO) {
+            runCatching {
+                poseSidecarPath?.let { PoseTrajectoryAnalysis.readSidecar(File(it)) }
+                    ?: PoseTrajectoryAnalysis.readSidecar(PoseTrajectoryAnalysis.sidecarFile(file))
+            }.getOrNull()
         }
     }
     var positionMs by remember(file.absolutePath) { mutableLongStateOf(0L) }

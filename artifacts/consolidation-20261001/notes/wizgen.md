@@ -1,0 +1,48 @@
+# wizgen — generación del wizard (matriz + Q2)
+
+Fecha: 2026-10-01. Solo edición; no se ejecutó Gradle, adb ni tests (la compilación fue mental, con Grep de cada símbolo).
+Respaldo para diffs: `artifacts/consolidation-20261001/snapshot-pre-wave1/android-native/app/src/...`.
+
+## Qué cambió y por qué
+
+### 1. Producción: generador histórico (decisión 2) — `SimpleCyclePersonalizer.personalize`, solo ruta legada
+Archivo: `android-native/app/src/main/java/com/example/kpkn/domain/training/SimpleCyclePersonalizer.kt` (CRLF conservado; un solo hunk en `canAdd`/helpers y otro en el sellado de sesiones; no se tocó `personalizeNative`, `assembleNativeDay`, `defaultDays` ni el fitter).
+
+- Defecto: `canAdd` llenaba cada día con `minutes()` = `6 + ceil(2,25·series + 1,5·ejercicios) + cardio`, que ignora lo que mide `SessionDurationEstimator`. Con E=7, S=14: la fórmula legada da 58 y el estimador 61 (p=3) o 67 (p=4): `B-d1-m60` «requería 61» y `T027-d2-m60` «requería 67» (informe matrix, F-BC1). Eso es un rechazo TIME_BUDGET sin imposibilidad física (§12.2, AC-T004-03).
+- Arreglo: se extrae `buildDaySession(index, daySlots)` (el mismo código que construía la sesión final: orden, `prioritizeExerciseOrder`, `firstCompoundConfigurationIds`, `presetWarmupDefinitions`, parte de cardio) y `estimatedDayMinutes(...)` (estimador común, memorizado por `(configuración, series)` ordenadas). `canAdd` conserva TODOS sus filtros y añade, el último (es el más caro), `estimatedDayMinutes(día + candidato) <= availableMinutes`. `Session.targetDurationMinutes` se sella con esa misma estimación (antes `minutes(daySlots)`).
+- Monotonía (verificada por lectura): el estimador es una suma de términos no negativos por ejercicio (60 s de preparación + series a `max(4·reps_max, 45)` + descansos `restTime·(n-1)` + 30 s + descanso por aproximación) más 180 s generales y el cardio; añadir una serie o un ejercicio nunca resta. El número de aproximaciones del preset solo depende de cuántos cubos de patrón compuesto hay, y añadir ejercicios no reduce cubos (el orden cambia qué ejercicio las lleva, no el tiempo). Si un plan hoy pasa el evaluador, cada estado intermedio de su construcción ≤ el estado final ≤ presupuesto, así que el filtro nunca rechaza un paso de ese camino y el resultado es idéntico. 1d/60 y 2d/60 con cardio de 10 min siguen dando programa: 3 ejercicios de 1 serie + cardio miden ~37 min y el relleno sigue hasta 60.
+- Sin cambio de rendimiento relevante: el estimador solo corre cuando el volumen ya encaja y se memoriza por contenido.
+
+### 2. Tests (decisiones 1, 2, 3, 4, 5)
+- `LegacyNativeDurationConsistencyTest.kt` (nuevo): barrido strength-cardio (6 frecuencias × {20,30,45,60,100} × {BEGINNER, INTERMEDIATE}, gimnasio completo, cardio WALK 10): null con explicación o cada sesión mide ≤ presupuesto con el estimador y está sellada con esa medida; fijos 1d/60 y 2d/60 deben dar programa; otras familias históricas; determinismo.
+- `SetupExecutableAvailabilityMatrixTest.kt`:
+  - `rowsA()` = {30,60,100} (12 positivos). Nuevas: `T019_A_negativo_musculo_new_peso_corporal_20min_4_filas` (A-dN-m20, TIME_BUDGET, etapa DURATION, `requiredMinutes == 21` del plan `native:muscle-foundation-v2`) y `T019_A_suficiencia_musculo_new_peso_corporal_21min_4_filas` (A-dN-m21 positivas). El 21 sale de `independentBodyweightMuscleFloorMinutes()` (180 + 3·(60+2·60+120) + 2·(30+60) = 1260 s), sin leer el motor. La fila `T006-Q4-muscle-bodyweight-d1-m20-negative` (mismas entradas) usa la misma expectativa.
+  - `assertProgramContract` (d): `SessionDurationEstimator.estimate(session).totalMinutes <= row.minutes` y `== targetDurationMinutes` para nativos, además de lo que sella el generador.
+  - Nuevas filas Atleta con material completo: `T006_Q4_completeAthlete_full_material_one_and_two_days_60min_real_vm_preview` (1d/2d × NEW/INTERMEDIATE, 60 min, cardio 10). B y T027 se conservan como regresión del generador histórico.
+  - KDoc: ítem 5 de la cabecera, nota del grupo A y T001_03 (secuencia real 3 → 6 → 3 → 5, y justificación: el perfil Músculo publica A=8, X=5, B=6; A≠X y A≠B son PRECONDICIONES comprobadas en el test; Fuerza y músculo ya no es de conjunto único).
+- `PlanGenerationCoverageT006Test.kt`: `Q2_required_positives` (58 filas aparte de las 2.304): §17.2 #1,#2,#3,#4,#5,#8 como filas del evaluador real (incluye 30 y 45 min) y #7 como comprobación RIR en toda fila Ready; falla ante TIME_BUDGET, COMPOSITION y cualquier rechazo; imprime `[T006][Q2-required] ... rowsByWitness=... readyByWitness=...`.
+- `NativeProfileRecipeAndFitterTest.kt`: `no_pull_athlete_six_day_calendar_has_a_real_glute_mrv_minimum_counterexample` (XA 6, XH 6, XB 4, D6 4 = 20 > 16; suelo del fitter 18; implementado 16); `matrix_materializes_feasible_programs_without_exceeding_glute_mrv` ahora incluye ADVANCED (con `claimedLevel` «avanzado»); nuevo `matrix_at_20_and_60_minutes_never_returns_composition_or_exceeds_glute_mrv` (3 niveles × {20,60}: programa que cabe y glúteo ≤ MRV las seis semanas, o TIME_BUDGET con mínimo > presupuesto; COMPOSITION nunca).
+
+### 3. Documentación (decisión 5)
+- `docs/WIZARD_PLAN_DEVIATIONS.md` (nuevo): DEV-r2-01 — qué dice r2, aritmética del contraejemplo (Músculo 19,0/19,5 y Atleta 20/18), lo implementado, ALT-C/ALT-E descartadas, estado «implementada por el implementador; requiere confirmación del usuario».
+- `NativeProfileSpec.kt`: comentarios `DEV-r2-01` junto a `BL_MRV_ADJUSTED`, `XH_NP_SIX_DAY` y `X_D6_NO_PULL` (sin cambio de lógica; el archivo es LF y sigue LF).
+
+## Decisiones propias
+- El `requiredMinutes == 21` de A20 se exige sobre el rechazo de `native:muscle-foundation-v2` (no sobre el máximo de todos los rechazados): los nativos históricos ya no desbordan, así que ese era el único origen de «requiredMinutes > 20» que la rama negativa veía hoy. Sin el arreglo F-A2 del VM (más abajo) la fila negativa falla con un mensaje explícito (`falta el rechazo TIME_BUDGET tipado…` o `requiredMinutes` nulo), que es la señal correcta.
+- `Q2_required_positives` enumera niveles explícitos (NEW = principiante; `SetupExperience.entries` solo donde el plan dice «todos los niveles»). Filas en las que no hay certeza de que el producto actual las cumpla (por ejemplo Músculo E2 2d/30 y 3d/30 con ~29-30 min estimados a mano, o Atleta 3d/45) se dejaron: son exactamente los testigos del plan; si fallan es un hallazgo real, no un oráculo flojo.
+- Los 20/60 min de la matriz de glúteos aceptan TIME_BUDGET (con mínimo > presupuesto) pero no COMPOSITION; los positivos obligatorios los fija `Q2_required_positives`.
+
+## Riesgos
+1. Dependencia con wizvm (F-A2): `SetupWizardViewModel.materializeProgram`, rama NATIVE, lanza `SetupCandidateFailureException` con solo el texto y descarta `report.reasonCode/maxSessionMinutes`; `translateCandidateFailure` solo extrae `requiredMinutes` de «estima N min» (frase del evaluador), nunca de «el mínimo real es de N min» (fitter). Hasta que se tipe (TIME_BUDGET → SESSION_DURATION + `requiredMinutes = maxSessionMinutes`; APPARATUS_ABSENT → MATERIAL; PROFILE_MISMATCH → PROFILE; COMPOSITION → COMPOSITION, igual que `PlanGenerationCoverageT006Test.kt:264-286`) las cuatro filas A20 y `T006-Q4-muscle-bodyweight-d1-m20-negative` fallan en la aserción `requiredMinutes == 21`. Además mi arreglo legado elimina la fuente accidental de `requiredMinutes > 20` que hacía pasar T006-Q4-TimeNegative (un nativo histórico que desbordaba), así que ese cambio hace visible la deuda.
+2. Los 21 min de d5/d6 dependen del paso 4 del fitter (mover accesorios entre días). Verificado por lectura: cualquier H movido a un BU/BL deja el día destino > 20 min (el slot movido conserva su flag `warmup` de origen y añade 90 s, o recibe el preset de 360 s si es primer compuesto de patrón), por lo que no baja de 21; si la ejecución real diera un programa a 20 min en 5/6 días, sería un hallazgo (el 21 de «Músculo corporal» sería solo 1d/3d) y habría que reclasificar esas dos filas.
+3. Los números de `Q2_required_positives` y del barrido legado son estimaciones estáticas; ninguna prueba se ejecutó. Primer lugar donde mirar: Músculo E0 6d/30 (~27-31 min), Músculo E2 2d/30 y 3d/30, Atleta E0/E2/E6 3d/45 y 5d/45.
+4. La matriz de glúteos amplía el tiempo de ejecución de `NativeProfileRecipeAndFitterTest` (ADVANCED + 180 generaciones a 20/60 min). Q2 sigue necesitando timeout ≥ 3600 s y heap 4 g.
+5. `Session.targetDurationMinutes` de los planes históricos sube (ahora es la medida real): cualquier vista que mostrara la cifra optimista la verá mayor.
+
+## No hecho / pospuesto (decisión 6 y alcance)
+- Fitter MRV no dirigido por músculo (F5 de Q2: retira gemelo/core/superman y baja H ajenos en inter/avanzado; asimetría BL_MRV 2 vs 3 series): NO tocado. No bloquea ningún positivo obligatorio según el modelo; queda como nota.
+- `defaultDays[5]` legado `[1,2,3,5,6]` vs `NativeProfileCalendars.DEFAULT_WEEKDAYS[5] = [1,2,4,5,6]`: NO tocado (inalcanzable desde el wizard, que siempre pasa `weekdays`).
+- F9 (`NativeProfileSpecCatalogTest.every_candidate_configuration_is_approved_in_both_assets` valida un solo catálogo; hoy los tres SHA-256 coinciden): fuera de mi propiedad; sin cambio.
+- F-APPR (política de aproximaciones corporales: una por patrón vs una sola): sin cambio; el 21 y el 41 de `NativeProfileRecipeAndFitterTest` lo respaldan.
+- Tercer estimador en el VM (`estimateFixedSessionMinutes`) y `reasonCode` tipado en el `unavailable(...)` del generador histórico: pospuestos (VM = wizvm).
+- Reparación de que el legado exponga `reasonCode = "TIME_BUDGET"` cuando falla por tiempo: no se hizo; `unavailable()` sigue sin código.

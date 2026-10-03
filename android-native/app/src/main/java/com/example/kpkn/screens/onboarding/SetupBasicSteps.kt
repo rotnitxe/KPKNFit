@@ -4,9 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,8 +17,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -24,6 +28,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.nutrition.EerSex
+import com.example.kpkn.domain.nutrition.bodyFatForSliderPos
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupOptionDefinition
 import com.example.kpkn.domain.onboarding.SetupStepDefinition
@@ -42,8 +47,10 @@ import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardMassUnitToggle
 import com.example.kpkn.screens.onboarding.design.WizardPhysiqueSelector
 import com.example.kpkn.screens.onboarding.design.WizardShapes
+import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightRule
+import kotlin.math.roundToInt
 
 /**
  * Bloque 1 «Datos básicos»: nombre, edad, altura, peso, sexo de cálculo y
@@ -280,6 +287,11 @@ private const val EQUATION_SEX_UNKNOWN = "unknown"
  * La medición exacta es un campo opcional. Mover el slider estima; escribir
  * el porcentaje la sustituye. No hace falta elegir antes entre tres tarjetas.
  * La figura no toca `equationSex`.
+ *
+ * La figura de arranque (≈25 %) NO es una respuesta: Continuar queda bloqueado
+ * hasta una acción explícita (mover o tocar la figura, escribir una medición u
+ * «Omitir este paso»), salvo que Ajustes ya tenga una grasa declarada. El estado
+ * se ve siempre en pantalla («Sin dato todavía», «Omitido»…).
  */
 @Composable
 private fun SetupBodyFatControl(
@@ -292,7 +304,13 @@ private fun SetupBodyFatControl(
         mutableStateOf(state.draft.bodyFatSource == SetupBodyFatSource.MEASURED ||
             !state.draft.inputTexts[step.name].isNullOrBlank())
     }
-    SetupVisualBodyFat(step = step, state = state, vm = vm, measuredOpen = showExact)
+    SetupVisualBodyFat(
+        step = step,
+        state = state,
+        vm = vm,
+        measuredOpen = showExact,
+        bodyFatState = state.draft.bodyFatState(),
+    )
     Text(
         text = if (showExact) "Ocultar medición exacta" else "Tengo una medición exacta",
         style = WizardTypography.cardSubtitle,
@@ -304,7 +322,14 @@ private fun SetupBodyFatControl(
             .padding(horizontal = 4.dp, vertical = 8.dp),
     )
     if (showExact) SetupMeasuredBodyFatField(step = step, state = state, vm = vm)
-    if (definition.allowSkip) SetupFormSkipAction(onSkip = { vm.skipStep(step) })
+    if (definition.allowSkip) {
+        SetupFormSkipAction(onSkip = {
+            // Omitir limpia lo elegido: el campo de medición no puede seguir
+            // mostrando un texto que el borrador ya descartó.
+            showExact = false
+            vm.skipStep(step)
+        })
+    }
 }
 
 /**
@@ -348,8 +373,13 @@ private fun SetupVisualBodyFat(
     state: SetupWizardState,
     vm: SetupWizardViewModel,
     measuredOpen: Boolean,
+    bodyFatState: SetupBodyFatState,
 ) {
     val measuredActive = measuredOpen && !state.draft.inputTexts[step.name].isNullOrBlank()
+    // Omitido: el selector compartido sigue mostrando «≈ N % de grasa corporal» (su texto
+    // no cambia); se atenúa para que no parezca un dato declarado. Sigue siendo tocable:
+    // moverlo vuelve a declarar una estimación.
+    Box(modifier = Modifier.alpha(bodyFatSelectorAlpha(bodyFatState))) {
     WizardPhysiqueSelector(
         candidate = state.draft.bodyFatPercent?.let {
             WizardBodyFatValue(percent = it, source = WizardBodyFatSource.VISUAL_ESTIMATE)
@@ -368,6 +398,104 @@ private fun SetupVisualBodyFat(
             vm.updateStep(step) { draft -> draft.copy(physiqueSliderPosition = position) }
         },
     )
+    }
+    // El texto del selector compartido no cambia (lo esperan pruebas instrumentadas):
+    // el estado real del dato y la línea tocable «Usar ≈ N %» viven aquí, fuera de él.
+    val figurePercent = bodyFatForSliderPos(state.draft.physiqueSliderPosition)
+    SetupBodyFatStatus(
+        statusText = bodyFatStatusText(state.draft),
+        hint = bodyFatStatusHint(bodyFatState),
+        figurePercent = figurePercent.takeIf { bodyFatState.offersFigureValue },
+        onUseFigure = {
+            vm.setStepChoice(step, SetupBodyFatSource.VISUAL_ESTIMATE.name)
+            vm.setStepNumber(step, figurePercent)
+        },
+    )
+}
+
+/**
+ * Estado del dato bajo la figura y, mientras no haya una estimación de ESTA
+ * pantalla, la línea tocable «Usar ≈ N %» para aceptar lo que muestra la
+ * figura. Stateless: el texto lo decide quien llama.
+ */
+@Composable
+private fun SetupBodyFatStatus(
+    statusText: String,
+    hint: String?,
+    figurePercent: Double?,
+    onUseFigure: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = statusText,
+            style = WizardTypography.cardTitle,
+            color = WizardColors.text,
+            modifier = Modifier.testTag(BODY_FAT_STATUS_TAG),
+        )
+        if (hint != null) SetupFormCaption(hint)
+        if (figurePercent != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = WizardSpacing.touchTarget)
+                    .clip(WizardShapes.pill)
+                    .border(1.dp, WizardColors.selectedBorder, WizardShapes.pill)
+                    .clickable(role = Role.Button, onClick = onUseFigure)
+                    .testTag(BODY_FAT_USE_FIGURE_TAG),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Usar ≈ ${figurePercent.roundToInt()} %",
+                    style = WizardTypography.cardTitle,
+                    color = WizardColors.text,
+                )
+            }
+        }
+    }
+}
+
+/** Opacidad del selector de figura: atenuado («sin usar») mientras el paso está omitido. */
+internal fun bodyFatSelectorAlpha(state: SetupBodyFatState): Float =
+    if (state == SetupBodyFatState.SKIPPED) BODY_FAT_SKIPPED_SELECTOR_ALPHA else 1f
+
+internal const val BODY_FAT_SKIPPED_SELECTOR_ALPHA = 0.35f
+
+/** Marca de prueba del estado del dato de grasa corporal. */
+internal const val BODY_FAT_STATUS_TAG = "setup-bodyfat-status"
+
+/** Marca de prueba de la línea tocable «Usar ≈ N %». */
+internal const val BODY_FAT_USE_FIGURE_TAG = "setup-bodyfat-use"
+
+/** Solo se ofrece «Usar ≈ N %» mientras esta pantalla aún no tiene una estimación o medición propia. */
+internal val SetupBodyFatState.offersFigureValue: Boolean
+    get() = this == SetupBodyFatState.PENDING ||
+        this == SetupBodyFatState.ON_FILE ||
+        this == SetupBodyFatState.SKIPPED
+
+/** Línea de estado del dato: siempre dice si hay dato, cuál y si se omitió. */
+internal fun bodyFatStatusText(draft: SetupWizardDraft): String = when (draft.bodyFatState()) {
+    SetupBodyFatState.PENDING -> "Sin dato todavía"
+    SetupBodyFatState.ON_FILE -> (draft.bodyFatPercent ?: draft.importedBodyFatPercent)
+        ?.let { "Dato guardado antes: ≈ ${formatPercent(it)} %" }
+        ?: "Dato guardado antes"
+    SetupBodyFatState.VISUAL -> draft.bodyFatPercent
+        ?.let { "Estimación visual guardada: ≈ ${it.roundToInt()} %" }
+        ?: "Estimación visual guardada"
+    SetupBodyFatState.MEASURED -> draft.bodyFatPercent
+        ?.let { "Medición guardada: ${formatPercent(it)} %" }
+        ?: "Falta el porcentaje de tu medición"
+    SetupBodyFatState.SKIPPED -> "Omitido"
+}
+
+/** Ayuda breve bajo el estado; null cuando el dato ya está claro y no hace falta explicar nada. */
+internal fun bodyFatStatusHint(state: SetupBodyFatState): String? = when (state) {
+    SetupBodyFatState.PENDING -> BODY_FAT_PENDING_MESSAGE
+    SetupBodyFatState.ON_FILE -> "Si continúas, se conserva. Mueve la figura o escribe una medición para cambiarlo."
+    SetupBodyFatState.SKIPPED -> "No se guardará tu grasa corporal. Mueve la figura si cambias de idea."
+    SetupBodyFatState.VISUAL, SetupBodyFatState.MEASURED -> null
 }
 
 private fun formatPercent(value: Double): String =

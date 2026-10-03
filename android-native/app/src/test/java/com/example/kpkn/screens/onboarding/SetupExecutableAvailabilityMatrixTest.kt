@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
+import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.CardioType
@@ -18,6 +19,8 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.resolvedSchedulePlan
+import com.example.kpkn.data.protocols.SlotIntent
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.data.onboarding.SetupCommitCoordinator
 import com.example.kpkn.data.onboarding.SetupCommitRequest
 import com.example.kpkn.data.onboarding.SetupCommitResult
@@ -35,13 +38,17 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupTrainingPlanner
 import com.example.kpkn.domain.onboarding.SetupTrainingPlannerInput
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.templates.SessionTemplateEngine
+import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.ProgramExecutionContract
+import com.example.kpkn.domain.training.SessionDurationEstimator
 import com.example.kpkn.domain.training.effectiveEquipment
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -74,6 +81,7 @@ import java.io.Writer
 import java.security.MessageDigest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -82,12 +90,18 @@ import kotlin.time.Duration.Companion.minutes
  * T-019 — MATRIZ DE FALSACIÓN «ANTES DE SPLIT» sobre el [SetupWizardViewModel] REAL.
  *
  * Qué demuestra y qué NO demuestra:
- * - Evalúa 24 perfiles VÁLIDOS y explícitos (A12, B6, C2, D2, E1, F1) de principio a fin contra
+ * - Evalúa perfiles VÁLIDOS y explícitos de principio a fin (los 24 originales A12, B6, C2,
+ *   D2, E1 y F —que desde 2026-10-02 son F-m20 negativa + F-m21 positiva, ver GRUPO F—, más
+ *   los de T027 y la fila de bloqueo T-001) contra
  *   los motores de producción ([com.example.kpkn.domain.onboarding.SetupTrainingPlanner],
  *   `SimpleCyclePersonalizer` a través de `materializeProgram` del VM, y las recetas
  *   PROTOCOL/TEMPLATE).
- * - `materializeOverride` queda **NULL**: en esta clase no hay generador, candidato ni predicado
- *   duplicado. La lista de candidatos la publica el VM y el preview lo materializa el motor real.
+ * - `materializeOverride` queda **NULL** en TODAS las filas de la matriz: en esta clase no hay
+ *   generador, candidato ni predicado duplicado. La lista de candidatos la publica el VM y el
+ *   preview lo materializa el motor real. La ÚNICA excepción es la regresión de concurrencia
+ *   `T001_03_*`, que inyecta su propia puerta sólo-test SOBRE el materializador para decidir
+ *   CUÁNDO se materializa —nunca qué candidatos se publican— y demostrar que un resultado
+ *   antiguo no sobreescribe al nuevo; esa prueba no ejerce materialización de catálogo.
  * - NO es una prueba de cobertura universal: el espacio categórico son 2^11 = 2048 subconjuntos y
  *   hay más variables además de estos 24 (objetivo, foco, split, marcas, prioridades). Pasar aquí
  *   no prueba la garantía P-006; fallar aquí la refuta en estos puntos concretos.
@@ -106,7 +120,10 @@ import kotlin.time.Duration.Companion.minutes
  *     (`SessionTemplateEngine.sessionHasCompleteExecutableContent`), frecuencia/calendario,
  *     ids de configuración canónicos que resuelven en el catálogo aprobado de MAIN y NO fuga de
  *     material frente al `TrainingOptions.effectiveEquipment` declarado.
- *  5. Tiempo: la fuente NATIVE usa `Session.targetDurationMinutes` (fórmula de slots); una receta
+ *  5. Tiempo: la fuente NATIVE se mide con el estimador común de producción
+ *     (`SessionDurationEstimator`, §12.2) aplicado AQUÍ a cada sesión del programa devuelto, no
+ *     solo con lo que el generador sella en `Session.targetDurationMinutes` (que además debe
+ *     coincidir con esa medida: un generador no puede pasar sellando su propia cifra); una receta
  *     fija usa SU propio `state.fixedSessionEstimateMinutes`. Son dos estimadores distintos y cada
  *     aserción se hace sobre su propia fuente: aquí no se finge que coincidan.
  *  6. T-027 — sólo cuando `row.goal == MIXED`: el cardio tiene que ser CONTENIDO ESTRUCTURADO
@@ -115,6 +132,56 @@ import kotlin.time.Duration.Companion.minutes
  *     duplicado y sin configuración de máquina inventada para andar—, junto a fuerza real. Se
  *     leen las APIs canónicas del modelo de producción, no el nombre del programa ni una anotación.
  *     Las filas NO MIXED conservan su oráculo intacto.
+ *  7. T-001 — ANTES de exigir la lista, cada rechazo estructurado
+ *     (`state.candidateRejections`) tiene etapa coherente con su causa y una causa que conserva
+ *     clase+mensaje (AC-T001-02), y la fila registra ID publicado, equipo efectivo y primer
+ *     rechazo. La fila de bloqueo (gimnasio + «Fuerza y músculo» + 5 días) usa este mismo
+ *     oráculo: si el producto la bloquea, FALLA y ese rojo es el baseline de T-001 (AC-T001-01),
+ *     sin relajar la expectativa.
+ *
+ * GRUPO A (consolidación 2026-10-01, decisión del propietario): el mínimo real de Músculo corporal
+ * principiante es 21 min, no 20, en las cuatro frecuencias del grupo (1, 3, 5 y 6 días). Se calcula
+ * POR FILA y de forma independiente en [independentBodyweightMuscleFloorMinutes] (arquetipos de
+ * r2 §11.3 con la desviación DEV-r2-01 en 5/6 días + las constantes del estimador común de §12.2;
+ * no lee el motor): un día mínimo es 180 s de calentamiento general + 300 s por H corporal + 90 s
+ * por aproximación (más los accesorios que el suelo de dosis diaria obliga a conservar). El día
+ * más largo de cada fila —BFA/BFB en 1 y 3 días, BL_MRV en 5 y 6— son 3 H + 2 aproximaciones =
+ * 1260 s = 21,0 min; BL (19,5 → 20) y BU (14,8 → 15) quedan por debajo. Respaldado por los 41 min
+ * de Atleta corporal 1 día de `NativeProfileRecipeAndFitterTest`. Por eso `rowsA()` conserva sus 12
+ * positivos con {30,60,100} min; las 4 filas de 20 min son NEGATIVAS (`T019_A_negativo_…`:
+ * TIME_BUDGET con requiredMinutes == mínimo de ESA fila) y 4 filas en el mínimo de cada fila
+ * (`T019_A_suficiencia_…`) prueban que ese TIME_BUDGET no es un cajón de sastre: exigen que el plan
+ * PROPIO `native:muscle-foundation-v2` —no cualquier otro candidato histórico que también quepa—
+ * llegue a un programa ejecutable con exactamente ese presupuesto. Las filas negativas instalan los
+ * metadatos de composición del catálogo en `CompositionMetadataHolder` como hace
+ * `initializeExerciseDatabase` en producción (ver [withProductionCompositionMetadata]). Los
+ * contadores de A12, B6, C2, D2 y E1 no cambian (F pasa de 1 a 2 filas: ver GRUPO F); las filas
+ * A20, A21 y las de Atleta completo con material completo
+ * (`T006_Q4_completeAthlete_full_material_…`) se suman aparte. B y T027 siguen siendo la regresión del generador HISTÓRICO `native:strength-cardio`
+ * (MIXED).
+ *
+ * GRUPO F (consolidación 2026-10-02, decisión del propietario): la fila F-presupuesto-minimo
+ * (Músculo, principiante, 11 categorías, 3 días, 20 min) se desdobla en F-m20 NEGATIVA y F-m21
+ * POSITIVA. Tras la re-curaduría del catálogo (lote «pecho»: `flat_chest_fly__machine` gana tres
+ * estabilizadores) el desempate del generador HISTÓRICO (`SimpleCyclePersonalizer.personalize`,
+ * `native:full-body`: menos volumen colateral directo + secundario + estabilizador) deja de elegir
+ * la apertura en máquina (aislamiento) y elige el press convergente (compuesto), así que el día
+ * paga DOS bloques de aproximaciones (empuje y tirón horizontales) y ya no cabe un tercer ejercicio
+ * en 20 min. El mínimo de ESE generador es 21 min, calculado de forma independiente en
+ * [independentHistoricalFullBodyFloorMinutes] (no lee el motor): 180 s de calentamiento general
+ * + 3 ejercicios × (60 s de preparación + 48 s de una serie de 12 repeticiones × 4 s) + 2 familias
+ * compuestas × 360 s de aproximaciones del preset (40, 60 y 80 %: (30+60) + (30+90) + (30+120))
+ * = 180 + 324 + 720 = 1224 s = 20,4 → 21 min. Con solo 2 ejercicios el día mide 1116 s = 18,6 →
+ * 19 min, y el tercero lleva el día a 1224 s > 1200 s: por eso a 20 min salía `dia1=2; dia2=2;
+ * dia3=2`. Es el piso de este desempate, no un mínimo físico (una sesión de apertura + remo +
+ * extensión de 17 min sigue existiendo); el informe de diagnóstico
+ * (`artifacts/consolidation-20261001/research/f-row/informe.md`, §3–§5) lo reproduce con un port
+ * validado contra ocho mediciones y muestra que de 21 a 30 min sí hay plan. F-m20 exige que el
+ * candidato histórico `native:full-body` rechace con TIME_BUDGET TIPADO y requiredMinutes == 21
+ * (antes llegaba como «Falta confirmar material», sin mínimo ni acción de tiempo); F-m21 exige que
+ * ESE mismo plan llegue a un programa ejecutable con exactamente 21 min y que su sesión más larga
+ * mida 21. Contadores: las filas originales pasan de 24 a 25 (A12, B6, C2, D2, E1 y F2: la F1
+ * original, de 20 min, es ahora la negativa F-m20 y se suma la positiva F-m21).
  *
  * Las notas no fatales del motor (`previewReport.limitations`) NO son un fallo.
  *
@@ -664,9 +731,34 @@ class SetupExecutableAvailabilityMatrixTest {
 
     // ─── 1. Matriz BEFORE-SPLIT de 24 perfiles VÁLIDOS ──────────────────────────
 
-    /** A12: MÚSCULO, NEW→BEGINNER, material declarado explícitamente VACÍO (solo peso corporal). */
+    /**
+     * A12: MÚSCULO, NEW→BEGINNER, material declarado explícitamente VACÍO (solo peso corporal),
+     * días {1,3,5,6} × minutos {30,60,100}. Los 20 min no están aquí: el piso real es 21 min y
+     * esas cuatro filas son negativas ([T019_A_negativo_musculo_new_peso_corporal_20min_4_filas]).
+     */
     @Test
     fun T019_A_musculo_new_peso_corporal_12_filas() = runGroup("A", rowsA(), 25.minutes)
+
+    /**
+     * A20 (negativo): las mismas entradas de A con 20 min. El plan propio de Músculo necesita,
+     * en cada una de las cuatro frecuencias, el mínimo de ESA fila (aritmética independiente por
+     * fila en [independentBodyweightMuscleFloorMinutes]: 21 min), así que el producto debe
+     * rechazar con TIME_BUDGET tipado, ese mínimo exacto y etapa de duración, conservando las
+     * respuestas; nunca un PASS vacío ni un éxito parcial (AC-T004-03).
+     */
+    @Test
+    fun T019_A_negativo_musculo_new_peso_corporal_20min_4_filas() =
+        runGroup("A20", rowsANegative20(), 15.minutes)
+
+    /**
+     * A21 (suficiencia): con el mínimo real de cada fila (21 min exactos) el plan PROPIO
+     * `native:muscle-foundation-v2` SÍ llega a un programa ejecutable. Un candidato histórico que
+     * también quepa no vale como testigo: sin esta exigencia el TIME_BUDGET de A20 podría ser un
+     * cajón de sastre (así pasaba la fila de 3 días mientras el fitter informaba 25 min).
+     */
+    @Test
+    fun T019_A_suficiencia_musculo_new_peso_corporal_21min_4_filas() =
+        runGroup("A21", rowsASufficiencyAtFloor(), 15.minutes)
 
     /** B6: MIXED, INTERMEDIATE, 11 categorías, cardio WALK 10 min, días dentro y fuera de 2..4. */
     @Test
@@ -685,7 +777,12 @@ class SetupExecutableAvailabilityMatrixTest {
     fun T019_E_control_positivo_musculo_intermediate_todo_el_material_3_dias_100min() =
         runGroup("E", rowsE(), 15.minutes)
 
-    /** F1: MÚSCULO, NEW, 11 categorías, 3 días / 20 min (presupuesto mínimo admitido). */
+    /**
+     * F2: MÚSCULO, NEW, 11 categorías, 3 días. F-m20 (presupuesto mínimo admitido) es NEGATIVA:
+     * `native:full-body` rechaza con TIME_BUDGET tipado y el mínimo real independiente (21 min,
+     * ver GRUPO F y [independentHistoricalFullBodyFloorMinutes]). F-m21 es POSITIVA: ese mismo
+     * plan llega a un programa ejecutable con exactamente 21 min.
+     */
     @Test
     fun T019_F_musculo_new_todo_el_material_3_dias_20min() = runGroup("F", rowsF(), 15.minutes)
 
@@ -693,21 +790,343 @@ class SetupExecutableAvailabilityMatrixTest {
      * T-027 — REGRESIÓN REAL DEL ViewModel para las frecuencias **dentro** de 2..4 del objetivo
      * MIXED (2, 3 y 4 días / 60 min, INTERMEDIATE, las 11 categorías, cardio CAMINAR 10 min).
      *
-     * Son TRES filas ADITIVAS: las 24 originales (A12, B6, C2, D2, E1, F1) se conservan tal cual
-     * y este método NO las sustituye. Se reusan `runGroup`/`evaluateRow` y TODO el oráculo de
-     * `assertProgramContract`, incluida la sección MIXED que exige cardio estructurado real. Su
+     * Son TRES filas ADITIVAS: las originales (A12, B6, C2, D2, E1 y F, esta última desdoblada en
+     * F-m20/F-m21 por el GRUPO F) se conservan tal cual y este método NO las sustituye. Se reusan
+     * `runGroup`/`evaluateRow` y TODO el oráculo de `assertProgramContract`, incluida la sección MIXED que exige cardio estructurado real. Su
      * propósito es que la ampliación de la familia nativa a 1..6 no rompa lo que ya funcionaba, y
      * que las frecuencias 2, 3 y 4 con cardio se comprueban por el mismo camino real que 1, 5 y 6.
      */
     @Test
     fun T027_M_mixto_intermediate_todo_el_material_2_3_4_dias_60min() = runGroup("T027", rowsT027(), 20.minutes)
 
+    /**
+     * T-001 / AC-T001-01 — REGRESIÓN DEL BLOQUEO con el catálogo REAL de producción:
+     * gimnasio (todas las categorías) + «Fuerza y músculo» + 5 días / 60 min, con inputs
+     * explícitos y `materializeOverride` AUSENTE (esta fila pasa por el motor real, igual
+     * que las 25 anteriores).
+     *
+     * El oráculo es el MISMO de la matriz: candidato real publicado y preview ejecutable
+     * (`ProgramExecutionContract`), más el registro que pide el plan — ID publicado, equipo
+     * efectivo y primer rechazo — que `evaluateRow` deja en la evidencia de la fila. Si el
+     * producto sigue bloqueado, esta fila FALLA y ese rojo es el baseline documentado de
+     * T-001: aquí NO se relaja la expectativa para aceptar el error (T-006 debe ponerla verde).
+     * AC-T001-02 se evalúa dentro de `evaluateRow`, para TODAS las filas.
+     */
+    @Test
+    fun T001_FuerzaMusculo_gimnasio_5_dias_60min() = runGroup("T001", rowsT001(), 15.minutes)
+
+    /** T-006 Q4: el perfil nuevo Atleta completo llega a un preview real del VM con solo cuerpo. */
+    @Test
+    fun T006_Q4_completeAthlete_bodyweight_one_day_60min_real_vm_preview() =
+        runGroup("T006-Q4-Athlete", rowsT006Athlete(), 20.minutes)
+
+    /**
+     * T-006 Q4 / §17.2 #5: Atleta completo con TODO el material (11 categorías) y cardio de 10 min,
+     * 1 y 2 días / 60 min (principiante e intermedio) llega a un preview real del VM con la receta
+     * nativa `native:complete-athlete-v2` (cuatro componentes, estimador común <= 60). Complementa a
+     * B/T027, que siguen siendo la regresión del generador histórico `strength-cardio`: el mixto de
+     * 1 día/60 min no es imposible, y esta fila fija que el perfil de producto tampoco lo es.
+     */
+    @Test
+    fun T006_Q4_completeAthlete_full_material_one_and_two_days_60min_real_vm_preview() =
+        runGroup("T006-Q4-AthleteFull", rowsT006AthleteFullMaterial(), 20.minutes)
+
+    /** T-006 Q4: un presupuesto realmente insuficiente queda tipado antes de review, no como PASS vacío. */
+    @Test
+    fun T006_Q4_bodyweight_time_below_minimum_is_a_structured_negative() =
+        runGroup("T006-Q4-TimeNegative", rowsT006TimeNegative(), 15.minutes)
+
+    /**
+     * T-001 / AC-T001-03 — un resultado de candidatos ANTIGUO, y su cancelación, jamás
+     * sobreescribe la respuesta más nueva.
+     *
+     * Usa MÚSCULO porque necesita DOS conjuntos de ID publicados NO vacíos y DISTINTOS de A
+     * (3 días) para poder observar qué respuesta ganó: X (6 días) y B (5 días). Con este perfil la
+     * última traza registrada publica A=8, X=5 y B=6 entradas; la distinción se comprueba como
+     * PRECONDICIÓN dentro de la propia prueba (A≠X y A≠B), no se da por supuesta. «Fuerza y
+     * músculo» ya no es un caso de conjunto único (`powerbuilding-foundation-v2` cubre 1..6 días):
+     * serviría igual, pero se conserva MÚSCULO por ser el perfil con la evidencia registrada. El
+     * caso de bloqueo de cinco días es la fila T001, que ejerce el motor real SIN puerta.
+     *
+     * Secuencia REAL (3 → 6 → 3 → 5 días), sin carreras de tiempo ni esperas sin cota:
+     *  1. El materializador sólo-test queda ATRAPADO en su puerta: el cálculo de candidatos
+     *     de A (3 días) queda en vuelo con la publicación pendiente.
+     *  2. Se cambia UNA respuesta (X, 6 días) con el guardado de Room FALLANDO: es el camino real
+     *     de fallo de persistencia —el borrador cambia EN MEMORIA y `updateCandidates` NO se
+     *     llama—, así que el job de A queda obsoleto SIN cancelarse. La lista publicada se
+     *     retira y la marca de carga no finge que el job viejo represente a X. PRECONDICIÓN:
+     *     los ID publicados de A y de X son distintos.
+     *  3. El borrador vuelve a A (3 días, también con el guardado fallando), por lo que la clave A
+     *     vuelve a ser igual (ABA): solo la generación, no la comparación de claves, puede impedir
+     *     que el resultado tardío se publique. Tras soltar la puerta, lo que se compara es contra A.
+     *  4. Se suelta la puerta: el cálculo obsoleto termina y llega a su punto de publicación.
+     *     Ni la lista ni `candidateRejections` ni `errors["candidates"]` pueden ser rellenadas.
+     *  5. Con la persistencia restaurada, la respuesta NUEVA (B, 5 días) sí recalcula y publica:
+     *     el estado final tiene que describir a 5 días (sus ID publicados, su mensaje y sus
+     *     respuestas intactas), nunca a A. PRECONDICIÓN: los ID publicados de B y de A son distintos.
+     *
+     * Sin la generación del paso 3, el job de A publicaría sobre el segundo borrador A; esta
+     * prueba discrimina específicamente la carrera ABA además del cambio simple de clave.
+     */
+    @Test
+    fun T001_03_resultado_antiguo_no_sobreescribe_la_respuesta_nueva() = runTest(timeout = 10.minutes) {
+        currentCaseLabel = "T001_03_stale"
+        trace("CASE_BEGIN case=$currentCaseLabel")
+        val db = KpknDatabase.createInMemory(app)
+        val store = ViewModelStore()
+        val handle = SavedStateHandle()
+        val gate = CandidateScanGate { line -> trace(line) }
+        // Adaptador REAL sobre Room con un interruptor sólo-test: cuando `failing` está activo,
+        // `save` lanza y el VM actualiza el borrador EN MEMORIA sin recomputar candidatos. Es el
+        // camino real de fallo de guardado y es lo que deja el job de A obsoleto SIN cancelarlo.
+        val persistence = FailOnDemandPersistence(db)
+        val vm = SetupWizardViewModel(
+            app,
+            handle,
+            persistence,
+            FixedSettingsEnvironment(Settings()),
+            RoomWizardCommits(db),
+            // Única inyección de la clase en esta prueba: controla el TIEMPO del materializado,
+            // no qué candidatos se publican (esa decisión sigue siendo del VM real).
+            SetupWizardMaterializer { draft -> gate.materialize(draft) },
+        )
+        store.put("t001-03", vm)
+        val owner: Job = vm.viewModelScope.coroutineContext[Job]
+            ?: error("T001_03: viewModelScope no expone Job")
+        trace("LIFECYCLE row-owner-captured row=T001_03")
+        // Mismo perfil que la fila T001 salvo por el objetivo: MÚSCULO publica conjuntos de
+        // entradas no vacíos y distintos en 3 (A), 6 (X) y 5 (B) días; las PRECONDICIONES de
+        // abajo (A≠X, A≠B) lo comprueban en cada ejecución.
+        val base = MatrixRow(
+            id = "T001-03-B",
+            group = "T001",
+            goal = SetupGoal.MUSCLE,
+            experience = SetupExperience.INTERMEDIATE,
+            categories = allCategories,
+            daysPerWeek = 5,
+            minutes = 60,
+        )
+        val rowA = base.copy(id = "T001-03-A", daysPerWeek = 3)
+        val rowX = base.copy(id = "T001-03-X", daysPerWeek = 6)
+        val rowB = base
+        val problems = mutableListOf<String>()
+        var publishedA: Set<String> = emptySet()
+        var publishedX: Set<String> = emptySet()
+        var publishedB: Set<String> = emptySet()
+        try {
+            vm.initialize(SetupWizardMode.FULL, draftId = "t001-03")
+            if (!awaitUntil(vm, SETTLE_BUDGET_MS) { !it.isLoading }) {
+                throw AssertionError("HARNESS: el wizard no salió de isLoading (${stateDump(vm.state.value)})")
+            }
+            applyFixture(vm, rowA)
+            if (!awaitUntil(vm, SETTLE_BUDGET_MS) { matchesRequested(it.draft, rowA) }) {
+                throw AssertionError(
+                    "HARNESS: el borrador A no se asentó (${draftFingerprint(vm.state.value.draft)})",
+                )
+            }
+            if (!awaitMaterializerEntered(gate, T001_GATE_ENTER_BUDGET_MILLIS)) {
+                throw AssertionError(
+                    "HARNESS: el cálculo de candidatos de A no llegó al materializador " +
+                        "(entradas=${gate.enteredCount.get()}; ${stateDump(vm.state.value)})",
+                )
+            }
+            val draftA = vm.state.value.draft
+            publishedA = publishedEntryIdSet(draftA)
+            if (publishedA.isEmpty()) {
+                throw AssertionError(
+                    "HARNESS: A debe publicar entradas para que la carrera exista " +
+                        "(publicadas=${publishedEntryIds(draftA)})",
+                )
+            }
+            trace(
+                "RACE step=A draft=${draftFingerprint(draftA)} publicadas=${publishedA.sorted()} " +
+                    "equipo=${declaredEquipment(draftA).sorted()} entradasPuerta=${gate.enteredCount.get()}",
+            )
+            // ── FASE 2: una respuesta cambia con el guardado de Room FALLANDO ──────────────
+            // El borrador pasa a 6 días EN MEMORIA sin que `updateCandidates` se llame: es el
+            // camino real de fallo de guardado y deja el job de A obsoleto SIN cancelarse.
+            persistence.failing = true
+            vm.updateStep(SetupStepId.DAYS) {
+                it.copy(daysPerWeek = 6, selectedWeekdays = (1..6).toSet())
+            }
+            if (!awaitUntil(vm, SETTLE_BUDGET_MS) { matchesRequested(it.draft, rowX) }) {
+                throw AssertionError(
+                    "HARNESS: el borrador X (6 días) no se asentó en memoria " +
+                        "(${draftFingerprint(vm.state.value.draft)}; errores=${vm.state.value.errors})",
+                )
+            }
+            val draftX = vm.state.value.draft
+            publishedX = publishedEntryIdSet(draftX)
+            if (publishedX.isEmpty() || publishedX == publishedA) {
+                throw AssertionError(
+                    "PRECONDICIÓN de la carrera: los ID publicados de A (3 días) y de X (6 días) " +
+                        "deben ser distintos y no vacíos (A=${publishedA.sorted()} X=${publishedX.sorted()})",
+                )
+            }
+            assertFalse(
+                "AC-T001-03: la clave de A ya NO es vigente tras cambiar la respuesta",
+                vm.isCurrentCandidateKey(draftA),
+            )
+            assertTrue(
+                "AC-T001-03: la clave de X (la respuesta nueva en memoria) sí es vigente",
+                vm.isCurrentCandidateKey(draftX),
+            )
+            assertFalse(
+                "la UI no presenta como carga vigente el cálculo de A sobre X",
+                vm.state.value.isCandidateLoading,
+            )
+            trace(
+                "RACE step=X persistencia=fallida draft=${draftFingerprint(draftX)} " +
+                    "publicadasA=${publishedA.sorted()} publicadasX=${publishedX.sorted()} " +
+                    "entradasPuerta=${gate.enteredCount.get()}",
+            )
+
+            // ABA intencional: la huella vuelve a ser A mientras el mismo job A sigue retenido.
+            vm.updateStep(SetupStepId.DAYS) {
+                it.copy(daysPerWeek = 3, selectedWeekdays = rowA.weekdays)
+            }
+            if (!awaitUntil(vm, SETTLE_BUDGET_MS) { matchesRequested(it.draft, rowA) }) {
+                throw AssertionError(
+                    "HARNESS: el borrador volvió a A en memoria " +
+                        "(${draftFingerprint(vm.state.value.draft)}; errores=${vm.state.value.errors})",
+                )
+            }
+            assertTrue(
+                "la huella A vuelve a coincidir; la generación debe distinguir este nuevo A",
+                vm.isCurrentCandidateKey(draftA),
+            )
+            assertFalse("A no se recalcula mientras falla el guardado", vm.state.value.isCandidateLoading)
+
+            // ── FASE 3: se suelta la puerta; el cálculo A obsoleto no puede publicar sobre A nuevo ──
+            gate.releaseGate()
+            if (!awaitMaterializerSettled(gate, T001_GATE_SETTLE_BUDGET_MILLIS)) {
+                throw AssertionError(
+                    "HARNESS: el cálculo obsoleto de A no terminó tras liberar la puerta " +
+                        "(entradas=${gate.enteredCount.get()} salidas=${gate.releasedCount.get()})",
+                )
+            }
+            val stale = vm.state.value
+            assertFalse(
+                "AC-T001-03: el job obsoleto NO queda representado como carga vigente",
+                stale.isCandidateLoading,
+            )
+            assertTrue("la lista de A obsoleto no se publica", stale.availablePlanCandidates.isEmpty())
+            assertTrue(
+                "AC-T001-03: los rechazos de A no se publican sobre la respuesta nueva " +
+                    "(rechazos=${stale.candidateRejections})",
+                stale.candidateRejections.isEmpty(),
+            )
+            assertNull(
+                "AC-T001-03: tampoco el motivo de A puede publicarse (${stale.errors["candidates"]})",
+                stale.errors["candidates"],
+            )
+            assertTrue(
+                "AC-T001-03: tras volver a A la respuesta en memoria sigue intacta " +
+                    "(borrador=${draftFingerprint(stale.draft)})",
+                matchesRequested(stale.draft, rowA),
+            )
+            trace(
+                "RACE stale-published=false rechazos=${stale.candidateRejections.size} " +
+                    "motivo=${stale.errors["candidates"] ?: "-"}",
+            )
+            // ── FASE 4: persistencia restaurada; la respuesta NUEVA recalcula y publica ─────
+            persistence.failing = false
+            vm.updateStep(SetupStepId.DAYS) {
+                it.copy(daysPerWeek = 5, selectedWeekdays = (1..5).toSet())
+            }
+            if (!awaitUntil(vm, SETTLE_BUDGET_MS) { isIdle(it) }) {
+                throw AssertionError(
+                    "HARNESS: el cálculo de B (5 días) no terminó (${stateDump(vm.state.value)})",
+                )
+            }
+            val fresh = vm.state.value
+            publishedB = publishedEntryIdSet(fresh.draft)
+            if (publishedB.isEmpty() || publishedB == publishedA) {
+                throw AssertionError(
+                    "PRECONDICIÓN: los ID publicados de A y de B deben ser distintos y no vacíos " +
+                        "(A=${publishedA.sorted()} B=${publishedB.sorted()})",
+                )
+            }
+            assertTrue(
+                "AC-T001-03: la respuesta nueva sí publica su propio resultado " +
+                    "(rechazos=${fresh.candidateRejections.size})",
+                fresh.candidateRejections.isNotEmpty(),
+            )
+            trace(
+                "RACE step=B draft=${draftFingerprint(fresh.draft)} publicadas=${publishedB.sorted()} " +
+                    "rechazos=${fresh.candidateRejections.mapNotNull { it.planId }.sorted()} " +
+                    "motivo=${fresh.errors["candidates"] ?: "-"}",
+            )
+            trace("RACE guard staleA=false currentA=true y publicacion-de-B=ok")
+        } catch (error: Throwable) {
+            // Ninguna aserción se convierte en PASS: el fallo queda registrado y se relanza.
+            problems += (error.message ?: error.toString()).replace('\n', ' ')
+            if (error !is AssertionError) problems += "clase=${error::class.java.name}"
+        } finally {
+            // Liberación GARANTIZADA: pase lo que pase, la puerta se abre y el materializador
+            // se drena con techo finito; nunca se espera sin cota.
+            gate.releaseGate()
+            val settled = awaitMaterializerSettled(gate, T001_GATE_SETTLE_BUDGET_MILLIS)
+            trace(
+                "REGRESSION after-release settled=$settled entradas=${gate.enteredCount.get()} " +
+                    "salidas=${gate.releasedCount.get()}",
+            )
+            if (!settled) {
+                problems += "HARNESS_BLOCKER: el materializador no drenó tras liberar la puerta " +
+                    "(entradas=${gate.enteredCount.get()} salidas=${gate.releasedCount.get()})"
+            }
+            val outcome = closeRowResources(owner, store, db, "T001_03", ROW_CLEANUP_BUDGET_NANOS)
+            if (outcome.clearFailure != null) {
+                problems += "HARNESS_BLOCKER: store.clear() de T001_03 falló: " +
+                    "${outcome.clearFailure::class.java.name}: ${outcome.clearFailure.message}"
+            } else if (!outcome.completed) {
+                problems += "HARNESS_BLOCKER: ${outcome.detail}"
+            }
+            trace(
+                "REGRESSION close outcome completed=${outcome.completed} elapsedMs=${outcome.elapsedMillis} " +
+                    "detail=${outcome.detail}",
+            )
+        }
+        if (problems.isNotEmpty()) {
+            fail("T001_03 no alcanzó la secuencia exigida:\n  - ${problems.joinToString("\n  - ")}")
+        }
+        val finalState = vm.state.value
+        // ── Verificación posterior a la liberación (sólo se alcanza si todo lo anterior pasó) ──
+        assertTrue(
+            "AC-T001-03: con la puerta abierta B tiene que publicar sus rechazos " +
+                "(rechazos=${finalState.candidateRejections.size})",
+            finalState.candidateRejections.isNotEmpty(),
+        )
+        assertEquals(
+            "AC-T001-03: los rechazos publicados tienen que ser los ID publicados de B, no los de A " +
+                "(A=${publishedA.sorted()} B=${publishedB.sorted()})",
+            publishedB,
+            finalState.candidateRejections.mapNotNull { it.planId }.toSet(),
+        )
+        val reason = finalState.errors["candidates"]
+        assertTrue(
+            "AC-T001-03: el motivo publicado tiene que describir a B (${publishedB.size} planes " +
+                "publicados), no a A (${publishedA.size}): $reason",
+            reason != null && reason.contains("${publishedB.size} planes publicados"),
+        )
+        assertTrue(
+            "AC-T001-03: las respuestas nuevas de B tienen que seguir intactas " +
+                "(borrador=${draftFingerprint(finalState.draft)})",
+            matchesRequested(finalState.draft, rowB),
+        )
+        trace("CASE_END case=$currentCaseLabel outcome=PASS")
+    }
+
     // ─── Filas de la matriz ────────────────────────────────────────────────────
 
     private val allCategories: Set<EquipmentCategory> = EquipmentCategory.entries.toSet()
 
-    private fun rowsA(): List<MatrixRow> = listOf(1, 3, 5, 6).flatMap { days ->
-        listOf(20, 60, 100).map { minutes ->
+    /** Días del grupo A: la misma lista para los 12 positivos, los 4 negativos de 20 min y las 4 filas de 21 min. */
+    private val groupADays = listOf(1, 3, 5, 6)
+
+    /** A12 positivos: 4 frecuencias × {30,60,100} min. Los 20 min son negativos (ver [rowsANegative20]). */
+    private fun rowsA(): List<MatrixRow> = groupADays.flatMap { days ->
+        listOf(30, 60, 100).map { minutes ->
             MatrixRow(
                 id = "A-d$days-m$minutes",
                 group = "A",
@@ -718,6 +1137,140 @@ class SetupExecutableAvailabilityMatrixTest {
                 minutes = minutes,
             )
         }
+    }
+
+    /**
+     * Pieza de un día de Músculo corporal en el cálculo independiente del piso de tiempo.
+     * [intent] es H (hipertrofia, 2 series en principiante), I (aislamiento, 1) o C (core, 1);
+     * [approachFamily] es la familia de patrón compuesto que recibe UNA aproximación técnica en su
+     * primer slot (null = aislamiento o sin patrón compuesto, sin aproximación).
+     */
+    private data class FloorSlot(val intent: Char, val approachFamily: String? = null)
+
+    /**
+     * Arquetipos de día de Músculo sin soporte de tirón de r2 §11.3 (BFA, BFB, BU, BL) más BL_MRV,
+     * la desviación DEV-r2-01 de 5 y 6 días (docs/WIZARD_PLAN_DEVIATIONS.md): flexión en lugar de
+     * puente en dos de los tres BL. S/U = sentadilla y zancada (familia SQUAT), B = flexión
+     * (PUSH), SM = superman (extensión: familia HINGE); el puente (BG), el glúteo aislado (G) y el
+     * core (C) no llevan aproximación. Escritos aquí desde el plan, sin leer las tablas del motor.
+     */
+    private val floorArchetypes: Map<String, List<FloorSlot>> = mapOf(
+        "BFA" to listOf(
+            FloorSlot('H', "SQUAT"), FloorSlot('H', "PUSH"), FloorSlot('H'), FloorSlot('I', "HINGE"), FloorSlot('C'),
+        ),
+        "BFB" to listOf(
+            FloorSlot('H', "SQUAT"), FloorSlot('H', "PUSH"), FloorSlot('H'), FloorSlot('I'), FloorSlot('C'),
+        ),
+        "BU" to listOf(FloorSlot('H', "PUSH"), FloorSlot('I', "HINGE"), FloorSlot('C')),
+        "BL" to listOf(FloorSlot('H', "SQUAT"), FloorSlot('H'), FloorSlot('H', "SQUAT"), FloorSlot('I')),
+        "BL_MRV" to listOf(FloorSlot('H', "SQUAT"), FloorSlot('H', "PUSH"), FloorSlot('H', "SQUAT"), FloorSlot('I')),
+    )
+
+    /** Calendario por frecuencia de r2 §11.3 (3 días: BFA/BFB/BFA; 5 y 6 con BL_MRV por DEV-r2-01). */
+    private val floorCalendars: Map<Int, List<String>> = mapOf(
+        1 to listOf("BFA"),
+        3 to listOf("BFA", "BFB", "BFA"),
+        5 to listOf("BL", "BU", "BL_MRV", "BU", "BL_MRV"),
+        6 to listOf("BU", "BL", "BU", "BL_MRV", "BU", "BL_MRV"),
+    )
+
+    /**
+     * Mínimo real, en minutos, de la sesión más larga de Músculo corporal principiante (solo
+     * peso corporal, material declarado vacío) con [days] días, tras el fitter de r2 §12.3. Es un
+     * cálculo INDEPENDIENTE y POR FILA: parte del calendario y los arquetipos del plan
+     * ([floorCalendars], [floorArchetypes]) y de las constantes publicadas del estimador común
+     * (§12.2) escritas aquí; no lee el motor ni sus tablas.
+     *
+     * Por día: se retiran los accesorios opcionales —I primero, C después— mientras el día
+     * conserve el suelo de dosis diaria (≥2 configuraciones y ≥4 series; H no se retira ni se
+     * reduce en principiante: ya está en 2 series), y el día mínimo cuesta:
+     *  - 180 s de calentamiento general (3 min, §12.2).
+     *  - H corporal: 60 s de preparación + 2 series de 60 s (el estimador mide el extremo alto del
+     *    rango 8–15: max(4 s × 15 reps, 45 s)) + 120 s de descanso entre ambas (T3 compuesto) = 300 s.
+     *    Un I conservado: 60 + 60 = 120 s (1 serie, rango 10–15). Un C conservado: 60 + max(4 × 12, 45)
+     *    = 108 s (1 serie, rango 8–12).
+     *  - 90 s (30 s de ejecución + 60 s de descanso) por aproximación técnica: una por familia de
+     *    patrón compuesto presente (sentadilla, empuje, bisagra); el puente no lleva.
+     * Resultado por arquetipo mínimo: BFA y BFB = 3 H + 2 aproximaciones = 180 + 900 + 180 = 1260 s
+     * = 21,0 min; BL_MRV = 3 H + 2 aproximaciones = 1260 s = 21,0 min; BL = 3 H + 1 aproximación
+     * (U comparte la familia de S) = 1170 s = 19,5 → 20 min; BU conserva SM y C porque quitar
+     * cualquiera deja 3 series < 4 = 180 + 300 + 120 + 108 + 2 · 90 = 888 s = 14,8 → 15 min. El
+     * piso de la fila es el del día más largo: 21 min en 1, 3, 5 y 6 días. Esas cifras (20, 15 y
+     * 21 por día en 5 días; 15, 20, 15, 21… en 6) son además las que mide el estimador sobre el
+     * programa que llega a la vista previa, y los 41 min de Atleta corporal 1 día
+     * (`NativeProfileRecipeAndFitterTest.cardio_defaults_use_session_time_boundaries_44_and_45`) se
+     * obtienen con esta misma aritmética.
+     */
+    private fun independentBodyweightMuscleFloorMinutes(days: Int): Int {
+        val generalWarmupSeconds = 3 * 60
+        val setupSecondsPerExercise = 60
+        val approachSeconds = 30 + 60
+        val minimumConfigurations = 2
+        val minimumWorkingSets = 4
+        fun setsOf(slot: FloorSlot): Int = if (slot.intent == 'H') 2 else 1
+        fun secondsOf(slot: FloorSlot): Int = when (slot.intent) {
+            'H' -> setupSecondsPerExercise + 2 * maxOf(4 * 15, 45) + (2 - 1) * 120
+            'I' -> setupSecondsPerExercise + 1 * maxOf(4 * 15, 45)
+            else -> setupSecondsPerExercise + 1 * maxOf(4 * 12, 45)
+        }
+        fun daySeconds(slots: List<FloorSlot>): Int = generalWarmupSeconds +
+            slots.sumOf { secondsOf(it) } +
+            slots.mapNotNull { it.approachFamily }.distinct().size * approachSeconds
+        fun minimalDaySeconds(archetype: List<FloorSlot>): Int {
+            val kept = archetype.toMutableList()
+            for (intent in listOf('I', 'C')) {
+                for (slot in archetype.filter { it.intent == intent }) {
+                    val trial = kept.toMutableList().also { it.remove(slot) }
+                    if (trial.size >= minimumConfigurations && trial.sumOf { setsOf(it) } >= minimumWorkingSets) {
+                        kept.clear()
+                        kept += trial
+                    }
+                }
+            }
+            return daySeconds(kept)
+        }
+        val longestDaySeconds = floorCalendars.getValue(days).maxOf { name ->
+            minimalDaySeconds(floorArchetypes.getValue(name))
+        }
+        return (longestDaySeconds + 59) / 60
+    }
+
+    /**
+     * A20 negativas: las mismas entradas de A con 20 min. El plan propio de Músculo
+     * (`native:muscle-foundation-v2`) debe rechazar con TIME_BUDGET y requiredMinutes == el piso
+     * independiente de ESA fila (21 min en 1, 3, 5 y 6 días).
+     */
+    private fun rowsANegative20(): List<MatrixRow> = groupADays.map { days ->
+        MatrixRow(
+            id = "A-d$days-m20",
+            group = "A20",
+            goal = SetupGoal.MUSCLE,
+            experience = SetupExperience.NEW,
+            categories = emptySet(),
+            daysPerWeek = days,
+            minutes = 20,
+            expectedNegativeReason = PlanRejectionReason.TIME_BUDGET,
+            negativeWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
+            expectedRequiredMinutes = independentBodyweightMuscleFloorMinutes(days),
+        )
+    }
+
+    /**
+     * A21 suficiencia: en el piso de CADA fila (no en un 21 fijo) el plan propio de Músculo, y
+     * no otro candidato, alcanza un programa ejecutable cuya sesión más larga mide ese piso.
+     */
+    private fun rowsASufficiencyAtFloor(): List<MatrixRow> = groupADays.map { days ->
+        val floor = independentBodyweightMuscleFloorMinutes(days)
+        MatrixRow(
+            id = "A-d$days-m$floor",
+            group = "A21",
+            goal = SetupGoal.MUSCLE,
+            experience = SetupExperience.NEW,
+            categories = emptySet(),
+            daysPerWeek = days,
+            minutes = floor,
+            requiredWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
+        )
     }
 
     private fun rowsB(): List<MatrixRow> = listOf(1, 5, 6).flatMap { days ->
@@ -774,17 +1327,71 @@ class SetupExecutableAvailabilityMatrixTest {
         ),
     )
 
-    private fun rowsF(): List<MatrixRow> = listOf(
-        MatrixRow(
-            id = "F-presupuesto-minimo",
-            group = "F",
-            goal = SetupGoal.MUSCLE,
-            experience = SetupExperience.NEW,
-            categories = allCategories,
-            daysPerWeek = 3,
-            minutes = 20,
-        ),
-    )
+    /**
+     * Mínimo real, en minutos, del generador HISTÓRICO `native:full-body` para Músculo principiante
+     * con las 11 categorías y 3 días, tras la re-curaduría del catálogo (GRUPO F). Es un cálculo
+     * INDEPENDIENTE del motor: parte del piso de un día con tres ejercicios cuando el desempate del
+     * generador elige DOS compuestos de patrón distinto (press convergente = empuje horizontal,
+     * remo apoyado en máquina = tirón horizontal) y de las constantes publicadas del estimador común
+     * (§12.2), escritas aquí; no lee `SimpleCyclePersonalizer` ni `SessionDurationEstimator`.
+     *
+     *  - 180 s de calentamiento general (3 min).
+     *  - 3 ejercicios (mínimo de una sesión equilibrada) de 60 s de preparación + UNA serie de 48 s
+     *    (extremo alto del rango 8–12: 12 repeticiones × 4 s); con una sola serie no hay descanso.
+     *  - 2 familias compuestas × 360 s de aproximaciones del preset del plan (40 %, 60 % y 80 %):
+     *    30 s de ejecución + descanso de 60, 90 y 120 s = (30+60) + (30+90) + (30+120). Aislamiento
+     *    (apertura, extensión de cuádriceps) no paga aproximaciones.
+     *
+     * 180 + 3 × (60 + 48) + 2 × 360 = 1224 s = 20,4 → 21 min (con 2 ejercicios: 1116 s = 18,6 → 19
+     * min; el tercero lleva el día a 1224 s > 1200 s). Es el piso de ESTE desempate y no un mínimo
+     * físico; de 21 a 30 min el generador sí produce plan (informe f-row §5).
+     */
+    private fun independentHistoricalFullBodyFloorMinutes(): Int {
+        val generalWarmupSeconds = 3 * 60
+        val setupSecondsPerExercise = 60
+        val workingSetSeconds = 12 * 4
+        val approachBlockSeconds = (30 + 60) + (30 + 90) + (30 + 120)
+        val compoundPatternFamilies = 2
+        val minimumExercisesPerDay = 3
+        val longestDaySeconds = generalWarmupSeconds +
+            minimumExercisesPerDay * (setupSecondsPerExercise + workingSetSeconds) +
+            compoundPatternFamilies * approachBlockSeconds
+        return (longestDaySeconds + 59) / 60
+    }
+
+    /**
+     * F-m20 (negativa, presupuesto mínimo admitido) y F-m21 (suficiencia en el piso del generador
+     * histórico). El testigo de ambas es `native:full-body`: el plan que a 20 min informa el
+     * TIME_BUDGET tipado con ese mínimo es el que debe llegar a programa con ese mismo mínimo, para
+     * que el rechazo no sea un cajón de sastre (mismo criterio que A20/A21).
+     */
+    private fun rowsF(): List<MatrixRow> {
+        val floor = independentHistoricalFullBodyFloorMinutes()
+        return listOf(
+            MatrixRow(
+                id = "F-m20",
+                group = "F",
+                goal = SetupGoal.MUSCLE,
+                experience = SetupExperience.NEW,
+                categories = allCategories,
+                daysPerWeek = 3,
+                minutes = 20,
+                expectedNegativeReason = PlanRejectionReason.TIME_BUDGET,
+                negativeWitnessPlanId = HISTORICAL_FULL_BODY_ID,
+                expectedRequiredMinutes = floor,
+            ),
+            MatrixRow(
+                id = "F-m$floor",
+                group = "F",
+                goal = SetupGoal.MUSCLE,
+                experience = SetupExperience.NEW,
+                categories = allCategories,
+                daysPerWeek = 3,
+                minutes = floor,
+                requiredWitnessPlanId = HISTORICAL_FULL_BODY_ID,
+            ),
+        )
+    }
 
     /**
      * T-027 — Las TRES frecuencias que el catálogo nativo ya admitía (2..4) con el objetivo MIXED
@@ -804,6 +1411,77 @@ class SetupExecutableAvailabilityMatrixTest {
         )
     }
 
+    /**
+     * T-001 — CASO DE BLOQUEO: gimnasio (todas las categorías) + «Fuerza y músculo» +
+     * 5 días / 60 min, con inputs EXPLÍCITOS y el catálogo real de producción.
+     * `categories` y `goal` son los que filtran el planner; nada se relaja aquí para
+     * que la fila pueda pasar: si el producto la bloquea, la fila queda ROJA.
+     */
+    private fun rowsT001(): List<MatrixRow> = listOf(
+        MatrixRow(
+            id = "T001-fuerza-musculo-gym-d5-m60",
+            group = "T001",
+            goal = SetupGoal.STRENGTH_MUSCLE,
+            experience = SetupExperience.INTERMEDIATE,
+            categories = allCategories,
+            daysPerWeek = 5,
+            minutes = 60,
+        ),
+    )
+
+    private fun rowsT006Athlete(): List<MatrixRow> = listOf(
+        MatrixRow(
+            id = "T006-Q4-athlete-bodyweight-d1-m60",
+            group = "T006-Q4-Athlete",
+            goal = SetupGoal.COMPLETE_ATHLETE,
+            experience = SetupExperience.NEW,
+            categories = emptySet(),
+            daysPerWeek = 1,
+            minutes = 60,
+            cardioMinutes = 10,
+        ),
+    )
+
+    /**
+     * §17.2 #5: Atleta completo con las 11 categorías de material y cardio CAMINAR 10 min, 1 y 2
+     * días / 60 min, principiante e intermedio. Sustituye la lectura errónea «el mixto de 1
+     * día/60 no cabe»: lo que no cabía era el generador histórico (filas B y T027); el perfil de
+     * producto `native:complete-athlete-v2` sí (sesión única de base, §11.4).
+     */
+    private fun rowsT006AthleteFullMaterial(): List<MatrixRow> = listOf(1, 2).flatMap { days ->
+        listOf(SetupExperience.NEW, SetupExperience.INTERMEDIATE).map { experience ->
+            MatrixRow(
+                id = "T006-Q4-athlete-full-d$days-m60-${experience.name}",
+                group = "T006-Q4-AthleteFull",
+                goal = SetupGoal.COMPLETE_ATHLETE,
+                experience = experience,
+                categories = allCategories,
+                daysPerWeek = days,
+                minutes = 60,
+                cardioMinutes = 10,
+            )
+        }
+    }
+
+    /**
+     * Mismas entradas que `A-d1-m20` (Músculo, NEW, solo cuerpo, 1 día, 20 min): ambas filas deben
+     * dar el mismo veredicto, el mínimo real de 21 min calculado de forma independiente.
+     */
+    private fun rowsT006TimeNegative(): List<MatrixRow> = listOf(
+        MatrixRow(
+            id = "T006-Q4-muscle-bodyweight-d1-m20-negative",
+            group = "T006-Q4-TimeNegative",
+            goal = SetupGoal.MUSCLE,
+            experience = SetupExperience.NEW,
+            categories = emptySet(),
+            daysPerWeek = 1,
+            minutes = 20,
+            expectedNegativeReason = PlanRejectionReason.TIME_BUDGET,
+            negativeWitnessPlanId = NativeProfileKind.MUSCLE.entryId,
+            expectedRequiredMinutes = independentBodyweightMuscleFloorMinutes(days = 1),
+        ),
+    )
+
     private data class MatrixRow(
         val id: String,
         val group: String,
@@ -813,6 +1491,19 @@ class SetupExecutableAvailabilityMatrixTest {
         val daysPerWeek: Int,
         val minutes: Int,
         val cardioMinutes: Int? = null,
+        val expectedNegativeReason: PlanRejectionReason? = null,
+        /**
+         * Solo filas negativas: el plan cuyo rechazo TIME_BUDGET tipado debe informar el mínimo
+         * real [expectedRequiredMinutes] (calculado de forma independiente en el test).
+         */
+        val negativeWitnessPlanId: String? = null,
+        val expectedRequiredMinutes: Int? = null,
+        /**
+         * Solo filas positivas de suficiencia: el plan que debe ser el testigo del programa. Otro
+         * candidato viable (p. ej. un nativo histórico que también cabe) no demuestra que el plan
+         * propio llegue a un programa en este presupuesto.
+         */
+        val requiredWitnessPlanId: String? = null,
     ) {
         /** Disponibilidad EXPLÍCITA: vacía = solo peso corporal, nunca `null` (legacy). */
         val availability: EquipmentAvailability get() = EquipmentAvailability(categories)
@@ -834,12 +1525,40 @@ class SetupExecutableAvailabilityMatrixTest {
 
     // ─── Motor de la matriz ───────────────────────────────────────────────────
 
+    /**
+     * En producción `initializeExerciseDatabase` publica en [CompositionMetadataHolder] los
+     * metadatos de composición del catálogo aprobado, y las plantillas del wizard
+     * (`CatalogSource.TEMPLATE` → `ProgramTemplateEngine.applyTemplate`) los resuelven por ese
+     * holder: el ViewModel no se los pasa. Este arnés no inicializa `ExerciseDatabase`, así que
+     * sin el holder cada plantilla publicada (`template:body-20-5` con 5 días,
+     * `template:body-16-4` con 6) se rechazaba con `IllegalStateException` convertida en
+     * INTERNAL_MATERIALIZATION, un estado que el usuario nunca ve, y la invariante «un rechazo
+     * interno no puede pasar como incompatibilidad de usuario» de las filas negativas fallaba por
+     * el arnés y no por el producto. Se instala el MISMO proveedor que en producción (derivado del
+     * asset real ya verificado por identidad) solo en las filas negativas —las únicas que juzgan
+     * los rechazos de todos los candidatos— y se restaura el valor anterior; las demás filas
+     * conservan su comportamiento, que depende del orden de los rechazos de plantillas
+     * (T001_03 compara el conjunto de rechazos con los ID publicados).
+     */
+    private inline fun <T> withProductionCompositionMetadata(enabled: Boolean, block: () -> T): T {
+        if (!enabled) return block()
+        val previous = CompositionMetadataHolder.current
+        CompositionMetadataHolder.current = CatalogCompositionMetadataProvider.fromCatalog(approvedCatalog)
+        try {
+            return block()
+        } finally {
+            CompositionMetadataHolder.current = previous
+        }
+    }
+
     private fun runGroup(label: String, rows: List<MatrixRow>, budget: Duration) = runTest(timeout = budget) {
         currentCaseLabel = "grupo-$label"
         trace("GROUP_BEGIN group=$label filas=${rows.size} budgetMs=${budget.inWholeMilliseconds}")
         val startedAt = System.nanoTime()
         val outcomes = rows.map { row ->
-            val outcome = evaluateRow(row)
+            val outcome = withProductionCompositionMetadata(enabled = row.expectedNegativeReason != null) {
+                evaluateRow(row)
+            }
             printMatrixRow(outcome)
             outcome
         }
@@ -870,6 +1589,7 @@ class SetupExecutableAvailabilityMatrixTest {
         val evidence = linkedMapOf<String, String>()
         val problems = mutableListOf<String>()
         var harnessFailure = false
+        var negativePass = false
         val rowStartedAt = System.nanoTime()
         trace("ROW_BEGIN id=${row.id} inputs=${sanitize(row.requested)}")
         try {
@@ -905,6 +1625,20 @@ class SetupExecutableAvailabilityMatrixTest {
             evidence["candidates"] = state.availablePlanCandidates.joinToString(";") { "${it.id}[${it.source}]" }
             evidence["candidateReason"] = state.errors["candidates"] ?: "-"
 
+            // T-001 / AC-T001-02: el informe ESTRUCTURADO por candidato se juzga ANTES de
+            // exigir que la lista no esté vacía, porque el bloqueo es exactamente el caso en
+            // el que los rechazos son el único diagnóstico. El plan pide registrar además el
+            // ID publicado, el equipo efectivo y el PRIMER rechazo: los tres quedan en la
+            // evidencia de la fila (y el primero, en la propia línea MATRIX_ROW).
+            val publishedNow = publishedEntryIdSet(state.draft)
+            evidence["firstRejection"] = state.candidateRejections.firstOrNull()?.let { rejection ->
+                "${rejection.planId ?: "(global)"}@${rejection.stage}: ${rejection.reason}"
+            } ?: "(sin rechazo)"
+            evidence["candidateRejections"] = state.candidateRejections.joinToString("; ") { rejection ->
+                "${rejection.planId ?: "(global)"}@${rejection.stage}: ${rejection.reason}"
+            }.ifBlank { "(ninguno)" }
+            assertStructuredRejections(row, state.candidateRejections, publishedNow)
+
             assertTrue(
                 "el cálculo de candidatos debe terminar antes de juzgar la fila " +
                     "(isCandidateLoading=${state.isCandidateLoading})",
@@ -917,66 +1651,167 @@ class SetupExecutableAvailabilityMatrixTest {
                     !state.planAdaptedToBodyweight,
                 )
             }
-            assertTrue(
-                "availablePlanCandidates vacía para un perfil VÁLIDO; motivo real = ${state.errors["candidates"]}",
-                state.availablePlanCandidates.isNotEmpty(),
-            )
-            assertTrue(
-                "planCandidates vacía con availablePlanCandidates=${state.availablePlanCandidates.size}",
-                state.planCandidates.isNotEmpty(),
-            )
+            if (row.expectedNegativeReason != null) {
+                assertTrue(
+                    "una fila negativa esperada no puede publicar candidatos viables: ${state.availablePlanCandidates}",
+                    state.availablePlanCandidates.isEmpty(),
+                )
+                assertTrue(
+                    "una fila negativa esperada no puede mostrar tarjetas: ${state.planCandidates}",
+                    state.planCandidates.isEmpty(),
+                )
+                assertNull("no se selecciona un candidato sin tiempo suficiente", state.draft.selectedCatalogId)
+                assertNull("no se prepara preview para una combinación rechazada", state.programPreview)
+                assertTrue(
+                    "la interfaz conserva una explicación de los candidatos rechazados",
+                    !state.errors["candidates"].isNullOrBlank(),
+                )
+                val matchingRejections = state.candidateRejections.filter {
+                    it.reasonCode == row.expectedNegativeReason
+                }
+                assertTrue(
+                    "falta el rechazo tipado ${row.expectedNegativeReason}: ${state.candidateRejections}",
+                    matchingRejections.isNotEmpty(),
+                )
+                matchingRejections.forEach { rejection ->
+                    assertEquals(
+                        "${rejection.planId}: etapa de rechazo temporal",
+                        SetupCandidateRejectionStage.DURATION,
+                        rejection.stage,
+                    )
+                }
+                // No todos los caminos de rechazo de materialización aportan el mínimo en el campo
+                // tipado (p. ej. una receta informa «el mínimo real es 21 min» en su detalle). La
+                // fila sí exige un testigo estructurado que conserve requiredMinutes > presupuesto;
+                // no exige ese dato redundante a cada candidato rechazado.
+                val requiredMinutes = matchingRejections.mapNotNull { it.requiredMinutes }.maxOrNull()
+                assertTrue(
+                    "el rechazo TIME_BUDGET debe incluir un mínimo tipado mayor que ${row.minutes}: " +
+                        matchingRejections.map { "${it.planId}=${it.requiredMinutes}" },
+                    requiredMinutes != null && requiredMinutes > row.minutes,
+                )
+                // Filas con mínimo calculado de forma independiente (grupo A20): el plan propio
+                // debe informar EXACTAMENTE ese mínimo, no cualquier número mayor que el presupuesto
+                // ni el de un nativo histórico. Sin esto, el TIME_BUDGET de un solo candidato
+                // histórico bastaría para el PASS.
+                val witnessPlanId = row.negativeWitnessPlanId
+                if (witnessPlanId != null) {
+                    val witnessRejection = matchingRejections.singleOrNull { it.planId == witnessPlanId }
+                    assertNotNull(
+                        "${row.id}: falta el rechazo TIME_BUDGET tipado de $witnessPlanId: " +
+                            state.candidateRejections.map { "${it.planId}=${it.reasonCode}/${it.requiredMinutes}" },
+                        witnessRejection,
+                    )
+                    assertEquals(
+                        "${row.id}: $witnessPlanId debe informar el mínimo real calculado de forma " +
+                            "independiente (${row.expectedRequiredMinutes} min)",
+                        row.expectedRequiredMinutes,
+                        witnessRejection!!.requiredMinutes,
+                    )
+                    evidence["witnessRequiredMinutes"] = witnessRejection.requiredMinutes.toString()
+                }
+                assertTrue(
+                    "un rechazo interno no puede pasar como incompatibilidad de usuario",
+                    state.candidateRejections.none {
+                        it.reasonCode == PlanRejectionReason.INTERNAL_MATERIALIZATION ||
+                            it.reasonCode == PlanRejectionReason.CATALOG_NOT_READY
+                    },
+                )
+                evidence["outcome"] = "NEGATIVE_PASS"
+                evidence["negativeReason"] = row.expectedNegativeReason.name
+                evidence["requiredMinutes"] = requireNotNull(requiredMinutes).toString()
+                negativePass = true
+            } else {
+                assertTrue(
+                    "availablePlanCandidates vacía para un perfil VÁLIDO; motivo real = ${state.errors["candidates"]}",
+                    state.availablePlanCandidates.isNotEmpty(),
+                )
+                assertTrue(
+                    "planCandidates vacía con availablePlanCandidates=${state.availablePlanCandidates.size}",
+                    state.planCandidates.isNotEmpty(),
+                )
 
-            // Testigo: NATIVO primero; si no hay ninguno, cualquier KPKN genuino sirve de testigo.
-            val ordered = state.availablePlanCandidates.sortedBy {
-                if (it.source == CatalogSource.NATIVE.name) 0 else 1
+                // Testigo: NATIVO primero; si no hay ninguno, cualquier KPKN genuino sirve de testigo.
+                // Una fila de suficiencia exige un plan concreto: otro candidato viable no cuenta.
+                val requiredWitnessId = row.requiredWitnessPlanId
+                if (requiredWitnessId != null) {
+                    assertTrue(
+                        "${row.id}: $requiredWitnessId debe ser viable con el mínimo real de la fila " +
+                            "(${row.minutes} min); viables=${state.availablePlanCandidates.map { it.id }} " +
+                            "rechazos=${state.candidateRejections.map { "${it.planId}=${it.reasonCode}/${it.requiredMinutes}" }}",
+                        state.availablePlanCandidates.any { it.id == requiredWitnessId },
+                    )
+                }
+                val ordered = state.availablePlanCandidates
+                    .filter { requiredWitnessId == null || it.id == requiredWitnessId }
+                    .sortedBy {
+                        when {
+                            row.goal == SetupGoal.COMPLETE_ATHLETE && it.id == "native:complete-athlete-v2" -> 0
+                            it.source == CatalogSource.NATIVE.name -> 1
+                            else -> 2
+                        }
+                    }
+                val attempts = mutableListOf<String>()
+                var witness: SetupPlanCandidate? = null
+                var witnessProgram: Program? = null
+                for (candidate in ordered) {
+                    vm.selectPlan(candidate.id)
+                    if (!awaitPreviewFor(vm, candidate.id, PREVIEW_BUDGET_MS)) {
+                        attempts += "${candidate.id}: NO SE ASENTÓ (${stateDump(vm.state.value)})"
+                        continue
+                    }
+                    val after = vm.state.value
+                    val program = after.programPreview
+                    if (program == null) {
+                        attempts += "${candidate.id}: sin preview (previewError=${after.previewError} " +
+                            "errors[preview]=${after.errors["preview"]} lastFailure=${after.lastFailure})"
+                        continue
+                    }
+                    if (program.structureTemplateId != null && program.structureTemplateId != candidate.id) {
+                        attempts += "${candidate.id}: el preview corresponde a OTRO plan (${program.structureTemplateId})"
+                        continue
+                    }
+                    val issues = ProgramExecutionContract.validate(program)
+                    if (issues.isNotEmpty()) {
+                        attempts += "${candidate.id}: no ejecutable -> ${issues.joinToString("; ") { it.message }}"
+                        continue
+                    }
+                    witness = candidate
+                    witnessProgram = program
+                    break
+                }
+
+                state = vm.state.value
+                evidence["witness"] = witness?.let { "${it.id}[${it.source}]" } ?: "-"
+                evidence["attempts"] = attempts.ifEmpty { listOf("-") }.joinToString(" ;; ")
+                evidence["selectedId"] = state.draft.selectedCatalogId ?: "-"
+                evidence["previewError"] = state.previewError ?: "-"
+                evidence["fixedEstimate"] = state.fixedSessionEstimateMinutes?.toString() ?: "-"
+                evidence["limitations"] = state.previewReport?.limitations?.joinToString(" | ")?.ifBlank { "-" } ?: "-"
+
+                assertTrue(
+                    "ningún candidato de la lista viable produjo un programa ejecutable. intentos=${evidence["attempts"]}",
+                    witness != null && witnessProgram != null,
+                )
+                assertTrue(
+                    "el borrador debe conservar el plan elegido: ${state.draft.selectedCatalogId} != ${witness?.id}",
+                    state.draft.selectedCatalogId == witness?.id,
+                )
+                assertProgramContract(row, witness!!, witnessProgram!!, state, evidence)
+                if (requiredWitnessId != null) {
+                    // En el piso de la fila la sesión más larga mide EXACTAMENTE ese piso: ni
+                    // cabe por debajo (el piso es independiente del motor) ni se pasa del presupuesto.
+                    val longestMeasured = requireNotNull(witnessProgram).macrocycles.flatMap { it.blocks }
+                        .flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }
+                        .maxOf { SessionDurationEstimator.estimate(it).totalMinutes }
+                    assertEquals(
+                        "${row.id}: la sesión más larga del programa mínimo de $requiredWitnessId debe medir " +
+                            "el piso independiente de la fila",
+                        row.minutes,
+                        longestMeasured,
+                    )
+                }
             }
-            val attempts = mutableListOf<String>()
-            var witness: SetupPlanCandidate? = null
-            var witnessProgram: Program? = null
-            for (candidate in ordered) {
-                vm.selectPlan(candidate.id)
-                if (!awaitPreviewFor(vm, candidate.id, PREVIEW_BUDGET_MS)) {
-                    attempts += "${candidate.id}: NO SE ASENTÓ (${stateDump(vm.state.value)})"
-                    continue
-                }
-                val after = vm.state.value
-                val program = after.programPreview
-                if (program == null) {
-                    attempts += "${candidate.id}: sin preview (previewError=${after.previewError} " +
-                        "errors[preview]=${after.errors["preview"]} lastFailure=${after.lastFailure})"
-                    continue
-                }
-                if (program.structureTemplateId != null && program.structureTemplateId != candidate.id) {
-                    attempts += "${candidate.id}: el preview corresponde a OTRO plan (${program.structureTemplateId})"
-                    continue
-                }
-                val issues = ProgramExecutionContract.validate(program)
-                if (issues.isNotEmpty()) {
-                    attempts += "${candidate.id}: no ejecutable -> ${issues.joinToString("; ") { it.message }}"
-                    continue
-                }
-                witness = candidate
-                witnessProgram = program
-                break
-            }
-
-            state = vm.state.value
-            evidence["witness"] = witness?.let { "${it.id}[${it.source}]" } ?: "-"
-            evidence["attempts"] = attempts.ifEmpty { listOf("-") }.joinToString(" ;; ")
-            evidence["selectedId"] = state.draft.selectedCatalogId ?: "-"
-            evidence["previewError"] = state.previewError ?: "-"
-            evidence["fixedEstimate"] = state.fixedSessionEstimateMinutes?.toString() ?: "-"
-            evidence["limitations"] = state.previewReport?.limitations?.joinToString(" | ")?.ifBlank { "-" } ?: "-"
-
-            assertTrue(
-                "ningún candidato de la lista viable produjo un programa ejecutable. intentos=${evidence["attempts"]}",
-                witness != null && witnessProgram != null,
-            )
-            assertTrue(
-                "el borrador debe conservar el plan elegido: ${state.draft.selectedCatalogId} != ${witness?.id}",
-                state.draft.selectedCatalogId == witness?.id,
-            )
-            assertProgramContract(row, witness!!, witnessProgram!!, state, evidence)
         } catch (error: Throwable) {
             // Ninguna excepción se convierte en PASS: la fila queda registrada como problema
             // y el GRUPO entero falla al final con todas las filas con nombre.
@@ -1007,6 +1842,7 @@ class SetupExecutableAvailabilityMatrixTest {
         }
         val status = when {
             harnessFailure -> "HARNESS_FAIL"
+            problems.isEmpty() && negativePass -> "NEGATIVE_PASS"
             problems.isEmpty() -> "OK"
             else -> "PRODUCT_FAIL"
         }
@@ -1032,6 +1868,26 @@ class SetupExecutableAvailabilityMatrixTest {
     ) {
         val entry = requireNotNull(PersonalizedPlanCatalog.find(witness.id)) {
             "${row.id}: el plan elegido debe existir en el catálogo de producción: ${witness.id}"
+        }
+        if (row.goal == SetupGoal.COMPLETE_ATHLETE) {
+            assertEquals(
+                "Atleta completo debe previsualizar su receta nativa, no un nativo legacy",
+                "native:complete-athlete-v2",
+                witness.id,
+            )
+            val firstWeek = requireNotNull(program.sourceRecipe?.weeks?.firstOrNull()) {
+                "${row.id}: el preview de Atleta no conserva receta semanal"
+            }
+            val athleteSlots = firstWeek.days.flatMap { it.slots }
+            val hasStrength = athleteSlots.any { it.intent == SlotIntent.F || it.intent == SlotIntent.FV }
+            val hasHypertrophy = athleteSlots.any { it.intent == SlotIntent.H }
+            val hasPower = athleteSlots.any { it.intent == SlotIntent.P }
+            val hasCardio = firstWeek.days.any { it.cardioBlocks.isNotEmpty() }
+            assertTrue("${row.id}: falta fuerza real", hasStrength)
+            assertTrue("${row.id}: falta hipertrofia real", hasHypertrophy)
+            assertTrue("${row.id}: falta potencia real", hasPower)
+            assertTrue("${row.id}: falta cardio estructurado real", hasCardio)
+            evidence["athleteComponents"] = "strength=$hasStrength/hypertrophy=$hasHypertrophy/power=$hasPower/cardio=$hasCardio"
         }
         val isNative = entry.source == CatalogSource.NATIVE
 
@@ -1070,9 +1926,13 @@ class SetupExecutableAvailabilityMatrixTest {
             sessionDays,
         )
 
-        // (d) Tiempo: cada estimador sobre SU fuente. Nativo = slots; fijo = su propio estimate.
+        // (d) Tiempo: cada estimador sobre SU fuente. Nativo = estimador común medido AQUÍ sobre
+        // la sesión (además de lo que el generador sella); fijo = su propio estimate.
         if (isNative) {
             evidence["targetDurationMinutes"] = sessions.joinToString(",") { "${it.targetDurationMinutes}" }
+            evidence["measuredMinutes"] = sessions.joinToString(",") {
+                "${SessionDurationEstimator.estimate(it).totalMinutes}"
+            }
             sessions.forEach { session ->
                 assertTrue(
                     "${row.id}: sesión nativa '${session.id}' sin targetDurationMinutes",
@@ -1082,6 +1942,19 @@ class SetupExecutableAvailabilityMatrixTest {
                     "${row.id}: sesión nativa '${session.id}' de ${session.targetDurationMinutes} min " +
                         "supera los ${row.minutes} min pedidos",
                     session.targetDurationMinutes!! <= row.minutes,
+                )
+                // Comprobación independiente: un generador no puede pasar sellando su propia cifra.
+                val measured = SessionDurationEstimator.estimate(session).totalMinutes
+                assertTrue(
+                    "${row.id}: sesión nativa '${session.id}' mide $measured min con el estimador común " +
+                        "(el generador selló ${session.targetDurationMinutes}) y el presupuesto es ${row.minutes} min",
+                    measured <= row.minutes,
+                )
+                assertEquals(
+                    "${row.id}: sesión nativa '${session.id}' sella una duración distinta de la medida " +
+                        "con el estimador común",
+                    measured,
+                    session.targetDurationMinutes!!,
                 )
             }
         } else {
@@ -1402,7 +2275,7 @@ class SetupExecutableAvailabilityMatrixTest {
         draft.trainingOptions.effectiveEquipment(emptySet())
 
     /** Entradas que el PLANificador de producción publica para este perfil (evidencia de prefiltro). */
-    private fun publishedEntryIds(draft: SetupWizardDraft): String =
+    private fun publishedEntryIdSet(draft: SetupWizardDraft): Set<String> =
         SetupTrainingPlanner.candidates(
             SetupTrainingPlannerInput(
                 reference = draft.trainingReference(),
@@ -1417,7 +2290,86 @@ class SetupExecutableAvailabilityMatrixTest {
                 protocolOnly = draft.programRoute == SetupProgramRoute.PROTOCOL,
                 mixedTraining = draft.goal == SetupGoal.MIXED,
             ),
-        ).joinToString(",") { it.id }.ifEmpty { "-" }
+        ).map { it.id }.toSet()
+
+    /** Misma lista, en la forma de cadena que ya consumía la evidencia de las filas. */
+    private fun publishedEntryIds(draft: SetupWizardDraft): String =
+        publishedEntryIdSet(draft).joinToString(",").ifEmpty { "-" }
+
+    /**
+     * T-001 / AC-T001-02 — CADA rechazo tiene que poder diagnosticarse:
+     * etapa tipada coherente con la causa descrita y causa que conserva el detalle
+     * real (clase + mensaje de la excepción, o una frase concreta del motor), nunca
+     * «sólo la clase» ni el «falta de material» de antes.
+     *
+     * Se aplica a TODAS las filas de la matriz, incluida la fila de bloqueo: si no
+     * hay rechazos no hay nada que juzgar aquí, y la exigencia de candidato real
+     * (AC-T001-01) sigue siendo la que falla. El clasificador de causas es propio
+     * de esta prueba y sigue el orden de §15.2; NO se importa el de producción, para
+     * que la expectativa no se valide a sí misma.
+     */
+    private fun assertStructuredRejections(
+        row: MatrixRow,
+        rejections: List<SetupCandidateRejection>,
+        publishedIds: Set<String>,
+    ) {
+        rejections.forEach { rejection ->
+            val who = "${row.id}: rechazo de ${rejection.planId ?: "(global)"}"
+            assertTrue("$who con causa vacía", rejection.reason.isNotBlank())
+            assertTrue(
+                "$who conserva SÓLO la clase de la excepción y pierde su mensaje: ${rejection.reason}",
+                !rejection.reason.trim().matches(CLASS_NAME_ONLY),
+            )
+            if (rejection.planId == null) {
+                assertEquals(
+                    "$who: sin candidato concreto sólo puede ser un fallo de catálogo " +
+                        "(etapa=${rejection.stage})",
+                    SetupCandidateRejectionStage.CATALOG,
+                    rejection.stage,
+                )
+            } else {
+                assertTrue(
+                    "$who: CATALOG es una etapa global; un candidato concreto se rechaza en otra " +
+                        "(etapa=${rejection.stage})",
+                    rejection.stage != SetupCandidateRejectionStage.CATALOG,
+                )
+                assertTrue(
+                    "$who no pertenece a las entradas publicadas de este borrador ($publishedIds)",
+                    rejection.planId in publishedIds,
+                )
+            }
+            if (rejection.stage == SetupCandidateRejectionStage.MATERIAL) {
+                val cause = dominantCauseOf(rejection.reason)
+                assertTrue(
+                    "$who etiquetado MATERIAL pero su causa describe otra etapa " +
+                        "(${cause ?: "sin causa reconocible"}): ${rejection.reason}",
+                    cause == null || cause == SetupCandidateRejectionStage.MATERIAL,
+                )
+            }
+        }
+    }
+
+    /**
+     * Etapa que describe la CAUSA escrita en el motivo, siguiendo el orden de §15.2
+     * (catálogo → frecuencia → material → duración → perfil → composición).
+     * `null` cuando el texto no permite decidir: en ese caso no se afirma nada.
+     */
+    private fun dominantCauseOf(reason: String): SetupCandidateRejectionStage? {
+        val text = reason.lowercase()
+        return when {
+            "catálogo" in text || "catalogo" in text -> SetupCandidateRejectionStage.CATALOG
+            "frecuencia" in text -> SetupCandidateRejectionStage.FREQUENCY
+            // PRECEDENCIA §15.2: material ANTES que duración/perfil. Un motivo que
+            // menciona «equipo … y tiempo» o «equipo y experiencia» describe MATERIAL
+            // en primer término, igual que exige el orden del plan; el orden NO es
+            // arbitrario (invertirlo hacía fallar filas cuyo rechazo era correcto).
+            MATERIAL_CAUSE.containsMatchIn(text) -> SetupCandidateRejectionStage.MATERIAL
+            MINUTE.containsMatchIn(text) || "tiempo" in text -> SetupCandidateRejectionStage.DURATION
+            "experiencia" in text || "nivel" in text -> SetupCandidateRejectionStage.PROFILE
+            "volumen" in text -> SetupCandidateRejectionStage.COMPOSITION
+            else -> null
+        }
+    }
 
     // ─── Evidencia e informe ──────────────────────────────────────────────────
 
@@ -1473,6 +2425,9 @@ class SetupExecutableAvailabilityMatrixTest {
                 sanitize(e["cardioRequested"].orEmpty()),
                 // T-027-r2: ejercicios de FUERZA emitidos por cada sesión mixta (sólo MIXED).
                 sanitize(e["strengthBySession"].orEmpty()),
+                // T-001: ID publicado + etapa + causa del PRIMER rechazo estructurado. Columna
+                // ADITIVA al final: conserva la posición de las 28 anteriores.
+                sanitize(e["firstRejection"].orEmpty()),
             ).joinToString("|"),
         )
     }
@@ -1482,10 +2437,12 @@ class SetupExecutableAvailabilityMatrixTest {
     private fun reportGroup(label: String, outcomes: List<RowOutcome>) {
         val failures = outcomes.filter { it.problems.isNotEmpty() }
         val harnessBlocked = outcomes.count { it.status == "HARNESS_FAIL" }
+        val negativePasses = outcomes.count { it.status == "NEGATIVE_PASS" }
         val reachedProgram = outcomes.count { it.entries["witness"] != null && it.entries["witness"] != "-" }
         println(
-            "[T-019] grupo $label: filas=${outcomes.size} ok=${outcomes.count { it.status == "OK" }} " +
-                "conProblemas=${failures.size} harnessBlocked=$harnessBlocked filasQueAlcanzaronPrograma=$reachedProgram",
+            "[T-019] grupo $label: filas=${outcomes.size} positivos=${outcomes.count { it.status == "OK" }} " +
+                "negativePasses=$negativePasses conProblemas=${failures.size} " +
+                "harnessBlocked=$harnessBlocked filasQueAlcanzaronPrograma=$reachedProgram",
         )
         if (failures.isEmpty()) return
         val report = buildString {
@@ -1557,6 +2514,36 @@ class SetupExecutableAvailabilityMatrixTest {
     }
 
     /**
+     * Adaptador REAL sobre Room con un interruptor SÓLO-TEST: mientras `failing` está activo,
+     * `save` lanza y el VM actualiza el borrador EN MEMORIA sin llamar a `updateCandidates`.
+     * Ese es el camino real de fallo de guardado (AC-T001-03): la respuesta nueva cambia la
+     * clave de entrenamiento mientras el cálculo anterior sigue en vuelo, y ése NO se cancela.
+     * No reimplementa ninguna decisión: delega todo lo demás en [RoomWizardPersistence].
+     */
+    private class FailOnDemandPersistence(db: KpknDatabase) : SetupWizardPersistence {
+        private val delegate = RoomWizardPersistence(db)
+
+        @Volatile
+        var failing: Boolean = false
+
+        override suspend fun load(draftId: String): SetupDraft? = delegate.load(draftId)
+
+        override suspend fun save(
+            draftId: String,
+            payloadJson: String,
+            revision: Long,
+            catalogRevision: String?,
+        ): SetupDraft {
+            if (failing) throw IOException("T001_03: fallo de guardado inyectado")
+            return delegate.save(draftId, payloadJson, revision, catalogRevision)
+        }
+
+        override suspend fun discard(draftId: String) = delegate.discard(draftId)
+
+        override suspend fun listRecoverable(): List<SetupDraftCandidate> = delegate.listRecoverable()
+    }
+
+    /**
      * Puerta SÓLO-TEST sobre el delegado real de guardado, con contadores y señales reales. Se arma
      * **después** de la inicialización y afecta a la siguiente mutación pública explícita. Todas sus
      * esperas tienen techo finito y liberación garantizada, de modo que ni un fallo de aserción
@@ -1606,6 +2593,90 @@ class SetupExecutableAvailabilityMatrixTest {
     }
 
     /**
+     * Puerta SÓLO-TEST sobre el materializador de T-001 / AC-T001-03: el primer cálculo de
+     * candidatos queda ATRAPADO dentro y todos los llamadores siguientes también, hasta
+     * [releaseGate]. No decide qué candidatos se publican (eso sigue en el VM real): sólo
+     * retrasa el `SetupPreview` que devolvería el motor, para que la publicación anterior
+     * siga pendiente cuando cambian las respuestas.
+     *
+     * `CompletableDeferred.await` es cancelable: cuando `updateCandidates` cancela el job
+     * viejo, ese cálculo se retira con `CancellationException` (que NUNCA se convierte en un
+     * rechazo de producto) en lugar de publicar. La puerta se libera SIEMPRE en el `finally`.
+     */
+    private class CandidateScanGate(private val sink: (String) -> Unit) {
+        /** Señal de que el materializador está dentro; una sola vez, como la primera entrada. */
+        val entered = CountDownLatch(1)
+
+        /** Contador real de entradas: distingue el cálculo de A del de X/B en la traza. */
+        val enteredCount = AtomicInteger(0)
+
+        /** Contador real de salidas: permite saber, con techo, cuándo el escaneo terminó. */
+        val releasedCount = AtomicInteger(0)
+
+        private val release = CompletableDeferred<Unit>()
+
+        suspend fun materialize(draft: SetupWizardDraft): SetupPreview {
+            val count = enteredCount.incrementAndGet()
+            entered.countDown()
+            sink(
+                "GATE materialize-enter count=$count dias=${draft.daysPerWeek} " +
+                    "min=${draft.minutesPerSession} plan=${draft.selectedCatalogId ?: "-"}",
+            )
+            // El `finally` también corre si la espera se cancela: así un cálculo abandonado
+            // descuenta su entrada y los contadores siguen equilibrados (AC-T001-03).
+            try {
+                release.await()
+            } finally {
+                releasedCount.incrementAndGet()
+            }
+            sink("GATE materialize-release count=$count")
+            // Programa NULO: todos los candidatos publicados quedan rechazados, de modo que el
+            // conjunto de rechazos del estado final identifica SIN AMBIGÜEDAD a qué borrador
+            // pertenece la última publicación.
+            return SetupPreview(null, null)
+        }
+
+        fun releaseGate() {
+            release.complete(Unit)
+            sink("GATE release signalled")
+        }
+    }
+
+    /**
+     * Espera acotada y finita de la entrada real en la puerta del materializador, bombeando el
+     * scheduler de test para que el job de candidatos llegue a `Dispatchers.IO`. NUNCA espera
+     * sin cota; mismo patrón que [awaitGateEntered].
+     */
+    private fun TestScope.awaitMaterializerEntered(gate: CandidateScanGate, budgetMillis: Long): Boolean {
+        val deadlineNanos = System.nanoTime() + budgetMillis * 1_000_000L
+        while (System.nanoTime() < deadlineNanos) {
+            dispatcher.scheduler.runCurrent()
+            if (gate.entered.await(5, TimeUnit.MILLISECONDS)) return true
+        }
+        return false
+    }
+
+    /**
+     * Espera ACOTADA a que el escaneo que pasó por la puerta termine de verdad: todas las
+     * entradas abiertas tienen su salida Y el equilibrio se sostiene durante 5 muestras
+     * seguidas (entre una entrada y la siguiente sólo hay instrucciones no suspensivas, así
+     * que 50 ms de estabilidad significan que el bucle terminó y el job ya pasó por su punto
+     * de publicación). Bompea el scheduler en cada muestra para que la continuación en
+     * `Dispatchers.Main` se ejecute. Techo finito; nunca espera sin cota.
+     */
+    private fun TestScope.awaitMaterializerSettled(gate: CandidateScanGate, budgetMillis: Long): Boolean {
+        val deadlineNanos = System.nanoTime() + budgetMillis * 1_000_000L
+        var stable = 0
+        while (System.nanoTime() < deadlineNanos) {
+            dispatcher.scheduler.advanceUntilIdle()
+            stable = if (gate.enteredCount.get() == gate.releasedCount.get()) stable + 1 else 0
+            if (stable >= 5) return true
+            Thread.sleep(10L)
+        }
+        return false
+    }
+
+    /**
      * Drenado acotado tras liberar la puerta: se espera la finalización REAL del padre de la fila y
      * la finalización del delegado, bombeando el scheduler. Techo finito; nunca espera sin cota.
      */
@@ -1644,6 +2715,9 @@ class SetupExecutableAvailabilityMatrixTest {
 
     private companion object {
         const val ASSET_NAME = "exercise_catalog_v2.json"
+
+        /** Testigo del GRUPO F: el generador histórico de cuerpo completo. */
+        const val HISTORICAL_FULL_BODY_ID = "native:full-body"
         const val SETTLE_BUDGET_MS = 60_000L
         const val PREVIEW_BUDGET_MS = 60_000L
 
@@ -1652,6 +2726,23 @@ class SetupExecutableAvailabilityMatrixTest {
         const val CLOSE_BUDGET_NANOS = CLOSE_BUDGET_MILLIS * 1_000_000L
         const val ROW_CLEANUP_BUDGET_MILLIS = 20_000L
         const val ROW_CLEANUP_BUDGET_NANOS = ROW_CLEANUP_BUDGET_MILLIS * 1_000_000L
+
+        /** Puerta SÓLO-TEST de T-001 / AC-T001-03: techos finitos, liberación garantizada. */
+        const val T001_GATE_ENTER_BUDGET_MILLIS = 15_000L
+        const val T001_GATE_SETTLE_BUDGET_MILLIS = 20_000L
+
+        /**
+         * T-001 / AC-T001-02 — un motivo que es SÓLO el nombre de una clase de excepción
+         * perdió su mensaje: ya no explica nada. Causas redactadas (del motor o clase+mensaje)
+         * contienen espacios, así que no encajan en este patrón.
+         */
+        val CLASS_NAME_ONLY = Regex("""[A-Za-z_][\w.$]*""")
+
+        /** Duración expresada en minutos, con o sin unidad completa (`100 min`, `60 minutos`). */
+        val MINUTE = Regex("""\bmin\b|\bminutos?\b""")
+
+        /** Causa de MATERIAL descrita en el motivo: lo contrario del «todo es falta de material». */
+        val MATERIAL_CAUSE = Regex("""material|equipo|aparato|enfoque|m[áa]quina|banco|barra|mancuerna""")
 
         /** Techos de la regresión T019_01. Todos finitos; la puerta se libera siempre. */
         const val GATE_ENTER_BUDGET_MILLIS = 10_000L

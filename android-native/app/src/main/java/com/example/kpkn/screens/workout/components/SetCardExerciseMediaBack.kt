@@ -37,6 +37,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -76,6 +77,7 @@ internal fun SetCardExerciseMediaBack(
     reps: Int? = null,
     isPr: Boolean = false,
     mediaCapture: WorkoutMediaCaptureController? = null,
+    onRetryPendingCaptures: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val exerciseKey = exercise.catalogDefinitionId
@@ -279,11 +281,21 @@ internal fun SetCardExerciseMediaBack(
             }
 
             if (captureError != null) {
-                Text(
-                    captureError.orEmpty(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = WorkoutUiTokens.dangerColor(),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        captureError.orEmpty(),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = WorkoutUiTokens.dangerColor(),
+                    )
+                    TextButton(onClick = onRetryPendingCaptures) {
+                        Text("Reintentar")
+                    }
+                }
             }
 
             Row(

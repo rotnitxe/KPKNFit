@@ -10,6 +10,7 @@ import com.example.kpkn.data.db.toSettings
 import com.example.kpkn.data.media.WorkoutAlbum
 import com.example.kpkn.data.media.WorkoutAlbumGrouping
 import com.example.kpkn.data.media.WorkoutMediaGallerySaver
+import com.example.kpkn.data.media.WorkoutMediaPendingRetryAlbum
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.repository.WorkoutMediaRepository
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,27 +29,34 @@ data class WorkoutAlbumsUiState(
     val isLoading: Boolean = true,
     val albums: List<WorkoutAlbum> = emptyList(),
     val media: List<WorkoutMedia> = emptyList(),
+    val pendingRetries: List<WorkoutMediaPendingRetryAlbum> = emptyList(),
     val prOnly: Boolean = false,
     val exerciseQuery: String = "",
     val exerciseOptions: List<String> = emptyList(),
 )
 
-class WorkoutAlbumsViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = WorkoutMediaRepository.init(application)
+class WorkoutAlbumsViewModel @JvmOverloads constructor(
+    application: Application,
+    private val repository: WorkoutMediaRepository = WorkoutMediaRepository.init(application),
+) : AndroidViewModel(application) {
 
     private val _prOnly = MutableStateFlow(false)
     private val _exerciseQuery = MutableStateFlow("")
+
+    private val _pendingRetries = MutableStateFlow<List<WorkoutMediaPendingRetryAlbum>>(emptyList())
 
     val uiState: StateFlow<WorkoutAlbumsUiState> = combine(
         repository.observeAll(),
         _prOnly,
         _exerciseQuery,
-    ) { media, prOnly, query ->
+        _pendingRetries,
+    ) { media, prOnly, query, pendingRetries ->
         val filtered = WorkoutAlbumGrouping.filterMedia(media, prOnly, query)
         WorkoutAlbumsUiState(
             isLoading = false,
             albums = WorkoutAlbumGrouping.group(filtered),
             media = filtered,
+            pendingRetries = pendingRetries,
             prOnly = prOnly,
             exerciseQuery = query,
             exerciseOptions = media.mapNotNull { it.exerciseName?.trim()?.takeIf { name -> name.isNotEmpty() } }
@@ -64,6 +73,11 @@ class WorkoutAlbumsViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             repository.importLegacyIfNeeded()
         }
+        viewModelScope.launch {
+            repository.pendingCaptureRetryState.collectLatest {
+                _pendingRetries.value = repository.pendingCaptureRetryAlbums()
+            }
+        }
     }
 
     fun setPrOnly(value: Boolean) {
@@ -72,6 +86,20 @@ class WorkoutAlbumsViewModel(application: Application) : AndroidViewModel(applic
 
     fun setExerciseQuery(value: String) {
         _exerciseQuery.value = value
+    }
+
+    fun retryPendingCaptures(sessionKey: String) {
+        if (sessionKey.isBlank()) return
+        viewModelScope.launch {
+            try {
+                repository.retryPendingCapturesForSession(sessionKey)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // The process owner keeps the failed journal entry in the observable retry state.
+            }
+            _pendingRetries.value = repository.pendingCaptureRetryAlbums()
+        }
     }
 
     fun album(albumKey: String): WorkoutAlbum? =

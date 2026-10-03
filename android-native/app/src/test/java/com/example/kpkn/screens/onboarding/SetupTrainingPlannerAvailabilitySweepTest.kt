@@ -52,6 +52,11 @@ class SetupTrainingPlannerAvailabilitySweepTest {
                 SetupGoal.MUSCLE -> TrainingReference.HYPERTROPHY
                 SetupGoal.STRENGTH_MUSCLE -> TrainingReference.POWERBUILDING
                 SetupGoal.HEALTH, SetupGoal.MIXED -> requireNotNull(style).toTrainingReference()
+                // §15.1: Atleta completo no se filtra por una referencia única;
+                // su compatibilidad la decide el evaluador sobre la receta
+                // (strength+hypertrofia+power+cardio). Este sweep no lo incluye.
+                SetupGoal.COMPLETE_ATHLETE ->
+                    error("El sweep de referencias no cubre Atleta completo: capability por receta")
             }
     }
 
@@ -153,9 +158,10 @@ class SetupTrainingPlannerAvailabilitySweepTest {
         }
         val derivedGaps = derivedGapMap()
         val expectedGaps = mapOf(
-            TrainingReference.POWERLIFTING to setOf(2, 6),
-            TrainingReference.POWERBUILDING to setOf(1, 2, 3, 6),
-            TrainingReference.HYPERTROPHY to emptySet(),
+            // T-004's own strength and powerbuilding profiles cover days 1..6.
+            TrainingReference.POWERLIFTING to emptySet<Int>(),
+            TrainingReference.POWERBUILDING to emptySet<Int>(),
+            TrainingReference.HYPERTROPHY to emptySet<Int>(),
         )
         assertTrue("Huecos de cobertura derivados $derivedGaps ≠ esperados $expectedGaps", derivedGaps == expectedGaps)
     }

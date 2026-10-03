@@ -260,63 +260,27 @@ class SetupStepAnswersTest {
         )
     }
 
-    // ─── Inventario: contrato real de TrainingOptions, solo sus razones ──────
+    // ─── Inventario con pesos: retirado del asistente (D2.5) ─────────────────
 
     @Test
-    fun inventoryDeclarationMustSatisfyTrainingOptionsContract() {
-        // Disco declarado sin cantidad por lado: el contrato real lo rechaza.
+    fun retiredInventoryStepsNeverBlockWhateverTheSavedDraftHolds() {
+        // Los pasos INVENTORY_* ya no están en la ruta ni tienen pantalla: un borrador
+        // viejo con inventario incompleto, sin declarar o con una fila abierta no puede
+        // bloquear nada (y el inventario guardado no se toca).
         val dishonest = SetupWizardDraft(
             trainingOptions = TrainingOptions(
                 inventory = EquipmentInventory(plates = listOf(PlateStock(20.0, null))),
             ),
-        )
-        assertTrue(
-            SetupWizardValidation.validateStep(dishonest, SetupStepId.INVENTORY_PLATES)
-                .any { it.state == SetupValueState.INVALID },
-        )
-    }
-
-    @Test
-    fun noneVsUnsetInventoryIsExplicit() {
-        // Sin declaración y sin elección explícita: desconocido NO cuenta como
-        // material disponible ilimitado → bloquea (ABSENT).
-        val unset = SetupWizardValidation.validateStep(SetupWizardDraft(), SetupStepId.INVENTORY_PLATES)
-        assertTrue(unset.any { it.state == SetupValueState.ABSENT })
-
-        // Elección explícita «none» del paso: válido y no bloquea.
-        val explicitNone = SetupWizardDraft(
-            stepSelections = mapOf(SetupStepId.INVENTORY_PLATES to listOf("none")),
-        )
-        assertTrue(
-            SetupWizardValidation.validateStep(explicitNone, SetupStepId.INVENTORY_PLATES).none { it.isBlocking },
-        )
-
-        // Dato propio finito y explícito: también válido. La barra acompaña a
-        // los discos porque una declaración nueva con discos y sin peso de
-        // barra es inválida de verdad (el motor nunca asume 20 kg).
-        val declared = SetupWizardDraft(
-            trainingOptions = TrainingOptions(
-                inventory = EquipmentInventory(barbellWeightKg = 20.0, plates = listOf(PlateStock(20.0, 2))),
-            ),
-        )
-        assertTrue(
-            SetupWizardValidation.validateStep(declared, SetupStepId.INVENTORY_PLATES).none { it.isBlocking },
-        )
-    }
-
-    @Test
-    fun openRowEditorBlocksStepUntilClosed() {
-        val editing = SetupWizardDraft(
-            stepSelections = mapOf(SetupStepId.INVENTORY_PLATES to listOf("none")),
             stepEditors = mapOf(SetupStepId.INVENTORY_PLATES to SetupStepEditorState(editing = true, itemIndex = 1)),
         )
-        val checks = SetupWizardValidation.validateStep(editing, SetupStepId.INVENTORY_PLATES)
-        assertTrue(checks.any { it.isBlocking })
-
-        val closed = editing.copy(stepEditors = mapOf(SetupStepId.INVENTORY_PLATES to SetupStepEditorState(editing = false)))
-        assertTrue(
-            SetupWizardValidation.validateStep(closed, SetupStepId.INVENTORY_PLATES).none { it.isBlocking },
-        )
+        listOf(
+            SetupStepId.INVENTORY_BARBELL, SetupStepId.INVENTORY_PLATES, SetupStepId.INVENTORY_DUMBBELLS,
+            SetupStepId.INVENTORY_KETTLEBELLS, SetupStepId.INVENTORY_MACHINES,
+        ).forEach { step ->
+            assertTrue("$step", SetupWizardValidation.validateStep(dishonest, step).none { it.isBlocking })
+            assertTrue("$step vacío", SetupWizardValidation.validateStep(SetupWizardDraft(), step).none { it.isBlocking })
+        }
+        assertEquals(20.0, dishonest.trainingOptions.inventory!!.plates.single().weightKg, 0.001)
     }
 
     @Test

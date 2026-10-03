@@ -334,6 +334,15 @@ private fun EnergySection(state: NutritionPlanEditorUiState, viewModel: Nutritio
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    // Editar el MISMO plan nunca cambia la meta de hoy: queda fijada y el
+    // cambio vale desde mañana (activar un plan distinto sí cambia la de hoy).
+    state.todayGoalFixedKcal?.let { fixedKcal ->
+        Text(
+            "La meta de hoy ya quedó fijada en $fixedKcal kcal. Lo que cambies en este plan vale desde mañana.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable

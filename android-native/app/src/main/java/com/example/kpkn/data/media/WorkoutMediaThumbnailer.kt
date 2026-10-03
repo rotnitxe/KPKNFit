@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import com.example.kpkn.data.models.WorkoutMediaKind
+import kotlinx.coroutines.CancellationException
 import java.io.File
 
 data class WorkoutMediaProbe(
@@ -22,7 +23,17 @@ object WorkoutMediaThumbnailer {
         if (!source.isFile || source.length() <= 0L) return WorkoutMediaProbe()
         if (kind != WorkoutMediaKind.VIDEO) {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(source.absolutePath, bounds)
+            try {
+                BitmapFactory.decodeFile(source.absolutePath, bounds)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Dimensions are optional metadata. Keep the original media
+                // ingestable when a platform decoder does not understand its
+                // format or rejects malformed metadata; file copy and Room
+                // errors happen outside this boundary and remain retryable.
+                return WorkoutMediaProbe()
+            }
             return WorkoutMediaProbe(
                 width = bounds.outWidth.takeIf { it > 0 },
                 height = bounds.outHeight.takeIf { it > 0 },

@@ -1,7 +1,9 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.protocols.CatalogIds
@@ -180,5 +182,104 @@ class NativeOriginAuthorPreservationTest {
         exercises.forEach { exercise -> assertTrue(exercise.warmupSets.isEmpty()) }
         // La receta fuente del programa no se sustituye por la ajena.
         assertEquals(native.sourceRecipe?.id, rematerialized.sourceRecipe?.id)
+    }
+
+    private fun withSessionAppended(program: Program, weekId: String, session: Session): Program = program.copy(
+        macrocycles = program.macrocycles.map { macro ->
+            macro.copy(
+                blocks = macro.blocks.map { block ->
+                    block.copy(
+                        mesocycles = block.mesocycles.map { meso ->
+                            meso.copy(
+                                weeks = meso.weeks.map { candidate ->
+                                    if (candidate.id == weekId) candidate.copy(sessions = candidate.sessions + session) else candidate
+                                },
+                            )
+                        },
+                    )
+                },
+            )
+        },
+    )
+
+    private fun weekSessions(program: Program, weekId: String): List<Session> =
+        sessionsOfWeeks(program).first { it.first == weekId }.second
+
+    private fun sessionsOfWeeks(program: Program) =
+        program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.map { it.id to it.sessions }
+
+    private val userCreatedSession = Session(
+        id = "user-created-session",
+        name = "Sesión propia",
+        dayOfWeek = 6,
+        assignedDays = listOf(6),
+        exercises = listOf(Exercise(id = "user-created-exercise", name = "Remo propio")),
+    )
+
+    /**
+     * El descarte de las sesiones nativas pendientes sin contraparte en la receta
+     * ajena NO alcanza a lo protegido (§14.5): la sesión congelada por edición
+     * manual y la creada por el usuario sobreviven intactas. Igual que con el
+     * editor real, la sesión creada por el usuario queda marcada con su
+     * `ManualSessionOverride` en el mismo guardado (§14.5: «freeze de sesión
+     * editada»), y esa marca —no una heurística sobre su contenido— es lo que la
+     * distingue del residuo pendiente de la receta anterior. El plan nativo de
+     * esta prueba es el histórico (`native:machine-muscle`): su receta no declara
+     * ids de día, así que sus sesiones no se reconocen por `rs_…`/`recipeDayId`.
+     */
+    @Test
+    fun rematerializing_a_native_week_with_a_foreign_recipe_keeps_frozen_and_user_created_sessions() {
+        val native = nativeProgram()
+        val author = authorRirRecipe("foreign-recipe-protected")
+        val week = native.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        val frozen = week.sessions.last()
+        val userSession = userCreatedSession
+        val withUserSession = withSessionAppended(native, week.id, userSession)
+        val frozenMarked = PlanMaterializer.withManualSessionOverride(
+            program = withUserSession,
+            sessionId = frozen.id,
+            weekId = week.id,
+            weekOccurrence = 1,
+            recipeDayId = frozen.allExercises().firstNotNullOfOrNull { it.recipeDayId },
+        )
+        val prepared = PlanMaterializer.withManualSessionOverride(
+            program = frozenMarked,
+            sessionId = userSession.id,
+            weekId = week.id,
+            weekOccurrence = 1,
+            recipeDayId = null,
+            reason = "Sesión guardada desde el editor",
+        )
+
+        val rebuilt = PlanMaterializer.rematerializeWeek(prepared, week.id, recipe = author, metadata = metadata)
+        val rebuiltSessions = weekSessions(rebuilt, week.id)
+
+        assertEquals("La sesión congelada se conserva íntegra", frozen, rebuiltSessions.single { it.id == frozen.id })
+        assertEquals("La sesión del usuario se conserva íntegra", userSession, rebuiltSessions.single { it.id == userSession.id })
+        // Lo demás es la base del autor: ninguna sesión nativa pendiente se mezcla.
+        val rest = rebuiltSessions.filter { it.id != frozen.id && it.id != userSession.id }
+        assertEquals(listOf(CatalogIds.SQ_LOW, CatalogIds.BP), rest.flatMap { it.allExercises() }.map { it.catalogConfigurationId })
+    }
+
+    /**
+     * Con la receta PROPIA del programa no hay residuo posible: una sesión sin
+     * contraparte y sin marca (p. ej. creada antes de que existiera la marca) se
+     * conserva intacta y las sesiones del plan mantienen su identidad.
+     */
+    @Test
+    fun rematerializing_with_the_programs_own_recipe_keeps_unmarked_extra_sessions() {
+        val native = nativeProgram()
+        val week = native.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
+        val withUserSession = withSessionAppended(native, week.id, userCreatedSession)
+
+        val rebuilt = PlanMaterializer.rematerializeWeek(withUserSession, week.id, metadata = metadata)
+        val rebuiltSessions = weekSessions(rebuilt, week.id)
+
+        assertEquals("La sesión sin contraparte se conserva íntegra", userCreatedSession, rebuiltSessions.single { it.id == userCreatedSession.id })
+        assertEquals(
+            "Las sesiones del plan conservan su identidad",
+            week.sessions.map { it.id },
+            rebuiltSessions.filter { it.id != userCreatedSession.id }.map { it.id },
+        )
     }
 }

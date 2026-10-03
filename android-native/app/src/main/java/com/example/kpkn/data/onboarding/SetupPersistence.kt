@@ -40,6 +40,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 import java.time.ZoneId
 
 private val persistenceJson = Json { ignoreUnknownKeys = true; encodeDefaults = true; coerceInputValues = true }
@@ -240,10 +241,11 @@ class SetupCommitCoordinator(
                             "Termina la sesión en curso antes de activar otro plan."
                         }
                         com.example.kpkn.domain.training.ProgramExecutionContract.requireExecutable(program)
-                        db.programDao().upsert(program.toEntity())
+                        val storable = com.example.kpkn.domain.training.ProgramPersistNormalizer.forRoomStorage(program)
+                        db.programDao().upsert(storable.toEntity())
                         if (request.activateProgram) {
                             val active = ProgramActiveStateEngine.repairForProgram(
-                                program = program,
+                                program = storable,
                                 state = ActiveProgramState(programId = program.id),
                             ) ?: ActiveProgramState(programId = program.id)
                             db.stateDao().upsertActiveProgram(active.toEntity())
@@ -271,7 +273,11 @@ class SetupCommitCoordinator(
                         val existing = db.augeDao().getWellbeingForDate(incoming.date)?.toWellbeingLog()
                         db.augeDao().upsertWellbeing(mergeSetupWellbeing(existing, incoming).toEntity())
                     }
-                    request.dailyGoalSnapshot?.let { db.nutritionDao().insertDailyGoalSnapshot(it.toEntity()) }
+                    // Meta de HOY del plan que se activa: si hoy ya la fijó OTRO plan,
+                    // pasa a ser la del plan nuevo; los días pasados no se tocan.
+                    request.dailyGoalSnapshot?.let {
+                        db.nutritionDao().pinTodayGoalSnapshot(it.toEntity(), LocalDate.now().toString())
+                    }
                     // Activación efectiva leída de la MISMA transacción ya
                     // confirmada (fresh). En el replay se calcula igual, desde la
                     // BD: nunca se publica «activado» por el flag del request.
@@ -290,7 +296,9 @@ class SetupCommitCoordinator(
                     request.draftId?.let { db.setupDraftDao().deleteDraft(it) }
                     result = next
                     committedSettings = settingsToPersist
-                    committedProgram = request.program
+                    committedProgram = request.program?.let {
+                        com.example.kpkn.domain.training.ProgramPersistNormalizer.forRoomStorage(it)
+                    }
                     committedNutritionPlan = request.nutritionPlan
                     shouldPublish = true
                 }

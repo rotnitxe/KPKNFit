@@ -1,0 +1,4 @@
+# Calentamiento con inventario declarado (3 pruebas). Exige el usuario QA 10 (uid / 100000 == 10); en otro usuario quedan SKIPPED por Assume.
+# Se ejecuta en el AVD del asistente: run_instrumentation.py --flavor base --serial emulator-5582 --user 10 --switch-user --classes-file suites/warmup-qa10.txt --label warmup-qa10
+# En emulator-5580 (AVD de auditoria, sin usuario 10) las 3 quedan SKIPPED: es lo esperado, no un fallo (ver README, seccion 26).
+com.example.kpkn.screens.workout.WorkoutWarmupInventoryIntegrationTest

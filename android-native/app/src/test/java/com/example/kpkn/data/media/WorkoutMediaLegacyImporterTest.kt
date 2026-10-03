@@ -15,7 +15,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -154,7 +153,7 @@ class WorkoutMediaLegacyImporterTest {
         assertEquals(6, repo.listAll().size)
         assertEquals(4, repo.listForWorkoutLog("log-new").size)
         assertEquals(2, repo.listForExercise("squat").size)
-        assertNotNull(repo.store().root().takeIf { it.isDirectory })
+        assertTrue(File(filesDir, WorkoutMediaStore.ROOT_DIR).isDirectory)
     }
 
     @Test

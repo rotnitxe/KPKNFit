@@ -80,8 +80,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -201,6 +205,8 @@ internal fun FinishWorkoutSheet(
     voiceFinalSpinal: Int? = null,
     voiceFinalConfirmTriggered: Boolean = false,
     isFinishingWorkout: Boolean = false,
+    pendingSeriesNotice: PendingSeriesNotice? = null,
+    onContinuePendingSeries: () -> Unit = {},
     onConfirm: (String, Int, SessionClosingFeedback, Boolean) -> Unit,
     onDismiss: () -> Unit,
     onShare: () -> Unit,
@@ -311,6 +317,10 @@ internal fun FinishWorkoutSheet(
 
     val totalSets = logicalSetCountFromCompleted(completedExercises)
     val totalVolume = sessionTonnage(completedExercises)
+    // Same predicate as WorkoutFinishController's P0 guard: with no recorded
+    // sets the save is blocked, and the sheet must say so instead of failing
+    // silently behind a transient toast.
+    val emptySessionGuidance = finishEmptySessionGuidance(completedExercises)
     val allSets = remember(completedSets) {
         completedSets.values
             .filter { !it.isWarmup }
@@ -463,6 +473,43 @@ internal fun FinishWorkoutSheet(
                     fontWeight = FontWeight.Black,
                     color = Color.White,
                 )
+
+                if (emptySessionGuidance != null) {
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFFFFCA28).copy(alpha = 0.14f),
+                        border = BorderStroke(1.dp, Color(0xFFFFCA28).copy(alpha = 0.55f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { liveRegion = LiveRegionMode.Polite },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFFFFCA28),
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Text(
+                                text = emptySessionGuidance,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+
+                if (pendingSeriesNotice != null) {
+                    PendingSeriesNoticeCard(
+                        notice = pendingSeriesNotice,
+                        onContinue = onContinuePendingSeries,
+                    )
+                }
 
                 // 1. CLUSTER DE RINGS + DRENAJE DE LA SESIÓN
                 FinishDrainRingsBlock(
@@ -1028,7 +1075,12 @@ internal fun FinishWorkoutSheet(
                         onClick = { if (!isFinishingWorkout) executeConfirm() },
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .size(64.dp),
+                            .size(64.dp)
+                            .semantics {
+                                // Keep the label ("Guardar y terminar entrenamiento") and
+                                // announce why the save is currently blocked.
+                                emptySessionGuidance?.let { stateDescription = it }
+                            },
                         shape = CircleShape,
                         containerColor = if (isFinishingWorkout) Color(0xFF444444) else MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -1078,6 +1130,63 @@ internal fun FinishWorkoutSheet(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Aviso ámbar de series pendientes (D2.1). Texto neutral: el resumen se mantiene y quien
+ * terminó a propósito puede guardar igual; «Seguir con ellas» vuelve a la primera pendiente.
+ */
+@Composable
+private fun PendingSeriesNoticeCard(
+    notice: PendingSeriesNotice,
+    onContinue: () -> Unit,
+) {
+    val amber = Color(0xFFFFCA28)
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = amber.copy(alpha = 0.14f),
+        border = BorderStroke(1.dp, amber.copy(alpha = 0.55f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("finish_pending_series_notice")
+            .semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = amber,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = notice.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                )
+            }
+            OutlinedButton(
+                onClick = onContinue,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .testTag("finish_pending_series_continue"),
+                border = BorderStroke(1.dp, amber.copy(alpha = 0.7f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = amber),
+            ) {
+                Text(
+                    text = notice.actionLabel,
+                    fontWeight = FontWeight.Bold,
+                )
             }
         }
     }

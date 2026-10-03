@@ -18,13 +18,14 @@ class SetupStepGraphTest {
                 // Bloque 1: Datos básicos
                 SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
                 SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-                // Bloque 2: Entreno
-                SetupStepId.EXPERIENCE, SetupStepId.ROUTE, SetupStepId.GOAL, SetupStepId.STYLE,
-                SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
+                // Bloque 2: Entreno (§15.1: material antes de perfiles, sin ROUTE)
+                SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.GOAL,
+                SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
+                SetupStepId.STYLE, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
                 SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-                SetupStepId.EQUIPMENT, SetupStepId.DAYS, SetupStepId.WEEKDAYS,
-                SetupStepId.SESSION_TIME, SetupStepId.PRIORITIES, SetupStepId.SPLIT,
-                SetupStepId.PLAN, SetupStepId.TRAINING_MAX, SetupStepId.AUTOREGULATION,
+                SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX,
+                SetupStepId.SPLIT, SetupStepId.PLAN,
+                SetupStepId.AUTOREGULATION,
                 SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW, SetupStepId.MILESTONE_TRAINING,
                 // Bloque 3: Nutrición
                 SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_ELIGIBILITY,
@@ -97,12 +98,32 @@ class SetupStepGraphTest {
     }
 
     @Test
-    fun prioritiesSplitAndPlanComeBeforeTrainingMaxAndAutoregulation() {
+    fun materialComesBeforeGoalsCalibrationBeforeSplitAndNoRouteInNewJourneys() {
         val route = SetupStepGraph.stepIds(fullContext)
-        assertTrue(route.indexOf(SetupStepId.PRIORITIES) < route.indexOf(SetupStepId.SPLIT))
+        // AC-T005-01: material (entorno + categorías) ANTES de perfiles.
+        assertTrue(route.indexOf(SetupStepId.EQUIPMENT) < route.indexOf(SetupStepId.GOAL))
+        // §15.1: EXPERIENCE → EQUIPMENT → GOAL → DAYS → SESSION_TIME →
+        // CALIBRATION → SPLIT → PLAN.
+        assertTrue(route.indexOf(SetupStepId.EXPERIENCE) < route.indexOf(SetupStepId.EQUIPMENT))
+        assertTrue(route.indexOf(SetupStepId.GOAL) < route.indexOf(SetupStepId.DAYS))
+        assertTrue(route.indexOf(SetupStepId.SESSION_TIME) < route.indexOf(SetupStepId.TRAINING_MAX))
+        assertTrue(route.indexOf(SetupStepId.TRAINING_MAX) < route.indexOf(SetupStepId.SPLIT))
         assertTrue(route.indexOf(SetupStepId.SPLIT) < route.indexOf(SetupStepId.PLAN))
-        assertTrue(route.indexOf(SetupStepId.PLAN) < route.indexOf(SetupStepId.TRAINING_MAX))
-        assertEquals(SetupStepId.TRAINING_MAX, SetupStepGraph.next(SetupStepId.PLAN, fullContext))
+        assertTrue(route.indexOf(SetupStepId.PLAN) < route.indexOf(SetupStepId.AUTOREGULATION))
+        // ROUTE no es una pregunta de los recorridos nuevos (§15.1).
+        assertFalse(SetupStepId.ROUTE in route)
+        // Las reglas de prefijo de origen siguen para pasos de otra rama.
+        assertEquals(SetupStepId.STYLE, SetupStepGraph.next(SetupStepId.SESSION_TIME, fullContext))
+        assertEquals(SetupStepId.SPLIT, SetupStepGraph.next(SetupStepId.TRAINING_MAX, fullContext))
+    }
+
+    @Test
+    fun prioritiesSplitAndPlanComeAfterCalibration() {
+        val route = SetupStepGraph.stepIds(fullContext)
+        assertTrue(route.indexOf(SetupStepId.PRIORITIES) < route.indexOf(SetupStepId.TRAINING_MAX))
+        assertTrue(route.indexOf(SetupStepId.TRAINING_MAX) < route.indexOf(SetupStepId.SPLIT))
+        assertTrue(route.indexOf(SetupStepId.SPLIT) < route.indexOf(SetupStepId.PLAN))
+        assertEquals(SetupStepId.AUTOREGULATION, SetupStepGraph.next(SetupStepId.PLAN, fullContext))
     }
 
     @Test
@@ -111,12 +132,13 @@ class SetupStepGraphTest {
             SetupStepId.TRAINING_MARKS,
             SetupStepGraph.next(SetupStepId.TRAINING_MAX, fullContext.copy(hasTrainingMarks = true)),
         )
+        // §15.1: sin marcas, tras CALIBRATION sigue SPLIT.
         assertEquals(
-            SetupStepId.AUTOREGULATION,
+            SetupStepId.SPLIT,
             SetupStepGraph.next(SetupStepId.TRAINING_MAX, fullContext.copy(hasTrainingMarks = false)),
         )
         assertEquals(
-            SetupStepId.AUTOREGULATION,
+            SetupStepId.SPLIT,
             SetupStepGraph.next(SetupStepId.TRAINING_MARKS, fullContext.copy(hasTrainingMarks = true)),
         )
     }
@@ -136,10 +158,23 @@ class SetupStepGraphTest {
         val plain = SetupStepGraph.stepIds(fullContext)
         val wished = SetupStepGraph.stepIds(fullContext.copy(wantsCardio = true))
         val mixed = SetupStepGraph.stepIds(fullContext.copy(mixedTraining = true))
+        // §15.1: Atleta completo también pide sus preferencias de cardio.
+        val completeAthlete = SetupStepGraph.stepIds(fullContext.copy(completeAthleteGoal = true))
 
         assertFalse(SetupStepId.CARDIO_TYPE in plain)
         assertTrue(SetupStepId.CARDIO_TYPE in wished && SetupStepId.CARDIO_TIME in wished)
         assertTrue(SetupStepId.CARDIO_TYPE in mixed && SetupStepId.CARDIO_TIME in mixed)
+        assertTrue(SetupStepId.CARDIO_TYPE in completeAthlete && SetupStepId.CARDIO_TIME in completeAthlete)
+        // Siempre después de SESSION_TIME y antes de CALIBRATION/SPLIT.
+        assertTrue(
+            completeAthlete.indexOf(SetupStepId.SESSION_TIME) < completeAthlete.indexOf(SetupStepId.CARDIO_TYPE),
+        )
+        assertTrue(
+            completeAthlete.indexOf(SetupStepId.CARDIO_TIME) < completeAthlete.indexOf(SetupStepId.TRAINING_MAX),
+        )
+        assertTrue(completeAthlete.indexOf(SetupStepId.CARDIO_TIME) < completeAthlete.indexOf(SetupStepId.VOLUME_TECHNIQUE))
+        assertTrue(completeAthlete.indexOf(SetupStepId.VOLUME_MOBILITY) < completeAthlete.indexOf(SetupStepId.PRIORITIES))
+        assertTrue(completeAthlete.indexOf(SetupStepId.TRAINING_MAX) < completeAthlete.indexOf(SetupStepId.SPLIT))
     }
 
     @Test

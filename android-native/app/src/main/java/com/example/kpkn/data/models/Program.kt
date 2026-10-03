@@ -2,7 +2,11 @@ package com.example.kpkn.data.models
 
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
+import com.example.kpkn.data.protocols.PlanLoadReference
+import com.example.kpkn.data.protocols.PlanProvenance
+import com.example.kpkn.data.protocols.PlanSlotChange
 import com.example.kpkn.data.protocols.SetRecipe
+import com.example.kpkn.data.protocols.WeekRecipe
 import com.example.kpkn.domain.training.ProgramCalendarEngine
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.IdProvider
@@ -88,6 +92,108 @@ data class Program(
      * Room y compatible con programas ya guardados.
      */
     val optionalSessionConfirmations: List<OptionalSessionConfirmation> = emptyList(),
+    /**
+     * Procedencia editorial del plan (§14.1): planId, receta, revisión,
+     * clase ORIGINAL/ADAPTED/KPKN/LEGACY, origen técnico, fuente/edición,
+     * padre, cambios por slot y defaults operativos KPKN. null = programa
+     * legacy sin procedencia declarada (null ≠ instancia declarada). Campo
+     * defaulted en JSON `ignoreUnknownKeys`: sin migración de esquema Room.
+     */
+    val planProvenance: PlanProvenance? = null,
+    /**
+     * Referencias de carga por ejercicio (§14.1/§14.2), por configuración y
+     * convención. Una referencia solo aplica a la MISMA configuración y
+     * convención; vacío en programas legacy.
+     */
+    val exerciseLoadReferences: List<ExerciseLoadReference> = emptyList(),
+    /**
+     * Recetas efectivas aprobadas por ocurrencia de semana (§14.1/§14.4).
+     * Sustituyen la semana original SOLO para esa ocurrencia; la receta global
+     * nunca se muta para adaptar.
+     */
+    val effectiveWeekRecipes: List<EffectiveWeekRecipe> = emptyList(),
+    /**
+     * Sesiones congeladas por edición manual (§14.5). El contenido autoritativo
+     * es la sesión guardada en la programación; esta marca solo declara
+     * «Sesión personalizada» y su alcance de restauración, y no se usa para
+     * esconder `materializationPending` de otras sesiones.
+     */
+    val manualSessionOverrides: List<ManualSessionOverride> = emptyList(),
+    /** Pending per-exercise native progression proposals (§12.4), persisted with this plan. */
+    val nativeProgressionProposals: List<NativeProgressionProposal> = emptyList(),
+    /** Terminal applied/rejected/expired decisions; proposal IDs are idempotent. */
+    val nativeProgressionAudit: List<NativeProgressionResolution> = emptyList(),
+)
+
+/**
+ * Referencias de carga de UN ejercicio dentro del programa (§14.1).
+ * Cada [PlanLoadReference] declara su propia configuración y convención;
+ * solo aplica a la misma configuración/convención (§14.2).
+ */
+@Serializable
+data class ExerciseLoadReference(
+    /** `Exercise.id` de la sesión materializada. */
+    val exerciseId: String,
+    /** 1RM, TM, trabajo observado o lastre/asistencia disponibles para este ejercicio. */
+    val references: List<PlanLoadReference> = emptyList(),
+)
+
+/**
+ * Receta efectiva aprobada para UNA ocurrencia de semana (§14.1/§14.4).
+ * Sustituye la semana de la receta original SOLO para esa ocurrencia; la
+ * receta global del programa/catálogo nunca se muta para adaptar.
+ */
+@Serializable
+data class EffectiveWeekRecipe(
+    /** Ocurrencia 1-based de la semana dentro del run/ciclo (identidad §14.4). */
+    val weekOccurrence: Int,
+    val cycleNumber: Int = 1,
+    /** Versión de esta receta efectiva; incrementa con cada propuesta aprobada. */
+    val version: Int = 1,
+    /** Snapshot de la semana efectiva aprobada; null = solo cambios listados. */
+    val weekRecipe: WeekRecipe? = null,
+    /** Cambios aprobados frente a la receta original (auditoría §13.4). */
+    val changes: List<PlanSlotChange> = emptyList(),
+    /** Propuestas ya aplicadas a esta ocurrencia (el audit AUGE del run se conserva aparte). */
+    val appliedProposals: List<AppliedRecipeProposal> = emptyList(),
+)
+
+/** Propuesta aceptada y ya aplicada sobre una ocurrencia de semana (§14.1). */
+@Serializable
+data class AppliedRecipeProposal(
+    val proposalId: String,
+    val kind: String,
+    val summary: String = "",
+    val acceptedAtMs: Long = 0L,
+)
+
+/** Alcance de una congelación por edición manual (§14.5). */
+@Serializable
+enum class ManualOverrideScope {
+    /** La sesión/semana seleccionada de esta ocurrencia. */
+    SESSION,
+    /** Edición de plantilla cíclica aplicada a futuras ocurrencias cuando la acción existente lo indica. */
+    TEMPLATE_FUTURE_OCCURRENCES,
+}
+
+/**
+ * Marca de sesión personalizada (§14.5). El contenido autoritativo ya es la
+ * sesión guardada; la marca no es una segunda copia de la prescripción, no se
+ * usa para esconder `materializationPending` de otras sesiones y «Restaurar
+ * esta sesión desde el plan» la elimina solo de esa sesión/ocurrencia.
+ */
+@Serializable
+data class ManualSessionOverride(
+    val sessionId: String,
+    /** Semana (`ProgramWeek.id`) de la que deriva la sesión. */
+    val weekId: String? = null,
+    val weekOccurrence: Int? = null,
+    val cycleNumber: Int? = null,
+    /** `DayRecipe.id` de la receta de la que deriva la sesión. */
+    val recipeDayId: String? = null,
+    val scope: ManualOverrideScope = ManualOverrideScope.SESSION,
+    val reason: String = "",
+    val createdAtMs: Long = 0L,
 )
 
 /**

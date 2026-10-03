@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.ProgramRunStatus
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.domain.training.requiresNativeWeekInstances
 
 object ProgramActiveStateEngine {
 
@@ -28,6 +29,26 @@ object ProgramActiveStateEngine {
         // active-state row is only a materialized index/cache and may lag after
         // a program blob write.  Never recover a stale week from that cache.
         if (program.structure == com.example.kpkn.data.models.ProgramStructure.COMPLEX) {
+            if (program.requiresNativeWeekInstances() && program.runState == null) {
+                val templateWeekId = ProgramProgressEngine.templateWeekIdFromInstance(state.currentWeekId)
+                    ?: state.currentWeekId
+                val location = hierarchy.locateWeek(templateWeekId) ?: locations.first()
+                val cycle = state.currentCycleNumber ?: 1
+                val instanceId = state.currentWeekInstanceId
+                    ?: ProgramProgressEngine.instanceIdFor(cycle, location.week.id)
+                return state.copy(
+                    currentMacrocycleIndex = location.macroIndex,
+                    currentBlockIndex = location.blockIndex,
+                    currentMesocycleIndex = location.globalMesoIndex,
+                    currentWeekId = instanceId,
+                    currentWeekInstanceId = instanceId,
+                    currentCycleNumber = cycle,
+                    programRunId = state.programRunId ?: ProgramProgressEngine.newRunId(),
+                    currentMacrocycleId = location.macrocycleId,
+                    currentBlockId = location.blockId,
+                    currentMesocycleId = location.mesocycleId,
+                )
+            }
             val run = program.runState
             if (run != null) {
                 val runWeekId = run.weekId?.let {
@@ -46,13 +67,34 @@ object ProgramActiveStateEngine {
                         if (state.status == ProgramStatus.PAUSED) ProgramStatus.PAUSED
                         else ProgramStatus.ACTIVE
                 }
+                val nativeInstances = program.requiresNativeWeekInstances()
+                val activeWeekId = if (run.status == ProgramRunStatus.COMPLETED) {
+                    ""
+                } else if (nativeInstances) {
+                    val templateId = runWeekId?.let {
+                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+                    } ?: location?.week?.id.orEmpty()
+                    coerceNativeWeekInstanceId(
+                        run.cycleNumber,
+                        templateId,
+                        run.weekInstanceId,
+                    )
+                } else {
+                    location?.week?.id ?: runWeekId.orEmpty()
+                }
                 return state.copy(
                     status = mappedStatus,
                     currentMacrocycleIndex = location?.macroIndex ?: 0,
                     currentBlockIndex = location?.blockIndex ?: 0,
                     currentMesocycleIndex = location?.globalMesoIndex ?: 0,
-                    currentWeekId = if (run.status == ProgramRunStatus.COMPLETED) "" else location?.week?.id ?: runWeekId.orEmpty(),
-                    currentWeekInstanceId = if (run.status == ProgramRunStatus.COMPLETED) null else run.weekInstanceId ?: runWeekId,
+                    currentWeekId = activeWeekId,
+                    currentWeekInstanceId = if (run.status == ProgramRunStatus.COMPLETED) {
+                        null
+                    } else if (nativeInstances) {
+                        activeWeekId
+                    } else {
+                        run.weekInstanceId ?: runWeekId
+                    },
                     currentMacrocycleId = run.macrocycleId ?: location?.macrocycleId,
                     currentBlockId = run.blockId ?: location?.blockId,
                     currentMesocycleId = run.mesocycleId ?: location?.mesocycleId,
@@ -99,17 +141,28 @@ object ProgramActiveStateEngine {
             }
             ?: locations.first()
 
+        val cycle = program.runState?.cycleNumber ?: state.currentCycleNumber ?: 1
+        val nativeInstances = program.requiresNativeWeekInstances()
+        val weekInstanceId = when {
+            program.isSimpleProgram -> exact.week.id
+            nativeInstances -> coerceNativeWeekInstanceId(
+                cycle,
+                exact.week.id,
+                state.currentWeekInstanceId,
+            )
+            else -> state.currentWeekInstanceId
+        }
         return state.copy(
             currentMacrocycleIndex = exact.macroIndex,
             currentBlockIndex = exact.blockIndex,
             currentMesocycleIndex = exact.globalMesoIndex,
-            currentWeekId = exact.week.id,
-            currentWeekInstanceId = if (program.isSimpleProgram) exact.week.id else state.currentWeekInstanceId,
+            currentWeekId = if (nativeInstances) weekInstanceId ?: exact.week.id else exact.week.id,
+            currentWeekInstanceId = weekInstanceId,
             currentMacrocycleId = exact.macrocycleId,
             currentBlockId = exact.blockId,
             currentMesocycleId = exact.mesocycleId,
             programRunId = program.runState?.runId ?: state.programRunId,
-            currentCycleNumber = program.runState?.cycleNumber ?: state.currentCycleNumber,
+            currentCycleNumber = cycle,
         )
     }
 

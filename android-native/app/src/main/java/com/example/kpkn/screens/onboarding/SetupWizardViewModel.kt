@@ -12,15 +12,18 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.onboarding.*
 import com.example.kpkn.data.programs.CatalogLevel
+import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.PlanProvenanceClass
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.kilogramsFromInput
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.onboarding.*
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.*
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import java.time.LocalDate
@@ -58,12 +61,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val commandMutex = Mutex()
     private val catalogRepository = ApprovedAssetExerciseCatalogRepositoryV2(application.applicationContext)
-    private var catalogLoaded = false
+    @Volatile private var catalogLoaded = false
     private var initialized = false
     private var initializeJob: kotlinx.coroutines.Job? = null
     private var currentDraftId: String? = null
     private var previewJob: kotlinx.coroutines.Job? = null
     private var candidateJob: kotlinx.coroutines.Job? = null
+    /** Invalidates late candidate results even when inputs return to an earlier A key. */
+    @Volatile private var candidateGeneration = 0L
     private var exerciseSearchJob: kotlinx.coroutines.Job? = null
     @Volatile private var exerciseLookup: List<ExerciseMuscleInfo>? = null
     @Volatile private var navigationInFlight = false
@@ -74,12 +79,20 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private var preparingTrainingKey: List<Any?>? = null
     private var lastSuccessfulTrainingKey: List<Any?>? = null
     /**
+     * T-005 / §15.3 — caché de sesión de evaluaciones (≤32 por clave completa,
+     * invalidada al cambiar la revisión de catálogo). Nunca cachea «catálogo en
+     * carga» ni guarda resultados de otra revisión.
+     */
+    private val candidateCache = PlanCandidateSessionCache()
+    /**
      * Generación del cálculo de preview. Cada lanzamiento (o liberación de
      * caché) la incrementa y se hace DUEÑO de `isPreviewLoading` y
      * `preparingTrainingKey`: sólo el job dueño publica o limpia, un job viejo
      * cancelado o tardío no escribe nada y una cancelación nunca publica error.
      */
     @Volatile private var previewGeneration = 0L
+    /** Diagnóstico de la última escritura de [mutateDraft]; ver [lastMutateDiagnostic]. */
+    @Volatile private var mutateDiagnostic: String = "n/a"
 
     private val _state = MutableStateFlow(SetupWizardState(SetupWizardDraft(commitId = UUID.randomUUID().toString()), isLoading = true))
     val state: StateFlow<SetupWizardState> = _state.asStateFlow()
@@ -91,7 +104,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Invalida la generación del preview, cancela el job en vuelo y apaga
         // su loading: un cancelado de aquí jamás deja `isPreviewLoading` eterno.
         releasePreviewGeneration(cancelInFlight = true)
+        candidateGeneration += 1
         candidateJob?.cancel()
+        // §15.3: una nueva inicialización no reutiliza evaluaciones de otra sesión.
+        candidateCache.invalidate()
         exerciseSearchJob?.cancel()
         ringsPreviewJob?.cancel()
         lastSuccessfulTrainingKey = null
@@ -102,6 +118,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // guardar/salir y a la recreación del ViewModel.
         _state.value = _state.value.copy(mode = mode, isLoading = true, machineState = WizChatMachineState.Loading,
             programPreview = null, planCandidates = emptyList(), availablePlanCandidates = emptyList(),
+            candidateRejections = emptyList(),
+            isCandidateLoading = false,
             isPreviewLoading = false,
             nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null,
             errors = emptyMap(), lastFailure = null)
@@ -234,6 +252,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * Omite el paso SOLO si su definición lo permite. Registra procedencia y
      * estado ausente sin fabricar ningún dato, y no avanza: la confirmación
      * sigue siendo [submitCurrentStep].
+     *
+     * En la grasa corporal, omitir también LIMPIA lo que ya se hubiera elegido
+     * (figura, medición, fecha y texto): se aplica el reductor «No lo sé»
+     * ([SetupBodyFatSource.UNKNOWN]) y el paso queda en [SetupBodyFatState.SKIPPED]
+     * con Continuar habilitado. Sin esto, omitir tras mover la figura conservaba
+     * el porcentaje y el usuario creía haberlo descartado.
      */
     fun skipStep(step: SetupStepId) {
         val definition = SetupStepDefinitions.of(step)
@@ -242,7 +266,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return
         }
         mutateDraft(step) { draft ->
-            draft.recordStepAnswer(step, SetupAnswerProvenance.USER_DECLARED, SetupValueState.ABSENT)
+            val cleared = if (step == SetupStepId.BODY_FAT) {
+                draft.withStepChoice(step, SetupBodyFatSource.UNKNOWN.name, System.currentTimeMillis())
+            } else {
+                draft
+            }
+            cleared.recordStepAnswer(step, SetupAnswerProvenance.USER_DECLARED, SetupValueState.ABSENT)
         }
     }
 
@@ -278,10 +307,27 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * Solo selecciona el plan: escribe el id elegido en el paso PLAN sin
      * validar candidatos, sin tocar el espejo conversacional y sin avanzar el
      * paso (la confirmación sigue siendo [submitCurrentStep]).
+     *
+     * T-005 / §15.4: entrar en la selección UNIFICADA normaliza la ruta a
+     * CUSTOMIZABLE + PERSONALIZE (el origen histórico sigue en el espejo
+     * legacy); un borrador con ID de plan antiguo se conserva para lectura.
+     * La selección conserva intención (`selectedCatalogId`), nunca cambia de
+     * plan en silencio: si las respuestas cambian, el preview queda obsoleto
+     * y la activación espera re-preparar.
      */
     fun selectPlan(id: String) = updateStep(SetupStepId.PLAN) { draft ->
         if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft
-        else draft.copy(selectedCatalogId = id, acceptFixedRecipeDifference = false)
+        else draft.copy(
+            selectedCatalogId = id,
+            acceptFixedRecipeDifference = false,
+            // LATER no se convierte en entrenamiento por elegir una tarjeta.
+            programRoute = if (draft.programRoute == SetupProgramRoute.LATER) {
+                draft.programRoute
+            } else {
+                SetupProgramRoute.CUSTOMIZABLE
+            },
+            trainingPath = SetupTrainingPath.PERSONALIZE,
+        )
     }
 
     fun setWeightUnit(unit: String) = mutateDraft(step = SetupStepId.WEIGHT) { draft ->
@@ -591,9 +637,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
             stepping.weightKg != null &&
             SetupWizardValidation.validateStep(stepping, SetupStepId.WEIGHT).none { it.isBlocking }
         if (paired) stepping = stepping.confirmCurrentStep(SetupStepId.WEIGHT)
-        val confirmed = resumeReviewAfterEdit(stepping, if (paired) SetupStepId.WEIGHT else expectedStep)
-            .withNextDraftRevision(previous)
-        val previousKey = trainingKey(previous)
+        val confirmed = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(
+            resumeReviewAfterEdit(stepping, if (paired) SetupStepId.WEIGHT else expectedStep),
+        ).withNextDraftRevision(previous)
+        val previousCandidateKey = candidateSetKey(previous)
         _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap(), isSubmittingAnswer = true)
         val persisted = persistDraft(confirmed)
         if (persisted) {
@@ -603,7 +650,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 isSubmittingAnswer = false)
         }
         Log.d(DIAG_TAG, "submitLocked $expectedStep → ${confirmed.stepProgress.currentStepId} rev=${confirmed.revision} persisted=$persisted")
-        if (previousKey != trainingKey(confirmed)) updateCandidates(confirmed)
+        if (previousCandidateKey != candidateSetKey(confirmed)) updateCandidates(confirmed)
         preparePreview(confirmed)
     }
 
@@ -745,6 +792,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return@withLock true
         }
         previewJob?.cancel()
+        candidateGeneration += 1
         candidateJob?.cancel()
         exerciseSearchJob?.cancel()
         ringsPreviewJob?.cancel()
@@ -876,22 +924,36 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     private suspend fun persistAndPublish(draft: SetupWizardDraft) {
         val previous = _state.value.draft
-        val previousKey = trainingKey(previous)
+        val previousCandidateKey = candidateSetKey(previous)
         // Cambios fisiológicos reales: marcan pendientes y previews obsoletos.
         // La navegación pura no cambia la huella y por eso no dispara nada.
         // Revisión monótona: models nunca toca draft.revision, así que la frontera
         // de persistencia siempre supera la fila guardada (guard de Room en 126).
-        val next = draft.withNextDraftRevision(previous).withChangeImpacts(previous)
-        _state.value = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
+        val next = SetupDraftCompatibility.normalizeLegacyRouteAtPlan(draft)
+            .withNextDraftRevision(previous).withChangeImpacts(previous)
+        val candidateInputsChanged = previousCandidateKey != candidateSetKey(next)
+        if (candidateInputsChanged) candidateGeneration += 1
+        val beforePersist = _state.value.copy(machineState = WizChatMachineState.PersistingAnswer, errors = emptyMap())
+        _state.value = if (candidateInputsChanged) {
+            withoutStaleCandidatesError(beforePersist.copy(
+                planCandidates = emptyList(),
+                availablePlanCandidates = emptyList(),
+                candidateRejections = emptyList(),
+                candidateCounts = SetupCandidateCounts(),
+                isCandidateLoading = false,
+                planAdaptedToBodyweight = false,
+            ))
+        } else beforePersist
         if (persistDraft(next)) {
             publishDraft(next, true, WizChatMachineState.AwaitingAnswer)
-            if (previousKey != trainingKey(next)) updateCandidates(next)
+            if (candidateInputsChanged) updateCandidates(next)
             preparePreview(next)
         } else {
             // Guardar falló: el borrador (respuestas incluidas) sigue visible en
             // memoria con un error inline y sin perder nada, para reintentar.
             _state.value = _state.value.copy(draft = next, dirty = true, machineState = WizChatMachineState.AwaitingAnswer,
-                isSubmittingAnswer = false, isSavingAndExiting = false)
+                isSubmittingAnswer = false, isSavingAndExiting = false,
+                selectionStale = selectionStaleFor(next))
         }
     }
     /**
@@ -904,17 +966,33 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * defecto 70 kg con la regla); si ya estaba declarado y el valor no varía,
      * no se persiste nada (sin revisión inútil).
      */
-    private fun mutateDraft(step: SetupStepId? = null, change: (SetupWizardDraft) -> SetupWizardDraft) = viewModelScope.launch { commandMutex.withLock {
-        if (!initialized || _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting ||
-            _state.value.machineState == WizChatMachineState.Committed ||
-            _state.value.machineState == WizChatMachineState.UnsupportedDraft
-        ) return@withLock
-        val old = _state.value.draft
-        val changed = change(old)
-        val alreadyDeclared = step != null && step in old.declaredSteps
-        val marked = if (step != null && (changed != old || !alreadyDeclared)) changed.touchStep(step) else changed
-        if (marked != old) persistAndPublish(marked.copy(revision = old.revision + 1))
-    } }
+    private fun mutateDraft(step: SetupStepId? = null, change: (SetupWizardDraft) -> SetupWizardDraft) {
+        // Diagnóstico de caídas silenciosas (AC-T005-03): si una escritura no
+        // llega a publicarse, el último estado explica si ni siquiera se
+        // encoló, si esperó el mutex, si la puerta la descartó o si se aplicó.
+        mutateDiagnostic = "launched:${step ?: "-"}"
+        viewModelScope.launch {
+            commandMutex.withLock {
+                if (!initialized || _state.value.isCommitting || _state.value.isSubmittingAnswer || _state.value.isSavingAndExiting ||
+                    _state.value.machineState == WizChatMachineState.Committed ||
+                    _state.value.machineState == WizChatMachineState.UnsupportedDraft
+                ) {
+                    mutateDiagnostic = "dropped:${step ?: "-"} init=$initialized submitting=${_state.value.isSubmittingAnswer}" +
+                        " saving=${_state.value.isSavingAndExiting} machine=${_state.value.machineState}"
+                    return@withLock
+                }
+                mutateDiagnostic = "applied:${step ?: "-"}"
+                val old = _state.value.draft
+                val changed = change(old)
+                val alreadyDeclared = step != null && step in old.declaredSteps
+                val marked = if (step != null && (changed != old || !alreadyDeclared)) changed.touchStep(step) else changed
+                if (marked != old) persistAndPublish(marked.copy(revision = old.revision + 1))
+            }
+        }
+    }
+
+    /** Última escritura observada por [mutateDraft]; solo diagnóstico de pruebas. */
+    internal fun lastMutateDiagnostic(): String = mutateDiagnostic
     private suspend fun persistDraft(draft: SetupWizardDraft): Boolean = try {
         persistence.save(draft.draftId, json.encodeToString(draft), draft.revision.toLong(), PersonalizedPlanCatalog.REVISION)
         savedStateHandle[DRAFT_ID_KEY] = draft.draftId
@@ -933,8 +1011,24 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val ringsDiagnosis = _state.value.lastFailure
             ?.takeIf { it.startsWith(RINGS_FAILURE_PREFIX) }
         _state.value = _state.value.copy(draft = draft, dirty = dirty, isLoading = false, machineState = machine,
-            errors = emptyMap(), previewError = null, lastFailure = ringsDiagnosis, isSubmittingAnswer = false)
+            errors = emptyMap(), previewError = null, lastFailure = ringsDiagnosis, isSubmittingAnswer = false,
+            // §15.2: la selección guardada queda obsoleta en cuanto las
+            // respuestas dejan de coincidir con el preview preparado; el
+            // preview nuevo la vuelve a poner vigente.
+            selectionStale = selectionStaleFor(draft))
     }
+
+    /**
+     * §15.2: `selectedCatalogId` conserva la INTENCIÓN; el preview deja de estar
+     * vigente cuando la huella actual no es la del último preview publicado.
+     * La activación usa exactamente el mismo gate, así que nunca se activa un
+     * resultado de otras respuestas.
+     */
+    private fun selectionStaleFor(draft: SetupWizardDraft): Boolean =
+        draft.selectedCatalogId != null &&
+            draft.includeTraining &&
+            draft.programRoute != SetupProgramRoute.LATER &&
+            lastSuccessfulTrainingKey != previewKey(draft)
 
     private val trainingPreviewKinds = setOf(
         SetupPreviewKind.EXERCISES, SetupPreviewKind.LOADS, SetupPreviewKind.WARMUPS,
@@ -969,17 +1063,111 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Inventario declarado (P0): su cambio invalida candidatos y preview de
         // programa, aunque el resto de opciones no varíen.
         draft.trainingOptions.inventory,
+        // §15.3: material completo (categorías + aparatos/soportes del panel
+        // §13.2), revisiones reales de catálogo y todo lo que consume el motor.
+        draft.trainingOptions.availability,
         draft.trainingEnvironment, draft.knowsTrainingMarks,
         draft.volumeAnswers, draft.volumeRecommendations, draft.priorityMuscles, draft.lowerEmphasisMuscles,
         draft.selectedSplitId, draft.customSplitPattern, draft.customSplitName,
         draft.selectedCatalogId, draft.sessions, draft.powerliftingProfile, draft.catalogRevision,
+        PersonalizedPlanCatalog.REVISION,
     )
+
+    /** Candidate evaluation is independent of which candidate card is selected. */
+    private fun candidateSetKey(draft: SetupWizardDraft): List<Any?> =
+        trainingKey(draft.copy(selectedCatalogId = null))
+
+    /**
+     * T-001 / AC-T001-03: un resultado de candidatos sólo se publica si sus
+     * entradas siguen siendo las vigentes. Es la MISMA comparación que ya usaba
+     * el job dentro de [updateCandidates]; queda como función interna para que
+     * una prueba determinista demuestre que la clave obsoleta se rechaza, sin
+     * depender de carreras ni de tiempos.
+     */
+    internal fun isCurrentCandidateKey(draft: SetupWizardDraft): Boolean =
+        candidateSetKey(_state.value.draft) == candidateSetKey(draft)
+
+    /**
+     * T-001 / AC-T001-02: causa CONCISA de un rechazo. Conserva la clase y el
+     * mensaje de la excepción —lo único que explica de verdad el fallo— sin
+     * datos personales y sin volcar el borrador entero.
+     */
+    private fun failureDetail(error: Throwable): String {
+        val message = error.message?.trim().orEmpty()
+        val type = error::class.java.name
+        return if (message.isEmpty()) type else "$type: $message"
+    }
+
+    /** Rechazo estructurado de un candidato: etapa tipada si la hubo, si no MATERIALIZACIÓN. */
+    @Suppress("unused")
+    private fun rejectionOf(planId: String, error: Exception): SetupCandidateRejection =
+        SetupCandidateRejection(
+            planId = planId,
+            stage = (error as? SetupCandidateFailureException)?.stage ?: SetupCandidateRejectionStage.MATERIALIZATION,
+            reason = failureDetail(error),
+        )
+
+    /**
+     * Etapa de un `unavailable(...)` del personalizador: su mensaje ya describe
+     * la causa real (frecuencia, equipo, tiempo, volumen…). Aquí sólo se asigna
+     * a la etapa correcta para que la UI no lo presente todo como «falta
+     * material» (AC-T001-02); si no hay señal clara, MATERIALIZACIÓN.
+     */
+    private fun stageForUnavailable(message: String): SetupCandidateRejectionStage {
+        val text = message.lowercase()
+        return when {
+            "catálogo" in text || "catalogo" in text -> SetupCandidateRejectionStage.CATALOG
+            "frecuencia" in text -> SetupCandidateRejectionStage.FREQUENCY
+            "material" in text || "equipo" in text || "aparato" in text || "enfoque" in text ->
+                SetupCandidateRejectionStage.MATERIAL
+            "minut" in text || "tiempo" in text -> SetupCandidateRejectionStage.DURATION
+            "experiencia" in text || "nivel" in text -> SetupCandidateRejectionStage.PROFILE
+            "volumen" in text -> SetupCandidateRejectionStage.COMPOSITION
+            else -> SetupCandidateRejectionStage.MATERIALIZATION
+        }
+    }
+
+    /** Escaneo de UN pase de candidatos (T-001): publicados, viables y rechazos estructurados. */
+    private data class CandidateScan(
+        val published: List<CatalogEntry>,
+        val viable: List<CatalogEntry>,
+        val rejections: List<SetupCandidateRejection>,
+    ) {
+        /** §15.2: evaluados = viables + no viables; NO «publicados» filtrados. */
+        val counts: SetupCandidateCounts
+            get() = SetupCandidateCounts(
+                evaluated = viable.size + rejections.size,
+                viable = viable.size,
+                nonViable = rejections.size,
+            )
+    }
+
+    /** Resultado del cálculo de candidatos: qué pase se eligió y si activó el segundo pase adaptado. */
+    private data class CandidateOutcome(val scan: CandidateScan, val useAdapted: Boolean)
+
+    /**
+     * C4: contadores del barrido de candidatos. SOLO medición: no influyen en el
+     * resultado ni en la caché. Se actualizan desde Dispatchers.Default.
+     */
+    private class CandidateSweepStats {
+        val evaluated = java.util.concurrent.atomic.AtomicInteger()
+        val cacheHits = java.util.concurrent.atomic.AtomicInteger()
+        val passes = java.util.concurrent.atomic.AtomicInteger()
+    }
+
+    /** Barridos de candidatos lanzados por este ViewModel (el primero suele ser en frío). */
+    @Volatile private var candidateSweepsStarted = 0
 
     /** Catalog is loaded lazily, only when a preview or candidate computation requires it. */
     private suspend fun ensureCatalogLoaded() {
         if (catalogLoaded) return
-        catalogRepository.load()
-        catalogLoaded = true
+        // §15.3: lectura de asset SIEMPRE en IO; la materialización corre en Default.
+        withContext(Dispatchers.IO) {
+            if (!catalogLoaded) {
+                catalogRepository.load()
+                catalogLoaded = true
+            }
+        }
     }
 
     /**
@@ -1008,7 +1196,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // Mientras se recalculan candidatos, el pase adaptado todavía no está
         // decidido. Materializar aquí mostraría un error de equipo que el
         // segundo pase puede resolver. El job de candidatos relanza la vista.
-        if (_state.value.isCandidateLoading) return
+        if (_state.value.isCandidateLoading) {
+            // Tracking-only has no plan/calendar dependency, so its empty
+            // preparation can be published independently of candidate work.
+            if (isTrackingOnly(draft)) updateNutritionPreview(draft)
+            return
+        }
         val key = previewKey(draft)
         val jobActive = previewJob?.isActive == true
         if (jobActive && preparingTrainingKey == key && _state.value.isPreviewLoading) {
@@ -1068,10 +1261,104 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * materializado completo sin cargar assets.
      */
     private suspend fun materialize(draft: SetupWizardDraft): SetupPreview {
+        cachedReadyPreview(draft)?.let { return it }
         val override = materializeOverride
         if (override != null) return override.materialize(draft)
+        // A manual plan does not use the catalog evaluator. Every catalog plan,
+        // including a cache miss or a restored selection, must pass through the
+        // same revision-matched evaluator before its preview can be published.
+        if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return materializeProgram(draft)
+        ensureCatalogLoaded()
+        return evaluateSelectedCandidate(draft)
+    }
+
+    /**
+     * Evaluation engine used by both the candidate scan and a selected-plan
+     * cache miss. Deliberately bypasses the Ready lookup to avoid recursive
+     * evaluation; its result is always returned through PlanCandidateEvaluator.
+     */
+    private suspend fun materializeForEvaluation(draft: SetupWizardDraft): SetupPreview {
+        materializeOverride?.let { return it.materialize(draft) }
         ensureCatalogLoaded()
         return materializeProgram(draft)
+    }
+
+    /** Evaluates one selected catalog plan and returns that exact prepared Ready. */
+    private suspend fun evaluateSelectedCandidate(draft: SetupWizardDraft): SetupPreview {
+        val planId = draft.selectedCatalogId ?: error("Selecciona un plan")
+        val exerciseRevision = exerciseCatalogRevision()
+            ?: throw PlanMaterializationException(
+                PlanEvaluationStage.CATALOG,
+                PlanRejectionReason.CATALOG_NOT_READY,
+                "El catálogo de ejercicios todavía no está disponible",
+            )
+        val equipment = effectiveEquipmentIds(draft)
+        val request = candidateRequest(draft, equipment, exerciseRevision)
+        val cacheRevision = "${PersonalizedPlanCatalog.REVISION}|$exerciseRevision"
+        val cacheKey = "${request.inputKey}|$planId"
+
+        fun preview(ready: PlanCandidateEvaluation.Ready): SetupPreview {
+            check(ready.planId == planId && ready.inputKey == request.inputKey) {
+                "La evaluación preparada no corresponde al plan y las respuestas actuales"
+            }
+            return SetupPreview(ready.preparedPlan, ready.report)
+        }
+
+        when (val cached = candidateCache.get(cacheRevision, cacheKey)) {
+            is PlanCandidateEvaluation.Ready -> return preview(cached)
+            is PlanCandidateEvaluation.Rejected -> throw PlanMaterializationException(
+                cached.stage, cached.reasonCode,
+                cached.details ?: cached.reasonCode.name,
+                cached.affectedSlots, cached.requiredMinutes,
+            )
+            PlanCandidateEvaluation.CatalogLoading, null -> Unit
+        }
+
+        val snapshot = PlanCatalogSnapshot(
+            entries = PersonalizedPlanCatalog.entries(),
+            planRevision = PersonalizedPlanCatalog.REVISION,
+            exerciseCatalogRevision = exerciseRevision,
+        )
+        val evaluation = PlanCandidateEvaluator.evaluate(
+            request = request,
+            snapshot = snapshot,
+            entryId = planId,
+            engine = candidateEngine(draft, request),
+        )
+        return when (evaluation) {
+            is PlanCandidateEvaluation.Ready -> {
+                candidateCache.put(cacheRevision, cacheKey, evaluation)
+                preview(evaluation)
+            }
+            is PlanCandidateEvaluation.Rejected -> {
+                candidateCache.put(cacheRevision, cacheKey, evaluation)
+                throw PlanMaterializationException(
+                    evaluation.stage, evaluation.reasonCode,
+                    evaluation.details ?: evaluation.reasonCode.name,
+                    evaluation.affectedSlots, evaluation.requiredMinutes,
+                )
+            }
+            PlanCandidateEvaluation.CatalogLoading -> throw PlanMaterializationException(
+                PlanEvaluationStage.CATALOG,
+                PlanRejectionReason.CATALOG_NOT_READY,
+                "El catálogo cambió durante la preparación; vuelve a intentarlo",
+            )
+        }
+    }
+
+    /** The evaluation cache owns the prepared program/report for this exact candidate. */
+    private fun cachedReadyPreview(draft: SetupWizardDraft): SetupPreview? {
+        if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return null
+        val planId = draft.selectedCatalogId ?: return null
+        val exerciseRevision = exerciseCatalogRevision() ?: return null
+        val equipment = effectiveEquipmentIds(draft)
+        val inputKey = candidateInputKey(draft, equipment, exerciseRevision)
+        val cacheRevision = "${PersonalizedPlanCatalog.REVISION}|$exerciseRevision"
+        val ready = candidateCache.get(cacheRevision, "$inputKey|$planId")
+            as? PlanCandidateEvaluation.Ready
+            ?: return null
+        if (ready.planId != planId || ready.inputKey != inputKey) return null
+        return SetupPreview(ready.preparedPlan, ready.report)
     }
 
     private suspend fun runPreview(generation: Long, key: List<Any?>, draft: SetupWizardDraft) {
@@ -1098,14 +1385,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return
         }
         if (ownsPreview(generation)) {
+            val machine = _state.value.machineState
+            // §15.3 / AC-T005-03: el preview NUNCA pisa un persist en vuelo.
+            // `PersistingAnswer` es la señal de que la escritura aún no se ha
+            // publicado; pisarla dejaba la puerta «en reposo» abierta antes de
+            // tiempo y un submit leía un borrador anterior al de la escritura.
+            val previewOwnsMachine = machine == WizChatMachineState.AwaitingAnswer ||
+                machine == WizChatMachineState.Reviewing ||
+                machine == WizChatMachineState.PreparingPreview
             _state.value = _state.value.copy(
-                machineState = WizChatMachineState.PreparingPreview,
+                machineState = if (previewOwnsMachine) WizChatMachineState.PreparingPreview else machine,
                 isPreviewLoading = true, previewError = null,
             )
         }
         try {
             val source = if (_state.value.planAdaptedToBodyweight) bodyweightAdapted(draft) else draft
-            val result = withContext(Dispatchers.IO) { materialize(source) }
+            val result = withContext(Dispatchers.Default) { materialize(source) }
             when {
                 // Dueño + clave vigente: publica y se retira.
                 ownsPreview(generation) && previewKey(_state.value.draft) == key -> {
@@ -1114,9 +1409,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     clearStalePreviews(trainingPreviewKinds)
                     val isFixed = draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)?.source?.let { it != CatalogSource.NATIVE } == true
                     val minutes = if (isFixed) result.program?.let(::estimateFixedSessionMinutes) else null
+                    val machine = _state.value.machineState
+                    val restoredMachine = if (machine == WizChatMachineState.PreparingPreview) {
+                        if (_state.value.draft.wizChat.currentQuestionId == WizChatQuestionId.REVIEW) {
+                            WizChatMachineState.Reviewing
+                        } else {
+                            WizChatMachineState.AwaitingAnswer
+                        }
+                    } else {
+                        // Un persist en vuelo mantiene su señal: su propio
+                        // publishDraft es quien la retira al terminar.
+                        machine
+                    }
                     _state.value = _state.value.copy(programPreview = result.program, previewReport = result.report, fixedSessionEstimateMinutes = minutes,
                         fixedTrainingDays = if (isFixed) result.program?.let(::fixedTrainingDays) else null,
-                        isPreviewLoading = false, machineState = if (_state.value.draft.wizChat.currentQuestionId == WizChatQuestionId.REVIEW) WizChatMachineState.Reviewing else WizChatMachineState.AwaitingAnswer,
+                        isPreviewLoading = false, machineState = restoredMachine,
+                        selectionStale = selectionStaleFor(_state.value.draft),
                         requiresActivationConfirmation = activationConfirmation(draft, result.program))
                     updateNutritionPreview(_state.value.draft)
                 }
@@ -1132,7 +1440,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
             if (ownsPreview(generation)) {
                 preparingTrainingKey = null
                 if (previewKey(_state.value.draft) == key) {
-                    _state.value = _state.value.copy(isPreviewLoading = false, machineState = stateForCurrentStep(), previewError = error.message ?: "No se pudo preparar la vista previa", errors = _state.value.errors + ("preview" to (error.message ?: "No se pudo preparar la vista previa")), lastFailure = error.message)
+                    val machine = _state.value.machineState
+                    _state.value = _state.value.copy(isPreviewLoading = false,
+                        machineState = if (machine == WizChatMachineState.PreparingPreview) stateForCurrentStep() else machine,
+                        previewError = error.message ?: "No se pudo preparar la vista previa", errors = _state.value.errors + ("preview" to (error.message ?: "No se pudo preparar la vista previa")), lastFailure = error.message)
                 } else {
                     retirePreviewLoading()
                 }
@@ -1275,23 +1586,295 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun effectiveEquipmentIds(draft: SetupWizardDraft): Set<String> =
         draft.trainingOptions.effectiveEquipment(draft.equipment.map { it.catalogId }.toSet())
 
+    // ── Evaluación única (T-005 / §15.2) ─────────────────────────────────────
+
+    /**
+     * Token canónico de la huella: colecciones ordenadas, `null` distinto de
+     * vacío y enums por nombre (§15.3: clave determinista, sin hora real).
+     */
+    private fun canonicalToken(value: Any?): String = when (value) {
+        null -> "~"
+        is Enum<*> -> value.name
+        is Set<*> -> "[" + value.map(::canonicalToken).sorted().joinToString(",") + "]"
+        is List<*> -> "[" + value.map(::canonicalToken).joinToString(",") + "]"
+        is Map<*, *> -> "{" + value.entries
+            .map { entry -> "${canonicalToken(entry.key)}=${canonicalToken(entry.value)}" }
+            .sorted()
+            .joinToString(",") + "}"
+        else -> value.toString()
+    }
+
+    /**
+     * Clave completa de evaluación (§15.3): huella de entradas + equipo efectivo
+     * + revisión del catálogo de planes + revisión REAL del catálogo de
+     * ejercicios decodificado. Sin hashes de asset inventados.
+     */
+    internal fun candidateInputKey(draft: SetupWizardDraft, equipment: Set<String>): String =
+        candidateInputKey(draft, equipment, exerciseCatalogRevision())
+
+    private fun candidateInputKey(
+        draft: SetupWizardDraft,
+        equipment: Set<String>,
+        exerciseRevision: String?,
+    ): String = buildString {
+        appendCandidateInputs(draft, equipment, exerciseRevision)
+    }
+
+    private fun StringBuilder.appendCandidateInputs(
+        draft: SetupWizardDraft,
+        equipment: Set<String>,
+        exerciseRevision: String?,
+    ) {
+        // La evaluación pertenece a los inputs del plan, no a la tarjeta que
+        // está marcada. Un Ready del barrido se puede reutilizar al seleccionarla.
+        append(candidateSetKey(draft).joinToString("|", transform = ::canonicalToken))
+        append("|equip=").append(canonicalToken(equipment.sorted()))
+        append("|planRev=").append(PersonalizedPlanCatalog.REVISION)
+        append("|exRev=").append(exerciseRevision.orEmpty())
+    }
+
+    /** Revisión real del catálogo de ejercicios ya decodificado; null = sin cargar. */
+    internal fun exerciseCatalogRevision(): String? =
+        (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog?.catalogRevision
+
+    private fun goalProfileOf(draft: SetupWizardDraft): PlanGoalProfile = when (draft.goal) {
+        SetupGoal.STRENGTH -> PlanGoalProfile.STRENGTH
+        SetupGoal.MUSCLE -> PlanGoalProfile.MUSCLE
+        SetupGoal.STRENGTH_MUSCLE -> PlanGoalProfile.STRENGTH_MUSCLE
+        SetupGoal.COMPLETE_ATHLETE -> PlanGoalProfile.COMPLETE_ATHLETE
+        SetupGoal.MIXED -> PlanGoalProfile.LEGACY_MIXED
+        SetupGoal.HEALTH, null -> PlanGoalProfile.LEGACY_HEALTH
+    }
+
+    private fun candidateRequest(
+        draft: SetupWizardDraft,
+        equipment: Set<String>,
+        exerciseRevision: String?,
+    ): PlanCandidateRequest = PlanCandidateRequest(
+        inputKey = candidateInputKey(draft, equipment, exerciseRevision),
+        goalProfile = goalProfileOf(draft),
+        level = draft.experience.toCatalogLevel(),
+        focus = draft.focus.toTrainingFocus(),
+        reference = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) null else draft.trainingReference(),
+        daysPerWeek = requireNotNull(draft.daysPerWeek),
+        weekdays = draft.selectedWeekdays,
+        minutesPerSession = requireNotNull(draft.minutesPerSession),
+        effectiveEquipment = equipment,
+        cardioMinutes = draft.cardioMinutes,
+        requiresCardio = draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE,
+        selectedSplitId = draft.selectedSplitId,
+        planCatalogRevision = PersonalizedPlanCatalog.REVISION,
+        exerciseCatalogRevision = exerciseRevision,
+    )
+
+    /**
+     * Puerto real de materialización: el MISMO motor del preview, con el plan
+     * candidato ya elegido. Traduce los fallos tipados del motor a los motivos
+     * cerrados de §15.2; `CancellationException` se propaga y cualquier otro
+     * error inesperado lo captura el evaluador como INTERNAL_MATERIALIZATION.
+     */
+    private fun candidateEngine(source: SetupWizardDraft, request: PlanCandidateRequest): PlanMaterializationPort =
+        PlanMaterializationPort { entry, _ ->
+            val outcome = try {
+                materializeForEvaluation(source.copy(selectedCatalogId = entry.id))
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (typed: PlanMaterializationException) {
+                throw typed
+            } catch (failure: SetupCandidateFailureException) {
+                throw translateCandidateFailure(failure, source)
+            }
+            val program = outcome.program ?: throw PlanMaterializationException(
+                PlanEvaluationStage.MATERIALIZATION,
+                PlanRejectionReason.INTERNAL_MATERIALIZATION,
+                "el motor no devolvió programa para ${entry.id}",
+            )
+            // Plan de autor: la receta efectiva (derivada si hubo sustituciones) y su
+            // procedencia son las del programa preparado, no las del catálogo vigente.
+            val recipe = if (entry.authoredSource != null) program.sourceRecipe else entry.recipe ?: entry.template?.recipe
+            PlanMaterializationOutcome(program, recipe, outcome.report)
+        }
+
+    /** Etapa/ causa tipadas de un fallo del motor (T-001 / §15.2). */
+    private fun translateCandidateFailure(
+        failure: SetupCandidateFailureException,
+        draft: SetupWizardDraft,
+    ): PlanMaterializationException {
+        val message = failure.message?.trim().orEmpty().ifBlank { "fallo de materialización sin mensaje" }
+        return when (failure.stage) {
+            SetupCandidateRejectionStage.CATALOG -> PlanMaterializationException(
+                PlanEvaluationStage.CATALOG, PlanRejectionReason.CATALOG_NOT_READY, message)
+            SetupCandidateRejectionStage.PROFILE -> PlanMaterializationException(
+                PlanEvaluationStage.PROFILE, PlanRejectionReason.LEVEL_UNSUITABLE, message)
+            SetupCandidateRejectionStage.FREQUENCY -> PlanMaterializationException(
+                PlanEvaluationStage.FREQUENCY_SPLIT, PlanRejectionReason.FREQUENCY, message)
+            SetupCandidateRejectionStage.DURATION -> PlanMaterializationException(
+                PlanEvaluationStage.SESSION_DURATION, PlanRejectionReason.TIME_BUDGET, message,
+                requiredMinutes = message.substringAfter("estima ", "").substringBefore(" min", "")
+                    .toIntOrNull(),
+            )
+            SetupCandidateRejectionStage.COMPOSITION -> PlanMaterializationException(
+                PlanEvaluationStage.COMPOSITION, PlanRejectionReason.COMPOSITION, message)
+            SetupCandidateRejectionStage.MATERIAL -> PlanMaterializationException(
+                PlanEvaluationStage.MATERIAL, apparatusReason(message, draft), message)
+            SetupCandidateRejectionStage.MATERIALIZATION -> {
+                // El motor ya clasificó el mensaje; sin señal clara el fallo es
+                // interno (nunca se disfraza de «falta de material»).
+                when (stageForUnavailable(message)) {
+                    SetupCandidateRejectionStage.CATALOG -> PlanMaterializationException(
+                        PlanEvaluationStage.CATALOG, PlanRejectionReason.CATALOG_NOT_READY, message)
+                    SetupCandidateRejectionStage.FREQUENCY -> PlanMaterializationException(
+                        PlanEvaluationStage.FREQUENCY_SPLIT, PlanRejectionReason.FREQUENCY, message)
+                    SetupCandidateRejectionStage.MATERIAL -> PlanMaterializationException(
+                        PlanEvaluationStage.MATERIAL, apparatusReason(message, draft), message)
+                    SetupCandidateRejectionStage.DURATION -> PlanMaterializationException(
+                        PlanEvaluationStage.SESSION_DURATION, PlanRejectionReason.TIME_BUDGET, message)
+                    SetupCandidateRejectionStage.PROFILE -> PlanMaterializationException(
+                        PlanEvaluationStage.PROFILE, PlanRejectionReason.LEVEL_UNSUITABLE, message)
+                    else -> PlanMaterializationException(
+                        PlanEvaluationStage.MATERIALIZATION, PlanRejectionReason.INTERNAL_MATERIALIZATION, message)
+                }
+            }
+        }
+    }
+
+    /**
+     * ¿Falta confirmar el aparato (UNKNOWN) o está realmente ausente (ABSENT)?
+     * Los tokens de `missingFixedRecipeEquipment` se contrastan con la evidencia
+     * del resolver; sin señal, la ausencia declarada manda.
+     */
+    internal fun apparatusReason(message: String, draft: SetupWizardDraft): PlanRejectionReason {
+        val tokens = missingEquipmentTokens(message)
+        if (tokens.isEmpty()) return PlanRejectionReason.APPARATUS_ABSENT
+        val evidence = tokens.map { requirementEvidence(it, draft) }
+        return when {
+            // Una ausencia declarada ya es un bloqueo definitivo: no se debe
+            // explicar una mezcla como si bastara confirmar lo desconocido.
+            evidence.any { it == RequirementEvidence.ABSENT } -> PlanRejectionReason.APPARATUS_ABSENT
+            evidence.any { it == RequirementEvidence.UNKNOWN } -> PlanRejectionReason.APPARATUS_UNKNOWN
+            else -> PlanRejectionReason.APPARATUS_ABSENT
+        }
+    }
+
+    private fun missingEquipmentTokens(message: String): List<String> = message.substringAfter(":", "")
+        .split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
+    private fun requirementEvidence(token: String, draft: SetupWizardDraft): RequirementEvidence {
+        val resolved = draft.trainingOptions
+            .resolveEffectiveEquipment(draft.equipment.map { it.catalogId }.toSet())
+        resolved.requirements[token]?.let { return it }
+
+        val availability = draft.trainingOptions.availability ?: return RequirementEvidence.UNKNOWN
+        val requestedConfiguration = token.removePrefix("machine_config:")
+            .takeIf { token.startsWith("machine_config:") }
+        if (token != "machine" && requestedConfiguration == null) return RequirementEvidence.UNKNOWN
+        if (EquipmentCategory.MACHINES !in availability.categories) return RequirementEvidence.ABSENT
+        val keys = EFFECTIVE_EQUIPMENT_KEYS.filter { key ->
+            key.category == EquipmentCategory.MACHINES &&
+                (requestedConfiguration == null || requestedConfiguration in key.machineConfigurations)
+        }
+        if (keys.isEmpty()) return RequirementEvidence.UNKNOWN
+        val presences = keys.map { SetupApparatusPanel.presenceOf(availability, it.key) }
+        if (requestedConfiguration == null) {
+            return when {
+                presences.all { it == ApparatusPresence.ABSENT } -> RequirementEvidence.ABSENT
+                presences.any { it == ApparatusPresence.UNKNOWN } -> RequirementEvidence.UNKNOWN
+                else -> RequirementEvidence.ABSENT
+            }
+        }
+        return when {
+            presences.any { it == ApparatusPresence.ABSENT } -> RequirementEvidence.ABSENT
+            presences.any { it == ApparatusPresence.UNKNOWN } -> RequirementEvidence.UNKNOWN
+            else -> RequirementEvidence.ABSENT
+        }
+    }
+
+    /** Rechazo del evaluador → instrumentación estructurada del wizard (paquete A). */
+    private fun setupRejectionOf(evaluation: PlanCandidateEvaluation.Rejected): SetupCandidateRejection =
+        SetupCandidateRejection(
+            planId = evaluation.planId,
+            stage = setupStageOf(evaluation.stage),
+            // Conserva la CAUSA concreta (mensaje real), nunca solo una clase.
+            reason = evaluation.details?.takeIf { it.isNotBlank() } ?: evaluation.reasonCode.name,
+            reasonCode = evaluation.reasonCode,
+            affectedSlots = evaluation.affectedSlots,
+            missingCapabilities = evaluation.missingCapabilities,
+            requiredMinutes = evaluation.requiredMinutes,
+            needsApparatusConfirmation = evaluation.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN ||
+                evaluation.reasonCode == PlanRejectionReason.APPARATUS_ABSENT,
+            apparatusKey = apparatusKeyFor(evaluation),
+        )
+
+    /**
+     * `SetupCandidateRejectionStage.CATALOG` es GLOBAL (planId nulo): un
+     * candidato concreto nunca se rechaza en esa etapa, así que una receta
+     * ausente se reporta en materialización con su causa escrita.
+     */
+    private fun setupStageOf(stage: PlanEvaluationStage): SetupCandidateRejectionStage = when (stage) {
+        PlanEvaluationStage.CATALOG -> SetupCandidateRejectionStage.MATERIALIZATION
+        PlanEvaluationStage.PROFILE, PlanEvaluationStage.MODALITY_DOSE ->
+            SetupCandidateRejectionStage.PROFILE
+        PlanEvaluationStage.FREQUENCY_SPLIT -> SetupCandidateRejectionStage.FREQUENCY
+        PlanEvaluationStage.MATERIAL, PlanEvaluationStage.REPRESENTABLE_LOAD ->
+            SetupCandidateRejectionStage.MATERIAL
+        PlanEvaluationStage.COMPOSITION, PlanEvaluationStage.EXECUTABLE_CONTRACT ->
+            SetupCandidateRejectionStage.COMPOSITION
+        PlanEvaluationStage.MATERIALIZATION -> SetupCandidateRejectionStage.MATERIALIZATION
+        PlanEvaluationStage.SESSION_DURATION -> SetupCandidateRejectionStage.DURATION
+    }
+
+    /** Clave curada del panel a la que lleva la acción «Falta confirmar X». */
+    private fun apparatusKeyFor(evaluation: PlanCandidateEvaluation.Rejected): String? {
+        if (evaluation.reasonCode != PlanRejectionReason.APPARATUS_UNKNOWN &&
+            evaluation.reasonCode != PlanRejectionReason.APPARATUS_ABSENT
+        ) return null
+        val tokens = evaluation.details?.let(::missingEquipmentTokens).orEmpty()
+        return tokens.firstNotNullOfOrNull { token ->
+            EFFECTIVE_EQUIPMENT_KEYS.firstOrNull { key ->
+                token in key.attestedTokens ||
+                    token.removePrefix("machine_config:") in key.machineConfigurations
+            }?.key ?: if (token == "machine") {
+                val availability = _state.value.draft.trainingOptions.availability
+                    ?.takeIf { EquipmentCategory.MACHINES in it.categories }
+                if (availability == null) null else {
+                    val machines = EFFECTIVE_EQUIPMENT_KEYS.filter { it.category == EquipmentCategory.MACHINES }
+                    val desiredPresence = if (evaluation.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN) {
+                        ApparatusPresence.UNKNOWN
+                    } else {
+                        ApparatusPresence.ABSENT
+                    }
+                    machines.firstOrNull { availability.presenceOf(it.key) == desiredPresence }?.key
+                        ?: machines.firstOrNull { availability.presenceOf(it.key) == ApparatusPresence.UNKNOWN }?.key
+                }
+            } else null
+        }
+    }
+
     private fun updateCandidates(draft: SetupWizardDraft) {
         candidateJob?.cancel()
+        val generation = ++candidateGeneration
         val equipmentIds = effectiveEquipmentIds(draft)
+        // §15.1: Atleta completo también exige preferencias de cardio en la ruta.
+        val requiresCardio = draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE
         val canPrepare = draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER &&
             draft.trainingPath != SetupTrainingPath.FROM_SCRATCH && draft.daysPerWeek != null &&
             draft.minutesPerSession != null && draft.selectedWeekdays.size == draft.daysPerWeek && equipmentIds.isNotEmpty() &&
-            (draft.goal != SetupGoal.MIXED || draft.cardioType != null && draft.cardioMinutes != null)
+            (!requiresCardio || (draft.cardioType != null && draft.cardioMinutes != null))
         if (!canPrepare) {
             // Entradas incompletas: se retira SOLO la marca de candidatos
             // (`errors["candidates"]` + su `previewError`); los errores de otras
-            // operaciones nunca se tocan ni se filtran aquí.
+            // operaciones nunca se tocan ni se filtran aquí. Los rechazos
+            // estructurados del cálculo anterior tampoco significan nada sin
+            // entradas completas, así que se limpian con la lista.
             _state.value = withoutStaleCandidatesError(
                 _state.value.copy(
                     planCandidates = emptyList(),
                     availablePlanCandidates = emptyList(),
+                    candidateRejections = emptyList(),
+                    candidateCounts = SetupCandidateCounts(),
                     isCandidateLoading = false,
                     planAdaptedToBodyweight = false,
+                    selectionStale = false,
                 ),
             )
             return
@@ -1302,36 +1885,89 @@ class SetupWizardViewModel @JvmOverloads constructor(
             _state.value.copy(
                 planCandidates = emptyList(),
                 availablePlanCandidates = emptyList(),
+                candidateRejections = emptyList(),
+                candidateCounts = SetupCandidateCounts(),
                 isCandidateLoading = true,
                 planAdaptedToBodyweight = false,
             ),
         )
         candidateJob = viewModelScope.launch {
             try {
+                val sweepStats = CandidateSweepStats()
+                val firstSweep = candidateSweepsStarted == 0
+                candidateSweepsStarted += 1
+                val catalogWasLoaded = catalogLoaded
+                val catalogStartedNs = System.nanoTime()
                 ensureCatalogLoaded()
-                val (published, viable, useAdapted) = withContext(Dispatchers.IO) {
+                val catalogMs = (System.nanoTime() - catalogStartedNs) / 1_000_000L
+                val sweepStartedNs = System.nanoTime()
+                val outcome = withContext(Dispatchers.Default) {
+                    val exerciseRevision = exerciseCatalogRevision()
                     suspend fun collectViable(
                         equipment: Set<String>,
                         protocolOnly: Boolean,
-                    ): Pair<List<com.example.kpkn.data.programs.CatalogEntry>, List<com.example.kpkn.data.programs.CatalogEntry>> {
-                    val publishedEntries = SetupTrainingPlanner.candidates(SetupTrainingPlannerInput(draft.trainingReference(), draft.daysPerWeek,
+                    ): CandidateScan {
+                    sweepStats.passes.incrementAndGet()
+                    val source = if (equipment == setOf("bodyweight")) bodyweightAdapted(draft) else draft
+                    // Atleta completo NO filtra por `schedulesCardio` (§15.1):
+                    // su capability real la exige el evaluador sobre la receta.
+                    val reference = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) null else draft.trainingReference()
+                    val publishedEntries = SetupTrainingPlanner.candidates(SetupTrainingPlannerInput(reference, draft.daysPerWeek,
                         equipment, draft.experience.toCatalogLevel(),
                         draft.focus.toTrainingFocus(), protocolOnly = protocolOnly,
                         mixedTraining = draft.goal == SetupGoal.MIXED))
-                    val viableEntries = mutableListOf<com.example.kpkn.data.programs.CatalogEntry>()
-                    val source = if (equipment == setOf("bodyweight")) bodyweightAdapted(draft) else draft
+                    val request = candidateRequest(source, equipment, exerciseRevision)
+                    val snapshot = PlanCatalogSnapshot(
+                        entries = PersonalizedPlanCatalog.entries(),
+                        planRevision = PersonalizedPlanCatalog.REVISION,
+                        exerciseCatalogRevision = exerciseRevision,
+                    )
+                    val engine = candidateEngine(source, request)
+                    val cacheRevision = "${PersonalizedPlanCatalog.REVISION}|$exerciseRevision"
+                    val viableEntries = mutableListOf<CatalogEntry>()
+                    val readySnapshots = linkedMapOf<String, PlanCandidateEvaluation.Ready>()
+                    // T-001 / AC-T001-02: por cada candidato que NO encaja se
+                    // conserva un rechazo ESTRUCTURADO (etapa + motivo cerrado +
+                    // causa concreta). El antiguo `catch (_: Exception) { false }`
+                    // fundía material, tiempo y catálogo en el mismo aviso.
+                    val rejections = mutableListOf<SetupCandidateRejection>()
+                    // §15.2: se evalúa TODA la lista (el límite de 6 tarjetas es
+                    // visual): la búsqueda no se corta antes de tener testigos, y
+                    // paginar no rematerializa (la caché de sesión guarda el Ready).
                     for (entry in publishedEntries) {
                         currentCoroutineContext().ensureActive()
-                        val executable = try {
-                            val program = materialize(source.copy(selectedCatalogId = entry.id)).program
-                            program != null && (entry.source == CatalogSource.NATIVE ||
-                                (estimateFixedSessionMinutes(program) ?: 0) <= (draft.minutesPerSession ?: 100))
-                        } catch (cancel: CancellationException) { throw cancel }
-                        catch (_: Exception) { false }
-                        if (executable) viableEntries += entry
-                        if (viableEntries.size == 6) break
+                        val cacheKey = "${request.inputKey}|${entry.id}"
+                        val cached = candidateCache.get(cacheRevision, cacheKey)
+                        if (cached != null) sweepStats.cacheHits.incrementAndGet() else sweepStats.evaluated.incrementAndGet()
+                        val evaluation = cached
+                            ?: PlanCandidateEvaluator.evaluate(request, snapshot, entry.id, engine)
+                                .also { result -> candidateCache.put(cacheRevision, cacheKey, result) }
+                        when (evaluation) {
+                            is PlanCandidateEvaluation.Ready -> {
+                                readySnapshots[evaluation.planId] = evaluation
+                                if (viableEntries.none { it.id == evaluation.planId }) viableEntries += entry
+                            }
+                            is PlanCandidateEvaluation.Rejected -> rejections += setupRejectionOf(evaluation)
+                            PlanCandidateEvaluation.CatalogLoading -> Unit
+                        }
                     }
-                    return publishedEntries to viableEntries
+                    // La UI expone primero tres tarjetas. Recién terminado el
+                    // barrido, se refrescan esas tres entradas en el LRU para
+                    // que el primer toque pueda usar su snapshot aunque el
+                    // catálogo completo supere el límite de 32.
+                    // §15.3: propios y originales primero; las adaptaciones de autor
+                    // (ADAPTED) van detrás sin ocultarse. Orden ESTABLE: el resto
+                    // conserva el ranking del planificador (el desempate por id lo
+                    // dejaría delante de los planes propios: «adapted:» < «native:»).
+                    val orderedViable = viableEntries.sortedBy { candidate ->
+                        if (candidate.provenance?.category == PlanProvenanceClass.ADAPTED) 1 else 0
+                    }
+                    orderedViable.take(3).forEach { entry ->
+                        readySnapshots[entry.id]?.let { ready ->
+                            candidateCache.put(cacheRevision, "${request.inputKey}|${entry.id}", ready)
+                        }
+                    }
+                    return CandidateScan(publishedEntries, orderedViable, rejections)
                     }
                     val requested = collectViable(
                         equipmentIds,
@@ -1341,18 +1977,42 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // `protocolOnly=false`. Si no hay protocolo viable, la UI
                     // muestra la razón y una acción EXPLÍCITA de cambiar de ruta;
                     // el código jamás sustituye la ruta ni publica un nativo.
+                    // En el recorrido unificado nuevo la ruta es CUSTOMIZABLE, así
+                    // que este guard solo aplica a drafts legacy de protocolo.
                     val adaptedPass = draft.programRoute != SetupProgramRoute.PROTOCOL &&
-                        requested.second.isEmpty() && equipmentIds != setOf("bodyweight")
+                        requested.viable.isEmpty() && equipmentIds != setOf("bodyweight")
                     val fallback = if (adaptedPass) {
                         collectViable(setOf("bodyweight"), protocolOnly = false)
                     } else {
                         requested
                     }
-                    val useAdapted = adaptedPass && fallback.second.isNotEmpty()
+                    val useAdapted = adaptedPass && fallback.viable.isNotEmpty()
                     val chosen = if (useAdapted) fallback else requested
-                    Triple(chosen.first, chosen.second, useAdapted)
+                    CandidateOutcome(chosen, useAdapted)
                 }
-                if (trainingKey(_state.value.draft) == trainingKey(draft)) {
+                // C4: solo medición. Sin datos personales: milisegundos y contadores.
+                Log.i(
+                    PERF_TAG,
+                    candidateSweepLogLine(
+                        totalMs = catalogMs + (System.nanoTime() - sweepStartedNs) / 1_000_000L,
+                        catalogMs = catalogMs,
+                        sweepMs = (System.nanoTime() - sweepStartedNs) / 1_000_000L,
+                        catalogWasLoaded = catalogWasLoaded,
+                        firstSweep = firstSweep,
+                        published = outcome.scan.published.size,
+                        evaluated = sweepStats.evaluated.get(),
+                        cacheHits = sweepStats.cacheHits.get(),
+                        passes = sweepStats.passes.get(),
+                        viable = outcome.scan.viable.size,
+                        useAdapted = outcome.useAdapted,
+                    ),
+                )
+                val published = outcome.scan.published
+                val viable = outcome.scan.viable
+                val useAdapted = outcome.useAdapted
+                // AC-T001-03: sólo publica si las entradas de ESTE cálculo siguen
+                // vigentes; un job cancelado o tardío jamás sobreescribe la respuesta más nueva.
+                if (ownsCandidateGeneration(generation) && isCurrentCandidateKey(draft)) {
                     val options = viable.map { entry ->
                         SetupPlanCandidate(
                             id = entry.id,
@@ -1362,7 +2022,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             source = entry.source.name,
                             reasons = buildList {
                                 draft.daysPerWeek?.let { days ->
-                                    if (entry.supportedFrequencies.contains(days)) add("Encaja con tus $days días por semana")
+                                    if (entry.supportedFrequencies.contains(days)) add(weekFitReason(days))
                                 }
                                 if (useAdapted) {
                                     add("Plan KPKN adaptado a peso corporal: tu material no tenía una receta ejecutable")
@@ -1386,19 +2046,27 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         // sale de los datos del propio borrador, sin fabricar nada.
                         val material = equipmentIds.sorted().joinToString(", ")
                             .ifBlank { "solo peso corporal" }
-                        val frequency = draft.daysPerWeek?.let { "$it días por semana" } ?: "esta frecuencia"
+                        val frequency = draft.daysPerWeek?.let { "${SpanishPlurals.days(it)} por semana" } ?: "esta frecuencia"
                         val reason = if (published.isEmpty()) {
                             "No hay planes publicados compatibles con tu material ($material) y $frequency."
                         } else {
-                            "${published.size} planes publicados; ninguno es ejecutable con tu material ($material) y $frequency."
+                            SpanishPlurals.choose(
+                                published.size,
+                                "1 plan publicado, pero no es ejecutable con tu material ($material) y $frequency.",
+                                "${published.size} planes publicados; ninguno es ejecutable con tu material ($material) y $frequency.",
+                            )
                         }
                         _state.value = current.copy(
                             planCandidates = emptyList(), availablePlanCandidates = emptyList(),
                             isCandidateLoading = false,
                             planAdaptedToBodyweight = false,
-                            // El motivo vive en `errors["candidates"]`. El preview
-                            // anterior se retira: ya no corresponde a este material.
+                            // El motivo vive en `errors["candidates"]`; los rechazos
+                            // ESTRUCTURADOS por candidato van en `candidateRejections`
+                            // (AC-T001-02). El preview anterior se retira: ya no
+                            // corresponde a este material.
                             errors = current.errors + ("candidates" to reason),
+                            candidateRejections = outcome.scan.rejections,
+                            candidateCounts = outcome.scan.counts,
                             programPreview = null,
                             previewReport = null,
                         )
@@ -1410,20 +2078,32 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             isCandidateLoading = false,
                             planAdaptedToBodyweight = useAdapted,
                             errors = current.errors - "candidates",
+                            // Los que se evaluaron y no encajaron siguen visibles
+                            // para que la UI muestre evaluados/viables/no viables.
+                            candidateRejections = outcome.scan.rejections,
+                            candidateCounts = outcome.scan.counts,
                         )
                         refreshPreviewAfterCandidates(draft)
                     }
                 }
             } catch (cancel: CancellationException) { throw cancel }
             catch (error: Exception) {
-                if (trainingKey(_state.value.draft) == trainingKey(draft)) _state.value = _state.value.copy(
+                if (ownsCandidateGeneration(generation) && isCurrentCandidateKey(draft)) _state.value = _state.value.copy(
                     planCandidates = emptyList(), availablePlanCandidates = emptyList(),
                     isCandidateLoading = false, planAdaptedToBodyweight = false,
                     previewError = "No pude comprobar los planes. Prueba de nuevo.",
-                    errors = _state.value.errors + ("candidates" to "No pude comprobar los planes. Prueba de nuevo."))
+                    errors = _state.value.errors + ("candidates" to "No pude comprobar los planes. Prueba de nuevo."),
+                    // AC-T001-02: la causa ESTRUCTURADA de este fallo global es de
+                    // etapa CATALOG y conserva clase+mensaje; el texto amable de arriba
+                    // es para la UI, el registro es para diagnosticar de verdad.
+                    candidateRejections = listOf(
+                        SetupCandidateRejection(null, SetupCandidateRejectionStage.CATALOG, failureDetail(error)),
+                    ))
             }
         }
     }
+
+    private fun ownsCandidateGeneration(generation: Long): Boolean = generation == candidateGeneration
 
     /** Relanza el programa solo cuando ya hay un plan elegido y los candidatos terminaron. */
     private fun refreshPreviewAfterCandidates(draft: SetupWizardDraft) {
@@ -1442,7 +2122,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             previewError = if (hadCandidatesError) null else state.previewError,
         )
     }
-    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || draft.goal == SetupGoal.MIXED && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
+    private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || (draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE) && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
 
     private suspend fun materializeProgram(draft: SetupWizardDraft): SetupPreview {
         if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return SetupPreview(null, null)
@@ -1486,7 +2166,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     equipment = effectiveEquipmentIds(draft),
                     level = draft.experience.toCatalogLevel(),
                     availableMinutes = draft.minutesPerSession ?: error("Indica el tiempo disponible"),
-                    cardio = if (draft.goal == SetupGoal.MIXED) CardioPreference(requireNotNull(draft.cardioType), requireNotNull(draft.cardioMinutes)) else null,
+                    cardio = if (draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE) {
+                        CardioPreference(requireNotNull(draft.cardioType), requireNotNull(draft.cardioMinutes))
+                    } else null,
                     calibration = if (draft.volumeRecommendations.isNotEmpty()) Calibration.CALIBRATED else Calibration.CONSERVATIVE,
                     volumeRecommendations = draft.volumeRecommendations,
                     priorityMuscles = draft.priorityMuscles,
@@ -1499,10 +2181,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 // usuario (inventario, prioridades, calentamientos, autorreg.)
                 options = draft.trainingOptions,
             )
-            return SetupPreview(result.program?.copy(id = draft.commitId) ?: error(result.report.limitations.joinToString(" ")), result.report)
+            return SetupPreview(result.program?.copy(id = draft.commitId)
+                // F-A2: el fitter rellena `reasonCode`/`maxSessionMinutes`; la razón
+                // TIPADA (y los minutos mínimos del TIME_BUDGET) viajan al evaluador.
+                // Solo sin `reasonCode` conocido se conserva la clasificación por texto.
+                ?: throw (NativePlanFailureMapper.typedFailure(result.report)
+                    ?: SetupCandidateFailureException(
+                        stageForUnavailable(result.report.limitations.joinToString(" ")),
+                        result.report.limitations.joinToString(" ")
+                            .ifBlank { NativePlanFailureMapper.DEFAULT_MESSAGE },
+                    )), result.report)
         }
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
-            ?: error("El catálogo de ejercicios todavía no está disponible")
+            ?: throw SetupCandidateFailureException(
+                SetupCandidateRejectionStage.CATALOG,
+                "El catálogo de ejercicios todavía no está disponible",
+            )
         // Mismo equipo efectivo que candidatos y preview (helper de M7): nunca
         // se reinyecta `general_gym` ni se retira el modelo finito de inventario.
         val effectiveEquipment = effectiveEquipmentIds(draft)
@@ -1514,6 +2208,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val base = options.applyTo(
             Program(id = draft.commitId, name = "Plan de ${draft.name.ifBlank { "entrenamiento" }}", startDay = draft.selectedWeekdays.minOrNull(), powerliftingProfile = draft.powerliftingProfile),
         )
+        // Q5-F2 / §10.1: PHUL y PHAT originales y adaptados (entradas PROTOCOL con
+        // `authoredSource`) NO existen en PROTOCOL_LIBRARY, que solo guarda las
+        // versiones históricas `phul-verified`/`phat-verified`. Se preparan desde la
+        // receta de la propia entrada con la MISMA función para candidatos, preview
+        // y activación (original intacto; adaptación vía PlanAdaptationResolver).
+        if (entry.source == CatalogSource.PROTOCOL && entry.authoredSource != null) {
+            return materializeAuthoredPlan(entry, draft, catalog, base)
+        }
         val program = when (entry.source) {
             CatalogSource.PROTOCOL -> {
                 val protocol = PROTOCOL_LIBRARY.first { it.id == entry.sourceId }
@@ -1540,7 +2242,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // marca la entrada como no viable) sin afirmar compatibilidad falsa.
         val missingMaterial = missingFixedRecipeEquipment(program, effectiveEquipment, catalog)
         if (missingMaterial.isNotEmpty()) {
-            error(
+            // T-001 / AC-T001-02: etapa MATERIAL tipada. No todo rechazo es
+            // material, pero ÉSTE sí lo es y se reporta como tal.
+            throw SetupCandidateFailureException(
+                SetupCandidateRejectionStage.MATERIAL,
                 "Esta receta necesita material que no has declarado: " +
                     missingMaterial.sorted().joinToString(", "),
             )
@@ -1548,7 +2253,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val sessionDays = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
             .flatMap { it.weeks }.flatMap { it.sessions }.mapNotNull { it.dayOfWeek }.toSet()
         val frequency = sessionDays.size
-        if (draft.daysPerWeek != null && frequency != draft.daysPerWeek) error("La receta fija produce $frequency días, no ${draft.daysPerWeek}")
+        if (draft.daysPerWeek != null && frequency != draft.daysPerWeek) throw SetupCandidateFailureException(
+            SetupCandidateRejectionStage.FREQUENCY,
+            "La receta fija produce ${SpanishPlurals.days(frequency)}, no ${draft.daysPerWeek}",
+        )
         val scheduled = program.copy(
             schedulePlan = ProgramSchedulePlan(
                 weekStartDay = program.startDay,
@@ -1561,6 +2269,40 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // materialización, dentro del materializador (elección/autor guardada >
         // `defaultOptions`), que es el que asigna los pasos por ejercicio.
         return SetupPreview(scheduled, null)
+    }
+
+    /**
+     * Preparación de un plan de autor (§10.1, §13.4, §15.2). Traduce el borrador a
+     * [AuthoredPlanRequest] y delega TODO en [AuthoredPlanMaterializer]: el equipo
+     * es el efectivo REAL (`resolveEffectiveEquipment` con la disponibilidad
+     * declarada, nunca `general_gym` reinyectado) y los fallos salen ya como
+     * [PlanMaterializationException] con etapa y motivo cerrados.
+     */
+    private fun materializeAuthoredPlan(
+        entry: CatalogEntry,
+        draft: SetupWizardDraft,
+        catalog: com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2,
+        base: Program,
+    ): SetupPreview {
+        val options = draft.trainingOptions
+        val program = AuthoredPlanMaterializer.prepare(
+            AuthoredPlanRequest(
+                entry = entry,
+                baseProgram = base,
+                equipment = options.resolveEffectiveEquipment(draft.equipment.map { it.catalogId }.toSet()),
+                availability = options.availability,
+                catalog = catalog,
+                metadata = CatalogCompositionMetadataProvider.fromCatalog(catalog),
+                options = options,
+                expectedDaysPerWeek = draft.daysPerWeek,
+                targetProfile = when (draft.goal) {
+                    SetupGoal.STRENGTH_MUSCLE -> PlanTargetProfile.POWERBUILDING
+                    SetupGoal.MUSCLE -> PlanTargetProfile.HYPERTROPHY
+                    else -> null
+                },
+            ),
+        )
+        return SetupPreview(program, null)
     }
 
     /**
@@ -1649,7 +2391,19 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (SetupDraftCompatibility.pendingMandatoryVitals(d).isNotEmpty()) put("profile", "Completa tu edad, estatura y peso para continuar")
         val blocking = SetupWizardValidation.validateAll(d).firstOrNull { it.isBlocking }
         if (blocking != null) put(blocking.key, blocking.message ?: "Revisa tus respuestas antes de activar")
-        if (d.includeTraining && d.programRoute != SetupProgramRoute.LATER && (s.programPreview == null || s.previewError != null || s.isPreviewLoading || lastSuccessfulTrainingKey != trainingKey(d))) put("program", "Prepara una vista previa ejecutable")
+        if (d.includeTraining && d.goal?.isLegacyOnly == true) {
+            put("goalReview", "Revisa tu objetivo anterior y elige explícitamente uno de los perfiles actuales")
+        }
+        // §15.4 / AC-T005-05: la activación exige que el preview preparado
+        // corresponda a la huella COMPLETA actual (`previewKey` = material,
+        // soportes, objetivos, días, minutos, cardio, split, calibración,
+        // referencias, warmups/orden y revisiones). Una respuesta editada deja
+        // la activación bloqueada hasta re-preparar; nunca se activa un
+        // resultado de otras entradas.
+        if (d.includeTraining && d.programRoute != SetupProgramRoute.LATER &&
+            (s.programPreview == null || s.previewError != null || s.isPreviewLoading ||
+                lastSuccessfulTrainingKey != previewKey(d))
+        ) put("program", "Prepara una vista previa ejecutable con tus respuestas actuales")
         // D-005/E-015 guard de fuente en la puerta REAL de activación: bajo
         // PROTOCOL, una selección con fuente distinta de PROTOCOL bloquea el
         // commit (no puede generarse receipt) y exige cambio de ruta explícito.
@@ -1862,7 +2616,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val progress = WizChatProgress(scriptVersion = WizChatCopyCatalog.SCRIPT_VERSION,
             draftScope = scopeFor(mode).name.lowercase(), currentQuestionId = first, stage = WizChatGraph.stageFor(first))
         val unit = if (settings.weightUnit == WeightUnit.LBS) "lb" else "kg"
-        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress,
+        return SetupWizardDraft(draftId = id, commitId = UUID.randomUUID().toString(), draftScope = scopeFor(mode).name.lowercase(), name = settings.username.takeIf { it != "Usuario" }.orEmpty(), moduleChoice = if (nutrition) SetupModuleChoice.TRAINING_AND_NUTRITION else SetupModuleChoice.TRAINING, ageYears = settings.userVitals.age ?: settings.age, heightCm = settings.userVitals.height, weightKg = settings.userVitals.weight, importedWeightKg = settings.userVitals.weight, importedBodyFatPercent = settings.userVitals.bodyFatPercentage, weightUnit = unit, includeTraining = training, includeNutrition = nutrition, programRoute = if (training) SetupProgramRoute.CUSTOMIZABLE else SetupProgramRoute.LATER, trainingPath = if (training) SetupTrainingPath.PERSONALIZE else null, nutritionMode = nutritionMode, nutritionPlanId = nutritionPlanId, nutritionDraft = if (nutrition) NutritionWizardDraft(mode = nutritionMode, planId = nutritionPlanId, weightUnit = unit) else null, catalogRevision = PersonalizedPlanCatalog.REVISION, wizChat = progress,
             trainingOptions = SetupTrainingOptions(availability = settings.equipmentAvailability))
             .let { draft -> draft.copy(stepProgress = SetupStepProgress.initial(draft.stepContext())) }
     }
@@ -1891,6 +2645,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         private val NO_MATERIAL_ENVIRONMENTS = setOf("none", "Sin material")
         /** Etiqueta de logcat de diagnóstico: solo clase+mensaje, nunca datos del usuario. */
         private const val DIAG_TAG = "SetupWizard"
+        /** Etiqueta de logcat de la medición del barrido de candidatos (C4): `adb logcat -s SetupPlanSweep`. */
+        private const val PERF_TAG = "SetupPlanSweep"
         /** Marca en `lastFailure` del fallo de RINGS; permite limpiarlo sin pisar otros fallos. */
         private const val RINGS_FAILURE_PREFIX = "Rings preview"
     }

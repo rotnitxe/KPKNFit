@@ -49,4 +49,15 @@ class WorkoutRecordingGateBusyTest {
         assertFalse(canStartWorkoutRecording(WorkoutUiState(isFinishingWorkout = true)))
         assertFalse(canStartWorkoutRecording(WorkoutUiState(isComplete = true)))
     }
+
+    @Test
+    fun cancellationAndTerminalStateCannotRestartTimersWhileHydrationCan() {
+        assertTrue(canRunWorkoutTimers(WorkoutUiState(isStartingWorkout = true)))
+        assertFalse(canStartWorkoutRecording(WorkoutUiState(isStartingWorkout = true)))
+        assertFalse(canRunWorkoutTimers(WorkoutUiState(isCancellingWorkout = true)))
+        assertFalse(canRunWorkoutTimers(WorkoutUiState(wasCancelled = true)))
+        assertFalse(canRunWorkoutTimers(WorkoutUiState(isComplete = true)))
+        assertFalse(canRunWorkoutTimers(WorkoutUiState(startPersistenceError = "injected")))
+        assertFalse(canStartWorkoutRecording(WorkoutUiState(isCancellingWorkout = true)))
+    }
 }

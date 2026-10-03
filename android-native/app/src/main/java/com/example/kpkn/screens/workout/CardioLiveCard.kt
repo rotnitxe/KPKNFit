@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,8 @@ import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.domain.cardio.CardioGuideEngine
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun CardioLiveCard(
@@ -55,7 +58,7 @@ internal fun CardioLiveCard(
     onSkipBlock: () -> Unit = {},
     onRequestRecord: (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) -> Unit = { _, _, _ -> },
     onCancelRecord: () -> Unit = {},
-    onRecord: (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) -> Unit,
+    onRecord: suspend (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?) -> Boolean,
     gpsState: CardioGpsState? = null,
     onRequestGps: () -> Unit = {},
     onPauseGps: () -> Unit = {},
@@ -70,6 +73,9 @@ internal fun CardioLiveCard(
     var showRecordConfirmation by remember { mutableStateOf(false) }
     var showDistancePicker by remember { mutableStateOf(false) }
     var showHeartRatePicker by remember { mutableStateOf(false) }
+    var isSavingRecord by remember { mutableStateOf(false) }
+    var recordSaveFailed by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val status = executionState?.status ?: CardioExecutionStatus.READY
     val isLibre = !details.hasIntervals() && details.targetDurationSeconds == null
@@ -276,7 +282,11 @@ internal fun CardioLiveCard(
                 if (details.supportsDistance) {
                     com.example.kpkn.screens.sessioneditor.components.CardioValuePill(
                         label = "Km",
-                        value = if (gpsHasData) formatCardioDistance(recordedDistanceKm) else (distanceText.ifBlank { "—" }),
+                        value = cardioDistancePillText(
+                            gpsHasData = gpsHasData,
+                            gpsDistanceKm = recordedDistanceKm,
+                            enteredDistanceKm = distanceKm,
+                        ),
                         accentColor = accentColor,
                         onClick = { if (!gpsHasData) showDistancePicker = true },
                         modifier = Modifier.weight(1f),
@@ -360,22 +370,50 @@ internal fun CardioLiveCard(
     if (showRecordConfirmation) {
         KpknAlertDialog(
             onDismissRequest = {
-                showRecordConfirmation = false
-                onCancelRecord()
+                if (!isSavingRecord) {
+                    showRecordConfirmation = false
+                    recordSaveFailed = false
+                    onCancelRecord()
+                }
             },
             title = "Confirmar cardio",
             text = "Registrar ${formatCardioTime(durationSeconds)}" +
                 (recordedDistanceKm?.let { " · ${formatCardioDistance(it)}" } ?: "") +
-                " como resultado de esta sesión?",
-            confirmLabel = "Registrar",
-            onConfirm = {
-                showRecordConfirmation = false
-                onRecord(durationSeconds, recordedDistanceKm, heartRate)
+                " como resultado de esta sesión?" +
+                if (recordSaveFailed) "\nNo se pudo guardar. Puedes reintentar sin perder los datos." else "",
+            confirmLabel = when {
+                isSavingRecord -> "Guardando…"
+                recordSaveFailed -> "Reintentar"
+                else -> "Registrar"
             },
-            dismissLabel = "Cancelar",
+            onConfirm = {
+                if (!isSavingRecord) {
+                    scope.launch {
+                        isSavingRecord = true
+                        recordSaveFailed = false
+                        try {
+                            if (onRecord(durationSeconds, recordedDistanceKm, heartRate)) {
+                                showRecordConfirmation = false
+                            } else {
+                                recordSaveFailed = true
+                            }
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            recordSaveFailed = true
+                        } finally {
+                            isSavingRecord = false
+                        }
+                    }
+                }
+            },
+            dismissLabel = if (isSavingRecord) null else "Cancelar",
             onDismiss = {
-                showRecordConfirmation = false
-                onCancelRecord()
+                if (!isSavingRecord) {
+                    showRecordConfirmation = false
+                    recordSaveFailed = false
+                    onCancelRecord()
+                }
             },
         )
     }
@@ -462,6 +500,21 @@ private fun formatCardioRpe(value: Double): String =
 
 private fun formatCardioDistance(distanceKm: Double?): String =
     distanceKm?.takeIf { it >= 0.0 }?.let { "%.2f km".format(it) } ?: "0.00 km"
+
+/**
+ * Display text of the "Km" tile.  `distanceText` is the raw numeric string
+ * (a restored `CompletedSet.distanceKm.toString()` can be
+ * "0.10811738104249106"), so the tile shows the parsed value through the same
+ * formatter as the "Distancia" caption; it never formats the raw text itself.
+ */
+internal fun cardioDistancePillText(
+    gpsHasData: Boolean,
+    gpsDistanceKm: Double?,
+    enteredDistanceKm: Double?,
+): String {
+    val shownKm = if (gpsHasData) gpsDistanceKm else enteredDistanceKm
+    return if (shownKm == null) "—" else formatCardioDistance(shownKm)
+}
 
 private fun formatCardioPace(paceSecondsPerKm: Int?): String = paceSecondsPerKm?.let { seconds ->
     "%02d:%02d/km".format(seconds / 60, seconds % 60)

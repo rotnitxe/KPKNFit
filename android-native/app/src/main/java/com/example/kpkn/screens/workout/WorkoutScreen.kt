@@ -68,6 +68,7 @@ import androidx.core.graphics.toColorInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -216,6 +217,10 @@ fun WorkoutScreen(
 ) {
     val augeViewModel = rememberAugeViewModel()
     val context = LocalContext.current
+    DisposableEffect(programId, sessionId) {
+        val repairBenchmarkIoWindow = RepairBenchmarkTrace.beginUiIoWindow("workout")
+        onDispose { RepairBenchmarkTrace.endUiIoWindow(repairBenchmarkIoWindow) }
+    }
     val restAlertManager = remember(context) { WorkoutRestAlertManager(context) }
     val viewModel: WorkoutViewModel = viewModel(
         factory = WorkoutViewModel.factory(
@@ -239,6 +244,7 @@ fun WorkoutScreen(
             }
         }
     )
+    val pendingCardioGpsTarget = remember { mutableStateOf<Pair<String, Int>?>(null) }
     val gpsPermissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { grants ->
@@ -252,7 +258,12 @@ fun WorkoutScreen(
                 ) == PackageManager.PERMISSION_GRANTED ||
                 grants[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                 grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-            if (locationOk) viewModel.startCardioGps() else viewModel.cardioGpsPermissionDenied()
+            val target = pendingCardioGpsTarget.value
+            pendingCardioGpsTarget.value = null
+            if (target != null && viewModel.isCurrentCardioPageAction(target.first, target.second)) {
+                if (locationOk) viewModel.startCardioGps(target.first, target.second)
+                else viewModel.cardioGpsPermissionDenied(target.first, target.second)
+            }
         },
     )
     val voiceDiagnosticExportLauncher = rememberLauncherForActivityResult(
@@ -261,7 +272,11 @@ fun WorkoutScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sessionMedia by viewModel.mediaCapture.sessionMedia.collectAsStateWithLifecycle()
+    val mediaCaptureError by viewModel.mediaCapture.captureError.collectAsStateWithLifecycle()
     val showSessionAlbumSheet by viewModel.mediaCapture.showSessionAlbumSheet.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.wasCancelled) {
+        if (uiState.wasCancelled) onBack()
+    }
     LaunchedEffect(uiState.session?.id, uiState.startTimeMs) {
         viewModel.syncLegacySessionPhotosIntoMedia()
     }
@@ -369,6 +384,7 @@ fun WorkoutScreen(
     // Navigation waits until the user saves or cancels the voice diagnostic export.
     LaunchedEffect(uiState.isComplete, uiState.pendingVoiceDiagnosticExportName) {
         if (uiState.isComplete && uiState.pendingVoiceDiagnosticExportName == null) {
+            RepairBenchmarkTrace.workoutExitNavigationCommitted()
             onComplete()
         }
     }
@@ -960,7 +976,15 @@ fun WorkoutScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .hazeSource(state = overlayHazeState),
+            .hazeSource(state = overlayHazeState)
+            .drawWithContent {
+                drawContent()
+                RepairBenchmarkTrace.workoutReadyDrawn(
+                    actualSessionId = uiState.session?.id,
+                    isStartingWorkout = uiState.isStartingWorkout,
+                    sessionMissingFromProgram = uiState.sessionMissingFromProgram,
+                )
+            },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = {
             SnackbarHost(
@@ -985,6 +1009,7 @@ fun WorkoutScreen(
             settings = settings,
             adaptiveCache = adaptiveCache,
             viewModel = viewModel,
+            onRetryPendingCaptures = viewModel::retryPendingMediaCaptures,
             currentExercise = currentExercise,
             visibleExercises = visibleExercises,
             currentSet = currentSet,
@@ -1031,16 +1056,20 @@ fun WorkoutScreen(
             onExpandEdit = {
                 currentExercise?.id?.let { structureSheets.editSheetExerciseId = it }
             },
-            onRequestCardioGps = {
-                if (CardioGpsTracker.hasLocationPermission(context)) {
-                    viewModel.startCardioGps()
+            onRequestCardioGps = { exerciseId, setIndex ->
+                if (viewModel.isCurrentCardioPageAction(exerciseId, setIndex) &&
+                    CardioGpsTracker.hasLocationPermission(context)) {
+                    viewModel.startCardioGps(exerciseId, setIndex)
                 } else {
-                    gpsPermissionsLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                        ),
-                    )
+                    if (viewModel.isCurrentCardioPageAction(exerciseId, setIndex)) {
+                        pendingCardioGpsTarget.value = exerciseId to setIndex
+                        gpsPermissionsLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                            ),
+                        )
+                    }
                 }
             },
             isMobilityActive = isMobilityOverlayActive,
@@ -1101,7 +1130,10 @@ fun WorkoutScreen(
                         completedSets = uiState.completedSets,
                         omittedSetKeys = uiState.omittedSetKeys,
                         onSelect = { viewModel.selectExercise(it) },
-                        onSelectStep = { stepKey -> viewModel.selectWorkoutStep(stepKey) },
+                        onSelectStep = { stepKey ->
+                            RepairBenchmarkTrace.selectionRequested(stepKey)
+                            viewModel.selectWorkoutStep(stepKey)
+                        },
                         onSelectGroup = { viewModel.selectSupersetGroup(it) },
                         onOpenContext = { exId ->
                             structureSheets.exerciseContextForceMemberActions = false
@@ -1170,17 +1202,6 @@ fun WorkoutScreen(
                         onRemoveChecklistItem = { viewModel.removeSessionChecklistItem(it) },
                         bodyWeight = viewModel.currentBodyWeight(),
                         aboveCarousel = {
-                            uiState.activeStepKey?.let { stepKey ->
-                                Text(
-                                    text = "Paso activo · $stepKey",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
                             val stepper = liveSetStepperHolder.snapshot
                             if (stepper != null) {
                                 WorkoutSetPager(
@@ -1203,16 +1224,22 @@ fun WorkoutScreen(
                     )
                 }
             if (recordFabHolder.visible) {
-                WorkoutRecordFab(
+                val activeRecordAction = recordActionHolder.actionForPage(recordFabHolder.activePageKey)
+                // D2.2: el botón se ancla al teclado (WindowInsets.ime) cuando está visible.
+                WorkoutRecordFabHost(
+                    dockBottomClearance = dockBottomClearance,
                     sessionAccentColor = sessionAccentColor,
                     isUpdateMode = recordFabHolder.isUpdateMode,
-                    enabled = uiState.recordingSetKey == null,
-                    onClick = { recordActionHolder.action?.invoke() },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .navigationBarsPadding()
-                        .padding(end = 16.dp, bottom = dockBottomClearance + 12.dp)
-                        .zIndex(12f),
+                    enabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
+                        hasActivePageAction = activeRecordAction != null,
+                        isRecording = uiState.recordingSetKey != null,
+                        isFinishing = uiState.isFinishingWorkout,
+                        isCancelling = uiState.isCancellingWorkout,
+                        startPersistenceError = uiState.startPersistenceError,
+                        isComplete = uiState.isComplete,
+                        finishSheetOpen = uiState.showFinishSheet,
+                    ),
+                    onClick = { recordActionHolder.actionForPage(recordFabHolder.activePageKey)?.invoke() },
                 )
             }
         }
@@ -1269,10 +1296,25 @@ fun WorkoutScreen(
                 sessionSavedNotes = uiState.sessionSavedNotes,
                 sessionPhotos = uiState.sessionPhotos,
                 sessionMedia = sessionMedia,
+                mediaCaptureError = mediaCaptureError,
+                onRetryPendingMediaCaptures = viewModel::retryPendingMediaCaptures,
                 sessionChecklist = uiState.sessionChecklist,
                 onSessionNotesChange = { viewModel.setSessionNotes(it) },
                 onSaveSessionNote = { viewModel.saveSessionNote(it) },
                 onAddSessionPhoto = { viewModel.addSessionPhoto(it) },
+                onBeginSessionCameraCapture = {
+                    viewModel.mediaCapture.beginExternalPhotoCapture(
+                        com.example.kpkn.screens.workout.WorkoutMediaCaptureRequest(),
+                    )
+                },
+                onCompleteSessionCameraCapture = { captureId, succeeded ->
+                    viewModel.mediaCapture.completeExternalPhotoCaptureById(captureId, succeeded)
+                    Unit
+                },
+                onSessionCameraLaunchFailed = { captureId ->
+                    viewModel.mediaCapture.failExternalCameraLaunch(captureId)
+                    Unit
+                },
                 onRemoveSessionPhoto = { viewModel.removeSessionPhoto(it) },
                 onRemoveSessionMedia = { viewModel.removeSessionMedia(it) },
                 onAddChecklistItem = { viewModel.addSessionChecklistItem(it) },
@@ -1561,40 +1603,89 @@ fun WorkoutScreen(
                 exerciseDb = catalogExerciseIndex(),
             )
         }
+        // El resumen se calcula UNA vez por operación de cierre (snapshot congelado: misma hora,
+        // mismo hash de series). Antes las claves incluían `settings`, `duration` y la lista de
+        // ejercicios: en dispositivo el productor se reiniciaba cada ~1 s (121 cálculos seguidos,
+        // `finish_auto_preview` en el log), la hoja parpadeaba entre «Calculando…» y el resumen y un
+        // productor cancelado a medias escribía su mensaje técnico. Los datos "vivos" se leen con
+        // rememberUpdatedState al empezar el cálculo, sin reiniciarlo.
+        val latestCompletedForPreview by rememberUpdatedState(completedExercisesForSummary)
+        val latestDurationForPreview by rememberUpdatedState(duration)
+        val latestSettingsForPreview by rememberUpdatedState(settings)
+        val latestCompletionIsoForPreview by rememberUpdatedState(completionIso)
         val previewState by produceState<FinishAugePreviewState>(
             initialValue = FinishAugePreviewState.Loading,
-            completedExercisesForSummary,
-            duration,
-            settings,
-            completionIso,
+            finishSnapshot?.finishOperationId,
             finishSnapshot?.completedSetInputHash,
+            // Sin snapshot (no debería ocurrir) no hay identidad estable: se usa la lista.
+            if (finishSnapshot == null) completedExercisesForSummary else null,
         ) {
-            value = runCatching {
-                augeViewModel.computePostSessionPreview(
-                    completedExercises = completedExercisesForSummary,
-                    durationMinutes = duration,
-                    settings = settings,
-                    completionInstantIso = completionIso,
+            // Un cálculo anterior (otras claves) ya no vale: no dejar su resultado a la vista.
+            value = FinishAugePreviewState.Loading
+            // CancellationException NO es un fallo del cálculo: si el productor se cancela porque
+            // cambiaron las claves o la hoja salió de la composición, debe relanzarse y NO escribir
+            // «Error». Antes `runCatching` la tragaba y un productor cancelado podía escribir su
+            // mensaje técnico («The coroutine scope left the composition») por encima del resultado
+            // válido del productor nuevo.
+            value = try {
+                val preview = augeViewModel.computePostSessionPreview(
+                    completedExercises = latestCompletedForPreview,
+                    durationMinutes = latestDurationForPreview,
+                    settings = latestSettingsForPreview,
+                    completionInstantIso = latestCompletionIsoForPreview,
                     finishOperationId = finishSnapshot?.finishOperationId,
                     inputHash = finishSnapshot?.completedSetInputHash,
                 )
-            }.fold(
-                onSuccess = { preview ->
-                    val expectedHash = finishSnapshot?.completedSetInputHash
-                    if (expectedHash != null && preview.inputHash != expectedHash) {
-                        FinishAugePreviewState.Error("Las series cambiaron mientras se calculaba el preview.")
-                    } else {
-                        FinishAugePreviewState.Ready(preview)
-                    }
-                },
-                onFailure = { error ->
-                    FinishAugePreviewState.Error(error.message ?: "No se pudo calcular el estado muscular.")
-                },
-            )
+                val expectedHash = finishSnapshot?.completedSetInputHash
+                if (expectedHash != null && preview.inputHash != expectedHash) {
+                    FinishAugePreviewState.Error("Las series cambiaron mientras se calculaba el resumen. Cierra e inténtalo de nuevo.")
+                } else {
+                    FinishAugePreviewState.Ready(preview)
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                // Rastro para saber cuándo se cancela un cálculo (cambio de claves o salida de la hoja).
+                com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.event(
+                    namespace = "workout",
+                    name = "finish_preview_cancelled",
+                    fields = mapOf("exceptionType" to cancelled.javaClass.name),
+                    sessionId = sessionId,
+                )
+                throw cancelled
+            } catch (error: Exception) {
+                com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.event(
+                    namespace = "workout",
+                    name = "finish_preview_failed",
+                    fields = mapOf(
+                        "exceptionType" to error.javaClass.name,
+                        "exceptionMessage" to error.message,
+                    ),
+                    sessionId = sessionId,
+                )
+                FinishAugePreviewState.Error(FINISH_PREVIEW_FAILED_MESSAGE)
+            }
         }
 
         if (previewState is FinishAugePreviewState.Ready) {
             val postSessionPreview = (previewState as FinishAugePreviewState.Ready).preview
+            // D2.1: series de fuerza/cardio que quedan sin hacer (no cuenta ejercicios saltados
+            // a propósito ni series omitidas). Solo aviso: el resumen y el guardado no cambian.
+            val pendingSeriesNotice = remember(
+                uiState.session,
+                uiState.completedSets,
+                uiState.skippedExerciseIds,
+                uiState.omittedSetKeys,
+                uiState.warmupCompletedExerciseIds,
+                uiState.mobilityCompletedExerciseIds,
+                uiState.mobilityTotalCompletedStepKeys,
+                uiState.activeMode,
+                visibleExercises,
+            ) {
+                buildPendingSeriesNotice(viewModel.pendingSeriesSteps(uiState)) { step ->
+                    visibleExercises.firstOrNull { it.id == step.exerciseId }
+                        ?.let(::displayWorkoutExerciseName)
+                        ?: step.exerciseName
+                }
+            }
             FinishWorkoutSheet(
             session = session,
             completedSets = uiState.completedSets,
@@ -1613,9 +1704,12 @@ fun WorkoutScreen(
             voiceFinalSpinal = uiState.voiceFinalSpinal,
             voiceFinalConfirmTriggered = uiState.voiceFinalConfirmTriggered,
             isFinishingWorkout = uiState.isFinishingWorkout,
+            pendingSeriesNotice = pendingSeriesNotice,
+            onContinuePendingSeries = viewModel::continuePendingSeriesFromFinish,
             hazeState = overlayHazeState,
             onSummaryReady = viewModel::announceWorkoutSessionSummary,
             onConfirm = { notes, fatigue, closingFeedback, shareToStory ->
+                RepairBenchmarkTrace.workoutExitRequested("finish")
                 val share = shareToStory
                 val sessionName = session.name
                 val completedExercises = completedExercisesForSummary
@@ -1804,6 +1898,30 @@ fun WorkoutScreen(
                     },
                 ) { Text("Volver") }
             },
+        )
+    }
+
+    uiState.cancellationError?.let { error ->
+        KpknAlertDialog(
+            onDismissRequest = {},
+            title = "No se pudo cancelar el entreno",
+            text = error,
+            confirmLabel = if (uiState.isCancellingWorkout) "Reintentando…" else "Reintentar",
+            onConfirm = { if (!uiState.isCancellingWorkout) viewModel.cancelWorkout() },
+        )
+    }
+
+    if (
+        uiState.startPersistenceError != null &&
+        uiState.pendingOngoingConflict == null &&
+        !uiState.pendingOngoingCorrupt
+    ) {
+        KpknAlertDialog(
+            onDismissRequest = {},
+            title = "No se pudo iniciar el entreno",
+            text = "Tus datos se conservan. Puedes reintentar el inicio.",
+            confirmLabel = "Reintentar",
+            onConfirm = { viewModel.retryStartWorkout() },
         )
     }
 }

@@ -45,6 +45,31 @@ class WorkoutPagerSyncTest {
     }
 
     @Test
+    fun cardioSeriesPages_haveDistinctKeysAndResolveAsCardio() {
+        val cardio = com.example.kpkn.data.models.Exercise(
+            id = "run",
+            name = "Carrera",
+            sets = listOf(
+                com.example.kpkn.data.models.ExerciseSet("run-a"),
+                com.example.kpkn.data.models.ExerciseSet("run-b"),
+            ),
+            cardioDetails = com.example.kpkn.data.models.CardioDetails(
+                type = com.example.kpkn.data.models.CardioType.RUN_OUTDOOR,
+            ),
+        )
+        val first = workoutPagerStepKey("run", WorkoutSetSwipePage(LivePageType.CARDIO, setIndex = 0))
+        val second = workoutPagerStepKey("run", WorkoutSetSwipePage(LivePageType.CARDIO, setIndex = 1))
+
+        assertEquals("run_cardio", first)
+        assertEquals("run_cardio_set_1", second)
+        assertTrue(first != second)
+        assertEquals(
+            WorkoutStepType.CARDIO,
+            activePagerStepType(WorkoutUiState(activeStepKey = second), cardio),
+        )
+    }
+
+    @Test
     fun normalAndLastPage_keepDistinctWorkingKeys() {
         val first = workoutPagerStepKey(
             "squat",

@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.DumbbellPairStock
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
@@ -105,9 +106,25 @@ class EffectiveEquipmentContractTest {
 
         val effective = options.effectiveEquipment(setOf("general_gym", "barbell"))
 
-        assertEquals(setOf("bodyweight", "machine"), effective)
+        // §13.1 regla 3: el inventario exacto aporta su configuración dentro
+        // de la categoría confirmada; el chip legacy y las categorías no
+        // confirmadas (barbell) no reintroducen nada.
+        assertEquals(setOf("bodyweight", "machine", "machine_config:press__machine"), effective)
         assertFalse("No general gym token", "general_gym" in effective)
-        assertFalse("No invented exact machine config", effective.any { it.startsWith("machine_config:") })
+        assertFalse("Categoría desmarcada no se reintroduce desde el chip legacy", "barbell" in effective)
+
+        // §13.1 regla 2: una ausencia explícita reciente niega la
+        // configuración aunque el inventario la declare.
+        val denied = TrainingOptions(
+            inventory = EquipmentInventory(
+                machines = listOf(pressMachine().copy(configurationId = "quads_prensa_piernas__bilateral")),
+            ),
+            availability = EquipmentAvailability(
+                categories = setOf(EquipmentCategory.MACHINES),
+                apparatus = mapOf(EquipmentKeys.LEG_PRESS to ApparatusPresence.ABSENT),
+            ),
+        ).effectiveEquipment(setOf("general_gym"))
+        assertEquals(setOf("bodyweight", "machine"), denied)
     }
 
     @Test
@@ -370,8 +387,19 @@ class EffectiveEquipmentContractTest {
         val options = TrainingOptions(inventory = EquipmentInventory())
         val explicitLegacy = setOf("support", "pull_up_bar")
         assertEquals(
-            "Disponibilidad legacy explícita sin modelo de inventario: se conserva",
-            setOf("bodyweight", "support", "pull_up_bar"),
+            "Disponibilidad legacy explícita sin modelo de inventario: se conserva " +
+                "con el paraguas de soportes que el vocabulario antiguo no podía expresar (§13.1 regla 4)",
+            setOf(
+                "bodyweight",
+                "support",
+                "pull_up_bar",
+                "bench",
+                "bench_incline",
+                "rack",
+                "low_bar_support",
+                "dip_bars",
+                "nordic_anchor",
+            ),
             options.effectiveEquipment(explicitLegacy),
         )
 

@@ -45,9 +45,12 @@ fun SessionCard(
      */
     optionalConfirmationChecked: Boolean? = null,
     onToggleOptionalConfirmation: ((Boolean) -> Unit)? = null,
+    isManuallyCustomized: Boolean = false,
+    onRestoreFromPlan: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    var showRestoreConfirmation by remember { mutableStateOf(false) }
 
     val exercises = session.allExercises()
     val exerciseLookup = catalogExerciseIndex()
@@ -127,6 +130,44 @@ fun SessionCard(
                 }
             }
 
+            if (isExpanded) {
+                Column(
+                    Modifier.fillMaxWidth().padding(top = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    exercises.forEach { exercise ->
+                        val prescription = formatExercisePrescription(exercise)
+                        if (prescription != null) {
+                            Text(
+                                "${exerciseDisplayName(exercise, exerciseLookup)} · $prescription",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (isManuallyCustomized) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Sesión personalizada",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                    onRestoreFromPlan?.let { restore ->
+                        TextButton(onClick = { showRestoreConfirmation = true }) {
+                            Text("Restaurar esta sesión desde el plan")
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(8.dp))
 
             // Actions
@@ -174,5 +215,24 @@ fun SessionCard(
                 }
             }
         }
+    }
+
+    if (showRestoreConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showRestoreConfirmation = false },
+            title = { Text("Restaurar sesión") },
+            text = {
+                Text("Se perderá la edición de esta sesión. Solo se restaurará esta ocurrencia; las sesiones vecinas y el historial de entrenamiento se conservarán.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRestoreConfirmation = false
+                    onRestoreFromPlan?.invoke()
+                }) { Text("Restaurar desde el plan") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreConfirmation = false }) { Text("Cancelar") }
+            },
+        )
     }
 }

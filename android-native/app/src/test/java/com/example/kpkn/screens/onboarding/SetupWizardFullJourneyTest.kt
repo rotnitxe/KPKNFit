@@ -17,6 +17,7 @@ import com.example.kpkn.data.models.BodyMetric
 import com.example.kpkn.data.models.BodyObservationQuality
 import com.example.kpkn.data.models.CalculationOrigin
 import com.example.kpkn.data.models.DumbbellPairStock
+import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.MachineLoadRange
 import com.example.kpkn.data.models.NutritionPlan
@@ -372,7 +373,14 @@ class SetupWizardFullJourneyTest {
             draftAtReview.stepProgress.answers.keys,
         )
         assertNull("solo registro no fabrica un plan previo", vm.state.value.nutritionPlanPreview)
-        assertTrue("sin errores de preparación", vm.state.value.nutritionErrors.isEmpty())
+        assertTrue(
+            "sin errores de preparación (errores=${vm.state.value.nutritionErrors}, " +
+                "preview=${vm.state.value.programPreview?.id}, " +
+                "config=${vm.state.value.draft.nutritionDraft?.configurationMode}, " +
+                "selecciónNUTRITION_START=${vm.state.value.draft.stepSelections[SetupStepId.NUTRITION_START]}, " +
+                "máquina=${vm.state.value.machineState}, erroresEstado=${vm.state.value.errors})",
+            vm.state.value.nutritionErrors.isEmpty(),
+        )
         assertFalse("la revisión no bloquea", vm.state.value.globalValidation.any { it.isBlocking })
         awaitQuiescent(vm)
         assertRingsPreviewReady(vm)
@@ -464,15 +472,30 @@ class SetupWizardFullJourneyTest {
         }
         confirmStep(vm, SetupStepId.MILESTONE_BASICS, SetupStepId.EXPERIENCE)
 
-        confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.ROUTE) {
+        confirmStep(vm, SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT) {
             vm.setStepChoice(SetupStepId.EXPERIENCE, "intermediate")
         }
-        confirmStep(vm, SetupStepId.ROUTE, SetupStepId.GOAL) { vm.setStepChoice(SetupStepId.ROUTE, "recommended") }
-        // Músculo infiere el estilo: el paso STYLE no entra en la ruta.
-        confirmStep(vm, SetupStepId.GOAL, SetupStepId.VOLUME_TECHNIQUE) {
+        // §15.1 / AC-T005-01: material ANTES de perfiles. Entorno → categorías;
+        // el subpanel de aparatos (§13.2) queda en UNKNOWN al omitirlo, nunca
+        // PRESENT, y no pide kilos ni cantidades.
+        confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY) {
+            vm.setStepChoice(SetupStepId.EQUIPMENT, "machines")
+        }
+        confirmStep(vm, SetupStepId.AVAILABILITY, SetupStepId.GOAL)
+        // Músculo infiere el estilo: el paso STYLE no entra en la ruta. Días y
+        // tiempo se fijan antes de la calibración y de mostrar candidatos.
+        confirmStep(vm, SetupStepId.GOAL, SetupStepId.DAYS) {
             vm.setStepChoice(SetupStepId.GOAL, "muscle")
         }
         assertEquals(TrainingStyle.BODYBUILDER, vm.state.value.draft.volumeAnswers.style)
+        confirmStep(vm, SetupStepId.DAYS, SetupStepId.WEEKDAYS) { vm.setStepChoice(SetupStepId.DAYS, "3") }
+        confirmStep(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
+            vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5"))
+        }
+        confirmStep(vm, SetupStepId.SESSION_TIME, SetupStepId.VOLUME_TECHNIQUE) {
+            vm.setStepText(SetupStepId.SESSION_TIME, "60")
+            vm.setStepNumber(SetupStepId.SESSION_TIME, 60.0)
+        }
         confirmStep(vm, SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY) {
             vm.setStepChoice(SetupStepId.VOLUME_TECHNIQUE, "2")
         }
@@ -482,61 +505,23 @@ class SetupWizardFullJourneyTest {
         confirmStep(vm, SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY) {
             vm.setStepChoice(SetupStepId.VOLUME_STRENGTH, "2")
         }
-        confirmStep(vm, SetupStepId.VOLUME_MOBILITY, SetupStepId.EQUIPMENT) {
+        confirmStep(vm, SetupStepId.VOLUME_MOBILITY, SetupStepId.PRIORITIES) {
             vm.setStepChoice(SetupStepId.VOLUME_MOBILITY, "2")
         }
         assertNotNull("calibración de volumen real", vm.state.value.draft.volumeCalibrationProfile)
 
-        confirmStep(vm, SetupStepId.EQUIPMENT, SetupStepId.INVENTORY_DUMBBELLS) {
-            vm.setStepChoice(SetupStepId.EQUIPMENT, "machines")
-        }
-        confirmStep(vm, SetupStepId.INVENTORY_DUMBBELLS, SetupStepId.INVENTORY_MACHINES) {
-            vm.updateStep(SetupStepId.INVENTORY_DUMBBELLS) { draft ->
-                val current = draft.trainingOptions.inventory ?: EquipmentInventory()
-                draft.copy(
-                    trainingOptions = draft.trainingOptions.copy(
-                        inventory = current.copy(dumbbells = listOf(DumbbellPairStock(weightPerUnitKg = 16.0))),
-                    ),
-                )
-            }
-        }
-        // Mismo gesto que la UI (`updateInventory`): fila real y finita. El gate
-        // de M1/M4 exige dato propio por grupo o el token explícito `none`; aquí
-        // se declara material real, nunca datos desconocidos ni auto-declaración.
-        confirmStep(vm, SetupStepId.INVENTORY_MACHINES, SetupStepId.DAYS) {
-            vm.updateStep(SetupStepId.INVENTORY_MACHINES) { draft ->
-                val current = draft.trainingOptions.inventory ?: EquipmentInventory()
-                draft.copy(
-                    trainingOptions = draft.trainingOptions.copy(
-                        inventory = current.copy(
-                            machines = current.machines + MachineLoadRange(
-                                name = "Polea de poleas",
-                                minLoadKg = 10.0,
-                                maxLoadKg = 90.0,
-                                incrementKg = 2.5,
-                                baseLoadKg = 20.0,
-                            ),
-                        ),
-                    ),
-                )
-            }
-        }
-
-        confirmStep(vm, SetupStepId.DAYS, SetupStepId.WEEKDAYS) { vm.setStepChoice(SetupStepId.DAYS, "3") }
-        confirmStep(vm, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME) {
-            vm.setStepChoices(SetupStepId.WEEKDAYS, setOf("1", "3", "5"))
-        }
-        confirmStep(vm, SetupStepId.SESSION_TIME, SetupStepId.PRIORITIES) {
-            vm.setStepText(SetupStepId.SESSION_TIME, "60")
-            vm.setStepNumber(SetupStepId.SESSION_TIME, 60.0)
-        }
-
-        confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.SPLIT) {
+        confirmStep(vm, SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX) {
             vm.updateStep(SetupStepId.PRIORITIES) { draft ->
                 draft.copy(trainingOptions = draft.trainingOptions.copy(orderPriorities = priorityBag()))
             }
         }
         assertEquals(priorityBag(), vm.state.value.draft.trainingOptions.orderPriorities)
+        // §15.1: CALIBRATION aplicable antes de SPLIT/PLAN.
+        confirmStep(vm, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT) {
+            vm.setStepChoice(SetupStepId.TRAINING_MAX, "no")
+        }
+        // PROPOSE es el valor por defecto del contrato: el paso nunca bloquea.
+        assertEquals(AutoregulationMode.PROPOSE, vm.state.value.draft.trainingOptions.autoregulationMode)
         confirmStep(vm, SetupStepId.SPLIT, SetupStepId.PLAN) { vm.setStepChoice(SetupStepId.SPLIT, "recommended") }
 
         // Candidatos reales del catálogo: se elige uno, nunca un plan inventado.
@@ -551,12 +536,9 @@ class SetupWizardFullJourneyTest {
             fail("sin candidato nativo entre ${candidates.map { it.source }}")
             return
         }
-        confirmStep(vm, SetupStepId.PLAN, SetupStepId.TRAINING_MAX) { vm.selectPlan(native.id) }
+        confirmStep(vm, SetupStepId.PLAN, SetupStepId.AUTOREGULATION) { vm.selectPlan(native.id) }
         assertEquals("el plan elegido es el candidato real", native.id, vm.state.value.draft.selectedCatalogId)
 
-        confirmStep(vm, SetupStepId.TRAINING_MAX, SetupStepId.AUTOREGULATION) {
-            vm.setStepChoice(SetupStepId.TRAINING_MAX, "no")
-        }
         // PROPOSE es el valor por defecto del contrato: el paso nunca bloquea.
         assertEquals(AutoregulationMode.PROPOSE, vm.state.value.draft.trainingOptions.autoregulationMode)
         confirmStep(vm, SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS)
@@ -757,20 +739,24 @@ class SetupWizardFullJourneyTest {
         )
         assertEquals(81.0, historical.valueSi, 0.001)
 
-        // Inventario declarado, finito y persistido en Settings: los dos grupos
-        // de la ruta fija (DUMBBELLS + MACHINES) con cantidades reales.
-        val inventory = checkNotNull(settings.equipmentInventory) { "inventario sin persistir" }
-        assertEquals(16.0, inventory.dumbbells.single().weightPerUnitKg, 0.001)
-        assertTrue(inventory.dumbbells.single().weightPerUnitKg.isFinite())
-        val machine = inventory.machines.single()
-        assertEquals(90.0, checkNotNull(machine.maxLoadKg) { "máximo de la máquina" }, 0.001)
-        assertTrue(
-            "rangos de máquina finitos",
-            listOf(machine.minLoadKg, machine.incrementKg, machine.baseLoadKg).all { it.isFinite() },
+        // AC-T005-01: el recorrido nuevo no pide kilos ni cantidades (sin
+        // pasos INVENTORY_*): NO se persiste ningún inventario y las
+        // categorías confirmadas viajan como disponibilidad. El subpanel de
+        // aparatos §13.2 se omitió a propósito: presencia desconocida,
+        // nunca PRESENT.
+        assertNull(
+            "el wizard nuevo no inventaría kilos ni cantidades",
+            settings.equipmentInventory,
+        )
+        val availability = checkNotNull(settings.equipmentAvailability) { "categorías de material sin persistir" }
+        assertEquals(
+            "categorías del preset «Principalmente máquinas»",
+            setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS),
+            availability.categories,
         )
         assertTrue(
-            "sin discos ni barra declarados no se inventa material",
-            inventory.plates.isEmpty() && inventory.barbellWeightKg == null,
+            "omitir el subpanel deja UNKNOWN (mapas vacíos), nunca PRESENT",
+            availability.apparatus.isEmpty() && availability.supports.isEmpty(),
         )
 
         // Check-in de Rings escrito con la sensación muscular declarada.
@@ -932,7 +918,12 @@ class SetupWizardFullJourneyTest {
         val revision = vm.state.value.draft.revision
         val result = vm.submitCurrentStep(step, expectedRevision = revision)
         assertEquals(
-            "Continuar sobre $step debe aceptarse (errores=${vm.state.value.errors})",
+            "Continuar sobre $step debe aceptarse (errores=${vm.state.value.errors}, " +
+                "selección=${vm.state.value.draft.stepSelections[step]}, " +
+                "rings=${vm.state.value.draft.ringsAnswers}, " +
+                "cursor=${vm.state.value.draft.stepProgress.currentStepId}, " +
+                "últimaEscritura=${vm.lastMutateDiagnostic()}, " +
+                "máquina=${vm.state.value.machineState})",
             SetupSubmitOutcome.ACCEPTED,
             result.outcome,
         )
@@ -947,12 +938,12 @@ class SetupWizardFullJourneyTest {
     private fun fullSelfDefinedRoute(): List<SetupStepId> = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-        SetupStepId.EXPERIENCE, SetupStepId.ROUTE, SetupStepId.GOAL,
+        // §15.1: material antes de perfiles, CALIBRATION antes de SPLIT, sin ROUTE.
+        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
+        SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.EQUIPMENT, SetupStepId.INVENTORY_DUMBBELLS, SetupStepId.INVENTORY_MACHINES,
-        SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
-        SetupStepId.PRIORITIES, SetupStepId.SPLIT, SetupStepId.PLAN, SetupStepId.TRAINING_MAX,
+        SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT, SetupStepId.PLAN,
         SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_DIRECTION, SetupStepId.NUTRITION_RHYTHM,
@@ -969,12 +960,11 @@ class SetupWizardFullJourneyTest {
     private fun fullTrackingOnlyRoute(): List<SetupStepId> = listOf(
         SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT, SetupStepId.WEIGHT,
         SetupStepId.EQUATION_SEX, SetupStepId.BODY_FAT, SetupStepId.MILESTONE_BASICS,
-        SetupStepId.EXPERIENCE, SetupStepId.ROUTE, SetupStepId.GOAL,
+        SetupStepId.EXPERIENCE, SetupStepId.EQUIPMENT, SetupStepId.AVAILABILITY, SetupStepId.GOAL,
+        SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
         SetupStepId.VOLUME_TECHNIQUE, SetupStepId.VOLUME_CONSISTENCY,
         SetupStepId.VOLUME_STRENGTH, SetupStepId.VOLUME_MOBILITY,
-        SetupStepId.EQUIPMENT, SetupStepId.INVENTORY_DUMBBELLS, SetupStepId.INVENTORY_MACHINES,
-        SetupStepId.DAYS, SetupStepId.WEEKDAYS, SetupStepId.SESSION_TIME,
-        SetupStepId.PRIORITIES, SetupStepId.SPLIT, SetupStepId.PLAN, SetupStepId.TRAINING_MAX,
+        SetupStepId.PRIORITIES, SetupStepId.TRAINING_MAX, SetupStepId.SPLIT, SetupStepId.PLAN,
         SetupStepId.AUTOREGULATION, SetupStepId.WARMUPS, SetupStepId.TRAINING_REVIEW,
         SetupStepId.MILESTONE_TRAINING,
         SetupStepId.NUTRITION_START, SetupStepId.NUTRITION_RESULT, SetupStepId.MILESTONE_NUTRITION,

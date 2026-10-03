@@ -288,7 +288,10 @@ data class NutritionCalibrationProfile(
  *
  * A plan may be edited or deleted later, but historical nutrition views must
  * continue to compare intake with the goal that was actually in force on that
- * date.  The Room row is insert-once; recalculating a plan never overwrites it.
+ * date.  The Room row is insert-once: recalculating or editing a plan never
+ * overwrites it.  The only exception is TODAY's row, which activating a
+ * DIFFERENT plan the same day replaces (`NutritionDao.pinTodayGoalSnapshot`);
+ * past days stay untouched.
  */
 @Serializable
 data class DailyGoalSnapshot(

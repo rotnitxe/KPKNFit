@@ -243,6 +243,11 @@ class NativeMixedFrequencyContractTest {
             "return-training" to (2..3),
             "one-day" to (1..1),
             "strength-cardio" to (1..6),
+            // Los cuatro planes propios de §11.1 (T-004a) cubren 1..6 días.
+            "strength-foundation" to (1..6),
+            "muscle-foundation" to (1..6),
+            "powerbuilding-foundation" to (1..6),
+            "complete-athlete" to (1..6),
         )
         val natives = PersonalizedPlanCatalog.entries()
             .filter { it.source == CatalogSource.NATIVE }
@@ -259,9 +264,16 @@ class NativeMixedFrequencyContractTest {
                 range,
                 entry.supportedFrequencies,
             )
+            val canonicalId = when (sourceId) {
+                "strength-foundation" -> "native:strength-foundation-v2"
+                "muscle-foundation" -> "native:muscle-foundation-v2"
+                "powerbuilding-foundation" -> "native:powerbuilding-foundation-v2"
+                "complete-athlete" -> "native:complete-athlete-v2"
+                else -> "native:$sourceId"
+            }
             assertEquals(
                 "la familia nativa '$sourceId' debe conservar su id canónico",
-                "native:$sourceId",
+                canonicalId,
                 entry.id,
             )
         }

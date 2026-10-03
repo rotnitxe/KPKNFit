@@ -7,13 +7,17 @@ import com.example.kpkn.data.protocols.CompositionSeverity
 import com.example.kpkn.data.protocols.DayRecipe
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.RecipeCompositionExemption
+import com.example.kpkn.data.protocols.RecipeCompositionProfile
+import com.example.kpkn.data.protocols.RecipeSessionKind
 import com.example.kpkn.data.protocols.SetRecipe
+import com.example.kpkn.data.protocols.SlotIntent
 import com.example.kpkn.data.protocols.SlotPriority
 import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.WeekRecipe
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 
 data class CompositionFinding(
     val severity: CompositionSeverity,
@@ -86,7 +90,7 @@ object SessionCompositionPolicy {
         val raw = mutableListOf<CompositionFinding>()
         recipe.weeks.forEach { week ->
             week.days.forEach { day ->
-                raw += evaluateDay(day, week, metadata, recipe.trainingMaxPercent)
+                raw += evaluateDay(day, week, metadata, recipe.trainingMaxPercent, recipe.compositionProfile)
             }
             raw += evaluateWeek(week, recipe, metadata)
         }
@@ -94,11 +98,19 @@ object SessionCompositionPolicy {
         return applyExemptions(raw, exemptions)
     }
 
+    /**
+     * Evaluación de un día. [compositionProfile] llega desde la receta (§14.3):
+     * `LEGACY_STANDARD`/`AUTHORED_EXACT` conservan H1..H11 intactos y
+     * `NATIVE_COMPACT`/`MIXED_CARDIO` despachan H6 a los mínimos declarados
+     * ([DayMinimumDose]) y a la validación real de cardio por
+     * [DayRecipe.sessionKind].
+     */
     fun evaluateDay(
         day: DayRecipe,
         week: WeekRecipe,
         metadata: ExerciseCompositionMetadataProvider,
         trainingMaxPercent: Double = 0.90,
+        compositionProfile: RecipeCompositionProfile = RecipeCompositionProfile.LEGACY_STANDARD,
     ): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
         val scope = "w${week.weekNumber}/${day.label}"
@@ -118,7 +130,7 @@ object SessionCompositionPolicy {
         findings += checkH3(resolved, scope)
         findings += checkH4(day, resolved, scope)
         findings += checkH5(resolved, scope)
-        findings += checkH6(resolved, week.blockGoal, scope)
+        findings += checkH6(resolved, week.blockGoal, scope, compositionProfile, day)
         findings += checkH7(resolved, scope)
         findings += checkH8(resolved, week.blockGoal, scope)
         findings += checkH9(resolved, scope)
@@ -284,7 +296,14 @@ object SessionCompositionPolicy {
         resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
         goal: BlockGoal,
         scope: String,
+        compositionProfile: RecipeCompositionProfile = RecipeCompositionProfile.LEGACY_STANDARD,
+        day: DayRecipe? = null,
     ): List<CompositionFinding> {
+        if (compositionProfile == RecipeCompositionProfile.NATIVE_COMPACT ||
+            compositionProfile == RecipeCompositionProfile.MIXED_CARDIO
+        ) {
+            return nativeCheckH6(resolved, goal, scope, requireNotNull(day) { "los perfiles propios validan por día" })
+        }
         val findings = mutableListOf<CompositionFinding>()
         val n = resolved.size
         if (n < MIN_EXERCISES || n > MAX_EXERCISES) {
@@ -305,6 +324,107 @@ object SessionCompositionPolicy {
         }
         return findings
     }
+
+    /**
+     * H6 por propósito (§14.3): `NATIVE_COMPACT` usa los mínimos declarados en
+     * [com.example.kpkn.data.protocols.DayMinimumDose] (2 configuraciones
+     * distintas / 4 series de resistencia ordinaria por día STRENGTH; techos 9
+     * ejercicios / 30 series / 100 min) y despacha por
+     * [DayRecipe.sessionKind] en `MIXED_CARDIO`. SPEED y calentamientos no
+     * rellenan el mínimo; la duración preliminar es SOFT porque el cálculo
+     * final lo hace el estimador común sobre la sesión materializada (§12.2/§14.3).
+     */
+    private fun nativeCheckH6(
+        resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
+        goal: BlockGoal,
+        scope: String,
+        day: DayRecipe,
+    ): List<CompositionFinding> {
+        val findings = mutableListOf<CompositionFinding>()
+        val n = resolved.size
+        if (n > MAX_EXERCISES) {
+            findings += hard("H6", scope, "Sesión de $n ejercicios (máximo $MAX_EXERCISES)")
+        }
+        val totalSets = resolved.sumOf { it.first.workingSets().size }
+        if (totalSets > MAX_EFFECTIVE_SETS) {
+            findings += hard("H6", scope, "Sesión de $totalSets series (máximo $MAX_EFFECTIVE_SETS)")
+        }
+        val seconds = resolved.sumOf { (slot, _, _) -> slot.workingSets().size * (slot.restSeconds + 45) }
+        if (seconds > MAX_SESSION_MINUTES * 60) {
+            findings += soft("H6", scope, "Duración aproximada ${seconds / 60} min > $MAX_SESSION_MINUTES (el presupuesto real se valida con el estimador común)")
+        }
+
+        val cardioBlocks = day.cardioBlocks
+        val cardioValid = cardioBlocks.isNotEmpty() &&
+            cardioBlocks.all { it.details.effectiveDurationSeconds() >= MIN_CARDIO_BLOCK_SECONDS }
+
+        // Resistencia ORDINARIA: sin SPEED ni calentamientos (§14.3).
+        val ordinary = resolved.filter { (slot, _, _) -> slot.role != SlotRole.SPEED }
+        val distinctConfigurations = ordinary.map { (slot, _, _) -> slot.lift.configurationId }.distinct().size
+        val resistanceSets = ordinary.sumOf { (slot, _, _) -> slot.workingSets().size }
+        val dose = day.minimumDose
+        val essentials = dose?.essentialSlotIds.orEmpty()
+        val presentIds = resolved.map { (slot, _, _) -> slot.id }.toSet()
+        val essentialSetsById = resolved.associate { (slot, _, _) -> slot.id to slot.workingSets().size }
+        val deload = goal == BlockGoal.DELOAD
+
+        fun missingEssentials(): List<String> =
+            essentials.filter { id -> id !in presentIds || (essentialSetsById[id] ?: 0) < 1 }
+
+        when (day.sessionKind) {
+            RecipeSessionKind.CARDIO -> {
+                if (day.slots.isNotEmpty()) {
+                    findings += hard(
+                        "H6",
+                        scope,
+                        "Día solo cardio con ${day.slots.size} slots de resistencia (debe ser 0)",
+                    )
+                }
+                if (!cardioValid) {
+                    findings += hard("H6", scope, "Día solo cardio sin bloque de cardio real de al menos 10 min")
+                }
+            }
+            RecipeSessionKind.CARDIO_ACCESSORY -> {
+                if (!cardioValid) {
+                    findings += hard("H6", scope, "Día cardio+accesorios sin bloque de cardio real de al menos 10 min")
+                }
+                val missing = missingEssentials()
+                if (missing.isNotEmpty()) {
+                    findings += hard("H6", scope, "Accesorios esenciales ausentes o sin series: $missing")
+                }
+                // 1 ejercicio / 1–2 series es válido aquí: no se exige el suelo STRENGTH.
+            }
+            RecipeSessionKind.STRENGTH, RecipeSessionKind.STRENGTH_CARDIO -> {
+                if (day.sessionKind == RecipeSessionKind.STRENGTH_CARDIO && !cardioValid) {
+                    findings += hard("H6", scope, "Día resistencia+cardio sin bloque de cardio real de al menos 10 min")
+                }
+                val missing = missingEssentials()
+                if (missing.isNotEmpty()) {
+                    findings += hard("H6", scope, "Slots esenciales ausentes o sin series: $missing")
+                }
+                if (!deload) {
+                    val minDistinct = dose?.minDistinctConfigurations ?: 2
+                    val minSets = dose?.minResistanceSets ?: 4
+                    if (distinctConfigurations < minDistinct) {
+                        findings += hard(
+                            "H6",
+                            scope,
+                            "Día con $distinctConfigurations configuraciones distintas (mínimo $minDistinct)",
+                        )
+                    }
+                    if (resistanceSets < minSets) {
+                        findings += hard("H6", scope, "Día con $resistanceSets series de resistencia (mínimo $minSets)")
+                    }
+                } else if (resolved.any { (slot, _, _) -> slot.workingSets().isEmpty() }) {
+                    findings += hard("H6", scope, "Descarga con algún slot sin series (mínimo 1 por slot)")
+                }
+            }
+        }
+        return findings
+    }
+
+    /** Bloques de cardio reales: ≥10 min por bloque (§12.3/§14.3). */
+    const val MIN_CARDIO_BLOCK_SECONDS = 600
 
     private fun checkH7(
         resolved: List<Triple<SlotRecipe, ExerciseCompositionMetadata?, PatternFamily?>>,
@@ -527,18 +647,14 @@ object SessionCompositionPolicy {
         return findings
     }
 
-    private fun evaluateWeek(
-        week: WeekRecipe,
-        recipe: TrainingPlanRecipe,
-        metadata: ExerciseCompositionMetadataProvider,
-    ): List<CompositionFinding> {
-        val findings = mutableListOf<CompositionFinding>()
-        val scope = "w${week.weekNumber}"
-        if (week.days.isEmpty()) {
-            findings += hard("W6", scope, "Semana sin días de entrenamiento")
-            return findings
-        }
-        val hypertrophy = week.blockGoal in setOf(BlockGoal.ACCUMULATION, BlockGoal.DENSITY)
+    /** Conteo de una semana de receta por grupo muscular: frecuencia, series y series del músculo dominante. */
+    private class WeekMuscleTally(
+        val groupsHit: Map<KpknMuscleGroup, Int>,
+        val volumeSets: Map<KpknMuscleGroup, Double>,
+        val primarySets: Map<KpknMuscleGroup, Double>,
+    )
+
+    private fun tallyWeek(week: WeekRecipe, metadata: ExerciseCompositionMetadataProvider): WeekMuscleTally {
         val groupsHit = mutableMapOf<KpknMuscleGroup, Int>()
         val volumeSets = mutableMapOf<KpknMuscleGroup, Double>()
         val primarySets = mutableMapOf<KpknMuscleGroup, Double>()
@@ -561,6 +677,49 @@ object SessionCompositionPolicy {
                 }
             }
         }
+        return WeekMuscleTally(groupsHit, volumeSets, primarySets)
+    }
+
+    /**
+     * Series semanales por grupo muscular de UNA semana de receta: 1,0 por serie de trabajo en cada
+     * músculo primario y 0,5 en cada secundario. Es el contador único de W2: la política lo usa para
+     * clasificar el volumen (normal, «volumen alto» o rechazo) y el ajustador de los planes propios lo
+     * reutiliza para decidir si un plan cabe en la banda, así que ambos miden con la misma regla.
+     */
+    fun weeklyGroupSets(
+        week: WeekRecipe,
+        metadata: ExerciseCompositionMetadataProvider,
+    ): Map<KpknMuscleGroup, Double> = tallyWeek(week, metadata).volumeSets
+
+    private fun evaluateWeek(
+        week: WeekRecipe,
+        recipe: TrainingPlanRecipe,
+        metadata: ExerciseCompositionMetadataProvider,
+    ): List<CompositionFinding> {
+        val findings = mutableListOf<CompositionFinding>()
+        val scope = "w${week.weekNumber}"
+        if (week.days.isEmpty()) {
+            findings += hard("W6", scope, "Semana sin días de entrenamiento")
+            return findings
+        }
+        // §14.3: el perfil de composición llega a la validación de semana, no
+        // solo a H6. LEGACY/AUTHORED conservan W1..W7/BLOCK actuales; los
+        // planes propios sustituyen los hitos genéricos por los suelos de
+        // §§11–12 y mantienen el techo MRV con contabilidad real.
+        val profile = recipe.compositionProfile
+        val nativeKind = if (profile == RecipeCompositionProfile.NATIVE_COMPACT ||
+            profile == RecipeCompositionProfile.MIXED_CARDIO
+        ) {
+            NativeProfileKind.fromEntryId(recipe.id)
+        } else {
+            null
+        }
+        val hypertrophy = week.blockGoal in setOf(BlockGoal.ACCUMULATION, BlockGoal.DENSITY)
+        // Contador único de series por grupo (también lo usa el ajustador de planes propios).
+        val tally = tallyWeek(week, metadata)
+        val groupsHit = tally.groupsHit
+        val volumeSets = tally.volumeSets
+        val primarySets = tally.primarySets
         val enoughDaysForHypertrophyLandmarks = recipe.daysPerWeek >= 4 && week.days.size >= 3
         val isPlSbd = recipe.liftSlots.keys.containsAll(
             setOf(
@@ -570,7 +729,8 @@ object SessionCompositionPolicy {
             ),
         )
         val isSpecialization = recipe.liftSlots.size <= 1
-        val applyHypertrophyLandmarks = hypertrophy && enoughDaysForHypertrophyLandmarks && !isPlSbd && !isSpecialization
+        val applyHypertrophyLandmarks = hypertrophy && enoughDaysForHypertrophyLandmarks &&
+            !isPlSbd && !isSpecialization && nativeKind == null
         if (applyHypertrophyLandmarks) {
             listOf(KpknMuscleGroup.CHEST, KpknMuscleGroup.BACK_LATS, KpknMuscleGroup.QUADS).forEach { group ->
                 if ((groupsHit[group] ?: 0) < 2) {
@@ -580,6 +740,9 @@ object SessionCompositionPolicy {
         }
         val peak = week.blockGoal in setOf(BlockGoal.PEAK, BlockGoal.REALIZATION, BlockGoal.TAPER)
         val specificPeak = setOf(KpknMuscleGroup.QUADS, KpknMuscleGroup.CHEST, KpknMuscleGroup.HAMS, KpknMuscleGroup.ERECTORS)
+        // MRV superior: para los planes propios el mapa `liftSlots` NUNCA
+        // desactiva el techo (§14.3), ni siquiera con el mapa vacío.
+        val mrvApplies = nativeKind != null || (!isPlSbd && !isSpecialization)
         volumeSets.forEach { (group, sets) ->
             val landmark = VolumeLandmarks.byGroup[group] ?: return@forEach
             if (applyHypertrophyLandmarks &&
@@ -588,12 +751,27 @@ object SessionCompositionPolicy {
             ) {
                 findings += hard("W2", scope, "$group $sets series < MEV ${landmark.mev}")
             }
-            if (sets > landmark.mrv && !isPlSbd && !isSpecialization) {
+            if (sets > landmark.mrv && mrvApplies) {
+                // B-02: solo en planes propios y solo en glúteos, entre el límite (MRV) y el
+                // techo blando el exceso es «volumen alto» (SOFT, permitido con aviso); por
+                // encima del techo sigue siendo HARD. El texto «> MRV» se conserva en ambos
+                // casos: el ajustador filtra por él los excesos que corrige por su cuenta.
+                val inSoftBand = nativeKind != null &&
+                    VolumeSoftBand.bandOf(group, sets, landmark.mrv) == VolumeBand.HIGH_VOLUME
                 val finding = CompositionFinding(
-                    if (landmark.mev <= 0) CompositionSeverity.SOFT else CompositionSeverity.HARD,
+                    if (!inSoftBand && (nativeKind != null || landmark.mev > 0)) {
+                        CompositionSeverity.HARD
+                    } else {
+                        CompositionSeverity.SOFT
+                    },
                     "W2",
                     scope,
-                    "$group $sets series > MRV ${landmark.mrv}",
+                    if (inSoftBand) {
+                        "$group $sets series > MRV ${landmark.mrv} " +
+                            "(volumen alto, tolerancia blanda hasta ${VolumeSoftBand.softCeiling(group, landmark.mrv)})"
+                    } else {
+                        "$group $sets series > MRV ${landmark.mrv}"
+                    },
                 )
                 findings += finding
             }
@@ -644,28 +822,32 @@ object SessionCompositionPolicy {
             }
             if (prevDl && nextSq) findings += hard("W4", scope, "Peso muerto pesado el día anterior a sentadilla pesada")
         }
-        val sbd = recipe.liftSlots.keys
-        val canAuditSbd = sbd.containsAll(
-            setOf(
-                com.example.kpkn.data.protocols.LiftSlot.SQUAT,
-                com.example.kpkn.data.protocols.LiftSlot.BENCH,
-                com.example.kpkn.data.protocols.LiftSlot.DEADLIFT,
-            ),
-        ) && week.days.size >= 3
-        if (canAuditSbd) {
-            fun hits(slot: com.example.kpkn.data.protocols.LiftSlot) = week.days.count { day ->
-                day.slots.any { candidate ->
-                    candidate.lift.liftSlot == slot ||
-                        (slot == com.example.kpkn.data.protocols.LiftSlot.BENCH && isBenchExposure(candidate))
+        if (nativeKind != null) {
+            findings += nativeWeeklyChecks(week, recipe, nativeKind, scope, metadata)
+        } else {
+            val sbd = recipe.liftSlots.keys
+            val canAuditSbd = sbd.containsAll(
+                setOf(
+                    com.example.kpkn.data.protocols.LiftSlot.SQUAT,
+                    com.example.kpkn.data.protocols.LiftSlot.BENCH,
+                    com.example.kpkn.data.protocols.LiftSlot.DEADLIFT,
+                ),
+            ) && week.days.size >= 3
+            if (canAuditSbd) {
+                fun hits(slot: com.example.kpkn.data.protocols.LiftSlot) = week.days.count { day ->
+                    day.slots.any { candidate ->
+                        candidate.lift.liftSlot == slot ||
+                            (slot == com.example.kpkn.data.protocols.LiftSlot.BENCH && isBenchExposure(candidate))
+                    }
                 }
+                val sq = hits(com.example.kpkn.data.protocols.LiftSlot.SQUAT)
+                val bp = hits(com.example.kpkn.data.protocols.LiftSlot.BENCH)
+                val dl = hits(com.example.kpkn.data.protocols.LiftSlot.DEADLIFT)
+                if (sq < 1) findings += hard("W6", scope, "PL: exposición sentadilla $sq < 1")
+                val minBench = 2
+                if (bp < minBench) findings += hard("W6", scope, "PL: exposición banca $bp < $minBench")
+                if (dl < 1) findings += hard("W6", scope, "PL: exposición peso muerto $dl < 1")
             }
-            val sq = hits(com.example.kpkn.data.protocols.LiftSlot.SQUAT)
-            val bp = hits(com.example.kpkn.data.protocols.LiftSlot.BENCH)
-            val dl = hits(com.example.kpkn.data.protocols.LiftSlot.DEADLIFT)
-            if (sq < 1) findings += hard("W6", scope, "PL: exposición sentadilla $sq < 1")
-            val minBench = 2
-            if (bp < minBench) findings += hard("W6", scope, "PL: exposición banca $bp < $minBench")
-            if (dl < 1) findings += hard("W6", scope, "PL: exposición peso muerto $dl < 1")
         }
         val weekPush = week.days.flatMap { it.slots }.sumOf { slot ->
             val family = CompositionTaxonomy.familyOf(metadata.metadata(slot.lift.configurationId)?.movementPatternId)
@@ -712,8 +894,176 @@ object SessionCompositionPolicy {
         return findings
     }
 
+    /**
+     * Suelos semanales de §11–§12 para los cuatro planes propios (§14.3):
+     * sustituyen a W1/W2 genéricos. Los checks de identidad (claimedDays, días
+     * únicos, dosis semanal) se aplican siempre; los suelos de dosis son la
+     * única reducción planificada en la descarga y ahí quedan exentos (§12.3),
+     * etiquetados como descarga.
+     */
+    private fun nativeWeeklyChecks(
+        week: WeekRecipe,
+        recipe: TrainingPlanRecipe,
+        kind: NativeProfileKind,
+        scope: String,
+        metadata: ExerciseCompositionMetadataProvider,
+    ): List<CompositionFinding> {
+        val findings = mutableListOf<CompositionFinding>()
+        recipe.claimedDaysPerWeek?.let { claimed ->
+            if (claimed != week.days.size) {
+                findings += hard("W6", scope, "claimedDaysPerWeek=$claimed pero la semana tiene ${week.days.size} días")
+            }
+        }
+        val weekdays = week.days.mapNotNull { it.weekday }
+        if (weekdays.size == week.days.size && weekdays.distinct().size != weekdays.size) {
+            findings += hard("W6", scope, "Días de la semana repetidos: $weekdays")
+        }
+        val deload = week.kind == com.example.kpkn.data.models.WeekExecutionKind.DELOAD ||
+            week.blockGoal == BlockGoal.DELOAD
+        if (deload) return findings
+
+        fun working(slot: SlotRecipe) = slot.workingSets().size
+        val allSlots = week.days.flatMap { it.slots }
+        val fSlots = allSlots.filter { it.intent == SlotIntent.F }
+        val fvSlots = allSlots.filter { it.intent == SlotIntent.FV }
+        val hSlots = allSlots.filter { it.intent == SlotIntent.H }
+        val pSlots = allSlots.filter { it.intent == SlotIntent.P }
+
+        // F conserva ≥2 series por aparición; Fv puede bajar a 1 en una
+        // exposición adicional cuando el fitter lo necesita (§12.3.3).
+        fSlots.forEach { slot ->
+            if (working(slot) < 2) {
+                findings += hard("W6", scope, "F principal ${slot.lift.configurationId} con ${working(slot)} series < 2")
+            }
+        }
+        fvSlots.forEach { slot ->
+            val setCount = working(slot)
+            if (setCount < 1) {
+                findings += hard("W6", scope, "Fv ${slot.lift.configurationId} con ${working(slot)} series < 1")
+            } else if (setCount == 1) {
+                val slotDay = week.days.indexOfFirst { day -> day.slots.any { it === slot } }
+                val hasOtherExposure = week.days.withIndex().any { (dayIndex, day) ->
+                    dayIndex != slotDay && day.slots.any { other ->
+                        other.id == slot.id &&
+                            other.intent in setOf(SlotIntent.F, SlotIntent.FV, SlotIntent.H) &&
+                            working(other) > 0
+                    }
+                }
+                if (!hasOtherExposure) {
+                    findings += hard("W6", scope, "Fv ${slot.lift.configurationId} baja a 1 serie sin otra exposición semanal")
+                }
+            }
+        }
+
+        when (kind) {
+            NativeProfileKind.STRENGTH -> {
+                fun daysWith(predicate: (SlotRecipe) -> Boolean) = week.days.count { day -> day.slots.any(predicate) }
+                val sq = daysWith { it.lift.liftSlot == com.example.kpkn.data.protocols.LiftSlot.SQUAT }
+                val bp = daysWith {
+                    it.lift.liftSlot == com.example.kpkn.data.protocols.LiftSlot.BENCH || isBenchExposure(it)
+                }
+                val dl = daysWith { it.lift.liftSlot == com.example.kpkn.data.protocols.LiftSlot.DEADLIFT }
+                // §14.3: banca ≥2 exposiciones con ≥2 días; ≥1 con 1 día.
+                val minBench = if (week.days.size >= 2) 2 else 1
+                if (sq < 1) findings += hard("W6", scope, "Fuerza: exposición de sentadilla $sq < 1")
+                if (bp < minBench) findings += hard("W6", scope, "Fuerza: exposición de banca $bp < $minBench")
+                if (dl < 1) findings += hard("W6", scope, "Fuerza: exposición de peso muerto $dl < 1")
+            }
+            NativeProfileKind.POWERBUILDING -> {
+                val fAppearances = allSlots.count { it.intent == SlotIntent.F }
+                if (fAppearances < 2) {
+                    findings += hard("W6", scope, "Fuerza/músculo: $fAppearances apariciones de F en la semana < 2")
+                }
+                val hSets = hSlots.sumOf { working(it) }
+                if (hSets < 4) {
+                    findings += hard("W6", scope, "Fuerza/músculo: $hSets series H en la semana < 4")
+                }
+            }
+            NativeProfileKind.MUSCLE -> {
+                fun setsIn(families: Set<PatternFamily>) = allSlots.filter { slot ->
+                    val meta = metadata.metadata(slot.lift.configurationId) ?: return@filter false
+                    CompositionTaxonomy.familyOf(meta.movementPatternId) in families
+                }.sumOf { working(it) }
+                val squat = setsIn(setOf(PatternFamily.SQUAT))
+                if (squat < 2) findings += hard("W6", scope, "Músculo: patrón S/U con $squat series < 2")
+                val hip = setsIn(setOf(PatternFamily.HINGE, PatternFamily.HIP_EXTENSION))
+                if (hip < 2) findings += hard("W6", scope, "Músculo: extensión de cadera con $hip series < 2")
+                val push = setsIn(setOf(PatternFamily.HORIZONTAL_PUSH, PatternFamily.VERTICAL_PUSH))
+                if (push < 2) findings += hard("W6", scope, "Músculo: empuje con $push series < 2")
+                val pullFamilies = setOf(PatternFamily.HORIZONTAL_PULL, PatternFamily.VERTICAL_PULL)
+                val pullSlots = allSlots.count { slot ->
+                    val meta = metadata.metadata(slot.lift.configurationId) ?: return@count false
+                    CompositionTaxonomy.familyOf(meta.movementPatternId) in pullFamilies
+                }
+                val pull = setsIn(pullFamilies)
+                // «tirón disponible»: la especialización corporal sin tirón
+                // declara el límite y no recibe series ficticias (§13.3).
+                if (pullSlots > 0 && pull < 2) {
+                    findings += hard("W6", scope, "Músculo: tirón disponible con $pull series < 2")
+                }
+            }
+            NativeProfileKind.COMPLETE_ATHLETE -> {
+                val pDays = week.days.count { day -> day.slots.any { it.intent == SlotIntent.P } }
+                val resistanceDays = week.days.count { day ->
+                    day.slots.any { it.intent == SlotIntent.F || it.intent == SlotIntent.FV }
+                }
+                // §11.4: 1 día = una exposición global de base; ≥2 días = dos
+                // exposiciones de potencia y resistencia en días distintos.
+                val minExposures = if (week.days.size >= 2) 2 else 1
+                if (pDays < minExposures) {
+                    findings += hard("W6", scope, "Atleta: $pDays exposiciones de potencia < $minExposures")
+                }
+                if (resistanceDays < minExposures) {
+                    findings += hard("W6", scope, "$resistanceDays exposiciones de resistencia < $minExposures")
+                }
+                pSlots.forEach { slot ->
+                    val sets = slot.workingSets()
+                    val repsOk = sets.all { (it.reps ?: 0) == 3 }
+                    if (sets.size < 2 || !repsOk) {
+                        findings += hard("W6", scope, "Atleta: potencia ${slot.lift.configurationId} con ${sets.size}×${sets.map { it.reps }} (mínimo 2×3)")
+                    }
+                }
+                val hSets = hSlots.sumOf { working(it) }
+                if (hSets < 4) findings += hard("W6", scope, "Atleta: $hSets series H en la semana < 4")
+                val cardioBlocks = week.days.flatMap { it.cardioBlocks }
+                cardioBlocks.forEach { block ->
+                    if (block.details.effectiveDurationSeconds() < MIN_CARDIO_BLOCK_SECONDS) {
+                        findings += hard("W6", scope, "Atleta: bloque de cardio de ${block.details.effectiveDurationSeconds()}s < 10 min")
+                    }
+                }
+                val minimumCardioBlocks = if (week.days.size == 1 || week.days.size == 3) 1 else 2
+                if (cardioBlocks.size < minimumCardioBlocks) {
+                    findings += hard(
+                        "W6",
+                        scope,
+                        "Atleta: ${cardioBlocks.size} bloques de cardio < $minimumCardioBlocks requeridos para ${week.days.size} días",
+                    )
+                }
+                if (week.days.size == 3 && week.days.none {
+                        it.sessionKind == RecipeSessionKind.CARDIO ||
+                            it.sessionKind == RecipeSessionKind.CARDIO_ACCESSORY
+                    }
+                ) {
+                    findings += hard("W6", scope, "Atleta con 3 días requiere un bloque de cardio dedicado")
+                }
+            }
+        }
+        return findings
+    }
+
     private fun evaluateBlocks(recipe: TrainingPlanRecipe): List<CompositionFinding> {
         val findings = mutableListOf<CompositionFinding>()
+        val nativeKind = if (
+            recipe.compositionProfile in setOf(
+                RecipeCompositionProfile.NATIVE_COMPACT,
+                RecipeCompositionProfile.MIXED_CARDIO,
+            )
+        ) {
+            NativeProfileKind.fromEntryId(recipe.id)
+        } else {
+            null
+        }
+        if (nativeKind != null) findings += checkNativeBlockSemantics(recipe)
         val byBlock = recipe.weeks.groupBy { it.blockIndex }.toSortedMap()
         val weeklyVolume = byBlock.mapValues { (_, weeks) ->
             weeks.map { week -> week.days.sumOf { day -> day.slots.sumOf { it.workingSets().size } } }.average()
@@ -797,6 +1147,43 @@ object SessionCompositionPolicy {
                     findings += hard("W5", scope, "Accesorios cambian dentro del bloque")
                 }
             }
+        }
+        return findings
+    }
+
+    /**
+     * Los cuatro planes propios tienen cinco semanas de acumulación y una
+     * descarga en un bloque distinto (§12.1/§14.3). Este guard se limita a
+     * NATIVE_COMPACT/MIXED_CARDIO con ID nativo: legacy y AUTHORED_EXACT
+     * conservan íntegramente sus reglas de bloque previas.
+     */
+    private fun checkNativeBlockSemantics(recipe: TrainingPlanRecipe): List<CompositionFinding> {
+        val findings = mutableListOf<CompositionFinding>()
+        val weeks = recipe.weeks.sortedBy { it.weekNumber }
+        if (weeks.map { it.weekNumber } != (1..6).toList()) {
+            findings += hard("BLOCK", "native", "El plan propio requiere exactamente semanas 1–6")
+            return findings
+        }
+        weeks.take(5).forEach { week ->
+            if (week.blockIndex != 0 || week.blockGoal != BlockGoal.ACCUMULATION ||
+                week.kind != com.example.kpkn.data.models.WeekExecutionKind.TRAINING
+            ) {
+                findings += hard(
+                    "BLOCK",
+                    "w${week.weekNumber}",
+                    "Las semanas 1–5 deben ser ACCUMULATION/TRAINING en blockIndex 0",
+                )
+            }
+        }
+        val deload = weeks.last()
+        if (deload.blockIndex != 1 || deload.blockGoal != BlockGoal.DELOAD ||
+            deload.kind != com.example.kpkn.data.models.WeekExecutionKind.DELOAD
+        ) {
+            findings += hard(
+                "BLOCK",
+                "w6",
+                "La semana 6 debe ser DELOAD en blockIndex 1",
+            )
         }
         return findings
     }

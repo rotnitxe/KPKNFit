@@ -3,6 +3,7 @@ package com.example.kpkn.data.media
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.SessionMilestone
 import com.example.kpkn.data.models.WorkoutMedia
+import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.calculations.calculateHybrid1RM
 import kotlin.math.abs
 
@@ -44,6 +45,22 @@ object WorkoutMediaPrFlags {
             if (isPrSet(set, exerciseId, milestones)) item.id else null
         }
     }
+
+    /** Reapplies the same PR rule to media ingested after the finish transaction. */
+    fun idsToMarkForLog(media: List<WorkoutMedia>, log: WorkoutLog): List<String> =
+        media.mapNotNull { item ->
+            val exerciseId = item.exerciseId?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val setIndex = item.setIndex ?: return@mapNotNull null
+            val exercise = log.completedExercises.firstOrNull { it.exerciseId == exerciseId }
+                ?: return@mapNotNull null
+            val acceptedIds = setOf(
+                completedSetKey(exerciseId, setIndex, item.side),
+                completedSetKey(exerciseId, setIndex, null),
+                "${exerciseId}_$setIndex",
+            )
+            val set = exercise.sets.firstOrNull { it.id in acceptedIds } ?: return@mapNotNull null
+            if (isPrSet(set, exerciseId, log.sessionMilestones)) item.id else null
+        }
 
     private fun lookupSet(
         completedSets: Map<String, CompletedSet>,

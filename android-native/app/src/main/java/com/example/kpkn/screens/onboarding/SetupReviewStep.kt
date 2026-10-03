@@ -37,6 +37,10 @@ import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
+import com.example.kpkn.domain.text.SpanishPlurals
+import com.example.kpkn.domain.training.HighVolumeNotice
+import com.example.kpkn.domain.training.PersonalizationReport
+import com.example.kpkn.domain.training.VolumeSoftBand
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardMassUnit
 import com.example.kpkn.screens.onboarding.design.WizardRadioMark
@@ -158,15 +162,7 @@ private fun BasicsSummary(
         EerSex.MALE -> "Masculino"
         null -> null
     }
-    val bodyFat = when (val source = draft.bodyFatSource) {
-        null -> null
-        SetupBodyFatSource.UNKNOWN -> "No lo sé"
-        SetupBodyFatSource.MEASURED, SetupBodyFatSource.VISUAL_ESTIMATE ->
-            draft.bodyFatPercent?.let { percent ->
-                "${formatPercent(percent)} % · " +
-                    if (source == SetupBodyFatSource.MEASURED) "medido" else "estimación visual"
-            }
-    }
+    val bodyFat = bodyFatReviewValue(draft)
     SetupDataLine(label = "Nombre", value = draft.name.ifBlank { null }, onEdit = edit(SetupStepId.NAME))
     SetupDataLine(label = "Edad", value = draft.ageYears?.let { "$it años" }, onEdit = edit(SetupStepId.AGE))
     SetupDataLine(label = "Altura", value = draft.heightCm?.let { "${it.toInt()} cm" }, onEdit = edit(SetupStepId.HEIGHT))
@@ -179,15 +175,52 @@ private fun BasicsSummary(
     SetupDataLine(label = "Grasa corporal", value = bodyFat, onEdit = edit(SetupStepId.BODY_FAT))
 }
 
-// ─── Resumen: entreno ────────────────────────────────────────────────────────
+/**
+ * Valor de la fila «Grasa corporal». Si quien vuelve no actuó en el paso, se
+ * muestra el dato previo de Ajustes de forma honesta («guardada en Ajustes»),
+ * sin presentarlo como una respuesta nueva; sin nada: null («Sin declarar»).
+ */
+internal fun bodyFatReviewValue(draft: SetupWizardDraft): String? = when (val source = draft.bodyFatSource) {
+    SetupBodyFatSource.UNKNOWN -> "No lo sé"
+    SetupBodyFatSource.MEASURED, SetupBodyFatSource.VISUAL_ESTIMATE ->
+        draft.bodyFatPercent?.let { percent ->
+            "${formatPercent(percent)} % · " +
+                if (source == SetupBodyFatSource.MEASURED) "medido" else "estimación visual"
+        }
+    null -> if (draft.bodyFatState() == SetupBodyFatState.ON_FILE) {
+        (draft.bodyFatPercent ?: draft.importedBodyFatPercent)
+            ?.let { "Guardada en Ajustes: ${formatPercent(it)} %" }
+    } else {
+        null
+    }
+}
 
-private val INVENTORY_STEPS = listOf(
-    SetupStepId.INVENTORY_BARBELL,
-    SetupStepId.INVENTORY_PLATES,
-    SetupStepId.INVENTORY_DUMBBELLS,
-    SetupStepId.INVENTORY_KETTLEBELLS,
-    SetupStepId.INVENTORY_MACHINES,
-)
+/**
+ * B-03 · Aviso de volumen alto: «Volumen alto en Glúteos: 17 series por semana
+ * (recomendado 16). Es un exceso pequeño y aceptable.» Solo existe si el plan
+ * propio supera el máximo recomendado dentro de la tolerancia aprobada.
+ */
+internal fun highVolumeReviewText(notice: HighVolumeNotice): String =
+    "Volumen alto en ${notice.muscle}: ${VolumeSoftBand.formatSets(notice.weeklySets)} series por semana " +
+        "(recomendado ${notice.recommendedSets}). Es un exceso pequeño y aceptable."
+
+/**
+ * B-03 · Lo que la revisión cuenta del plan: primero los avisos de volumen alto
+ * (`report.highVolume`, el máximo semanal) y luego las notas del plan en lenguaje
+ * llano. Sin informe (p. ej. PHUL/PHAT, que no lo traen) no se muestra nada.
+ */
+internal fun planReviewNotes(report: PersonalizationReport?): List<String> =
+    report?.let { it.highVolume.map(::highVolumeReviewText) + it.planNotes }.orEmpty()
+
+/** «1 sesión · 3 ejercicios» de la vista previa de la primera semana. */
+internal fun previewSessionsSummary(sessions: Int, exercises: Int): String =
+    "${SpanishPlurals.sessions(sessions)} · ${SpanishPlurals.exercises(exercises)}"
+
+/** «6 sesiones en 4 semanas» del desplegable semana a semana. */
+internal fun allSessionsSummary(sessions: Int, weeks: Int): String =
+    "${SpanishPlurals.sessions(sessions)} en ${SpanishPlurals.weeks(weeks)}"
+
+// ─── Resumen: entreno ────────────────────────────────────────────────────────
 
 @Composable
 private fun TrainingSummary(
@@ -216,10 +249,8 @@ private fun TrainingSummary(
         value = draftSplitLabel(state),
         onEdit = edit(SetupStepId.SPLIT),
     )
-    val inventoryStep = INVENTORY_STEPS.firstOrNull { it in route }
-    if (inventoryStep != null) {
-        SetupDataLine(label = "Inventario", value = inventoryLabel(state), onEdit = edit(inventoryStep))
-    }
+    // B-03: solo lectura del informe ya calculado (planes propios); no cambia el programa.
+    planReviewNotes(state.previewReport).forEach { note -> SetupFormCaption(note) }
 
     val weeks = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
     val previewSessions = weeks.firstOrNull()?.sessions.orEmpty()
@@ -227,7 +258,7 @@ private fun TrainingSummary(
 
     SetupDataLine(
         label = "Sesiones · muestra 1ª semana",
-        value = "${previewSessions.size} sesiones · $previewExercises ejercicios",
+        value = previewSessionsSummary(previewSessions.size, previewExercises),
         onEdit = edit(SetupStepId.TRAINING_REVIEW),
     )
     if (previewSessions.isEmpty()) {
@@ -243,13 +274,13 @@ private fun TrainingSummary(
 
     if (!expanded) {
         TextButton(onClick = { expanded = true }) {
-            Text(text = "Ver las ${weeks.size} semanas", color = WizardColors.text)
+            Text(text = "Ver las ${SpanishPlurals.weeks(weeks.size)}", color = WizardColors.text)
         }
     } else {
         val allSessions = weeks.sumOf { it.sessions.size }
         SetupDataLine(
             label = "Sesiones por semana",
-            value = "$allSessions en ${weeks.size} semanas",
+            value = allSessionsSummary(allSessions, weeks.size),
             onEdit = edit(SetupStepId.TRAINING_REVIEW),
         )
         // Ocurrencias reales: cada semana se lista tal cual. Sin deduplicar:
@@ -260,8 +291,8 @@ private fun TrainingSummary(
         }
         if (weeks.size > SESSION_WEEK_LIMIT) {
             SetupFormCaption(
-                "Se muestran las primeras $SESSION_WEEK_LIMIT de ${weeks.size} semanas " +
-                    "($allSessions sesiones en total).",
+                "Se muestran las primeras $SESSION_WEEK_LIMIT de ${SpanishPlurals.weeks(weeks.size)} " +
+                    "(${SpanishPlurals.sessions(allSessions)} en total).",
             )
         }
         TextButton(onClick = { expanded = false }) {
@@ -305,7 +336,7 @@ private fun briefSetsReps(exercise: Exercise): String? {
     val first = sets.first()
     val reps = first.effectiveRepRange()?.format()
         ?: first.targetDuration?.takeIf { it > 0 }?.let { "${it}s" }
-    return if (reps != null) "${sets.size} × $reps" else "${sets.size} series"
+    return if (reps != null) "${sets.size} × $reps" else SpanishPlurals.sets(sets.size)
 }
 
 private fun draftSplitLabel(state: SetupWizardState): String? {
@@ -314,15 +345,6 @@ private fun draftSplitLabel(state: SetupWizardState): String? {
         ?: draft.selectedSplitId
         ?: state.programPreview?.selectedSplitId
         ?: null
-}
-
-private fun inventoryLabel(state: SetupWizardState): String? {
-    val draft = state.draft
-    val equipment = draft.equipment.joinToString(", ") { it.label }
-    return listOfNotNull(
-        draft.trainingEnvironment,
-        equipment.takeIf { it.isNotBlank() },
-    ).joinToString(" · ").ifBlank { null }
 }
 
 private val WEEKDAY_LABELS = listOf("", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
@@ -394,7 +416,7 @@ private fun NutritionPlanLines(
     if (preparation != null && preparation.days.isNotEmpty()) {
         SetupDataLine(
             label = "Reparto",
-            value = "${preparation.days.size} días con objetivo",
+            value = "${SpanishPlurals.days(preparation.days.size)} con objetivo",
             onEdit = edit(SetupStepId.NUTRITION_DISTRIBUTION),
         )
     }

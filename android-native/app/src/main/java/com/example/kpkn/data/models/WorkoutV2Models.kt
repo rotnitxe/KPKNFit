@@ -50,6 +50,32 @@ enum class UnitModeV2 {
     CUSTOM,
 }
 
+/**
+ * Convención de cantidad de una carga prescrita/registrada (§14.2).
+ *
+ * Ortogonal a [LoadModeV2] y [UnitModeV2]: define QUÉ representa el número de
+ * kilos, no el modo de ejecución ni la unidad de esfuerzo. Una referencia de
+ * carga solo aplica a la MISMA configuración y la MISMA convención: cambiar
+ * barra por mancuernas rompe la referencia (nunca se transfiere 1RM/TM/kilos
+ * automáticamente). Datos antiguos decodifican como [UNSPECIFIED] hasta que la
+ * convención sea inequívoca; el default no cambia el significado de payloads
+ * viejos. Lastre ([ADDITIONAL_BODYWEIGHT]) y asistencia ([ASSISTANCE]) tienen
+ * signo/semántica distintos y jamás se intercambian.
+ */
+@Serializable
+enum class LoadQuantityConvention {
+    /** Legacy/ambiguo: convención no declarada (§14.2). */
+    UNSPECIFIED,
+    /** Carga externa total en kg (barra + discos). */
+    TOTAL_EXTERNAL,
+    /** Carga por implemento en kg (mancuerna/kettlebell según declare el ejercicio). */
+    PER_IMPLEMENT,
+    /** Lastre: kg adicionales al peso corporal. */
+    ADDITIONAL_BODYWEIGHT,
+    /** Asistencia: kg ayudados (bajar = progresar). */
+    ASSISTANCE,
+}
+
 @Serializable
 enum class SetTechniqueV2 {
     DROP_SET,
@@ -171,6 +197,12 @@ data class RecordedSetPayload(
     val executionError: Boolean = false,
     val skipped: Boolean = false,
     val superSetWithExerciseId: String? = null,
+    /**
+     * False cuando la reserva/esfuerzo quedó con el valor planificado sin que el atleta moviera
+     * el selector: el dato se conserva, pero la progresión §12.4 no lo toma como «reserva
+     * cumplida». Por defecto true (registros anteriores, voz y demás rutas reportan a propósito).
+     */
+    val intensityAdjusted: Boolean = true,
 )
 
 @Serializable

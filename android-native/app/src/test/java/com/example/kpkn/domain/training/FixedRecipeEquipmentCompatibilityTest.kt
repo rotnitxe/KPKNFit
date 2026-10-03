@@ -99,7 +99,9 @@ class FixedRecipeEquipmentCompatibilityTest {
                     configuration.profile.richMetadata?.programming?.requiredEquipment?.forEach { entry ->
                         if (entry.isNotBlank() && !(entry == "machine" && exact)) add(entry)
                     }
-                    supportDependencyFor(configurationId)?.let { add(it) }
+                    // Requisitos de soporte CONJUNTO (banco, rack, barra de
+                    // dominadas, paralelas, barra baja, balón, anclaje…).
+                    addAll(supportRequirementsFor(configurationId))
                 }
             }
             .filter { it != "bodyweight" }
@@ -224,6 +226,61 @@ class FixedRecipeEquipmentCompatibilityTest {
     }
 
     @Test
+    fun support_requirements_are_a_set_of_dependencies_not_a_single_string() {
+        // §13.2: «Actualizar supportDependencyFor: debe devolver conjunto … o
+        // sustituirse por requirementsOf(configuration)» (AC-C1).
+        assertEquals(setOf("bench", "rack"), supportRequirementsFor("bench_press__barbell"))
+        assertEquals(setOf("bench"), supportRequirementsFor("bench_press__dumbbells"))
+        assertEquals(setOf("bench"), supportRequirementsFor("bench_press__smith_machine"))
+        assertEquals(setOf("bench", "bench_incline", "rack"), supportRequirementsFor("incline_bench_press__barbell"))
+        assertEquals(setOf("bench", "bench_incline"), supportRequirementsFor("decline_bench_press__dumbbells"))
+        // En suelo: sin banco, deliberadamente fuera (§13.2).
+        assertEquals(emptySet<String>(), supportRequirementsFor("floor_press__dumbbells"))
+        assertEquals(setOf("pull_up_bar"), supportRequirementsFor("pull_up__pronated__medium"))
+        assertEquals(setOf("dip_bars"), supportRequirementsFor("tren_superior_fondos__default"))
+        assertEquals(setOf("bench"), supportRequirementsFor("triceps_fondos_entre_bancos__default"))
+        assertEquals(setOf("low_bar_support"), supportRequirementsFor("back_remo_invertido__default"))
+        assertEquals(setOf("ball"), supportRequirementsFor("curl_isquios_con_balon__default"))
+        assertEquals(setOf("nordic_anchor"), supportRequirementsFor("hams_curl_nordic_peso_corporal__default"))
+        assertEquals(setOf("support"), supportRequirementsFor("push_up__feet_elevated"))
+        // §13.2: NADA de rack por coincidencia de implemento.
+        assertEquals(emptySet<String>(), supportRequirementsFor("high_bar_back_squat__barbell"))
+        assertEquals(emptySet<String>(), supportRequirementsFor("romanian_deadlift__bilateral__barbell"))
+        assertEquals(emptySet<String>(), supportRequirementsFor("unknown_configuration__default"))
+    }
+
+    @Test
+    fun fixed_recipe_guard_requires_the_whole_support_set_at_once() {
+        val benchPress = programWith(listOf("bench_press__barbell"))
+        assertEquals(
+            "Banca barra exige barra + banco + rack (§13.2)",
+            setOf("bench", "rack"),
+            missingFixedRecipeEquipment(benchPress, setOf("bodyweight", "barbell"), catalog),
+        )
+        assertEquals(
+            emptySet<String>(),
+            missingFixedRecipeEquipment(benchPress, setOf("bodyweight", "barbell", "bench", "rack"), catalog),
+        )
+
+        val inclinePress = programWith(listOf("incline_bench_press__barbell"))
+        assertEquals(
+            setOf("bench", "bench_incline", "rack"),
+            missingFixedRecipeEquipment(inclinePress, setOf("bodyweight", "barbell"), catalog),
+        )
+
+        val pullUp = programWith(listOf("pull_up__pronated__medium"))
+        assertEquals(
+            "Dominadas exigen su barra (§13.2)",
+            setOf("pull_up_bar"),
+            missingFixedRecipeEquipment(pullUp, setOf("bodyweight"), catalog),
+        )
+        assertEquals(
+            emptySet<String>(),
+            missingFixedRecipeEquipment(pullUp, setOf("bodyweight", "pull_up_bar"), catalog),
+        )
+    }
+
+    @Test
     fun cable_and_smith_stations_attest_only_their_station() {
         val cableConfig = "triceps_pushdown__bilateral__cable"
         val smithConfig = "bench_press__smith_machine"
@@ -232,11 +289,23 @@ class FixedRecipeEquipmentCompatibilityTest {
         val cableStation = setOf("bodyweight", "cable")
         assertEquals(emptySet<String>(), missingFixedRecipeEquipment(programWith(listOf(cableConfig)), cableStation, catalog))
         assertEquals(setOf("machine"), missingFixedRecipeEquipment(programWith(listOf(legCurl)), cableStation, catalog))
-        assertEquals(setOf("smith_machine"), missingFixedRecipeEquipment(programWith(listOf(smithConfig)), cableStation, catalog))
+        // §13.3: la banca Smith exige banco; la estación de cable no acredita ni Smith ni banco.
+        assertEquals(
+            setOf("smith_machine", "bench"),
+            missingFixedRecipeEquipment(programWith(listOf(smithConfig)), cableStation, catalog),
+        )
 
         val smithStation = setOf("bodyweight", "smith_machine")
-        assertEquals(emptySet<String>(), missingFixedRecipeEquipment(programWith(listOf(smithConfig)), smithStation, catalog))
+        assertEquals(
+            "Smith acredita su estación pero el press sigue exigiendo banco (§13.3)",
+            setOf("bench"),
+            missingFixedRecipeEquipment(programWith(listOf(smithConfig)), smithStation, catalog),
+        )
         assertEquals(setOf("machine"), missingFixedRecipeEquipment(programWith(listOf(legCurl)), smithStation, catalog))
+
+        val smithWithBench = setOf("bodyweight", "smith_machine", "bench")
+        assertEquals(emptySet<String>(), missingFixedRecipeEquipment(programWith(listOf(smithConfig)), smithWithBench, catalog))
+        assertEquals(setOf("machine"), missingFixedRecipeEquipment(programWith(listOf(legCurl)), smithWithBench, catalog))
     }
 
     @Test

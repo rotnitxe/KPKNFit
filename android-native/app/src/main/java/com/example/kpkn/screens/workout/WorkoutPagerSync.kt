@@ -60,7 +60,7 @@ internal fun workoutPagerStepKey(
     exerciseId: String,
     page: WorkoutSetSwipePage,
 ): String = when (page.type) {
-    LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(exerciseId)
+    LivePageType.CARDIO -> WorkoutStepRules.cardioStepKey(exerciseId, page.setIndex)
     LivePageType.NORMAL -> WorkoutStepRules.workingStepKey(exerciseId, page.setIndex, page.side)
     LivePageType.WARMUP -> page.stepKey
         ?: page.warmupSetId?.let { WorkoutStepRules.warmupStepKey(exerciseId, it) }
@@ -76,7 +76,10 @@ internal fun activePagerStepType(
     exercise: Exercise,
 ): WorkoutStepType? {
     val activeKey = state.activeStepKey ?: return null
-    if (activeKey == WorkoutStepRules.cardioStepKey(exercise.id)) {
+    if (WorkoutStepRules.cardioSetIndices(exercise).any { setIndex ->
+            activeKey == WorkoutStepRules.cardioStepKey(exercise.id, setIndex)
+        }
+    ) {
         return WorkoutStepType.CARDIO
     }
     val isWorking = exercise.sets.indices.any { setIdx ->

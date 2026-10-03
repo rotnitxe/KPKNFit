@@ -1,0 +1,14 @@
+# Supplementary (added during base-flavor AVD validation, 2026-10-02): the remaining workout / editor / program-detail UI and
+# instrumented classes named in the validation brief that are not part of suites/workout-avd.txt or suites/gps-lifecycle.txt.
+# SessionEditorTransferMaterializationAvdTest is driven by ui_editor_transfer.py (-e scenario).
+com.example.kpkn.screens.programdetail.ManualSessionRestoreUiTest
+com.example.kpkn.screens.workout.components.SetExecutionCardUiTest
+com.example.kpkn.screens.workout.components.SetExecutionCardManagedLoadUiTest
+com.example.kpkn.screens.workout.WorkoutRestModalUiTest
+com.example.kpkn.screens.workout.WorkoutSupportCardsUiTest
+com.example.kpkn.screens.workout.WorkoutMobilityCanonicalKnowledgeUiTest
+com.example.kpkn.screens.workout.WorkoutWarmupInventoryIntegrationTest
+com.example.kpkn.screens.sessioneditor.components.ExercisePickerCardsUiTest
+com.example.kpkn.screens.sessioneditor.SessionEditorFocusUiTest
+com.example.kpkn.screens.sessioneditor.SessionEditorInvalidDropBannerUiTest
+com.example.kpkn.services.workout.WorkoutVoiceForegroundServiceInstrumentedTest

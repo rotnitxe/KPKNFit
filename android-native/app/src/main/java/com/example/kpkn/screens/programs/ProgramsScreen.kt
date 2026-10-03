@@ -34,6 +34,7 @@ import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.VolumeSystem
+import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
 import com.example.kpkn.screens.programs.ProgramStats
 import com.example.kpkn.screens.programs.ProgramsViewModel
@@ -54,6 +55,7 @@ fun ProgramsScreen(
     viewModel: ProgramsViewModel = viewModel(),
     openCreateSheetOnStart: Boolean = false,
     onCreateSheetOpened: () -> Unit = {},
+    onSelectPlan: ((CatalogEntry) -> Unit)? = null,
 ) {
     val programs by viewModel.programs.collectAsState()
     val archivedPrograms by viewModel.archivedPrograms.collectAsState()
@@ -77,7 +79,7 @@ fun ProgramsScreen(
 
     LaunchedEffect(openCreateSheetOnStart, Unit) {
         if (openCreateSheetOnStart || ProgramCreationRequests.openSheet) {
-            onCreateProgram()
+            showCreateSheet = true
             ProgramCreationRequests.openSheet = false
             onCreateSheetOpened()
         }
@@ -88,7 +90,7 @@ fun ProgramsScreen(
             title = "Comienza Hoy",
             subtitle = "Aún no tienes programas configurados",
             actionLabel = "Crear primer programa",
-            onAction = onCreateProgram,
+            onAction = { showCreateSheet = true },
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
         )
     } else {
@@ -119,7 +121,7 @@ fun ProgramsScreen(
                         )
                     }
                     Button(
-                        onClick = onCreateProgram,
+                        onClick = { showCreateSheet = true },
                         modifier = Modifier.wrapContentWidth(),
                         shape = MaterialTheme.shapes.extraLarge,
                         colors = ButtonDefaults.buttonColors(
@@ -257,6 +259,12 @@ fun ProgramsScreen(
             onSelectProtocol = { protocol ->
                 showCreateSheet = false
                 selectedProtocol = protocol
+            },
+            onSelectPlan = onSelectPlan?.let { select ->
+                { entry ->
+                    showCreateSheet = false
+                    select(entry)
+                }
             },
         )
     }

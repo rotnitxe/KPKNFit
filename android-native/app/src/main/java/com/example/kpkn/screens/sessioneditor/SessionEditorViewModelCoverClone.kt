@@ -8,6 +8,7 @@ import com.example.kpkn.domain.exercises.normalizedIdentityFields
 import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.sessionassistant.SessionAssistantEngine
 import com.example.kpkn.domain.sessionassistant.SessionAssistantInput
+import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.workout.SupersetRules
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +87,7 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
     val state = currentUiState
     val source = state.activeVariantSession ?: state.session
         ?: return SessionEditorSaveResult(false, "No hay sesión origen activa.")
+    val sourceMainSessionId = state.session?.id ?: source.id
     val targets = state.cloneDayOptions.filter { it.key in targetKeys && !it.isCurrentSessionDay }
     if (targets.isEmpty()) return SessionEditorSaveResult(false, "No se encontraron destinos válidos.")
 
@@ -97,11 +99,22 @@ fun SessionEditorViewModel.cloneCurrentSessionToTargets(
                 selectedExerciseIds = selectedExerciseIds,
                 applyMode = applyMode,
                 sourceSession = source,
+                sourceVariantKey = state.activeVariant.name,
+                sourceMainSessionId = sourceMainSessionId,
             ),
             hasUnsavedChanges = true,
             sheet = SessionEditorSheet.NONE,
             snackbarMessage = "Transferencia pendiente a ${targets.size} día${if (targets.size > 1) "s" else ""}. Guarda para aplicarla.",
         )
+    }
+    if (!persistDraft()) {
+        updateUi {
+            it.copy(
+                pendingTransferToDays = null,
+                snackbarMessage = "No se pudo preparar la transferencia para recuperación. Vuelve a intentarlo.",
+            )
+        }
+        return SessionEditorSaveResult(false, "No se pudo preparar la transferencia para recuperación. Vuelve a intentarlo.")
     }
     val modeLabel = if (selectedExerciseIds.isNullOrEmpty()) "completa" else "parcial"
     return SessionEditorSaveResult(
@@ -148,18 +161,34 @@ fun SessionEditorViewModel.importFromSourceSession(
 internal fun SessionEditorViewModel.applyPendingTransfersToProgram(
     program: Program,
     pending: PendingTransferToDays,
-    cloneDayOptions: List<SessionCloneDayOption>,
-): Program {
-    val targets = cloneDayOptions.filter { it.key in pending.targetKeys && !it.isCurrentSessionDay }
-    return targets.fold(program) { acc, target ->
-        applyCloneToTarget(
-            program = acc,
-            source = pending.sourceSession,
-            target = target,
-            selectedExerciseIds = pending.selectedExerciseIds,
-            applyMode = pending.applyMode,
-        )
+    cloneDayOptions: List<SessionCloneDayOption> = emptyList(),
+): SessionTransferOutcome = applySessionTransfersToProgram(
+    program = program,
+    currentSessionId = pending.sourceMainSessionId ?: pending.sourceSession.id,
+    pending = pending,
+)
+
+/** Refresh the staged source from the selected slot at save time, not from the old sheet snapshot. */
+internal fun PendingTransferToDays.withLatestSourceFrom(base: Session): PendingTransferToDays? {
+    val inferredVariant = when (sourceSession.id) {
+        base.sessionB?.id -> "B"
+        base.sessionC?.id -> "C"
+        base.sessionD?.id -> "D"
+        else -> sourceVariantKey
     }
+    val resolvedVariant = if (sourceVariantKey == "A" && inferredVariant != "A") inferredVariant else sourceVariantKey
+    val latestSource = when (resolvedVariant) {
+        "A" -> base
+        "B" -> base.sessionB
+        "C" -> base.sessionC
+        "D" -> base.sessionD
+        else -> null
+    } ?: return null
+    return copy(
+        sourceSession = latestSource,
+        sourceVariantKey = resolvedVariant,
+        sourceMainSessionId = base.id,
+    )
 }
 
 internal fun SessionEditorViewModel.applyCloneToTarget(
@@ -169,28 +198,47 @@ internal fun SessionEditorViewModel.applyCloneToTarget(
     selectedExerciseIds: Set<String>?,
     applyMode: SessionCloneApplyMode,
 ): Program {
-    val payload = buildClonePayload(source, selectedExerciseIds)
-    return program.updateWeekById(target.weekId) { week ->
-        val sessions = week.sessions.toMutableList()
-        val existingIndex = sessions.indexOfFirst { it.id == target.existingSessionId }
-        if (existingIndex >= 0) {
-            val existing = sessions[existingIndex]
-            sessions[existingIndex] = mergeSessionWithPayload(
-                base = existing,
-                source = source,
-                payload = payload,
-                selectedExerciseIds = selectedExerciseIds,
-                applyMode = applyMode,
-            ).copy(dayOfWeek = target.dayOfWeek)
-        } else {
-            sessions += createSessionForTargetDay(
-                source = source,
-                dayOfWeek = target.dayOfWeek,
-                payload = payload,
-                selectedExerciseIds = selectedExerciseIds,
-            )
+    return applySessionTransferTarget(program, source, target, selectedExerciseIds, applyMode)
+}
+
+internal fun SessionTransferOutcome.freezeTransferredSessionOverrides(): Program {
+    var frozen = program
+    affectedTargets.forEach { affected ->
+        val target = affected.option
+        val week = frozen.findWeekById(target.weekId) ?: return@forEach
+        frozen = PlanMaterializer.withManualSessionOverride(
+            program = frozen,
+            sessionId = affected.session.id,
+            weekId = target.weekId,
+            weekOccurrence = target.weekOccurrence ?: frozen.weekOccurrenceFor(target.weekId) ?: week.progressionIndex,
+            recipeDayId = target.destinationRecipeDayId,
+            scope = ManualOverrideScope.SESSION,
+            reason = "Sesión transferida desde el editor",
+        )
+        val existingOverride = frozen.manualSessionOverrides.firstOrNull {
+            it.sessionId == affected.session.id && it.scope == ManualOverrideScope.SESSION
         }
-        week.copy(sessions = normalizeMainSessions(sessions))
+        frozen = frozen.copy(
+            manualSessionOverrides = frozen.manualSessionOverrides.map { override ->
+                if (override.sessionId == affected.session.id && override.scope == ManualOverrideScope.SESSION) {
+                    val reason = listOfNotNull(
+                        existingOverride?.reason?.takeIf { it.isNotBlank() && it != "Sesión transferida desde el editor" },
+                        "Sesión transferida desde el editor",
+                        transferReceipt,
+                    ).distinct().joinToString(" · ")
+                    override.copy(
+                        weekId = target.weekId,
+                        weekOccurrence = target.weekOccurrence ?: frozen.weekOccurrenceFor(target.weekId) ?: week.progressionIndex,
+                        cycleNumber = frozen.runState?.cycleNumber,
+                        recipeDayId = target.destinationRecipeDayId,
+                        reason = reason,
+                    )
+                } else {
+                    override
+                }
+            },
+        )
     }
+    return frozen
 }
 

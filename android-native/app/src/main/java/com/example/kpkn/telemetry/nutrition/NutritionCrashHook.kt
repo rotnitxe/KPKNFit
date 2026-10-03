@@ -2,7 +2,6 @@ package com.example.kpkn.telemetry.nutrition
 
 import android.content.Context
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.system.exitProcess
 
 /**
  * Hook de excepciones no capturadas para la telemetría de nutrición.
@@ -30,7 +29,12 @@ object NutritionCrashHook {
             if (prior != null) {
                 prior.uncaughtException(thread, throwable)
             } else {
-                exitProcess(10)
+                // Sin handler previo (solo ocurre en la JVM de tests unitarios; en Android el runtime siempre
+                // instala uno): conservar el comportamiento por defecto de la JVM, que imprime la traza y NO
+                // termina el proceso. Salir con exitProcess(10) mataba el worker de Gradle completo ante
+                // cualquier excepción de fondo de un test Robolectric y abortaba la tarea de tests.
+                System.err.print("Exception in thread \"${thread.name}\" ")
+                throwable.printStackTrace()
             }
         }
     }

@@ -155,12 +155,57 @@ class SetupStepDefinitionsTest {
             if (definition.legacyValueMap.isEmpty()) continue
             val optionValues = SetupStepDefinitions.optionValues(definition.id)
             for (value in definition.legacyValueMap.values) {
+                // §15.4 / AC-T005-02: GOAL conserva como LECTURA los valores
+                // legacy HEALTH/MIXED (nunca se ofrecen de nuevo ni se
+                // autoconvierten); el resto exige una opción real.
+                val legacyReadableGoal = definition.id == SetupStepId.GOAL &&
+                    (value == "health" || value == "mixed")
                 assertTrue(
                     "${definition.id} maps to $value but that option does not exist",
-                    value in optionValues,
+                    value in optionValues || legacyReadableGoal,
                 )
             }
         }
+    }
+
+    @Test
+    fun goalOffersExactlyTheFourProfilesAndLegacyLabelsStayReadable() {
+        val goal = requireNotNull(SetupStepDefinitions.of(SetupStepId.GOAL))
+        // P-104 / §15.1: EXACTAMENTE cuatro perfiles visibles, sin etiquetas
+        // deportivas nuevas en la UI.
+        assertEquals(
+            listOf("strength", "muscle", "strength_muscle", "complete_athlete"),
+            goal.options.map { it.value },
+        )
+        assertEquals(
+            listOf("Fuerza", "Músculo", "Fuerza y músculo", "Atleta completo"),
+            goal.options.map { it.label },
+        )
+        assertFalse("health" in goal.options.map { it.value })
+        assertFalse("mixed" in goal.options.map { it.value })
+        // Legacy sigue resolviendo para leer borradores antiguos.
+        assertEquals("health", goal.migratedValue("Salud y condición"))
+        assertEquals("mixed", goal.migratedValue("Fuerza + cardio"))
+        assertEquals("complete_athlete", goal.migratedValue("Atleta completo"))
+        assertEquals("strength", goal.migratedValue("Fuerza"))
+        // El rango de minutos sigue siendo cada entero 20..100 (§15.1).
+        val sessionTime = requireNotNull(SetupStepDefinitions.of(SetupStepId.SESSION_TIME))
+        assertEquals(20.0, sessionTime.range?.min ?: 0.0, 0.0001)
+        assertEquals(100.0, sessionTime.range?.max ?: 0.0, 0.0001)
+        // Cardio: tres modalidades actuales y los cuatro escalones 10/15/20/30.
+        assertEquals(
+            listOf("WALK", "RUN_OUTDOOR", "BIKE_OUTDOOR"),
+            SetupStepDefinitions.options(SetupStepId.CARDIO_TYPE).map { it.value },
+        )
+        assertEquals(
+            listOf("10", "15", "20", "30"),
+            SetupStepDefinitions.options(SetupStepId.CARDIO_TIME).map { it.value },
+        )
+        // Los pasos de inventario (kg/cantidades) no vuelven a la ruta.
+        val route = SetupStepGraph.stepIds(SetupStepContext(asksAvailability = true))
+        assertFalse(SetupStepId.INVENTORY_DUMBBELLS in route)
+        assertFalse(SetupStepId.INVENTORY_MACHINES in route)
+        assertTrue(SetupStepId.AVAILABILITY in route)
     }
 
     @Test

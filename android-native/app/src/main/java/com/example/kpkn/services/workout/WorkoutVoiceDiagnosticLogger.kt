@@ -9,6 +9,10 @@ import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Log
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -26,10 +30,12 @@ object WorkoutVoiceDiagnosticLogger {
     private const val TAG = "VoiceDiagnostics"
     private const val MAX_TEXT_LENGTH = 12_000
     private val lock = Any()
+    private val metadataScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var appContext: Context? = null
     private var activeSessionKey: String? = null
     private var traceId: String? = null
     private var startedElapsedMs: Long = 0L
+    private var startGeneration = 0L
     private var active = false
     private var commandsOk = 0
     private var commandsFailed = 0
@@ -39,39 +45,88 @@ object WorkoutVoiceDiagnosticLogger {
         appContext = context.applicationContext
     }
 
-    fun start(programId: String, sessionId: String): Boolean = synchronized(lock) {
-        val context = appContext ?: return false
-        val requestedKey = "$programId::$sessionId"
-        if (active && activeSessionKey == requestedKey) return true
-        closeLocked("superseded_by_new_workout")
-        return runCatching {
-            activeSessionKey = requestedKey
-            traceId = UUID.randomUUID().toString()
-            startedElapsedMs = SystemClock.elapsedRealtime()
-            commandsOk = 0
-            commandsFailed = 0
-            nativeFallbacks = 0
-            active = true
-            appendLocked(
-                "diagnostic_started",
-                mapOf(
-                    "programId" to programId,
-                    "sessionId" to sessionId,
-                    "audioStored" to false,
-                    "automaticCopyEnabled" to KpknDiagnosticStorageBridge.isConfigured(context),
-                    "automaticCopyFolder" to KpknDiagnosticStorageBridge.configuredLabel(context),
-                    "privacy" to "Contains recognized text and voice workflow state. No audio.",
-                ),
-            )
-            true
-        }.getOrElse { error ->
-            Log.e(TAG, "Unable to start voice diagnostics", error)
-            activeSessionKey = null
-            traceId = null
-            startedElapsedMs = 0L
-            active = false
-            false
+    private data class StartMetadataRequest(
+        val context: Context,
+        val programId: String,
+        val sessionId: String,
+        val sessionKey: String,
+        val traceId: String,
+        val requestedAtEpochMs: Long,
+        val generation: Long,
+    )
+
+    fun start(programId: String, sessionId: String): Boolean {
+        val request: StartMetadataRequest? = synchronized(lock) {
+            val context = appContext ?: return false
+            val requestedKey = "$programId::$sessionId"
+            if (active && activeSessionKey == requestedKey) return true
+            closeLocked("superseded_by_new_workout")
+            runCatching {
+                activeSessionKey = requestedKey
+                traceId = UUID.randomUUID().toString()
+                startedElapsedMs = SystemClock.elapsedRealtime()
+                commandsOk = 0
+                commandsFailed = 0
+                nativeFallbacks = 0
+                active = true
+                val requestedAt = System.currentTimeMillis()
+                val capturedTraceId = checkNotNull(traceId)
+                val generation = ++startGeneration
+                appendLocked(
+                    "diagnostic_started",
+                    mapOf(
+                        "programId" to programId,
+                        "sessionId" to sessionId,
+                        "diagnosticStartedAtEpochMs" to requestedAt,
+                        "audioStored" to false,
+                        "privacy" to "Contains recognized text and voice workflow state. No audio.",
+                    ),
+                )
+                StartMetadataRequest(
+                    context = context,
+                    programId = programId,
+                    sessionId = sessionId,
+                    sessionKey = requestedKey,
+                    traceId = capturedTraceId,
+                    requestedAtEpochMs = requestedAt,
+                    generation = generation,
+                )
+            }.getOrElse { error ->
+                Log.e(TAG, "Unable to start voice diagnostics", error)
+                activeSessionKey = null
+                traceId = null
+                startedElapsedMs = 0L
+                active = false
+                null
+            }
         }
+        if (request == null) return false
+
+        metadataScope.launch {
+            val storageMetadata = runCatching {
+                KpknDiagnosticStorageBridge.isConfigured(request.context) to
+                    KpknDiagnosticStorageBridge.configuredLabel(request.context)
+            }.onFailure { error ->
+                Log.w(TAG, "Unable to read diagnostic storage preferences", error)
+            }.getOrNull() ?: return@launch
+
+            synchronized(lock) {
+                if (!active || startGeneration != request.generation ||
+                    activeSessionKey != request.sessionKey || traceId != request.traceId
+                ) return@synchronized
+                appendLocked(
+                    "diagnostic_storage_snapshot",
+                    mapOf(
+                        "programId" to request.programId,
+                        "sessionId" to request.sessionId,
+                        "diagnosticStartedAtEpochMs" to request.requestedAtEpochMs,
+                        "automaticCopyEnabled" to storageMetadata.first,
+                        "automaticCopyFolder" to storageMetadata.second,
+                    ),
+                )
+            }
+        }
+        return true
     }
 
     fun isActive(): Boolean = synchronized(lock) { active }
@@ -206,6 +261,7 @@ object WorkoutVoiceDiagnosticLogger {
 
     private fun closeLocked(reason: String) {
         if (!active) return
+        startGeneration += 1L
         runCatching {
             appendLocked(
                 "session_summary",

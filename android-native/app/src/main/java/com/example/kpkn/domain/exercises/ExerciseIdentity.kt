@@ -21,6 +21,46 @@ import java.text.Normalizer
 private val exerciseIdentityStripRegex = Regex("\\p{Mn}+")
 private val exerciseIdentitySeparatorRegex = Regex("[^\\p{L}\\p{Nd}]+")
 
+/**
+ * Identidad estable de UN elemento de receta (§14.4): `sessionId` /
+ * `exerciseId` derivados de (programId, recipeId, contentVersion,
+ * weekOccurrence, weekNumber, dayId[, slotId]) — el tuple de §14.4 más
+ * `programId` (desviación documentada: evita colisiones de PK/índice de Room
+ * entre borradores que comparten receta) y `weekNumber` (dos semanas de la
+ * misma receta pueden reutilizar el mismo `dayId`).
+ *
+ * - `dayId` sin `slotId` → prefijo `rs_` (sesión del día).
+ * - con `slotId` → prefijo `re_` (ejercicio del slot).
+ *
+ * El hash es SHA-256 en hex: la misma tupla siempre devuelve el mismo id
+ * (reconstruir la misma ocurrencia no remapea sesiones entrenadas) y dos
+ * slots/configuraciones distintas nunca comparten id. Las recetas legacy
+ * (`dayId`/`slotId` null) NO usan esta vía: siguen con [IdProvider].
+ */
+fun stableRecipeElementId(
+    programId: String,
+    recipeId: String,
+    contentVersion: Int,
+    weekOccurrence: Int,
+    weekNumber: Int,
+    dayId: String,
+    slotId: String? = null,
+): String {
+    val tuple = listOf(
+        programId,
+        recipeId,
+        contentVersion.toString(),
+        weekOccurrence.toString(),
+        weekNumber.toString(),
+        dayId,
+        slotId.orEmpty(),
+    ).joinToString("|")
+    val hex = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(tuple.toByteArray(Charsets.UTF_8))
+        .joinToString("") { byte -> (byte.toInt() and 0xFF).toString(16).padStart(2, '0') }
+    return (if (slotId == null) "rs_" else "re_") + hex.take(32)
+}
+
 fun normalizeExerciseIdentityToken(value: String): String {
     if (value.isBlank()) return ""
     val stripped = Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
@@ -328,6 +368,7 @@ private fun ExerciseSet.resetForCatalogReplacement(defaultLoadMode: LoadModeV2):
         dropSets = emptyList(),
         restPauses = emptyList(),
         plannedIntensityTechniques = emptyList(),
+        manualLoadRequiredSides = emptySet(),
     )
 }
 

@@ -59,10 +59,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PerformanceSnapshotEntity::class,
         AugeAdaptiveCacheEntity::class,
         WorkoutMediaEntity::class,
+        WorkoutMediaSessionAssociationEntity::class,
         SetupDraftEntity::class,
         SetupCommitReceiptEntity::class,
     ],
-    version = 27,
+    version = 28,
     exportSchema = true,
 )
 abstract class KpknDatabase : RoomDatabase() {
@@ -83,6 +84,7 @@ abstract class KpknDatabase : RoomDatabase() {
     abstract fun performanceRangeDao(): PerformanceRangeDao
     abstract fun performanceSnapshotDao(): PerformanceSnapshotDao
     abstract fun workoutMediaDao(): WorkoutMediaDao
+    abstract fun workoutMediaSessionAssociationDao(): WorkoutMediaSessionAssociationDao
     abstract fun setupDraftDao(): SetupDraftDao
     abstract fun setupCommitReceiptDao(): SetupCommitReceiptDao
 
@@ -700,6 +702,42 @@ abstract class KpknDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_27_28 = object : Migration(27, 28) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `workout_media_session_associations` (
+                        `sessionKey` TEXT NOT NULL,
+                        `workoutLogId` TEXT NOT NULL,
+                        PRIMARY KEY(`sessionKey`),
+                        FOREIGN KEY(`workoutLogId`) REFERENCES `workout_logs`(`id`)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_workout_media_session_associations_workoutLogId` " +
+                        "ON `workout_media_session_associations` (`workoutLogId`)",
+                )
+                // Seed only relationships already proven by an existing media
+                // row. Ambiguous keys and orphaned log IDs are intentionally skipped.
+                db.execSQL(
+                    """
+                    INSERT OR IGNORE INTO `workout_media_session_associations` (`sessionKey`, `workoutLogId`)
+                    SELECT `sessionKey`, MIN(`workoutLogId`)
+                    FROM `workout_media`
+                    WHERE `sessionKey` IS NOT NULL AND `sessionKey` != ''
+                      AND `workoutLogId` IS NOT NULL AND `workoutLogId` != ''
+                      AND EXISTS (
+                          SELECT 1 FROM `workout_logs` l WHERE l.`id` = `workout_media`.`workoutLogId`
+                      )
+                    GROUP BY `sessionKey`
+                    HAVING COUNT(DISTINCT `workoutLogId`) = 1
+                    """.trimIndent(),
+                )
+            }
+        }
+
         fun getInstance(context: Context): KpknDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -734,6 +772,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_24_25,
                     MIGRATION_25_26,
                     MIGRATION_26_27,
+                    MIGRATION_27_28,
                 )
                 .build()
                 .also { INSTANCE = it }

@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.data.models.WorkoutLog
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -111,6 +112,16 @@ class WorkoutMediaDaoTest {
         )
         assertTrue(repo.getById("hit")!!.isPr)
         assertTrue(repo.getById("miss")?.isPr != true)
+        database.workoutLogDao().insert(
+            WorkoutLog(
+                id = "log-final",
+                programId = "program",
+                sessionId = "session",
+                sessionName = "Sesión",
+                date = "2026-09-30T00:00:00Z",
+                durationMinutes = 1,
+            ).toEntity(),
+        )
         repo.attachToLog("sk-1", "log-final")
         assertEquals("log-final", repo.getById("hit")?.workoutLogId)
     }

@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -100,7 +101,7 @@ fun ProgramDetailScreen(
     LaunchedEffect(programId) {
         viewModel.loadFeedbacks(context)
         viewModel.attachSnapshotStore(
-            com.example.kpkn.domain.training.ProgramSnapshotStore.getInstance(context),
+            com.example.kpkn.data.preferences.PreferenceStores.programSnapshots(context),
         )
     }
 
@@ -109,10 +110,7 @@ fun ProgramDetailScreen(
 
     LaunchedEffect(uiState.snackbarMessage) {
         val message = uiState.snackbarMessage ?: return@LaunchedEffect
-        snackbarHostState.showKpknSnackbar(
-            message,
-            if (message.startsWith("No se pudo")) SnackbarType.DANGER else SnackbarType.SUCCESS,
-        )
+        snackbarHostState.showKpknSnackbar(message, snackbarTypeFor(message))
         viewModel.consumeSnackbarMessage()
     }
 
@@ -276,6 +274,8 @@ fun ProgramDetailScreen(
                 },
                 openVolumeSheetToken = openVolumeSheetToken,
             )
+
+            PlanDetailsSummary(program = p)
 
             CompactStructureSubTabs(
                 structureSubTab = uiState.structureSubTab,
@@ -507,6 +507,8 @@ private fun TrainingPanel(
     val calendarizationEndDate by viewModel.calendarizationEndDate.collectAsState()
     val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
     val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
+    val restoreBlockedSessionIds by viewModel.restoreBlockedSessionIds.collectAsState()
+    val nativeProgressionCard by viewModel.nativeProgressionCard.collectAsState()
     var copiedRoadmapWeekId by remember(program.id) { mutableStateOf<String?>(null) }
     var showCopyWeekDialog by remember { mutableStateOf(false) }
     val allProgramWeeks = remember(program, roadmapBlocks) {
@@ -688,12 +690,24 @@ private fun TrainingPanel(
         if (structureSubTab == StructureSubTab.SEMANA) {
             AutoregulationProposalsCard(
                 program = program,
+                nativeCard = nativeProgressionCard,
                 onAccept = { viewModel.acceptAutoregulation() },
                 onAcceptProposal = { viewModel.acceptAutoregulation(it) },
                 onReject = { viewModel.rejectAutoregulation() },
+                onAcceptNative = { viewModel.acceptNativeProgressionProposal(it) },
+                onRejectNative = { viewModel.rejectNativeProgressionProposal(it) },
+                onDismissNativeNotice = { viewModel.dismissNativeProgressionNotice(it) },
                 onOpenTm = onOpenTmEditor,
                 onRematerialize = { viewModel.rematerializePending() },
             )
+        } else {
+            // Insignia: las progresiones por revisar también se avisan desde las otras pestañas.
+            nativeProgressionCard.pendingLabel?.let { label ->
+                NativeProgressionBadge(
+                    label = label,
+                    onClick = { viewModel.setStructureSubTab(StructureSubTab.SEMANA) },
+                )
+            }
         }
 
         if (structureSubTab == StructureSubTab.SEMANA) {
@@ -758,6 +772,8 @@ private fun TrainingPanel(
                     onToggleOptionalConfirmation = { dayIso, sessionId ->
                         viewModel.toggleOptionalSessionConfirmation(dayIso, sessionId)
                     },
+                    onRestoreManualSessionFromPlan = viewModel::restoreManualSessionFromPlan,
+                    restoreBlockedSessionIds = restoreBlockedSessionIds,
                 )
             }
             StructureSubTab.MACROCICLO -> MacrocycleEditor(
@@ -1221,9 +1237,13 @@ private fun locateCompetitionWeekDay(program: Program, keyDate: ProgramKeyDate):
 @Composable
 private fun AutoregulationProposalsCard(
     program: Program,
+    nativeCard: NativeProgressionCardUi,
     onAccept: () -> Unit,
     onAcceptProposal: (com.example.kpkn.data.models.AutoregulationProposal) -> Unit,
     onReject: () -> Unit,
+    onAcceptNative: (String) -> Unit,
+    onRejectNative: (String) -> Unit,
+    onDismissNativeNotice: (String) -> Unit,
     onOpenTm: () -> Unit,
     onRematerialize: () -> Unit,
 ) {
@@ -1235,12 +1255,13 @@ private fun AutoregulationProposalsCard(
     val tm = program.powerliftingProfile
     val recipe = program.sourceRecipe
     val usesTm = recipe?.let { usesTrainingMax(it) } ?: (tm != null)
-    if (!usesTm && !hasAutoregPending && !needsRematerialize) return
+    if (!usesTm && !hasAutoregPending && nativeCard.proposals.isEmpty() && nativeCard.notices.isEmpty() && !needsRematerialize) return
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .testTag("program_proposals_card"),
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1277,12 +1298,113 @@ private fun AutoregulationProposalsCard(
                     TextButton(onClick = onReject) { Text("RECHAZAR") }
                 }
             }
+            nativeCard.pendingLabel?.let { label ->
+                Text(
+                    label,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.9f),
+                    modifier = Modifier.testTag("native_progression_header"),
+                )
+            }
+            nativeCard.proposals.forEach { item ->
+                Column(
+                    modifier = Modifier.testTag("native_progression_item_${item.id}"),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        item.title,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.92f),
+                    )
+                    Text(
+                        item.body,
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.82f),
+                    )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(
+                            onClick = { onAcceptNative(item.id) },
+                            modifier = Modifier.testTag("native_progression_apply_${item.id}"),
+                        ) { Text("APLICAR") }
+                        TextButton(
+                            onClick = { onRejectNative(item.id) },
+                            modifier = Modifier.testTag("native_progression_reject_${item.id}"),
+                        ) { Text("RECHAZAR") }
+                    }
+                }
+            }
+            nativeCard.notices.forEach { notice ->
+                Row(
+                    modifier = Modifier.testTag("native_progression_notice_${notice.id}"),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            notice.title,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.8f),
+                        )
+                        Text(
+                            notice.body,
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
+                    }
+                    TextButton(onClick = { onDismissNativeNotice(notice.id) }) { Text("ENTENDIDO") }
+                }
+            }
             if (needsRematerialize) {
                 Text("Hay semanas pendientes de re-materializar.", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
                 TextButton(onClick = onRematerialize) { Text("RE-MATERIALIZAR") }
             }
         }
     }
+}
+
+/** Insignia «N progresiones por revisar» para las pestañas donde no se ve la tarjeta de propuestas. */
+@Composable
+private fun NativeProgressionBadge(label: String, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .testTag("native_progression_badge"),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                "VER",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+    }
+}
+
+/**
+ * Los avisos del ViewModel llegan como texto: los fallos y rechazos se pintan de rojo, «No se
+ * aplicó…» (la propuesta ya no tenía dónde aplicarse) es una sugerencia y el resto, éxito.
+ */
+internal fun snackbarTypeFor(message: String): SnackbarType = when {
+    message.startsWith("No se pudo") || message.startsWith("Termina o descarta") -> SnackbarType.DANGER
+    message.startsWith("No se aplicó") -> SnackbarType.SUGGESTION
+    else -> SnackbarType.SUCCESS
 }
 
 private fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPlanRecipe): Boolean {

@@ -22,6 +22,7 @@ import com.example.kpkn.services.workout.VoiceSessionCommand
 import com.example.kpkn.services.workout.VoiceConfirmationTarget
 import com.example.kpkn.services.workout.VoicePipelineStage
 import com.example.kpkn.services.workout.VoiceSessionState
+import com.example.kpkn.services.workout.VoiceSetEditPatch
 import com.example.kpkn.services.workout.WorkoutVoiceController
 import com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLogger
 import com.example.kpkn.services.workout.WorkoutVoiceExerciseAliasMatcher
@@ -114,8 +115,17 @@ class WorkoutVoiceCommandHandler(
         fun stopRestTimer()
         fun addRestTime(seconds: Int)
         fun resolvePendingRestSuggestion(useAdaptive: Boolean)
-        fun undoVoiceRecordedSet(payload: com.example.kpkn.services.workout.VoiceUndoPayload)
-        fun patchLastCompletedSet(patch: com.example.kpkn.services.workout.VoiceSetEditPatch): Boolean
+        /**
+         * Removes the voice-registered set. Returns only after Room answered; the undo token is
+         * cleared by the implementation after the commit, never before.
+         */
+        suspend fun undoVoiceRecordedSet(
+            payload: com.example.kpkn.services.workout.VoiceUndoPayload,
+        ): WorkoutVoiceMutationResult
+        /** Applies a spoken correction to the most recent set. Returns only after Room answered. */
+        suspend fun patchLastCompletedSet(
+            patch: com.example.kpkn.services.workout.VoiceSetEditPatch,
+        ): WorkoutVoiceMutationResult
         fun coachPaceAlert(): String?
         fun sessionTimeRemainingSeconds(): Int?
         fun setPacingAlertMode(mode: PacingAlertMode)
@@ -127,19 +137,31 @@ class WorkoutVoiceCommandHandler(
         fun setSessionTimeLimit(minutes: Int, persistToProgram: Boolean)
         fun selectExercise(index: Int)
         fun persistVoiceRuntimeState()
-        fun markWarmupComplete(exerciseId: String, warmupSetId: String)
-        fun reportWarmupStep(exerciseId: String, warmupSetId: String, usedWeightKg: Double?, reportedReps: Int?)
-        fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double)
-        fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String, mobilitySetIndex: Int = 0)
-        fun markMobilityTotalComplete(exerciseId: String)
-        fun reportMobilityStep(
+        suspend fun markWarmupComplete(exerciseId: String, warmupSetId: String): WorkoutPersistResult
+        suspend fun reportWarmupStep(
+            exerciseId: String,
+            warmupSetId: String,
+            usedWeightKg: Double?,
+            reportedReps: Int?,
+        ): WorkoutPersistResult
+        suspend fun reportWarmupEffortAndLoad(
+            exerciseId: String,
+            warmupSetId: String,
+            usedWeightKg: Double?,
+            reportedReps: Int?,
+            rpe: Double,
+        ): WorkoutPersistResult
+        suspend fun recordWarmupHeaviness(exerciseId: String, warmupSetId: String, rpe: Double): WorkoutPersistResult
+        suspend fun markMobilityComplete(exerciseId: String, mobilitySeriesId: String, mobilitySetIndex: Int = 0): WorkoutPersistResult
+        suspend fun markMobilityTotalComplete(exerciseId: String): WorkoutPersistResult
+        suspend fun reportMobilityStep(
             exerciseId: String,
             mobilitySeriesId: String,
             value: Double,
             unit: PreparationReportUnit,
             mobilitySetIndex: Int = 0,
-        )
-        fun skipRemainingPreparation(exerciseId: String)
+        ): WorkoutPersistResult
+        suspend fun skipRemainingPreparation(exerciseId: String): WorkoutPersistResult
         fun startMobilityGlobalTimer(exerciseId: String, totalMinutes: Int)
         fun pauseMobilityGlobalTimer()
         fun addMobilityTimerSeconds(seconds: Int)
@@ -147,9 +169,9 @@ class WorkoutVoiceCommandHandler(
         fun addWarmupSetToExercise(exerciseId: String)
         fun setInitialTargetWorkingWeight(exerciseId: String, weightKg: Double)
         fun addComplementaryMobility(exerciseId: String)
-        fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
+        suspend fun recordCardioSet(durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?): Boolean
         fun startCardio(): Boolean
-        fun finishCardio(): Boolean
+        suspend fun finishCardio(): Boolean
         fun skipCardioBlock(): Boolean
         fun pauseCardio(): Boolean
         fun resumeCardio(): Boolean
@@ -489,6 +511,11 @@ class WorkoutVoiceCommandHandler(
     }
 
     fun handleVoiceCommand(command: VoiceSessionCommand) {
+        scope.launch { handleVoiceCommandAndAwait(command) }
+    }
+
+    private suspend fun handleVoiceCommandAndAwait(command: VoiceSessionCommand) {
+        if (getState().isCancellingWorkout || getState().wasCancelled) return
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
 
         when (command) {
@@ -577,7 +604,11 @@ class WorkoutVoiceCommandHandler(
                 ports.finishUpToCurrentPoint()
             }
             is VoiceSessionCommand.CancelSession -> {
-                stopTimedSet()
+                // Stop capture/timers without materializing an unfinished cardio set.
+                timedSetJob?.cancel()
+                timedSetJob = null
+                updateState { it.copy(voiceTimedSet = it.voiceTimedSet?.copy(isRunning = false)) }
+                disableVoice()
                 ports.cancelWorkout()
             }
             is VoiceSessionCommand.LogFeedback -> handleVoiceLogFeedback(command)
@@ -609,26 +640,8 @@ class WorkoutVoiceCommandHandler(
                     ports.addRestTime(command.deltaSeconds)
                 }
             }
-            is VoiceSessionCommand.UndoLastSet -> {
-                val payload = voiceController.consumePendingUndo()
-                if (payload != null) {
-                    ports.undoVoiceRecordedSet(payload)
-                    voiceController.speakFeedbackUpdated("Serie deshecha.")
-                }
-            }
-            is VoiceSessionCommand.EditLastSet -> {
-                val ok = ports.patchLastCompletedSet(command.patch)
-                if (ok) {
-                    voiceController.speakSetUpdated(
-                        weightKg = command.patch.weightKg,
-                        reps = command.patch.metricValue,
-                        intensityValue = command.patch.intensityValue,
-                        intensityKind = command.patch.intensityKind,
-                    )
-                } else {
-                    voiceController.speakFeedbackUpdated("No hay una serie reciente para editar.")
-                }
-            }
+            is VoiceSessionCommand.UndoLastSet -> handleVoiceUndoLastSet()
+            is VoiceSessionCommand.EditLastSet -> handleVoiceEditLastSet(command.patch)
             is VoiceSessionCommand.SuggestWeightReasoned -> handleVoiceSuggestWeightReasoned()
             is VoiceSessionCommand.FatigueAdvice -> handleVoiceFatigueAdvice()
             is VoiceSessionCommand.QueryDrainage -> handleVoiceQueryDrainage()
@@ -780,7 +793,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun handleFinishRequest() {
+    private suspend fun handleFinishRequest() {
         stopTimedSet()
         val pending = pendingExerciseNames()
         if (pending.isEmpty()) {
@@ -801,7 +814,9 @@ class WorkoutVoiceCommandHandler(
         val exercises = ports.visibleExercises(state)
         return ports.workoutStepPositions(state).filter { step ->
             when (step.type) {
-                WorkoutStepType.CARDIO -> !state.completedSets.containsKey("${step.exerciseId}_0")
+                WorkoutStepType.CARDIO -> !state.completedSets.containsKey(
+                    WorkoutStepRules.cardioCompletionKey(step.exerciseId, step.setIndex ?: 0),
+                )
                 WorkoutStepType.WORKING_SET -> {
                     val exercise = exercises.firstOrNull { it.id == step.exerciseId }
                     if (exercise != null && step.setIndex != null) {
@@ -860,7 +875,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun stopTimedSet() {
+    private suspend fun stopTimedSet() {
         val timed = getState().voiceTimedSet?.takeIf { it.isRunning } ?: return
         timedSetJob?.cancel()
         timedSetJob = null
@@ -901,7 +916,7 @@ class WorkoutVoiceCommandHandler(
         voiceController.speakFeedbackUpdated("Cronómetro detenido en ${timed.elapsedSeconds} segundos. Puedes indicar carga e intensidad antes de registrar.")
     }
 
-    private fun completePreparationStep() {
+    private suspend fun completePreparationStep() {
         val state = getState()
         val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx)
         if (currentExercise?.cardioDetails != null) {
@@ -920,15 +935,20 @@ class WorkoutVoiceCommandHandler(
             return
         }
         val step = state.activeStepKey?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } } ?: return
-        when (step.type) {
-            WorkoutStepType.CARDIO -> return
+        val result = when (step.type) {
+            WorkoutStepType.CARDIO,
+            WorkoutStepType.WORKING_SET -> return
             WorkoutStepType.WARMUP -> step.warmupSetId?.let { ports.markWarmupComplete(step.exerciseId, it) }
+                ?: return
             WorkoutStepType.MOBILITY,
             WorkoutStepType.MOBILITY_GROUP -> step.mobilitySeriesId?.let {
                 ports.markMobilityComplete(step.exerciseId, it, step.mobilitySetIndex)
-            }
+            } ?: return
             WorkoutStepType.MOBILITY_TOTAL -> ports.markMobilityTotalComplete(step.exerciseId)
-            WorkoutStepType.WORKING_SET -> return
+        }
+        if (!result.succeeded) {
+            voiceController.speakFeedbackUpdated("No pude guardar la preparación. Tus datos se conservan; reintenta.")
+            return
         }
         WorkoutVoiceDiagnosticLogger.event("preparation_step_completed", mapOf("type" to step.type.name, "exerciseId" to step.exerciseId, "stepKey" to step.stepKey))
         speakCurrentStepAnnouncementIfEnabled()
@@ -939,7 +959,7 @@ class WorkoutVoiceCommandHandler(
      * strength-set draft. This keeps mobility/warm-up voice input out of the
      * effective-set persistence path.
      */
-    private fun handleVoicePreparationReport(interpretation: WorkoutVoiceInterpretation): Boolean {
+    private suspend fun handleVoicePreparationReport(interpretation: WorkoutVoiceInterpretation): Boolean {
         val state = getState()
         val step = state.activeStepKey
             ?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
@@ -951,15 +971,19 @@ class WorkoutVoiceCommandHandler(
         when (step.type) {
             WorkoutStepType.WARMUP -> {
                 if (step.warmupSetId == null || (interpretation.weightKg == null && value == null)) return false
-                ports.reportWarmupStep(
+                val result = ports.reportWarmupStep(
                     exerciseId = exercise.id,
                     warmupSetId = step.warmupSetId,
                     usedWeightKg = interpretation.weightKg,
                     reportedReps = value?.roundToInt(),
                 )
-                voiceController.speakFeedbackUpdated(
-                    "Aproximación registrada${interpretation.weightKg?.let { ": ${it.toTrimmedNumberString()} kilos" }.orEmpty()}. Di hecha para continuar."
-                )
+                if (result.succeeded) {
+                    voiceController.speakFeedbackUpdated(
+                        "Aproximación registrada${interpretation.weightKg?.let { ": ${it.toTrimmedNumberString()} kilos" }.orEmpty()}. Di hecha para continuar."
+                    )
+                } else {
+                    voiceController.speakFeedbackUpdated("No pude guardar la aproximación. Tus datos se conservan; reintenta.")
+                }
                 return true
             }
             WorkoutStepType.MOBILITY,
@@ -972,16 +996,20 @@ class WorkoutVoiceCommandHandler(
                 } else {
                     PreparationReportUnit.REPS
                 }
-                ports.reportMobilityStep(
+                val result = ports.reportMobilityStep(
                     exerciseId = exercise.id,
                     mobilitySeriesId = step.mobilitySeriesId,
                     value = value,
                     unit = unit,
                     mobilitySetIndex = step.mobilitySetIndex,
                 )
-                voiceController.speakFeedbackUpdated(
-                    "Movilidad registrada: ${value.toTrimmedNumberString()} ${if (unit == PreparationReportUnit.SECONDS) "segundos" else "repeticiones"}. Di hecha para continuar."
-                )
+                if (result.succeeded) {
+                    voiceController.speakFeedbackUpdated(
+                        "Movilidad registrada: ${value.toTrimmedNumberString()} ${if (unit == PreparationReportUnit.SECONDS) "segundos" else "repeticiones"}. Di hecha para continuar."
+                    )
+                } else {
+                    voiceController.speakFeedbackUpdated("No pude guardar la movilidad. Tus datos se conservan; reintenta.")
+                }
                 return true
             }
             WorkoutStepType.MOBILITY_TOTAL -> return false
@@ -990,7 +1018,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun handleVoiceSkipPreparation() {
+    private suspend fun handleVoiceSkipPreparation() {
         val state = getState()
         val step = state.activeStepKey
             ?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
@@ -1004,11 +1032,18 @@ class WorkoutVoiceCommandHandler(
             step?.type == WorkoutStepType.MOBILITY_GROUP ||
             step?.type == WorkoutStepType.MOBILITY_TOTAL
 
-        if (isMobilityPhase && exercise.warmupSets.isNotEmpty()) {
+        val result = if (isMobilityPhase && exercise.warmupSets.isNotEmpty()) {
             ports.markMobilityTotalComplete(exercise.id)
-            voiceController.speakFeedbackUpdated("Movilidad omitida. Pasamos a las series de aproximación.")
         } else {
             ports.skipRemainingPreparation(exercise.id)
+        }
+        if (!result.succeeded) {
+            voiceController.speakFeedbackUpdated("No pude guardar el cambio de preparación. Tus datos se conservan; reintenta.")
+            return
+        }
+        if (isMobilityPhase && exercise.warmupSets.isNotEmpty()) {
+            voiceController.speakFeedbackUpdated("Movilidad omitida. Pasamos a las series de aproximación.")
+        } else {
             voiceController.speakFeedbackUpdated("Preparación omitida. Series efectivas disponibles.")
         }
         speakCurrentStepAnnouncementIfEnabled()
@@ -1071,7 +1106,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun handleVoiceWarmupReportAndAutoRegulate(command: VoiceSessionCommand.RecordWarmupEffortAndLoad) {
+    private suspend fun handleVoiceWarmupReportAndAutoRegulate(command: VoiceSessionCommand.RecordWarmupEffortAndLoad) {
         val state = getState()
         val currentExercise = ports.visibleExercises(state).getOrNull(state.currentExerciseIdx) ?: return
         val step = state.activeStepKey?.let { key -> ports.workoutStepPositions(state).firstOrNull { it.stepKey == key } }
@@ -1085,30 +1120,32 @@ class WorkoutVoiceCommandHandler(
         val finalWeight = command.weightKg ?: suggested
         val finalReps = command.reps ?: targetWarmup.targetReps
 
-        // 1. Report weight & mark complete
-        ports.reportWarmupStep(
-            exerciseId = currentExercise.id,
-            warmupSetId = targetWarmup.id,
-            usedWeightKg = finalWeight,
-            reportedReps = finalReps,
-        )
-        if (command.isCompleted) {
-            ports.markWarmupComplete(currentExercise.id, targetWarmup.id)
-        }
-
-        // 2. Record effort RPE
+        // Persist the reported load, completion and effort before announcing or
+        // computing the next voice instruction.
         val rpe = when (command.effort) {
             WarmupEffort.LIGHT -> 5.0
             WarmupEffort.HEAVY -> 9.0
             WarmupEffort.NORMAL -> 7.5
             null -> 7.5
         }
-        ports.recordWarmupHeaviness(currentExercise.id, targetWarmup.id, rpe)
+        val result = ports.reportWarmupEffortAndLoad(
+            exerciseId = currentExercise.id,
+            warmupSetId = targetWarmup.id,
+            usedWeightKg = finalWeight,
+            reportedReps = finalReps,
+            rpe = rpe,
+        )
+        if (!result.succeeded) {
+            voiceController.speakFeedbackUpdated("No pude guardar la aproximación. Tus datos se conservan; reintenta.")
+            return
+        }
+
+        val committedState = getState()
 
         // 3. Auto-regulate using WarmupCalibrationEngine
         val allReports = currentExercise.warmupSets.mapIndexedNotNull { idx, w ->
             val key = "${currentExercise.id}_warmup_${w.id}"
-            val completed = state.completedSets[key]
+            val completed = committedState.completedSets[key]
             val setRpe = if (w.id == targetWarmup.id) rpe else completed?.rpe
             setRpe?.let { r ->
                 val eff = when {
@@ -1372,7 +1409,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun handleVoiceRegisterSet(interpretation: WorkoutVoiceInterpretation) {
+    private suspend fun handleVoiceRegisterSet(interpretation: WorkoutVoiceInterpretation) {
         WorkoutVoiceDiagnosticLogger.event(
             "voice_interpretation_features",
             mapOf(
@@ -1418,12 +1455,16 @@ class WorkoutVoiceCommandHandler(
             interpretation.resolvedMetricValue == null &&
             interpretation.weightKg == null
         ) {
-            ports.recordWarmupHeaviness(
+            val result = ports.recordWarmupHeaviness(
                 exerciseId = exercise.id,
                 warmupSetId = activeStep.warmupSetId,
                 rpe = interpretation.intensityValue!!.coerceIn(1.0, 10.0),
             )
-            voiceController.speakFeedbackUpdated("Esfuerzo de aproximación guardado. Di hecha para continuar.")
+            if (result.succeeded) {
+                voiceController.speakFeedbackUpdated("Esfuerzo de aproximación guardado. Di hecha para continuar.")
+            } else {
+                voiceController.speakFeedbackUpdated("No pude guardar el esfuerzo. Tus datos se conservan; reintenta.")
+            }
             return
         }
         if (exercise.cardioDetails != null) {
@@ -1595,9 +1636,72 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun handleVoiceConfirmSet() {
-        voiceController.state.value.lastInterpretation?.let(::handleVoiceRegisterSet)
+    private suspend fun handleVoiceConfirmSet() {
+        voiceController.state.value.lastInterpretation?.let { handleVoiceRegisterSet(it) }
     }
+
+    /**
+     * "Deshacer": the token is only PEEKED here. The port removes the set through Room and clears the
+     * token after the commit, so a failed or racing undo can be repeated, and nothing is announced
+     * ("Serie deshecha.") before Room confirmed.
+     */
+    private suspend fun handleVoiceUndoLastSet() {
+        val payload = voiceController.peekPendingUndo()
+        if (payload == null) {
+            voiceController.speakFeedbackUpdated(WorkoutVoiceMutationFeedback.UNDO_NO_RECENT_SET)
+            return
+        }
+        val result = runVoiceMutationPort { ports.undoVoiceRecordedSet(payload) }
+        if (isWorkoutBeingCancelled()) return
+        if (WorkoutVoiceMutationFeedback.isRetryable(result)) voiceController.extendPendingUndoIf(payload)
+        val message = WorkoutVoiceMutationFeedback.forUndo(result)
+        showVoiceMutationNotice(result, message)
+        message?.let(voiceController::speakFeedbackUpdated)
+    }
+
+    /** "Cambia a 82", "eran 9", ...: announced only after Room confirmed, with the confirmed values. */
+    private suspend fun handleVoiceEditLastSet(patch: VoiceSetEditPatch) {
+        val result = runVoiceMutationPort { ports.patchLastCompletedSet(patch) }
+        if (isWorkoutBeingCancelled()) return
+        val committed = result as? WorkoutVoiceMutationResult.Committed
+        val speech = committed?.let { WorkoutVoiceMutationFeedback.committedEditSpeech(patch, it.set) }
+        if (committed != null) {
+            if (speech != null) {
+                voiceController.speakSetUpdated(
+                    weightKg = speech.weightKg,
+                    reps = speech.reps,
+                    intensityValue = speech.intensityValue,
+                    intensityKind = speech.intensityKind,
+                )
+            } else {
+                voiceController.speakFeedbackUpdated(WorkoutVoiceMutationFeedback.EDIT_DONE)
+            }
+            return
+        }
+        val message = WorkoutVoiceMutationFeedback.forEdit(result)
+        showVoiceMutationNotice(result, message)
+        message?.let(voiceController::speakFeedbackUpdated)
+    }
+
+    /** The port reports failures as a typed result; an escaped exception must not kill viewModelScope. */
+    private suspend fun runVoiceMutationPort(
+        block: suspend () -> WorkoutVoiceMutationResult,
+    ): WorkoutVoiceMutationResult = try {
+        block()
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (error: Throwable) {
+        Log.e("WorkoutVoiceCommand", "Voice set correction failed", error)
+        WorkoutVoiceMutationResult.PersistenceFailed(error)
+    }
+
+    private fun showVoiceMutationNotice(result: WorkoutVoiceMutationResult, message: String?) {
+        if (message != null && WorkoutVoiceMutationFeedback.needsVisibleNotice(result)) {
+            updateState { it.copy(workoutToastNotice = message) }
+        }
+    }
+
+    private fun isWorkoutBeingCancelled(): Boolean = getState().isCancellingWorkout || getState().wasCancelled
 
     private fun handleVoiceApplyTag(tagName: String) {
         val state = getState()
@@ -1652,7 +1756,7 @@ class WorkoutVoiceCommandHandler(
         }
     }
 
-    private fun handleVoiceSkipExercise() {
+    private suspend fun handleVoiceSkipExercise() {
         stopTimedSet()
         ports.skipRemainingCurrentExercise()
         updateState { it.copy(voiceSessionState = voiceController.state.value) }
@@ -1739,7 +1843,7 @@ class WorkoutVoiceCommandHandler(
             .replace("ñ", "n")
             .trim()
 
-    private fun handleVoicePreviousExercise() {
+    private suspend fun handleVoicePreviousExercise() {
         stopTimedSet()
         ports.prevSet()
         updateState { it.copy(voiceSessionState = voiceController.state.value) }

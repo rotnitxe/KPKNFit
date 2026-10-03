@@ -17,12 +17,11 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasAnySibling
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasInsertTextAtCursorAction
-import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
@@ -316,8 +315,13 @@ class PostSetupCalendarUiTest {
 
         val viewModel = mountRealDayView(fixture)
         val originalHeader = dayHeader(fixture.requiredDate)
-        composeRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText(originalHeader))
-        composeRule.onNodeWithText(originalHeader).performClick()
+        scrollDayHeaderIntoView(originalHeader)
+        // El rótulo de fecha tiene su propio `clickable` (abre «Fecha de
+        // entrenamiento») dentro de la fila que alterna la expansión: el nodo
+        // fusionado es la fila entera y su centro puede caer fuera del rótulo.
+        // Se pulsa el propio Text por el árbol sin fusionar (como `expandDay`
+        // hace con el círculo del día).
+        composeRule.onNodeWithText(originalHeader, useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Fecha de entrenamiento").assertIsDisplayed()
         composeRule.onNode(hasInsertTextAtCursorAction())
             .performTextReplacement(fixture.movedRequiredDate.toString())
@@ -759,9 +763,22 @@ class PostSetupCalendarUiTest {
         return vm
     }
 
+    /**
+     * El host de [mountRealDayView] es `Column(verticalScroll(...))` y `DayView`
+     * no añade ningún contenedor perezoso: ese scroll expone `ScrollBy` pero NO
+     * `ScrollToIndex`, así que `performScrollToNode` (que exige ambas acciones)
+     * no tiene contenedor al que apuntar. `performScrollTo()` desplaza el
+     * contenedor con scroll más cercano por la acción `ScrollBy` hasta dejar el
+     * propio nodo visible, y la aserción posterior exige que lo esté de verdad.
+     */
+    private fun scrollDayHeaderIntoView(header: String) {
+        composeRule.onNodeWithText(header).performScrollTo()
+        composeRule.onNodeWithText(header).assertIsDisplayed()
+    }
+
     private fun expandDay(date: LocalDate) {
         val header = dayHeader(date)
-        composeRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText(header))
+        scrollDayHeaderIntoView(header)
         val shortDay = DAYS_OF_WEEK[date.dayOfWeek.value - 1].short
         composeRule.onNodeWithText(shortDay, useUnmergedTree = true)
             .performTouchInput { click() }

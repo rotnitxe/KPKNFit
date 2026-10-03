@@ -37,6 +37,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.WizChatMachineState
 import java.util.UUID
@@ -916,10 +917,21 @@ class SetupWizardJourneyUiTest {
 
         // 6) El CTA es operable de verdad: se alcanza, se pulsa y el cursor
         //    avanza en el ViewModel real. Existir el nodo no lo demuestra.
+        //    Destino vigente del contrato de ruta: `SetupStepGraph.nodes` añade
+        //    TRAINING_MAX, sin condición, justo después de PRIORITIES y antes de
+        //    SPLIT (la misma ruta PRIORITIES → TRAINING_MAX → SPLIT que recorre
+        //    `SetupWizardFullJourneyUiTest.walkTraining`), así que con este
+        //    borrador sembrado (sin meta ni experiencia) el siguiente paso es
+        //    TRAINING_MAX, no SPLIT. Se fija contra el grafo real antes de pulsar.
+        assertEquals(
+            "el grafo vigente coloca TRAINING_MAX tras PRIORITIES — $diag",
+            SetupStepId.TRAINING_MAX,
+            SetupStepGraph.next(SetupStepId.PRIORITIES, vm.state.value.draft.stepContext()),
+        )
         composeRule.onNodeWithTag(CTA).assertIsDisplayed()
         composeRule.onNodeWithTag(CTA).assertIsEnabled()
         composeRule.onNodeWithTag(CTA).performClick()
-        awaitStepOrDump(vm, draftId, SetupStepId.SPLIT)
+        awaitStepOrDump(vm, draftId, SetupStepId.TRAINING_MAX)
         assertEquals(GLUTE_BAG, bag(vm))
     }
 

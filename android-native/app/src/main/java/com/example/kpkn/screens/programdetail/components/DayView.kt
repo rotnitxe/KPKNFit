@@ -144,6 +144,14 @@ fun DayView(
      * futuras; el estado sale de `program.optionalSessionConfirmations`).
      */
     onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
+    /** Restaura únicamente la sesión marcada, usando su receta fuente. */
+    onRestoreManualSessionFromPlan: (String) -> Unit = {},
+    /**
+     * Sesiones ya registradas o en curso: su prescripción histórica no se
+     * restaura, así que el botón «Restaurar esta sesión desde el plan» no se
+     * ofrece para ellas (el badge «Sesión personalizada» se conserva).
+     */
+    restoreBlockedSessionIds: Set<String> = emptySet(),
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -183,6 +191,12 @@ fun DayView(
             .map { it.dayIso to it.sessionId }
             .toSet()
     }
+    val manuallyCustomizedSessionIds = remember(program.manualSessionOverrides) {
+        program.manualSessionOverrides.map { it.sessionId }.toSet()
+    }
+    // Restaurar desde el plan solo tiene sentido con receta fuente y para
+    // sesiones que no se entrenaron ni están en curso.
+    val hasSourceRecipe = program.sourceRecipe != null
 
     val initialExpandedDay = remember(startDay, trainingDayDates) {
         val todayStr = java.time.LocalDate.now().toString()
@@ -255,6 +269,11 @@ fun DayView(
                         (dateIso to sessionId) in confirmedOptionalKeys
                     },
                     onToggleOptionalConfirmation = onToggleOptionalConfirmation,
+                    isManuallyCustomized = { sessionId -> sessionId in manuallyCustomizedSessionIds },
+                    canRestoreManualSession = { sessionId ->
+                        hasSourceRecipe && sessionId !in restoreBlockedSessionIds
+                    },
+                    onRestoreManualSessionFromPlan = onRestoreManualSessionFromPlan,
                     onToggleExpand = {
                         expandedDays = if (isExpanded) expandedDays - day.id else expandedDays + day.id
                     },
@@ -650,6 +669,9 @@ private fun DayColumn(
     isOptionalConfirmed: (dayIso: String, sessionId: String) -> Boolean = { _, _ -> false },
     /** Alterna la confirmación de UNA sesión opcional en su día. */
     onToggleOptionalConfirmation: (dayIso: String, sessionId: String) -> Unit = { _, _ -> },
+    isManuallyCustomized: (sessionId: String) -> Boolean = { false },
+    canRestoreManualSession: (sessionId: String) -> Boolean = { true },
+    onRestoreManualSessionFromPlan: (String) -> Unit = {},
     onToggleExpand: () -> Unit,
     onEditSession: (String) -> Unit,
     onDeleteSession: (String) -> Unit,
@@ -828,6 +850,16 @@ private fun DayColumn(
                                 } else {
                                     null
                                 },
+                                isManuallyCustomized = isManuallyCustomized(session.id),
+                                // El badge depende solo de la marca; el botón además exige
+                                // receta fuente y una sesión sin registros ni ejecución en curso.
+                                onRestoreFromPlan = if (
+                                    isManuallyCustomized(session.id) && canRestoreManualSession(session.id)
+                                ) {
+                                    { onRestoreManualSessionFromPlan(session.id) }
+                                } else {
+                                    null
+                                },
                                 onBoundsChange = { rect -> onCardBoundsChange(session.id, rect) },
                                 onDragStart = { onDragStart(session.id) },
                                 onDrag = { delta -> onDrag(session.id, delta) },
@@ -861,6 +893,8 @@ private fun DraggableSessionCard(
     onDragCancel: () -> Unit,
     optionalConfirmationChecked: Boolean? = null,
     onToggleOptionalConfirmation: ((Boolean) -> Unit)? = null,
+    isManuallyCustomized: Boolean = false,
+    onRestoreFromPlan: (() -> Unit)? = null,
 ) {
     SessionCard(
         session = session,
@@ -872,6 +906,8 @@ private fun DraggableSessionCard(
         isDragging = isDragging,
         optionalConfirmationChecked = optionalConfirmationChecked,
         onToggleOptionalConfirmation = onToggleOptionalConfirmation,
+        isManuallyCustomized = isManuallyCustomized,
+        onRestoreFromPlan = onRestoreFromPlan,
         modifier = Modifier
             .onGloballyPositioned { onBoundsChange(it.boundsInWindow()) }
             .graphicsLayer {

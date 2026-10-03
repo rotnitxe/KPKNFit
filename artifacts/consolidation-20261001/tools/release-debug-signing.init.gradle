@@ -1,0 +1,11 @@
+// Init script SOLO para este build local (no toca el repositorio).
+// El repo no tiene keystore.properties, asi que el build release saldria sin firmar y no se podria
+// instalar. Con este script AGP firma el release con la clave debug estandar de Android
+// (~/.android/debug.keystore): la misma firma que ya usa el debug cuando no hay keystore.properties
+// (ver app/build.gradle.kts), por lo que actualiza sobre una instalacion debug existente.
+allprojects { proj ->
+    proj.plugins.withId('com.android.application') {
+        def android = proj.extensions.getByName('android')
+        android.buildTypes.getByName('release').signingConfig = android.signingConfigs.getByName('debug')
+    }
+}

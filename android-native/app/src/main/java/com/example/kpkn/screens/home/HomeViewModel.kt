@@ -315,7 +315,9 @@ import java.util.UUID
         nutritionRepository.dailyGoalSnapshots,
     ) { settings, plans, activeId, snapshots ->
         val today = LocalDate.now()
-        val activePlan = plans.find { it.id == activeId } ?: plans.find { it.isActive }
+        // El plan activo lo dice solo `activeNutritionPlanId` (estado de Room): sin
+        // reserva por el flag del plan, que ya no es una segunda fuente de verdad.
+        val activePlan = plans.find { it.id == activeId }
         resolveDayGoals(
             date = today,
             settings = settings,
@@ -698,7 +700,7 @@ fun onboardingStateFrom(
     val nameDone = settings.onboardingNameDone || (settings.username.isNotBlank() && settings.username != "Usuario")
     val programDone = settings.onboardingProgramDone
     val nutritionDone = settings.onboardingNutritionDone || activePlanId != null
-    val activePlan = nutritionPlans.find { it.id == activePlanId } ?: nutritionPlans.find { it.isActive }
+    val activePlan = nutritionPlans.find { it.id == activePlanId }
     val nutritionGoalLabel = formatNutritionGoalLabel(activePlan)
     val programName = activeProgramState?.let { st -> programs.find { it.id == st.programId }?.name }
         ?: if (programDone) programs.lastOrNull()?.name else null

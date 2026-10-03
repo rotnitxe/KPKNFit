@@ -12,6 +12,8 @@ import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.models.TypedBodyGoal
+import com.example.kpkn.domain.nutrition.NutritionGoalSource
+import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -120,39 +122,89 @@ class NutritionPlanCommitCoordinatorTest {
         assertEquals(1, db.setupCommitReceiptDao().getAll().size)
     }
 
+    private fun goalSnapshot(date: LocalDate, planId: String, kcal: Int, capturedAt: Long = 1L) = DailyGoalSnapshot(
+        date = date.toString(),
+        planId = planId,
+        calorieTargetKcal = kcal,
+        proteinGoalG = 140,
+        carbGoalG = 200,
+        fatGoalG = 60,
+        direction = PlanDirection.DEFICIT,
+        calculationOrigin = CalculationOrigin.PLAN,
+        capturedAtEpochMs = capturedAt,
+    )
+
+    private suspend fun storedGoal(date: LocalDate): DailyGoalSnapshot? =
+        db.nutritionDao().getDailyGoalSnapshot(date.toString())?.toDailyGoalSnapshot()
+
     @Test
-    fun editingPlanKeepsHistoricalDailyGoalSnapshotsIntact() = runBlocking {
-        val pastDate = "2026-09-20"
-        val past = DailyGoalSnapshot(
-            date = pastDate,
-            planId = "plan-ancient",
-            calorieTargetKcal = 1800,
-            proteinGoalG = 140,
-            carbGoalG = 200,
-            fatGoalG = 60,
-            direction = PlanDirection.DEFICIT,
-            calculationOrigin = CalculationOrigin.PLAN,
-            capturedAtEpochMs = 1L,
-        )
-        val today = LocalDate.now().toString()
-        val todayAlreadyFixed = past.copy(date = today, planId = "plan-ancient", calorieTargetKcal = 1900, capturedAtEpochMs = 2L)
+    fun activatingADifferentPlanReplacesTodaysGoalAndKeepsPastDaysIntact() = runBlocking {
+        val todayDate = LocalDate.now()
+        val pastDate = todayDate.minusDays(12)
         db.withTransaction {
-            db.nutritionDao().insertDailyGoalSnapshot(past.toEntity())
-            db.nutritionDao().insertDailyGoalSnapshot(todayAlreadyFixed.toEntity())
+            db.nutritionDao().insertDailyGoalSnapshot(goalSnapshot(pastDate, "plan-ancient", 1800).toEntity())
+            db.nutritionDao().insertDailyGoalSnapshot(goalSnapshot(todayDate, "plan-ancient", 1900, capturedAt = 2L).toEntity())
         }
 
-        // Editar el plan (con su snapshot de hoy) no reescribe la historia.
+        // Activar un plan DISTINTO el mismo día: la meta de hoy pasa a ser la suya.
         coordinator.commit(request(commitId = "edit-op-history", plan = plan(calories = 2400)))
 
-        val pastAfter = db.nutritionDao().getDailyGoalSnapshot(pastDate)?.toDailyGoalSnapshot()
-        val todayAfter = db.nutritionDao().getDailyGoalSnapshot(today)?.toDailyGoalSnapshot()
+        val pastAfter = storedGoal(pastDate)
+        val todayAfter = storedGoal(todayDate)
         assertEquals(1800, pastAfter?.calorieTargetKcal)
         assertEquals("plan-ancient", pastAfter?.planId)
-        // INSERT IGNORE: el objetivo ya fijado de HOY tampoco se sobrescribe.
-        assertEquals(1900, todayAfter?.calorieTargetKcal)
-        assertEquals("plan-ancient", todayAfter?.planId)
-        // Ni filas nuevas para días pasados.
+        assertEquals(2400, todayAfter?.calorieTargetKcal)
+        assertEquals("plan-1", todayAfter?.planId)
+        // Se reemplaza la fila de hoy: no aparecen filas nuevas ni de días pasados.
         assertEquals(2, db.nutritionDao().getAllDailyGoalSnapshots().size)
+    }
+
+    @Test
+    fun editingTheSamePlanKeepsTodaysGoalAndTheChangeAppliesFromTomorrow() = runBlocking {
+        val todayDate = LocalDate.now()
+        coordinator.commit(request(commitId = "edit-op-first", plan = plan(calories = 2215)))
+
+        // Mismo plan (mismo id) con otras calorías: es una edición, no una activación nueva.
+        coordinator.commit(request(commitId = "edit-op-second", plan = plan(calories = 2400)))
+
+        val today = storedGoal(todayDate)
+        assertEquals("la meta de hoy ya estaba fijada", 2215, today?.calorieTargetKcal)
+        assertEquals("plan-1", today?.planId)
+        assertEquals(1, db.nutritionDao().getAllDailyGoalSnapshots().size)
+        // El plan sí cambió: su objetivo vale desde mañana.
+        val stored = db.nutritionDao().getAllPlans().single().toNutritionPlan()
+        assertEquals(2400, stored.calorieTarget)
+        assertEquals(
+            2400,
+            planDayTargetForDate(stored, todayDate.plusDays(1), NutritionGoalSource.PLAN_FORECAST).calorieTargetKcal,
+        )
+    }
+
+    @Test
+    fun replayOfAnOlderCommitDoesNotFlipTodaysGoalBack() = runBlocking {
+        val todayDate = LocalDate.now()
+        val first = request(commitId = "edit-op-a", plan = plan(id = "plan-1", calories = 2215))
+        coordinator.commit(first)
+        coordinator.commit(request(commitId = "edit-op-b", plan = plan(id = "plan-2", calories = 2600)))
+        assertEquals("plan-2", storedGoal(todayDate)?.planId)
+
+        // Reenvío de la operación vieja (idempotente): no vuelve a mover la meta de hoy.
+        coordinator.commit(first)
+
+        assertEquals("plan-2", storedGoal(todayDate)?.planId)
+        assertEquals(2600, storedGoal(todayDate)?.calorieTargetKcal)
+        assertEquals(1, db.nutritionDao().getAllDailyGoalSnapshots().size)
+    }
+
+    @Test
+    fun trackingOnlyCommitLeavesTodaysGoalUntouched() = runBlocking {
+        val todayDate = LocalDate.now()
+        coordinator.commit(request(commitId = "edit-op-activate", plan = plan(calories = 2215)))
+
+        coordinator.commit(request(commitId = "edit-op-tracking", plan = null, activatePlan = false, trackingOnly = true))
+
+        assertEquals(2215, storedGoal(todayDate)?.calorieTargetKcal)
+        assertEquals("plan-1", storedGoal(todayDate)?.planId)
     }
 
     @Test

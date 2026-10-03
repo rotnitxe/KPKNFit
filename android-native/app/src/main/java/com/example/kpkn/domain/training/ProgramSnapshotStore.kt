@@ -1,8 +1,7 @@
 package com.example.kpkn.domain.training
 
-import android.content.Context
-import android.content.SharedPreferences
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.domain.storage.KeyValueStore
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -17,10 +16,17 @@ data class ProgramSnapshot(
     val reason: String,
 )
 
-class ProgramSnapshotStore(context: Context) {
-
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+/**
+ * Copias recuperables de la estructura de un programa (las últimas [MAX_VERSIONS]).
+ *
+ * El almacén de texto lo pone `data/preferences` (adaptador `SharedPreferences`,
+ * archivo `program_structure_snapshots`), que lo abre de forma perezosa: el
+ * constructor se invoca desde Compose (hilo principal) y el primer acceso real
+ * ocurre en `list`/`push`/`restore`, que se llaman desde Dispatchers.IO (ver
+ * ProgramDetailViewModel). La clave por programa (`program_<id>`) y el JSON no
+ * cambian: son los datos que los usuarios ya tienen guardados.
+ */
+class ProgramSnapshotStore(private val store: KeyValueStore) {
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -29,7 +35,7 @@ class ProgramSnapshotStore(context: Context) {
 
     fun list(programId: String): List<ProgramSnapshot> {
         if (programId.isBlank()) return emptyList()
-        val raw = prefs.getString(keyFor(programId), null) ?: return emptyList()
+        val raw = store.getString(keyFor(programId)) ?: return emptyList()
         return runCatching { json.decodeFromString<List<ProgramSnapshot>>(raw) }.getOrDefault(emptyList())
     }
 
@@ -44,7 +50,7 @@ class ProgramSnapshotStore(context: Context) {
             reason = reason,
         )
         val next = (current + snapshot).takeLast(MAX_VERSIONS)
-        check(prefs.edit().putString(keyFor(program.id), json.encodeToString(next)).commit()) {
+        check(store.putStringDurably(keyFor(program.id), json.encodeToString(next))) {
             "No se pudo guardar la copia recuperable del programa. No se aplicaron cambios."
         }
         return next
@@ -55,17 +61,7 @@ class ProgramSnapshotStore(context: Context) {
     }
 
     companion object {
-        private const val PREFS_NAME = "program_structure_snapshots"
         private const val MAX_VERSIONS = 10
-
-        @Volatile
-        private var instance: ProgramSnapshotStore? = null
-
-        fun getInstance(context: Context): ProgramSnapshotStore {
-            return instance ?: synchronized(this) {
-                instance ?: ProgramSnapshotStore(context.applicationContext).also { instance = it }
-            }
-        }
 
         fun keyFor(programId: String) = "program_$programId"
     }

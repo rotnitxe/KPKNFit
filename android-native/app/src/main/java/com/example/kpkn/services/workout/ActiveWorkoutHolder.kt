@@ -7,11 +7,12 @@ object ActiveWorkoutHolder {
     @Volatile
     private var _viewModelRef: WeakReference<WorkoutViewModel>? = null
 
-    fun set(viewModel: WorkoutViewModel) {
+    @Synchronized fun set(viewModel: WorkoutViewModel) {
         _viewModelRef = WeakReference(viewModel)
     }
 
-    fun clear() {
+    @Synchronized fun clear(expectedOwner: WorkoutViewModel? = null) {
+        if (expectedOwner != null && _viewModelRef?.get() !== expectedOwner) return
         _viewModelRef?.clear()
         _viewModelRef = null
     }

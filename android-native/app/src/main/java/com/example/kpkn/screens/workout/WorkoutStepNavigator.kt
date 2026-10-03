@@ -50,6 +50,9 @@ class WorkoutStepNavigator(
         fun announcePostExerciseFeedback(exerciseIds: List<String>)
         /** Prompt de voz del feedback final (último descanso, pendingPostExerciseIdx = -2). */
         fun announceFinalPostExerciseFeedback(exerciseIds: List<String>)
+        /** Prevents navigation from detaching a running/paused cardio timer from its series. */
+        fun canSelectWorkoutStep(state: WorkoutUiState, step: WorkoutStep): Boolean = true
+        fun onCardioSeriesSelectionBlocked() = Unit
     }
 
     fun resolveResumePosition(
@@ -65,31 +68,39 @@ class WorkoutStepNavigator(
             if (preferredExerciseIdx >= 0) {
                 val preferredExercise = exercises[preferredExerciseIdx]
                 if (preferredExercise.isCardio) {
-                    if (!completedSets.containsKey("${preferredExercise.id}_0")) {
-                        return preferredExerciseIdx to 0
+                    val pendingCardioSetIdx = preferredPendingCardioSetIndex(
+                        exercise = preferredExercise,
+                        completedSets = completedSets,
+                        preferredSetId = preferredSetId,
+                    )
+                    if (pendingCardioSetIdx != null) return preferredExerciseIdx to pendingCardioSetIdx
+                } else {
+                    val preferredSetIdx = preferredSetId
+                        ?.let { setId -> preferredExercise.sets.indexOfFirst { it.id == setId } }
+                        ?.takeIf { it >= 0 }
+                    if (preferredSetIdx != null) {
+                        if (!ports.isSetDone(completedSets, preferredExercise.id, preferredSetIdx, preferredExercise.isEffectivelyUnilateral())) {
+                            return preferredExerciseIdx to preferredSetIdx
+                        }
                     }
-                }
-                val preferredSetIdx = preferredSetId
-                    ?.let { setId -> preferredExercise.sets.indexOfFirst { it.id == setId } }
-                    ?.takeIf { it >= 0 }
-                if (preferredSetIdx != null) {
-                    if (!ports.isSetDone(completedSets, preferredExercise.id, preferredSetIdx, preferredExercise.isEffectivelyUnilateral())) {
-                        return preferredExerciseIdx to preferredSetIdx
-                    }
-                }
 
-                val fallbackSetIdx = preferredExercise.sets.indices.firstOrNull { setIdx ->
-                    !ports.isSetDone(completedSets, preferredExercise.id, setIdx, preferredExercise.isEffectivelyUnilateral())
-                }
-                if (fallbackSetIdx != null) {
-                    return preferredExerciseIdx to fallbackSetIdx
+                    val fallbackSetIdx = preferredExercise.sets.indices.firstOrNull { setIdx ->
+                        !ports.isSetDone(completedSets, preferredExercise.id, setIdx, preferredExercise.isEffectivelyUnilateral())
+                    }
+                    if (fallbackSetIdx != null) {
+                        return preferredExerciseIdx to fallbackSetIdx
+                    }
                 }
             }
         }
 
         for ((exerciseIdx, exercise) in exercises.withIndex()) {
             if (exercise.isCardio) {
-                if (!completedSets.containsKey("${exercise.id}_0")) return exerciseIdx to 0
+                val pendingCardioSetIdx = WorkoutStepRules.cardioSetIndices(exercise)
+                    .firstOrNull { setIndex ->
+                        WorkoutStepRules.cardioCompletionKey(exercise.id, setIndex) !in completedSets
+                    }
+                if (pendingCardioSetIdx != null) return exerciseIdx to pendingCardioSetIdx
                 continue
             }
             val pendingSetIdx = exercise.sets.indices.firstOrNull { setIdx ->
@@ -172,6 +183,29 @@ class WorkoutStepNavigator(
                 mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
                 mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
             )
+        }
+    }
+
+    /**
+     * Series de fuerza o cardio que siguen sin hacerse, en el orden canónico de la sesión.
+     *
+     * Solo lectura (aviso de series pendientes del resumen final): no mueve el cursor ni cambia
+     * [nextIncompleteStepAfter]. Los ejercicios saltados a propósito ya no están entre los
+     * visibles y las series omitidas no generan pasos, así que no cuentan. Calentamiento y
+     * movilidad tampoco: no son series.
+     */
+    fun pendingSeriesSteps(state: WorkoutUiState): List<WorkoutStep> {
+        val visible = ports.visibleExercises(state)
+        return workoutStepPositions(state).filter { step ->
+            (step.type == WorkoutStepType.WORKING_SET || step.type == WorkoutStepType.CARDIO) &&
+                !isWorkoutStepDone(
+                    step = step,
+                    visible = visible,
+                    completedSets = state.completedSets,
+                    warmupCompletedExerciseIds = state.warmupCompletedExerciseIds,
+                    mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
+                    mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
+                )
         }
     }
 
@@ -327,11 +361,16 @@ class WorkoutStepNavigator(
     }
 
     fun selectExercise(idx: Int) {
-        ports.stopRestTimer()
         val state = getState()
         val targetExercise = ports.visibleExercises(state).getOrNull(idx)
         val targetStep = targetExercise?.let { firstIncompleteStepForExercise(state, it) }
         val targetSetIdx = targetStep?.setIndex ?: 0
+        if (targetStep == null && cardioTimerProtectsSeries(state.cardioTimerState)) {
+            ports.onCardioSeriesSelectionBlocked()
+            return
+        }
+        if (targetStep != null && !canSelectStep(state, targetStep)) return
+        ports.stopRestTimer()
         updateState {
             it.copy(
                 currentExerciseIdx = idx,
@@ -353,7 +392,6 @@ class WorkoutStepNavigator(
     }
 
     fun nextSet(stopRest: Boolean = true) {
-        if (stopRest) ports.stopRestTimer()
         val state = getState()
         val allExercises = ports.visibleExercises(state)
         val currentEx = allExercises.getOrNull(state.currentExerciseIdx) ?: return
@@ -374,6 +412,11 @@ class WorkoutStepNavigator(
             return
         }
         if (nextStep == null) {
+            if (cardioTimerProtectsSeries(state.cardioTimerState)) {
+                ports.onCardioSeriesSelectionBlocked()
+                return
+            }
+            if (stopRest) ports.stopRestTimer()
             val feedbackTarget = buildPostExerciseFeedbackTargetInternal(state, currentEx)
             val shouldShowFeedback = feedbackTarget.unrecordedFeedbackExerciseIds(state).isNotEmpty()
             updateState {
@@ -401,6 +444,8 @@ class WorkoutStepNavigator(
         val nextExerciseIdx = nextPosition.first
         val nextSetIdx = nextPosition.second
         val nextExercise = allExercises.getOrNull(nextExerciseIdx) ?: return
+        if (!canSelectStep(state, nextStep)) return
+        if (stopRest) ports.stopRestTimer()
         val exerciseChanged = nextExerciseIdx != state.currentExerciseIdx
         val staysInSameSuperset = currentEx.supersetGroupRefOrLegacyId()?.let { groupId ->
             groupId == nextStep.supersetGroupId
@@ -488,6 +533,7 @@ class WorkoutStepNavigator(
         if (position.first == state.currentExerciseIdx && position.second == state.currentSetIdx) {
             return
         }
+        if (!canSelectStep(state, targetStep)) return
         ports.stopRestTimer()
         val targetExercise = visible.getOrNull(position.first)
         updateState {
@@ -516,6 +562,7 @@ class WorkoutStepNavigator(
         if (position.first == state.currentExerciseIdx && position.second == state.currentSetIdx && state.activeStepKey == stepKey) {
             return
         }
+        if (!canSelectStep(state, targetStep)) return
         val isReviewDuringActiveRest = state.isRestTimerRunning &&
             state.restModalState?.kind == RestTimerKind.STANDARD &&
             targetStep.type == WorkoutStepType.WORKING_SET &&
@@ -620,8 +667,9 @@ class WorkoutStepNavigator(
         val targetSetIdx = setIdx.coerceIn(0, maxIdx)
         if (targetSetIdx == state.currentSetIdx) return
         val visible = ports.visibleExercises(state)
+        val targetType = if (currentExercise.isCardio) WorkoutStepType.CARDIO else WorkoutStepType.WORKING_SET
         val targetStep = workoutStepPositions(state).firstOrNull { step ->
-            step.type == WorkoutStepType.WORKING_SET &&
+            step.type == targetType &&
                 step.exerciseId == currentExercise.id &&
                 step.setIndex == targetSetIdx &&
                 !isWorkoutStepDone(
@@ -633,14 +681,23 @@ class WorkoutStepNavigator(
                     mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
                 )
         } ?: workoutStepPositions(state).firstOrNull { step ->
-            step.type == WorkoutStepType.WORKING_SET &&
+            step.type == targetType &&
                 step.exerciseId == currentExercise.id &&
                 step.setIndex == targetSetIdx
         }
+        if (targetStep == null && cardioTimerProtectsSeries(state.cardioTimerState)) {
+            ports.onCardioSeriesSelectionBlocked()
+            return
+        }
+        if (targetStep != null && !canSelectStep(state, targetStep)) return
         updateState {
             it.copy(
                 currentSetIdx = targetSetIdx,
-                activeStepKey = targetStep?.stepKey ?: WorkoutStepRules.workingStepKey(currentExercise.id, targetSetIdx),
+                activeStepKey = targetStep?.stepKey ?: if (currentExercise.isCardio) {
+                    WorkoutStepRules.cardioStepKey(currentExercise.id, targetSetIdx)
+                } else {
+                    WorkoutStepRules.workingStepKey(currentExercise.id, targetSetIdx)
+                },
                 pendingRestSuggestion = null,
                 editingState = ports.buildEditingStateForPosition(it.completedSets, currentExercise, targetSetIdx),
                 continuityTransitionTarget = null,
@@ -651,12 +708,13 @@ class WorkoutStepNavigator(
 
     fun prevSet() {
         if (getState().showPostExerciseSheet) return
-        ports.stopRestTimer()
         val state = getState()
         val allExercises = ports.visibleExercises(state)
         val previousStep = previousStepBefore(state) ?: return
         val (exerciseIdx, setIdx) = previousStep.positionIn(allExercises) ?: return
         val previousExercise = allExercises.getOrNull(exerciseIdx) ?: return
+        if (!canSelectStep(state, previousStep)) return
+        ports.stopRestTimer()
         updateState {
             it.copy(
                 currentExerciseIdx = exerciseIdx,
@@ -672,6 +730,12 @@ class WorkoutStepNavigator(
         }
         ports.persistOngoingState(immediate = false)
         ports.speakCurrentStepAnnouncementIfEnabled()
+    }
+
+    private fun canSelectStep(state: WorkoutUiState, step: WorkoutStep): Boolean {
+        if (ports.canSelectWorkoutStep(state, step)) return true
+        ports.onCardioSeriesSelectionBlocked()
+        return false
     }
 
     fun buildPostExerciseFeedbackTarget(
@@ -730,7 +794,7 @@ class WorkoutStepNavigator(
     ): Boolean {
         if (step.isEmptySlot) return true
         return when (step.type) {
-            WorkoutStepType.CARDIO -> completedSets.containsKey("${step.exerciseId}_0")
+            WorkoutStepType.CARDIO -> WorkoutStepRules.cardioCompletionKey(step.exerciseId, step.setIndex ?: 0) in completedSets
             WorkoutStepType.MOBILITY,
             WorkoutStepType.MOBILITY_GROUP -> {
                 val mobilityId = step.mobilitySeriesId ?: return true

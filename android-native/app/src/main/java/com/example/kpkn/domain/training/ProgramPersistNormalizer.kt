@@ -3,6 +3,7 @@ package com.example.kpkn.domain.training
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramRunState
 import com.example.kpkn.data.models.alignTemporalMetadata
+import com.example.kpkn.domain.exercises.normalizedIdentityFields
 
 /**
  * Single persist path for program blobs: temporal metadata, loop occurrences,
@@ -59,4 +60,26 @@ object ProgramPersistNormalizer {
 
     fun withRunStatus(program: Program, run: ProgramRunState, status: com.example.kpkn.data.models.ProgramRunStatus): Program =
         program.copy(runState = run.copy(status = status))
+
+    /** Forma canónica del JSON en Room: misma ruta que init/repository. */
+    fun forRoomStorage(program: Program): Program =
+        normalize(ProgramMigrationEngine.migrateIfNeeded(program).program)
+            .let(::repairNativeRunWeekCursor)
+            .normalizedIdentityFields()
+
+    /** Asegura que el run cursor nativo use ids de instancia de ciclo, no plantillas sueltas. */
+    fun repairNativeRunWeekCursor(program: Program): Program {
+        if (!program.requiresNativeWeekInstances()) return program
+        val run = program.runState ?: return program
+        val templateWeekId = run.weekId?.let { ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it }
+            ?: return program
+        val coerced = coerceNativeWeekInstanceId(run.cycleNumber, templateWeekId, run.weekInstanceId)
+        if (coerced == run.weekInstanceId && run.weekId == templateWeekId) return program
+        return program.copy(
+            runState = run.copy(
+                weekId = templateWeekId,
+                weekInstanceId = coerced,
+            ),
+        )
+    }
 }

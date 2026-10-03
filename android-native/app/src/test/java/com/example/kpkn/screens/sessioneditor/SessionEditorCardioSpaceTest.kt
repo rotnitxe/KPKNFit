@@ -147,12 +147,7 @@ class SessionEditorCardioSpaceTest {
             draftDayOfWeek = null,
         )
 
-        withTimeout(5_000) {
-            while (vm.uiState.value.session == null) {
-                vm.retryLoadSession()
-                delay(50)
-            }
-        }
+        vm.awaitSessionLoaded()
 
         val sessionBefore = vm.uiState.value.session
         assertNotNull(sessionBefore)
@@ -266,12 +261,7 @@ class SessionEditorCardioSpaceTest {
             draftDayOfWeek = null,
         )
 
-        withTimeout(5_000) {
-            while (vm.uiState.value.session == null) {
-                vm.retryLoadSession()
-                delay(50)
-            }
-        }
+        vm.awaitSessionLoaded()
 
         // Long press opens quick actions
         vm.openExerciseQuickActions(cardioPart.id, cardioExercise.id)
@@ -466,12 +456,7 @@ class SessionEditorCardioSpaceTest {
             draftMesoIndex = 0,
             draftDayOfWeek = null,
         )
-        withTimeout(5_000) {
-            while (vm.uiState.value.session == null) {
-                vm.retryLoadSession()
-                delay(50)
-            }
-        }
+        vm.awaitSessionLoaded()
         return vm
     }
 }

@@ -1,8 +1,11 @@
 package com.example.kpkn.screens.home
 
+import com.example.kpkn.data.models.NutritionPlan
+import com.example.kpkn.data.models.PlanDirection
 import com.example.kpkn.data.models.Settings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -83,5 +86,37 @@ class OnboardingStateDerivationTest {
             dismissed = false,
         )
         assertEquals("Valen", state.displayName)
+    }
+
+    @Test
+    fun `un plan con el flag isActive viejo pero sin id activo no se usa como plan activo`() {
+        val stale = NutritionPlan(id = "p-viejo", name = "Viejo", isActive = true, direction = PlanDirection.DEFICIT)
+
+        val state = onboardingStateFrom(
+            Settings(),
+            null,
+            ready = true,
+            dismissed = false,
+            nutritionPlans = listOf(stale),
+        )
+
+        // Sin reserva por el flag del plan: solo manda el id del estado activo.
+        assertNull(state.nutritionGoalLabel)
+    }
+
+    @Test
+    fun `el plan activo es el del id aunque otro plan conserve isActive en true`() {
+        val stale = NutritionPlan(id = "p-viejo", name = "Viejo", isActive = true, direction = PlanDirection.DEFICIT)
+        val current = NutritionPlan(id = "p-nuevo", name = "Nuevo", isActive = false, direction = PlanDirection.MAINTENANCE)
+
+        val state = onboardingStateFrom(
+            Settings(),
+            "p-nuevo",
+            ready = true,
+            dismissed = false,
+            nutritionPlans = listOf(stale, current),
+        )
+
+        assertEquals("Mantenimiento", state.nutritionGoalLabel)
     }
 }

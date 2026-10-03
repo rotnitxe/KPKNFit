@@ -151,14 +151,7 @@ class SessionEditorViewModelTemplatesTest {
             draftDayOfWeek = null,
         )
 
-    private suspend fun awaitSession(vm: SessionEditorViewModel) {
-        withTimeout(5_000) {
-            while (vm.uiState.value.session == null) {
-                vm.retryLoadSession()
-                delay(50)
-            }
-        }
-    }
+    private suspend fun awaitSession(vm: SessionEditorViewModel) = vm.awaitSessionLoaded()
 
     private suspend fun awaitAppliedExercises(vm: SessionEditorViewModel) {
         withTimeout(10_000) {

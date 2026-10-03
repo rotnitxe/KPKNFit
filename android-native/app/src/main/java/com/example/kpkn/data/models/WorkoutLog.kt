@@ -324,6 +324,8 @@ data class CardioTimerState(
     val averageHeartRate: Int? = null,
     val lastInfoAnnouncedAtMs: Long = 0L,
     val endsAtMs: Long = 0L,
+    val executionStartedAtMs: Long = 0L,
+    val setId: String? = null,
 )
 
 @Serializable

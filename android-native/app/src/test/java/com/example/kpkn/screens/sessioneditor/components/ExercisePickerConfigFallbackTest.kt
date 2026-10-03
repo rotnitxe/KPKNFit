@@ -43,7 +43,6 @@ class ExercisePickerConfigFallbackTest {
             resistanceProfile = "test",
             setupCues = listOf("Setup."),
             executionCues = listOf("Execute."),
-            commonMistakes = listOf("Error."),
             performanceProfileId = id,
         ),
         evidence = evidence(),

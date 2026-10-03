@@ -8,7 +8,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [34])
+@Config(application = android.app.Application::class, manifest = Config.NONE, sdk = [34])
 class KpknDiagnosticLoggerExportTest {
 
     @Test

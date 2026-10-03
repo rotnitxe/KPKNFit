@@ -27,6 +27,31 @@ data class CurrentWeekItem(
 
 object ProgramCurrentWeekResolver {
 
+    fun nativeComplexInstances(
+        program: Program,
+        cycleNumber: Int,
+    ): List<ProgramProgressEngine.WeekInstance> {
+        if (!program.requiresNativeWeekInstances() || cycleNumber <= 0) return emptyList()
+        val hierarchy = ProgramHierarchyIndex(program)
+        return hierarchy.orderedWeeks()
+            .filterNot { it.week.isLoopWeek }
+            .map { location ->
+                val instanceId = ProgramProgressEngine.instanceIdFor(cycleNumber, location.week.id)
+                ProgramProgressEngine.WeekInstance(
+                    instanceId = instanceId,
+                    templateWeekId = location.week.id,
+                    cycleNumber = cycleNumber,
+                    week = location.week.copy(
+                        id = instanceId,
+                        name = if (cycleNumber > 1) "${location.week.name} (C$cycleNumber)" else location.week.name,
+                    ),
+                    macroIndex = location.macroIndex,
+                    blockIndex = location.blockIndex,
+                    mesoIndex = location.globalMesoIndex,
+                )
+            }
+    }
+
     fun cyclicInstances(
         program: Program,
         cycleNumber: Int,

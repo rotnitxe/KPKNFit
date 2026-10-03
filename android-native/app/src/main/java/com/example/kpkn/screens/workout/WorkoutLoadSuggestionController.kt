@@ -144,6 +144,7 @@ class WorkoutLoadSuggestionController(
         activeTag: String? = null,
         side: String? = null,
     ): WeightSuggestion? {
+        if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx, side)) return null
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val currentSet = exercise.sets.getOrNull(setIdx)
         if (currentSet?.isRestPause == true) {
@@ -508,6 +509,7 @@ class WorkoutLoadSuggestionController(
         activeTag: String?,
         side: String?,
     ): WorkoutLoadSuggestionUi? {
+        if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx, side)) return null
         val currentLoadMode = ports.effectiveLoadModeForExercise(exercise, setIdx)
         val historySuggestion = ports.getWeightSuggestion(exercise, setIdx, activeTag)
 

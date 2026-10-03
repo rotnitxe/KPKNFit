@@ -19,6 +19,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,7 +29,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.rememberLocalMediaImageSource
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,10 +119,18 @@ internal fun WorkoutMediaPreviewDialog(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val file = File(media.filePath)
-            if (media.kind == WorkoutMediaKind.VIDEO && file.isFile) {
+            val file by produceState<File?>(null, media.filePath, media.kind) {
+                value = null
+                value = withContext(Dispatchers.IO) { File(media.filePath).takeIf { it.isFile } }
+            }
+            val previewFile by produceState<File?>(null, media.filePath, media.thumbPath, media.kind) {
+                value = null
+                value = withContext(Dispatchers.IO) { mediaPreviewFile(media) }
+            }
+            val videoFile = file
+            if (media.kind == WorkoutMediaKind.VIDEO && videoFile != null) {
                 WorkoutVideoPlayer(
-                    file = file,
+                    file = videoFile,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(280.dp),
@@ -125,8 +138,8 @@ internal fun WorkoutMediaPreviewDialog(
                     poseSidecarPath = media.poseTrackPath,
                 )
             } else {
-                coil.compose.AsyncImage(
-                    model = file.takeIf { it.isFile } ?: mediaPreviewFile(media),
+                LocalMediaImage(
+                    source = rememberLocalMediaImageSource(file ?: previewFile),
                     contentDescription = media.exerciseName,
                     modifier = Modifier
                         .fillMaxWidth()

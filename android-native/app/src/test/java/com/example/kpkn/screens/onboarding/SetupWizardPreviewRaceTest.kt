@@ -139,6 +139,46 @@ class SetupWizardPreviewRaceTest {
         assertEquals("B se materializa una sola vez", 1, materializer.calls().count { it == DAYS_B })
     }
 
+    @Test
+    fun previewFinishingDuringDraftSaveDoesNotPublishAnAtRestMachineState() = runTest {
+        val vm = vm()
+        vm.initialize(SetupWizardMode.FULL)
+        advanceUntilIdle()
+
+        vm.update { it.withPreviewInputs(DAYS_A, WEEKDAYS_A) }
+        awaitUntil(vm, "preview A publicado") {
+            vm.state.value.programPreview?.id == previewId(DAYS_A) && !vm.state.value.isPreviewLoading
+        }
+
+        vm.update { it.withPreviewInputs(DAYS_B, WEEKDAYS_B) }
+        awaitUntil(vm, "preview B retenido") {
+            vm.state.value.isPreviewLoading && materializer.calls().count { it == DAYS_B } == 1
+        }
+
+        val saveGate = persistence.blockNextSave()
+        vm.update { it.copy(name = "persistencia en curso") }
+        awaitUntil(vm, "escritura de borrador en curso") {
+            vm.state.value.machineState == WizChatMachineState.PersistingAnswer
+        }
+
+        materializer.releaseB()
+        materializer.awaitBResponded()
+        awaitUntil(vm, "preview B termina mientras el guardado sigue bloqueado") {
+            vm.state.value.programPreview?.id == previewId(DAYS_B) && !vm.state.value.isPreviewLoading
+        }
+        assertEquals(
+            "runPreview no pisa PersistingAnswer ni abre la puerta de reposo antes del guardado",
+            WizChatMachineState.PersistingAnswer,
+            vm.state.value.machineState,
+        )
+
+        saveGate.complete(Unit)
+        awaitUntil(vm, "la escritura finalmente se publica") {
+            vm.state.value.draft.name == "persistencia en curso" &&
+                vm.state.value.machineState != WizChatMachineState.PersistingAnswer
+        }
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private fun awaitUntil(vm: SetupWizardViewModel, what: String, condition: () -> Boolean) {
@@ -211,11 +251,19 @@ class SetupWizardPreviewRaceTest {
 
         val rows = LinkedHashMap<String, Row>()
         val saveLog = mutableListOf<SetupDraft>()
+        private var nextSaveGate: CompletableDeferred<Unit>? = null
+
+        fun blockNextSave(): CompletableDeferred<Unit> = CompletableDeferred<Unit>().also {
+            nextSaveGate = it
+        }
 
         override suspend fun load(draftId: String): SetupDraft? =
             rows[draftId]?.let { SetupDraft(draftId, it.payloadJson, it.revision, null, 0L) }
 
         override suspend fun save(draftId: String, payloadJson: String, revision: Long, catalogRevision: String?): SetupDraft {
+            val gate = nextSaveGate
+            nextSaveGate = null
+            gate?.await()
             val current = rows[draftId]
             require(current == null || revision >= current.revision) { "revisión antigua" }
             rows[draftId] = Row(payloadJson, revision)

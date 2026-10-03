@@ -43,6 +43,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,6 +75,7 @@ import com.example.kpkn.data.models.WarmupSetDefinition
 import com.example.kpkn.screens.sessioneditor.contentOn
 import com.example.kpkn.screens.workout.inlineRestRemainingOrNull
 import com.example.kpkn.screens.workout.toTrimmedNumberString
+import com.example.kpkn.screens.workout.WorkoutStepRules
 import com.example.kpkn.ui.adapt.LiveViewportPolicyMath
 import kotlin.math.roundToInt
 
@@ -100,27 +102,45 @@ internal fun MobilityPhaseLiveCard(
     inlineRestTotalSeconds: Int? = null,
     onSkipInlineRest: (() -> Unit)? = null,
     recordActionHolder: RecordActionHolder? = null,
+    recordActionScopeOwner: Any? = null,
+    recordActionPageKey: String? = null,
     recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = false,
 ) {
     val showExerciseBadge = items.map { it.exerciseId }.distinct().size > 1
-    DisposableEffect(isActivePage, items, completedStepKeys) {
-        if (isActivePage && recordActionHolder != null) {
-            recordActionHolder.action = {
+    val recordActionInstanceOwner = remember { Any() }
+    SideEffect {
+        val actionPageKey = recordActionPageKey?.takeIf { it.isNotBlank() }
+        val stepKey = items.firstOrNull { it.stepKey !in completedStepKeys }?.stepKey
+            ?: items.firstOrNull()?.stepKey.orEmpty()
+        if (
+            isActivePage &&
+            recordActionHolder != null &&
+            recordActionScopeOwner != null &&
+            actionPageKey != null &&
+            stepKey.isNotBlank()
+        ) {
+            recordActionHolder.bind(
+                scopeOwner = recordActionScopeOwner,
+                instanceOwner = recordActionInstanceOwner,
+                stepKey = stepKey,
+                pageKey = actionPageKey,
+                action = {
                 val item = items.firstOrNull { it.stepKey !in completedStepKeys }
                 runPrepLiveCardFabAction(
                     hasIncomplete = item != null,
                     completeNext = { item?.let { onToggleComplete(it, true) } },
                     advance = onContinue,
                 )
-            }
+                },
+            )
             recordFabHolder?.isUpdateMode = false
+        } else {
+            recordActionHolder?.clearIfOwner(recordActionInstanceOwner)
         }
-        onDispose {
-            if (isActivePage) {
-                recordActionHolder?.action = null
-            }
-        }
+    }
+    DisposableEffect(recordActionHolder, recordActionInstanceOwner) {
+        onDispose { recordActionHolder?.clearIfOwner(recordActionInstanceOwner) }
     }
     PrepChecklistShell(
         title = "MOVILIDAD",
@@ -191,13 +211,33 @@ internal fun WarmupPhaseLiveCard(
     inlineRestTotalSeconds: Int? = null,
     onSkipInlineRest: (() -> Unit)? = null,
     recordActionHolder: RecordActionHolder? = null,
+    recordActionScopeOwner: Any? = null,
+    recordActionPageKey: String? = null,
     recordFabHolder: RecordFabHolder? = null,
     isActivePage: Boolean = false,
     onWeightDraft: ((row: WarmupPhaseRow, text: String) -> Unit)? = null,
 ) {
-    DisposableEffect(isActivePage, rows) {
-        if (isActivePage && recordActionHolder != null) {
-            recordActionHolder.action = {
+    val recordActionInstanceOwner = remember { Any() }
+    SideEffect {
+        val actionPageKey = recordActionPageKey?.takeIf { it.isNotBlank() }
+        val stepKey = rows.firstOrNull { !it.isCompleted }?.let {
+            WorkoutStepRules.warmupStepKey(it.exerciseId, it.warmup.id)
+        } ?: rows.firstOrNull()?.let {
+            WorkoutStepRules.warmupStepKey(it.exerciseId, it.warmup.id)
+        }.orEmpty()
+        if (
+            isActivePage &&
+            recordActionHolder != null &&
+            recordActionScopeOwner != null &&
+            actionPageKey != null &&
+            stepKey.isNotBlank()
+        ) {
+            recordActionHolder.bind(
+                scopeOwner = recordActionScopeOwner,
+                instanceOwner = recordActionInstanceOwner,
+                stepKey = stepKey,
+                pageKey = actionPageKey,
+                action = {
                 val row = rows.firstOrNull { !it.isCompleted }
                 runPrepLiveCardFabAction(
                     hasIncomplete = row != null,
@@ -209,14 +249,15 @@ internal fun WarmupPhaseLiveCard(
                     },
                     advance = onContinue,
                 )
-            }
+                },
+            )
             recordFabHolder?.isUpdateMode = false
+        } else {
+            recordActionHolder?.clearIfOwner(recordActionInstanceOwner)
         }
-        onDispose {
-            if (isActivePage) {
-                recordActionHolder?.action = null
-            }
-        }
+    }
+    DisposableEffect(recordActionHolder, recordActionInstanceOwner) {
+        onDispose { recordActionHolder?.clearIfOwner(recordActionInstanceOwner) }
     }
     PrepChecklistShell(
         title = "APROXIMACIÓN",

@@ -1,6 +1,7 @@
 package com.example.kpkn.data.protocols
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -362,6 +363,186 @@ class ProtocolRecipeFidelityTest {
                 )
             }
         }
+    }
+
+    // ─── §10.2/§10.3: tablas normativas de los originales autorados (E) ──────
+
+    private val phul get() = AuthoredPhulPhatRecipes.phulOriginal
+    private val phat get() = AuthoredPhulPhatRecipes.phatOriginal
+
+    private fun workingSets(day: DayRecipe): List<SetRecipe> = day.slots.flatMap { slot -> slot.sets.filter { !it.isWarmup } }
+
+    private fun setTotals(recipe: TrainingPlanRecipe): List<Int> = recipe.weeks.first().days.map { workingSets(it).size }
+
+    private fun repRanges(day: DayRecipe): List<Pair<Int?, Int?>> = day.slots.map { slot ->
+        val set = slot.sets.first { !it.isWarmup }
+        set.repsMin to set.repsMax
+    }
+
+    private fun setCounts(day: DayRecipe): List<Int> = day.slots.map { slot -> slot.sets.count { !it.isWarmup } }
+
+    @Test
+    fun phul_original_matches_the_muscle_and_strength_table() {
+        // §10.2: 12 semanas, 4 días (lunes, martes, jueves, viernes).
+        assertEquals(12, phul.weeks.size)
+        assertEquals(4, phul.claimedDaysPerWeek)
+        assertEquals("intermedio", phul.claimedLevel)
+        assertEquals(listOf(1, 2, 4, 5), phul.weeks.first().days.map { it.weekday })
+        assertEquals(
+            listOf("Superior fuerza", "Inferior fuerza", "Superior hipertrofia", "Inferior hipertrofia"),
+            phul.weeks.first().days.map { it.label },
+        )
+        // Oráculos independientes: series iniciales 18 / 16 / 21 / 18.
+        assertEquals(listOf(18, 16, 21, 18), setTotals(phul))
+        // Orden exacto de la tabla, día a día.
+        assertEquals(listOf("bp", "inc-db", "row", "lat", "ohp", "curl", "skull"), phul.weeks.first().days[0].slots.map { it.id })
+        assertEquals(listOf("sq", "dl", "press", "curl", "calf"), phul.weeks.first().days[1].slots.map { it.id })
+        assertEquals(
+            listOf("bp-inc", "fly", "row-cable", "row-db", "lat-raise", "curl-inc", "tri-polea"),
+            phul.weeks.first().days[2].slots.map { it.id },
+        )
+        assertEquals(
+            listOf("sq-front", "lunge", "ext", "curl", "calf-sit", "calf-press"),
+            phul.weeks.first().days[3].slots.map { it.id },
+        )
+        // Series por slot = mínimo de cada rango publicado.
+        assertEquals(listOf(3, 3, 3, 3, 2, 2, 2), setCounts(phul.weeks.first().days[0]))
+        assertEquals(listOf(3, 3, 3, 3, 4), setCounts(phul.weeks.first().days[1]))
+        assertEquals(listOf(3, 3, 3, 3, 3, 3, 3), setCounts(phul.weeks.first().days[2]))
+        assertEquals(listOf(3, 3, 3, 3, 3, 3), setCounts(phul.weeks.first().days[3]))
+        // Rangos de repeticiones publicados, día a día.
+        assertEquals(
+            listOf(
+                (3 to 5), (6 to 10), (3 to 5), (6 to 10), (5 to 8), (6 to 10), (6 to 10),
+            ),
+            repRanges(phul.weeks.first().days[0]),
+        )
+        assertEquals(listOf((3 to 5), (3 to 5), (10 to 15), (6 to 10), (6 to 10)), repRanges(phul.weeks.first().days[1]))
+        assertEquals(List(7) { 8 to 12 }, repRanges(phul.weeks.first().days[2]))
+        assertEquals(
+            listOf((8 to 12), (8 to 12), (10 to 15), (10 to 15), (8 to 12), (8 to 12)),
+            repRanges(phul.weeks.first().days[3]),
+        )
+    }
+
+    @Test
+    fun phul_original_prescribes_no_percent_no_training_max_and_no_invented_speed() {
+        val allDays = phul.weeks.flatMap { it.days }
+        val allSets = allDays.flatMap { workingSets(it) }
+        // Sin %1RM/%TM: ningún set lleva porcentaje ni base de porcentaje.
+        assertTrue("PHUL no publica porcentajes", allSets.all { it.percent == null })
+        assertTrue(
+            "PHUL no usa bases de porcentaje",
+            allSets.none { it.loadBasis in setOf(LoadBasis.PERCENT_TM, LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX, LoadBasis.PERCENT_OF_TOP_SET, LoadBasis.REP_MAX) },
+        )
+        assertTrue("PHUL no tiene referencias de carga porcentual", allSets.none { it.reference != null })
+        // Ni calentamientos de % (la fuente no los publica): la aproximación es
+        // el preset operativo KPKN, declarado en `operationalDefaults`.
+        assertTrue(allDays.flatMap { it.slots }.flatMap { it.sets }.none { it.isWarmup })
+        // Sin SPEED inventado.
+        assertTrue(allDays.flatMap { it.slots }.none { it.role == SlotRole.SPEED })
+        // Esfuerzo inicial: RIR 2 en todos los sets (fuente: al menos 1 rep en reserva).
+        assertTrue(allSets.all { it.rir == 2 })
+        // Sin mapa SBD genérico (§14.3): auditoría por configuración/slot.
+        assertTrue(phul.liftSlots.isEmpty())
+        assertTrue(allDays.flatMap { it.slots }.all { it.lift.liftSlot == null })
+        // §10.2: principales sin sustitución automática DENTRO del Original.
+        assertEquals(
+            setOf(CatalogIds.BP, CatalogIds.SQ_HIGH, CatalogIds.DL, CatalogIds.SQ_FRONT, CatalogIds.OHP),
+            allDays.flatMap { it.slots }.filter { it.isCompetitionLift }.map { it.lift.configurationId }.toSet(),
+        )
+    }
+
+    @Test
+    fun phat_original_matches_the_biolayne_table() {
+        // §10.3: ventana de 6 semanas SIN semana 7 fabricada, 5 días.
+        assertEquals(6, phat.weeks.size)
+        assertEquals(5, phat.claimedDaysPerWeek)
+        assertEquals("avanzado", phat.claimedLevel)
+        assertEquals(listOf(1, 2, 4, 5, 6), phat.weeks.first().days.map { it.weekday })
+        assertEquals(
+            listOf("Superior fuerza", "Inferior fuerza", "Espalda/hombros hipertrofia", "Inferior hipertrofia", "Pecho/brazos hipertrofia"),
+            phat.weeks.first().days.map { it.label },
+        )
+        // Oráculos: 21 / 17 / 24 / 28 / 28 series incluyendo SPEED.
+        assertEquals(listOf(21, 17, 24, 28, 28), setTotals(phat))
+        // Orden exacto de la tabla, día a día.
+        assertEquals(listOf("row-pendlay", "pullup", "rack-chin", "bench-db", "dips", "press-db", "curl-ez", "skull"), phat.weeks.first().days[0].slots.map { it.id })
+        assertEquals(listOf("sq", "hack", "ext", "sldl", "curl-lying", "calf-stand", "calf-sit"), phat.weeks.first().days[1].slots.map { it.id })
+        assertEquals(
+            listOf("speed-row", "rack-chin", "row-cable", "row-cs", "lat-close", "press-db", "upright", "lat-raise"),
+            phat.weeks.first().days[2].slots.map { it.id },
+        )
+        assertEquals(
+            listOf("speed-sq", "hack", "press", "ext", "rdl", "curl-lying", "curl-seated", "calf-donkey", "calf-sit"),
+            phat.weeks.first().days[3].slots.map { it.id },
+        )
+        assertEquals(
+            listOf("speed-bp", "inc-db", "hammer", "fly-inc", "preacher", "conc", "spider", "overhead-ez", "pushdown", "kickback"),
+            phat.weeks.first().days[4].slots.map { it.id },
+        )
+        assertEquals(listOf(3, 2, 2, 3, 2, 3, 3, 3), setCounts(phat.weeks.first().days[0]))
+        assertEquals(listOf(3, 2, 2, 3, 2, 3, 2), setCounts(phat.weeks.first().days[1]))
+        assertEquals(listOf(6, 3, 3, 2, 2, 3, 2, 3), setCounts(phat.weeks.first().days[2]))
+        assertEquals(listOf(6, 3, 2, 3, 3, 2, 2, 4, 3), setCounts(phat.weeks.first().days[3]))
+        assertEquals(listOf(6, 3, 3, 2, 3, 2, 2, 3, 2, 2), setCounts(phat.weeks.first().days[4]))
+        // RIR inicial: 2 en semanas 1–4; 1 (dentro del rango 1–2) en 5–6.
+        (1..4).forEach { week ->
+            val sets = phat.weeks[week - 1].days.flatMap { workingSets(it) }.filter { it.percent == null }
+            assertTrue("semana $week sin RIR 2", sets.all { it.rir == 2 })
+        }
+        (5..6).forEach { week ->
+            val sets = phat.weeks[week - 1].days.flatMap { workingSets(it) }.filter { it.percent == null }
+            assertTrue("semana $week fuera del rango 1–2", sets.all { it.rir == 1 || it.rir == 2 })
+        }
+        // Sin %TM/%1RM en ninguna parte: los únicos porcentajes son los SPEED.
+        val percentSets = phat.weeks.flatMap { it.days }.flatMap { workingSets(it) }.filter { it.percent != null }
+        assertEquals("3 bloques SPEED × 6 series × 6 semanas", 108, percentSets.size)
+        assertTrue(
+            "Ninguna base de porcentaje de autor/1RM/TM",
+            percentSets.none { it.loadBasis in setOf(LoadBasis.PERCENT_TM, LoadBasis.PERCENT_1RM, LoadBasis.PERCENT_DESIRED_MAX, LoadBasis.PERCENT_OF_TOP_SET, LoadBasis.REP_MAX) },
+        )
+        assertTrue(phat.liftSlots.isEmpty())
+    }
+
+    @Test
+    fun phat_speed_blocks_sit_on_the_three_hypertrophy_days_at_65_percent_of_the_same_exercise() {
+        val days = phat.weeks.first().days
+        val heavyById = days.flatMap { day -> day.slots.filter { it.role != SlotRole.SPEED } }
+            .associate { it.id to it.lift.configurationId }
+        val speedSlots = days.flatMap { day -> day.slots.filter { it.role == SlotRole.SPEED }.map { day to it } }
+        // Exactamente tres bloques SPEED, al INICIO de los tres días de hipertrofia.
+        assertEquals(3, speedSlots.size)
+        assertEquals(listOf(4, 5, 6), speedSlots.map { (day, _) -> day.weekday })
+        speedSlots.forEach { (day, slot) ->
+            assertEquals("SPEED primero en ${day.label}", slot.id, day.slots.first().id)
+            assertEquals(6, slot.sets.size)
+            assertTrue(slot.sets.all { it.reps == 3 })
+            assertEquals("65 % del rango 65–70 %", AuthoredPhulPhatRecipes.SPEED_PERCENT, slot.sets.first().percent!!, 0.0001)
+            assertTrue(slot.sets.all { it.percent == AuthoredPhulPhatRecipes.SPEED_PERCENT })
+            assertEquals(TechniqueModifier.SPEED, slot.technique)
+            assertEquals(SlotPriority.SPEED, slot.priority)
+            // Misma configuración técnica que el pesado enlazado (§14.2).
+            val reference = requireNotNull(slot.sets.first().reference) { "${slot.id} sin referencia" }
+            assertEquals(PlanLoadReferenceKind.OBSERVED_WORKING_SET, reference.kind)
+            assertEquals(3, reference.repMin)
+            assertEquals(5, reference.repMax)
+            assertEquals(slot.lift.configurationId, reference.configurationId)
+            assertEquals(PlanLoadReferenceState.PENDING, reference.state)
+            val sourceSlotId = requireNotNull(reference.sourceSlotId)
+            assertEquals(
+                "El SPEED enlaza el pesado de SU ejercicio (§14.2)",
+                slot.lift.configurationId,
+                heavyById[sourceSlotId],
+            )
+            assertEquals(slot.lift.configurationId, slot.explicitReference?.configurationId)
+            assertEquals(90, slot.restSeconds)
+        }
+        // Ni SPEED en los dos días de fuerza.
+        assertTrue(days.filter { it.weekday in setOf(1, 2) }.flatMap { it.slots }.none { it.role == SlotRole.SPEED })
+        // Descansos publicados por rol: 240 s en los pesados 3–5 iniciales.
+        val heavyT1 = days.flatMap { it.slots }.filter { it.role == SlotRole.T1_MAIN }
+        assertTrue(heavyT1.all { it.restSeconds >= 240 })
     }
 
     private fun recipeContainsPercents(recipe: TrainingPlanRecipe, expected: List<Double>): Boolean {

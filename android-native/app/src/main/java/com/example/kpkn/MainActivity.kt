@@ -41,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.layout.onSizeChanged
@@ -59,6 +60,8 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -103,6 +106,7 @@ import com.example.kpkn.screens.programs.ProgramsViewModel
 import com.example.kpkn.screens.sessioneditor.SessionEditorScreen
 import com.example.kpkn.screens.settings.SettingsScreen
 import com.example.kpkn.screens.workout.WorkoutScreen
+import com.example.kpkn.screens.workout.RepairBenchmarkTrace
 
 import com.example.kpkn.services.workout.ActiveWorkoutHolder
 import com.example.kpkn.services.workout.WorkoutRestAlertManager
@@ -161,6 +165,7 @@ class MainActivity : ComponentActivity() {
         telemetryHelper = TelemetryHelper(this)
         telemetryHelper.logAppOpen()
 
+        RepairBenchmarkTrace.workoutEntryIntentReceived(intent)
         pendingDeepLinkRoute.value = resolveNavigationRouteFromIntent(intent)
         pendingSharedNutritionText.value = extractSharedNutritionText(intent)
 
@@ -172,7 +177,6 @@ class MainActivity : ComponentActivity() {
             com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
             com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
             com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity)
-            com.example.kpkn.data.migrations.clearLegacyLearnPreferencesOnce(this@MainActivity)
         }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -182,6 +186,12 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
+            // Retired Learn preferences are independent from Nutrition's Room learning table.
+            // Keep the synchronous commit off Main and preserve cleanup-before-Wiki ordering.
+            runCatching {
+                com.example.kpkn.data.migrations.clearLegacyLearnPreferencesOnce(this@MainActivity)
+            }.onFailure { logKpknError("MainActivity", "Error clearing legacy Learn preferences", it) }
+
             // 2. Initialize Exercise Database
             runCatching {
                 com.example.kpkn.data.exercises.initializeExerciseDatabase(this@MainActivity)
@@ -272,6 +282,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        RepairBenchmarkTrace.workoutEntryIntentReceived(intent)
         val deepLinkRoute = resolveNavigationRouteFromIntent(intent)
         pendingDeepLinkRoute.value = deepLinkRoute
         
@@ -439,6 +450,8 @@ fun KPKNApp(
     onRequestRequiredPermissions: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val cancellationScope = androidx.compose.runtime.rememberCoroutineScope()
+    var cancellationPending by remember { mutableStateOf(false) }
     val telemetryHelper = remember { TelemetryHelper(context) }
     val navController = rememberNavController()
     val programsViewModel: ProgramsViewModel = viewModel()
@@ -795,8 +808,31 @@ fun KPKNApp(
                                 )
                             }
                             FilledIconButton(
+                                enabled = !cancellationPending,
                                 onClick = {
-                                    ProgramRepository.getInstance().clearOngoingWorkout()
+                                    val expected = ongoingWorkout ?: return@FilledIconButton
+                                    val live = ActiveWorkoutHolder.get()?.takeIf {
+                                        it.uiState.value.startTimeMs == expected.startTime &&
+                                            it.uiState.value.session?.id == expected.session.id
+                                    }
+                                    if (live != null) {
+                                        live.cancelWorkout()
+                                    } else {
+                                        cancellationPending = true
+                                        cancellationScope.launch {
+                                            try {
+                                                ProgramRepository.getInstance().clearOngoingWorkoutAndFlush(expected)
+                                            } catch (error: kotlinx.coroutines.CancellationException) {
+                                                throw error
+                                            } catch (error: Throwable) {
+                                                android.widget.Toast.makeText(context,
+                                                    "No se pudo cancelar. Tus datos se conservan; reintenta.",
+                                                    android.widget.Toast.LENGTH_LONG).show()
+                                            } finally {
+                                                cancellationPending = false
+                                            }
+                                        }
+                                    }
                                 },
                                 modifier = Modifier.size(38.dp),
                                 colors = IconButtonDefaults.filledIconButtonColors(
@@ -1104,8 +1140,29 @@ private fun KPKNNavGraph(
                 },
             )
         }
-        composable(KpknRoute.Home.route) {
-            HomeScreen(
+        composable(KpknRoute.Home.route) { homeBackStack ->
+            val homeResumedState = remember(homeBackStack) {
+                mutableStateOf(homeBackStack.lifecycle.currentState == Lifecycle.State.RESUMED)
+            }
+            DisposableEffect(homeBackStack) {
+                val lifecycle = homeBackStack.lifecycle
+                val observer = LifecycleEventObserver { _, _ ->
+                    homeResumedState.value = lifecycle.currentState == Lifecycle.State.RESUMED
+                }
+                lifecycle.addObserver(observer)
+                homeResumedState.value = lifecycle.currentState == Lifecycle.State.RESUMED
+                onDispose { lifecycle.removeObserver(observer) }
+            }
+            val homeIsResumed by homeResumedState
+            Box(
+                modifier = Modifier.fillMaxSize().drawWithContent {
+                    drawContent()
+                    RepairBenchmarkTrace.workoutHomeDrawn(
+                        isResumed = homeIsResumed,
+                    )
+                },
+            ) {
+                HomeScreen(
                 themeMode = themeMode,
                 nutritionViewModel = nutritionViewModel,
                 onThemeChange = onThemeChange,
@@ -1206,7 +1263,8 @@ private fun KPKNNavGraph(
                         }
                     }
                 },
-            )
+                )
+            }
         }
         composable(KpknRoute.Training.route) {
             ProgramsScreen(
@@ -1219,6 +1277,9 @@ private fun KPKNNavGraph(
                     navController.navigate(KpknRoute.ProgramEditor.create(programId)) {
                         launchSingleTop = true
                     }
+                },
+                onSelectPlan = {
+                    navController.navigate(KpknRoute.SetupWizard.create()) { launchSingleTop = true }
                 },
             )
         }
@@ -1575,6 +1636,9 @@ private fun KPKNNavGraph(
             )
         }
         composable(KpknRoute.SessionEditor.route) { backStack ->
+            val repairBenchmarkEditorRequestId = remember(backStack) {
+                RepairBenchmarkTrace.editorCompositionRequested()
+            }
             val programId = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_PROGRAM_ID) ?: ""
             val sessionId = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_SESSION_ID) ?: ""
             val weekId = backStack.arguments?.getString(KpknRoute.SessionEditor.ARG_WEEK_ID)
@@ -1610,6 +1674,7 @@ private fun KPKNNavGraph(
                 draftMacroIndex = macroIndex,
                 draftMesoIndex = mesoIndex,
                 draftDayOfWeek = dayOfWeek,
+                repairBenchmarkEditorRequestId = repairBenchmarkEditorRequestId,
             )
         }
         composable(KpknRoute.Workout.route) { backStack ->

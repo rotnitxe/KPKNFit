@@ -5,9 +5,11 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.models.WorkoutMediaKind
 import java.io.File
+import java.io.IOException
 
 object WorkoutMediaGallerySaver {
     fun save(context: Context, media: WorkoutMedia): Boolean {
@@ -22,13 +24,28 @@ object WorkoutMediaGallerySaver {
             when (source.extension.lowercase()) {
                 "webm" -> "video/webm"
                 "3gp" -> "video/3gpp"
-                else -> "video/mp4"
+                "mov" -> "video/quicktime"
+                "m4v" -> "video/x-m4v"
+                else -> MimeTypeMap.getSingleton()
+                    .getMimeTypeFromExtension(source.extension.lowercase())
+                    ?.takeIf { it.startsWith("video/") }
+                    ?: "video/mp4"
             }
         } else {
             when (source.extension.lowercase()) {
                 "png" -> "image/png"
                 "webp" -> "image/webp"
-                else -> "image/jpeg"
+                "gif" -> "image/gif"
+                "heic", "heics" -> "image/heic"
+                "heif", "heifs" -> "image/heif"
+                "avif", "avis" -> "image/avif"
+                "bmp" -> "image/bmp"
+                "tif", "tiff" -> "image/tiff"
+                "svg" -> "image/svg+xml"
+                else -> MimeTypeMap.getSingleton()
+                    .getMimeTypeFromExtension(source.extension.lowercase())
+                    ?.takeIf { it.startsWith("image/") }
+                    ?: "image/jpeg"
             }
         }
         val collection = if (isVideo) {
@@ -61,7 +78,7 @@ object WorkoutMediaGallerySaver {
         return runCatching {
             resolver.openOutputStream(uri)?.use { output ->
                 source.inputStream().use { input -> input.copyTo(output) }
-            } ?: return@runCatching false
+            } ?: throw IOException("No se pudo abrir el archivo de destino de la galería.")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val pending = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
                 resolver.update(uri, pending, null, null)

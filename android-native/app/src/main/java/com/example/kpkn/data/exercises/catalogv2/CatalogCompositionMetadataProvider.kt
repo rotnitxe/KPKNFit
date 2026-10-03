@@ -25,6 +25,7 @@ object CatalogCompositionMetadataProvider {
                         laterality = profile.laterality.name,
                         performanceProfileId = profile.performanceProfileId,
                         articulationType = profile.articulationType?.name,
+                        equipmentId = profile.equipmentId,
                     )
                 }
             }

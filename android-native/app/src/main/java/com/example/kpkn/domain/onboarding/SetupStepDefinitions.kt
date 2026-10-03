@@ -294,17 +294,22 @@ object SetupStepDefinitions {
         SetupStepDefinition(
             id = SetupStepId.GOAL, block = SetupWizardBlock.TRAINING, kind = SetupStepKind.QUESTION,
             title = "¿Cuál es tu objetivo?", control = SetupControlKind.SINGLE_CHOICE,
+            // §15.1 / P-104: EXACTAMENTE cuatro perfiles visibles. Los nombres
+            // deportivos internos (powerlifting, culturismo, powerbuilding,
+            // preparación combinada) no se añaden como etiquetas de UI.
             options = opt(
                 "strength" to "Fuerza",
                 "muscle" to "Músculo",
                 "strength_muscle" to "Fuerza y músculo",
-                "health" to "Salud y condición",
-                "mixed" to "Fuerza + cardio",
+                "complete_athlete" to "Atleta completo",
             ),
             legacyQuestion = WizChatQuestionId.T_GOAL,
+            // HEALTH/MIXED legacy sigue resolviendo (AC-T005-02) para leer
+            // borradores antiguos; nunca migran a un objetivo nuevo solos.
             legacyValueMap = mapOf(
                 "Fuerza" to "strength", "Músculo" to "muscle", "Fuerza y músculo" to "strength_muscle",
                 "Salud y condición" to "health", "Fuerza + cardio" to "mixed",
+                "Atleta completo" to "complete_athlete",
             ),
         ),
         SetupStepDefinition(

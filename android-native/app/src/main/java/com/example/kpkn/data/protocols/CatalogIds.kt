@@ -72,4 +72,34 @@ object CatalogIds {
     const val SHRUG = "back_encogimientos__barbell"
     const val CALF = "calf_raise__bilateral__machine"
     const val PLANCHA = "core_plancha__default"
+
+    // ─── Altas curadas de T-002b (§13.5) y configuraciones exactas de §10 ────
+    /** Extensión de tríceps tumbada (skullcrusher): alta curada §13.5. */
+    const val SKULLCRUSHER = "skullcrusher__default"
+    /** Dominada en rack (rack chin): alta curada §13.5, exigida por PHAT §10.3. */
+    const val RACK_CHIN = "rack_chin__default"
+    /** Gemelo de pie (máquina), gemelo sentado, donkey y gemelo en prensa: §13.2/§10. */
+    const val CALF_STANDING = "calf_raise__bilateral__machine"
+    const val CALF_SEATED = "calf_raise__bilateral__seated_machine"
+    const val CALF_DONKEY = "calf_raise__bilateral__donkey_machine"
+    const val CALF_LEG_PRESS = "calf_raise__bilateral__leg_press_machine"
+    /** Reservas corporales de §13.5/§13.6. */
+    const val CALF_BODYWEIGHT = "calf_raise__bilateral__bodyweight"
+    const val LUNGE_REVERSE_BODYWEIGHT = "reverse_lunge__bodyweight"
+    const val PUSH_UP_HANDS_ELEVATED = "push_up__hands_elevated"
+    const val GLUTE_BRIDGE_BODYWEIGHT = "glutes_puente_gluteos__bilateral__bodyweight"
+    /** Configuraciones exactas de las tablas §10.2/§10.3 sin constante previa. */
+    const val LUNGE_W_BARBELL = "walking_lunge__barbell"
+    const val ROW_CABLE = "conventional_row__cable"
+    const val FLY_INC_CABLE = "incline_chest_fly__cable"
+    const val CURL_EZ = "standing_biceps_curl__ez_bar"
+    const val CURL_SEATED_DB = "biceps_curl_sentado_banco_plano__dumbbells"
+    const val PREACHER_EZ = "preacher_curl__ez_bar"
+    const val CONCENTRATION_DB = "concentration_curl__dumbbells"
+    const val SPIDER_DB = "spider_curl__dumbbells__supinated"
+    const val OVERHEAD_EZ = "overhead_triceps__ez_bar"
+    const val KICKBACK_CABLE = "triceps_patada__cable__unilateral"
+    const val SEATED_PRESS_DB = "seated_shoulder_press__dumbbells"
+    const val UPRIGHT_ROW = "deltoides_remo_menton__default"
+    const val HAMMER_CHEST_PRESS = "tren_superior_press_pecho_maquina_convergente__default"
 }

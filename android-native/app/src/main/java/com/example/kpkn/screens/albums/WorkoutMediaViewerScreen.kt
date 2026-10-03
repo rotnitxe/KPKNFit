@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -40,11 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.kpkn.data.models.WorkoutMediaKind
 import com.example.kpkn.screens.workout.components.WorkoutVideoPlayer
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.LocalMediaImage
+import com.example.kpkn.ui.components.rememberLocalMediaImageSource
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,17 +125,25 @@ fun WorkoutMediaViewerScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val file = File(item.filePath)
+            val resolvedFile by produceState<File?>(
+                initialValue = null,
+                key1 = item.id,
+                key2 = item.filePath,
+            ) {
+                value = null
+                value = withContext(Dispatchers.IO) { file.takeIf { it.isFile } }
+            }
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                if (item.kind == WorkoutMediaKind.VIDEO && file.isFile) {
+                if (item.kind == WorkoutMediaKind.VIDEO && resolvedFile != null) {
                     WorkoutVideoPlayer(
-                        file = file,
+                        file = requireNotNull(resolvedFile),
                         modifier = Modifier.fillMaxSize(),
                         poseOverlayEnabled = poseOverlayEnabled,
                         poseSidecarPath = item.poseTrackPath,
                     )
                 } else {
-                    AsyncImage(
-                        model = file.takeIf { it.isFile },
+                    LocalMediaImage(
+                        source = rememberLocalMediaImageSource(resolvedFile),
                         contentDescription = item.caption ?: item.exerciseName,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier

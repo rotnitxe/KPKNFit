@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.hasCardioPart
@@ -126,6 +127,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.ui.text.style.TextOverflow
 import kotlin.math.roundToInt
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.screens.workout.RepairBenchmarkTrace
 
 
 @Composable
@@ -142,6 +144,7 @@ fun SessionEditorScreen(
     draftMacroIndex: Int? = null,
     draftMesoIndex: Int? = null,
     draftDayOfWeek: Int? = null,
+    repairBenchmarkEditorRequestId: Long = 0L,
     viewModel: SessionEditorViewModel = viewModel(
         factory = SessionEditorViewModel.factory(
             programId = programId,
@@ -222,8 +225,32 @@ fun SessionEditorScreen(
     // Snackbar for auto-save and navigation messages from ViewModel
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
-            snackbarHostState.showKpknSnackbar(msg, SnackbarType.SUCCESS)
+            val draftFailure = msg.startsWith("No se pudo guardar el borrador") ||
+                msg.startsWith("No se pudo descartar el borrador")
+            val action = snackbarHostState.showKpknSnackbar(
+                msg,
+                if (draftFailure) SnackbarType.DANGER else SnackbarType.SUCCESS,
+                actionLabel = if (draftFailure) "Reintentar" else null,
+            )
             viewModel.clearSnackbarMessage()
+            if (action == SnackbarResult.ActionPerformed && draftFailure) {
+                scope.launch {
+                    if (msg.startsWith("No se pudo descartar")) {
+                        val pendingSwitch = uiState.pendingSessionSwitchId != null
+                        val discarded = if (pendingSwitch) {
+                            viewModel.discardAndSwitchPendingSessionAndAwait()
+                        } else {
+                            viewModel.discardDraftForCurrentSessionAndAwait()
+                        }
+                        if (discarded && !pendingSwitch) {
+                            showDiscardDialog = false
+                            onBack()
+                        }
+                    } else {
+                        viewModel.saveDraftForExitAndAwait()
+                    }
+                }
+            }
         }
     }
 
@@ -572,8 +599,9 @@ fun SessionEditorScreen(
         if (uiState.hasUnsavedChanges) {
             showDiscardDialog = true
         } else {
-            viewModel.saveDraftForExit()
-            onBack()
+            scope.launch {
+                if (viewModel.saveDraftForExitAndAwait()) onBack()
+            }
         }
     }
     BackHandler(enabled = uiState.sheet == SessionEditorSheet.AUGE) {
@@ -666,7 +694,14 @@ fun SessionEditorScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned { editorRootBounds = it.boundsInWindow() },
+            .onGloballyPositioned { editorRootBounds = it.boundsInWindow() }
+            .drawWithContent {
+                drawContent()
+                RepairBenchmarkTrace.editorReadyDrawn(
+                    requestId = repairBenchmarkEditorRequestId,
+                    ready = session != null && uiState.loadErrorMessage == null,
+                )
+            },
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) { KpknSnackbar(it) } },
@@ -1025,10 +1060,21 @@ fun SessionEditorScreen(
                 val saveResult = viewModel.saveSession(saveScope)
                 if (saveResult.success && !hasPendingSwitch) {
                     onSavedAndExit()
+                } else if (!saveResult.success) {
+                    val action = snackbarHostState.showKpknSnackbar(
+                        saveResult.message,
+                        SnackbarType.DANGER,
+                        actionLabel = "Reintentar",
+                    )
+                    if (action == SnackbarResult.ActionPerformed) {
+                        val retry = viewModel.saveSession(saveScope)
+                        if (retry.success && !hasPendingSwitch) onSavedAndExit()
+                        else if (!retry.success) snackbarHostState.showKpknSnackbar(retry.message, SnackbarType.DANGER)
+                    }
                 } else {
                     snackbarHostState.showKpknSnackbar(
                         saveResult.message,
-                        if (saveResult.success) SnackbarType.SUCCESS else SnackbarType.DANGER,
+                        SnackbarType.SUCCESS,
                     )
                 }
             }
@@ -1160,9 +1206,12 @@ fun SessionEditorScreen(
                     Text("Tienes cambios sin guardar.")
                     OutlinedButton(
                         onClick = {
-                            showDiscardDialog = false
-                            viewModel.discardDraftForCurrentSession()
-                            onBack()
+                            scope.launch {
+                                if (viewModel.discardDraftForCurrentSessionAndAwait()) {
+                                    showDiscardDialog = false
+                                    onBack()
+                                }
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
@@ -1177,7 +1226,20 @@ fun SessionEditorScreen(
                                     showDiscardDialog = false
                                     onSavedAndExit()
                                 } else {
-                                    snackbarHostState.showKpknSnackbar(result.message, SnackbarType.DANGER)
+                                    val action = snackbarHostState.showKpknSnackbar(
+                                        result.message,
+                                        SnackbarType.DANGER,
+                                        actionLabel = "Reintentar",
+                                    )
+                                    if (action == SnackbarResult.ActionPerformed) {
+                                        val retry = viewModel.saveSession()
+                                        if (retry.success) {
+                                            showDiscardDialog = false
+                                            onSavedAndExit()
+                                        } else {
+                                            snackbarHostState.showKpknSnackbar(retry.message, SnackbarType.DANGER)
+                                        }
+                                    }
                                 }
                             }
                         },

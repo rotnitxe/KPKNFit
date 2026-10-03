@@ -33,6 +33,8 @@ data class ExerciseCompositionMetadata(
     val laterality: String?,
     val performanceProfileId: String?,
     val articulationType: String?,
+    /** `equipmentId` del catálogo v2 (barbell, dumbbells, machine, bodyweight...); null si el proveedor no lo conoce. */
+    val equipmentId: String? = null,
 )
 
 fun interface ExerciseCompositionMetadataProvider {

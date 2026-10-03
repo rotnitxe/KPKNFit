@@ -1,0 +1,2 @@
+# Needs synthetic fixes: run_instrumentation.py --classes-file suites/gps-lifecycle.txt --prepare-gps --geo-feed
+com.example.kpkn.services.cardio.CardioGpsAvdLifecycleInstrumentedTest

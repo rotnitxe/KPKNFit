@@ -630,9 +630,12 @@ fun SessionEditorViewModel.applyRuleDefaultsToSession(partId: String? = null): A
         replaceUiState(committedState)
         // Persistir el mismo estado que acaba de recibir la UI evita que cerrar
         // y reabrir el editor recupere la sesión anterior desde el draft.
-        persistDraft(committedState)
         scheduleAugeRecalc()
+        // Capture/invalidate the delayed snapshot first; then the immediate
+        // durable draft write receives the newest revision and cannot be made
+        // stale by this same edit's debounce setup.
         scheduleAutoSave()
+        persistDraft(committedState)
         closeSheet()
     }
     // En NoChanges / ScopeNotFound la sheet queda abierta para que el usuario ajuste valores.

@@ -1,0 +1,42 @@
+# Every integrated androidTest class except the two that need special arguments:
+#   SessionEditorTransferMaterializationAvdTest  (-e scenario; driven by ui_editor_transfer.py)
+#   CardioGpsAvdLifecycleInstrumentedTest        (--prepare-gps --geo-feed; suites/gps-lifecycle.txt)
+com.example.kpkn.ExampleInstrumentedTest
+com.example.kpkn.data.db.NutritionMigrationTest
+com.example.kpkn.data.diagnostics.KpknDiagnosticLoggerInitializeMainThreadIoInstrumentedTest
+com.example.kpkn.data.repository.WorkoutMediaLateRetryInstrumentedTest
+com.example.kpkn.data.repository.WorkoutMediaUriDurabilityInstrumentedTest
+com.example.kpkn.domain.nutrition.CookingFactorsAndroidTest
+com.example.kpkn.screens.home.ConceptosClaveUiTest
+com.example.kpkn.screens.onboarding.PostSetupCalendarUiTest
+com.example.kpkn.screens.onboarding.PostSetupEditorsUiTest
+com.example.kpkn.screens.onboarding.SetupRingsPreviewIntegrationTest
+com.example.kpkn.screens.onboarding.SetupWelcomeScreenUiTest
+com.example.kpkn.screens.onboarding.SetupWizardFullJourneyUiTest
+com.example.kpkn.screens.onboarding.SetupWizardJourneyUiTest
+com.example.kpkn.screens.onboarding.WizardControlSemanticsUiTest
+com.example.kpkn.screens.onboarding.design.WizardGateComponentsUiTest
+com.example.kpkn.screens.programdetail.ManualSessionRestoreUiTest
+com.example.kpkn.screens.programdetail.OptionalSessionCalendarSemanticsUiTest
+com.example.kpkn.screens.programdetail.components.MacrocycleToolbarUiTest
+com.example.kpkn.screens.sessioneditor.SessionEditorFocusUiTest
+com.example.kpkn.screens.sessioneditor.SessionEditorInvalidDropBannerUiTest
+com.example.kpkn.screens.sessioneditor.SessionEditorMainThreadIoInstrumentedTest
+com.example.kpkn.screens.sessioneditor.components.ExercisePickerCardsUiTest
+com.example.kpkn.screens.workout.WorkoutExternalCameraCaptureInstrumentedTest
+com.example.kpkn.screens.workout.WorkoutLifecycleDurabilityInstrumentedTest
+com.example.kpkn.screens.workout.WorkoutMobilityCanonicalKnowledgeUiTest
+com.example.kpkn.screens.workout.WorkoutPreparationDurabilityInstrumentedTest
+com.example.kpkn.screens.workout.WorkoutRestModalUiTest
+com.example.kpkn.screens.workout.WorkoutSupportCardsUiTest
+com.example.kpkn.screens.workout.WorkoutV2UiTest
+com.example.kpkn.screens.workout.WorkoutWarmupInventoryIntegrationTest
+com.example.kpkn.screens.workout.components.SetExecutionCardUiTest
+com.example.kpkn.screens.workout.components.SetExecutionCardManagedLoadUiTest
+com.example.kpkn.services.cardio.CardioGpsClearMainThreadIoInstrumentedTest
+com.example.kpkn.services.cardio.CardioGpsStartRestoreRaceInstrumentedTest
+com.example.kpkn.services.workout.WorkoutVoiceDiagnosticLoggerMainThreadIoInstrumentedTest
+com.example.kpkn.services.workout.WorkoutRestForegroundServiceStopRaceInstrumentedTest
+com.example.kpkn.services.workout.WorkoutVoiceForegroundServiceInstrumentedTest
+com.example.kpkn.telemetry.TelemetryIntegrationTest
+com.example.kpkn.ui.components.SharedComponentsUiTest

@@ -1,6 +1,8 @@
 package com.example.kpkn.data.protocols
 
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.CardioDetails
+import com.example.kpkn.data.models.LoadQuantityConvention
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.programs.DaySlotTemplate
 import kotlinx.serialization.SerialName
@@ -27,6 +29,62 @@ enum class LoadBasis {
     RPE,
     REP_MAX,
 }
+
+/** Tipo de referencia de carga explícita (§14.1/§14.2). */
+@Serializable
+enum class PlanLoadReferenceKind {
+    /** 1RM del mismo ejercicio/configuración. `reference1RM` sigue significando 1RM: aquí NUNCA se guarda una carga de trabajo de 3–5 reps. */
+    EXERCISE_1RM,
+    /** Training max (p. ej. 90 % de 1RM) del mismo ejercicio/configuración. */
+    EXERCISE_TM,
+    /** Última serie de trabajo completada en un rango de reps (p. ej. 3–5) del MISMO slot/configuración. */
+    OBSERVED_WORKING_SET,
+    /** Lastre/asistencia externa declarada; convención distinta de la carga externa total. */
+    BODYWEIGHT_EXTERNAL,
+}
+
+/** Estado de resolución de una [PlanLoadReference]: pendiente de resolver o ya capturada. */
+@Serializable
+enum class PlanLoadReferenceState {
+    /** Sin registro todavía: el peso se elige en entrenamiento (null ≠ 0 kg). */
+    PENDING,
+    /** Snapshot de la carga elegida conservado en [PlanLoadReference.capturedLoadKg]. */
+    CAPTURED,
+}
+
+/**
+ * Referencia de carga explícita de una receta/programa (§14.1/§14.2).
+ *
+ * Reglas semánticas (§14.2):
+ * - Solo aplica a la MISMA [configurationId] y la MISMA [quantityConvention];
+ *   nunca se transfiere barra → mancuernas ni por LiftSlot de otra variante.
+ * - Una carga de trabajo de 3–5 reps se guarda aquí como [PlanLoadReferenceKind.OBSERVED_WORKING_SET]
+ *   con [repMin]/[repMax]; JAMÁS en `Exercise.reference1RM`, que sigue significando 1RM.
+ * - `SlotRecipe.targetGroupOverride` no es un canal oculto de base de carga.
+ * - Sin referencia → peso pendiente, no cero ficticio ni NaN.
+ */
+@Serializable
+data class PlanLoadReference(
+    val kind: PlanLoadReferenceKind,
+    val configurationId: String,
+    val quantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+    /** Slot de origen para trabajo observado (día pesado enlazado, p. ej. PHAT §14.2). */
+    val sourceSlotId: String? = null,
+    /** Reps mínimas del trabajo observado (p. ej. 3); null en 1RM/TM. */
+    val repMin: Int? = null,
+    /** Reps máximas del trabajo observado (p. ej. 5); null en 1RM/TM. */
+    val repMax: Int? = null,
+    /** Side whose manual first load is pending/captured; null for bilateral or legacy references. */
+    val side: String? = null,
+    /** Procedencia cuando la referencia viene de otro snapshot. */
+    val sourceProgramId: String? = null,
+    val sourceRunId: String? = null,
+    val sourceWeekOccurrence: Int? = null,
+    val state: PlanLoadReferenceState = PlanLoadReferenceState.PENDING,
+    /** Snapshot de la carga elegida cuando [state] es [PlanLoadReferenceState.CAPTURED]. */
+    val capturedLoadKg: Double? = null,
+    val capturedAtMs: Long? = null,
+)
 
 @Serializable
 enum class TechniqueModifier {
@@ -79,6 +137,67 @@ data class SetRecipe(
     val loadBasis: LoadBasis = LoadBasis.PERCENT_TM,
     /** No cuenta como serie efectiva en H5b/H6/H8/W2. */
     val isWarmup: Boolean = false,
+    /**
+     * Referencia de carga explícita del set (§14.1/§14.2). Cuando existe,
+     * prevalece sobre la resolución legacy del porcentaje: [percent] conserva
+     * la magnitud, pero su base visible la determina esta referencia, no
+     * `PERCENT_TM` por default accidental. Solo aplica a la MISMA configuración
+     * y convención; una carga 3–5 reps va aquí (OBSERVED_WORKING_SET), nunca en
+     * `reference1RM`. null = resolución legacy sin cambios.
+     */
+    val reference: PlanLoadReference? = null,
+)
+
+/**
+ * Intención editorial de un slot según el vocabulario de §11.2.
+ * El JSON canónico usa la notación de la tabla: `F`, `Fv`, `H`, `I`, `C`, `P`.
+ */
+@Serializable
+enum class SlotIntent {
+    /** F: principal de fuerza. */
+    F,
+    /** Fv: práctica/volumen del principal. */
+    @SerialName("Fv")
+    FV,
+    /** H: compuesto muscular. */
+    H,
+    /** I: aislamiento. */
+    I,
+    /** C: core. */
+    C,
+    /** P: potencia/SPEED. */
+    P,
+}
+
+/**
+ * Rango de series publicado por el autor (p. ej. `3–4×8–12`). Los sets
+ * concretos de [SlotRecipe.sets] siguen siendo la prescripción ejecutable;
+ * este rango documenta lo publicado para elegir dentro de él.
+ */
+@Serializable
+data class AuthoredSetRange(
+    val min: Int,
+    val max: Int,
+) {
+    init {
+        require(min > 0) { "AuthoredSetRange.min must be positive" }
+        require(max >= min) { "AuthoredSetRange.max must be >= min" }
+    }
+}
+
+/**
+ * Metadatos de referencia explícita del slot (§14.1/§14.2): la carga de este
+ * slot se resuelve contra [configurationId] y [quantityConvention], nunca por
+ * LiftSlot de otra variante ni por `targetGroupOverride`.
+ */
+@Serializable
+data class SlotLoadReferenceMetadata(
+    val configurationId: String? = null,
+    val quantityConvention: LoadQuantityConvention = LoadQuantityConvention.UNSPECIFIED,
+    /** Reps del trabajo observado al que aplica (p. ej. 3..5 para SPEED de PHAT). */
+    val repMin: Int? = null,
+    val repMax: Int? = null,
+    val note: String = "",
 )
 
 @Serializable
@@ -94,7 +213,84 @@ data class SlotRecipe(
     val priority: SlotPriority = SlotPriority.NORMAL,
     val source: SlotSource = SlotSource.AUTHOR,
     val isCompetitionLift: Boolean = false,
+    /**
+     * Override de grupo muscular para orden/prioridad. NO es un canal oculto
+     * de base de carga (§14.2): la base de carga va en [SetRecipe.reference].
+     */
     val targetGroupOverride: String? = null,
+    /** Intención F/Fv/H/I/C/P (§11.2); null = receta legacy sin declarar. */
+    val intent: SlotIntent? = null,
+    /** Rango de series publicado por el autor; null = no declarado. */
+    val authoredSetRange: AuthoredSetRange? = null,
+    /** Referencia explícita del slot; null = resolución legacy sin cambios. */
+    val explicitReference: SlotLoadReferenceMetadata? = null,
+)
+
+/** Tipo de sesión que declara un [DayRecipe] (dispatch de MIXED_CARDIO, §14.3). */
+@Serializable
+enum class RecipeSessionKind {
+    /** Solo trabajo de resistencia. */
+    STRENGTH,
+    /** Resistencia + bloque(s) de cardio en la misma sesión. */
+    STRENGTH_CARDIO,
+    /** Cardio real + accesorios esenciales declarados (p. ej. día dedicado con U/C de §11.4). */
+    CARDIO_ACCESSORY,
+    /** Día solo cardio: cero slots de resistencia y cardio real. */
+    CARDIO,
+}
+
+/**
+ * Mínimos de composición declarados por un día (§14.3 NATIVE_COMPACT).
+ * Defaults = suelo de un día STRENGTH: 2 configuraciones distintas y 4 series
+ * de resistencia ordinaria. `essentialSlotIds` lista slots que el fitter no
+ * puede eliminar. SPEED y calentamientos no rellenan artificialmente este mínimo.
+ */
+@Serializable
+data class DayMinimumDose(
+    val minDistinctConfigurations: Int = 2,
+    val minResistanceSets: Int = 4,
+    val essentialSlotIds: List<String> = emptyList(),
+)
+
+/** Posición del bloque de cardio respecto del trabajo de fuerza del día (§14.1). */
+@Serializable
+enum class RecipeCardioPosition {
+    /** Cardio primero; cubre días dedicados con accesorios posteriores (§11.4). */
+    BEFORE_STRENGTH,
+    /** Cardio después de la resistencia (default). */
+    AFTER_STRENGTH,
+    /** Día solo cardio. */
+    ONLY,
+}
+
+/**
+ * Progresión propia de un bloque de cardio (§12.4): escalones ofertados en
+ * minutos (p. ej. 10→15→20→30); nunca se inventan valores fuera de la UI.
+ */
+@Serializable
+data class RecipeCardioProgression(
+    /** Duraciones ofertadas en minutos; vacío = sin escalones automáticos. */
+    val offeredDurationsMinutes: List<Int> = emptyList(),
+    /** Al alcanzar esta duración no se proponen más incrementos automáticos. */
+    val stopAtMinutes: Int? = null,
+    val note: String = "",
+)
+
+/**
+ * Bloque de cardio dentro de un [DayRecipe] (§14.1). Reutiliza [CardioDetails]
+ * (duración/intensidad/modalidad reales); NO crea un segundo catálogo de
+ * CardioType. La posición se proyecta al orden real de `Session.parts`/`cardioFirst`.
+ */
+@Serializable
+data class RecipeCardioBlock(
+    /** ID estable dentro de la receta (identidad §14.4). */
+    val id: String,
+    val details: CardioDetails,
+    val position: RecipeCardioPosition = RecipeCardioPosition.AFTER_STRENGTH,
+    /** Propósito editorial (p. ej. «cardio continuo», «día dedicado»). */
+    val purpose: String = "",
+    /** Progresión propia del bloque; null = sin escalón automático. */
+    val progression: RecipeCardioProgression? = null,
 )
 
 @Serializable
@@ -105,6 +301,13 @@ data class DayRecipe(
     val priority: SlotPriority = SlotPriority.NORMAL,
     /** 1-7 ISO weekday; si es null, W3 asume un descanso entre días listados. */
     val weekday: Int? = null,
+    /** Identidad estable del día en recetas nuevas (§14.4); null = receta legacy. */
+    val id: String? = null,
+    /** Bloques de cardio del día; vacío = solo resistencia (payloads viejos sin cambios). */
+    val cardioBlocks: List<RecipeCardioBlock> = emptyList(),
+    val sessionKind: RecipeSessionKind = RecipeSessionKind.STRENGTH,
+    /** Mínimos declarados; null = perfil legacy (H6 estándar, §14.3). */
+    val minimumDose: DayMinimumDose? = null,
 )
 
 @Serializable
@@ -183,6 +386,43 @@ data class ProtocolFidelitySpec(
     val percentAnchors: Map<String, List<Double>> = emptyMap(),
 )
 
+/**
+ * Perfil de composición de una receta (§14.3). `LEGACY_STANDARD` conserva las
+ * reglas H6 actuales para todas las recetas no migradas.
+ */
+@Serializable
+enum class RecipeCompositionProfile {
+    LEGACY_STANDARD,
+    NATIVE_COMPACT,
+    MIXED_CARDIO,
+    AUTHORED_EXACT,
+}
+
+/** Estrategia de progresión propia de los planes KPKN (§12.4). */
+@Serializable
+enum class NativeProgressionStrategy {
+    /** Sin progresión nativa propia (receta legacy/autoral). */
+    NONE,
+    /** Mantener carga y subir reps dentro del rango; después el menor incremento conocido del equipo. */
+    REP_RANGE_THEN_LOAD,
+    /** Corporal: al tope de dos exposiciones, siguiente variante curada más difícil limpiando referencias. */
+    BODYWEIGHT_VARIANT_ESCALATION,
+}
+
+/**
+ * Progresión propia de un plan KPKN (§12.4). null en recetas legacy: esas
+ * recetas usan [TrainingPlanRecipe.progression] (regla del autor intacta).
+ * Identidad de progresión: configurationId + loadMode + unitMode + lado +
+ * slotPurpose con referencia de receta.
+ */
+@Serializable
+data class NativeProgressionSpec(
+    val strategy: NativeProgressionStrategy = NativeProgressionStrategy.REP_RANGE_THEN_LOAD,
+    /** Exposiciones completas en tope antes de proponer el primer incremento (§12.4: 2). */
+    val exposuresBeforeProposal: Int = 2,
+    val note: String = "",
+)
+
 @Serializable
 data class TrainingPlanRecipe(
     val id: String,
@@ -196,6 +436,14 @@ data class TrainingPlanRecipe(
     val claimedLevel: String? = null,
     /** True si el microciclo se repite (METHOD / WEEKLY_SPLIT). False = especialización finita. */
     val repeats: Boolean = false,
+    /** Versión de contenido de la receta; parte de la identidad (recipeId, contentVersion, ...) de §14.4. */
+    val contentVersion: Int = 1,
+    /** Procedencia editorial (§10/§14.1); null = receta legacy sin procedencia declarada. */
+    val provenance: PlanProvenance? = null,
+    /** Progresión propia KPKN (§12.4); null = usar la regla legacy [progression]. */
+    val nativeProgression: NativeProgressionSpec? = null,
+    /** Perfil de composición (§14.3); LEGACY_STANDARD = reglas H6 actuales. */
+    val compositionProfile: RecipeCompositionProfile = RecipeCompositionProfile.LEGACY_STANDARD,
 ) {
     val daysPerWeek: Int get() = claimedDaysPerWeek ?: weeks.maxOfOrNull { it.days.size } ?: 0
     val distinctBlockCount: Int get() = weeks.map { it.blockIndex }.distinct().size

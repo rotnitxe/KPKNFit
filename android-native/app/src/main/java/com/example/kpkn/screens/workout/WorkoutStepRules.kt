@@ -200,7 +200,7 @@ object WorkoutStepRules {
         return buildSteps(session, visible).firstOrNull { step ->
             if (step.isEmptySlot) return@firstOrNull false
             when (step.type) {
-                WorkoutStepType.CARDIO -> "${step.exerciseId}_0" !in completedSets
+                WorkoutStepType.CARDIO -> cardioCompletionKey(step.exerciseId, step.setIndex ?: 0) !in completedSets
                 WorkoutStepType.MOBILITY,
                 WorkoutStepType.MOBILITY_GROUP -> {
                     val mobilityId = step.mobilitySeriesId ?: return@firstOrNull false
@@ -225,7 +225,23 @@ object WorkoutStepRules {
     /** Persistent UI timer key for the focused mobility checklist. */
     fun mobilityGlobalTimerKey(exerciseId: String): String = "${exerciseId}_mobility_global_timer"
 
+    /** Stable completion identity shared with WorkoutViewModel's Room record key. */
+    fun cardioCompletionKey(exerciseId: String, setIndex: Int): String = "${exerciseId}_$setIndex"
+
+    /** Real cardio set positions; a legacy cardio with no set metadata still has its single activity step. */
+    fun cardioSetIndices(exercise: Exercise): List<Int> {
+        val configuredIndices = exercise.sets.indices.filterNot { exercise.sets[it].isEmptySlot }
+        if (configuredIndices.isNotEmpty()) return configuredIndices
+        // An absent legacy set list still represents one cardio activity; explicit empty slots do not.
+        return if (exercise.sets.isEmpty()) listOf(0) else emptyList()
+    }
+
+    /** Preserve the persisted key used by existing single-set cardio sessions. */
     fun cardioStepKey(exerciseId: String): String = "${exerciseId}_cardio"
+
+    /** Later cardio series receive their own cursor key while series zero remains backward compatible. */
+    fun cardioStepKey(exerciseId: String, setIndex: Int): String =
+        if (setIndex <= 0) cardioStepKey(exerciseId) else "${exerciseId}_cardio_set_$setIndex"
 
     fun workingStepKey(exerciseId: String, setIndex: Int, side: String? = null): String =
         buildString {
@@ -349,15 +365,17 @@ object WorkoutStepRules {
         groupId: String?,
         steps: MutableList<WorkoutStep>,
     ) {
-        steps += WorkoutStep(
-            type = WorkoutStepType.CARDIO,
-            exerciseId = exercise.id,
-            exerciseName = spokenWorkoutExerciseName(exercise),
-            stepKey = cardioStepKey(exercise.id),
-            setIndex = 0,
-            supersetGroupId = groupId,
-            restAfterKind = RestTimerKind.STANDARD,
-        )
+        cardioSetIndices(exercise).forEach { setIndex ->
+            steps += WorkoutStep(
+                type = WorkoutStepType.CARDIO,
+                exerciseId = exercise.id,
+                exerciseName = spokenWorkoutExerciseName(exercise),
+                stepKey = cardioStepKey(exercise.id, setIndex),
+                setIndex = setIndex,
+                supersetGroupId = groupId,
+                restAfterKind = RestTimerKind.STANDARD,
+            )
+        }
     }
 
     private fun appendPreparationSteps(

@@ -31,6 +31,35 @@ class SetupDraftCompatibilityTest {
     private fun choice(id: WizChatQuestionId, text: String, revision: Int = 4) =
         WizChatAnswerRecord(id, WizChatAnswerKind.CHOICE, textValue = text, revision = revision)
 
+    private fun nameAnswer() = WizChatAnswerRecord(
+        WizChatQuestionId.P_NAME,
+        WizChatAnswerKind.TEXT,
+        textValue = "Ana",
+    )
+
+    /** Build an in-order persisted cursor; out-of-order fixtures belong in repair tests. */
+    private fun progressAt(
+        step: SetupStepId,
+        context: SetupStepContext,
+        initial: SetupStepProgress = SetupStepProgress.initial(context),
+        answerOverrides: Map<SetupStepId, SetupAnswerProvenance> = emptyMap(),
+    ): SetupStepProgress {
+        val route = SetupStepGraph.stepIds(context)
+        require(step in route)
+        var progress = initial
+        route.takeWhile { it != step }.forEach { previous ->
+            progress = progress.at(previous, context).recordAnswer(
+                previous,
+                answerOverrides[previous] ?: SetupAnswerProvenance.USER_DECLARED,
+                com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
+            )
+        }
+        progress = progress.at(step, context)
+        val additional = answerOverrides.filterKeys { it !in progress.answers }
+        return if (additional.isEmpty()) progress
+        else progress.copy(answers = progress.answers + additional)
+    }
+
     private fun draft(
         scope: String = "full",
         current: WizChatQuestionId = WizChatQuestionId.T_DAYS,
@@ -41,6 +70,10 @@ class SetupDraftCompatibilityTest {
         weight: Double? = 72.0,
     ) = SetupWizardDraft(
         draftScope = scope,
+        // Ya normalizado por §15.4 (repair rellena PERSONALIZE): el helper
+        // representa un borrador nativo estable para probar la autoridad de
+        // vitales/espejo, no la reparación de camino.
+        trainingPath = SetupTrainingPath.PERSONALIZE,
         ageYears = age,
         heightCm = height,
         weightKg = weight,
@@ -57,6 +90,7 @@ class SetupDraftCompatibilityTest {
     fun oldDraftWithOmittedVitalsRewindsToTheFirstPendingOne() {
         val old = draft(
             answers = listOf(
+                nameAnswer(),
                 answer(WizChatQuestionId.P_AGE, null, WizChatAnswerSource.OMITTED),
                 answer(WizChatQuestionId.P_HEIGHT, 175.0),
                 answer(WizChatQuestionId.P_WEIGHT, null, WizChatAnswerSource.OMITTED),
@@ -71,7 +105,7 @@ class SetupDraftCompatibilityTest {
         // El JSON legacy se conserva íntegro (incluidos los OMITTED): la
         // exclusión es de autoridad, no un borrado irreversible de datos.
         assertEquals(
-            listOf(WizChatQuestionId.P_AGE, WizChatQuestionId.P_HEIGHT, WizChatQuestionId.P_WEIGHT),
+            listOf(WizChatQuestionId.P_NAME, WizChatQuestionId.P_AGE, WizChatQuestionId.P_HEIGHT, WizChatQuestionId.P_WEIGHT),
             repaired.wizChat.acceptedAnswers.map { it.questionId },
         )
         assertEquals(
@@ -88,6 +122,7 @@ class SetupDraftCompatibilityTest {
             current = WizChatQuestionId.REVIEW,
             terminal = true,
             answers = listOf(
+                nameAnswer(),
                 answer(WizChatQuestionId.P_AGE, 31.0),
                 answer(WizChatQuestionId.P_HEIGHT, null, WizChatAnswerSource.OMITTED),
                 answer(WizChatQuestionId.P_WEIGHT, 70.4),
@@ -202,6 +237,7 @@ class SetupDraftCompatibilityTest {
         val old = draft(
             current = WizChatQuestionId.T_DAYS,
             answers = listOf(
+                nameAnswer(),
                 answer(WizChatQuestionId.P_AGE, 30.0),
                 answer(WizChatQuestionId.P_HEIGHT, 175.0),
                 answer(WizChatQuestionId.P_WEIGHT, 72.0),
@@ -210,8 +246,10 @@ class SetupDraftCompatibilityTest {
         )
         val repaired = SetupDraftCompatibility.repair(old)
 
-        assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
-        assertEquals(SetupWizardBlock.TRAINING, repaired.stepProgress.block)
+        // The r2 route keeps equation sex in BASICS. It is still pending in this
+        // legacy payload, so the stable cursor resumes there before training.
+        assertEquals(SetupStepId.EQUATION_SEX, repaired.stepProgress.currentStepId)
+        assertEquals(SetupWizardBlock.BASICS, repaired.stepProgress.block)
         assertEquals(emptySet<SetupWizardBlock>(), repaired.stepProgress.completedBlocks)
         assertEquals(SetupProgressOrigin.MIGRATED_FROM_WIZCHAT, repaired.stepProgress.origin)
         // La migración conserva el payload legacy completo y solo añade procedencia.
@@ -225,6 +263,7 @@ class SetupDraftCompatibilityTest {
     @Test
     fun nSexMigratesToEquationSexOnlyWhenExplicit() {
         val vitals = listOf(
+            nameAnswer(),
             answer(WizChatQuestionId.P_AGE, 30.0),
             answer(WizChatQuestionId.P_HEIGHT, 175.0),
             answer(WizChatQuestionId.P_WEIGHT, 72.0),
@@ -294,6 +333,9 @@ class SetupDraftCompatibilityTest {
         assertEquals(broken.weightKg, repaired.weightKg)
         assertEquals("plan-legacy", repaired.selectedCatalogId)
         assertEquals(SetupStepId.DAYS, repaired.stepProgress.currentStepId)
+        assertEquals(broken.stepProgress.answers, repaired.stepProgress.answers)
+        assertEquals(broken.stepProgress.pendingReview, repaired.stepProgress.pendingReview)
+        assertEquals(repaired, SetupDraftCompatibility.repair(repaired))
     }
 
     @Test
@@ -317,9 +359,16 @@ class SetupDraftCompatibilityTest {
             height = null,
             weight = null,
         )
-        val native = rings.copy(
-            stepProgress = SetupStepProgress.initial(rings.stepContext())
-                .at(SetupStepId.RINGS_MUSCLE_FEELING, rings.stepContext()),
+        val ringsOnlyDraft = rings.copy(includeTraining = false, includeNutrition = false)
+        val ringsContext = ringsOnlyDraft.stepContext()
+        val native = ringsOnlyDraft.copy(
+            stepProgress = SetupStepProgress.initial(ringsContext)
+                .recordAnswer(
+                    SetupStepId.RINGS_RECENT,
+                    SetupAnswerProvenance.USER_DECLARED,
+                    com.example.kpkn.domain.onboarding.SetupValueState.DECLARED,
+                )
+                .at(SetupStepId.RINGS_MUSCLE_FEELING, ringsContext),
         )
         assertEquals(native, SetupDraftCompatibility.repair(native))
     }
@@ -329,6 +378,7 @@ class SetupDraftCompatibilityTest {
         val stranded = draft(
             current = WizChatQuestionId.P_GENDER,
             answers = listOf(
+                nameAnswer(),
                 answer(WizChatQuestionId.P_AGE, 30.0),
                 answer(WizChatQuestionId.P_HEIGHT, 175.0),
                 answer(WizChatQuestionId.P_WEIGHT, 72.0),
@@ -344,8 +394,9 @@ class SetupDraftCompatibilityTest {
         )
         val repaired = SetupDraftCompatibility.repair(stranded)
 
-        // El cursor sale de la pasada legacy-only (GENDER) al primer paso pendiente.
-        assertEquals(SetupStepId.HEIGHT, repaired.stepProgress.currentStepId)
+        // El cursor sale de GENDER y de las vitales conservadas al primer paso
+        // pendiente. La identidad antigua no responde al sexo de cálculo.
+        assertEquals(SetupStepId.EQUATION_SEX, repaired.stepProgress.currentStepId)
         assertEquals(SetupWizardBlock.BASICS, repaired.stepProgress.block)
         // Jamás se marca NOT_CONVERTIBLE y el origen nativo se conserva.
         assertEquals(SetupProgressOrigin.NATIVE, repaired.stepProgress.origin)
@@ -359,7 +410,6 @@ class SetupDraftCompatibilityTest {
 
     @Test
     fun nativeRingsDraftStrandedOnLegacyStartResumesInsideTheRingsBlock() {
-        val ringsOnly = SetupStepContext(includeTraining = false, includeNutrition = false)
         val stranded = draft(
             scope = "rings_only",
             current = WizChatQuestionId.R_START,
@@ -368,6 +418,8 @@ class SetupDraftCompatibilityTest {
             height = null,
             weight = null,
         ).copy(
+            includeTraining = false,
+            includeNutrition = false,
             stepProgress = SetupStepProgress(
                 origin = SetupProgressOrigin.NATIVE,
                 currentStepId = SetupStepId.RINGS_START,
@@ -387,23 +439,15 @@ class SetupDraftCompatibilityTest {
 
     @Test
     fun nativeTypedVitalsCountAsDeclaredAndNeverRewindTheCursor() {
-        val native = draft(
+        val nativeBase = draft(
             current = WizChatQuestionId.T_DAYS,
             answers = emptyList(),
-        ).copy(
-            stepProgress = SetupStepProgress(
-                origin = SetupProgressOrigin.NATIVE,
-                currentStepId = SetupStepId.DAYS,
-                block = SetupWizardBlock.TRAINING,
-                visited = listOf(
-                    SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT,
-                    SetupStepId.WEIGHT, SetupStepId.DAYS,
-                ),
-                answers = mapOf(
-                    SetupStepId.AGE to SetupAnswerProvenance.USER_DECLARED,
-                    SetupStepId.HEIGHT to SetupAnswerProvenance.USER_DECLARED,
-                    SetupStepId.WEIGHT to SetupAnswerProvenance.SUGGESTED,
-                ),
+        )
+        val native = nativeBase.copy(
+            stepProgress = progressAt(
+                SetupStepId.DAYS,
+                nativeBase.stepContext(),
+                answerOverrides = mapOf(SetupStepId.WEIGHT to SetupAnswerProvenance.SUGGESTED),
             ),
         )
         val repaired = SetupDraftCompatibility.repair(native)
@@ -460,6 +504,7 @@ class SetupDraftCompatibilityTest {
         val old = draft(
             current = WizChatQuestionId.T_DAYS,
             answers = listOf(
+                nameAnswer(),
                 answer(WizChatQuestionId.P_AGE, 30.0, source = WizChatAnswerSource.IMPORTED),
                 answer(WizChatQuestionId.P_HEIGHT, 175.0, source = WizChatAnswerSource.UNKNOWN),
                 answer(WizChatQuestionId.P_WEIGHT, 72.0),
@@ -495,7 +540,7 @@ class SetupDraftCompatibilityTest {
 
     @Test
     fun nativeValuesWinOverTheStaleLegacyMirrorAndStayIdempotent() {
-        val native = draft(
+        val nativeDraft = draft(
             current = WizChatQuestionId.T_DAYS,
             answers = listOf(
                 // Espejo viejo: peso 70 y textos crudos de la versión anterior.
@@ -512,19 +557,12 @@ class SetupDraftCompatibilityTest {
             ageYears = 31,
             heightCm = 176.0,
             weightKg = 75.0,
-            stepProgress = SetupStepProgress(
-                origin = SetupProgressOrigin.NATIVE,
-                currentStepId = SetupStepId.DAYS,
-                block = SetupWizardBlock.TRAINING,
-                visited = listOf(
-                    SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT,
-                    SetupStepId.WEIGHT, SetupStepId.DAYS,
-                ),
-                answers = mapOf(
-                    SetupStepId.AGE to SetupAnswerProvenance.USER_DECLARED,
-                    SetupStepId.HEIGHT to SetupAnswerProvenance.USER_DECLARED,
-                    SetupStepId.WEIGHT to SetupAnswerProvenance.SUGGESTED,
-                ),
+        )
+        val native = nativeDraft.copy(
+            stepProgress = progressAt(
+                SetupStepId.DAYS,
+                nativeDraft.stepContext(),
+                answerOverrides = mapOf(SetupStepId.WEIGHT to SetupAnswerProvenance.SUGGESTED),
             ),
         )
         val repaired = SetupDraftCompatibility.repair(native)
@@ -550,18 +588,16 @@ class SetupDraftCompatibilityTest {
 
     @Test
     fun nativeDeletedWeightStaysNullAndIsNotResurrectedFromTheMirror() {
-        val native = draft(
+        val nativeBase = draft(
             current = WizChatQuestionId.P_HEIGHT,
             weight = null,
             answers = listOf(answer(WizChatQuestionId.P_WEIGHT, 70.0)),
-        ).copy(
-            stepProgress = SetupStepProgress(
-                origin = SetupProgressOrigin.NATIVE,
-                currentStepId = SetupStepId.HEIGHT,
-                block = SetupWizardBlock.BASICS,
-                visited = listOf(SetupStepId.NAME, SetupStepId.AGE, SetupStepId.HEIGHT),
-                answers = mapOf(
-                    SetupStepId.AGE to SetupAnswerProvenance.USER_DECLARED,
+        )
+        val native = nativeBase.copy(
+            stepProgress = progressAt(
+                SetupStepId.HEIGHT,
+                nativeBase.stepContext(),
+                answerOverrides = mapOf(
                     SetupStepId.HEIGHT to SetupAnswerProvenance.USER_DECLARED,
                     // El registro nativo existe: el campo es autoridad nativa.
                     SetupStepId.WEIGHT to SetupAnswerProvenance.USER_DECLARED,
@@ -589,16 +625,17 @@ class SetupDraftCompatibilityTest {
 
     @Test
     fun catalogRevisionChangeKeepsEveryAnswerAndOnlyFlagsTheSelectionForReview() {
-        val base = draft(
+        val baseDraft = draft(
             answers = listOf(
                 answer(WizChatQuestionId.P_AGE, 30.0),
                 answer(WizChatQuestionId.P_HEIGHT, 175.0),
                 answer(WizChatQuestionId.P_WEIGHT, 72.0),
             ),
-        ).copy(
+        )
+        val context = SetupStepContext(nutritionStarted = true)
+        val base = baseDraft.copy(
             selectedCatalogId = "plan-v1",
-            stepProgress = SetupStepProgress.initial(SetupStepContext(nutritionStarted = true))
-                .at(SetupStepId.PLAN, SetupStepContext(nutritionStarted = true)),
+            stepProgress = progressAt(SetupStepId.PLAN, context),
         )
 
         // Sin cambio de catálogo no se toca nada.

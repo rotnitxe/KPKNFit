@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.Normalizer
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicReference
 
 class WorkoutVoiceController(
     private val context: Context,
@@ -146,7 +147,12 @@ class WorkoutVoiceController(
     /** Alias de usuario (nombre hablado) para inyectar en la gramática. */
     var sessionExerciseAliasesProvider: (() -> Map<String, String>)? = null
 
-    private var pendingUndo: VoiceUndoPayload? = null
+    /**
+     * Token of the last voice-registered set. Read with [peekPendingUndo] and removed with
+     * [clearPendingUndoIf] only AFTER the correction is durable, so a failed or racing undo never
+     * destroys it.
+     */
+    private val pendingUndo = AtomicReference<VoiceUndoPayload?>(null)
     private var announcedTenSecondsForRest = false
     private var clarificationMisses = 0
     /** Re-preguntas de cortesía ya usadas por miss atribuible a la captura (tope anti-bucle). */
@@ -180,13 +186,7 @@ class WorkoutVoiceController(
         isUnilateral: Boolean,
         completedSidesBefore: Int,
     ) {
-        pendingUndo = VoiceUndoPayload(
-            setKey = VoiceUndoPayload.buildSetKey(exerciseId, setIdx, interpretation.side),
-            exerciseId = exerciseId,
-            setIdx = setIdx,
-            side = interpretation.side,
-            expiresAtMs = System.currentTimeMillis() + VoiceUndoPayload.WINDOW_MS,
-        )
+        armPendingUndo(exerciseId, setIdx, interpretation.side)
         voiceSetPersistenceInFlight = false
         val restAnnouncement = pendingRestAnnouncement?.spokenText()
         pendingRestAnnouncement = null
@@ -218,7 +218,7 @@ class WorkoutVoiceController(
     fun onVoiceSetPersistenceFailed(message: String = "No pude registrar la serie.") {
         voiceSetPersistenceInFlight = false
         pendingRestAnnouncement = null
-        pendingUndo = null
+        pendingUndo.set(null)
         _state.update { it.copy(errorMessage = message) }
         WorkoutVoiceDiagnosticLogger.event("set_persistence_failed", mapOf("message" to message))
         runSpeakingOrSkip(
@@ -412,14 +412,57 @@ class WorkoutVoiceController(
         }
     }
 
-    fun consumePendingUndo(): VoiceUndoPayload? {
-        val payload = pendingUndo ?: return null
-        pendingUndo = null
-        return if (payload.isActive()) payload else null
+    /** Arms the undo token for the set that was just registered by voice (replaces any older one). */
+    internal fun armPendingUndo(
+        exerciseId: String,
+        setIdx: Int,
+        side: String?,
+        nowMs: Long = System.currentTimeMillis(),
+    ): VoiceUndoPayload {
+        val payload = VoiceUndoPayload(
+            setKey = VoiceUndoPayload.buildSetKey(exerciseId, setIdx, side),
+            exerciseId = exerciseId,
+            setIdx = setIdx,
+            side = side,
+            expiresAtMs = nowMs + VoiceUndoPayload.WINDOW_MS,
+        )
+        pendingUndo.set(payload)
+        return payload
     }
 
-    fun clearPendingUndo() {
-        pendingUndo = null
+    /** Returns the pending undo token if it has not expired. Never consumes it. */
+    fun peekPendingUndo(nowMs: Long = System.currentTimeMillis()): VoiceUndoPayload? =
+        pendingUndo.get()?.takeIf { it.isActive(nowMs) }
+
+    /**
+     * Compare-and-clear: removes the token only if it is still structurally equal to [expected].
+     * Called after Room acknowledged the correction; a token armed in the meantime by a newer
+     * registration is left untouched. Returns true when the token was removed.
+     */
+    fun clearPendingUndoIf(expected: VoiceUndoPayload): Boolean {
+        while (true) {
+            val current = pendingUndo.get() ?: return false
+            if (current != expected) return false
+            if (pendingUndo.compareAndSet(current, null)) return true
+        }
+    }
+
+    /**
+     * Gives a retryable failure (Room error, busy gate, stale snapshot) more time to be repeated:
+     * the token expires at least [extraMs] from now. No-op when the token was replaced or cleared.
+     */
+    fun extendPendingUndoIf(
+        expected: VoiceUndoPayload,
+        extraMs: Long = UNDO_RETRY_EXTENSION_MS,
+        nowMs: Long = System.currentTimeMillis(),
+    ): Boolean {
+        while (true) {
+            val current = pendingUndo.get() ?: return false
+            if (current != expected) return false
+            val extended = current.copy(expiresAtMs = maxOf(current.expiresAtMs, nowMs + extraMs))
+            if (extended == current) return true
+            if (pendingUndo.compareAndSet(current, extended)) return true
+        }
     }
 
     fun stopSpeaking() {
@@ -3624,6 +3667,8 @@ class WorkoutVoiceController(
     }
     private companion object {
         const val VOSK_FRAGMENT_GRACE_MS = 2_200L
+        /** Extra life given to the undo token after a retryable correction failure. */
+        const val UNDO_RETRY_EXTENSION_MS = 6_000L
         /** Endpoint can be lost during screen lock; allow the last partial to settle first. */
         const val PARTIAL_FINAL_FALLBACK_MS = 2_800L
         const val CONFIRMATION_STAGE_RETRY_MS = 500L

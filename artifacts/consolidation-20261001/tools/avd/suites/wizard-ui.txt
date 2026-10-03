@@ -1,0 +1,9 @@
+# Native setup wizard UI tests; run on the wizard AVD: run_instrumentation.py --serial emulator-5582 --classes-file suites/wizard-ui.txt
+com.example.kpkn.screens.onboarding.SetupWizardFullJourneyUiTest
+com.example.kpkn.screens.onboarding.SetupWizardJourneyUiTest
+com.example.kpkn.screens.onboarding.SetupWelcomeScreenUiTest
+com.example.kpkn.screens.onboarding.SetupRingsPreviewIntegrationTest
+com.example.kpkn.screens.onboarding.WizardControlSemanticsUiTest
+com.example.kpkn.screens.onboarding.design.WizardGateComponentsUiTest
+com.example.kpkn.screens.onboarding.PostSetupCalendarUiTest
+com.example.kpkn.screens.onboarding.PostSetupEditorsUiTest

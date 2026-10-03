@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.competitions.wizard
 
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,6 +34,7 @@ import coil.compose.AsyncImage
 import com.example.kpkn.data.models.CompetitionMediaKind
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.rememberStableUriImageRequest
 
 @Composable
 fun CompetitionWizardAlbumStep(
@@ -91,7 +91,7 @@ fun CompetitionWizardAlbumStep(
                 items(record.photos, key = { it.id }) { photo ->
                     Box {
                         AsyncImage(
-                            model = Uri.parse(photo.uri),
+                            model = rememberStableUriImageRequest(photo.uri),
                             contentDescription = null,
                             modifier = Modifier
                                 .aspectRatio(1f)

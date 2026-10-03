@@ -77,14 +77,99 @@ internal fun buildWorkoutAchievementMessage(
 }
 
 internal class RecordActionHolder {
-    var action: (() -> Unit)? = null
-    val isArmed: Boolean get() = action != null
+    private class Binding(
+        val scopeOwner: Any,
+        val instanceOwner: Any,
+        val stepKey: String,
+        val pageKey: String,
+        var action: () -> Unit,
+    )
+
+    private var binding by mutableStateOf<Binding?>(null)
+
+    /** Kept for callers that only need to invoke the currently bound action. */
+    val action: (() -> Unit)? get() = binding?.action
+    val isArmed: Boolean get() = binding != null
+
+    /**
+     * Bind an action to one page instance and one workout step. Updating the
+     * callback for the same owner mutates the binding without publishing new
+     * Compose state, so callbacks stay current without a recomposition loop.
+     */
+    fun bind(
+        scopeOwner: Any,
+        instanceOwner: Any,
+        stepKey: String,
+        pageKey: String,
+        action: () -> Unit,
+    ) {
+        val current = binding
+        if (
+            current != null &&
+            current.scopeOwner === scopeOwner &&
+            current.instanceOwner === instanceOwner &&
+            current.stepKey == stepKey &&
+            current.pageKey == pageKey
+        ) {
+            current.action = action
+        } else {
+            binding = Binding(scopeOwner, instanceOwner, stepKey, pageKey, action)
+        }
+    }
+
+    fun actionForPage(pageKey: String?): (() -> Unit)? {
+        if (pageKey.isNullOrBlank()) return null
+        return binding?.takeIf { it.pageKey == pageKey }?.action
+    }
+
+    /** Clears only the card instance or containing workout scope that owns it. */
+    fun clearIfOwner(owner: Any): Boolean {
+        val current = binding ?: return false
+        if (current.instanceOwner !== owner && current.scopeOwner !== owner) return false
+        binding = null
+        return true
+    }
 }
 
 /** FAB visibility driven from the live pager's settled page. */
 internal class RecordFabHolder {
     var visible by mutableStateOf(false)
     var isUpdateMode by mutableStateOf(false)
+    var activePageKey by mutableStateOf<String?>(null)
+}
+
+/** Gate for invoking the floating action from the currently settled page. */
+internal fun canInvokeWorkoutRecordFab(
+    hasActivePageAction: Boolean,
+    isRecording: Boolean,
+    isFinishing: Boolean,
+    isCancelling: Boolean,
+    startPersistenceError: String?,
+    isComplete: Boolean,
+    finishSheetOpen: Boolean,
+): Boolean = hasActivePageAction &&
+    !isRecording &&
+    !isFinishing &&
+    !isCancelling &&
+    startPersistenceError == null &&
+    !isComplete &&
+    !finishSheetOpen
+
+/** Stable identity shared by the settled pager page and its record action. */
+internal fun workoutRecordPageKey(
+    page: WorkoutSetSwipePage,
+    fallbackExerciseId: String,
+    supersetGroupId: String?,
+): String? {
+    val exerciseId = page.exerciseId ?: fallbackExerciseId
+    return when (page.type) {
+        LivePageType.NORMAL -> "$exerciseId:${page.setIndex}:${page.side ?: "B"}"
+        LivePageType.WARMUP -> "${supersetGroupId ?: fallbackExerciseId}:warmup:phase"
+        LivePageType.MOBILITY -> "${supersetGroupId ?: fallbackExerciseId}:mobility:phase"
+        LivePageType.CARDIO,
+        LivePageType.REST,
+        -> null
+    }
 }
 
 /** Gate for the live-session record FAB (working, warmup and mobility pages). */

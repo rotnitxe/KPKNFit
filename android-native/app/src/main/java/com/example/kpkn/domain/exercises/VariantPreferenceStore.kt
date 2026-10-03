@@ -1,19 +1,21 @@
 package com.example.kpkn.domain.exercises
 
-import android.content.Context
-import android.content.SharedPreferences
+import com.example.kpkn.domain.storage.KeyValueStore
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class VariantPreferenceStore(context: Context) {
-
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+/**
+ * Preferencias de variante por grupo (aspectos técnicos y última variante).
+ * Las claves (`aspect_defaults_<id>`, `last_variant_<id>`) no se tocan: son las
+ * que ya tienen guardadas los usuarios. El archivo de preferencias lo decide el
+ * adaptador de `data/preferences`.
+ */
+class VariantPreferenceStore(private val store: KeyValueStore) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
     fun loadAspectDefaults(variantGroupId: String): Map<String, String> {
-        val raw = prefs.getString("aspect_defaults_$variantGroupId", null) ?: return emptyMap()
+        val raw = store.getString(aspectDefaultsKey(variantGroupId)) ?: return emptyMap()
         return try {
             json.decodeFromString<Map<String, String>>(raw)
         } catch (_: Exception) {
@@ -22,27 +24,20 @@ class VariantPreferenceStore(context: Context) {
     }
 
     fun saveAspectDefaults(variantGroupId: String, aspects: Map<String, String>) {
-        prefs.edit().putString("aspect_defaults_$variantGroupId", json.encodeToString(aspects)).apply()
+        store.putString(aspectDefaultsKey(variantGroupId), json.encodeToString(aspects))
     }
 
     fun loadLastVariant(variantGroupId: String): String? {
-        return prefs.getString("last_variant_$variantGroupId", null)
+        return store.getString(lastVariantKey(variantGroupId))
     }
 
     fun saveLastVariant(variantGroupId: String, variantId: String) {
-        prefs.edit().putString("last_variant_$variantGroupId", variantId).apply()
+        store.putString(lastVariantKey(variantGroupId), variantId)
     }
 
     companion object {
-        private const val PREFS_NAME = "variant_preferences"
+        fun aspectDefaultsKey(variantGroupId: String) = "aspect_defaults_$variantGroupId"
 
-        @Volatile
-        private var instance: VariantPreferenceStore? = null
-
-        fun getInstance(context: Context): VariantPreferenceStore {
-            return instance ?: synchronized(this) {
-                instance ?: VariantPreferenceStore(context.applicationContext).also { instance = it }
-            }
-        }
+        fun lastVariantKey(variantGroupId: String) = "last_variant_$variantGroupId"
     }
 }

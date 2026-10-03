@@ -3,6 +3,7 @@ package com.example.kpkn.screens.programdetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogSearchRedirects
 import com.example.kpkn.data.exercises.resolveCatalogExerciseInfo
@@ -60,6 +61,7 @@ import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.WeekAdherence
 import com.example.kpkn.domain.training.WeekWithMeta
 import android.content.Context
+import android.util.Log
 import kotlin.math.roundToInt
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.models.PostSessionFeedback
@@ -69,12 +71,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import java.time.LocalDate
@@ -134,7 +139,9 @@ class ProgramDetailViewModel(
 
     private val repository = ProgramRepository.getInstance()
 
-    val feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
+    // D2.9: solo lectura hacia fuera; únicamente este ViewModel escribe `_feedbacks`.
+    private val _feedbacks = MutableStateFlow<List<PostSessionFeedback>>(emptyList())
+    val feedbacks: StateFlow<List<PostSessionFeedback>> = _feedbacks.asStateFlow()
 
     // ─── UI State ─────────────────────────────────────────────────────────
 
@@ -148,6 +155,10 @@ class ProgramDetailViewModel(
     val programSnapshots: StateFlow<List<com.example.kpkn.domain.training.ProgramSnapshot>> = _programSnapshots
 
     private var snapshotStore: com.example.kpkn.domain.training.ProgramSnapshotStore? = null
+
+    // Serializa lecturas (`list`) y escrituras (`push`) del almacén de copias, ahora fuera de
+    // Main: conserva el orden de las llamadas y evita que una lectura vieja pise a un `push`.
+    private val snapshotStoreLock = Mutex()
 
     fun attachSnapshotStore(store: com.example.kpkn.domain.training.ProgramSnapshotStore) {
         snapshotStore = store
@@ -231,12 +242,63 @@ class ProgramDetailViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    /**
+     * Sesiones cuya prescripción NO se puede restaurar desde el plan (§14.5):
+     * las ya registradas y la que está en curso, según la MISMA evidencia real
+     * que usa [restoreManualSessionFromPlan]. La UI oculta «Restaurar esta sesión
+     * desde el plan» para ellas (el badge «Sesión personalizada» se conserva).
+     */
+    val restoreBlockedSessionIds: StateFlow<Set<String>> = combine(
+        program,
+        repository.history,
+        repository.ongoingWorkout,
+    ) { p, _, _ ->
+        p?.let { repository.executedTrainingEvidence(it).sessionIds }.orEmpty()
+    }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            repository.getProgramById(programId)
+                ?.let { repository.executedTrainingEvidence(it).sessionIds }
+                .orEmpty(),
+        )
+
+    /**
+     * H-UI: tarjeta de progresión por ejercicio (propuestas por revisar y avisos recientes) ya con
+     * el nombre del ejercicio y texto llano. Se recalcula cada vez que cambia el programa; los
+     * avisos con más de una semana dejan de mostrarse.
+     */
+    val nativeProgressionCard: StateFlow<NativeProgressionCardUi> = program
+        .map { p -> buildNativeProgressionCard(p) }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            buildNativeProgressionCard(repository.getProgramById(programId)),
+        )
+
+    private fun buildNativeProgressionCard(p: Program?): NativeProgressionCardUi =
+        p?.let {
+            NativeProgressionCardModel.build(
+                program = it,
+                nowMs = appClock.now().toEpochMilli(),
+                displayNameOf = { id -> catalogConfigurationDisplayName(id) },
+            )
+        } ?: NativeProgressionCardUi()
+
     fun loadFeedbacks(context: Context) {
         viewModelScope.launch {
             try {
                 val list = AugeRepository.getInstance(context).getPostSessionFeedbacks()
-                feedbacks.value = list
-            } catch (_: Exception) {}
+                _feedbacks.value = list
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                // Sin estos comentarios el volumen no se ajusta por recuperación local; no es
+                // motivo para interrumpir la pantalla, pero el fallo queda registrado.
+                Log.w(LOG_TAG, "No se pudieron cargar los comentarios posteriores a la sesión.", error)
+            }
         }
     }
 
@@ -655,17 +717,24 @@ class ProgramDetailViewModel(
         }
     }
 
+    private var templateApplyJob: kotlinx.coroutines.Job? = null
+
     fun applyProgramTemplate(
         template: com.example.kpkn.data.programs.ProgramTemplateOption,
         overwrite: Boolean = false,
     ) {
-        viewModelScope.launch {
+        // D2.3: guarda de reentrada. Un segundo toque mientras se prepara el reemplazo no duplica
+        // copias ni lanza otro reemplazo. Se comparte con el reemplazo por protocolo porque
+        // ambos reescriben el mismo programa.
+        if (templateApplyJob?.isActive == true || protocolApplyJob?.isActive == true) return
+        templateApplyJob = viewModelScope.launch {
             val current = program.value ?: return@launch
-            if (overwrite) {
-                pushProgramSnapshot(current, "Antes de \"${template.name}\"")
-            }
             val result = runCatching {
-                withContext(kotlinx.coroutines.Dispatchers.Default) {
+                // D2.8: igual que con protocolo, no se reemplaza un programa con una sesión en curso.
+                check(!overwrite || repository.ongoingWorkout.value?.programId != current.id) {
+                    SESSION_IN_PROGRESS_MESSAGE
+                }
+                val applied = withContext(kotlinx.coroutines.Dispatchers.Default) {
                     com.example.kpkn.domain.training.ProgramTemplateEngine.applyTemplate(
                         current = current,
                         template = template,
@@ -673,6 +742,19 @@ class ProgramDetailViewModel(
                         exerciseList = com.example.kpkn.data.exercises.exerciseCatalogSnapshot(),
                     )
                 }
+                if (overwrite) {
+                    // D2.3: la copia recuperable se guarda DESPUÉS de calcular la plantilla y
+                    // dentro de este runCatching. Sin almacén conectado, o si el guardado falla
+                    // (disco lleno), no se reemplaza nada: el programa queda intacto y el aviso
+                    // sale por el snackbar de siempre en vez de cerrar la app.
+                    pushProgramSnapshot(current, "Antes de \"${template.name}\"", required = true)
+                    // La sesión pudo empezar mientras se calculaba la plantilla. Esta revisión y la
+                    // escritura de abajo ocurren sin suspender en el hilo principal.
+                    check(repository.ongoingWorkout.value?.programId != current.id) {
+                        SESSION_IN_PROGRESS_MESSAGE
+                    }
+                }
+                applied
             }
             result.fold(
                 onSuccess = { applied ->
@@ -695,6 +777,7 @@ class ProgramDetailViewModel(
                     }
                 },
                 onFailure = { error ->
+                    if (error is CancellationException) throw error
                     _uiState.update {
                         it.copy(
                             snackbarMessage = error.message?.takeIf { msg -> msg.isNotBlank() }
@@ -735,12 +818,12 @@ class ProgramDetailViewModel(
         protocol: com.example.kpkn.data.protocols.Protocol,
         overwrite: Boolean = true,
     ) {
-        if (protocolApplyJob?.isActive == true) return
+        if (protocolApplyJob?.isActive == true || templateApplyJob?.isActive == true) return
         protocolApplyJob = viewModelScope.launch {
             val current = program.value ?: return@launch
             val result = runCatching {
                 check(!overwrite || repository.ongoingWorkout.value?.programId != current.id) {
-                    "Termina o descarta la sesión en curso antes de reemplazar el plan."
+                    SESSION_IN_PROGRESS_MESSAGE
                 }
                 val applied = withContext(kotlinx.coroutines.Dispatchers.Default) {
                     val base = if (overwrite) current else current.copy(
@@ -798,14 +881,23 @@ class ProgramDetailViewModel(
 
     fun refreshProgramSnapshots(targetProgramId: String? = null) {
         val store = snapshotStore ?: return
-        _programSnapshots.value = store.list(targetProgramId ?: programId)
+        val target = targetProgramId ?: programId
+        // SharedPreferences (carga del archivo + JSON) fuera de Main. El lock se toma antes
+        // de cualquier suspensión, así que las lecturas/escrituras respetan el orden de llamada.
+        viewModelScope.launch {
+            snapshotStoreLock.withLock {
+                _programSnapshots.value = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    store.list(target)
+                }
+            }
+        }
     }
 
     fun restoreProgramSnapshot(snapshotId: String) {
         viewModelScope.launch {
             val current = program.value ?: return@launch
             val store = snapshotStore ?: return@launch
-            val snapshot = withContext(kotlinx.coroutines.Dispatchers.Default) {
+            val snapshot = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 store.restore(current.id, snapshotId)
             } ?: return@launch
             updateProgram(snapshot)
@@ -814,9 +906,20 @@ class ProgramDetailViewModel(
         }
     }
 
-    private fun pushProgramSnapshot(current: Program, reason: String) {
-        val store = snapshotStore ?: return
-        _programSnapshots.value = store.push(current, reason)
+    private suspend fun pushProgramSnapshot(current: Program, reason: String, required: Boolean = false) {
+        val store = snapshotStore
+        if (store == null) {
+            // Con `required`, «Reemplazar todo» no quita el plan sin dejar antes una copia para
+            // recuperarlo: sin almacén conectado se aborta con el aviso de siempre (D2.3).
+            check(!required) { SNAPSHOT_REQUIRED_MESSAGE }
+            return
+        }
+        // `push` lee y luego escribe con `commit()` (disco síncrono): siempre en IO.
+        snapshotStoreLock.withLock {
+            _programSnapshots.value = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                store.push(current, reason)
+            }
+        }
     }
 
     fun markVolumeSetupPromptSeen() {
@@ -1197,19 +1300,182 @@ class ProgramDetailViewModel(
     fun rejectPendingDeload() = resolvePendingDeload(accept = false)
 
     fun acceptAutoregulation(proposal: AutoregulationProposal? = null) {
-        val current = program.value ?: return
-        val result = ProgramProgressEngine.resolvePendingAutoregulation(current, accept = true, only = proposal)
-        if (result.program != current) updateProgram(result.program)
-        if (result.program.runState?.pendingAction?.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) {
-            _blockTransitionBanner.value = null
-        }
+        resolveAutoregulation(accept = true, proposal = proposal)
     }
 
     fun rejectAutoregulation() {
-        val current = program.value ?: return
-        val result = ProgramProgressEngine.resolvePendingAutoregulation(current, accept = false)
-        if (result.program != current) updateProgram(result.program)
-        _blockTransitionBanner.value = null
+        resolveAutoregulation(accept = false)
+    }
+
+    fun acceptNativeProgressionProposal(proposalId: String) = resolveNativeProgression(proposalId, accept = true)
+
+    fun rejectNativeProgressionProposal(proposalId: String) = resolveNativeProgression(proposalId, accept = false)
+
+    // Propuestas que se están resolviendo: un segundo toque no repite la acción ni el aviso.
+    private val nativeResolutionsInFlight = mutableSetOf<String>()
+
+    private fun resolveNativeProgression(proposalId: String, accept: Boolean) {
+        if (!nativeResolutionsInFlight.add(proposalId)) return
+        viewModelScope.launch {
+            try {
+                val displayNameOf: (String) -> String? = { id -> catalogConfigurationDisplayName(id) }
+                // La propuesta y el nombre del ejercicio se leen ANTES de resolver: al aplicarse,
+                // la propuesta sale de la lista y una variante cambia el ejercicio del plan.
+                val before = repository.getProgramById(programId)
+                val proposal = before?.nativeProgressionProposals?.firstOrNull { it.proposalId == proposalId }
+                val result = runCatching {
+                    repository.resolveNativeProgressionProposalNow(programId, proposalId, accept)
+                }
+                val error = result.exceptionOrNull()
+                if (error is CancellationException) throw error
+                if (error != null || result.getOrDefault(false).not()) {
+                    _uiState.update {
+                        it.copy(snackbarMessage = if (accept) {
+                            "No se pudo aplicar la progresión. Las sesiones y cargas registradas se conservaron."
+                        } else {
+                            "No se pudo rechazar la progresión. Las sesiones y cargas registradas se conservaron."
+                        })
+                    }
+                    return@launch
+                }
+                // H-UI: toda respuesta se confirma con el nombre del ejercicio y lo que cambió.
+                val resolution = repository.getProgramById(programId)
+                    ?.nativeProgressionAudit
+                    ?.lastOrNull { it.proposalId == proposalId }
+                val identity = proposal?.identity ?: resolution?.identity
+                val exerciseName = if (before != null && identity != null) {
+                    NativeProgressionCardModel.exerciseName(before, identity, displayNameOf)
+                } else {
+                    "Este ejercicio"
+                }
+                _uiState.update {
+                    it.copy(
+                        snackbarMessage = NativeProgressionCardModel.confirmation(
+                            accepted = accept,
+                            proposal = proposal,
+                            resolution = resolution,
+                            exerciseName = exerciseName,
+                            displayNameOf = displayNameOf,
+                        ),
+                    )
+                }
+            } finally {
+                nativeResolutionsInFlight.remove(proposalId)
+            }
+        }
+    }
+
+    /**
+     * H-UI: oculta un aviso informativo de progresión («Entendido»). El registro de
+     * resoluciones se conserva intacto; solo se apaga la bandera que lo muestra en pantalla.
+     */
+    fun dismissNativeProgressionNotice(proposalId: String) {
+        viewModelScope.launch {
+            val result = runCatching {
+                repository.mutateProgramNow(programId) { current ->
+                    if (current.nativeProgressionAudit.none { it.proposalId == proposalId && it.userFacingNotice }) {
+                        return@mutateProgramNow null
+                    }
+                    current.copy(
+                        nativeProgressionAudit = current.nativeProgressionAudit.map { entry ->
+                            if (entry.proposalId == proposalId) entry.copy(userFacingNotice = false) else entry
+                        },
+                    )
+                }
+            }
+            val error = result.exceptionOrNull()
+            if (error is CancellationException) throw error
+            if (error != null) {
+                _uiState.update { it.copy(snackbarMessage = "No se pudo ocultar el aviso. Inténtalo de nuevo.") }
+            }
+        }
+    }
+
+    private fun resolveAutoregulation(accept: Boolean, proposal: AutoregulationProposal? = null) {
+        viewModelScope.launch {
+            val result = runCatching {
+                repository.resolvePendingAutoregulationNow(programId, accept = accept, only = proposal)
+            }
+            val error = result.exceptionOrNull()
+            if (error is CancellationException) throw error
+            val updated = repository.getProgramById(programId)
+            if (error != null || result.getOrDefault(false).not()) {
+                _uiState.update {
+                    it.copy(snackbarMessage = if (accept) {
+                        "No se pudo aplicar la propuesta. El plan y el historial se conservaron."
+                    } else {
+                        "No se pudo rechazar la propuesta. El plan y el historial se conservaron."
+                    })
+                }
+                return@launch
+            }
+            if (updated?.runState?.pendingAction?.type != PendingProgramActionType.CONFIRM_AUTOREGULATION) {
+                _blockTransitionBanner.value = null
+            }
+        }
+    }
+
+    /**
+     * Restaura sólo la sesión seleccionada desde su receta, conservando las
+     * sesiones vecinas como snapshots y manteniendo las IDs/historial (§14.5).
+     */
+    fun restoreManualSessionFromPlan(sessionId: String) {
+        viewModelScope.launch {
+            var blockedReason: String? = null
+            val outcome = runCatching {
+                repository.mutateProgramNow(programId) { current ->
+                    // La evidencia real (sesiones iniciadas/registradas, del ciclo en
+                    // curso en planes nativos) y la reconstrucción selectiva de UNA
+                    // sesión viven en el dominio: un resultado rechazado nunca se
+                    // reporta como éxito y deja la edición marcada.
+                    val evidence = repository.executedTrainingEvidence(current)
+                    when (
+                        val result = com.example.kpkn.domain.training.PlanMaterializer.restoreSessionFromRecipe(
+                            program = current,
+                            sessionId = sessionId,
+                            executedSessionIds = evidence.sessionIds,
+                        )
+                    ) {
+                        is com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreResult.Restored ->
+                            result.program
+                        is com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreResult.Rejected -> {
+                            blockedReason = restoreRejectionMessage(result.reason)
+                            null
+                        }
+                    }
+                }
+            }
+            val error = outcome.exceptionOrNull()
+            if (error is CancellationException) throw error
+            val message = when {
+                error != null -> error.message?.takeIf(String::isNotBlank)
+                    ?: "No se pudo restaurar la sesión. No se modificó el historial."
+                outcome.getOrDefault(false) ->
+                    "Sesión restaurada desde el plan. Se descartó su edición; las sesiones vecinas y el historial se conservaron."
+                // Sin rechazo del dominio, `false` es un conflicto de escritura
+                // (otra escritura más nueva ganó): nada se aplicó.
+                else -> blockedReason
+                    ?: "No se pudo restaurar la sesión: el plan cambió mientras se guardaba. No se modificó nada; reintenta."
+            }
+            _uiState.update { it.copy(snackbarMessage = message) }
+        }
+    }
+
+    private fun restoreRejectionMessage(
+        reason: com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection,
+    ): String = when (reason) {
+        com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection.NO_OVERRIDE ->
+            "Esta sesión ya no tiene una edición pendiente de restaurar."
+        com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection.NO_SOURCE_RECIPE ->
+            "No se encontró la receta fuente; no se cambió la sesión."
+        com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection.SESSION_NOT_FOUND ->
+            "No se encontró la ocurrencia de esta sesión; no se cambió el plan."
+        com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection.EXECUTED ->
+            "La sesión ya se inició o tiene registros; su prescripción histórica se conserva."
+        com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection.WEEK_NOT_IN_RECIPE ->
+            "La receta ya no contiene la semana de esta sesión; no se cambió el plan."
+        com.example.kpkn.domain.training.PlanMaterializer.SessionRestoreRejection.NO_RECIPE_COUNTERPART ->
+            "Esta sesión no tiene una sesión equivalente en la receta (la creaste tú o cambió de día); se conserva tu edición."
     }
 
     fun setAutoregulationMode(mode: com.example.kpkn.data.models.AutoregulationMode) {
@@ -1230,6 +1496,10 @@ class ProgramDetailViewModel(
     fun rematerializePending() {
         val current = program.value ?: return
         val recipe = current.sourceRecipe ?: return
+        // §14.5/AC-G1: la evidencia REAL de entrenamiento viaja con la
+        // reconstrucción (sesiones iniciadas/registradas + semanas completas);
+        // jamás se pasa `emptySet()` cuando hay trabajo realizado.
+        val evidence = repository.executedTrainingEvidence(current)
         var working = current
         val pendingBlocks = current.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }
         pendingBlocks.forEach { block ->
@@ -1238,7 +1508,8 @@ class ProgramDetailViewModel(
                     program = working,
                     weekId = week.id,
                     recipe = recipe,
-                    executedWeekIds = emptySet(),
+                    executedWeekIds = evidence.weekIds,
+                    executedSessionIds = evidence.sessionIds,
                 )
             }
         }
@@ -2075,6 +2346,16 @@ class ProgramDetailViewModel(
     // ─── Factory ──────────────────────────────────────────────────────────
 
     companion object {
+        private const val LOG_TAG = "ProgramDetailVM"
+
+        /** Mismo aviso para «Reemplazar todo» con protocolo y con plantilla (D2.8). */
+        internal const val SESSION_IN_PROGRESS_MESSAGE =
+            "Termina o descarta la sesión en curso antes de reemplazar el plan."
+
+        /** Sin almacén de copias conectado, «Reemplazar todo» no quita el plan sin dejar copia (D2.3). */
+        internal const val SNAPSHOT_REQUIRED_MESSAGE =
+            "No se pudo guardar la copia recuperable del programa. No se aplicaron cambios."
+
         fun factory(programId: String): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {

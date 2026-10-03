@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.GlobalBatteries
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.AthleteProfileScore
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.CalibrationResponseState
@@ -26,6 +27,8 @@ import com.example.kpkn.domain.nutrition.parseLocalizedNumber
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.TrainingValidation
 import com.example.kpkn.domain.onboarding.RingsCoverage
+import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupChangeDetector
 import com.example.kpkn.domain.onboarding.SetupChangeSource
@@ -49,6 +52,7 @@ import com.example.kpkn.domain.onboarding.WizChatMachineState
 import com.example.kpkn.domain.onboarding.WizChatProgress
 import com.example.kpkn.domain.onboarding.WizChatQuestionId
 import com.example.kpkn.domain.onboarding.WizChatValidation
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.screens.nutrition.NutritionWizardDraft
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
@@ -79,6 +83,60 @@ enum class SetupDiscomfortState { NOT_ANSWERED, NONE, DECLARED, OMITTED }
  */
 @Serializable
 enum class SetupBodyFatSource { MEASURED, VISUAL_ESTIMATE, UNKNOWN }
+
+/**
+ * Estado visible del paso de grasa corporal. Solo [PENDING] bloquea Continuar:
+ * la figura de arranque («≈25 %») no es una respuesta, así que el paso exige una
+ * acción explícita (mover o tocar la figura, escribir una medición u omitir)
+ * antes de avanzar. Se deriva siempre del borrador; no se guarda aparte.
+ */
+enum class SetupBodyFatState {
+    /** Nada declarado todavía: ni figura, ni medición, ni omisión, ni dato previo. */
+    PENDING,
+
+    /** Sin acción en este alta, pero ya hay un porcentaje previo (Ajustes o borrador anterior): se conserva y no bloquea. */
+    ON_FILE,
+
+    /** Estimación visual con la figura. */
+    VISUAL,
+
+    /** Medición escrita por la persona. */
+    MEASURED,
+
+    /** «Omitir este paso»: sin dato, a propósito. */
+    SKIPPED,
+}
+
+/** Mensaje de la validación y del texto de ayuda del paso mientras está [SetupBodyFatState.PENDING]. */
+internal const val BODY_FAT_PENDING_MESSAGE =
+    "Mueve la figura, usa el valor mostrado, escribe una medición u omite este paso."
+
+private fun Double?.isUsableBodyFat(): Boolean {
+    val value = this ?: return false
+    return value.isFinite() && value in 3.0..60.0
+}
+
+/**
+ * Estado de la grasa corporal del borrador. Un porcentaje previo en Ajustes
+ * ([SetupWizardDraft.importedBodyFatPercent], solo si es creíble) o ya presente
+ * en el borrador cuenta como [SetupBodyFatState.ON_FILE]: a quien vuelve se le
+ * trata como a altura y peso sembrados desde Ajustes (no se le bloquea).
+ */
+fun SetupWizardDraft.bodyFatState(): SetupBodyFatState {
+    val typed = !inputTexts[SetupStepId.BODY_FAT.name].isNullOrBlank()
+    return when (bodyFatSource) {
+        SetupBodyFatSource.UNKNOWN -> SetupBodyFatState.SKIPPED
+        SetupBodyFatSource.MEASURED ->
+            if (bodyFatPercent != null || typed) SetupBodyFatState.MEASURED else SetupBodyFatState.PENDING
+        SetupBodyFatSource.VISUAL_ESTIMATE ->
+            if (bodyFatPercent != null) SetupBodyFatState.VISUAL else SetupBodyFatState.PENDING
+        null -> when {
+            typed -> SetupBodyFatState.MEASURED
+            bodyFatPercent != null || importedBodyFatPercent.isUsableBodyFat() -> SetupBodyFatState.ON_FILE
+            else -> SetupBodyFatState.PENDING
+        }
+    }
+}
 
 /**
  * Pesaje real declarado por el usuario: id estable + fecha + peso en kg.
@@ -121,13 +179,24 @@ enum class SetupExperience(val label: String) { NEW("Estoy empezando"), RETURNIN
 @Serializable
 enum class SetupTrainingPath(val label: String) { PERSONALIZE("Personaliza un plan"), FROM_SCRATCH("Crea desde cero") }
 
+/**
+ * Exactly four visible profiles (§15.1 / P-104): Fuerza, Músculo, Fuerza y
+ * músculo and Atleta completo. `HEALTH` and `MIXED` survive ONLY so legacy
+ * drafts keep reading; they are never auto-converted (the repair marks GOAL for
+ * review and suggests Atleta completo without selecting it).
+ */
 @Serializable
 enum class SetupGoal(val label: String) {
     STRENGTH("Fuerza"),
     MUSCLE("Músculo"),
     STRENGTH_MUSCLE("Fuerza y músculo"),
+    COMPLETE_ATHLETE("Atleta completo"),
     HEALTH("Salud y condición"),
-    MIXED("Fuerza + cardio"),
+    MIXED("Fuerza + cardio");
+
+    /** Legacy values preserved for read compatibility; never offered anew. */
+    val isLegacyOnly: Boolean
+        get() = this == HEALTH || this == MIXED
 }
 
 /** Fuerza → powerlifting, Músculo → hipertrofia, Fuerza y músculo → powerbuilding. */
@@ -136,11 +205,21 @@ val SetupGoal.inferredTrainingStyle: com.example.kpkn.data.models.TrainingStyle?
         SetupGoal.STRENGTH -> com.example.kpkn.data.models.TrainingStyle.POWERLIFTER
         SetupGoal.MUSCLE -> com.example.kpkn.data.models.TrainingStyle.BODYBUILDER
         SetupGoal.STRENGTH_MUSCLE -> com.example.kpkn.data.models.TrainingStyle.POWERBUILDER
-        SetupGoal.HEALTH, SetupGoal.MIXED -> null
+        // Atleta completo es un perfil combinado (§15.1): no se disfraza de una
+        // disciplina de tres; HEALTH/MIXED legacy conservan su lectura.
+        SetupGoal.COMPLETE_ATHLETE, SetupGoal.HEALTH, SetupGoal.MIXED -> null
     }
+
+/** True when the goal asks for the cardio branch of the wizard. */
+val SetupGoal.requiresCardio: Boolean
+    get() = this == SetupGoal.COMPLETE_ATHLETE || this == SetupGoal.MIXED
 
 /** Reference used to pick candidates: inferred from the goal or asked in the brief focus question. */
 fun SetupWizardDraft.trainingReference(): com.example.kpkn.data.programs.TrainingReference? {
+    // Atleta completo es una combinación de capacidades, no una de las
+    // disciplinas legacy. No heredar la elección de estilo/calibración como
+    // un filtro oculto de catálogo.
+    if (goal == SetupGoal.COMPLETE_ATHLETE) return null
     val style = goal?.inferredTrainingStyle ?: volumeAnswers.style
     return style?.toTrainingReference()
 }
@@ -216,6 +295,13 @@ data class SetupWizardDraft(
     val moduleChoice: SetupModuleChoice = SetupModuleChoice.TRAINING_AND_NUTRITION,
     val weightKg: Double? = null,
     val importedWeightKg: Double? = null,
+    /**
+     * Grasa corporal (%) que ya constaba en Ajustes al crear el borrador (usuario
+     * que vuelve). Igual que [importedWeightKg] no es una respuesta de este alta:
+     * nunca se declara ni crea una observación; solo evita bloquear el paso de
+     * grasa corporal y se muestra como dato previo.
+     */
+    val importedBodyFatPercent: Double? = null,
     val weightUnit: String = "kg",
     val weightUnitChanged: Boolean = false,
     val heightCm: Double? = null,
@@ -350,8 +436,9 @@ fun SetupWizardDraft.stepContext(): SetupStepContext = SetupStepContext(
     programRouteLater = programRoute == SetupProgramRoute.LATER,
     homeEquipmentSelected = trainingEnvironment == "home" || trainingEnvironment == "Entreno en casa",
     mixedTraining = goal == SetupGoal.MIXED,
+    completeAthleteGoal = goal == SetupGoal.COMPLETE_ATHLETE,
     hasTrainingMarks = knowsTrainingMarks,
-    goalStyleInferred = goal?.inferredTrainingStyle != null,
+    goalStyleInferred = goal?.inferredTrainingStyle != null || goal == SetupGoal.COMPLETE_ATHLETE,
     nutritionProfessional = nutritionDraft?.mode == "professional",
     nutritionStarted = includeNutrition && nutritionMode == "create",
     ringsAction = ringsAnswers?.startAction,
@@ -395,6 +482,10 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     trainingEnvironment = trainingEnvironment,
     inventory = trainingOptions.inventory?.toString()?.let { setOf(it) }.orEmpty(),
     equipmentAvailability = trainingOptions.availability?.categories?.mapTo(linkedSetOf()) { it.name },
+    equipmentApparatus = trainingOptions.availability?.apparatus
+        ?.mapValues { (_, presence) -> presence.name }?.toSortedMap().orEmpty(),
+    equipmentSupports = trainingOptions.availability?.supports
+        ?.mapValues { (_, presence) -> presence.name }?.toSortedMap().orEmpty(),
     daysPerWeek = daysPerWeek,
     selectedWeekdays = selectedWeekdays,
     minutesPerSession = minutesPerSession,
@@ -415,6 +506,7 @@ fun SetupWizardDraft.inputFootprint(): SetupInputFootprint = SetupInputFootprint
     priorityPoints = trainingOptions.orderPriorities,
     selectedSplitId = selectedSplitId,
     customSplitPattern = customSplitPattern,
+    customSplitName = customSplitName,
     autoregulationMode = trainingOptions.autoregulationMode.name,
     warmupsPreference = trainingOptions.warmup?.joinToString(";") { step -> "${step.percent ?: ""}:${step.reps ?: ""}" },
     sessionsSignature = sessions.map { session ->
@@ -669,6 +761,22 @@ data class SetupWizardState(
     val messages: List<com.example.kpkn.domain.onboarding.WizChatMessage> = emptyList(),
     val planCandidates: List<SetupPlanCandidate> = emptyList(),
     val availablePlanCandidates: List<SetupPlanCandidate> = emptyList(),
+    /**
+     * T-001 / AC-T001-02: rechazo estructurado POR CANDIDATO del último
+     * cálculo (etapa + causa concreta con la clase/mensaje útil). Se limpia en
+     * cada cálculo nuevo y sólo se publica si las entradas siguen vigentes
+     * (AC-T001-03), para que la UI distinga «error de catálogo» de «falta
+     * material» o «no cabe en tu tiempo» en lugar de un aviso genérico.
+     */
+    val candidateRejections: List<SetupCandidateRejection> = emptyList(),
+    /** §15.2: evaluados / viables / no viables del último barrido. */
+    val candidateCounts: SetupCandidateCounts = SetupCandidateCounts(),
+    /**
+     * §15.2: la selección conserva plan_id + fingerprint + resultado preparado;
+     * si cambian respuestas que la afectan, el preview deja de estar vigente y
+     * la activación espera re-preparar (nunca se cambia de plan en silencio).
+     */
+    val selectionStale: Boolean = false,
     val exerciseSuggestions: List<ExerciseMuscleInfo> = emptyList(),
     val isExerciseSearching: Boolean = false,
     val exerciseSearchError: String? = null,
@@ -726,6 +834,114 @@ data class SetupPlanCandidate(
     val details: String? = null,
 )
 
+/**
+ * Motivo «encaja con tu semana» de una tarjeta de plan. Con un solo día la
+ * frase entera cambia de forma («tu semana de 1 día»), no solo el sustantivo;
+ * por eso se elige la frase completa y no se concatena «días» a un número.
+ */
+internal fun weekFitReason(days: Int): String = SpanishPlurals.choose(
+    days,
+    "Encaja con tu semana de 1 día",
+    "Encaja con tus $days días por semana",
+)
+
+/**
+ * C4 · Línea de registro (logcat, etiqueta `SetupPlanSweep`) del barrido de
+ * candidatos del paso PLAN. Solo medición para decidir si hace falta optimizar:
+ * milisegundos y contadores, sin datos personales.
+ *
+ * - `catalogMs`: carga del catálogo de ejercicios (≈0 si ya estaba cargado).
+ * - `sweepMs`: evaluación de los candidatos; `totalMs` = ambos.
+ * - `evaluated`: candidatos materializados de verdad; `cacheHits`: reutilizados.
+ * - `firstSweep`: primer barrido de este ViewModel; `catalogWasLoaded=false`
+ *   indica arranque en frío del catálogo.
+ * - `passes` > 1 indica el segundo pase adaptado a peso corporal.
+ */
+internal fun candidateSweepLogLine(
+    totalMs: Long,
+    catalogMs: Long,
+    sweepMs: Long,
+    catalogWasLoaded: Boolean,
+    firstSweep: Boolean,
+    published: Int,
+    evaluated: Int,
+    cacheHits: Int,
+    passes: Int,
+    viable: Int,
+    useAdapted: Boolean,
+): String =
+    "barrido de candidatos: totalMs=$totalMs catalogMs=$catalogMs sweepMs=$sweepMs " +
+        "catalogoYaCargado=$catalogWasLoaded primerBarrido=$firstSweep publicados=$published " +
+        "evaluados=$evaluated aciertosCache=$cacheHits pases=$passes viables=$viable adaptado=$useAdapted"
+
+/**
+ * T-001 / AC-T001-02 — Etapa de descarte de UN candidato publicado.
+ *
+ * La taxonomía es la que la UI necesita distinguir: `CATALOG` (no se pudo
+ * leer el catálogo), `MATERIAL` (la receta exige material no declarado),
+ * `DURATION` (la sesión estimada supera el tiempo pedido), `PROFILE`/`FREQUENCY`
+ * (nivel o frecuencia no curados), `COMPOSITION` (composición/volumen) y
+ * `MATERIALIZATION` (fallo del motor sin causa tipada). Nunca un único cubo
+ * genérico de «material».
+ */
+enum class SetupCandidateRejectionStage {
+    CATALOG,
+    PROFILE,
+    FREQUENCY,
+    MATERIAL,
+    MATERIALIZATION,
+    DURATION,
+    COMPOSITION,
+}
+
+/**
+ * Rechazo ESTRUCTURADO de un candidato (T-001 / AC-T001-02).
+ *
+ * - [planId] es el ID del candidato evaluado; `null` sólo en etapas globales
+ *   (`CATALOG`, cuando falló la carga y no hubo candidato que evaluar).
+ * - [reason] es conciso y conserva la clase + mensaje útiles de la excepción
+ *   cuando la hubo; sin datos personales y sin volcar el borrador entero.
+ */
+data class SetupCandidateRejection(
+    val planId: String?,
+    val stage: SetupCandidateRejectionStage,
+    val reason: String,
+    /** §15.2 closed reason code; null only for legacy rejections without code. */
+    val reasonCode: PlanRejectionReason? = null,
+    /** Slots/configuraciones afectadas del rechazo (diagnóstico, sin datos personales). */
+    val affectedSlots: List<String> = emptyList(),
+    /** Capacidades que faltan (p. ej. `strength`,`power`,`cardio`). */
+    val missingCapabilities: List<String> = emptyList(),
+    /** Minutos que este plan necesita cuando la causa es de duración. */
+    val requiredMinutes: Int? = null,
+    /** true cuando hace falta confirmar un aparato/soporte en el panel. */
+    val needsApparatusConfirmation: Boolean = false,
+    /** Clave curada a confirmar cuando [needsApparatusConfirmation]. */
+    val apparatusKey: String? = null,
+)
+
+/**
+ * T-005 / AC-T005-06 (§15.2): conteos reales del último barrido. Se muestran
+ * «evaluados / viables / no viables», nunca «publicados» para un subconjunto
+ * que ya pasó filtros.
+ */
+data class SetupCandidateCounts(
+    val evaluated: Int = 0,
+    val viable: Int = 0,
+    val nonViable: Int = 0,
+)
+
+/**
+ * Fallo de materialización CAUSADO en una etapa conocida del pipeline. Sigue
+ * siendo `IllegalStateException`, así ningún caller existente que capture ese
+ * tipo cambia de comportamiento; aporta la etapa para que el informe por
+ * candidato no la pierda en un `catch` genérico.
+ */
+class SetupCandidateFailureException(
+    val stage: SetupCandidateRejectionStage,
+    message: String,
+) : IllegalStateException(message)
+
 typealias SetupWizardUiState = SetupWizardState
 
 data class SetupPreview(val program: Program?, val report: PersonalizationReport?)
@@ -763,7 +979,7 @@ object SetupWizardValidation {
                 if (draft.daysPerWeek == null) put("days", "Elige los días que quieres entrenar")
                 if (draft.minutesPerSession == null) put("minutes", "Indica el tiempo disponible")
                 if (draft.equipment.isEmpty()) put("equipment", "Elige al menos un perfil de equipo")
-                if (draft.selectedWeekdays.size != draft.daysPerWeek || draft.selectedWeekdays.any { it !in 1..7 }) put("week", "Selecciona ${draft.daysPerWeek ?: 0} días en tu semana")
+                if (draft.selectedWeekdays.size != draft.daysPerWeek || draft.selectedWeekdays.any { it !in 1..7 }) put("week", "Selecciona ${SpanishPlurals.days(draft.daysPerWeek ?: 0)} en tu semana")
                 if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) {
                     val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }
                     if (selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() }) put("sessions", "Completa todas las sesiones que programaste")
@@ -862,6 +1078,10 @@ object SetupWizardValidation {
                     // respuesta vieja ni con omisión previa registrada.
                     (source == SetupBodyFatSource.MEASURED || source == SetupBodyFatSource.VISUAL_ESTIMATE) &&
                         percent == null && parsedRaw == null -> absent("bodyFat", "Indica tu grasa corporal")
+                    // Sin ninguna acción explícita (mover o tocar la figura, escribir una
+                    // medición u omitir) y sin un dato previo en Ajustes no se avanza: la
+                    // figura de arranque (≈25 %) no es una respuesta y nunca se guarda sola.
+                    draft.bodyFatState() == SetupBodyFatState.PENDING -> absent("bodyFat", BODY_FAT_PENDING_MESSAGE)
                     // Fuente desconocida o omitida explícitamente: sin percentil fabricado.
                     else -> ok("bodyFat")
                 }
@@ -888,38 +1108,12 @@ object SetupWizardValidation {
             } else {
                 ok("availability")
             }
-            // Inventario honesto: el contrato real ([TrainingOptions.validate])
-            // decide si una declaración es válida (cantidades explícitas y
-            // finitas); sin declaración no se inventa material. Solo se bloquean
-            // las razones de INVENTARIO de este paso, nunca un pendiente
-            // ajeno (autorregulación, prioridades, calentamiento).
+            // Inventario con pesos: el asistente ya no lo pregunta (D2.5). Los pasos
+            // INVENTORY_* siguen en el enum solo para leer borradores guardados; fuera
+            // de la ruta no validan nada.
             SetupStepId.INVENTORY_BARBELL, SetupStepId.INVENTORY_PLATES,
             SetupStepId.INVENTORY_DUMBBELLS, SetupStepId.INVENTORY_KETTLEBELLS,
-            SetupStepId.INVENTORY_MACHINES -> {
-                val raw = draft.inputTexts[step.name]
-                val explicitNone = draft.stepSelections[step] == listOf("none")
-                val reasons = when (val training = draft.trainingOptions.validate()) {
-                    TrainingValidation.Valid -> emptyList()
-                    is TrainingValidation.Invalid ->
-                        training.reasons.filter { reason -> inventoryReasonAffects(step, reason) }
-                }
-                when {
-                    // Fila editorial abierta: nunca se confirma ni se avanza
-                    // perdiendo la fila (se puede guardar o salir; Atrás la mantiene).
-                    draft.stepEditors[step]?.editing == true ->
-                        invalid("inventory", "Termina de editar la fila antes de continuar")
-                    !raw.isNullOrBlank() && parseLocalizedNumber(raw) == null ->
-                        invalid("inventory", "Escribe un valor numérico")
-                    // Elección explícita «no tengo de este grupo»: sin inventario fantasma.
-                    explicitNone -> ok("inventory")
-                    reasons.isNotEmpty() -> invalid("inventory", reasons.first())
-                    // Dato propio declarado y válido según el contrato real.
-                    hasOwnInventoryData(draft, step) -> ok("inventory")
-                    // Vacío pre-confirmación: lo desconocido NO cuenta como
-                    // material disponible ilimitado; hay que declarar o elegir none.
-                    else -> absent("inventory", "Declara tu material o elige que no tienes")
-                }
-            }
+            SetupStepId.INVENTORY_MACHINES -> emptyList()
             SetupStepId.HOME_EQUIPMENT -> if (draft.equipment.isEmpty()) absent("equipment", "Elige al menos un perfil de equipo")
                 else ok("equipment")
             SetupStepId.DAYS -> when {
@@ -931,11 +1125,31 @@ object SetupWizardValidation {
                 draft.selectedWeekdays.isEmpty() -> absent("week", "Selecciona tus días de entrenamiento")
                 draft.daysPerWeek == null || draft.selectedWeekdays.size != draft.daysPerWeek ||
                     draft.selectedWeekdays.any { it !in 1..7 } ->
-                    invalid("week", "Selecciona ${draft.daysPerWeek ?: 0} días en tu semana")
+                    invalid("week", "Selecciona ${SpanishPlurals.days(draft.daysPerWeek ?: 0)} en tu semana")
                 else -> ok("week")
             }
             SetupStepId.SESSION_TIME -> number("minutes", draft.minutesPerSession?.toDouble(), "Indica el tiempo disponible")
-            SetupStepId.CARDIO_TYPE -> if (draft.cardioType != null) ok("cardioType") else absent("cardioType", "Elige el tipo de cardio")
+            SetupStepId.CARDIO_TYPE -> when (draft.cardioType) {
+                null -> absent("cardioType", "Elige el tipo de cardio")
+                // §15.1: BIKE_OUTDOOR exige acceso a bicicleta confirmado con
+                // presencia si no consta; no se hereda de «Cardio» ni del resto
+                // del material de gimnasio.
+                CardioType.BIKE_OUTDOOR -> when (SetupApparatusPanel.presenceOf(
+                    draft.trainingOptions.availability,
+                    SetupApparatusPanel.OUTDOOR_BIKE_KEY,
+                )) {
+                    ApparatusPresence.PRESENT -> ok("cardioType")
+                    ApparatusPresence.ABSENT -> invalid(
+                        "cardioType",
+                        "Elegiste bicicleta pero confirmaste que no tienes; elige otro cardio.",
+                    )
+                    ApparatusPresence.UNKNOWN -> invalid(
+                        "cardioType",
+                        "Confirma que tienes acceso a una bicicleta para elegir bicicleta al aire libre.",
+                    )
+                }
+                else -> ok("cardioType")
+            }
             SetupStepId.CARDIO_TIME -> if (draft.cardioMinutes != null) ok("cardioMinutes") else absent("cardioMinutes", "Indica los minutos de cardio")
             // Bolsa de orden: ≤5 puntos en total, ≤2 por músculo y SIN límite
             // al número de músculos (5×1 es válido). Vacío es válido: no es
@@ -1130,35 +1344,6 @@ object SetupWizardValidation {
             if (nutrition?.equationSex == null) add(
                 SetupFieldCheck(SetupStepId.NUTRITION_SEX, "equation.sex", SetupValueState.MISSING_EQUATION_INPUT,
                     "El sexo de cálculo es necesario para la ecuación de energía"))
-        }
-    }
-
-    /**
-     * ¿Afecta este motivo de [TrainingOptions.validate] al MATERIAL del grupo
-     * del paso corriente? Solo se valida el material de este paso: un grupo
-     * pendiente no puede bloquear otro antes de que el usuario llegue a él.
-     */
-    private fun inventoryReasonAffects(step: SetupStepId, reason: String): Boolean {
-        val keyword = when (step) {
-            SetupStepId.INVENTORY_BARBELL -> "barra"
-            SetupStepId.INVENTORY_PLATES -> "disco"
-            SetupStepId.INVENTORY_DUMBBELLS -> "mancuerna"
-            SetupStepId.INVENTORY_KETTLEBELLS -> "kettlebell"
-            else -> "máquina"
-        }
-        return reason.contains(keyword, ignoreCase = true)
-    }
-
-    /** Dato propio del grupo en el inventario declarado; sin declaración = falso. */
-    private fun hasOwnInventoryData(draft: SetupWizardDraft, step: SetupStepId): Boolean {
-        val inventory = draft.trainingOptions.inventory ?: return false
-        return when (step) {
-            SetupStepId.INVENTORY_BARBELL -> inventory.barbellWeightKg != null
-            SetupStepId.INVENTORY_PLATES -> inventory.plates.isNotEmpty()
-            SetupStepId.INVENTORY_DUMBBELLS -> inventory.dumbbells.isNotEmpty()
-            SetupStepId.INVENTORY_KETTLEBELLS -> inventory.kettlebells.isNotEmpty()
-            SetupStepId.INVENTORY_MACHINES -> inventory.machines.isNotEmpty()
-            else -> false
         }
     }
 

@@ -22,20 +22,16 @@ private const val MACHINE_EQUIPMENT = "machine"
 private const val LEGACY_GENERAL_GYM = "general_gym"
 
 /**
- * Dependencia de soporte/apoyo que una configuración expresa fuera de su
- * `equipmentId`. Es la ÚNICA expresión disponible en el proyecto: el catálogo
- * no publica rack/banco/soporte en `richMetadata.programming.requiredEquipment`
- * (todos sus valores son kinds de material), así que esta regla compartida es
- * la que materializa esos requisitos. La consumen el filtro real de
+ * Requisitos de material de una configuración fuera de su `equipmentId`: la
+ * ÚNICA expresión disponible en el proyecto, porque el catálogo no publica
+ * rack/banco/soporte en `richMetadata.programming.requiredEquipment` (todos sus
+ * valores son kinds de material). Esos requisitos viven en el vocabulario
+ * curado [supportRequirementsFor] (§13.2), que devuelve un CONJUNTO: banca
+ * barra exige barra+banco+rack, banca DB exige DB+banco, pies elevados exigen
+ * apoyo estable, dominadas exigen barra, etc. La consumen el filtro real de
  * [SimpleCyclePersonalizer] y [missingFixedRecipeEquipment] para que la ruta
  * nativa y la receta fija no diverjan.
  */
-internal fun supportDependencyFor(configurationId: String): String? = when (configurationId) {
-    "pull_up__pronated__medium", "pull_up__supinated__medium" -> "pull_up_bar"
-    "back_remo_invertido__default", "hams_curl_nordic_peso_corporal__default" -> "support"
-    "curl_isquios_con_balon__default" -> "ball"
-    else -> null
-}
 
 /**
  * Resultado tipado de la disponibilidad de material de una receta fija
@@ -61,8 +57,8 @@ data class FixedRecipeEquipmentAvailability(
  *   (splits, dosis, orden) queda intacta por construcción.
  * - Revisa TODAS las `sessions` → `allExercises()` → `catalogConfigurationId`
  *   contra el catálogo ACTUAL: kind principal (`profile.equipmentId`), requisitos
- *   editoriales (`profile.richMetadata.programming.requiredEquipment`) y la
- *   dependencia de soporte compartida ([supportDependencyFor]).
+ *   editoriales (`profile.richMetadata.programming.requiredEquipment`) y los
+ *   requisitos de soporte compartidos ([supportRequirementsFor]).
  * - `bodyweight` nunca es faltante (no necesita material).
  * - Perfil legacy con `general_gym` (inventario null) → se conserva el
  *   comportamiento anterior: sin faltantes.
@@ -161,7 +157,7 @@ fun missingFixedRecipeEquipment(
     return availability.missingEquipment + FIXED_RECIPE_UNVERIFIABLE_MATERIAL
 }
 
-/** Kind principal + requisitos editoriales + dependencia de soporte, sin duplicados. */
+/** Kind principal + requisitos editoriales + requisitos de soporte (conjunto), sin duplicados. */
 private fun requirementsOf(
     configuration: ExerciseConfigurationV2,
     configurationId: String,
@@ -171,8 +167,7 @@ private fun requirementsOf(
     configuration.profile.richMetadata?.programming?.requiredEquipment?.forEach { entry ->
         if (entry.isNotBlank()) add(entry)
     }
-    val support = supportDependencyFor(configurationId)
-    if (support != null) add(support)
+    addAll(supportRequirementsFor(configurationId))
 }
 
 private fun configurationsById(catalog: ExerciseCatalogV2): Map<String, ExerciseConfigurationV2> =

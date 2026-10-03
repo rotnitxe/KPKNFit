@@ -221,8 +221,10 @@ internal fun WorkoutSessionOverlaysHost(
                         }
                         Button(
                             onClick = {
+                                val exitRequestId = RepairBenchmarkTrace.workoutExitRequested("pause_exit")
                                 viewModel.stopRestTimer()
                                 onBack()
+                                RepairBenchmarkTrace.workoutExitNavigationCommitted(exitRequestId)
                                 onShowExitDialogChange(false)
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -235,10 +237,8 @@ internal fun WorkoutSessionOverlaysHost(
                         }
                         Button(
                             onClick = {
-                                viewModel.stopRestTimer()
-                                com.example.kpkn.data.repository.ProgramRepository.getInstance().clearOngoingWorkout()
-                                onBack()
                                 onShowExitDialogChange(false)
+                                viewModel.cancelWorkout()
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(

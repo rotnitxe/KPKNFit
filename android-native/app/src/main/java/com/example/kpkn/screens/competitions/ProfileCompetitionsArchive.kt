@@ -1,6 +1,5 @@
 package com.example.kpkn.screens.competitions
 
-import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,6 +56,7 @@ import com.example.kpkn.screens.competitions.wizard.WizardFieldShape
 import com.example.kpkn.screens.competitions.wizard.WizardInk
 import com.example.kpkn.screens.competitions.wizard.WizardMuted
 import com.example.kpkn.ui.components.KpknSheetTokens
+import com.example.kpkn.ui.components.rememberStableUriImageRequest
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -283,7 +283,7 @@ private fun AlbumThumb(photo: CompetitionPhoto, onClick: () -> Unit) {
             .clickable(onClick = onClick),
     ) {
         AsyncImage(
-            model = Uri.parse(photo.uri),
+            model = rememberStableUriImageRequest(photo.uri),
             contentDescription = null,
             modifier = Modifier.matchParentSize(),
             contentScale = ContentScale.Crop,

@@ -25,6 +25,12 @@ import com.example.kpkn.R
 import com.example.kpkn.data.models.HapticIntensity
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.navigation.KpknDeepLinks
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import kotlin.math.PI
 import kotlin.math.sin
@@ -46,6 +52,14 @@ class WorkoutRestAlertManager(private val context: Context) {
         const val CHANNEL_REST_FINISHED = "workout_rest_finished"
         private const val PREFS = "workout_rest_alerts"
         private val playExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private val preferenceOwnerIoScope = CoroutineScope(
+            SupervisorJob() + Dispatchers.IO.limitedParallelism(1),
+        )
+        private val timerPreferencesLock = Any()
+        private var timerPreferencesRevision = 0L
+        private var timerPreferencesLoaded = false
+        private var activeTimerId: String? = null
         private const val KEY_TIMER_ID = "active_timer_id"
         private const val KEY_SESSION_NAME = "active_session_name"
         private const val KEY_EXERCISE_NAME = "active_exercise_name"
@@ -71,6 +85,25 @@ class WorkoutRestAlertManager(private val context: Context) {
     private val alarmManager = appContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val notificationManager = NotificationManagerCompat.from(appContext)
     private val prefs by lazy { appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+
+    /** Loads SharedPreferences before a workout can use the rest-alert path on Main. */
+    suspend fun preloadPreferences() {
+        withContext(Dispatchers.IO) {
+            val readyPrefs = prefs
+            val storedTimerId = readyPrefs.all[KEY_TIMER_ID] as? String
+            synchronized(timerPreferencesLock) {
+                if (!timerPreferencesLoaded) {
+                    activeTimerId = storedTimerId
+                    timerPreferencesLoaded = true
+                    timerPreferencesRevision += 1L
+                }
+            }
+        }
+    }
+
+    internal fun launchOnPreferenceOwnerIo(block: suspend () -> Unit) {
+        preferenceOwnerIoScope.launch { block() }
+    }
 
     fun ensureChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -142,12 +175,17 @@ class WorkoutRestAlertManager(private val context: Context) {
         val endAt = endAtOverrideMs?.takeIf { it > now } ?: (now + (durationSeconds * 1000L))
         val remainingSeconds = ((endAt - now + 999L) / 1000L).toInt().coerceAtLeast(1)
 
-        prefs.edit()
-            .putString(KEY_TIMER_ID, timerId)
-            .putString(KEY_SESSION_NAME, sessionName)
-            .putString(KEY_EXERCISE_NAME, exerciseName)
-            .putLong(KEY_END_AT, endAt)
-            .apply()
+        synchronized(timerPreferencesLock) {
+            timerPreferencesLoaded = true
+            activeTimerId = timerId
+            timerPreferencesRevision += 1L
+            prefs.edit()
+                .putString(KEY_TIMER_ID, timerId)
+                .putString(KEY_SESSION_NAME, sessionName)
+                .putString(KEY_EXERCISE_NAME, exerciseName)
+                .putLong(KEY_END_AT, endAt)
+                .apply()
+        }
 
         scheduleAlarm(
             requestCode = REQUEST_CODE_ALARM,
@@ -186,27 +224,28 @@ class WorkoutRestAlertManager(private val context: Context) {
     }
 
     fun onTimerFinishedInApp(expectedTimerId: String?) {
-        val activeId = prefs.getString(KEY_TIMER_ID, null)
+        val activeId = synchronized(timerPreferencesLock) { activeTimerId } ?: return
         if (!shouldDeliverInAppRestCompletion(activeId, expectedTimerId)) return
         val sessionName = prefs.getString(KEY_SESSION_NAME, "Entrenamiento") ?: "Entrenamiento"
         val exerciseName = prefs.getString(KEY_EXERCISE_NAME, "Siguiente serie") ?: "Siguiente serie"
-        deliverCompletionAlert(sessionName, exerciseName)
+        val revision = synchronized(timerPreferencesLock) {
+            if (activeTimerId != activeId) return
+            timerPreferencesRevision
+        }
+        deliverCompletionAlert(sessionName, exerciseName, activeId, revision)
     }
 
     fun cancelRestAlerts(cancelFinished: Boolean = false) {
-        WorkoutRestForegroundService.stop(appContext)
-        cancelAlarm(REQUEST_CODE_ALARM)
-        cancelAlarm(REQUEST_CODE_PREALERT)
-        notificationManager.cancel(NOTIF_ID_ONGOING)
-        if (cancelFinished) {
-            notificationManager.cancel(NOTIF_ID_FINISHED)
+        synchronized(timerPreferencesLock) {
+            WorkoutRestForegroundService.stop(appContext)
+            cancelAlarm(REQUEST_CODE_ALARM)
+            cancelAlarm(REQUEST_CODE_PREALERT)
+            notificationManager.cancel(NOTIF_ID_ONGOING)
+            if (cancelFinished) {
+                notificationManager.cancel(NOTIF_ID_FINISHED)
+            }
+            enqueueTimerPreferenceClear()
         }
-        prefs.edit()
-            .remove(KEY_TIMER_ID)
-            .remove(KEY_SESSION_NAME)
-            .remove(KEY_EXERCISE_NAME)
-            .remove(KEY_END_AT)
-            .apply()
     }
 
     internal fun onAlarmFromReceiver(
@@ -216,11 +255,15 @@ class WorkoutRestAlertManager(private val context: Context) {
         event: String?,
         endAtMs: Long,
     ) {
-        val activeId = prefs.getString(KEY_TIMER_ID, null)
+        val activeId = synchronized(timerPreferencesLock) { activeTimerId }
         if (timerId == null || activeId == null || timerId != activeId) return
 
         val safeSession = sessionName ?: (prefs.getString(KEY_SESSION_NAME, "Entrenamiento") ?: "Entrenamiento")
         val safeExercise = exerciseName ?: (prefs.getString(KEY_EXERCISE_NAME, "Siguiente serie") ?: "Siguiente serie")
+        val revision = synchronized(timerPreferencesLock) {
+            if (activeTimerId != activeId) return
+            timerPreferencesRevision
+        }
 
         when (event) {
             EVENT_PREALERT -> {
@@ -229,7 +272,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                 }
             }
 
-            else -> deliverCompletionAlert(safeSession, safeExercise)
+            else -> deliverCompletionAlert(safeSession, safeExercise, activeId, revision)
         }
     }
 
@@ -335,7 +378,12 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
     }
 
-    private fun deliverCompletionAlert(sessionName: String, exerciseName: String) {
+    private fun deliverCompletionAlert(
+        sessionName: String,
+        exerciseName: String,
+        expectedTimerId: String,
+        expectedRevision: Long,
+    ) {
         val settings = runCatching { ProgramRepository.getInstance().settings.value }.getOrNull()
         val soundsEnabled = settings?.soundsEnabled ?: true
         val hapticEnabled = settings?.hapticFeedbackEnabled ?: true
@@ -350,23 +398,26 @@ class WorkoutRestAlertManager(private val context: Context) {
 
         val shouldAttemptManualSound = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
 
-        val onFinishAlert = {
-            WorkoutRestForegroundService.stop(appContext)
-            notificationManager.cancel(NOTIF_ID_ONGOING)
+        val onFinishAlert: () -> Unit = {
+            synchronized(timerPreferencesLock) {
+                if (activeTimerId != expectedTimerId || timerPreferencesRevision != expectedRevision) {
+                    return@synchronized
+                }
+                activeTimerId = null
+                timerPreferencesRevision += 1L
+                val clearRevision = timerPreferencesRevision
+                WorkoutRestForegroundService.stop(appContext)
+                notificationManager.cancel(NOTIF_ID_ONGOING)
 
-            val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
-            postFinishedNotification(
-                sessionName = sessionName,
-                exerciseName = exerciseName,
-                preferAudibleFallback = preferAudibleNotification,
-            )
+                val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
+                postFinishedNotification(
+                    sessionName = sessionName,
+                    exerciseName = exerciseName,
+                    preferAudibleFallback = preferAudibleNotification,
+                )
 
-            prefs.edit()
-                .remove(KEY_TIMER_ID)
-                .remove(KEY_SESSION_NAME)
-                .remove(KEY_EXERCISE_NAME)
-                .remove(KEY_END_AT)
-                .apply()
+                enqueueTimerPreferenceClear(clearRevision, expectedTimerId)
+            }
         }
 
         if (shouldAttemptManualSound) {
@@ -570,6 +621,35 @@ class WorkoutRestAlertManager(private val context: Context) {
     private fun clearAudioFailure() {
         prefs.edit().remove(KEY_LAST_AUDIO_FAILURE_AT).apply()
     }
+
+    private fun enqueueTimerPreferenceClear(expectedTimerId: String? = null) {
+        val revision = synchronized(timerPreferencesLock) {
+            timerPreferencesLoaded = true
+            activeTimerId = null
+            timerPreferencesRevision += 1L
+            timerPreferencesRevision
+        }
+        enqueueTimerPreferenceClear(revision, expectedTimerId)
+    }
+
+    private fun enqueueTimerPreferenceClear(revision: Long, expectedTimerId: String?) {
+        preferenceOwnerIoScope.launch {
+            val readyPrefs = prefs
+            readyPrefs.all
+            synchronized(timerPreferencesLock) {
+                if (timerPreferencesRevision != revision || activeTimerId != null) return@synchronized
+                if (expectedTimerId != null && readyPrefs.getString(KEY_TIMER_ID, null) != expectedTimerId) {
+                    return@synchronized
+                }
+                readyPrefs.edit()
+                    .remove(KEY_TIMER_ID)
+                    .remove(KEY_SESSION_NAME)
+                    .remove(KEY_EXERCISE_NAME)
+                    .remove(KEY_END_AT)
+                    .apply()
+            }
+        }
+    }
 }
 
 class RestTimerFinishedReceiver : BroadcastReceiver() {
@@ -577,18 +657,28 @@ class RestTimerFinishedReceiver : BroadcastReceiver() {
         val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:workoutRestAlert")
         runCatching { wakeLock?.acquire(10_000L) }
-        try {
-            val manager = WorkoutRestAlertManager(context)
-            manager.onAlarmFromReceiver(
-                timerId = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_TIMER_ID),
-                sessionName = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_SESSION_NAME),
-                exerciseName = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_EXERCISE_NAME),
-                event = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_EVENT),
-                endAtMs = intent.getLongExtra(WorkoutRestAlertManager.EXTRA_END_AT, 0L),
-            )
-        } finally {
-            if (wakeLock?.isHeld == true) {
-                wakeLock.release()
+        val manager = WorkoutRestAlertManager(context)
+        val pendingResult = goAsync()
+        val timerId = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_TIMER_ID)
+        val sessionName = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_SESSION_NAME)
+        val exerciseName = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_EXERCISE_NAME)
+        val event = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_EVENT)
+        val endAtMs = intent.getLongExtra(WorkoutRestAlertManager.EXTRA_END_AT, 0L)
+        manager.launchOnPreferenceOwnerIo {
+            try {
+                manager.preloadPreferences()
+                manager.onAlarmFromReceiver(
+                    timerId = timerId,
+                    sessionName = sessionName,
+                    exerciseName = exerciseName,
+                    event = event,
+                    endAtMs = endAtMs,
+                )
+            } finally {
+                if (wakeLock?.isHeld == true) {
+                    wakeLock.release()
+                }
+                pendingResult.finish()
             }
         }
     }

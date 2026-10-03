@@ -2,6 +2,7 @@ package com.example.kpkn.screens.onboarding
 
 import com.example.kpkn.data.onboarding.SetupDraftResolver
 import com.example.kpkn.data.onboarding.SetupDraftScope
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupPreviewKind
 import com.example.kpkn.domain.onboarding.SetupProgressOrigin
@@ -90,7 +91,87 @@ object SetupDraftCompatibility {
         else mandatoryOrder.filterNot { it in declaredVitals(draft) }
 
     fun repair(draft: SetupWizardDraft): SetupWizardDraft =
-        repairStepProgress(repairGoalStyleConflict(restoreMandatoryVitals(normalizeOrigin(draft))))
+        repairStepProgress(
+            repairMissingApparatus(
+                repairTrainingPath(
+                    repairLegacyGoalReview(
+                        normalizeLegacyRouteAtPlan(
+                            repairGoalStyleConflict(restoreMandatoryVitals(normalizeOrigin(draft))),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    /**
+     * A draft already resting on PLAN has crossed the old ROUTE question. Keep
+     * its answer in the legacy mirror/selections, but enter the unified catalog
+     * instead of retaining a hidden protocol-only filter.
+     */
+    fun normalizeLegacyRouteAtPlan(draft: SetupWizardDraft): SetupWizardDraft {
+        if (draft.stepProgress.currentStepId != SetupStepId.PLAN ||
+            draft.programRoute != SetupProgramRoute.PROTOCOL ||
+            draft.trainingPath == SetupTrainingPath.FROM_SCRATCH
+        ) return draft
+        return draft.copy(
+            programRoute = SetupProgramRoute.CUSTOMIZABLE,
+            trainingPath = SetupTrainingPath.PERSONALIZE,
+        )
+    }
+
+    /**
+     * T-005 / §15.4 — HEALTH/MIXED: el valor y sus datos se CONSERVAN; GOAL
+     * queda marcado para revisar y se sugiere «Atleta completo» en la UI sin
+     * seleccionarlo nunca. Idempotente: mientras el objetivo siga siendo
+     * legacy, la marca es el mismo conjunto; una elección real retira la
+     * regla (el nuevo objetivo ya no es legacy).
+     */
+    private fun repairLegacyGoalReview(draft: SetupWizardDraft): SetupWizardDraft {
+        val goal = draft.goal ?: return draft
+        if (!goal.isLegacyOnly) return draft
+        return draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.GOAL)))
+    }
+
+    /**
+     * T-005 / §15.4 — CUSTOMIZABLE con `trainingPath` null: se rellena
+     * PERSONALIZE solo cuando NO hay sesiones montadas a mano; si las hay, se
+     * conserva manual y PLAN queda por revisión (nunca se rellena un camino que
+     * convertiría sesiones manuales en un plan catálogo). Idempotente.
+     */
+    private fun repairTrainingPath(draft: SetupWizardDraft): SetupWizardDraft {
+        if (draft.programRoute != SetupProgramRoute.CUSTOMIZABLE || draft.trainingPath != null) return draft
+        return if (draft.sessions.any { it.exercises.isNotEmpty() }) {
+            draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.PLAN)))
+        } else {
+            draft.copy(trainingPath = SetupTrainingPath.PERSONALIZE)
+        }
+    }
+
+    /**
+     * T-005 / §15.4 — categorías sin aparatos: se MANTIENEN las categorías y
+     * los mapas vacíos (vacío = UNKNOWN, nunca PRESENT) y NO se borra ningún
+     * inventario guardado; EQUIPMENT queda por revisión solo cuando el plan
+     * elegido exige precisión de aparato/soporte. Idempotente.
+     */
+    private fun repairMissingApparatus(draft: SetupWizardDraft): SetupWizardDraft {
+        val availability = draft.trainingOptions.availability ?: return draft
+        if (availability.categories.isEmpty()) return draft
+        if (availability.apparatus.isNotEmpty() || availability.supports.isNotEmpty()) return draft
+        val planId = draft.selectedCatalogId ?: return draft
+        val entry = PersonalizedPlanCatalog.find(planId) ?: return draft
+        val requiresPrecision = entry.requiredEquipment.any { token ->
+            token.startsWith("machine_config:") || token in PRECISE_EQUIPMENT_TOKENS
+        }
+        if (!requiresPrecision) return draft
+        return draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.EQUIPMENT)))
+    }
+
+    /** Tokens que exigen presencia concreta (§13.2), no solo una categoría. */
+    private val PRECISE_EQUIPMENT_TOKENS: Set<String> = setOf(
+        "machine", "cable", "smith_machine",
+        "bench", "bench_incline", "rack", "pull_up_bar", "dip_bars",
+        "low_bar_support", "support", "ball", "nordic_anchor",
+    )
 
     /**
      * Native progress persisted with the DEFAULT origin (NOT_CONVERTIBLE @ NAME)
@@ -121,13 +202,12 @@ object SetupDraftCompatibility {
      * non-finite numbers never count), and [SetupStepGraph.migrateFromLegacy]
      * decides the resume step without completing any block by position.
      *
-     * NATIVE/MIGRATED drafts keep their answers and origin untouched unless
-     * their cursor is stranded on a step that is no longer in the productive
-     * route (GENDER / HOME_EQUIPMENT / RINGS_START). In that case the cursor is
-     * re-pointed to a resume step derived from the legacy mirror, preserving
-     * every answer and never converting gender identity into equation sex; the
-     * draft is only left marked NOT_CONVERTIBLE when the mirror truly cannot be
-     * placed in this scope.
+     * NATIVE/MIGRATED drafts keep their answers and origin untouched. Their
+     * cursor/index is repaired by stable ID; a removed cursor or newly
+     * out-of-order/pending prerequisite resumes at the first valid pending step.
+     * Every answer is preserved, and gender identity is never converted into
+     * equation sex. A legacy draft is left NOT_CONVERTIBLE only when its mirror
+     * truly cannot be placed in this scope.
      */
     fun repairStepProgress(draft: SetupWizardDraft): SetupWizardDraft {
         // Defensa también para llamadas directas: un progreso nativo con el
@@ -137,24 +217,91 @@ object SetupDraftCompatibility {
         val progress = draft.stepProgress
         if (progress.origin != SetupProgressOrigin.NOT_CONVERTIBLE) {
             val route = SetupStepGraph.stepIds(draft.stepContext())
-            if (progress.currentStepId in route) return draft
-            val resumable = SetupStepGraph.migrateFromLegacy(
-                draft.wizChat.currentQuestionId, draft.stepContext(), progress.answers)
-            if (resumable.origin == SetupProgressOrigin.NOT_CONVERTIBLE) return draft
-            val resume = resumable.currentStepId
-            val repaired = progress.copy(
-                block = SetupStepGraph.blockOf(resume),
-                stepIndex = route.indexOf(resume),
-                currentStepId = resume,
-                visited = if (resume in progress.visited) progress.visited else progress.visited + resume,
-                revision = progress.revision + 1,
-                terminal = resume == SetupStepId.REVIEW_ACTIVATE,
-            )
-            return if (repaired == progress) draft else draft.copy(stepProgress = repaired)
+            val currentIndex = route.indexOf(progress.currentStepId)
+            // A cursor can still name a valid step after the graph changes while
+            // answers are now out of order. Resume at the first unanswered or
+            // explicitly pending step before that cursor; never trust its old
+            // numeric index or jump over a newly inserted prerequisite.
+            val earlierPending = if (currentIndex >= 0) {
+                firstPendingStep(draft, route.take(currentIndex))
+            } else {
+                null
+            }
+            val resume = earlierPending ?: if (currentIndex >= 0) {
+                progress.currentStepId
+            } else {
+                firstPendingStep(draft, route) ?: SetupStepId.REVIEW_ACTIVATE
+            }
+            return reindexProgress(draft, resume, route)
         }
         val migrated = migrate(draft)
-        return if (migrated == draft.stepProgress) draft
-        else draft.copy(stepProgress = migrated.copy(revision = draft.stepProgress.revision + 1))
+        if (migrated.origin == SetupProgressOrigin.NOT_CONVERTIBLE) {
+            // Even when the old question belongs to a different scope, retain
+            // its stable step projection for diagnostics/recovery. The payload
+            // remains NOT_CONVERTIBLE and untouched; only a mapped legacy
+            // cursor is carried forward.
+            if (migrated.currentStepId == progress.currentStepId &&
+                migrated.block == progress.block &&
+                migrated.stepIndex == progress.stepIndex &&
+                migrated.terminal == progress.terminal
+            ) return draft
+            return draft.copy(stepProgress = progress.copy(
+                block = migrated.block,
+                stepIndex = migrated.stepIndex,
+                currentStepId = migrated.currentStepId,
+                terminal = migrated.terminal,
+                revision = progress.revision + 1,
+            ))
+        }
+        val withRepairs = migrated.copy(
+            pendingReview = migrated.pendingReview + draft.stepProgress.pendingReview,
+            stalePreviews = migrated.stalePreviews + draft.stepProgress.stalePreviews,
+        )
+        return repairStepProgress(draft.copy(stepProgress = withRepairs))
+    }
+
+    /** Earliest route step that is unanswered or explicitly marked for review. */
+    private fun firstPendingStep(
+        draft: SetupWizardDraft,
+        route: List<SetupStepId>,
+    ): SetupStepId? {
+        val confirmed = buildSet {
+            addAll(draft.stepProgress.answers.keys)
+            draft.wizChat.acceptedAnswers.forEach { answer ->
+                if (SetupStepGraph.isExplicitLegacy(answer.questionId, answer)) {
+                    SetupStepGraph.stepForQuestion(answer.questionId)?.let(::add)
+                }
+            }
+        }
+        return route.firstOrNull { step ->
+            step != SetupStepId.REVIEW_ACTIVATE &&
+                (step in draft.stepProgress.pendingReview || step !in confirmed)
+        }
+    }
+
+    /** Recomputes stable identity/index/completion without dropping any answer or visit. */
+    private fun reindexProgress(
+        draft: SetupWizardDraft,
+        resume: SetupStepId,
+        route: List<SetupStepId>,
+    ): SetupWizardDraft {
+        if (resume !in route) return draft
+        val progress = draft.stepProgress
+        val repaired = progress.copy(
+            block = SetupStepGraph.blockOf(resume),
+            stepIndex = route.indexOf(resume),
+            completedBlocks = SetupStepGraph.confirmedBlocks(
+                progress.answers,
+                draft.stepContext(),
+                progress.pendingReview,
+            ),
+            currentStepId = resume,
+            visited = if (resume in progress.visited) progress.visited else progress.visited + resume,
+            graphRevision = SetupStepGraph.REVISION,
+            terminal = resume == SetupStepId.REVIEW_ACTIVATE,
+        )
+        return if (repaired == progress) draft
+        else draft.copy(stepProgress = repaired.copy(revision = progress.revision + 1))
     }
 
     private fun migrate(draft: SetupWizardDraft): SetupStepProgress {
@@ -180,10 +327,12 @@ object SetupDraftCompatibility {
         currentRevision: String,
         planExists: (String) -> Boolean,
     ): SetupWizardDraft {
-        if (persistedRevision == null || persistedRevision == currentRevision) return draft
-        val selected = draft.selectedCatalogId ?: return draft
-        return draft.copy(
-            catalogRevision = currentRevision,
+        val previousRevision = persistedRevision ?: draft.catalogRevision
+        if (previousRevision == currentRevision) return draft
+        val selected = draft.selectedCatalogId
+        val updated = draft.copy(catalogRevision = currentRevision)
+        if (selected == null) return updated
+        return repairStepProgress(updated.copy(
             selectedCatalogId = selected.takeIf(planExists),
             stepProgress = draft.stepProgress
                 .withPendingReview(setOf(SetupStepId.PLAN))
@@ -193,7 +342,7 @@ object SetupDraftCompatibility {
                     SetupPreviewKind.RECIPE, SetupPreviewKind.MARKS,
                 )),
             wizChat = draft.wizChat.copy(terminal = false, revision = draft.wizChat.revision + 1),
-        )
+        ))
     }
 
     private fun repairGoalStyleConflict(draft: SetupWizardDraft): SetupWizardDraft {

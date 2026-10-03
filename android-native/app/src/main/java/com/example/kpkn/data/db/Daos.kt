@@ -81,7 +81,7 @@ interface WorkoutLogDao {
     @Query("SELECT * FROM workout_logs WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): WorkoutLogEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insert(entity: WorkoutLogEntity)
 
     @Query("DELETE FROM workout_logs WHERE id = :id")
@@ -431,8 +431,10 @@ interface NutritionDao {
     @Query("DELETE FROM nutrition_calibration_profile WHERE rowId = 1")
     suspend fun clearCalibrationProfile()
 
-    // Immutable historical food-goal snapshots. A date is captured once;
-    // callers must use INSERT IGNORE rather than replacing an old goal.
+    // Historical food-goal snapshots. A date is captured once: callers use
+    // INSERT IGNORE (insertDailyGoalSnapshot) and never replace an old goal.
+    // The ONLY exception is today's goal when a DIFFERENT plan is activated the
+    // same day (pinTodayGoalSnapshot): past days and same-plan edits stay intact.
     @Query("SELECT * FROM daily_goal_snapshots ORDER BY date DESC")
     suspend fun getAllDailyGoalSnapshots(): List<DailyGoalSnapshotEntity>
 
@@ -441,6 +443,34 @@ interface NutritionDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertDailyGoalSnapshot(entity: DailyGoalSnapshotEntity): Long
+
+    /**
+     * REEMPLAZA la fila de la fecha. Uso exclusivo de [pinTodayGoalSnapshot]
+     * (que limita el reemplazo a HOY y a otro plan); el resto del código
+     * conserva el insert-once de [insertDailyGoalSnapshot].
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun replaceDailyGoalSnapshot(entity: DailyGoalSnapshotEntity): Long
+
+    /**
+     * Fija la meta de HOY ([today] es la fecha local de hoy, en ISO):
+     * - sin fila para hoy: se inserta;
+     * - fila de hoy del MISMO plan: no se toca (los cambios del mismo plan
+     *   valen desde mañana);
+     * - fila de hoy de OTRO plan: se reemplaza (activar un plan distinto el
+     *   mismo día cambia la meta de hoy).
+     * Cualquier otra fecha (pasado o futuro) conserva SIEMPRE el insert-once:
+     * el reemplazo se limita a [today] más otro planId. Devuelve true si la
+     * fila de [entity] quedó escrita (insertada o reemplazada).
+     */
+    @Transaction
+    suspend fun pinTodayGoalSnapshot(entity: DailyGoalSnapshotEntity, today: String): Boolean {
+        if (entity.date != today) return insertDailyGoalSnapshot(entity) != -1L
+        val existing = getDailyGoalSnapshot(today) ?: return insertDailyGoalSnapshot(entity) != -1L
+        if (existing.planId == entity.planId) return false
+        replaceDailyGoalSnapshot(entity)
+        return true
+    }
 
     @Query("DELETE FROM daily_goal_snapshots")
     suspend fun clearDailyGoalSnapshots()

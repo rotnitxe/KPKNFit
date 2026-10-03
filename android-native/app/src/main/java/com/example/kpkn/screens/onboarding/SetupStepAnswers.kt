@@ -18,6 +18,8 @@ import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
 import com.example.kpkn.domain.nutrition.WizardPacePreset
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.onboarding.SetupApparatusItem
+import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
@@ -213,12 +215,23 @@ private fun SetupWizardDraft.projectChoices(
     SetupStepId.HOME_EQUIPMENT -> copy(equipment = values.mapNotNull { legacyEquipmentValue(it) }.toSet())
 
     SetupStepId.AVAILABILITY -> {
+        val previous = trainingOptions.availability
         val categories = if (AVAILABILITY_BODYWEIGHT in values) {
             emptySet()
         } else {
             values.mapNotNull { token -> EquipmentCategory.entries.firstOrNull { it.name == token } }.toSet()
         }
-        copy(trainingOptions = trainingOptions.copy(availability = EquipmentAvailability(categories)))
+        // §13.2: el subpanel de aparatos forma parte de ESTE paso; cambiar las
+        // categorías no borra ni reinterpreta las presencias ya confirmadas
+        // (solo peso corporal sí las retira, §13.1 regla 1).
+        val keepsPresence = AVAILABILITY_BODYWEIGHT !in values
+        copy(trainingOptions = trainingOptions.copy(
+            availability = EquipmentAvailability(
+                categories = categories,
+                apparatus = if (keepsPresence) previous?.apparatus.orEmpty() else emptyMap(),
+                supports = if (keepsPresence) previous?.supports.orEmpty() else emptyMap(),
+            ),
+        ))
     }
 
     else -> projectChoice(step, values.firstOrNull(), nowEpochMs)
@@ -290,6 +303,9 @@ private fun SetupWizardDraft.projectChoice(
             "strength" -> SetupGoal.STRENGTH
             "muscle" -> SetupGoal.MUSCLE
             "strength_muscle" -> SetupGoal.STRENGTH_MUSCLE
+            "complete_athlete" -> SetupGoal.COMPLETE_ATHLETE
+            // Lectura legacy: HEALth/MIXED solo se reescriben si un borrador
+            // antiguo vuelve a declararlos; el wizard nuevo no los ofrece.
             "health" -> SetupGoal.HEALTH
             "mixed" -> SetupGoal.MIXED
             else -> null
@@ -297,7 +313,10 @@ private fun SetupWizardDraft.projectChoice(
         when (resolved) {
             null -> this
             else -> {
-                val base = copy(goal = resolved, cardioType = null, cardioMinutes = null)
+                // Un cambio de perfil invalida resultados dependientes, pero no
+                // borra preferencias de cardio declaradas: pueden volver a ser
+                // relevantes si el usuario cambia el objetivo de nuevo.
+                val base = copy(goal = resolved)
                 val inferred = resolved.inferredTrainingStyle
                 if (inferred != null) base.withVolumeStyle(inferred)
                 else base.copy(
@@ -332,13 +351,27 @@ private fun SetupWizardDraft.projectChoice(
         val neededGroups = if (environmentChanged) {
             copy(trainingEnvironment = value).inventoryGroups().map(SetupStepDefinitions::stepOf).toSet()
         } else emptySet()
-        val preset = when (value) {
-            "gym", "Gimnasio completo" -> EquipmentAvailability(EquipmentCategory.entries.toSet())
-            "machines", "Principalmente máquinas" -> EquipmentAvailability(
-                setOf(EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS),
-            )
-            "none", "Sin material" -> EquipmentAvailability(emptySet())
-            else -> null
+        val preset = run {
+            val categories = when (value) {
+                "gym", "Gimnasio completo" -> EquipmentCategory.entries.toSet()
+                "machines", "Principalmente máquinas" -> setOf(
+                    EquipmentCategory.MACHINES, EquipmentCategory.CABLE, EquipmentCategory.DUMBBELLS,
+                )
+                "none", "Sin material" -> emptySet()
+                else -> null
+            }
+            if (categories == null) null else {
+                // §13.2: las presencias del subpanel viajan con las categorías.
+                // Un entorno NUEVO describe otro sitio (se retiran); «sin
+                // material» las retira siempre (§13.1 regla 1); repetir el mismo
+                // entorno conserva las confirmaciones hechas.
+                val keepsPresence = !environmentChanged && value != "none" && value != "Sin material"
+                EquipmentAvailability(
+                    categories = categories,
+                    apparatus = if (keepsPresence) trainingOptions.availability?.apparatus.orEmpty() else emptyMap(),
+                    supports = if (keepsPresence) trainingOptions.availability?.supports.orEmpty() else emptyMap(),
+                )
+            }
         }
         // Mismo entorno + material ya presente = NO es un entorno nuevo: el
         // material declarado manda y re-pulsar la tarjeta no puede re-sembrar
@@ -637,9 +670,32 @@ private fun rebuildVolumeProfile(answers: SetupVolumeAnswers): VolumeCalibration
     )
 }
 
+/**
+ * T-005 / §13.2 — presencia de UNA clave del subpanel de aparatos, dentro del
+ * paso AVAILABILITY (subpanel de EQUIPMENT). Solo presencia: aquí no hay kilos
+ * ni cantidades. Sin disponibilidad declarada no se fabrica ninguna.
+ */
+fun SetupWizardDraft.withApparatusPresence(
+    key: String,
+    presence: com.example.kpkn.data.models.ApparatusPresence,
+    isSupport: Boolean,
+): SetupWizardDraft {
+    val updated = SetupApparatusPanel.withPresence(trainingOptions.availability, key, presence, isSupport)
+        ?: return this
+    return copy(trainingOptions = trainingOptions.copy(availability = updated))
+}
+
+/**
+ * T-005 / §13.2 — «No tengo otros»: marca `ABSENT` los ítems visibles que
+ * todavía están desconocidos. Una respuesta previa (Sí/No) nunca se pisa.
+ */
+fun SetupWizardDraft.markVisibleApparatusAbsent(visible: List<SetupApparatusItem>): SetupWizardDraft {
+    val updated = SetupApparatusPanel.markVisibleAbsent(trainingOptions.availability, visible) ?: return this
+    return copy(trainingOptions = trainingOptions.copy(availability = updated))
+}
+
 /** Equipo legacy (T_HOME_EQUIPMENT) → valor estable del catálogo. */
-private fun legacyEquipmentValue(value: String): SetupEquipment? = when (value) {
-    "bodyweight" -> SetupEquipment.BODYWEIGHT
+private fun legacyEquipmentValue(value: String): SetupEquipment? = when (value) {    "bodyweight" -> SetupEquipment.BODYWEIGHT
     "bands" -> SetupEquipment.BANDS
     "dumbbells" -> SetupEquipment.DUMBBELLS
     "pull_up" -> SetupEquipment.PULL_UP

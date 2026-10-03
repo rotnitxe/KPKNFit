@@ -19,6 +19,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.lang.reflect.Proxy
+import kotlin.coroutines.Continuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -140,6 +141,58 @@ class WorkoutVoiceCommandHandlerWarmupTest {
     }
 
     @Test
+    fun voice_does_not_announce_auto_regulation_until_room_acknowledges_the_report() {
+        val exercise = exercise(percentages = listOf(0.4, 0.6), workingWeight = 100.0)
+        val ports = RecordingPorts(
+            exercise = exercise,
+            suggestedLoads = mapOf(0 to 40.0, 1 to 55.0),
+            workingAnchor = 100.0,
+        ).also { it.holdReportCommit = true }
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val step = WorkoutStep(
+            type = WorkoutStepType.WARMUP,
+            exerciseId = exercise.id,
+            exerciseName = exercise.name,
+            stepKey = "step-warmup-0",
+            warmupSetId = "warmup-0",
+        )
+        var state = WorkoutUiState(currentExerciseIdx = 0, activeStepKey = step.stepKey)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val handler = WorkoutVoiceCommandHandler(
+                appContext = context,
+                scope = scope,
+                voiceRecognizer = WorkoutVoiceRecognizer(context),
+                voiceController = WorkoutVoiceController(context),
+                getState = { state },
+                updateState = { transform -> state = transform(state) },
+                ports = ports.asPorts,
+            )
+
+            handler.handleVoiceCommand(
+                VoiceSessionCommand.RecordWarmupEffortAndLoad(
+                    weightKg = 42.0,
+                    reps = 7,
+                    effort = WarmupEffort.NORMAL,
+                ),
+            )
+
+            assertTrue(ports.events.contains("commit-pending"))
+            assertTrue(ports.autoRegulationFeedback.isEmpty())
+            assertTrue(ports.transitions.isEmpty())
+
+            ports.acknowledgeReportCommit()
+
+            assertEquals(1, ports.reports.size)
+            assertEquals(42.0, ports.reports.single().weightKg!!, 0.0)
+            assertTrue(ports.events.contains("record-effort"))
+            assertTrue(ports.autoRegulationFeedback.isNotEmpty())
+        } finally {
+            scope.cancel()
+        }
+    }
+
+    @Test
     fun fractional_percentage_uses_the_real_anchor_without_inflating_by_one_hundred() {
         val exercise = exercise(percentages = listOf(0.4), workingWeight = 100.0)
         val ports = RecordingPorts(
@@ -226,6 +279,19 @@ class WorkoutVoiceCommandHandlerWarmupTest {
         val reports = mutableListOf<Report>()
         val autoRegulationFeedback = mutableListOf<String>()
         val transitions = mutableListOf<Transition>()
+        var holdReportCommit: Boolean = false
+        private var pendingReportCommit: Continuation<WorkoutPersistResult>? = null
+        private var pendingReport: Report? = null
+
+        fun acknowledgeReportCommit() {
+            val continuation = checkNotNull(pendingReportCommit)
+            pendingReportCommit = null
+            reports += checkNotNull(pendingReport)
+            pendingReport = null
+            events += "report"
+            events += "record-effort"
+            continuation.resumeWith(Result.success(WorkoutPersistResult.Ok))
+        }
 
         val asPorts: WorkoutVoiceCommandHandler.Ports = Proxy.newProxyInstance(
             WorkoutVoiceCommandHandler.Ports::class.java.classLoader,
@@ -255,16 +321,32 @@ class WorkoutVoiceCommandHandlerWarmupTest {
                 "reportWarmupStep" -> {
                     reports += Report(arguments[2] as Double?, arguments[3] as Int?)
                     events += "report"
-                    null
+                    WorkoutPersistResult.Ok
+                }
+                "reportWarmupEffortAndLoad" -> {
+                    events += "commit-pending"
+                    if (holdReportCommit) {
+                        @Suppress("UNCHECKED_CAST")
+                        pendingReportCommit = arguments.last() as Continuation<WorkoutPersistResult>
+                        pendingReport = Report(arguments[2] as Double?, arguments[3] as Int?)
+                        kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+                    } else {
+                        reports += Report(arguments[2] as Double?, arguments[3] as Int?)
+                        events += "report"
+                        events += "record-effort"
+                        WorkoutPersistResult.Ok
+                    }
                 }
                 "markWarmupComplete" -> {
                     events += "mark-complete"
-                    null
+                    WorkoutPersistResult.Ok
                 }
                 "recordWarmupHeaviness" -> {
                     events += "record-effort"
-                    null
+                    WorkoutPersistResult.Ok
                 }
+                // The mutation ports are suspend and typed: a Proxy must never answer them with null.
+                "undoVoiceRecordedSet", "patchLastCompletedSet" -> WorkoutVoiceMutationResult.NoRecentSet
                 "speakWarmupAutoRegulation" -> {
                     autoRegulationFeedback += arguments[0] as String
                     events += "speak-auto"

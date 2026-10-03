@@ -3,6 +3,7 @@ package com.example.kpkn.screens.sessioneditor
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import androidx.lifecycle.ViewModelStore
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
@@ -16,6 +17,7 @@ import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.WeekVariant
+import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.repository.SessionTemplateRepository
 import com.example.kpkn.screens.sessioneditor.components.UserTemplateSaveState
@@ -32,6 +34,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -46,32 +49,60 @@ class SessionEditorViewModelRulesTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ProgramRepository
+    private lateinit var viewModelStore: ViewModelStore
+    private var nextViewModelKey = 0
 
     @Before
-    fun setup() = runBlocking {
+    fun setup(): Unit = runBlocking {
+        viewModelStore = ViewModelStore()
+        nextViewModelKey = 0
         Dispatchers.setMain(dispatcher)
         val context = ApplicationProvider.getApplicationContext<Context>()
         SessionTemplateRepository.resetForTests()
         ProgramRepository.initForTests(context)
         repository = ProgramRepository.getInstance()
+        // ProgramRepository.initForTests owns an in-memory Room instance, but
+        // intentionally does not publish it as KpknDatabase.INSTANCE. The
+        // editor's SessionTemplateRepository uses that singleton, so bind the
+        // exact same fixture before constructing any ViewModel.
+        setDatabaseSingletonForTest(repository.databaseForTests())
         repository.clearPrograms()
         repository.clearActiveProgram()
         repository.clearOngoingWorkout()
         withTimeout(10_000) {
             while (!repository.isReady.value) delay(25)
         }
+        withTimeout(10_000) {
+            SessionTemplateRepository.getInstance(context).isReady.first { it }
+        }
     }
 
     @After
     fun tearDown() {
-        ProgramRepository.closeInstance()
-        Dispatchers.resetMain()
+        try {
+            // Clear ViewModel scopes while Main is still installed, then cancel
+            // the template repository before closing their shared test DB.
+            if (this::viewModelStore.isInitialized) viewModelStore.clear()
+            SessionTemplateRepository.resetForTests()
+            ProgramRepository.closeInstance()
+        } finally {
+            setDatabaseSingletonForTest(null)
+            Dispatchers.resetMain()
+        }
     }
 
     @Test
     fun applyingRules_updatesVisibleSession_persistsDraft_andReopensWithSameValues() = runBlocking {
         val programId = "program-rules-global"
         val sessionId = "session-rules-global"
+        val draftKey = sessionEditorDraftStorageKey(programId, "week", 0, 0, sessionId)
+        val draftWriter = SessionEditorDraftStore.getInstance(
+            ApplicationProvider.getApplicationContext<Context>(),
+        ).writer
+        // SharedPreferences outlives individual Robolectric test runs. Remove
+        // only this case's key and await the delete so old snapshots cannot
+        // satisfy the persistence assertions.
+        assertEquals(DraftWriteStatus.WRITTEN, draftWriter.clear(draftKey).status)
         val session = Session(
             id = sessionId,
             name = "Reglas",
@@ -112,6 +143,10 @@ class SessionEditorViewModelRulesTest {
         assertEquals(45, visible.restTime)
         assertEquals(SessionEditorSheet.NONE, vm.uiState.value.sheet)
 
+        // The editor's writer is application-scoped and deliberately async;
+        // observe its result before reading the durable snapshot or reopening.
+        val immediateWrite = withTimeout(5_000) { draftWriter.awaitLatest(draftKey) }
+        assertEquals(DraftWriteStatus.WRITTEN, immediateWrite?.status)
         val persisted = vm.persistedDraftFor("week", 0, 0, sessionId)
         assertNotNull(persisted)
         assertEquals(3, persisted!!.session.exercises.single().sets.size)
@@ -230,6 +265,101 @@ class SessionEditorViewModelRulesTest {
         assertEquals(2, current.sessionB!!.exercises.single().sets.size)
         assertEquals(4, current.sessionB.exercises.single().sets.first().targetReps)
         assertEquals(25, current.sessionB.exercises.single().restTime)
+    }
+
+    /**
+     * Regression for the flaky `applyingRules_toActiveVariant_keepsOtherVariantsUntouched`
+     * (full suite: variant B was active, yet the rules landed on the base session). A second
+     * load that finished after the first one had published the session replaced the live
+     * editor with the persisted snapshot: active variant back to A, rule defaults back to
+     * the stored ones. Each entry point that can start such a load is joined here, so the
+     * outcome no longer depends on timing.
+     */
+    @Test
+    fun reloadRequestedAfterTheSessionLoaded_neverResetsVariantOrRuleDefaults() = runBlocking {
+        val programId = "program-rules-late-reload"
+        val sessionId = "session-rules-late-reload"
+        val variant = Session(
+            id = "late-variant-b",
+            name = "Variante B",
+            exercises = listOf(
+                Exercise(
+                    id = "late-variant-exercise",
+                    name = "Variant",
+                    sets = listOf(ExerciseSet("late-variant-set", targetReps = 10, targetRPE = 8.0)),
+                ),
+            ),
+        )
+        repository.addProgram(
+            programWithSession(
+                programId,
+                Session(
+                    id = sessionId,
+                    name = "Recarga tardia",
+                    exercises = listOf(
+                        Exercise(
+                            id = "late-main-exercise",
+                            name = "Main",
+                            sets = listOf(ExerciseSet("late-main-set", targetReps = 10, targetRPE = 8.0)),
+                        ),
+                    ),
+                    sessionB = variant,
+                ),
+            ),
+        )
+
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+        vm.switchVariant(WeekVariant.B)
+        vm.updateRuleDefaults(setCount = 2, reps = 4, rpe = 6.0, normalRestSeconds = 25)
+
+        // The retry button / await helpers, then the repository observers (they call
+        // loadSession() directly): each one is joined before looking at the state.
+        vm.retryLoadSession()
+        vm.awaitSessionLoadSettled()
+        vm.loadSession()
+        vm.awaitSessionLoadSettled()
+
+        assertEquals(WeekVariant.B, vm.uiState.value.activeVariant)
+        assertEquals(2, vm.uiState.value.ruleDefaults.setCount)
+        assertEquals(4, vm.uiState.value.ruleDefaults.reps)
+
+        assertTrue(vm.applyRuleDefaultsToSession() is ApplyRulesOutcome.Applied)
+        val current = vm.uiState.value.session!!
+        assertEquals(10, current.exercises.single().sets.first().targetReps)
+        assertEquals(4, current.sessionB!!.exercises.single().sets.first().targetReps)
+    }
+
+    @Test
+    fun failedReloadAfterTheSessionLoaded_doesNotPutTheEditorInItsErrorState() = runBlocking {
+        val programId = "program-rules-failed-reload"
+        val sessionId = "session-rules-failed-reload"
+        repository.addProgram(
+            programWithSession(
+                programId,
+                Session(
+                    id = sessionId,
+                    name = "Recarga fallida",
+                    exercises = listOf(
+                        Exercise(
+                            id = "failed-reload-exercise",
+                            name = "Press",
+                            sets = listOf(ExerciseSet("failed-reload-set", targetReps = 8, targetRPE = 8.0)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val vm = createViewModel(programId, sessionId)
+        awaitSession(vm)
+
+        // The program disappears from the repository (deleted elsewhere): a reload now fails.
+        repository.deleteProgram(programId)
+        vm.loadSession()
+        vm.awaitSessionLoadSettled()
+
+        assertNull(vm.uiState.value.loadErrorMessage)
+        assertEquals(sessionId, vm.uiState.value.session?.id)
     }
 
     @Test
@@ -514,16 +644,18 @@ class SessionEditorViewModelRulesTest {
             draftMacroIndex = 0,
             draftMesoIndex = 0,
             draftDayOfWeek = null,
-        )
-
-    private suspend fun awaitSession(vm: SessionEditorViewModel) {
-        withTimeout(5_000) {
-            while (vm.uiState.value.session == null) {
-                vm.retryLoadSession()
-                delay(50)
-            }
+        ).also { viewModel ->
+            viewModelStore.put("session-editor-${nextViewModelKey++}", viewModel)
         }
+
+    /** The generated bytecode stores this test-owned in-memory DB in a private static field. */
+    private fun setDatabaseSingletonForTest(database: KpknDatabase?) {
+        KpknDatabase::class.java.getDeclaredField("INSTANCE").apply {
+            isAccessible = true
+        }.set(null, database)
     }
+
+    private suspend fun awaitSession(vm: SessionEditorViewModel) = vm.awaitSessionLoaded()
 
     private fun programWithSession(programId: String, session: Session): Program =
         Program(

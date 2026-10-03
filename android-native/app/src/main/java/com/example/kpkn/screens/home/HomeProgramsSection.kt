@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,15 @@ import com.example.kpkn.ui.components.SectionHeader
 import com.example.kpkn.ui.theme.HomeCardSurface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+
+/** Etiqueta de pruebas de la fila horizontal de programas del Home (sin efecto visual). */
+const val HOME_PROGRAMS_ROW_TAG = "home-programs-row"
+
+/**
+ * Etiqueta de pruebas de la tarjeta de UN programa del Home (sin efecto visual).
+ * Es única porque lleva el id del programa: los nombres se repiten, los ids no.
+ */
+fun homeProgramCardTag(programId: String): String = "home-program-card-$programId"
 
 @Composable
 fun HomeProgramsSection(
@@ -42,6 +52,7 @@ fun HomeProgramsSection(
             )
         } else {
             LazyRow(
+                modifier = Modifier.testTag(HOME_PROGRAMS_ROW_TAG),
                 contentPadding = PaddingValues(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -68,7 +79,8 @@ private fun ProgramCard(program: Program, isActive: Boolean, onClick: () -> Unit
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(112.dp),
+                .height(112.dp)
+                .testTag(homeProgramCardTag(program.id)),
             shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         ) {

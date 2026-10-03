@@ -19,6 +19,7 @@ import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
+import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
@@ -67,6 +68,9 @@ class NutritionRepository private constructor(
     private val foodSaveMutex = Mutex()
     private val foodCalibration by lazy { NutritionCalibrationRepository.forDatabase(appContext, db) }
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
+
+    /** Solo para pruebas JVM: la base con la que trabaja este repositorio (mismo patrón que ProgramRepository). */
+    internal fun databaseForTests(): KpknDatabase = db
 
     // ─── IT3: utensilios configurables (ml por utensilio) ────────────────────
 
@@ -416,18 +420,15 @@ class NutritionRepository private constructor(
     val activeNutritionPlan: NutritionPlan?
         get() = _nutritionPlans.value.find { it.id == _activeNutritionPlanId.value }
 
+    /**
+     * Publica en las cachés el resultado de un alta del asistente. Relee también
+     * los snapshots: el alta puede haber reemplazado la meta de HOY (se activó un
+     * plan distinto el mismo día) y el Home no debe seguir mostrando la meta del
+     * plan anterior hasta reiniciar la app.
+     */
     suspend fun publishSetupCommit(plan: NutritionPlan?, activateNutrition: Boolean) {
         if (plan == null) return
-        val committedPlans = withContext(Dispatchers.IO) {
-            db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
-        }
-        val committedActiveId = withContext(Dispatchers.IO) {
-            db.nutritionDao().getActiveState()?.activePlanId
-        }
-        withContext(Dispatchers.Main.immediate) {
-            _nutritionPlans.value = committedPlans
-            _activeNutritionPlanId.value = committedActiveId
-        }
+        publishNutritionPlanCommit()
     }
 
     /**
@@ -530,7 +531,25 @@ class NutritionRepository private constructor(
         _nutritionPlans.update { list -> list.map { it.copy(isActive = it.id == planId) } }
         _activeNutritionPlanId.value = planId
         scope.launch { db.nutritionDao().activatePlanAtomic(planId, _nutritionPlans.value.map { it.toEntity() }) }
-        captureDailyGoalSnapshot(LocalDate.now().toString())
+        pinTodayGoalOfActivatedPlan(planId)
+    }
+
+    /**
+     * Meta de HOY al activar un plan: sin fila se inserta; con una fila del MISMO
+     * plan no se toca; con una fila de OTRO plan se reemplaza (activar un plan
+     * distinto el mismo día cambia la meta de hoy). Los días pasados no se tocan.
+     */
+    private fun pinTodayGoalOfActivatedPlan(planId: String) {
+        val plan = _nutritionPlans.value.find { it.id == planId } ?: return
+        scope.launch {
+            val today = LocalDate.now()
+            val target = planDayTargetForDate(plan, today, NutritionGoalSource.PLAN_FORECAST)
+            val snapshot = dailyGoalSnapshotOf(target, today, System.currentTimeMillis())
+            val written = db.nutritionDao().pinTodayGoalSnapshot(snapshot.toEntity(), today.toString())
+            if (written) {
+                _dailyGoalSnapshots.update { current -> current.filterNot { it.date == snapshot.date } + snapshot }
+            }
+        }
     }
 
     /**

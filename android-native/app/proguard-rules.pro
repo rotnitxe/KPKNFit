@@ -67,3 +67,8 @@
 -keep class * extends com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.** { public *; }
+
+# ── ML Kit component registrars (R8 quitaba el constructor publico: "Invalid component registrar") ──
+-keep class * implements com.google.firebase.components.ComponentRegistrar { <init>(); }
+-keep class com.google.mlkit.common.internal.** { *; }
+-keep class com.google.mlkit.common.sdkinternal.** { *; }

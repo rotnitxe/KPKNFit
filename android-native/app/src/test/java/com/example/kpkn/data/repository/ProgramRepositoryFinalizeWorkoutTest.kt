@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toActiveProgramState
 import com.example.kpkn.data.db.toProgram
+import com.example.kpkn.data.db.toOngoingWorkoutState
 import com.example.kpkn.data.models.ActiveProgramState
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.Macrocycle
@@ -536,6 +537,44 @@ class ProgramRepositoryFinalizeWorkoutTest {
         )
         assertEquals(1, repository.history.value.count { it.id == "log-keep" })
         assertEquals(session.id, repository.ongoingWorkout.value?.session?.id)
+    }
+
+    @Test
+    fun finishLogAndRetainedModalCommitTogetherAndRetryOnce() = runBlocking {
+        val repository = ProgramRepository.initForTests(ApplicationProvider.getApplicationContext<Context>())
+        withTimeout(10_000) { repository.isReady.first { it } }
+        repository.resetAllStateSync()
+        val program = Program(id = "atomic-finish", name = "Atomic")
+        repository.addProgram(program)
+        withTimeout(5_000) { repository.programs.first { it.any { item -> item.id == program.id } } }
+        val session = executableSession("atomic-session", "Press")
+        val ongoing = OngoingWorkoutState(programId = program.id, session = session, startTime = 10L)
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(ongoing))
+        val log = WorkoutLog(id = "atomic-log", programId = program.id, sessionId = session.id,
+            sessionName = session.name, date = "2026-09-30T10:00:00Z", durationMinutes = 40)
+        val db = repository.databaseForTests()
+        db.openHelper.writableDatabase.execSQL(
+            "CREATE TRIGGER fail_retained BEFORE INSERT ON ongoing_workout BEGIN SELECT RAISE(ABORT, 'injected retained failure'); END",
+        )
+        suspend fun finalize() = repository.finalizeWorkout(log, clearOngoing = false,
+            retainedOngoingTransform = { it.copy(logAlreadyWrittenId = log.id, showVolumeAdvanceModal = true) },
+            expectedExecutionStartTimeMs = 10L)
+        assertTrue(runCatching { finalize() }.isFailure)
+        assertNull(db.workoutLogDao().getById(log.id))
+        assertNull(repository.ongoingWorkout.value!!.logAlreadyWrittenId)
+        assertFalse(repository.history.value.any { it.id == log.id })
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_retained")
+        finalize()
+        finalize()
+        val restored = db.stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!
+        assertEquals(log.id, restored.logAlreadyWrittenId)
+        assertTrue(restored.showVolumeAdvanceModal)
+        assertEquals(restored, repository.ongoingWorkout.value)
+        assertEquals(1, repository.history.value.count { it.id == log.id })
+        assertTrue(db.workoutLogDao().getById(log.id) != null)
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(ongoing.copy(startTime = 20L)))
+        assertTrue(runCatching { repository.finalizeWorkout(log, expectedExecutionStartTimeMs = 10L) }.isFailure)
+        assertEquals(20L, db.stateDao().getOngoingWorkout()!!.toOngoingWorkoutState()!!.startTime)
     }
 
     private fun log(

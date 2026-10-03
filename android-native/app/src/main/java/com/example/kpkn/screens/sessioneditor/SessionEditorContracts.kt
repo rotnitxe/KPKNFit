@@ -75,6 +75,10 @@ data class SessionCloneDayOption(
     val existingSessionName: String? = null,
     val existingExerciseCount: Int = 0,
     val isCurrentSessionDay: Boolean = false,
+    /** Destination metadata captured from the current plan before APPEND/REPLACE. */
+    val destinationRecipeDayId: String? = null,
+    /** Resolved occurrence within its mesocycle, even for legacy null progressionIndex. */
+    val weekOccurrence: Int? = null,
 )
 
 data class SessionCloneSourceOption(
@@ -120,6 +124,10 @@ data class PendingTransferToDays(
     val selectedExerciseIds: Set<String>? = null,
     val applyMode: SessionCloneApplyMode,
     val sourceSession: Session,
+    /** A/B/C/D slot captured when the user stages this transfer; String keeps old JSON compatible. */
+    val sourceVariantKey: String = "A",
+    val sourceMainSessionId: String? = null,
+    val transferId: String = java.util.UUID.randomUUID().toString(),
 )
 
 enum class SessionSaveScope {

@@ -6,15 +6,19 @@ import com.example.kpkn.data.protocols.DayArchetypes
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.RecipeCompositionExemption
+import com.example.kpkn.data.protocols.RecipeCompositionProfile
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotPriority
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.day
+import com.example.kpkn.data.protocols.rangeRirSets
 import com.example.kpkn.data.protocols.rpeSets
 import com.example.kpkn.data.protocols.repeatPercentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -274,5 +278,374 @@ class SessionCompositionPolicyTest {
             "PHAT speed-vs-main debe quedar exento de S_duplicate_slot: $findings",
             findings.none { it.rule == "S_duplicate_slot" },
         )
+    }
+
+    // ─── §14.3: despacho por perfil de composición (paquete F, T-004a) ──────
+
+    private fun nativeCompactDay(
+        id: String = "nativo",
+        minimumDose: com.example.kpkn.data.protocols.DayMinimumDose? = com.example.kpkn.data.protocols.DayMinimumDose(2, 4, listOf("sq")),
+        sessionKind: com.example.kpkn.data.protocols.RecipeSessionKind = com.example.kpkn.data.protocols.RecipeSessionKind.STRENGTH,
+        cardioSeconds: Int? = null,
+        slots: List<com.example.kpkn.data.protocols.SlotRecipe> = listOf(
+            slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_HIGH, rangeRirSets(2, 4, 6, 3), 180, LiftSlot.SQUAT),
+            slot("push", SlotRole.T3_ACCESSORY, CatalogIds.BP_DB, rangeRirSets(2, 8, 12, 3), 120),
+        ),
+    ): com.example.kpkn.data.protocols.DayRecipe = com.example.kpkn.data.protocols.DayRecipe(
+        label = id,
+        slots = slots,
+        weekday = 1,
+        minimumDose = minimumDose,
+        sessionKind = sessionKind,
+        cardioBlocks = cardioSeconds?.let { seconds ->
+            listOf(
+                com.example.kpkn.data.protocols.RecipeCardioBlock(
+                    id = "cardio-1",
+                    details = com.example.kpkn.data.models.CardioDetails(
+                        type = com.example.kpkn.data.models.CardioType.WALK,
+                        targetDurationSeconds = seconds,
+                    ),
+                ),
+            )
+        }.orEmpty(),
+    )
+
+    private fun hardOf(day: com.example.kpkn.data.protocols.DayRecipe, profile: com.example.kpkn.data.protocols.RecipeCompositionProfile, goal: BlockGoal = BlockGoal.ACCUMULATION) =
+        SessionCompositionPolicy.evaluateDay(
+            day,
+            weekRecipe(1, 0, "nativo", goal, listOf(day)),
+            metadata,
+            0.90,
+            profile,
+        ).filter { it.severity == com.example.kpkn.data.protocols.CompositionSeverity.HARD }
+
+    @Test
+    fun native_compact_uses_declared_floors_while_legacy_keeps_h6() {
+        val day = nativeCompactDay()
+        val nativeHard = hardOf(day, com.example.kpkn.data.protocols.RecipeCompositionProfile.NATIVE_COMPACT)
+        assertTrue("NATIVE_COMPACT con 2 configuraciones/4 series debe pasar: $nativeHard", nativeHard.isEmpty())
+        val legacyHard = hardOf(day, com.example.kpkn.data.protocols.RecipeCompositionProfile.LEGACY_STANDARD)
+        assertTrue(
+            "LEGACY_STANDARD sigue exigiendo H6 (3 ejercicios/10 series)",
+            legacyHard.any { it.rule == "H6" },
+        )
+        // Un día de 1 ejercicio/2 series NO pasa el suelo declarado de2/4.
+        val tooSmall = nativeCompactDay(
+            slots = listOf(
+                slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_HIGH, rangeRirSets(2, 4, 6, 3), 180, LiftSlot.SQUAT),
+            ),
+            minimumDose = com.example.kpkn.data.protocols.DayMinimumDose(2, 4, emptyList()),
+        )
+        assertTrue(
+            hardOf(tooSmall, com.example.kpkn.data.protocols.RecipeCompositionProfile.NATIVE_COMPACT)
+                .any { it.rule == "H6" },
+        )
+    }
+
+    @Test
+    fun native_deload_keeps_essentials_and_one_set_per_slot() {
+        val deloadDay = nativeCompactDay(
+            slots = listOf(
+                slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_HIGH, rangeRirSets(1, 4, 6, 4), 180, LiftSlot.SQUAT),
+                slot("push", SlotRole.T3_ACCESSORY, CatalogIds.BP_DB, rangeRirSets(1, 8, 12, 4), 120),
+            ),
+            minimumDose = com.example.kpkn.data.protocols.DayMinimumDose(2, 4, listOf("sq")),
+        )
+        assertTrue(
+            hardOf(
+                deloadDay,
+                com.example.kpkn.data.protocols.RecipeCompositionProfile.NATIVE_COMPACT,
+                BlockGoal.DELOAD,
+            ).isEmpty(),
+        )
+        val missingEssential = deloadDay.copy(minimumDose = com.example.kpkn.data.protocols.DayMinimumDose(2, 4, listOf("no-existe")))
+        assertTrue(
+            hardOf(
+                missingEssential,
+                com.example.kpkn.data.protocols.RecipeCompositionProfile.NATIVE_COMPACT,
+                BlockGoal.DELOAD,
+            ).any { it.rule == "H6" },
+        )
+    }
+
+    @Test
+    fun mixed_cardio_dispatches_on_session_kind() {
+        val profile = com.example.kpkn.data.protocols.RecipeCompositionProfile.MIXED_CARDIO
+        // CARDIO: cero resistencia y cardio real ≥10 min.
+        val cardioOnly = nativeCompactDay(
+            slots = emptyList(),
+            minimumDose = com.example.kpkn.data.protocols.DayMinimumDose(0, 0, emptyList()),
+            sessionKind = com.example.kpkn.data.protocols.RecipeSessionKind.CARDIO,
+            cardioSeconds = 600,
+        )
+        assertTrue("día solo cardio válido: ${hardOf(cardioOnly, profile)}", hardOf(cardioOnly, profile).isEmpty())
+        val shortCardio = cardioOnly.copy(
+            cardioBlocks = cardioOnly.cardioBlocks.map { it.copy(details = it.details.copy(targetDurationSeconds = 480)) },
+        )
+        assertTrue(
+            "cardio de 8 min no vale",
+            hardOf(shortCardio, profile).any { it.rule == "H6" && it.message.contains("10 min") },
+        )
+        val cardioWithResistance = cardioOnly.copy(
+            slots = listOf(slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_HIGH, rangeRirSets(2, 4, 6, 3), 180, LiftSlot.SQUAT)),
+        )
+        assertTrue(
+            "un día solo cardio no admite resistencia",
+            hardOf(cardioWithResistance, profile).any { it.rule == "H6" },
+        )
+        val cardioWithSpeed = cardioOnly.copy(
+            slots = listOf(slot("speed", SlotRole.SPEED, CatalogIds.SQ_HIGH, rangeRirSets(2, 3, 3, 5), 90)),
+        )
+        assertTrue(
+            "SPEED también es un slot de resistencia y no puede colarse en CARDIO",
+            hardOf(cardioWithSpeed, profile).any { it.rule == "H6" },
+        )
+        // STRENGTH_CARDIO: suelo NATIVE + cardio válido.
+        val strengthCardio = nativeCompactDay(
+            sessionKind = com.example.kpkn.data.protocols.RecipeSessionKind.STRENGTH_CARDIO,
+            cardioSeconds = 900,
+        )
+        assertTrue(hardOf(strengthCardio, profile).isEmpty())
+        val strengthCardioNoCardio = strengthCardio.copy(cardioBlocks = emptyList())
+        assertTrue(
+            hardOf(strengthCardioNoCardio, profile).any { it.rule == "H6" },
+        )
+        // CARDIO_ACCESSORY: cardio + accesorios esenciales; 1 ejercicio/1 serie vale.
+        val accessory = nativeCompactDay(
+            slots = listOf(
+                slot("lunge", SlotRole.T3_ACCESSORY, CatalogIds.LUNGE_REVERSE_BODYWEIGHT, rangeRirSets(1, 8, 12, 3), 120),
+            ),
+            minimumDose = com.example.kpkn.data.protocols.DayMinimumDose(0, 0, listOf("lunge")),
+            sessionKind = com.example.kpkn.data.protocols.RecipeSessionKind.CARDIO_ACCESSORY,
+            cardioSeconds = 600,
+        )
+        assertTrue(
+            "cardio+accesorios con1 ejercicio/1 serie debe pasar: ${hardOf(accessory, profile)}",
+            hardOf(accessory, profile).isEmpty(),
+        )
+        assertTrue(
+            "cardio+accesorios exige cardio real",
+            hardOf(accessory.copy(cardioBlocks = emptyList()), profile).any { it.rule == "H6" },
+        )
+        assertTrue(
+            "cardio+accesorios exige los esenciales",
+            hardOf(accessory.copy(minimumDose = com.example.kpkn.data.protocols.DayMinimumDose(0, 0, listOf("otro"))), profile)
+                .any { it.rule == "H6" },
+        )
+    }
+
+    @Test
+    fun mrv_upper_bound_survives_an_empty_lift_slots_map() {
+        // Receta con `liftSlots` vacío (§14.3): el mapa no desactiva el techo.
+        val chestDays = (1..6).map { dayIndex ->
+            com.example.kpkn.data.protocols.DayRecipe(
+                label = "pecho$dayIndex",
+                weekday = dayIndex,
+                slots = listOf(
+                    slot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP, rangeRirSets(4, 8, 12, 2), 120, LiftSlot.BENCH),
+                    slot("inc", SlotRole.T3_ACCESSORY, CatalogIds.BP_INC_DB, rangeRirSets(4, 8, 12, 2), 120),
+                    slot("fly", SlotRole.T3_ACCESSORY, CatalogIds.FLY, rangeRirSets(4, 10, 15, 2), 90),
+                ),
+            )
+        }
+        fun recipe(profile: com.example.kpkn.data.protocols.RecipeCompositionProfile) = TrainingPlanRecipe(
+            id = "native:muscle-foundation-v2",
+            weeks = listOf(
+                com.example.kpkn.data.protocols.WeekRecipe(
+                    weekNumber = 1,
+                    blockIndex = 0,
+                    blockName = "Acumulación",
+                    blockGoal = BlockGoal.ACCUMULATION,
+                    days = chestDays,
+                ),
+            ),
+            claimedDaysPerWeek = 6,
+            compositionProfile = profile,
+        )
+        val nativeHard = ProgramRecipeValidator.hardFindings(recipe(com.example.kpkn.data.protocols.RecipeCompositionProfile.NATIVE_COMPACT), metadata)
+        assertTrue(
+            "MRV debe seguir activo con liftSlots vacío: $nativeHard",
+            nativeHard.any { it.rule == "W2" && it.message.contains("MRV") },
+        )
+        val legacyHard = ProgramRecipeValidator.hardFindings(recipe(com.example.kpkn.data.protocols.RecipeCompositionProfile.LEGACY_STANDARD), metadata)
+        assertTrue(
+            "LEGACY conserva su comportamiento actual (sin W2-MRV con mapa vacío): $legacyHard",
+            legacyHard.none { it.rule == "W2" && it.message.contains("MRV") },
+        )
+    }
+
+    @Test
+    fun native_mrv_is_hard_even_when_mev_is_zero_but_legacy_contract_stays_soft() {
+        // 19 series superan el techo blando de 17,5 (B-02): entre 16 y 17,5 el exceso es SOFT y se prueba
+        // aparte en `native_glutes_soft_band_is_soft_up_to_the_ceiling_and_hard_above_it`.
+        val highGluteDay = day(
+            "glúteo",
+            listOf(
+                slot(
+                    "bridge",
+                    SlotRole.T3_ACCESSORY,
+                    CatalogIds.GLUTE_BRIDGE_BODYWEIGHT,
+                    rangeRirSets(19, 8, 12, 2),
+                    120,
+                ),
+                slot("core", SlotRole.T3_ACCESSORY, CatalogIds.CRUNCH, rangeRirSets(1, 8, 12, 2), 60),
+            ),
+        )
+        fun profileRecipe(profile: RecipeCompositionProfile) = TrainingPlanRecipe(
+            id = "native:muscle-foundation-v2",
+            weeks = listOf(weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, listOf(highGluteDay))),
+            compositionProfile = profile,
+        )
+
+        val nativeFindings = ProgramRecipeValidator.hardFindings(
+            profileRecipe(RecipeCompositionProfile.NATIVE_COMPACT),
+            metadata,
+        )
+        assertTrue(
+            "Glúteos tiene MEV 0 pero MRV 16; pasar el techo blando de 17,5 sigue siendo HARD: $nativeFindings",
+            nativeFindings.any { it.rule == "W2" && it.message.contains("GLUTES") && it.message.contains("MRV") },
+        )
+
+        val legacyFindings = ProgramRecipeValidator.hardFindings(
+            profileRecipe(RecipeCompositionProfile.LEGACY_STANDARD),
+            metadata,
+        )
+        assertTrue(
+            "no se cambia el umbral legacy de especialización",
+            legacyFindings.none { it.rule == "W2" && it.message.contains("MRV") },
+        )
+    }
+
+    // ─── B-02: banda blanda de glúteos (límite 16, techo blando 17,5) ────────────────────────
+
+    /** Receta propia de una semana: [bridgeSets] series de puente (1,0 de glúteo por serie) más los [extra]. */
+    private fun nativeGluteRecipe(
+        bridgeSets: Int,
+        extra: List<com.example.kpkn.data.protocols.SlotRecipe> = emptyList(),
+        profile: RecipeCompositionProfile = RecipeCompositionProfile.NATIVE_COMPACT,
+        recipeId: String = "native:muscle-foundation-v2",
+        liftSlots: Map<LiftSlot, String> = emptyMap(),
+    ): TrainingPlanRecipe {
+        val gluteDay = day(
+            "glúteo",
+            listOf(
+                slot(
+                    "bridge",
+                    SlotRole.T3_ACCESSORY,
+                    CatalogIds.GLUTE_BRIDGE_BODYWEIGHT,
+                    rangeRirSets(bridgeSets, 8, 12, 2),
+                    120,
+                ),
+            ) + extra,
+        )
+        return TrainingPlanRecipe(
+            id = recipeId,
+            weeks = listOf(weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, listOf(gluteDay))),
+            liftSlots = liftSlots,
+            compositionProfile = profile,
+        )
+    }
+
+    /** Hallazgos de volumen semanal de glúteos por encima de su MRV (SOFT y HARD). */
+    private fun gluteMrvFindings(recipe: TrainingPlanRecipe) =
+        ProgramRecipeValidator.validate(recipe, metadata)
+            .filter { it.rule == "W2" && it.message.contains("GLUTES") && it.message.contains("> MRV") }
+
+    @Test
+    fun native_glutes_soft_band_is_soft_up_to_the_ceiling_and_hard_above_it() {
+        val superman = slot(
+            "superman",
+            SlotRole.T3_ACCESSORY,
+            "back_superman_suelo__default",
+            rangeRirSets(1, 8, 12, 2),
+            60,
+        )
+
+        // Hasta el límite (16): volumen normal, sin hallazgo.
+        assertTrue(gluteMrvFindings(nativeGluteRecipe(16)).isEmpty())
+
+        // Entre el límite y el techo (17 y 17,5 series): «volumen alto», SOFT. No bloquea la receta.
+        val seventeen = nativeGluteRecipe(17)
+        // 17 de puente (1,0 por serie) + 1 de superman (0,5 de glúteo secundario) = 17,5 exactos.
+        val seventeenAndAHalf = nativeGluteRecipe(17, listOf(superman))
+        assertEquals(
+            "el contador único mide 17,5 series de glúteo",
+            17.5,
+            SessionCompositionPolicy.weeklyGroupSets(seventeenAndAHalf.weeks.first(), metadata)
+                .getValue(com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES),
+            0.0,
+        )
+        listOf(seventeen, seventeenAndAHalf).forEach { recipe ->
+            val findings = gluteMrvFindings(recipe)
+            assertEquals("un solo hallazgo de glúteos: $findings", 1, findings.size)
+            val finding = findings.single()
+            assertEquals(com.example.kpkn.data.protocols.CompositionSeverity.SOFT, finding.severity)
+            assertTrue("conserva el texto «> MRV 16»: ${finding.message}", finding.message.contains("> MRV 16"))
+            assertTrue("avisa del volumen alto: ${finding.message}", finding.message.contains("volumen alto"))
+            assertTrue(
+                "la banda no bloquea la receta (sin HARD de glúteos): ${ProgramRecipeValidator.hardFindings(recipe, metadata)}",
+                ProgramRecipeValidator.hardFindings(recipe, metadata).none { it.message.contains("GLUTES") },
+            )
+        }
+
+        // Por encima del techo blando (18 y 19 series): HARD, como antes, sin la marca de volumen alto.
+        listOf(18, 19).forEach { sets ->
+            val findings = gluteMrvFindings(nativeGluteRecipe(sets))
+            assertEquals("un solo hallazgo de glúteos con $sets series: $findings", 1, findings.size)
+            val finding = findings.single()
+            assertEquals(com.example.kpkn.data.protocols.CompositionSeverity.HARD, finding.severity)
+            assertTrue("conserva el texto «> MRV 16»: ${finding.message}", finding.message.contains("> MRV 16"))
+            assertFalse("no lleva la marca de volumen alto: ${finding.message}", finding.message.contains("volumen alto"))
+            assertTrue(
+                ProgramRecipeValidator.hardFindings(nativeGluteRecipe(sets), metadata).any { it.message == finding.message },
+            )
+        }
+    }
+
+    @Test
+    fun native_soft_band_does_not_extend_to_other_muscles_nor_to_legacy_recipes() {
+        fun chestRecipe(sets: Int) = TrainingPlanRecipe(
+            id = "native:muscle-foundation-v2",
+            weeks = listOf(
+                weekRecipe(
+                    1, 0, "Base", BlockGoal.ACCUMULATION,
+                    listOf(
+                        day(
+                            "pecho",
+                            listOf(
+                                slot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP, rangeRirSets(sets, 8, 12, 2), 120, LiftSlot.BENCH),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            compositionProfile = RecipeCompositionProfile.NATIVE_COMPACT,
+        )
+        fun chestFindings(sets: Int) = ProgramRecipeValidator.validate(chestRecipe(sets), metadata)
+            .filter { it.rule == "W2" && it.message.contains("CHEST") && it.message.contains("> MRV") }
+
+        // Pecho: MRV 22. Con 22 series no hay hallazgo y con 23 (una sola de más) ya es HARD: sin tolerancia.
+        assertTrue(chestFindings(22).isEmpty())
+        val chestOver = chestFindings(23)
+        assertEquals(1, chestOver.size)
+        assertEquals(com.example.kpkn.data.protocols.CompositionSeverity.HARD, chestOver.single().severity)
+        assertFalse(chestOver.single().message.contains("volumen alto"))
+
+        // Receta no propia (perfil legacy, dos levantamientos para que el MRV aplique): el exceso de glúteos
+        // sigue siendo SOFT por MEV 0 y NUNCA lleva la marca de «volumen alto».
+        val legacyLifts = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW, LiftSlot.BENCH to CatalogIds.BP)
+        listOf(17, 19).forEach { sets ->
+            val findings = gluteMrvFindings(
+                nativeGluteRecipe(
+                    sets,
+                    profile = RecipeCompositionProfile.LEGACY_STANDARD,
+                    recipeId = "legacy-glute-volume",
+                    liftSlots = legacyLifts,
+                ),
+            )
+            assertEquals("un hallazgo legacy de glúteos con $sets series: $findings", 1, findings.size)
+            assertEquals(com.example.kpkn.data.protocols.CompositionSeverity.SOFT, findings.single().severity)
+            assertFalse(findings.single().message.contains("volumen alto"))
+        }
     }
 }
