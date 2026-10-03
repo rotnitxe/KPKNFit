@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -39,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
+import com.example.kpkn.screens.nutrition.components.MealTypeSaver
 import com.example.kpkn.screens.nutrition.components.SupplementTrackingCard
 import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
 import com.example.kpkn.ui.components.KpknAlertDialog
@@ -103,12 +105,14 @@ fun NutritionScreen(
         .collectAsState(initial = com.example.kpkn.data.models.Settings())
     val nutritionRepo = remember { com.example.kpkn.data.repository.NutritionRepository.getInstance() }
 
-    var showFoodLogger by remember { mutableStateOf(false) }
+    // WP-U7 (C5): si la hoja del logger estaba abierta, tras la muerte del proceso se reabre con su borrador
+    // (la semilla vive en el SavedStateHandle del FoodLoggerViewModel); por eso estos tres estados se guardan.
+    var showFoodLogger by rememberSaveable { mutableStateOf(false) }
     var showPlanRequiredDialog by remember { mutableStateOf(false) }
     // C12: la comida por defecto sigue a la hora, no es siempre «Almuerzo»; cada apertura la resuelve de nuevo.
-    var selectedMealForLogger by remember { mutableStateOf(defaultMealTypeNow()) }
+    var selectedMealForLogger by rememberSaveable(stateSaver = MealTypeSaver) { mutableStateOf(defaultMealTypeNow()) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
-    var foodLoggerInitialTab by remember { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
+    var foodLoggerInitialTab by rememberSaveable { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
     var pendingNutritionSetupDraftId by remember { mutableStateOf<String?>(null) }
     var pendingSetupRefresh by remember { mutableIntStateOf(0) }
     val nutritionContext = androidx.compose.ui.platform.LocalContext.current

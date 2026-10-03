@@ -100,6 +100,9 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.ui.components.KpknSnackbarBanner
 import com.example.kpkn.ui.components.SnackbarType
 import com.example.kpkn.ui.components.KpknAlertDialog
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -107,7 +110,8 @@ private const val PREF_FILE = "kpkn_nutrition_prefs"
 private const val PREF_ANALYSIS_MODE = "analysis_mode"
 private const val MODE_BASIC = "BASIC"
 
-private enum class ParseStage { INTERPRETING, ESTIMATING }
+// WP-U7: internal (not private) because the draft holder in FoodLoggerViewModel.kt stores these three types.
+internal enum class ParseStage { INTERPRETING, ESTIMATING }
 
 private val MEAL_OPTIONS = listOf(
     MealType.BREAKFAST to "Desayuno",
@@ -129,9 +133,9 @@ private fun technicalDetailOf(error: Throwable): String {
     return if (message.isBlank()) error.javaClass.simpleName else "${error.javaClass.simpleName}: $message"
 }
 
-private enum class AnalysisNoticeTone { INFO, WARNING }
+internal enum class AnalysisNoticeTone { INFO, WARNING }
 
-private data class AnalysisNotice(
+internal data class AnalysisNotice(
     val title: String,
     val message: String,
     val tone: AnalysisNoticeTone,
@@ -171,42 +175,59 @@ fun FoodLoggerDrawer(
     val settings by programRepo.settings.collectAsState()
     if (!isOpen) return
 
-    val scope = rememberCoroutineScope()
+    // WP-U7 (C5): the draft lives in a ViewModel owned by the host's NavBackStackEntry (Nutrition and Home keep separate
+    // drafts), so rotation, folding or a recreated composition keep the text, the interpreted foods and the analysis in
+    // flight. Only a primitive seed goes through SavedStateHandle (process death); the foods are interpreted again from it.
+    val vm: FoodLoggerViewModel = viewModel(key = FOOD_LOGGER_VIEW_MODEL_KEY) {
+        FoodLoggerViewModel(createSavedStateHandle())
+    }
+    remember(vm) {
+        vm.seedIfEmpty(date = initialDate, meal = initialMealType, description = initialDescription.orEmpty(), tab = initialTab)
+    }
+    LaunchedEffect(vm) { vm.persistSeed() }
+    val draft = vm.draft
+    // The work (analysis, search, save) outlives the composition, so it runs in the ViewModel scope; scrolling stays in effects.
+    val scope = vm.viewModelScope
     val context = LocalContext.current
+    val appContext = remember(context) { context.applicationContext }
     val prefs = remember { context.getSharedPreferences(PREF_FILE, android.content.Context.MODE_PRIVATE) }
 
-    var description by remember { mutableStateOf(initialDescription.orEmpty()) }
-    var lastAnalyzedDescription by remember { mutableStateOf("") }
-    var mealType by remember { mutableStateOf(initialMealType) }
-    var logDate by remember { mutableStateOf(initialDate) }
-    var tags by remember { mutableStateOf(emptyList<ResolvedTag>()) }
-    var detectedContext by remember { mutableStateOf<ContextDetector.ContextResult?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
-    var searchResults by remember { mutableStateOf(emptyList<FoodCandidate>()) }
+    // Draft state (FoodLoggerDraft): the delegates keep every local function below working unchanged. The property
+    // references are remembered: lambdas that capture them are memoized by identity, so a fresh reference on every
+    // recomposition would hand every TagCard new callbacks.
+    var description by remember(draft) { draft::description }
+    var lastAnalyzedDescription by remember(draft) { draft::lastAnalyzedDescription }
+    var mealType by remember(draft) { draft::mealType }
+    var logDate by remember(draft) { draft::logDate }
+    var tags by remember(draft) { draft::tags }
+    var detectedContext by remember(draft) { draft::detectedContext }
+    var searchQuery by remember(draft) { draft::searchQuery }
+    var searchResults by remember(draft) { draft::searchResults }
     // The search in flight: a newer search (or an emptied box) cancels it instead of letting it finish for nothing.
-    var searchJob by remember { mutableStateOf<Job?>(null) }
-    var activeTab by remember { mutableIntStateOf(initialTab.coerceIn(0, 1)) }
-    var isSaving by remember { mutableStateOf(false) }
-    var saveError by remember { mutableStateOf<String?>(null) }
+    var searchJob by remember(vm) { vm::searchJob }
+    var activeTab by remember(draft) { draft::activeTab }
+    var isSaving by remember(draft) { draft::isSaving }
+    var saveError by remember(draft) { draft::saveError }
     // Bumped on every rejected search tap so the same message still scrolls into view (never a silent no-op).
-    var errorPulse by remember { mutableIntStateOf(0) }
+    var errorPulse by remember(draft) { draft::errorPulse }
+    // Transient sheet state: it does not need to survive a recreation.
     var showDiscardConfirmation by remember { mutableStateOf(false) }
     var sheetRevision by remember { mutableIntStateOf(0) }
-    var draftLogId by remember { mutableStateOf(UUID.randomUUID().toString()) }
-    var showSuccess by remember { mutableStateOf(false) }
-    var isAnalyzing by remember { mutableStateOf(false) }
+    var draftLogId by remember(draft) { draft::draftLogId }
+    var showSuccess by remember(draft) { draft::showSuccess }
+    var isAnalyzing by remember(draft) { draft::isAnalyzing }
     var compositionRequestToken by remember { mutableIntStateOf(0) }
-    var reviewRequired by remember { mutableStateOf(false) }
-    var analysisStage by remember { mutableStateOf<ParseStage?>(null) }
+    var reviewRequired by remember(draft) { draft::reviewRequired }
+    var analysisStage by remember(draft) { draft::analysisStage }
     var analysisElapsedMs by remember { mutableStateOf(0L) }
-    var analysisStartedAtMs by remember { mutableStateOf(0L) }
-    var analysisNotice by remember { mutableStateOf<AnalysisNotice?>(null) }
+    var analysisStartedAtMs by remember(draft) { draft::analysisStartedAtMs }
+    var analysisNotice by remember(draft) { draft::analysisNotice }
 
     // E16/IT2: invalidación del aprendizaje desde la UI.
-    var learnedMemoryCleared by remember { mutableStateOf(false) }
+    var learnedMemoryCleared by remember(draft) { draft::learnedMemoryCleared }
 
     // IT3: incertidumbre preservada como rango (referencia del dataset local).
-    var analysisKcalRange by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var analysisKcalRange by remember(draft) { draft::analysisKcalRange }
 
     // Configuración general de comidas (medidas / aprendizaje)
     var showSettingsDialog by remember { mutableStateOf(false) }
@@ -215,7 +236,7 @@ fun FoodLoggerDrawer(
     var showUtensilDialog by remember { mutableStateOf(false) }
     var showPrivacyInfo by remember { mutableStateOf(false) }
     // WP-U12 (C11): el diálogo parte de lo vigente (base + lo guardado), no solo de la base.
-    var utensilValues by remember { mutableStateOf(currentUtensilValues()) }
+    var utensilValues by remember(draft) { draft::utensilValues }
 
     val listState = rememberLazyListState()
     val keepEditing: () -> Unit = {
@@ -224,17 +245,26 @@ fun FoodLoggerDrawer(
         // its visual state; description, resolved foods and scroll state stay here.
         sheetRevision++
     }
+    // WP-U7 (C5): every exit (discard, empty close, saved) drops the draft: work in flight stops and nothing is seeded again.
+    val closeLogger: () -> Unit = {
+        vm.clearDraft()
+        onDismiss()
+    }
     val requestDismiss: () -> Unit = {
         // Prevent accidental dismiss when there's content (description typed or foods added)
         if (!isSaving) {
-            if (description.isBlank() && tags.isEmpty()) onDismiss()
+            if (description.isBlank() && tags.isEmpty()) closeLogger()
             else showDiscardConfirmation = true
         } else sheetRevision++
     }
 
-    // Auto-scroll to show newly detected foods when analysis finishes
+    // Auto-scroll to show newly detected foods when analysis finishes. A recreated composition (rotation) starts with the
+    // analysis already done and keeps the user's scroll position: only a run seen by this composition scrolls.
+    var analysisSeenHere by remember { mutableStateOf(false) }
     LaunchedEffect(isAnalyzing) {
-        if (!isAnalyzing && tags.isNotEmpty()) {
+        if (isAnalyzing) {
+            analysisSeenHere = true
+        } else if (analysisSeenHere && tags.isNotEmpty()) {
             val lastIndex = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
             listState.animateScrollToItem(lastIndex)
         }
@@ -268,7 +298,7 @@ fun FoodLoggerDrawer(
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     suspend fun createTagResolver(): TagResolver {
-        val calibrationProfile = NutritionCalibrationRepository.getInstance(context).get()
+        val calibrationProfile = NutritionCalibrationRepository.getInstance(appContext).get()
         return TagResolver(object : FoodResolutionPort {
             override suspend fun resolveSmart(
                 tag: String,
@@ -450,8 +480,9 @@ fun FoodLoggerDrawer(
         return true
     }
 
-    fun analyzeDescription() {
-        if (description.isBlank() || isAnalyzing) return
+    /** Interprets [text] (the box by default). WP-U7: the restore after process death passes the last analyzed text. */
+    fun analyzeDescription(text: String = description) {
+        if (text.isBlank() || isAnalyzing) return
 
         analysisNotice = null
         analysisKcalRange = null
@@ -462,12 +493,12 @@ fun FoodLoggerDrawer(
             namespace = "nutrition",
             name = "analysis_started",
             fields = mapOf(
-                "descriptionLength" to description.length,
+                "descriptionLength" to text.length,
                 "engine" to "local",
             ),
         )
 
-        val descriptionSnapshot = description
+        val descriptionSnapshot = text
         // NutriTelemetry: una traza por análisis, solo con métricas (sin texto).
         val analysisTrace = NutritionTelemetry.startTrace(
             source = if (!initialDescription.isNullOrBlank()) "shared" else "manual",
@@ -479,7 +510,7 @@ fun FoodLoggerDrawer(
         NutritionTelemetry.markInFlight(analysisTrace.traceId, "start")
 
         isAnalyzing = true
-        scope.launch(analysisErrorHandler) {
+        vm.analysisJob = scope.launch(analysisErrorHandler) {
             var traceFinished = false
             fun endTraceOnce(outcome: String, fields: Map<String, Any?> = emptyMap()) {
                 if (!traceFinished) {
@@ -655,10 +686,22 @@ fun FoodLoggerDrawer(
         nutritionRepo.initFoodIndex()
     }
 
+    // WP-U7 (C5): after process death the draft comes back from its seed without cards: interpret the last analyzed text
+    // again (what the cards showed), once. A rotation never gets here: the ViewModel kept the cards and the request is one-shot.
+    LaunchedEffect(vm) {
+        if (vm.takeRestoreRequest() && tags.isEmpty() && lastAnalyzedDescription.isNotBlank()) {
+            analyzeDescription(lastAnalyzedDescription)
+        }
+    }
+
     LaunchedEffect(initialDescription, initialTab) {
         if (initialDescription.isNullOrBlank()) return@LaunchedEffect
         val normalized = initialDescription.trim()
         if (normalized.isBlank()) return@LaunchedEffect
+        // WP-U7 (C5): a shared text is applied once. A recreated composition (rotation, folding) or a restored draft gets
+        // the same text again and must not overwrite what the user has typed since.
+        if (draft.consumedInitialDescription == normalized) return@LaunchedEffect
+        draft.consumedInitialDescription = normalized
         description = normalized
         activeTab = initialTab.coerceIn(0, 1)
         if (tags.isEmpty()) {
@@ -862,7 +905,7 @@ fun FoodLoggerDrawer(
         analysisStage = ParseStage.INTERPRETING
         analysisStartedAtMs = System.currentTimeMillis()
         saveError = null
-        scope.launch {
+        vm.compositionJob = scope.launch {
             try {
                 val replacement = createTagResolver().resolveDeclaredComposition(original, query, detectedContext, mealType)
                 if (draftLogId == draftId && compositionRequestToken == requestToken && tags.any { it == pending }) {
@@ -1358,7 +1401,7 @@ fun FoodLoggerDrawer(
             onDismissRequest = keepEditing,
             title = { Text("¿Descartar esta comida?") },
             text = { Text("El borrador y sus correcciones no se guardarán ni se usarán para aprender hábitos.") },
-            confirmButton = { TextButton(onClick = { showDiscardConfirmation = false; onDismiss() }) { Text("Descartar") } },
+            confirmButton = { TextButton(onClick = { showDiscardConfirmation = false; closeLogger() }) { Text("Descartar") } },
             dismissButton = { TextButton(onClick = keepEditing) { Text("Seguir editando") } },
         )
     }
@@ -1866,7 +1909,7 @@ fun FoodLoggerDrawer(
         LaunchedEffect(Unit) {
             kotlinx.coroutines.delay(1500)
             showSuccess = false
-            onDismiss()
+            closeLogger()
         }
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             KpknSnackbarBanner(
@@ -2686,16 +2729,6 @@ private val CONFIGURABLE_UTENSILS = listOf(
     UtensilSpec("bol", "Bol", 200f..500f),
     UtensilSpec("copa", "Copa", 100f..300f),
 )
-
-/**
- * WP-U12 (C11): volumen vigente de cada utensilio configurable, es decir la base salvo lo que el usuario ya guardó.
- * Partir siempre de la base hacía que el diálogo mostrara los valores originales y que Guardar pisara con ellos los
- * tamaños que el usuario ya había guardado.
- */
-private fun currentUtensilValues(): Map<String, Float> {
-    val saved = SubjectivePortionEngine.currentUtensilOverrides()
-    return SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (key, base) -> (saved[key] ?: base).toFloat() }
-}
 
 @Composable
 private fun UtensilSettingsDialog(

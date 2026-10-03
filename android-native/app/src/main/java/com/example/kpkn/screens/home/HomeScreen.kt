@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +56,7 @@ import com.example.kpkn.domain.auge.LoadAdvisoryEngine
 import com.example.kpkn.screens.auge.rememberAugeViewModel
 import com.example.kpkn.screens.nutrition.NutritionViewModel
 import com.example.kpkn.screens.nutrition.components.FoodLoggerDrawer
+import com.example.kpkn.screens.nutrition.components.MealTypeSaver
 import com.example.kpkn.screens.programs.CreateProgramTemplateSheet
 import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.screens.programdetail.components.VolumeCalibrationSheet
@@ -128,7 +130,8 @@ fun HomeScreen(
     val augeLoading = augeSnapshot.isLoading
     val uiState by viewModel.uiState.collectAsState()
     val nutritionRepo = remember { NutritionRepository.getInstance() }
-    var showFoodLogger by remember { mutableStateOf(false) }
+    // WP-U7 (C5): si la hoja del logger estaba abierta, tras la muerte del proceso se reabre con su borrador.
+    var showFoodLogger by rememberSaveable { mutableStateOf(false) }
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
@@ -312,10 +315,14 @@ fun HomeScreen(
              )
 
         if (showFoodLogger) {
+            // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger. WP-U7: se guarda con el
+            // resto del estado (la semilla del borrador manda de todos modos al restaurar).
+            val loggerMeal by rememberSaveable(stateSaver = MealTypeSaver) {
+                mutableStateOf(com.example.kpkn.domain.nutrition.defaultMealTypeNow())
+            }
             HomeFoodLoggerHost(
                 nutritionRepo = nutritionRepo,
-                // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger.
-                selectedMealForLogger = remember { com.example.kpkn.domain.nutrition.defaultMealTypeNow() },
+                selectedMealForLogger = loggerMeal,
                 onDismiss = { showFoodLogger = false },
             )
         }
