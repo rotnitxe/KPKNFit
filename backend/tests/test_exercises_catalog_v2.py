@@ -133,7 +133,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "d46cc093d5e144cf66529e376a9eb195e4dda718e4043da39bafd66faa593984",
+            "50dcc775108cf110d0da9e7aee73346a5305528c220231ce0f4fdaadd68e3375",
         )
 
     def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:

@@ -1,55 +1,849 @@
 {
   "definitions": {
     "quads_sentadilla_cajon": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "fry2003"
+            ],
+            "why": "Pasa de la flexión sentado a la extensión. Con la tibia casi vertical avanza menos, y frenar las rodillas con una barrera redujo su momento frente a dejarlas libres (Fry et al. 2003, extrapolado al cajón); aun así se extiende contra toda la carga y sigue siendo principal."
+          },
+          {
+            "actions": [
+              "Extensión de la cadera",
+              "Flexión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "fry2003",
+              "swinton2012"
+            ],
+            "why": "Es el gran cambio de esta variante: la cadera parte de una flexión profunda con el tronco inclinado. Frenar con una barrera el avance de las rodillas multiplicó el momento de cadera frente al de rodilla (Fry et al. 2003); el cajón y la tibia casi vertical buscan un efecto parecido, por extrapolación. En la comparación directa, el mayor momento de cadera apareció en la sentadilla de powerlifting y no en la de cajón, que sí desplazó el centro de masas hacia atrás (Swinton et al. 2012)."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "swinton2012"
+            ],
+            "why": "Con la tibia casi vertical el tobillo apenas se dobla; la sentadilla a cajón dio el menor momento de tobillo de las tres variantes comparadas (Swinton et al. 2012). Sirve de base, sin mover la carga."
+          },
+          {
+            "actions": [
+              "Estabilidad de la zona lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "swinton2012"
+            ],
+            "why": "La zona lumbar debe seguir neutra al sentarse y al despegar del cajón, sin redondearse ni relajarse; los erectores la fijan en isometría (Hamlyn et al. 2007), con un momento de columna menor que en la sentadilla tradicional (Swinton et al. 2012)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "mcbride2010",
+              "fry2003"
+            ],
+            "why": "Siguen siendo el primer motor de la subida aunque la rodilla avance menos: en la sentadilla a cajón la actividad de vasto lateral y medial fue cercana a la de la sentadilla sin cajón, algo menor en general (McBride et al. 2010). Con las rodillas frenadas por una barrera su momento bajó sin desaparecer (Fry et al. 2003, extrapolado al cajón). Salir desde sentado les quita la ayuda del rebote."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "wretenberg1996",
+              "bryanton2012",
+              "paoli2009"
+            ],
+            "why": "Comparte el papel de motor: extiende la cadera para levantarse del cajón desde una flexión profunda. Con barra alta, el momento pico de la cadera ya superó al de la rodilla (Wretenberg et al. 1996); el esfuerzo de los extensores de cadera crece con la carga y la profundidad (Bryanton et al. 2012), y con la postura ancha su actividad aumentó (Paoli et al. 2009)."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "mccaw1999",
+              "collings2026"
+            ],
+            "why": "La postura ancha y la flexión profunda de cadera ponen a los aductores a extenderla; al separar los pies cambió la actividad del aductor largo (McCaw y Melrose 1999) y la porción isquiocondílea del aductor mayor soporta fuerzas altas en sentadilla (Collings et al. 2026)."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "swinton2012",
+              "mcbride2010"
+            ],
+            "why": "Sostienen la columna neutra con el tronco inclinado, también durante la pausa sobre el cajón, y trabajan en isometría. La sentadilla a cajón dio el menor momento pico sobre la columna de las tres variantes comparadas (Swinton et al. 2012), y el longísimo se activó algo menos que sin cajón (McBride et al. 2010)."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "mcbride2010",
+              "kubo2019",
+              "plotkin2023"
+            ],
+            "why": "Su longitud apenas cambia porque la rodilla se extiende a la vez que la cadera, así que acompañan la subida más que impulsarla. En la sentadilla a cajón el bíceps femoral se activó algo menos que sin cajón (McBride et al. 2010), y los isquiosurales apenas crecieron con el entrenamiento de sentadilla, completa o media (Kubo et al. 2019; Plotkin et al. 2023): por eso quedan como estabilizadores."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "aspe2014",
+              "hamlyn2007"
+            ],
+            "why": "La pared abdominal conserva la presión durante la pausa para que el tronco no se desplome sobre el cajón; en sentadilla trabaja como estabilizador y no como motor (Aspe y Swinton 2014; Hamlyn et al. 2007)."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_sentadilla_cajon__default": {
-            "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "description": "El cajón detrás del atleta, a la altura del fondo buscado, convierte cada repetición en una parada sentada: con la barra sobre la espalda alta, la subida arranca sin el impulso de la bajada.",
             "executionCues": [
-              "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Lleva la cadera atrás y baja con las tibias casi verticales hasta sentarte en el cajón.",
+              "Quédate sentado un instante con el abdomen apretado, sin dejarte caer ni relajar la espalda.",
+              "Sube empujando el suelo hacia los lados, sin balancearte hacia delante."
             ],
             "setupCues": [
-              "Preparación: Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps."
+              "Coloca el cajón detrás de ti a una altura que deje los muslos paralelos al suelo al sentarte.",
+              "Saca la barra del rack sobre la espalda alta y abre los pies algo más que en tu sentadilla habitual."
             ]
           }
         },
-        "description": "La Sentadilla a Cajón usa el cajón como referencia honesta de profundidad: se baja hasta tocarlo y se sube sin rebote, sin hacerse trampas con el rango. Se trabaja con la barra cargada en la espalda, sentando los glúteos en la superficie y levantándose desde esa pausa muerta. Los cuádriceps y los glúteos aprenden a producir fuerza desde el punto exacto de giro. El maestro silencioso que enseña a bajar de verdad."
+        "description": "La Sentadilla a Cajón (box squat) es una sentadilla trasera que baja hasta sentarse un instante sobre un cajón colocado detrás y sube desde ahí, sin aprovechar el rebote del fondo. Suele hacerse con los pies más abiertos que en la sentadilla habitual y llevando la cadera atrás con las tibias casi verticales, así que la cadera trabaja más y las rodillas avanzan menos. Los cuádriceps y los glúteos llevan la subida, los aductores ayudan a extender la cadera, y los isquiosurales y los erectores sostienen el tronco inclinado. La altura del cajón fija la profundidad de cada repetición, y la fuerza y la potencia que se alcanzan son muy parecidas a las de la sentadilla sin cajón."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "La sentadilla a cajón elimina el ciclo de estiramiento-acortamiento; la fuerza y la potencia pico fueron parecidas a las de la sentadilla, y la actividad de vasto lateral, vasto medial, bíceps femoral y longísimo fue en general algo mayor sin cajón.",
+          "id": "mcbride2010",
+          "title": "Comparison of kinetic variables and muscle activity during a squat vs. a box squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21132859/"
+        },
+        {
+          "claim": "La sentadilla a cajón se hizo con postura ancha y tibia más vertical, con desplazamiento del centro de masas hacia atrás, y dio los menores momentos pico de columna y de tobillo de las tres variantes.",
+          "id": "swinton2012",
+          "title": "A biomechanical comparison of the traditional squat, powerlifting squat, and box squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22505136/"
+        },
+        {
+          "claim": "Al impedir que las rodillas pasaran los dedos, el momento de cadera subió de unos 28 a unos 303 N·m y el de rodilla bajó de unos 150 a unos 117, con más inclinación del tronco.",
+          "id": "fry2003",
+          "title": "Effect of knee position on hip and knee torques during the barbell squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/14636100/"
+        },
+        {
+          "claim": "En sentadilla trasera, el glúteo mayor fue el único músculo del muslo cuya actividad aumentó con la postura más ancha.",
+          "id": "paoli2009",
+          "title": "The effect of stance width on the electromyographical activity of eight superficial thigh muscles during back squat with different bar loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19130646/"
+        },
+        {
+          "claim": "La anchura de la postura no cambió la actividad del cuádriceps, pero sí influyó en la del aductor largo y la del glúteo mayor en la sentadilla paralela.",
+          "id": "mccaw1999",
+          "title": "Stance width and bar load effects on leg muscle activity during the parallel squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10188748/"
+        },
+        {
+          "claim": "La sentadilla quedó en el nivel más alto de fuerza para la porción isquiocondílea del aductor mayor, que generó fuerzas altas en los ejercicios orientados a extender la cadera.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "La actividad del recto abdominal y del oblicuo externo fue mucho mayor en los ejercicios de aislamiento de tronco que en las sentadillas, donde destacó la de los erectores.",
+          "id": "aspe2014",
+          "title": "Electromyographic and kinetic comparison of the back squat and overhead squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24662228/"
+        },
+        {
+          "claim": "En la sentadilla al 80 % de 1RM los erectores lumbosacros se activaron más que en el peso muerto y que en los ejercicios de inestabilidad, sin cambios significativos en oblicuo externo y abdominales inferiores.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "Con barra alta, el momento pico de la cadera fue de 230 N·m en sentadilla profunda y 216 en paralela, por encima del de la rodilla, de 191 y 131; con barra baja la cadera cargó todavía más.",
+          "id": "wretenberg1996",
+          "title": "High- and low-bar squatting techniques during weight-training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/8775157/"
+        },
+        {
+          "claim": "El esfuerzo relativo de los extensores de cadera aumentó tanto con la carga como con la profundidad de la sentadilla.",
+          "id": "bryanton2012",
+          "title": "Effect of squat depth and barbell load on relative muscular effort in squatting",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22797000/"
+        },
+        {
+          "claim": "Ni la sentadilla completa ni la media cambiaron el volumen de los isquiosurales en diez semanas, mientras crecían el glúteo mayor y los aductores.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "Nueve semanas de sentadilla trasera hicieron crecer el glúteo tanto como el hip thrust, y más el cuádriceps y los aductores; los isquiosurales apenas crecieron con ninguno de los dos ejercicios.",
+          "id": "plotkin2023",
+          "title": "Hip thrust and back squat training elicit similar gluteus muscle hypertrophy and transfer similarly to the deadlift",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37877099/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla trasera con un cajón detrás del atleta: las caderas retroceden, las tibias quedan casi verticales y el descenso termina sentado un instante sobre el cajón; la subida empieza desde esa posición, sin el rebote del fondo. El cajón que fija la profundidad y la pausa sentado la separan de la sentadilla trasera continua y de la Anderson, que arranca desde los pines.",
+        "keyPositions": [
+          "Sentado: glúteos apoyados en el cajón, tibias casi verticales, tronco inclinado hacia delante con la espalda neutra y la barra sobre el medio del pie.",
+          "Arriba: erguido, con la cadera y las rodillas bloqueadas, la barra sobre el medio del pie y el cajón libre detrás."
+        ],
+        "mistakes": [
+          "Dejarse caer sobre el cajón y golpearlo con la columna cargada.",
+          "Balancear el tronco hacia atrás sobre el cajón y usar el impulso hacia delante para levantarse.",
+          "Aflojar el abdomen y la espalda durante la pausa sentado.",
+          "Poner el cajón tan bajo que la pelvis se redondea antes de tocarlo."
+        ],
+        "phases": [
+          {
+            "description": "La cadera va hacia atrás y abajo con las rodillas abiertas y las tibias casi verticales hasta que los glúteos tocan el cajón.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Sentado un instante, con parte del peso en el cajón y el tronco firme, sin balancearse.",
+            "name": "Pausa"
+          },
+          {
+            "description": "Los pies empujan el suelo y la cadera se abre junto con las rodillas hasta recuperar la posición de pie, sin impulso previo.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Cajón firme detrás del atleta, con una altura que deja los muslos paralelos al suelo o algo por debajo al sentarse.",
+          "Barra en la espalda alta, agarrada por fuera de los hombros, y pies algo más abiertos que en la sentadilla habitual, con las puntas hacia fuera.",
+          "Talones a una distancia del cajón que permita sentarse con la tibia casi vertical."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el atleta, la carga y el cajón enteros en el encuadre.",
+          "contacts": "Glúteos sobre el cajón; pies planos en el suelo y más abiertos que los hombros; las dos manos agarran la carga sobre la espalda alta.",
+          "load": "La carga va sobre la espalda alta, por encima del medio del pie y lejos del suelo.",
+          "orientation": "Atleta de perfil mirando hacia la izquierda del encuadre, con el cajón detrás de él.",
+          "phase": "Pausa sentado: glúteos apoyados en el cajón y tibias casi verticales, justo antes de subir.",
+          "posture": "Tronco inclinado hacia delante con la espalda neutra, tibias casi verticales, muslos paralelos al suelo y rodillas hacia fuera."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica sobre la espalda alta, agarrada por fuera de los hombros, con discos en las dos mangas; cajón firme detrás del atleta, de una altura que deja los muslos paralelos al suelo al sentarse."
+          }
+        },
+        "forbidden": [
+          "Atleta subiendo al cajón con un pie: eso es un step-up.",
+          "Atleta sentado en un banco con la espalda apoyada o sin barra.",
+          "Barra en rack frontal o colgando de las manos.",
+          "Rodillas muy adelantadas sobre los dedos con el cajón lejos de los glúteos.",
+          "Columna redondeada o tronco desplomado sobre el cajón.",
+          "Barra flotando sin que las manos la agarren.",
+          "Barra apoyada en pines de seguridad: eso es la sentadilla Anderson."
+        ],
+        "promptCore": {
+          "barbell": "Side view of a muscular athlete frozen at the BOTTOM of a barbell box squat, sitting briefly on a sturdy box placed behind him. A loaded barbell rests across the upper back and both hands grip it outside the shoulders. The buttocks rest on the top of the box, thighs parallel to the floor, shins nearly vertical, feet flat and set wider than the shoulders with the knees pushed out. The torso leans forward with a neutral back, and the bar stays over the middle of the feet. The plates hang at both ends, high above the floor."
+        },
+        "qa": [
+          "¿Los glúteos del atleta están apoyados en el cajón que tiene detrás?",
+          "¿Las dos manos agarran la barra sobre la espalda alta, sin que flote?",
+          "¿Las tibias están casi verticales y los muslos paralelos al suelo?",
+          "¿Los pies están planos y más abiertos que los hombros?"
+        ]
+      }
     },
     "quads_sentadilla_sumo_frontal": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de rodilla",
+              "Extensión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "yavuz2015",
+              "gullett2009"
+            ],
+            "why": "Es la articulación que más trabaja: se flexiona hasta que los muslos quedan horizontales y se extiende para subir. Frente a la trasera, la frontal no cambió la cinemática de la rodilla (Yavuz et al., 2015) y la cargó con menos compresión y menos momento extensor (Gullett et al., 2009)."
+          },
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera",
+              "Abducción y rotación externa sostenidas"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "yavuz2015",
+              "escamilla2001_stance"
+            ],
+            "why": "Se flexiona y se extiende con los muslos abiertos y rotados hacia fuera. Con el tronco más vertical que en la trasera (Yavuz et al., 2015) la cadera se flexiona algo menos, pero la postura ancha sigue pidiendo más momento extensor de cadera que una estrecha (Escamilla et al., 2001)."
+          },
+          {
+            "actions": [
+              "Dorsiflexión"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2001_stance"
+            ],
+            "why": "Con el tronco erguido las rodillas avanzan algo más y el tobillo se flexiona hacia el empeine, aunque la base ancha deja la tibia más vertical que una postura estrecha (Escamilla et al., 2001). Fija el apoyo y no mueve la carga."
+          },
+          {
+            "actions": [
+              "Estabilidad en posición neutra"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "comfort2011",
+              "jurik2025"
+            ],
+            "why": "La zona lumbar se queda neutra, sin arquearse ni redondearse, mientras el peso va delante del cuerpo; erectores y faja abdominal la fijan durante toda la serie (Comfort et al., 2011; Jurik et al., 2025)."
+          },
+          {
+            "actions": [
+              "Extensión isométrica"
+            ],
+            "id": "columna-toracica",
+            "role": "STABILIZER",
+            "sources": [
+              "comfort2011",
+              "coratella2021"
+            ],
+            "why": "La barra apoyada delante del cuello tira de la espalda alta hacia la flexión; los extensores torácicos la sostienen erguida para que los codos sigan altos y la barra no ruede hacia delante. Coratella et al. (2021) describen esa necesidad de frenar el tronco por detrás en la bajada de la frontal."
+          },
+          {
+            "actions": [
+              "Flexión del hombro sostenida"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "Los hombros, flexionados con los codos al frente, forman el apoyo donde descansa la barra y sostienen el rack toda la serie; el peso baja por la cintura escapular y no por un movimiento del brazo."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "yavuz2015",
+              "mccaw1999",
+              "coratella2021"
+            ],
+            "why": "Lleva la extensión de la rodilla. Con cargas máximas el vasto medial se activó más en la sentadilla frontal que en la trasera durante la subida (Yavuz et al., 2015), y separar los pies no le quita trabajo: la postura ancha no bajó la actividad de los vastos (McCaw y Melrose, 1999), y en la sumo con barra trasera subió la del vasto lateral (Coratella et al., 2021), dato que aquí se extrapola a la barra delante."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "coratella2021",
+              "paoli2009",
+              "gullett2009"
+            ],
+            "why": "Extiende y rota hacia fuera la cadera desde el punto bajo. En culturistas la sentadilla frontal activó más el glúteo mayor durante la bajada que las versiones con barra trasera (Coratella et al., 2021), la base ancha lo recluta más (Paoli et al., 2009) y llevar la barra delante no restó activación muscular (Gullett et al., 2009)."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "benn2018",
+              "coratella2021"
+            ],
+            "why": "Ayudan a extender la cadera desde abajo, sobre todo la porción posterior del aductor mayor, que tuvo su máxima actividad en extensión (Benn et al., 2018). Con la postura sumo y la barra en la espalda, el aductor largo trabajó más en la subida (Coratella et al., 2021); con la carga delante es una extrapolación. Colaboran sin ser el motor principal."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "comfort2011",
+              "coratella2021"
+            ],
+            "why": "La barra delante del cuello empuja el tronco hacia la flexión y los erectores lo frenan sin moverse. Su actividad fue mayor en la sentadilla frontal que en la trasera (Comfort et al., 2011), y el iliocostal se activó más en la frontal que en el resto de sentadillas comparadas (Coratella et al., 2021)."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "jurik2025"
+            ],
+            "why": "La faja abdominal se endurece para que el tronco no se doble con el peso por delante; Jurik et al. (2025) midieron la sentadilla frontal con mancuerna, que estuvo entre los ejercicios que más elevaron la tensión de la pared abdominal, y aquí se extrapola a la barra en rack."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_sentadilla_sumo_frontal__default": {
-            "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "description": "Los dedos sujetan la barra por debajo, por fuera de los hombros, con las muñecas dobladas hacia atrás y los codos apuntando al frente a la altura de los hombros. Quien no llega con las muñecas puede cruzar los brazos sobre la barra, con cada mano en el hombro contrario.",
             "executionCues": [
-              "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Desciende con los codos altos y el pecho arriba, dejando que la cadera se cuele entre las rodillas.",
+              "Separa las rodillas en la dirección de los pies hasta que los muslos queden horizontales.",
+              "Al subir, lleva los codos hacia el techo desde el primer momento para que la barra no caiga hacia delante."
             ],
             "setupCues": [
-              "Preparación: Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
+              "Saca la barra del soporte con ella asentada en la parte frontal de los hombros, junto al cuello.",
+              "Pon los dedos bajo la barra, por fuera de los hombros, y levanta los codos hasta dejar los brazos paralelos al suelo.",
+              "Coloca los talones bien por fuera de la línea de los hombros, con las puntas abiertas en diagonal."
             ]
           }
         },
-        "description": "La Sentadilla Sumo Frontal junta la postura ancha del sumo con la carga al frente: el torso se queda muy erguido y cuádriceps, aductores y glúteos trabajan sin que la espalda cargue el peso detrás. Se ejecuta con la barra en el estante delantero y los pies abiertos, descendiendo entre las caderas con el pecho orgulloso. El core se suma al esfuerzo sosteniendo la barra. Una combinación que junta lo mejor de dos mundos exigentes."
+        "description": "La Sentadilla Sumo Frontal lleva la barra en rack frontal, apoyada delante del cuello sobre los hombros, con los pies muy separados y las puntas abiertas en diagonal. Al ir el peso por delante, el tronco baja casi vertical y las rodillas se separan para dejar pasar la cadera hasta que los muslos llegan a la horizontal. Cuádriceps y glúteo mayor hacen la subida, los aductores colaboran desde abajo y los erectores trabajan para que el pecho no se hunda. Exige muñecas y hombros que aguanten los codos levantados, y no perdona que la espalda alta se curve: en cuanto los codos se hunden, la barra se escapa por delante."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Con cargas máximas, el vasto medial se activó más en la sentadilla frontal que en la trasera durante la subida y el semitendinoso más en la trasera; la trasera mostró más inclinación del tronco, sin cambios en la cinemática de la rodilla.",
+          "id": "yavuz2015",
+          "title": "Kinematic and EMG activities during front and back squat variations in maximum loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25630691/"
+        },
+        {
+          "claim": "La sentadilla frontal reclutó la musculatura tanto como la trasera, con menos fuerza compresiva y menos momento extensor en la rodilla; la posición de la barra no cambió la actividad muscular.",
+          "id": "gullett2009",
+          "title": "A biomechanical comparison of back and front squats in healthy trained individuals",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19002072/"
+        },
+        {
+          "claim": "Con cargas ligeras a moderadas, la actividad de los erectores espinales fue mayor en la sentadilla frontal que en la sentadilla trasera, el press militar y la plancha prona.",
+          "id": "comfort2011",
+          "title": "An electromyographical comparison of trunk muscle activity during isometric trunk and dynamic strengthening exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21157393/"
+        },
+        {
+          "claim": "En culturistas al 80 % de 1RM, la sentadilla frontal activó más el glúteo mayor en la bajada y el iliocostal que las traseras, y pidió más estabilización hacia atrás; las traseras con postura sumo activaron más el vasto lateral y el aductor largo al subir.",
+          "id": "coratella2021",
+          "title": "The Activation of Gluteal, Thigh, and Lower Back Muscles in Different Squat Variations Performed by Competitive Bodybuilders: Implications for Resistance Training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33477561/"
+        },
+        {
+          "claim": "En la sentadilla paralela, la actividad del recto femoral y de los vastos solo cambió con la carga y no con la anchura de la postura, que sí modificó la del aductor largo y la del glúteo mayor.",
+          "id": "mccaw1999",
+          "title": "Stance width and bar load effects on leg muscle activity during the parallel squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10188748/"
+        },
+        {
+          "claim": "De ocho músculos del muslo medidos en tres anchuras de postura, solo el glúteo mayor aumentó su actividad con la postura más ancha.",
+          "id": "paoli2009",
+          "title": "The effect of stance width on the electromyographical activity of eight superficial thigh muscles during back squat with different bar loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19130646/"
+        },
+        {
+          "claim": "Las dos porciones del aductor mayor registraron su máxima actividad intramuscular en la extensión de cadera.",
+          "id": "benn2018",
+          "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29520841/"
+        },
+        {
+          "claim": "Frente a la postura estrecha, la ancha dejó la tibia más vertical, flexionó más la cadera y generó mayores momentos extensores de rodilla y de cadera en powerlifters.",
+          "id": "escamilla2001_stance",
+          "title": "A three-dimensional biomechanical analysis of the squat during varying stance widths",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11404665/"
+        },
+        {
+          "claim": "La sentadilla frontal con mancuerna estuvo, junto al peso muerto rumano y la prensa, entre los ejercicios con mayor aumento de la tensión de la pared abdominal.",
+          "id": "jurik2025",
+          "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40325422/"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave de la estabilidad y del movimiento del hombro; sus fibras anteriores flexionan el brazo.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla con la barra en rack frontal, posada en el surco que forman los hombros por delante, junto a la garganta, y con los pies muy separados y las puntas abiertas en diagonal. La carga delante del cuello obliga a bajar con el tronco casi vertical. De la sentadilla sumo con barra en la espalda la separa la posición de la barra, y de la sumo zercher que la barra descanse en los hombros y no en los codos.",
+        "keyPositions": [
+          "Arriba: piernas extendidas, barra sobre los hombros, codos altos y pecho arriba.",
+          "En el punto bajo: muslos horizontales, rodillas abiertas en línea con los pies, tronco casi vertical y codos todavía altos, apuntando al frente por encima de las rodillas.",
+          "La barra sube y baja en vertical sobre el medio del pie."
+        ],
+        "mistakes": [
+          "Bajar los codos durante la subida: el pecho se hunde, la espalda alta se curva y la carga se va hacia las puntas de los pies.",
+          "Sostener el peso con las manos y las muñecas en lugar de apoyarlo en los hombros.",
+          "Juntar las rodillas al salir del punto bajo.",
+          "Inclinar el tronco al subir, de modo que la barra se adelanta respecto del medio del pie."
+        ],
+        "phases": [
+          {
+            "description": "Con los codos altos y el pecho arriba, la cadera desciende entre las rodillas abiertas mientras el tronco apenas se inclina.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Muslos horizontales, codos levantados por delante y por encima de las rodillas, y la barra aún asentada en los hombros, sin rebote.",
+            "name": "Punto bajo"
+          },
+          {
+            "description": "Piernas y cadera se estiran juntas mientras los codos encabezan el ascenso, de modo que el pecho no se hunda bajo la barra.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Barra en el soporte a la altura del esternón: el atleta se coloca debajo, la apoya delante del cuello y sale con ella.",
+          "Agarre de rack: dedos bajo la barra por fuera de los hombros, muñecas en extensión y codos al frente a la altura de los hombros; sin esa movilidad, brazos cruzados sobre la barra.",
+          "Talones bien por fuera de la línea de los hombros y puntas abiertas en diagonal, hacia los lados."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal en tres cuartos a la altura del pecho, con el cuerpo entero, los pies y los dos extremos de la carga dentro del encuadre.",
+          "contacts": "Plantas enteras en el suelo; la carga apoyada sobre la parte delantera de los hombros, rozando el cuello, con los dedos por debajo de ella.",
+          "load": "Carga horizontal delante del cuello, a la altura de los hombros y muy por encima del suelo.",
+          "orientation": "Atleta de cara a la cámara y girado unos treinta grados, con la cabeza alineada con el tronco y la vista al frente.",
+          "phase": "Punto bajo: muslos paralelos al suelo, rodillas abiertas sobre las puntas y tronco casi vertical, justo antes de subir.",
+          "posture": "Codos altos apuntando al frente, pecho arriba y espalda alta recta; pies a casi el doble del ancho de los hombros con las puntas hacia fuera."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica cargada en rack frontal: cruza la parte delantera de los hombros pegada a la garganta, con los dedos bajo la barra por fuera de los hombros y los codos al frente; discos a ambos lados junto a los hombros."
+          }
+        },
+        "forbidden": [
+          "Barra sobre la espalda, detrás del cuello: eso es la sentadilla sumo con barra trasera, no la frontal.",
+          "Barra en el pliegue de los codos con los antebrazos hacia arriba: eso es la sumo zercher.",
+          "Pies a la anchura de los hombros o puntas al frente: eso es una sentadilla frontal convencional.",
+          "Codos caídos hacia el suelo y la barra colgando de las manos.",
+          "Mancuernas o kettlebells en lugar de una barra.",
+          "Talones levantados o rodillas metidas hacia dentro."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter front view of a muscular athlete frozen at the BOTTOM of a wide-stance barbell front squat. The loaded barbell rests across the front of both shoulders, touching the throat; the fingertips of both hands hold it from below just outside the shoulders, elbows high and pointing forward. Feet are planted flat about twice shoulder width apart, toes turned out about 45 degrees. Thighs are parallel to the floor, knees pushed out over the toes, hips sunk between the knees, torso nearly vertical, chest up, heels down. The plates hang beside the shoulders, far above the floor."
+        },
+        "qa": [
+          "¿La barra cruza la parte delantera de los hombros, pegada al cuello, y no está sobre la espalda?",
+          "¿Los dedos sostienen la barra por debajo con los codos altos al frente, y la barra no flota?",
+          "¿Los muslos están casi paralelos al suelo con el tronco casi vertical, en el punto bajo?",
+          "¿Los pies están mucho más separados que los hombros, con las puntas hacia fuera?"
+        ]
+      }
     },
     "quads_sentadilla_sumo_zercher": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de rodilla",
+              "Extensión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2001_stance",
+              "statpearls_knee"
+            ],
+            "why": "Se flexiona hasta que los muslos quedan horizontales y se extiende para subir; con la base ancha se desplaza hacia fuera, en línea con los pies (Escamilla et al., 2001), y deja hueco para que los codos entren entre las rodillas."
+          },
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera",
+              "Abducción y rotación externa sostenidas"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2001_stance"
+            ],
+            "why": "Con los muslos abiertos y girados hacia fuera toda la serie, la cadera se flexiona y se extiende en un arco amplio mientras la carga delantera obliga a llevar el tronco erguido. La postura ancha elevó el momento extensor de la cadera respecto de una estrecha (Escamilla et al., 2001)."
+          },
+          {
+            "actions": [
+              "Dorsiflexión"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2001_stance"
+            ],
+            "why": "Ancla el pie entero en el suelo; la base ancha deja la tibia bastante vertical (Escamilla et al., 2001) y el tobillo solo se dobla lo necesario para que las rodillas acompañen a las puntas."
+          },
+          {
+            "actions": [
+              "Estabilidad en posición neutra"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "jurik2025"
+            ],
+            "why": "Con la carga colgando de los codos delante del abdomen, la zona lumbar resiste la flexión sin moverse gracias a los erectores y a la faja abdominal (Hamlyn et al., 2007; Jurik et al., 2025)."
+          },
+          {
+            "actions": [
+              "Extensión isométrica"
+            ],
+            "id": "columna-toracica",
+            "role": "STABILIZER",
+            "sources": [
+              "comfort2011"
+            ],
+            "why": "La espalda alta es la que más tiende a redondearse, porque la barra queda por delante del tronco a la altura de los codos; los extensores torácicos la sostienen recta todo el recorrido, como en la frontal (Comfort et al., 2011)."
+          },
+          {
+            "actions": [
+              "Flexión isométrica del codo"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "El codo se queda doblado, con el antebrazo hacia arriba, y forma el apoyo de la barra; no se mueve en todo el ejercicio y los flexores del codo lo sostienen contra el peso."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "gullett2009",
+              "clark2012",
+              "mccaw1999"
+            ],
+            "why": "Extiende la rodilla desde el punto bajo. No hay electromiografía de la zercher en PubMed: con la carga delante, como en la frontal, se espera el mismo reclutamiento que en la trasera (Gullett et al., 2009; Clark et al., 2012), y la anchura de los pies no cambió la actividad del cuádriceps (McCaw y Melrose, 1999)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "paoli2009",
+              "kubo2019",
+              "statpearls_glute"
+            ],
+            "why": "Extiende la cadera desde la flexión profunda y la rota hacia fuera para abrir las rodillas. La postura ancha elevó su actividad (Paoli et al., 2009) y la sentadilla profunda aumentó su volumen (Kubo et al., 2019); llevar la carga en los codos no cambia ese papel, así que sigue siendo principal."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026",
+              "coratella2021"
+            ],
+            "why": "Colaboran en la subida como extensores de la cadera: la sentadilla genera fuerzas altas en la porción isquiocondílea del aductor mayor (Collings et al., 2026), y con los pies abiertos y la barra en la espalda el aductor largo se activó más al subir (Coratella et al., 2021), dato que se extrapola a la carga en los codos."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "comfort2011",
+              "hamlyn2007"
+            ],
+            "why": "La barra cuelga de los codos delante del abdomen, lejos de la columna, y los erectores frenan la flexión del tronco en isometría. Se extrapola de la frontal, donde su actividad superó a la de la trasera (Comfort et al., 2011), y de la sentadilla pesada, que los exige más que el peso muerto (Hamlyn et al., 2007)."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "jurik2025"
+            ],
+            "why": "La barra queda pegada al abdomen y la pared abdominal se tensa para que el tronco no se doble bajo una carga tan adelantada; los ejercicios multiarticulares de piernas fueron los que más elevaron esa tensión (Jurik et al., 2025)."
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "Junto con el braquial, que la ontología no distingue, sostiene el codo flexionado para que la barra no resbale hacia las manos. Trabaja en isometría, con un esfuerzo que crece con la carga y sin flexionar ni extender el codo durante el recorrido: por eso es estabilizador y no secundario."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_sentadilla_sumo_zercher__default": {
-            "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+            "description": "Los antebrazos apuntan hacia arriba, con las manos unidas a la altura del pecho y la barra apoyada en la cara interna de los codos, a menudo envuelta en una almohadilla. Sin muñecas en extensión ni barra sobre la espalda, lo primero que se nota es la presión de la carga sobre los brazos.",
             "executionCues": [
-              "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Baja con el tronco erguido hasta que tus codos queden entre las rodillas.",
+              "Frena cuando los muslos estén horizontales, sin apoyar los codos en ellos.",
+              "Sube empujando el suelo y deja la barra quieta en los codos, sin separar las manos."
             ],
             "setupCues": [
-              "Preparación: Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
+              "Deja la barra en el soporte a la altura del ombligo y encájala en el pliegue de los dos codos.",
+              "Junta las manos delante del pecho, pega los codos al tronco y sal del soporte.",
+              "Planta los pies muy abiertos, casi dos anchos de hombros, con las puntas en diagonal."
             ]
           }
         },
-        "description": "La Sentadilla Sumo Zercher mezcla la base ancha con la carga sujeta al pecho entre los brazos: el core trabaja a destajo mientras cuádriceps y aductores bajan y suben el peso. Se ejecuta sosteniendo la barra en el doblez de los brazos y las puntas hacia afuera, descendiendo con el torso firme. La suma de ambas exigencias la hace más dura que cualquiera de sus partes. Para quien ya domina las versiones por separado y busca un reto serio."
+        "description": "La Sentadilla Sumo Zercher sujeta la barra en el pliegue de los codos, delante del abdomen, mientras los pies se plantan muy abiertos, con las puntas hacia fuera. Cuádriceps y glúteo mayor extienden rodillas y cadera, los aductores ayudan en la subida y los bíceps aguantan la barra en su sitio sin mover el codo. La base ancha deja hueco para que los codos entren entre las rodillas en el punto bajo, con el tronco erguido. Al principio el apoyo molesta en los brazos, pero no pide movilidad de muñeca y enseña a subir con la espalda alta firme bajo una carga muy adelantada."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Llevar la barra delante, en la sentadilla frontal, reclutó la musculatura tanto como llevarla en la espalda, con menos fuerza compresiva y menos momento extensor en la rodilla.",
+          "id": "gullett2009",
+          "title": "A biomechanical comparison of back and front squats in healthy trained individuals",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19002072/"
+        },
+        {
+          "claim": "La revisión concluye que variaciones comunes como la anchura de la postura, la rotación de la cadera o la sentadilla frontal no cambian de forma significativa la activación muscular, y que la de los motores principales crece con la carga.",
+          "id": "clark2012",
+          "title": "Muscle activation in the loaded free barbell squat: a brief review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22373894/"
+        },
+        {
+          "claim": "Con postura estrecha, de hombros o ancha, la actividad del cuádriceps en la sentadilla paralela solo dependió de la carga; la anchura cambió la del aductor largo y la del glúteo mayor.",
+          "id": "mccaw1999",
+          "title": "Stance width and bar load effects on leg muscle activity during the parallel squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10188748/"
+        },
+        {
+          "claim": "La postura más ancha de la sentadilla trasera aumentó la actividad del glúteo mayor, el único de los ocho músculos medidos que cambió.",
+          "id": "paoli2009",
+          "title": "The effect of stance width on the electromyographical activity of eight superficial thigh muscles during back squat with different bar loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19130646/"
+        },
+        {
+          "claim": "El entrenamiento de sentadilla profunda aumentó más el volumen de los aductores y del glúteo mayor que el de media sentadilla.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "La sentadilla estuvo entre los ejercicios con mayor fuerza estimada en la porción isquiocondílea del aductor mayor, que trabaja sobre todo al extender la cadera.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "Con la postura sumo, el aductor largo y el vasto lateral se activaron más durante la subida que en la sentadilla con postura normal o frontal.",
+          "id": "coratella2021",
+          "title": "The Activation of Gluteal, Thigh, and Lower Back Muscles in Different Squat Variations Performed by Competitive Bodybuilders: Implications for Resistance Training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33477561/"
+        },
+        {
+          "claim": "Los erectores espinales trabajaron más en la sentadilla frontal, con la carga delante del tronco, que en la trasera, con cargas ligeras a moderadas.",
+          "id": "comfort2011",
+          "title": "An electromyographical comparison of trunk muscle activity during isometric trunk and dynamic strengthening exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/21157393/"
+        },
+        {
+          "claim": "Con el 80 % de 1RM, la sentadilla activó los erectores lumbosacros más que el peso muerto y que los ejercicios de inestabilidad.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "Los ejercicios multiarticulares de piernas fueron los que más aumentaron la tensión de la pared abdominal frente a los monoarticulares de tren superior.",
+          "id": "jurik2025",
+          "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40325422/"
+        },
+        {
+          "claim": "La postura ancha dejó la tibia más vertical y el muslo más horizontal que la estrecha, con mayores momentos extensores de cadera y de rodilla.",
+          "id": "escamilla2001_stance",
+          "title": "A three-dimensional biomechanical analysis of the squat during varying stance widths",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11404665/"
+        },
+        {
+          "claim": "Presenta al glúteo mayor como extensor y rotador externo del muslo, que se recluta al enderezarse desde una posición flexionada.",
+          "id": "statpearls_glute",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como músculo que cruza el codo, flexor del antebrazo y su supinador más potente con el codo flexionado.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe la rodilla como una articulación en bisagra cuya función principal es la flexión y la extensión de la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla con la barra encajada en el pliegue de los codos, delante del abdomen, y con los pies muy abiertos y las puntas hacia fuera. Los antebrazos apuntan arriba con las manos juntas y, abajo, los codos quedan entre las rodillas. Sostener la barra en los codos la separa de la sumo frontal, que la apoya en los hombros, y de la sumo trasera, que la lleva sobre la espalda.",
+        "keyPositions": [
+          "De pie: piernas estiradas, la barra contra la parte alta del abdomen y codos flexionados en ángulo agudo.",
+          "Abajo: codos dentro de las rodillas sin apoyarse en ellas, muslos horizontales, tronco erguido y espalda alta recta; la barra queda a la altura de las rodillas."
+        ],
+        "mistakes": [
+          "Abrir los codos hasta que la barra resbala hacia las manos.",
+          "Redondear la espalda alta para sostener la barra con los brazos.",
+          "Apoyar los codos en los muslos en el punto bajo para descansar.",
+          "Cerrar las rodillas contra los codos durante la subida."
+        ],
+        "phases": [
+          {
+            "description": "La barra va pegada al cuerpo y la cadera baja entre las rodillas abiertas con el tronco erguido.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Codos entre las rodillas, muslos horizontales y espalda alta recta, sin apoyar los brazos en las piernas.",
+            "name": "Punto bajo"
+          },
+          {
+            "description": "Piernas y cadera se extienden a la vez mientras los bíceps sujetan la barra en el pliegue del codo sin que se desplace.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Barra en el soporte a la altura del ombligo, a menudo con una almohadilla; se encaja en el pliegue de ambos codos antes de salir.",
+          "Antebrazos verticales, manos juntas o en puño delante del pecho y codos pegados al tronco.",
+          "Pies a unos dos anchos de hombros, con las puntas hacia fuera y el peso en toda la planta."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista frontal en tres cuartos a la altura de la cadera, que deja ver los pies, los codos entre las rodillas y los dos extremos de la carga.",
+          "contacts": "Plantas enteras en el suelo; la carga encajada en el pliegue de ambos codos, pegada al abdomen, y las manos juntas delante del pecho.",
+          "load": "Carga horizontal a la altura de las rodillas en el punto bajo, delante del abdomen y separada del suelo.",
+          "orientation": "Atleta mirando a la cámara, rotado unos treinta grados, con la cabeza en línea con la columna.",
+          "phase": "Punto bajo: muslos paralelos al suelo, codos metidos entre las rodillas y tronco erguido, antes de subir.",
+          "posture": "Antebrazos casi verticales, codos flexionados, espalda alta recta y rodillas abiertas sobre unos pies muy separados con las puntas hacia fuera."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica cargada en el pliegue interno de los dos codos, a veces envuelta en una almohadilla; antebrazos hacia arriba y manos entrelazadas delante del pecho; discos a ambos lados a la altura de las rodillas, sin tocar el suelo."
+          }
+        },
+        "forbidden": [
+          "Barra sobre los hombros o detrás del cuello: eso es la sumo frontal o la sumo con barra trasera.",
+          "Barra sostenida con las manos y los brazos estirados: eso no es una zercher.",
+          "Codos apoyados sobre los muslos con la espalda redondeada.",
+          "Pies juntos o puntas al frente: eso es una zercher convencional, no la sumo.",
+          "Barra resbalando hacia las muñecas o colgando de los antebrazos estirados.",
+          "Mancuernas o kettlebells en lugar de una barra."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter front view of a muscular athlete frozen at the BOTTOM of a wide-stance barbell Zercher squat. The loaded barbell is cradled in the inner crook of both elbows and held close against the belly; the forearms point up and both hands are clasped together in front of the chest. Feet are planted flat about twice shoulder width apart, toes turned out about 45 degrees. Thighs are parallel to the floor, knees pushed out over the toes, elbows inside the knees without resting on the thighs, torso upright, upper back straight. The plates hang at knee height, clear of the floor."
+        },
+        "qa": [
+          "¿La barra está encajada en el pliegue de los codos, y no en las manos ni sobre los hombros?",
+          "¿Los codos quedan entre las rodillas con los muslos casi paralelos al suelo, en el punto bajo?",
+          "¿Los pies están muy separados y con las puntas hacia fuera?",
+          "¿La espalda alta está recta y el tronco erguido?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_hip_dominant",

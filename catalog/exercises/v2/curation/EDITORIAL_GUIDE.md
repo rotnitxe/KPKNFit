@@ -123,6 +123,17 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
   el antebrazo es al menos estabilizador cuando el agarre sostiene el peso del
   cuerpo (`grip.hanging-forearm`) y, con el torso apoyado, los erectores no son
   motor (`rows.chest-supported-spine`).
+- **Sentadillas con carga** (criterio del lote 2, aprobado por el usuario el
+  2026-10-03):
+  - El glúteo mayor y la cadera son PRIMARY, detrás del cuádriceps, que sigue siendo
+    el dominante (Wretenberg 1996, Bryanton 2012, Contreras 2016, Kubo 2019).
+  - Excepción: los gestos que por diseño no extienden la cadera, como la Somersault y
+    la sissy.
+  - Los aductores son SECONDARY en la sentadilla profunda (Kubo 2019).
+  - En las variantes Zercher, el bíceps es STABILIZER: sostiene la barra en el
+    pliegue del codo.
+  - En la sentadilla sin carga, el glúteo mayor es PRIMARY por regla de producto
+    (planes del wizard).
 - Un músculo no puede estar en dos listas de la misma config.
 - Chips que redistribuyen énfasis cambian las listas por config.
 - NEUTRALIZER no existe en el catálogo.
@@ -292,7 +303,7 @@ v3. Son vinculantes para la siguiente pasada editorial.
     la altura o la postura alteran el estímulo, las listas musculares y la
     descripción deben reflejarlo por configuración. Ejemplos: remos con agarre
     amplio → trapecio y espalda alta; agarre cerrado → dorsal y bíceps.
-    **Corrección (piloto, pendiente de confirmación del usuario):** en la
+    **Corrección (piloto, confirmada por el usuario el 2026-10-03):** en la
     dominada el bíceps flexiona el codo contra carga con cualquier agarre, así
     que su suelo es secundario. No es solo estabilizador y tampoco pasa a
     principal: el dorsal sigue por encima (117-130 % frente a 78-96 % en el

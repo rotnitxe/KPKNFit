@@ -24,38 +24,42 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con a dos lados, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+              "description": "Con ambos pies en la rampa, separados como la cadera, las dos piernas mueven juntas el brazo del péndulo. Es la versión que admite más discos, con espalda y cadera apoyadas en el respaldo a lo largo de todo el arco.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+                "Baja dejando que las rodillas pasen por delante de las puntas mientras el respaldo se balancea hacia la plataforma.",
+                "Llega abajo con la cadera cerca de los talones, sin separar la espalda del respaldo.",
+                "Empuja la rampa con todo el pie hasta casi enderezar las rodillas."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Dorsiflexión"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad en posición neutra"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -75,35 +79,40 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión",
+                    "Estabilidad en posición neutra"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Dorsiflexión"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad en posición neutra"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -113,9 +122,12 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -187,14 +199,19 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo."
+                "Entra mirando hacia la estructura y apoya espalda y cadera en el respaldo colgante, con las hombreras sobre los hombros.",
+                "Pon los pies a la anchura de la cadera en la parte media de la rampa.",
+                "Sujeta las asas de las hombreras y libera el tope de seguridad con las piernas estiradas."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "core"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -220,40 +237,44 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con a un lado, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+              "description": "Una pierna hace todo el empuje desde el centro de la rampa mientras la otra queda doblada en el aire. El respaldo y las hombreras sujetan el tronco, así que esa pierna trabaja sola sin pelear por sostenerse en pie, con bastante menos peso en el brazo.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Baja con la rodilla de trabajo avanzando sobre la punta, sin que la pelvis se separe del respaldo.",
+                "Llega al fondo sin apoyar el pie libre en la rampa.",
+                "Sube empujando con el pie entero y termina el lado antes de cambiar."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de cadera",
+                    "Extensión de cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Equilibrio Y Dorsiflexión"
-                  ],
-                  "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Dorsiflexión"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad en posición neutra"
+                  ],
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -271,38 +292,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Dorsiflexión",
+                    "Estabilidad en posición neutra"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de cadera",
+                        "Extensión de cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Equilibrio Y Dorsiflexión"
-                      ],
-                      "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Dorsiflexión"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad en posición neutra"
+                      ],
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -310,9 +335,12 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "core"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -326,7 +354,7 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -384,14 +412,19 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Pendular con una pierna: un lado a la vez con el guiado de la máquina."
+                "Entra mirando hacia la estructura, con espalda y cadera en el respaldo y las hombreras sobre los hombros.",
+                "Pon un pie en el centro de la rampa y deja la otra pierna doblada, sin apoyarla.",
+                "Sujeta las asas y libera el tope con la pierna de trabajo estirada."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "core"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -401,7 +434,7 @@
           }
         ],
         "defaultConfigurationId": "pendulum_squat__bilateral",
-        "description": "La Sentadilla en Máquina Pendular hace oscilar la plataforma como un péndulo y el cuerpo desciende siguiendo ese arco guiado. Se ejecuta bajando casi en caída controlada y empujando de vuelta con los cuádriceps al límite en el punto bajo. El balanceo del aparato multiplica la tensión en la parte profunda del recorrido. Una de las máquinas más intensas que existen para el muslo frontal.",
+        "description": "La Sentadilla en Máquina Pendular (pendulum squat) se hace con la espalda en un respaldo que cuelga de un brazo largo: ese brazo gira sobre un eje en lo alto de la estructura, por delante del atleta, y al bajar el respaldo describe un arco hacia la plataforma. Los pies van adelantados en una rampa y las rodillas avanzan mucho, así que el esfuerzo recae sobre todo en el cuádriceps, con ayuda del glúteo mayor y los aductores al extender la cadera. Permite bajar muy profundo con el tronco apoyado, que se reclina contra el respaldo mientras la cadera se acerca a los talones. Su sello es ese fondo, con las rodillas muy por delante de los pies y el cuádriceps estirado bajo carga, algo difícil de lograr con barra.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

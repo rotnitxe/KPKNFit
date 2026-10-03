@@ -24,40 +24,54 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, a horcajadas sobre la barra con un extremo a cada lado, el descenso viaja en diagonal. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "Colgada de las manos entre las piernas, con los discos a izquierda y derecha, la barra puede rozar la cara interna de los muslos y tiene que subir en vertical, pegada al cuerpo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Empuja el suelo con los dos pies y sube con la barra pegada al interior de los muslos.",
+                "Termina de pie con rodillas y cadera extendidas.",
+                "Baja con el tronco erguido hasta dejar los muslos paralelos al suelo.",
+                "En la serie siguiente cambia la pierna adelantada y la posición de las manos."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Resistencia a la rotación del tronco",
+                    "Estabilidad de la zona lumbar"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -67,7 +81,8 @@
               "movementPatternId": "knee_dominant_asymmetric",
               "performanceProfileId": "quads_sentadilla_jefferson__barbell__sentadilla_jefferson",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -75,49 +90,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Resistencia a la rotación del tronco",
+                    "Estabilidad de la zona lumbar",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Resistencia a la rotación del tronco",
+                        "Estabilidad de la zona lumbar"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
-                  ],
-                  "secondaryMuscles": [
-                    "adductors",
+                    "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "stabilizerMuscles": [],
+                  "secondaryMuscles": [
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -131,7 +166,8 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -179,22 +215,28 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_dominant_asymmetric:quadriceps"
+                    "knee_dominant_asymmetric:quadriceps",
+                    "knee_dominant_asymmetric:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "adductors",
-                "gluteus_maximus"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal."
+                "Colócate a horcajadas sobre la barra, con un pie delante mirando al frente y el otro detrás, girado hacia fuera.",
+                "Agarra la barra con una mano por detrás del muslo de delante y la otra por delante del muslo de atrás.",
+                "Saca el pecho y aprieta el abdomen antes de despegar la barra del suelo."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -202,7 +244,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_jefferson__default",
-        "description": "La Sentadilla Jefferson monta al atleta a horcajadas sobre la barra, con un extremo delante y otro detrás, y baja en una diagonal que no existe en ningún otro ejercicio. Se ejecuta agarrando la barra entre las piernas y descendiendo con el torso erguido mientras cuádriceps, aductores y glúteos comparten el esfuerzo. La posición asimétrica exige equilibrio y coordinación reales. Un ejercicio de otra época que todavía enseña cosas nuevas.",
+        "description": "La Sentadilla Jefferson (Jefferson squat) se hace a horcajadas sobre la barra: un pie queda delante de ella mirando al frente y el otro detrás, girado hacia fuera, y cada mano la agarra por su lado, una por detrás del muslo adelantado y la otra por delante del retrasado. Se baja y se sube con el tronco erguido mientras la barra viaja en vertical entre los muslos. Los cuádriceps llevan la subida y la postura abierta suma a aductores y glúteos, con más trabajo para la pierna de delante. El core frena el giro que provocan pies y manos desfasados, y el agarre sostiene todo el peso. Como cada pierna trabaja en un ángulo diferente, se alterna la adelantada entre series para igualar ambos lados.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

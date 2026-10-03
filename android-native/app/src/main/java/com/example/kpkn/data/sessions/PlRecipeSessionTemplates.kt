@@ -154,7 +154,9 @@ private fun speedSquatDay(): DayRecipe = day(
     slots = listOf(
         slot(
             "box", SlotRole.SPEED, CatalogIds.SQ_BOX,
-            repeatPercentSets(8, 2, 60.0, 45),
+            // 6x2: con el glúteo como principal de la sentadilla a cajón (lote 2 del catálogo),
+            // 8x2 + 4x2 de peso muerto superaba el tope de 10 series directas de glúteo (avanzado).
+            repeatPercentSets(6, 2, 60.0, 45),
             restSeconds = 45, liftSlot = LiftSlot.SQUAT, technique = com.example.kpkn.data.protocols.TechniqueModifier.SPEED,
         ),
         slot(

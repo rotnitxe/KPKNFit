@@ -24,38 +24,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+              "description": "Los rodillos de la plataforma sujetan los pies por los tobillos y los talones, que quedan elevados, y el cuerpo puede inclinarse hacia atrás sin agarrarse a nada. Con ese anclaje, la bajada llega más hondo y las manos quedan libres sobre el pecho.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Con los talones elevados, deja que las rodillas viajen al frente mientras el cuerpo se inclina atrás en bloque.",
+                "Baja hasta que los muslos casi toquen las pantorrillas, sin doblar la cadera.",
+                "Estira las rodillas para volver arriba con el cuerpo recto."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Apoyo fijo en los rodillos"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -75,35 +78,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Apoyo fijo en los rodillos",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Apoyo fijo en los rodillos"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -113,7 +119,10 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "core"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -190,11 +199,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo."
+                "Sube a la plataforma y engancha los pies bajo los rodillos, con tobillos y talones bien sujetos.",
+                "Cruza los brazos sobre el pecho y estira el cuerpo de las rodillas a la cabeza."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "core"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -220,38 +233,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina Smith, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+              "description": "La barra descansa en lo alto de la espalda, como en una sentadilla trasera, y los rieles la llevan en vertical. El tronco baja casi recto bajo ella: los talones se elevan, las rodillas avanzan y la cadera apenas se dobla, sin echarse hacia atrás.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Sube los talones y deja que las rodillas avancen mientras la barra baja por los rieles.",
+                "Dobla la cadera solo un poco y conserva el pecho bajo la barra, sin colgarte de ella.",
+                "Empuja con la parte delantera de los pies para estirar las rodillas y subir."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión ligera de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Sostén del talón elevado"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad bajo carga vertical"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -271,35 +287,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión ligera de la cadera",
+                    "Sostén del talón elevado",
+                    "Estabilidad bajo carga vertical"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión ligera de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Sostén del talón elevado"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad bajo carga vertical"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -309,7 +328,10 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "core",
+                    "calves"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -386,11 +408,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Smith sissy: el guiado de la barra acompaña la inclinación del torso."
+                "Colócate dentro de la Smith con la barra apoyada en lo alto de la espalda y las manos a los lados de los hombros.",
+                "Gira la barra para soltarla de los ganchos y deja los pies justo debajo de ella."
               ],
               "setupTimeSeconds": 40,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "core",
+                "calves"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -416,38 +442,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+              "description": "Una mancuerna en vertical, apoyada en el esternón y sujeta con las dos palmas bajo la cabeza superior, suma peso al tronco que se inclina. Con las dos manos ocupadas no queda ninguna para agarrarse, y sostenerse sobre la punta de los pies depende solo de las piernas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Adelanta las rodillas y bájalas mientras inclinas el cuerpo atrás, recto de rodillas a hombros.",
+                "Baja sin que la cadera se doble ni los talones toquen el suelo.",
+                "Sube empujando con la punta de los pies y la mancuerna pegada al pecho."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Sostén del talón elevado"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -467,35 +496,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Sostén del talón elevado",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Sostén del talón elevado"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -505,7 +537,11 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "core",
+                    "calves"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -582,11 +618,16 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Mancuerna en el pecho: el sissy con carga ligera y mucho control."
+                "Sujeta una mancuerna en vertical contra el esternón, con las dos palmas bajo la cabeza superior.",
+                "Ponte de pie con los pies a la anchura de la cadera y eleva los talones."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "core",
+                "calves"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -612,38 +653,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con disco, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. El cuádriceps trabaja con el disco, que añade lastre directo y simple.",
+              "description": "El disco se abraza plano contra el pecho, sujeto por el borde, y su peso descansa sobre el esternón en lugar de colgar de las manos. Al ser ancho y delgado queda pegado al tronco aunque este se incline hacia atrás, y los discos pequeños permiten subir la carga de poco en poco.",
               "efc": 2.8,
               "equipmentId": "plate",
               "executionCues": [
-                "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Inclina el cuerpo hacia atrás en bloque mientras llevas las rodillas más allá de las puntas de los pies.",
+                "Detén la bajada antes de que la cadera se doble o los talones bajen al suelo.",
+                "Estira las rodillas para subir con el disco quieto contra el pecho."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Sostén del talón elevado"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -663,35 +707,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Sostén del talón elevado",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Sostén del talón elevado"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -701,7 +748,11 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "core",
+                    "calves"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -778,11 +829,16 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Disco en el pecho: carga ligera para dominar la inclinación del sissy."
+                "Abraza un disco plano contra el pecho y sujétalo por el borde con las dos manos.",
+                "Separa los pies a la anchura de la cadera y ponte de puntillas."
               ],
               "setupTimeSeconds": 15,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "core",
+                "calves"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -792,7 +848,7 @@
           }
         ],
         "defaultConfigurationId": "sissy_squat__machine",
-        "description": "La Sentadilla Sissy congela la cadera y deja las rodillas viajando al frente: el cuádriceps se estira y se carga como en ningún otro ejercicio, con el torso inclinándose hacia atrás. Se ejecuta en la máquina sissy o sujeto de un soporte, bajando el cuerpo en línea recta y subiendo con el muslo frontal ardiendo. Los isquiosurales apenas hablan aquí; todo es cuádriceps. El aislador de cuádriceps más intenso que se puede hacer sin peso.",
+        "description": "La Sentadilla Sissy (sissy squat) es un ejercicio de cuádriceps en el que las rodillas se doblan a fondo mientras la cadera se queda estirada. Los talones se elevan, las rodillas avanzan muy por delante de los dedos y el cuerpo baja detrás de ellas, inclinado hacia atrás y sin plegarse por la cadera. Como la cadera apenas se dobla, el recto femoral trabaja alargado y la rodilla soporta casi toda la carga. Los flexores de la cadera y el abdomen sujetan esa línea para que el cuerpo no caiga hacia atrás. Con el peso del cuerpo ya basta para cansar los muslos, y cualquier carga extra se nota mucho.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

@@ -13,18 +13,20 @@ vigente es esto:
 - 96 familias, 201 definiciones, 522 configuraciones, 410 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`). SHA-256 canónico compartido
-  `d46cc093d5e144cf66529e376a9eb195e4dda718e4043da39bafd66faa593984`.
+  `50dcc775108cf110d0da9e7aee73346a5305528c220231ce0f4fdaadd68e3375`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 178 definiciones `LEGACY` y **23 `CURATED`**. Piloto
+- Estado de las fichas: 153 definiciones `LEGACY` y **48 `CURATED`**. Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
   los presses (`bench_press`, `decline_bench_press`, `incline_bench_press`,
-  `paused_bench_press`) y los empujes de `upper_horizontal_push`. El paso a
-  `CURATED` se hace por lotes y queda registrado aquí.
+  `paused_bench_press`) y los empujes de `upper_horizontal_push`. Lote 2,
+  sentadillas (2026-10-03, 25 definiciones, aplicado; informe en
+  `curation/lotes/LOTE_02_SENTADILLAS.md`). El paso a `CURATED` se hace por lotes y
+  queda registrado aquí.
 - `editorial_briefs.json` y su copia `.bak.2026-08-08` se eliminaron: sus 201
   definiciones eran idénticas al contenido de las fichas esqueleto.
 - Los 8 generadores por plantilla (`build_catalog_v2_*`, `curaduria_v3` a `v6`,
@@ -91,8 +93,8 @@ Tres definiciones pasaron de `LEGACY` a `CURATED`, con ficha completa (`public`,
 Las 17 fuentes citadas tienen prueba offline en `curation/sources_verified.json`.
 El 2026-10-02 el usuario confirmó tres criterios: `rows.chest-supported-spine`
 (Remo Seal), `hip.abductors-gluteus-medius` (Almejas) y `grip.hanging-forearm`.
-Sigue **pendiente de confirmación** el de la Dominada (`vertical-pull.elbow-flexors`,
-bíceps secundario con cualquier agarre).
+El 2026-10-03 confirmó también el de la Dominada (`vertical-pull.elbow-flexors`, bíceps
+secundario con cualquier agarre).
 
 ### Re-curaduría por lotes (plan aprobado el 2026-10-02)
 

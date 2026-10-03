@@ -1,30 +1,270 @@
 {
   "definitions": {
     "pendulum_squat": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de rodilla",
+              "Extensión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2001",
+              "statpearls_knee"
+            ],
+            "why": "La rodilla llega a una flexión muy profunda y avanza más allá de la punta del pie; es la acción que limita la serie y la que más fuerza articular acumula en el fondo."
+          },
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "kubo2019",
+              "statpearls_glute_max"
+            ],
+            "why": "La cadera baja hasta cerca de los talones y se extiende al subir, acompañando a la rodilla sin dejar el respaldo."
+          },
+          {
+            "actions": [
+              "Dorsiflexión"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_foot_ankle"
+            ],
+            "why": "Con las rodillas tan adelantadas, el tobillo se flexiona mucho hacia la espinilla; el talón se queda en la rampa y el tobillo transmite el empuje."
+          },
+          {
+            "actions": [
+              "Estabilidad en posición neutra"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "clark2019"
+            ],
+            "why": "Las hombreras cargan los hombros y el respaldo sostiene la espalda durante todo el arco; la zona lumbar conserva su curva y transmite la carga a la cadera. Se extrapola de la hack en máquina, donde el apoyo reduce la actividad del tronco."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla1998",
+              "kubo2019"
+            ],
+            "why": "Extiende la rodilla desde una flexión muy profunda con las rodillas por delante de los pies, el tramo en el que más trabaja el cuádriceps en las sentadillas. No hay estudios con esta máquina: se apoya en los datos de cadena cerrada y de sentadilla completa."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "SECONDARY",
+            "sources": [
+              "kubo2019",
+              "statpearls_glute_max"
+            ],
+            "why": "Extiende la cadera desde el fondo, pero el tronco reclinado contra el respaldo deja la cadera menos cerrada que la rodilla, que avanza mucho; el mayor esfuerzo es de la rodilla y el glúteo queda como secundario."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "kubo2019",
+              "statpearls_adductor_magnus"
+            ],
+            "why": "El aductor mayor colabora en la extensión de cadera desde la flexión profunda del fondo. Se extrapola de la sentadilla completa, que hizo crecer los aductores tanto como el glúteo."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "clark2019"
+            ],
+            "why": "El tronco transmite la carga de las hombreras a la cadera mientras se reclina contra el respaldo; abdominales, oblicuos y erectores lo sostienen firme sin mover la carga. Extrapolado de la hack en máquina, donde la activación del tronco crece con el peso."
+          }
+        ],
+        "overrides": {
+          "pendulum_squat__unilateral": {
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de rodilla",
+                  "Extensión de rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee",
+                  "escamilla2001"
+                ],
+                "why": "Con un solo pie, la rodilla tiene que conservar su alineación con el pie sin el apoyo de la otra pierna, mientras el respaldo evita que la pelvis se ladee."
+              }
+            ]
+          }
+        }
+      },
       "public": {
         "configurations": {
           "pendulum_squat__bilateral": {
-            "description": "Con a dos lados, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+            "description": "Con ambos pies en la rampa, separados como la cadera, las dos piernas mueven juntas el brazo del péndulo. Es la versión que admite más discos, con espalda y cadera apoyadas en el respaldo a lo largo de todo el arco.",
             "executionCues": [
-              "Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+              "Baja dejando que las rodillas pasen por delante de las puntas mientras el respaldo se balancea hacia la plataforma.",
+              "Llega abajo con la cadera cerca de los talones, sin separar la espalda del respaldo.",
+              "Empuja la rampa con todo el pie hasta casi enderezar las rodillas."
             ],
             "setupCues": [
-              "Preparación: Máquina pendular con ambas piernas: el balanceo guiado lleva el cuádriceps a fondo."
+              "Entra mirando hacia la estructura y apoya espalda y cadera en el respaldo colgante, con las hombreras sobre los hombros.",
+              "Pon los pies a la anchura de la cadera en la parte media de la rampa.",
+              "Sujeta las asas de las hombreras y libera el tope de seguridad con las piernas estiradas."
             ]
           },
           "pendulum_squat__unilateral": {
-            "description": "Con a un lado, la plataforma oscila como un péndulo y el cuerpo desciende siguiendo su arco guiado. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+            "description": "Una pierna hace todo el empuje desde el centro de la rampa mientras la otra queda doblada en el aire. El respaldo y las hombreras sujetan el tronco, así que esa pierna trabaja sola sin pelear por sostenerse en pie, con bastante menos peso en el brazo.",
             "executionCues": [
-              "Pendular con una pierna: un lado a la vez con el guiado de la máquina. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Baja con la rodilla de trabajo avanzando sobre la punta, sin que la pelvis se separe del respaldo.",
+              "Llega al fondo sin apoyar el pie libre en la rampa.",
+              "Sube empujando con el pie entero y termina el lado antes de cambiar."
             ],
             "setupCues": [
-              "Preparación: Pendular con una pierna: un lado a la vez con el guiado de la máquina."
+              "Entra mirando hacia la estructura, con espalda y cadera en el respaldo y las hombreras sobre los hombros.",
+              "Pon un pie en el centro de la rampa y deja la otra pierna doblada, sin apoyarla.",
+              "Sujeta las asas y libera el tope con la pierna de trabajo estirada."
             ]
           }
         },
-        "description": "La Sentadilla en Máquina Pendular hace oscilar la plataforma como un péndulo y el cuerpo desciende siguiendo ese arco guiado. Se ejecuta bajando casi en caída controlada y empujando de vuelta con los cuádriceps al límite en el punto bajo. El balanceo del aparato multiplica la tensión en la parte profunda del recorrido. Una de las máquinas más intensas que existen para el muslo frontal."
+        "description": "La Sentadilla en Máquina Pendular (pendulum squat) se hace con la espalda en un respaldo que cuelga de un brazo largo: ese brazo gira sobre un eje en lo alto de la estructura, por delante del atleta, y al bajar el respaldo describe un arco hacia la plataforma. Los pies van adelantados en una rampa y las rodillas avanzan mucho, así que el esfuerzo recae sobre todo en el cuádriceps, con ayuda del glúteo mayor y los aductores al extender la cadera. Permite bajar muy profundo con el tronco apoyado, que se reclina contra el respaldo mientras la cadera se acerca a los talones. Su sello es ese fondo, con las rodillas muy por delante de los pies y el cuádriceps estirado bajo carga, algo difícil de lograr con barra."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En los ejercicios de cadena cerrada la actividad del cuádriceps fue máxima cerca de la flexión completa de rodilla, con predominio de los vastos.",
+          "id": "escamilla1998",
+          "title": "Biomechanics of the knee during closed kinetic chain and open kinetic chain exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9565938/"
+        },
+        {
+          "claim": "La sentadilla completa aumentó el volumen de los extensores de rodilla, los aductores y el glúteo mayor, estos dos últimos más que la media sentadilla, sin cambios en el recto femoral.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "Las fuerzas sobre la rodilla crecieron con la flexión de rodilla en la sentadilla y en la prensa.",
+          "id": "escamilla2001",
+          "title": "Effects of technique variations on knee biomechanics during the squat and leg press",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11528346/"
+        },
+        {
+          "claim": "Con el tronco apoyado en la hack en máquina la musculatura del tronco se activó menos que en la sentadilla trasera, aunque aumentó con la carga.",
+          "id": "clark2019",
+          "title": "Trunk Muscle Activation in the Back and Hack Squat at the Same Relative Loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28704312/"
+        },
+        {
+          "claim": "El glúteo mayor es el principal extensor de la cadera.",
+          "id": "statpearls_glute_max",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "La porción isquiocondílea del aductor mayor extiende la cadera.",
+          "id": "statpearls_adductor_magnus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "La rodilla es una articulación en bisagra que trabaja sobre todo en flexión y extensión.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "El tobillo realiza la dorsiflexión y la flexión plantar entre el astrágalo y la mortaja de tibia y peroné.",
+          "id": "statpearls_foot_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Foot and Ankle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536304/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla en máquina pendular: el atleta, de cara a la estructura, apoya espalda y cadera en un respaldo con hombreras que cuelga de un brazo largo; ese brazo gira sobre un eje en lo alto de la estructura, por delante y por encima del atleta, y lleva los discos. Al bajar, el respaldo se balancea en arco hacia la plataforma en rampa, la cadera llega cerca de los talones y las rodillas avanzan mucho. Lo separa de la hack que no hay rieles: el respaldo cuelga de un brazo que pivota arriba y delante del atleta, y gira con él.",
+        "keyPositions": [
+          "Arriba: cuerpo recto e inclinado hacia atrás contra el respaldo, con los pies por delante de la cadera.",
+          "Fondo: cadera cerca de los talones, rodillas muy por delante de las puntas y tronco reclinado contra el respaldo, más que arriba, porque el respaldo gira con el brazo; talones apoyados."
+        ],
+        "mistakes": [
+          "Separar la cadera del acolchado y echar el pecho hacia las rodillas.",
+          "Levantar los talones de la rampa cuando las rodillas avanzan.",
+          "Cortar el recorrido antes del fondo para mover más discos.",
+          "Rebotar en el fondo aprovechando el balanceo del brazo."
+        ],
+        "phases": [
+          {
+            "description": "De pie contra el respaldo, el atleta suelta el tope de seguridad y sostiene el brazo con las piernas casi rectas.",
+            "name": "Salida"
+          },
+          {
+            "description": "El respaldo baja en arco hacia la plataforma y se reclina con el brazo; la rodilla se dobla y avanza sobre el pie mientras la cadera se cierra.",
+            "name": "Balanceo hacia abajo"
+          },
+          {
+            "description": "La cadera queda cerca de los talones con la espalda en el respaldo; no hay rebote.",
+            "name": "Fondo"
+          },
+          {
+            "description": "Las piernas empujan la rampa y el brazo vuelve por el mismo arco hasta la posición inicial.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Estructura alta con el eje del péndulo arriba; el brazo sale hacia atrás por encima del atleta y sostiene el respaldo y las hombreras, con los soportes de discos en el propio brazo.",
+          "Plataforma en rampa delante del atleta, con el extremo de las puntas más alto, hacia la estructura.",
+          "Atleta pegado al respaldo por la espalda y la cadera, con las hombreras encima de los hombros, las manos en sus asas y los pies separados como la cadera en la rampa; en la unilateral, un solo pie centrado."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura con la estructura, el brazo, el eje, el respaldo y la plataforma dentro del encuadre.",
+          "contacts": "Espalda y cadera contra el respaldo colgante, hombreras sobre los hombros, manos en sus asas y plantas completas en la rampa.",
+          "load": "Discos en el brazo del péndulo, por encima y por detrás de la espalda, separados del suelo.",
+          "orientation": "Atleta de perfil mirando hacia la estructura alta de la máquina, con el respaldo detrás de la espalda.",
+          "phase": "Fondo de la sentadilla: cadera cerca de los talones, rodillas muy por delante de las puntas y el respaldo en el punto más bajo y más reclinado de su arco.",
+          "posture": "Tronco reclinado contra el respaldo, más que arriba; cadera cerca de los talones, rodillas muy adelantadas en la línea de los pies, columna neutra y talones abajo."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Máquina pendular: una estructura alta delante del atleta con el eje en su parte superior; de ese eje sale un brazo largo hacia atrás, por encima de la cabeza, del que cuelga el respaldo con las hombreras, fijo al brazo, de modo que se reclina al bajar; en el brazo se cargan los discos. La plataforma es una rampa delante del atleta, más alta en el extremo de las puntas. No hay rieles."
+          }
+        },
+        "byVariant": {
+          "pendulum_squat__unilateral": {
+            "difference": "Un solo pie en el centro de la rampa; la otra pierna doblada con el pie en el aire, sin tocar la plataforma."
+          }
+        },
+        "forbidden": [
+          "Carro deslizando por rieles rectos: eso es una hack.",
+          "Eje del brazo detrás del atleta o cerca del suelo: en la pendular el eje está arriba, en la estructura que el atleta tiene delante.",
+          "Atleta de espaldas a la estructura del eje o con la plataforma detrás de él.",
+          "Asiento o respaldo fijo al suelo: no es una prensa ni una sentadilla sentada.",
+          "Arcos u ornamentos inventados sin un brazo pivotante claro que sostenga el respaldo.",
+          "Rodillas por detrás de las puntas con el tronco inclinado hacia delante, como en una bisagra."
+        ],
+        "promptCore": {
+          "machine": "Side view of an athlete on a plate-loaded pendulum squat machine, frozen at the BOTTOM of the squat. The athlete faces the tall upright frame. A long swing arm pivots on an axle at the top of that frame, reaches back over the head of the athlete and carries the padded back rest with shoulder pads; weight plates sit on horns of the arm behind the shoulders. The back and hips are pressed against the pad, both hands grip the pad handles, and both feet are flat on an inclined foot ramp in front. Very deep squat: hips near the heels, knees far past the toes, torso clearly reclined back against the tilted pad, not upright. No rails. Plates clear of the floor."
+        },
+        "qa": [
+          "¿El atleta mira hacia la estructura alta y el respaldo cuelga de un brazo que pivota en lo alto de esa estructura?",
+          "¿Espalda y cadera están apoyadas en el respaldo, con las hombreras sobre los hombros y las manos en sus asas?",
+          "¿Los discos están cargados en el brazo del péndulo y no flotan sueltos?",
+          "¿En el fondo, la cadera está cerca de los talones, las rodillas por delante de las puntas y el tronco reclinado contra el respaldo?",
+          "¿Los pies están planos sobre una plataforma en rampa?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_dominant_pendulum",

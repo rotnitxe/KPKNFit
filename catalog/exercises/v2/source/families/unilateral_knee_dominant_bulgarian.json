@@ -24,40 +24,45 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "La barra cruza la parte superior de la espalda, en la posición de la sentadilla trasera, y el agarre deja de limitar el peso que se puede mover. Al ir libre y alta sobre una sola pierna de apoyo, cualquier balanceo hacia un lado se nota y la pelvis tiene que frenarlo.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+                "Lleva el pecho alto para que la barra no se vaya hacia delante.",
+                "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -76,38 +81,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -115,8 +126,13 @@
                     "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "core"
                   ],
                   "volumeContribution": "indirect"
@@ -132,7 +148,7 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -190,13 +206,19 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Barra y pie trasero en el banco: la búlgara tradicional con carga."
+                "Saca la barra del soporte cruzada sobre la parte superior de la espalda y retrocede hasta el banco.",
+                "Apoya el empeine de un pie sobre el banco, con los cordones hacia abajo, y adelanta el otro una zancada larga."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -224,40 +246,44 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+              "description": "Los rieles fijan la subida y la bajada de la barra en vertical, de modo que la carga no se escapa hacia delante ni hacia los lados y la atención va entera a la pierna. El pie de atrás descansa en un banco simple, colocado detrás y separado de la estructura.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
               "executionCues": [
-                "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Deja que los rieles marquen la bajada hasta que la rodilla de atrás casi roce el suelo.",
+                "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -276,38 +302,44 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -315,8 +347,13 @@
                     "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "core"
                   ],
                   "volumeContribution": "indirect"
@@ -332,7 +369,7 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -390,13 +427,19 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Smith y pie trasero en el banco: el guiado da estabilidad en la bajada."
+                "Coloca un banco plano detrás de la Smith, sin pegarlo a la estructura, y apoya la barra en la parte superior de la espalda.",
+                "Gira la barra para soltarla, lleva el empeine trasero al banco y deja el pie delantero un paso por delante de la línea de la barra."
               ],
               "setupTimeSeconds": 50,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -424,40 +467,52 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+              "description": "Las manos toman los mangos de una máquina de palanca, cargada con discos o con una pila de placas, a los lados de la cadera, y el arco de subida lo marcan los brazos de la palanca. El empeine trasero descansa en el rodillo de la propia estación, regulable en altura.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Baja en vertical: la rodilla de atrás cae entre el rodillo y el pie de delante, sin tocar el suelo.",
+                "Sube estirando la pierna delantera y deja que la palanca marque el arco.",
+                "No te impulses con la pierna de atrás."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -476,38 +531,52 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -515,9 +584,15 @@
                     "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
                   "stabilizerMuscles": [
-                    "core"
+                    "gluteus_medius",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -532,7 +607,8 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "muñeca"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -590,14 +666,21 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable."
+                "Ponte entre los brazos de la palanca y apoya el empeine trasero en el rodillo de la máquina.",
+                "Agáchate y agarra los mangos a los lados de la cadera, con los brazos estirados."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "core"
+                "gluteus_medius",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -624,40 +707,52 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+              "description": "Una mancuerna cuelga de cada mano junto a la cadera, con el peso bajo y cerca del cuerpo, y el tronco puede ir erguido sin que la carga tire de él. Con pesos altos, el agarre puede cansarse antes que las piernas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+                "Deja los brazos estirados y las mancuernas quietas junto a la cadera.",
+                "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -676,38 +771,52 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -715,9 +824,15 @@
                     "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
                   "stabilizerMuscles": [
-                    "core"
+                    "gluteus_medius",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -732,7 +847,8 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -790,14 +906,21 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada."
+                "Toma una mancuerna en cada mano y déjalas colgar a los lados.",
+                "Ponte de espaldas al banco, apoya encima el empeine de un pie y adelanta el otro una zancada larga."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "core"
+                "gluteus_medius",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -824,40 +947,52 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+              "description": "Cada mano sujeta el mango de una polea baja de una máquina de poleas, una a cada lado, y el peso de la torre sube por los cables al estirar la pierna. Los cables tiran hacia abajo y algo hacia fuera, hacia su torre, por eso los brazos sujetan los mangos pegados a los costados.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+                "Lleva los mangos pegados a los costados, sin dejar que los cables te abran los brazos.",
+                "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -876,38 +1011,52 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -915,9 +1064,15 @@
                     "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
                   "stabilizerMuscles": [
-                    "core"
+                    "gluteus_medius",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -932,7 +1087,8 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "muñeca"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -990,14 +1146,21 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Polea y pie trasero en el banco: la tensión constante se suma a la búlgara."
+                "Baja las dos poleas al punto más bajo y toma un mango en cada mano.",
+                "Colócate en el centro con el banco detrás y apoya en él el empeine de un pie."
               ],
               "setupTimeSeconds": 35,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "core"
+                "gluteus_medius",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1024,40 +1187,59 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+              "description": "Una sola kettlebell, sujeta por los cuernos del asa delante del pecho, adelanta la carga: el tronco va más erguido para que el peso no lo arrastre hacia delante. Los codos apuntan al suelo y sostienen la bola pegada al esternón durante toda la serie.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
               "executionCues": [
-                "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+                "Lleva la kettlebell pegada al esternón durante toda la bajada.",
+                "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco con carga delantera"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
                   "role": "STABILIZER"
                 }
               ],
@@ -1076,38 +1258,60 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco con carga delantera",
+                    "Flexión sostenida del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco con carga delantera"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1115,9 +1319,15 @@
                     "quadriceps",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
+                  "secondaryMuscles": [
+                    "hamstrings",
+                    "adductors",
+                    "calves"
+                  ],
                   "stabilizerMuscles": [
-                    "core"
+                    "gluteus_medius",
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1132,7 +1342,9 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "codo",
+                    "muñeca"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -1190,14 +1402,21 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "hamstrings",
+                "adductors",
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio."
+                "Sujeta una kettlebell por los cuernos del asa delante del pecho, con los codos hacia abajo.",
+                "Ponte de espaldas al banco, apoya encima el empeine de un pie y adelanta el otro una zancada larga."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.5,
               "stabilizerMuscles": [
-                "core"
+                "gluteus_medius",
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
@@ -1208,7 +1427,7 @@
           }
         ],
         "defaultConfigurationId": "bulgarian_split_squat__dumbbells",
-        "description": "La Sentadilla Búlgara eleva el pie trasero al banco y convierte la zancada en estática y feroz: la pierna delantera baja y sube con todo el peso mientras la otra solo acompaña. Se ejecuta con mancuernas a los lados, descendiendo vertical sobre la pierna fija y subiendo sin empujar con la de atrás. Con barra a la espalda entra en otra categoría de sufrimiento. El ejercicio unilateral más temido y más efectivo para las piernas.",
+        "description": "La Sentadilla Búlgara (Bulgarian split squat) es una sentadilla a una pierna: el empeine de atrás descansa en un banco y la pierna de delante baja y sube casi sola. En ella, el cuádriceps extiende la rodilla y el glúteo mayor la cadera, con ayuda de los isquiosurales, mientras el glúteo medio impide que la pelvis se hunda hacia un lado. El pie elevado apenas empuja: en un estudio con plataformas de fuerza, la pierna adelantada produjo de media el 84 % del empuje vertical. La rodilla de atrás baja casi hasta el suelo y el tronco va erguido, o algo inclinado si se busca más trabajo de cadera. Con mucha menos carga que una sentadilla de dos piernas, cada muslo y cada glúteo reciben por separado un trabajo intenso.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1249,40 +1468,52 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+              "description": "La barra se apoya en la cara interna de los codos doblados, a la altura del ombligo, con los antebrazos en vertical y las manos unidas frente al esternón. Desde el soporte hasta la última repetición, los brazos sostienen la carga y el tronco sube y baja erguido detrás de ella.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+                "Desciende hasta dejar la rodilla de atrás a pocos centímetros del suelo, con la barra pegada al abdomen.",
+                "Lleva el pecho alto y los codos por delante para que la barra no se escurra.",
+                "Empuja el suelo con la planta adelantada y vuelve arriba sin ayudarte del pie del banco."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión Y Control Frontal"
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
                   ],
                   "jointId": "cadera",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Equilibrio Y Dorsiflexión"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Transferencia Unilateral"
+                    "Estabilidad del tronco con carga delantera"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida del codo"
+                  ],
+                  "jointId": "codo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1292,7 +1523,8 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_zercher__barbell__sentadilla_bulgara_zercher",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -1300,49 +1532,69 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión Unilateral",
-                    "Extensión Y Control Frontal",
-                    "Equilibrio Y Dorsiflexión",
-                    "Transferencia Unilateral"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco con carga delantera",
+                    "Flexión sostenida del codo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión Unilateral"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión Y Control Frontal"
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
                       ],
                       "jointId": "cadera",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Equilibrio Y Dorsiflexión"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Transferencia Unilateral"
+                        "Estabilidad del tronco con carga delantera"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida del codo"
+                      ],
+                      "jointId": "codo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
+                    "quadriceps",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "core"
+                    "hamstrings",
+                    "adductors",
+                    "calves"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "gluteus_medius",
+                    "core",
+                    "biceps"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1356,7 +1608,8 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "sacroiliaca"
+                    "columna-lumbar",
+                    "codo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -1405,22 +1658,29 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps"
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "core"
+                "hamstrings",
+                "adductors",
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra."
+                "Coloca la barra en el soporte a la altura del ombligo y sácala encajada en el pliegue de los codos.",
+                "Junta las manos delante del pecho, retrocede hasta el banco y apoya encima el dorso del pie de atrás."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_medius",
+                "core",
+                "biceps"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1428,7 +1688,7 @@
           }
         ],
         "defaultConfigurationId": "bulgarian_zercher__barbell__zercher",
-        "description": "La Sentadilla Búlgara Zercher sube la apuesta de la búlgara: la pierna trasera apoyada en el banco y la carga abrazada contra el torso. El cuádriceps de la pierna delantera trabaja mientras el abdomen sostiene el peso sin dejarlo caer. La bajada es vertical y la subida pide el pecho orgulloso y los codos firmes. La búlgara más incómoda y una de las más completas que existen.",
+        "description": "La Sentadilla Búlgara Zercher sujeta la barra en la flexura de los codos, pegada al abdomen, mientras el dorso del pie de atrás reposa en un banco. La pierna adelantada sube y baja con casi todo el peso: el cuádriceps endereza la rodilla y el glúteo mayor abre la cadera. Con la carga por delante, el pecho va alto y la zona media trabaja para que la barra no doble el tronco. Con los antebrazos verticales y las manos unidas, la barra acompaña al cuerpo en la bajada sin tocar el muslo. Es una forma de cargar la búlgara sin poner peso sobre la espalda, a cambio de que los brazos sostengan la barra durante toda la serie.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

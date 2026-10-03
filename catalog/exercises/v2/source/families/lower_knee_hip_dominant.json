@@ -24,38 +24,43 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "El cajón detrás del atleta, a la altura del fondo buscado, convierte cada repetición en una parada sentada: con la barra sobre la espalda alta, la subida arranca sin el impulso de la bajada.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Lleva la cadera atrás y baja con las tibias casi verticales hasta sentarte en el cajón.",
+                "Quédate sentado un instante con el abdomen apretado, sin dejarte caer ni relajar la espalda.",
+                "Sube empujando el suelo hacia los lados, sin balancearte hacia delante."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad de la zona lumbar"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -67,7 +72,8 @@
               "movementPatternId": "knee_hip_dominant",
               "performanceProfileId": "quads_sentadilla_cajon__barbell__sentadilla_a_cajon",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -75,48 +81,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad de la zona lumbar"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad de la zona lumbar"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
+                    "quadriceps",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "hamstrings"
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "hamstrings",
+                    "core"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -178,22 +195,27 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_hip_dominant:quadriceps"
+                    "knee_hip_dominant:quadriceps",
+                    "knee_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "hamstrings"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps."
+                "Coloca el cajón detrás de ti a una altura que deje los muslos paralelos al suelo al sentarte.",
+                "Saca la barra del rack sobre la espalda alta y abre los pies algo más que en tu sentadilla habitual."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "hamstrings",
+                "core"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -201,7 +223,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_cajon__default",
-        "description": "La Sentadilla a Cajón usa el cajón como referencia honesta de profundidad: se baja hasta tocarlo y se sube sin rebote, sin hacerse trampas con el rango. Se trabaja con la barra cargada en la espalda, sentando los glúteos en la superficie y levantándose desde esa pausa muerta. Los cuádriceps y los glúteos aprenden a producir fuerza desde el punto exacto de giro. El maestro silencioso que enseña a bajar de verdad.",
+        "description": "La Sentadilla a Cajón (box squat) es una sentadilla trasera que baja hasta sentarse un instante sobre un cajón colocado detrás y sube desde ahí, sin aprovechar el rebote del fondo. Suele hacerse con los pies más abiertos que en la sentadilla habitual y llevando la cadera atrás con las tibias casi verticales, así que la cadera trabaja más y las rodillas avanzan menos. Los cuádriceps y los glúteos llevan la subida, los aductores ayudan a extender la cadera, y los isquiosurales y los erectores sostienen el tronco inclinado. La altura del cajón fija la profundidad de cada repetición, y la fuerza y la potencia que se alcanzan son muy parecidas a las de la sentadilla sin cajón.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -239,40 +261,59 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+              "description": "Los dedos sujetan la barra por debajo, por fuera de los hombros, con las muñecas dobladas hacia atrás y los codos apuntando al frente a la altura de los hombros. Quien no llega con las muñecas puede cruzar los brazos sobre la barra, con cada mano en el hombro contrario.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Desciende con los codos altos y el pecho arriba, dejando que la cadera se cuele entre las rodillas.",
+                "Separa las rodillas en la dirección de los pies hasta que los muslos queden horizontales.",
+                "Al subir, lleva los codos hacia el techo desde el primer momento para que la barra no caiga hacia delante."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Abducción y rotación externa sostenidas"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Dorsiflexión"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad en posición neutra"
                   ],
                   "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión del hombro sostenida"
+                  ],
+                  "jointId": "glenohumeral",
                   "role": "STABILIZER"
                 }
               ],
@@ -282,7 +323,8 @@
               "movementPatternId": "knee_hip_dominant",
               "performanceProfileId": "quads_sentadilla_sumo_frontal__barbell__sentadilla_sumo_frontal",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -290,49 +332,74 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Abducción y rotación externa sostenidas",
+                    "Dorsiflexión",
+                    "Estabilidad en posición neutra",
+                    "Extensión isométrica",
+                    "Flexión del hombro sostenida"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de cadera",
+                        "Extensión de cadera",
+                        "Abducción y rotación externa sostenidas"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Dorsiflexión"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad en posición neutra"
                       ],
                       "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del hombro sostenida"
+                      ],
+                      "jointId": "glenohumeral",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
+                    "quadriceps",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "adductors",
-                    "gluteus_maximus",
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
                     "core"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -346,7 +413,9 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "columna-lumbar"
+                    "columna-lumbar",
+                    "columna-toracica",
+                    "glenohumeral"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -394,23 +463,27 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_hip_dominant:quadriceps"
+                    "knee_hip_dominant:quadriceps",
+                    "knee_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "adductors",
-                "gluteus_maximus",
-                "core"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
+                "Saca la barra del soporte con ella asentada en la parte frontal de los hombros, junto al cuello.",
+                "Pon los dedos bajo la barra, por fuera de los hombros, y levanta los codos hasta dejar los brazos paralelos al suelo.",
+                "Coloca los talones bien por fuera de la línea de los hombros, con las puntas abiertas en diagonal."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -418,7 +491,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_sumo_frontal__default",
-        "description": "La Sentadilla Sumo Frontal junta la postura ancha del sumo con la carga al frente: el torso se queda muy erguido y cuádriceps, aductores y glúteos trabajan sin que la espalda cargue el peso detrás. Se ejecuta con la barra en el estante delantero y los pies abiertos, descendiendo entre las caderas con el pecho orgulloso. El core se suma al esfuerzo sosteniendo la barra. Una combinación que junta lo mejor de dos mundos exigentes.",
+        "description": "La Sentadilla Sumo Frontal lleva la barra en rack frontal, apoyada delante del cuello sobre los hombros, con los pies muy separados y las puntas abiertas en diagonal. Al ir el peso por delante, el tronco baja casi vertical y las rodillas se separan para dejar pasar la cadera hasta que los muslos llegan a la horizontal. Cuádriceps y glúteo mayor hacen la subida, los aductores colaboran desde abajo y los erectores trabajan para que el pecho no se hunda. Exige muñecas y hombros que aguanten los codos levantados, y no perdona que la espalda alta se curve: en cuanto los codos se hunden, la barra se escapa por delante.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -456,40 +529,59 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+              "description": "Los antebrazos apuntan hacia arriba, con las manos unidas a la altura del pecho y la barra apoyada en la cara interna de los codos, a menudo envuelta en una almohadilla. Sin muñecas en extensión ni barra sobre la espalda, lo primero que se nota es la presión de la carga sobre los brazos.",
               "efc": 2.8,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Baja con el tronco erguido hasta que tus codos queden entre las rodillas.",
+                "Frena cuando los muslos estén horizontales, sin apoyar los codos en ellos.",
+                "Sube empujando el suelo y deja la barra quieta en los codos, sin separar las manos."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Abducción y rotación externa sostenidas"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Dorsiflexión"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad en posición neutra"
                   ],
                   "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Extensión isométrica"
+                  ],
+                  "jointId": "columna-toracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión isométrica del codo"
+                  ],
+                  "jointId": "codo",
                   "role": "STABILIZER"
                 }
               ],
@@ -499,7 +591,8 @@
               "movementPatternId": "knee_hip_dominant",
               "performanceProfileId": "quads_sentadilla_sumo_zercher__barbell__sentadilla_sumo_zercher",
               "primaryMuscles": [
-                "quadriceps"
+                "quadriceps",
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -507,49 +600,75 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de rodilla",
+                    "Extensión de rodilla",
+                    "Flexión de cadera",
+                    "Extensión de cadera",
+                    "Abducción y rotación externa sostenidas",
+                    "Dorsiflexión",
+                    "Estabilidad en posición neutra",
+                    "Extensión isométrica",
+                    "Flexión isométrica del codo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de rodilla",
+                        "Extensión de rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de cadera",
+                        "Extensión de cadera",
+                        "Abducción y rotación externa sostenidas"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Dorsiflexión"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad en posición neutra"
                       ],
                       "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Extensión isométrica"
+                      ],
+                      "jointId": "columna-toracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión isométrica del codo"
+                      ],
+                      "jointId": "codo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps"
+                    "quadriceps",
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "adductors",
-                    "gluteus_maximus",
-                    "core"
+                    "adductors"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "biceps"
+                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -563,7 +682,9 @@
                     "rodilla",
                     "cadera",
                     "tobillo",
-                    "columna-lumbar"
+                    "columna-lumbar",
+                    "columna-toracica",
+                    "codo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -611,23 +732,28 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_hip_dominant:quadriceps"
+                    "knee_hip_dominant:quadriceps",
+                    "knee_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "adductors",
-                "gluteus_maximus",
-                "core"
+                "adductors"
               ],
               "setupCues": [
-                "Preparación: Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
+                "Deja la barra en el soporte a la altura del ombligo y encájala en el pliegue de los dos codos.",
+                "Junta las manos delante del pecho, pega los codos al tronco y sal del soporte.",
+                "Planta los pies muy abiertos, casi dos anchos de hombros, con las puntas en diagonal."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "biceps"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -635,7 +761,7 @@
           }
         ],
         "defaultConfigurationId": "quads_sentadilla_sumo_zercher__default",
-        "description": "La Sentadilla Sumo Zercher mezcla la base ancha con la carga sujeta al pecho entre los brazos: el core trabaja a destajo mientras cuádriceps y aductores bajan y suben el peso. Se ejecuta sosteniendo la barra en el doblez de los brazos y las puntas hacia afuera, descendiendo con el torso firme. La suma de ambas exigencias la hace más dura que cualquiera de sus partes. Para quien ya domina las versiones por separado y busca un reto serio.",
+        "description": "La Sentadilla Sumo Zercher sujeta la barra en el pliegue de los codos, delante del abdomen, mientras los pies se plantan muy abiertos, con las puntas hacia fuera. Cuádriceps y glúteo mayor extienden rodillas y cadera, los aductores ayudan en la subida y los bíceps aguantan la barra en su sitio sin mover el codo. La base ancha deja hueco para que los codos entren entre las rodillas en el punto bajo, con el tronco erguido. Al principio el apoyo molesta en los brazos, pero no pide movilidad de muñeca y enseña a subir con la espalda alta firme bajo una carga muy adelantada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

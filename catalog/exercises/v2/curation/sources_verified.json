@@ -1,6 +1,13 @@
 {
   "schemaVersion": 1,
   "sources": {
+    "https://pubmed.ncbi.nlm.nih.gov/10188748/": {
+      "foundTitle": "Stance width and bar load effects on leg muscle activity during the parallel squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Stance width and bar load effects on leg muscle activity during the parallel squat",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/10327003/": {
       "foundTitle": "Variation of rotation moment arms with hip flexion.",
       "method": "pubmed-esummary",
@@ -8,12 +15,47 @@
       "title": "Variation of rotation moment arms with hip flexion",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/11404665/": {
+      "foundTitle": "A three-dimensional biomechanical analysis of the squat during varying stance widths.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A three-dimensional biomechanical analysis of the squat during varying stance widths",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/11528346/": {
+      "foundTitle": "Effects of technique variations on knee biomechanics during the squat and leg press.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of technique variations on knee biomechanics during the squat and leg press",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/12173958/": {
+      "foundTitle": "The effect of back squat depth on the EMG activity of 4 superficial hip and thigh muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effect of back squat depth on the EMG activity of 4 superficial hip and thigh muscles",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/12223171/": {
+      "foundTitle": "The function of gastrocnemius as a knee flexor at selected knee and ankle angles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The function of gastrocnemius as a knee flexor at selected knee and ankle angles",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/12774999/": {
       "foundTitle": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/14636100/": {
+      "foundTitle": "Effect of knee position on hip and knee torques during the barbell squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of knee position on hip and knee torques during the barbell squat",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/15228624/": {
       "foundTitle": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study.",
@@ -43,12 +85,54 @@
       "title": "Comparison of muscle activation using various hand positions during the push-up exercise",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/16187509/": {
+      "foundTitle": "Electromyographic analysis of hip rehabilitation exercises in a group of healthy subjects.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic analysis of hip rehabilitation exercises in a group of healthy subjects",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/17029862/": {
+      "foundTitle": "Kinematic, kinetic and EMG patterns during downward squatting.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Kinematic, kinetic and EMG patterns during downward squatting",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/18076231/": {
+      "foundTitle": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/18438254/": {
       "foundTitle": "The validity and reliability of the 1RM bench press using chain-loaded resistance.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "The validity and reliability of the 1RM bench press using chain-loaded resistance",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/19002072/": {
+      "foundTitle": "A biomechanical comparison of back and front squats in healthy trained individuals.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A biomechanical comparison of back and front squats in healthy trained individuals",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/19130646/": {
+      "foundTitle": "The effect of stance width on the electromyographical activity of eight superficial thigh muscles during back squat with different bar loads.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effect of stance width on the electromyographical activity of eight superficial thigh muscles during back squat with different bar loads",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/19528856/": {
+      "foundTitle": "Comparison of different strongman events: trunk muscle activation and lumbar spine motion, load, and stiffness.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of different strongman events: trunk muscle activation and lumbar spine motion, load, and stiffness",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/19574661/": {
       "foundTitle": "Gluteal muscle activation during common therapeutic exercises.",
@@ -71,12 +155,26 @@
       "title": "Effect of kinetically altering a repetition via the use of chain resistance on velocity during the bench press",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/20182386/": {
+      "foundTitle": "Squatting kinematics and kinetics and their application to exercise performance.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Squatting kinematics and kinetics and their application to exercise performance",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/2020276/": {
       "foundTitle": "The effect on performance of imposing a delay during a stretch-shorten cycle movement.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "The effect on performance of imposing a delay during a stretch-shorten cycle movement",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/20231745/": {
+      "foundTitle": "Comparison of lower extremity EMG between the 2-leg squat and modified single-leg squat in female athletes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of lower extremity EMG between the 2-leg squat and modified single-leg squat in female athletes",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/20512064/": {
       "foundTitle": "An electromyography analysis of 3 muscles surrounding the shoulder joint during the performance of a chest press exercise at several angles.",
@@ -106,6 +204,20 @@
       "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/21132859/": {
+      "foundTitle": "Comparison of kinetic variables and muscle activity during a squat vs. a box squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of kinetic variables and muscle activity during a squat vs. a box squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/21157393/": {
+      "foundTitle": "An electromyographical comparison of trunk muscle activity during isometric trunk and dynamic strengthening exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "An electromyographical comparison of trunk muscle activity during isometric trunk and dynamic strengthening exercises",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/21873902/": {
       "foundTitle": "Kinetic analysis of several variations of push-ups.",
       "method": "pubmed-esummary",
@@ -134,12 +246,40 @@
       "title": "Is the occurrence of the sticking region the result of diminishing potentiation in bench press?",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/22373894/": {
+      "foundTitle": "Muscle activation in the loaded free barbell squat: a brief review.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle activation in the loaded free barbell squat: a brief review",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/22488226/": {
       "foundTitle": "Hip muscle activity during 3 side-lying hip-strengthening exercises in distance runners.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Hip muscle activity during 3 side-lying hip-strengthening exercises in distance runners",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22505136/": {
+      "foundTitle": "A biomechanical comparison of the traditional squat, powerlifting squat, and box squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A biomechanical comparison of the traditional squat, powerlifting squat, and box squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22797000/": {
+      "foundTitle": "Effect of squat depth and barbell load on relative muscular effort in squatting.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of squat depth and barbell load on relative muscular effort in squatting",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22889654/": {
+      "foundTitle": "Influence of hip-flexion angle on hamstrings isokinetic activity in sprinters.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Influence of hip-flexion angle on hamstrings isokinetic activity in sprinters",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/23160432/": {
       "foundTitle": "Which exercises target the gluteal muscles while minimizing activation of the tensor fascia lata? Electromyographic assessment using fine-wire electrodes.",
@@ -154,6 +294,13 @@
       "similarity": 1.0,
       "title": "Effect of hand position on EMG activity of the posterior shoulder musculature during a horizontal abduction exercise",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/23384188/": {
+      "foundTitle": "Low back loads while walking and carrying: comparing the load carried in one hand or in both hands.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Low back loads while walking and carrying: comparing the load carried in one hand or in both hands",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/23485733/": {
       "foundTitle": "The influence of varying hip angle and pelvis position on muscle recruitment patterns of the hip abductor muscles during the clam exercise.",
@@ -176,12 +323,33 @@
       "title": "Effects of grip width on muscle strength and activation in the lat pull-down",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/24662228/": {
+      "foundTitle": "Electromyographic and kinetic comparison of the back squat and overhead squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic and kinetic comparison of the back squat and overhead squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/24978835/": {
+      "foundTitle": "Regional differences in muscle activation during hamstrings exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Regional differences in muscle activation during hamstrings exercise",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/24983847/": {
       "foundTitle": "Bench press and push-up at comparable levels of muscle activity results in similar strength gains.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Bench press and push-up at comparable levels of muscle activity results in similar strength gains",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25254898/": {
+      "foundTitle": "Muscle activation and strength in squat and Bulgarian squat on stable and unstable surface.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle activation and strength in squat and Bulgarian squat on stable and unstable surface",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/25419894/": {
       "foundTitle": "Muscle activity levels in upper-body push exercises with different loads and stability conditions.",
@@ -190,12 +358,47 @@
       "title": "Muscle activity levels in upper-body push exercises with different loads and stability conditions",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/25435701/": {
+      "foundTitle": "Effects of Shoulder Flexion Loaded by an Elastic Tubing Band on EMG Activity of the Gluteal Muscles during Squat Exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of Shoulder Flexion Loaded by an Elastic Tubing Band on EMG Activity of the Gluteal Muscles during Squat Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25630691/": {
+      "foundTitle": "Kinematic and EMG activities during front and back squat variations in maximum loads.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Kinematic and EMG activities during front and back squat variations in maximum loads",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/25799093/": {
       "foundTitle": "Influence of bench angle on upper extremity muscular activation during bench press exercise.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Influence of bench angle on upper extremity muscular activation during bench press exercise",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25964810/": {
+      "foundTitle": "Lower extremity strength and the range of motion in relation to squat depth.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Lower extremity strength and the range of motion in relation to squat depth",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/26252837/": {
+      "foundTitle": "A Comparison of Gluteus Maximus, Biceps Femoris, and Vastus Lateralis Electromyography Amplitude in the Parallel, Full, and Front Squat Variations in Resistance-Trained Females.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A Comparison of Gluteus Maximus, Biceps Femoris, and Vastus Lateralis Electromyography Amplitude in the Parallel, Full, and Front Squat Variations in Resistance-Trained Females",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/26348920/": {
+      "foundTitle": "Neuromuscular Adaptations to Unilateral vs. Bilateral Strength Training in Women.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Neuromuscular Adaptations to Unilateral vs. Bilateral Strength Training in Women",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/26383875/": {
       "foundTitle": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes.",
@@ -204,6 +407,20 @@
       "title": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/27032805/": {
+      "foundTitle": "Unique activation of the quadriceps femoris during single- and multi-joint exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Unique activation of the quadriceps femoris during single- and multi-joint exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/27182408/": {
+      "foundTitle": "Muscle Activity in Single- vs. Double-Leg Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle Activity in Single- vs. Double-Leg Squats",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/28011412/": {
       "foundTitle": "Electromyographic analysis of muscle activation during pull-up variations.",
       "method": "pubmed-esummary",
@@ -211,12 +428,68 @@
       "title": "Electromyographic analysis of muscle activation during pull-up variations",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/28570490/": {
+      "foundTitle": "A Review of the Biomechanical Differences Between the High-Bar and Low-Bar Back-Squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A Review of the Biomechanical Differences Between the High-Bar and Low-Bar Back-Squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/28595237/": {
+      "foundTitle": "Comparison of Muscle Activation Between Back Squats and Belt Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of Muscle Activation Between Back Squats and Belt Squats",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/28704312/": {
+      "foundTitle": "Trunk Muscle Activation in the Back and Hack Squat at the Same Relative Loads.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Trunk Muscle Activation in the Back and Hack Squat at the Same Relative Loads",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/29076958/": {
+      "foundTitle": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/29262200/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/29520841/": {
+      "foundTitle": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Adductor magnus: An EMG investigation into proximal and distal portions and direction specific action",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/29763193/": {
       "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Knee.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30020706/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30102684/": {
+      "foundTitle": "Differences in the Electromyographic Activity of the Hamstring, Gluteus Maximus, and Erector Spinae Muscles in a Variety of Kinetic Changes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Differences in the Electromyographic Activity of the Hamstring, Gluteus Maximus, and Erector Spinae Muscles in a Variety of Kinetic Changes",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/30137823/": {
       "foundTitle": "Anatomy, Shoulder and Upper Limb, Biceps Muscle.",
@@ -239,6 +512,41 @@
       "title": "Anatomy, Thorax, Pectoralis Major",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/30273281/": {
+      "foundTitle": "Kinetic Analysis of Isometric Back Squats and Isometric Belt Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Kinetic Analysis of Isometric Back Squats and Isometric Belt Squats",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30285403/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Iliopsoas Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Iliopsoas Muscle",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30293403/": {
+      "foundTitle": "Changes in rectus femoris architecture induced by the reverse nordic hamstring exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Changes in rectus femoris architecture induced by the reverse nordic hamstring exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30363042/": {
+      "foundTitle": "Effects of the Safety Squat Bar on Trunk and Lower-Body Mechanics During a Back Squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of the Safety Squat Bar on Trunk and Lower-Body Mechanics During a Back Squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30422541/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30521226/": {
       "foundTitle": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles.",
       "method": "pubmed-esummary",
@@ -246,12 +554,26 @@
       "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/30521263/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30521277/": {
       "foundTitle": "Anatomy, Back, Rhomboid Muscles.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Anatomy, Back, Rhomboid Muscles",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30676181/": {
+      "foundTitle": "Effect of Loading Devices on Muscle Activation in Squat and Lunge.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of Loading Devices on Muscle Activation in Squat and Lunge",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/30725681/": {
       "foundTitle": "Anatomy, Shoulder and Upper Limb, Triceps Muscle.",
@@ -267,12 +589,26 @@
       "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/30725759/": {
+      "foundTitle": "Anatomy, Back, Muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Back, Muscles",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30725901/": {
       "foundTitle": "Anatomy, Back, Extrinsic Muscles.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Anatomy, Back, Extrinsic Muscles",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30855781/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/30969606/": {
       "foundTitle": "Anatomy, Shoulder and Upper Limb, Forearm Compartments.",
@@ -281,12 +617,26 @@
       "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/31230110/": {
+      "foundTitle": "Effects of squat training with different depths on lower limb muscle volumes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of squat training with different depths on lower limb muscle volumes",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/31397215/": {
       "foundTitle": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31424742/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/31424825/": {
       "foundTitle": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles.",
@@ -295,6 +645,111 @@
       "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/31469769/": {
+      "foundTitle": "Different Knee and Ankle Positions Affect Force and Muscle Activation During Prone Leg Curl in Trained Subjects.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Different Knee and Ankle Positions Affect Force and Muscle Activation During Prone Leg Curl in Trained Subjects",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31536294/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31536304/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Foot and Ankle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Foot and Ankle",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31869113/": {
+      "foundTitle": "Anatomy, Abdomen and Pelvis: Abdominal Wall.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31895283/": {
+      "foundTitle": "Core Muscle Activation in Three Lower Extremity Exercises With Different Stability Requirements.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Core Muscle Activation in Three Lower Extremity Exercises With Different Stability Requirements",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/32269663/": {
+      "foundTitle": "Activity of Trunk and Lower Extremity Musculature: Comparison Between Parallel Back Squats and Belt Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Activity of Trunk and Lower Extremity Musculature: Comparison Between Parallel Back Squats and Belt Squats",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/32491441/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/32746728/": {
+      "foundTitle": "Trunk muscle activity during different types of low weighted squat exercises in normal and forefoot standing conditions.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Trunk muscle activity during different types of low weighted squat exercises in normal and forefoot standing conditions",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/32796420/": {
+      "foundTitle": "Is the Rear Foot Elevated Split Squat Unilateral? An Investigation Into the Kinetic and Kinematic Demands.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Is the Rear Foot Elevated Split Squat Unilateral? An Investigation Into the Kinetic and Kinematic Demands",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33009197/": {
+      "foundTitle": "Greater Hamstrings Muscle Hypertrophy but Similar Damage Protection after Training at Long versus Short Muscle Lengths.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Greater Hamstrings Muscle Hypertrophy but Similar Damage Protection after Training at Long versus Short Muscle Lengths",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33345183/": {
+      "foundTitle": "The Effects of Barbell Placement on Kinematics and Muscle Activation Around the Sticking Region in Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Effects of Barbell Placement on Kinematics and Muscle Activation Around the Sticking Region in Squats",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33477561/": {
+      "foundTitle": "The Activation of Gluteal, Thigh, and Lower Back Muscles in Different Squat Variations Performed by Competitive Bodybuilders: Implications for Resistance Training.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Activation of Gluteal, Thigh, and Lower Back Muscles in Different Squat Variations Performed by Competitive Bodybuilders: Implications for Resistance Training",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33707987/": {
+      "foundTitle": "Electromyographic Comparison of Five Lower-Limb Muscles between Single- and Multi-Joint Exercises among Trained Men.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic Comparison of Five Lower-Limb Muscles between Single- and Multi-Joint Exercises among Trained Men",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/33977835/": {
+      "foundTitle": "Partial range of motion training elicits favorable improvements in muscular adaptations when carried out at long muscle lengths.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Partial range of motion training elicits favorable improvements in muscular adaptations when carried out at long muscle lengths",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34055144/": {
+      "foundTitle": "Biomechanical Differences Between the Bulgarian Split-Squat and Back Squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Biomechanical Differences Between the Bulgarian Split-Squat and Back Squat",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/34279126/": {
       "foundTitle": "Rehabilitation Exercises for Dysfunction of the Scapula: Exploration of Muscle Activity Using Fine-Wire EMG.",
       "method": "pubmed-esummary",
@@ -302,12 +757,40 @@
       "title": "Rehabilitation Exercises for Dysfunction of the Scapula: Exploration of Muscle Activity Using Fine-Wire EMG",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/34341315/": {
+      "foundTitle": "Differences in Muscle Activity and Kinetics Between the Goblet Squat and Landmine Squat in Men and Women.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Differences in Muscle Activity and Kinetics Between the Goblet Squat and Landmine Squat in Men and Women",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34444101/": {
+      "foundTitle": "A Biomechanical Comparison of the Safety-Bar, High-Bar and Low-Bar Squat around the Sticking Region among Recreationally Resistance-Trained Men and Women.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A Biomechanical Comparison of the Safety-Bar, High-Bar and Low-Bar Squat around the Sticking Region among Recreationally Resistance-Trained Men and Women",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34541522/": {
+      "foundTitle": "Effects of Stance Width and Barbell Placement on Kinematics, Kinetics, and Myoelectric Activity in Back Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of Stance Width and Barbell Placement on Kinematics, Kinetics, and Myoelectric Activity in Back Squats",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/34644424/": {
       "foundTitle": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34743671/": {
+      "foundTitle": "The role of exercise selection in regional Muscle Hypertrophy: A randomized controlled trial.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The role of exercise selection in regional Muscle Hypertrophy: A randomized controlled trial",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/35202059/": {
       "foundTitle": "Chest Exercises: Movement and Loading of Shoulder, Elbow and Wrist Joints.",
@@ -323,12 +806,33 @@
       "title": "Activation of upper limb muscles in subjects with scapular dyskinesis during bench-press and dumbbell fly on stable and unstable surfaces",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/35877352/": {
+      "foundTitle": "Effect of Heel Lift Insoles on Lower Extremity Muscle Activation and Joint Work during Barbell Squats.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of Heel Lift Insoles on Lower Extremity Muscle Activation and Joint Work during Barbell Squats",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/35989703/": {
+      "foundTitle": "Muscle Activation Patterns of the Proximal Medial and Distal Biceps Femoris and Gluteus Maximus Among 6 Hip Extension and Knee Flexion Exercises in Trained Women.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle Activation Patterns of the Proximal Medial and Distal Biceps Femoris and Gluteus Maximus Among 6 Hip Extension and Knee Flexion Exercises in Trained Women",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/36026487/": {
       "foundTitle": "Analysis of the Activation of Upper-Extremity Muscles During Various Chest Press Modalities.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Analysis of the Activation of Upper-Extremity Muscles During Various Chest Press Modalities",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/36064431/": {
+      "foundTitle": "Hamstrings force-length relationships and their implications for angle-specific joint torques: a narrative review.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hamstrings force-length relationships and their implications for angle-specific joint torques: a narrative review",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/36334406/": {
       "foundTitle": "Non-uniform excitation of pectoralis major induced by changes in bench press inclination leads to uneven variations in the cross-sectional area measured by panoramic ultrasonography.",
@@ -344,12 +848,61 @@
       "title": "Fatigue Increases Muscle Activations but Does Not Change Maximal Joint Angles during the Bar Dip",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/36542838/": {
+      "foundTitle": "Greater Hip Moments in Rear-Foot-Elevated Split Squats Than in Conventional Back Squats With the Same Relative Intensity of Loads.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Greater Hip Moments in Rear-Foot-Elevated Split Squats Than in Conventional Back Squats With the Same Relative Intensity of Loads",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/36944365/": {
+      "foundTitle": "Offset Loading in a Bilateral Squatting Movement Pattern Influences Ground-Reaction Force and Muscle Activity in the Dominant and Nondominant Limb.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Offset Loading in a Bilateral Squatting Movement Pattern Influences Ground-Reaction Force and Muscle Activity in the Dominant and Nondominant Limb",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/37184975/": {
+      "foundTitle": "Backseat Inclination Affects the Myoelectric Activation During the Inclined Leg Press Exercise in Recreationally Trained Men.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Backseat Inclination Affects the Myoelectric Activation During the Inclined Leg Press Exercise in Recreationally Trained Men",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/37877099/": {
+      "foundTitle": "Hip thrust and back squat training elicit similar gluteus muscle hypertrophy and transfer similarly to the deadlift.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hip thrust and back squat training elicit similar gluteus muscle hypertrophy and transfer similarly to the deadlift",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/38006325/": {
+      "foundTitle": "Hamstring-to-quadriceps activation ratio during lower-limb strengthening exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hamstring-to-quadriceps activation ratio during lower-limb strengthening exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/38595263/": {
+      "foundTitle": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/39084328/": {
       "foundTitle": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction",
       "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/39214520/": {
+      "foundTitle": "Reverse Nordic Curl Does Not Generate Superior Eccentric Activation of the Quadriceps Muscle Than Bodyweight Squat-Based Exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Reverse Nordic Curl Does Not Generate Superior Eccentric Activation of the Quadriceps Muscle Than Bodyweight Squat-Based Exercises",
+      "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/39686276/": {
       "foundTitle": "Electromyographic Comparison of Traditional Fitness Machines, Outdoor Fitness Equipment Without Load Selectors, and Outdoor Fitness Equipment with Load Selectors in a Seated Chest Press Exercise in Trained Young Men.",
@@ -358,6 +911,13 @@
       "title": "Electromyographic Comparison of Traditional Fitness Machines, Outdoor Fitness Equipment Without Load Selectors, and Outdoor Fitness Equipment with Load Selectors in a Seated Chest Press Exercise in Trained Young Men",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/39699974/": {
+      "foundTitle": "The effects of hip flexion angle on quadriceps femoris muscle hypertrophy in the leg extension exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effects of hip flexion angle on quadriceps femoris muscle hypertrophy in the leg extension exercise",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/40269203/": {
       "foundTitle": "Acute muscle excitation response across various bench press ranges of motion.",
       "method": "pubmed-esummary",
@@ -365,12 +925,89 @@
       "title": "Acute muscle excitation response across various bench press ranges of motion.",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/40325422/": {
+      "foundTitle": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Changes of abdominal wall tension across various resistance exercises during maximal and submaximal loads in healthy adults: a cross-sectional study",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/40867012/": {
+      "foundTitle": "Targeted muscle activation in Bulgarian split squat variations: effects of trunk position and suspension-based execution.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Targeted muscle activation in Bulgarian split squat variations: effects of trunk position and suspension-based execution",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/40977436/": {
       "foundTitle": "Superficial and Deep Gluteal Muscle Activation During Common Therapeutic Exercises: A Muscle Functional Magnetic Resonance Imaging Analysis.",
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Superficial and Deep Gluteal Muscle Activation During Common Therapeutic Exercises: A Muscle Functional Magnetic Resonance Imaging Analysis",
       "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41612762/": {
+      "foundTitle": "Heel elevation increases ankle and knee range of motion during squatting in healthy adults: a systematic review with meta-analysis.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Heel elevation increases ankle and knee range of motion during squatting in healthy adults: a systematic review with meta-analysis",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41630124/": {
+      "foundTitle": "Hypertrophic Effects of Single- versus Multi-Joint Exercise: A Direct Comparison between Knee Extension and Leg Press.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hypertrophic Effects of Single- versus Multi-Joint Exercise: A Direct Comparison between Knee Extension and Leg Press",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41766814/": {
+      "foundTitle": "Effects of Barbell Squats with Asymmetric Loading on the Joint Moment and Muscle Activity of Lower Limbs.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of Barbell Squats with Asymmetric Loading on the Joint Moment and Muscle Activity of Lower Limbs",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41931009/": {
+      "foundTitle": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/42512881/": {
+      "foundTitle": "Effects of Barbell Position and Squat Depth on Trunk and Lower-Extremity Muscle Activation During the Back Squat in Healthy Adult Men.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of Barbell Position and Squat Depth on Trunk and Lower-Extremity Muscle Activation During the Back Squat in Healthy Adult Men",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/42579678/": {
+      "foundTitle": "The effects of bar positioning, stance width, repetition, and load on muscle activity during the barbell back squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effects of bar positioning, stance width, repetition, and load on muscle activity during the barbell back squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/8775157/": {
+      "foundTitle": "High- and low-bar squatting techniques during weight-training.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "High- and low-bar squatting techniques during weight-training",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/9107637/": {
+      "foundTitle": "EMG analysis of lower extremity muscle recruitment patterns during an unloaded squat.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "EMG analysis of lower extremity muscle recruitment patterns during an unloaded squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/9565938/": {
+      "foundTitle": "Biomechanics of the knee during closed kinetic chain and open kinetic chain exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Biomechanics of the knee during closed kinetic chain and open kinetic chain exercises",
+      "verifiedAt": "2026-10-03"
     }
   }
 }

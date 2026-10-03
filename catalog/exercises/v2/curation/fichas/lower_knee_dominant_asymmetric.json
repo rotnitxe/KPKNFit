@@ -1,21 +1,259 @@
 {
   "definitions": {
     "quads_sentadilla_jefferson": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "kubo2019",
+              "mccaw1999"
+            ],
+            "why": "Ambas rodillas pasan de la flexión del fondo a la extensión; la de delante trabaja hacia el frente y la de detrás sigue la dirección del pie girado. Es la articulación que decide la subida (Kubo et al. 2019; McCaw y Melrose 1999)."
+          },
+          {
+            "actions": [
+              "Extensión de la cadera",
+              "Flexión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "mccaw1999",
+              "paoli2009"
+            ],
+            "why": "Las dos caderas se extienden desde una flexión con las piernas muy separadas, y la retrasada además rota hacia fuera por el pie girado. Glúteos y aductores la mueven, y con la postura ancha ambos aumentan su actividad (McCaw y Melrose 1999; Paoli et al. 2009)."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "bryanton2012"
+            ],
+            "why": "Cada tobillo sostiene la tibia sobre un pie orientado en una dirección distinta; acompaña sin mover la carga, y en sentadilla el esfuerzo de los flexores plantares crece con la carga más que con la profundidad (Bryanton et al. 2012)."
+          },
+          {
+            "actions": [
+              "Resistencia a la rotación del tronco",
+              "Estabilidad de la zona lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La zona lumbar queda neutra frente a una carga que cuelga de dos manos colocadas a distinto lado de cada muslo; los extensores la fijan en isometría (Hamlyn et al. 2007) y el tronco no debe girar hacia la pierna adelantada."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm"
+            ],
+            "why": "Las muñecas quedan firmes mientras los flexores de los dedos cierran el agarre mixto alrededor de la barra; no se flexionan ni se extienden con la carga."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "mccaw1999",
+              "kubo2019"
+            ],
+            "why": "Extienden las rodillas desde el fondo en las dos piernas y deciden la subida. La anchura de la postura no cambió la activación del cuádriceps, que dependió de la carga (McCaw y Melrose 1999), y la sentadilla profunda hace crecer los extensores de la rodilla (Kubo et al. 2019)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "paoli2009",
+              "bryanton2012",
+              "kubo2019"
+            ],
+            "why": "Es el segundo motor de la subida: extiende la cadera junto a los aductores y, con los pies más separados, su actividad fue mayor (Paoli et al. 2009). El esfuerzo de los extensores de cadera crece con la carga y la profundidad (Bryanton et al. 2012), y la sentadilla completa hizo crecer el glúteo mayor (Kubo et al. 2019)."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "mccaw1999",
+              "collings2026"
+            ],
+            "why": "La postura a horcajadas abre mucho la cadera y los aductores colaboran en la extensión desde el fondo: con postura ancha cambió la actividad del aductor largo según la fase (McCaw y Melrose 1999), y la porción isquiocondílea del aductor mayor soporta fuerzas altas en sentadilla (Collings et al. 2026)."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "aspe2014"
+            ],
+            "why": "Pies y manos desfasados empujan el tronco a girar y la zona media lo frena en isometría; ese control del giro es una inferencia de la postura, sin EMG publicada de este ejercicio. En sentadilla, el recto abdominal y el oblicuo externo trabajan, aunque bastante menos que en los ejercicios específicos de tronco (Aspe y Swinton 2014)."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "Sostienen la columna neutra con la carga colgando de los brazos; en peso muerto y sentadilla cargados su activación supera con creces a la de los ejercicios sin carga (Hamlyn et al. 2007)."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca sostienen toda la barra colgada de las manos durante la serie, con un agarre mixto que no mueve la carga por sí mismo."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_sentadilla_jefferson__default": {
-            "description": "Con barra, a horcajadas sobre la barra con un extremo a cada lado, el descenso viaja en diagonal. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "description": "Colgada de las manos entre las piernas, con los discos a izquierda y derecha, la barra puede rozar la cara interna de los muslos y tiene que subir en vertical, pegada al cuerpo.",
             "executionCues": [
-              "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Empuja el suelo con los dos pies y sube con la barra pegada al interior de los muslos.",
+              "Termina de pie con rodillas y cadera extendidas.",
+              "Baja con el tronco erguido hasta dejar los muslos paralelos al suelo.",
+              "En la serie siguiente cambia la pierna adelantada y la posición de las manos."
             ],
             "setupCues": [
-              "Preparación: De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal."
+              "Colócate a horcajadas sobre la barra, con un pie delante mirando al frente y el otro detrás, girado hacia fuera.",
+              "Agarra la barra con una mano por detrás del muslo de delante y la otra por delante del muslo de atrás.",
+              "Saca el pecho y aprieta el abdomen antes de despegar la barra del suelo."
             ]
           }
         },
-        "description": "La Sentadilla Jefferson monta al atleta a horcajadas sobre la barra, con un extremo delante y otro detrás, y baja en una diagonal que no existe en ningún otro ejercicio. Se ejecuta agarrando la barra entre las piernas y descendiendo con el torso erguido mientras cuádriceps, aductores y glúteos comparten el esfuerzo. La posición asimétrica exige equilibrio y coordinación reales. Un ejercicio de otra época que todavía enseña cosas nuevas."
+        "description": "La Sentadilla Jefferson (Jefferson squat) se hace a horcajadas sobre la barra: un pie queda delante de ella mirando al frente y el otro detrás, girado hacia fuera, y cada mano la agarra por su lado, una por detrás del muslo adelantado y la otra por delante del retrasado. Se baja y se sube con el tronco erguido mientras la barra viaja en vertical entre los muslos. Los cuádriceps llevan la subida y la postura abierta suma a aductores y glúteos, con más trabajo para la pierna de delante. El core frena el giro que provocan pies y manos desfasados, y el agarre sostiene todo el peso. Como cada pierna trabaja en un ángulo diferente, se alterna la adelantada entre series para igualar ambos lados."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "La anchura de la postura no aisló porciones del cuádriceps, cuya actividad dependió solo de la carga; sí influyó en la actividad del aductor largo y del glúteo mayor.",
+          "id": "mccaw1999",
+          "title": "Stance width and bar load effects on leg muscle activity during the parallel squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10188748/"
+        },
+        {
+          "claim": "La sentadilla completa y la media aumentaron el volumen de los extensores de rodilla; la completa hizo crecer más los aductores y el glúteo mayor.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "La sentadilla quedó en el nivel más alto de fuerza para la porción isquiocondílea del aductor mayor y en el intermedio para el aductor largo.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "De ocho músculos del muslo, solo el glúteo mayor cambió con la anchura de la postura: su actividad fue mayor con los pies más separados.",
+          "id": "paoli2009",
+          "title": "The effect of stance width on the electromyographical activity of eight superficial thigh muscles during back squat with different bar loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19130646/"
+        },
+        {
+          "claim": "En sentadilla y peso muerto al 80 % de 1RM, la actividad de los erectores superó con claridad a la de esos ejercicios con el peso corporal y a la de los ejercicios de inestabilidad.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "En sentadilla, el esfuerzo relativo de los flexores plantares aumentó con la carga y no con la profundidad.",
+          "id": "bryanton2012",
+          "title": "Effect of squat depth and barbell load on relative muscular effort in squatting",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22797000/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de los dedos y de la muñeca que cierran el agarre.",
+          "id": "statpearls_forearm",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        },
+        {
+          "claim": "En sentadilla, el recto abdominal y el oblicuo externo se activaron bastante menos que en los ejercicios de aislamiento de tronco, mientras que los erectores alcanzaron ahí su mayor actividad.",
+          "id": "aspe2014",
+          "title": "Electromyographic and kinetic comparison of the back squat and overhead squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24662228/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla a horcajadas con la barra entre las piernas: un pie delante de la barra apuntando al frente y el otro detrás, girado unos noventa grados y paralelo a ella; cada mano baja por su costado y agarra la barra, una por detrás del muslo adelantado y otra por delante del retrasado. El atleta sube y baja con el tronco erguido mientras la barra se desplaza en vertical entre los muslos. La carga colgando entre las piernas y la postura desfasada la separan de la sentadilla sumo y del peso muerto; los dos pies en el suelo, de la búlgara Jefferson.",
+        "keyPositions": [
+          "Fondo: muslos casi horizontales, cada rodilla alineada con su pie, tronco erguido o algo inclinado, brazos estirados y discos justo por encima del suelo.",
+          "Arriba: el atleta termina de pie con rodillas y cadera extendidas, con la barra colgando bajo la pelvis y los hombros nivelados."
+        ],
+        "mistakes": [
+          "Convertir la bajada en una bisagra de cadera con el tronco tumbado, como en un peso muerto.",
+          "Dejar que la rodilla de la pierna retrasada caiga hacia dentro en lugar de seguir el pie girado.",
+          "Quedarse a media subida sin terminar de pie con rodillas y cadera extendidas.",
+          "Repetir siempre la misma pierna delante y la misma mano detrás."
+        ],
+        "phases": [
+          {
+            "description": "Desde el fondo, con la barra en el suelo o justo encima, el atleta empuja con las dos piernas y la barra sube en vertical entre los muslos.",
+            "name": "Despegue"
+          },
+          {
+            "description": "Rodillas y cadera terminan extendidas y la barra queda colgando bajo la pelvis, entre los muslos.",
+            "name": "Arriba"
+          },
+          {
+            "description": "La bajada dobla rodillas y caderas sin tumbar el tronco, hasta dejar los discos justo por encima del suelo.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Barra cargada en el suelo, o sobre bloques bajos, colocada bajo la cadera del atleta.",
+          "Pie adelantado delante de la barra mirando al frente; pie retrasado detrás de ella, girado hacia fuera y paralelo a la barra; postura más ancha que los hombros.",
+          "Agarre mixto: la mano del lado adelantado pasa por detrás de ese muslo y la otra por delante del muslo retrasado, ambas a igual distancia del centro de la barra."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos desde delante y desde el lado de la pierna adelantada, a la altura de la cadera, con el atleta entero, la carga y el suelo en el encuadre.",
+          "contacts": "Plantas apoyadas; la mano izquierda agarra la carga por detrás del muslo izquierdo y la derecha por delante del muslo derecho; la carga pasa entre las piernas.",
+          "load": "La carga cuelga de los brazos bajo la pelvis, entre los pies, justo por encima del suelo.",
+          "orientation": "Atleta mirando al frente, con el pie izquierdo adelantado y el derecho retrasado y girado hacia la derecha.",
+          "phase": "Fondo de la sentadilla: muslos cerca del paralelo y la carga justo por encima del suelo, entre las piernas.",
+          "posture": "Tronco erguido o algo inclinado, brazos estirados, rodillas en la línea de cada pie y hombros nivelados."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica horizontal que cruza entre las piernas de izquierda a derecha, bajo la pelvis: el pie izquierdo queda delante de la barra y el derecho detrás, paralelo a ella; discos a ambos lados, por fuera de los pies; manos en agarre mixto a igual distancia del centro."
+          }
+        },
+        "forbidden": [
+          "Barra apoyada en los hombros o en la espalda: eso es otra sentadilla.",
+          "Barra delante de las dos piernas, con ambas manos por delante: eso es un peso muerto.",
+          "Los dos pies al mismo lado de la barra o en la misma línea.",
+          "Pie trasero apoyado en un banco: eso es la búlgara Jefferson.",
+          "Tronco tumbado hacia delante como en una bisagra de cadera.",
+          "Barra flotando entre las piernas sin que las manos la agarren."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter front view of an athlete frozen at the BOTTOM of a Jefferson squat, straddling a loaded barbell. The bar runs left to right between the legs, under the pelvis: the left foot stands in front of the bar pointing forward, the right foot stands behind the bar turned out to the right, parallel to it. The left hand reaches down behind the left thigh and grips the bar; the right hand reaches down in front of the right thigh and grips the bar. Arms straight, thighs near parallel, torso upright with a slight forward lean, knees over the feet. The plates sit on both ends outside the feet, just above the floor."
+        },
+        "qa": [
+          "¿La barra pasa entre las piernas, con un pie delante de ella y el otro detrás?",
+          "¿Cada mano agarra la barra por su lado, una detrás del muslo adelantado y otra delante del retrasado, sin que la barra flote?",
+          "¿El atleta está en el fondo con los muslos cerca del paralelo y el tronco erguido?",
+          "¿Los discos quedan a los lados, por fuera de los pies y sin hundirse en el suelo?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_dominant_asymmetric",

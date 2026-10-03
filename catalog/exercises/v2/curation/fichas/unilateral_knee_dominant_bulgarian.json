@@ -1,83 +1,822 @@
 {
   "definitions": {
     "bulgarian_split_squat": {
-      "public": {
-        "configurations": {
-          "bulgarian_split_squat__barbell": {
-            "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-            "executionCues": [
-              "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
             ],
-            "setupCues": [
-              "Preparación: Barra y pie trasero en el banco: la búlgara tradicional con carga."
-            ]
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "helme2022"
+            ],
+            "why": "La rodilla delantera se dobla hasta que el muslo queda casi horizontal y se extiende para subir; es la acción que el cuádriceps produce con casi todo el peso del cuerpo sobre esa pierna."
           },
-          "bulgarian_split_squat__cable": {
-            "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-            "executionCues": [
-              "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+          {
+            "actions": [
+              "Flexión de la cadera",
+              "Extensión de la cadera"
             ],
-            "setupCues": [
-              "Preparación: Polea y pie trasero en el banco: la tensión constante se suma a la búlgara."
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_hip",
+              "mackey2021",
+              "arakawa2023"
+            ],
+            "why": "La cadera delantera pasa de una flexión profunda a la extensión, y en este ejercicio su momento y su trabajo superaron a los de la rodilla y el tobillo (Mackey y Riemann). La cadera de atrás queda extendida sobre el banco y no empuja."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_ankle",
+              "mackey2021"
+            ],
+            "why": "El tobillo delantero se flexiona hacia arriba cuando la rodilla avanza al bajar y vuelve al subir. Su impulso de momento superó al de la rodilla en la búlgara (Mackey y Riemann), así que acompaña el gesto y no solo equilibra."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "aygunpolat2025"
+            ],
+            "why": "La zona lumbar se queda neutra mientras el tronco va erguido o algo inclinado. Con mancuernas, mangos de polea o de palanca, la carga cuelga de los hombros; con barra libre o de Smith, la comprime desde arriba. En ambos casos el tronco trabaja para no torcerse sobre una base estrecha, como mostró el aumento del oblicuo externo frente a la sentadilla."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "helme2022",
+              "andersen2014",
+              "ema2016",
+              "arakawa2023"
+            ],
+            "why": "Extiende la rodilla de la pierna adelantada, que soporta casi todo el peso: con plataformas de fuerza, ese pie aportó de media el 84 % del empuje vertical. Los vastos se activaron igual que en la sentadilla y el recto femoral algo menos: cuanto más par extensor exige la cadera, menos participa el recto femoral (Ema et al.), y este gesto lo exige más que la sentadilla de dos piernas (Arakawa et al.)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "mccurdy2018",
+              "arakawa2023"
+            ],
+            "why": "Extiende la cadera delantera desde una flexión profunda. Con el pie trasero elevado llegó al 65,6 % de su contracción máxima, más que en la sentadilla de dos piernas, y el momento extensor de cadera fue un 44 % mayor que en esa sentadilla con cargas de 10 RM. Comparte el papel principal con el cuádriceps."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "andersen2014",
+              "deforest2014",
+              "mccurdy2018"
+            ],
+            "why": "Ayudan al glúteo a extender la cadera delantera. La actividad del bíceps femoral fue mayor que en la sentadilla y que en la zancada estática, y el grupo llegó al 40 % de la contracción máxima, por debajo del glúteo mayor: asisten sin liderar."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026"
+            ],
+            "why": "El aductor mayor, con su porción isquiocondílea, ayuda a extender la cadera delantera desde la flexión profunda. En la subida al cajón, otro gesto a una pierna, y en la sentadilla, esa porción quedó en el nivel más alto de fuerza entre los ejercicios estudiados (Collings et al.); aquí se extrapola a la búlgara."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "mackey2021",
+              "deforest2014"
+            ],
+            "why": "El sóleo y los gemelos frenan el avance de la tibia al bajar y la devuelven al subir. En la búlgara, el impulso de momento del tobillo superó al de la rodilla y su trabajo fue parecido (Mackey y Riemann), así que aportan trabajo y no solo equilibran; la activación del gastrocnemio fue similar a la de la sentadilla trasera (DeForest et al.)."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "mccurdy2010",
+              "arakawa2023",
+              "statpearls_gluteus_medius"
+            ],
+            "why": "Con una sola pierna cargada, sujeta la pelvis para que no caiga hacia el lado de la pierna trasera. Se activó más que en la sentadilla de dos piernas, y los momentos de abducción de la cadera también fueron mayores."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014"
+            ],
+            "why": "El oblicuo externo se activó un 58-62 % más que en la sentadilla: el tronco erguido sobre una base estrecha tiene que resistir giros e inclinaciones laterales sin mover la columna."
+          }
+        ],
+        "overrides": {
+          "bulgarian_split_squat__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La muñeca se queda recta frente al tirón diagonal del cable y no cambia de ángulo durante la serie."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los flexores de los dedos cierran cada mango mientras el cable tira hacia abajo y hacia fuera, hacia su torre; el antebrazo trabaja en isometría y no mueve la carga."
+              }
             ]
           },
           "bulgarian_split_squat__dumbbells": {
-            "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-            "executionCues": [
-              "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La muñeca queda neutra con la mancuerna colgando y transmite su peso al antebrazo; no se flexiona ni se extiende durante la serie."
+              }
             ],
-            "setupCues": [
-              "Preparación: Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada."
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los flexores de los dedos y de la muñeca sostienen cada mancuerna colgada durante toda la serie, sin mover el peso; con cargas altas, el agarre puede ceder antes que las piernas."
+              }
             ]
           },
           "bulgarian_split_squat__kettlebell": {
-            "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
-            "executionCues": [
-              "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            "joints": [
+              {
+                "actions": [
+                  "Estabilidad del tronco con carga delantera"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "gullett2009",
+                  "andersen2014"
+                ],
+                "why": "La kettlebell delante del pecho empuja el tronco hacia delante y la zona lumbar se queda erguida para no doblarse. En la sentadilla, pasar la carga de la espalda al pecho no alteró la activación muscular (Gullett et al.): cambia la postura, no los músculos que trabajan."
+              },
+              {
+                "actions": [
+                  "Flexión sostenida del codo"
+                ],
+                "id": "codo",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_biceps"
+                ],
+                "why": "Los codos se quedan doblados bajo la kettlebell para sujetarla contra el esternón; la articulación no se mueve durante la serie, solo sostiene el peso con los flexores del codo."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Las muñecas se quedan firmes bajo el asa para que la kettlebell no gire hacia delante; no se mueven durante la serie."
+              }
             ],
-            "setupCues": [
-              "Preparación: Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio."
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Los dedos rodean los cuernos del asa y los flexores del antebrazo impiden, en isometría, que la kettlebell resbale durante toda la serie."
+              }
             ]
           },
           "bulgarian_split_squat__machine": {
-            "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "joints": [
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "La muñeca se queda firme sobre el mango y pasa el peso de la palanca al brazo sin moverse."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "forearm",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments"
+                ],
+                "why": "Las manos aprietan los mangos de la palanca durante toda la serie; los flexores de los dedos y de la muñeca sujetan el peso sin moverlo, porque lo suben las piernas."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "bulgarian_split_squat__barbell": {
+            "description": "La barra cruza la parte superior de la espalda, en la posición de la sentadilla trasera, y el agarre deja de limitar el peso que se puede mover. Al ir libre y alta sobre una sola pierna de apoyo, cualquier balanceo hacia un lado se nota y la pelvis tiene que frenarlo.",
             "executionCues": [
-              "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+              "Lleva el pecho alto para que la barra no se vaya hacia delante.",
+              "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
             ],
             "setupCues": [
-              "Preparación: Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable."
+              "Saca la barra del soporte cruzada sobre la parte superior de la espalda y retrocede hasta el banco.",
+              "Apoya el empeine de un pie sobre el banco, con los cordones hacia abajo, y adelanta el otro una zancada larga."
+            ]
+          },
+          "bulgarian_split_squat__cable": {
+            "description": "Cada mano sujeta el mango de una polea baja de una máquina de poleas, una a cada lado, y el peso de la torre sube por los cables al estirar la pierna. Los cables tiran hacia abajo y algo hacia fuera, hacia su torre, por eso los brazos sujetan los mangos pegados a los costados.",
+            "executionCues": [
+              "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+              "Lleva los mangos pegados a los costados, sin dejar que los cables te abran los brazos.",
+              "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
+            ],
+            "setupCues": [
+              "Baja las dos poleas al punto más bajo y toma un mango en cada mano.",
+              "Colócate en el centro con el banco detrás y apoya en él el empeine de un pie."
+            ]
+          },
+          "bulgarian_split_squat__dumbbells": {
+            "description": "Una mancuerna cuelga de cada mano junto a la cadera, con el peso bajo y cerca del cuerpo, y el tronco puede ir erguido sin que la carga tire de él. Con pesos altos, el agarre puede cansarse antes que las piernas.",
+            "executionCues": [
+              "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+              "Deja los brazos estirados y las mancuernas quietas junto a la cadera.",
+              "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
+            ],
+            "setupCues": [
+              "Toma una mancuerna en cada mano y déjalas colgar a los lados.",
+              "Ponte de espaldas al banco, apoya encima el empeine de un pie y adelanta el otro una zancada larga."
+            ]
+          },
+          "bulgarian_split_squat__kettlebell": {
+            "description": "Una sola kettlebell, sujeta por los cuernos del asa delante del pecho, adelanta la carga: el tronco va más erguido para que el peso no lo arrastre hacia delante. Los codos apuntan al suelo y sostienen la bola pegada al esternón durante toda la serie.",
+            "executionCues": [
+              "Baja en vertical: la rodilla de atrás cae entre el banco y el pie de delante, sin tocar el suelo.",
+              "Lleva la kettlebell pegada al esternón durante toda la bajada.",
+              "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
+            ],
+            "setupCues": [
+              "Sujeta una kettlebell por los cuernos del asa delante del pecho, con los codos hacia abajo.",
+              "Ponte de espaldas al banco, apoya encima el empeine de un pie y adelanta el otro una zancada larga."
+            ]
+          },
+          "bulgarian_split_squat__machine": {
+            "description": "Las manos toman los mangos de una máquina de palanca, cargada con discos o con una pila de placas, a los lados de la cadera, y el arco de subida lo marcan los brazos de la palanca. El empeine trasero descansa en el rodillo de la propia estación, regulable en altura.",
+            "executionCues": [
+              "Baja en vertical: la rodilla de atrás cae entre el rodillo y el pie de delante, sin tocar el suelo.",
+              "Sube estirando la pierna delantera y deja que la palanca marque el arco.",
+              "No te impulses con la pierna de atrás."
+            ],
+            "setupCues": [
+              "Ponte entre los brazos de la palanca y apoya el empeine trasero en el rodillo de la máquina.",
+              "Agáchate y agarra los mangos a los lados de la cadera, con los brazos estirados."
             ]
           },
           "bulgarian_split_squat__smith_machine": {
-            "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "description": "Los rieles fijan la subida y la bajada de la barra en vertical, de modo que la carga no se escapa hacia delante ni hacia los lados y la atención va entera a la pierna. El pie de atrás descansa en un banco simple, colocado detrás y separado de la estructura.",
             "executionCues": [
-              "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Deja que los rieles marquen la bajada hasta que la rodilla de atrás casi roce el suelo.",
+              "Sube empujando con toda la planta delantera, sin impulsarte con la pierna de atrás."
             ],
             "setupCues": [
-              "Preparación: Smith y pie trasero en el banco: el guiado da estabilidad en la bajada."
+              "Coloca un banco plano detrás de la Smith, sin pegarlo a la estructura, y apoya la barra en la parte superior de la espalda.",
+              "Gira la barra para soltarla, lleva el empeine trasero al banco y deja el pie delantero un paso por delante de la línea de la barra."
             ]
           }
         },
-        "description": "La Sentadilla Búlgara eleva el pie trasero al banco y convierte la zancada en estática y feroz: la pierna delantera baja y sube con todo el peso mientras la otra solo acompaña. Se ejecuta con mancuernas a los lados, descendiendo vertical sobre la pierna fija y subiendo sin empujar con la de atrás. Con barra a la espalda entra en otra categoría de sufrimiento. El ejercicio unilateral más temido y más efectivo para las piernas."
+        "description": "La Sentadilla Búlgara (Bulgarian split squat) es una sentadilla a una pierna: el empeine de atrás descansa en un banco y la pierna de delante baja y sube casi sola. En ella, el cuádriceps extiende la rodilla y el glúteo mayor la cadera, con ayuda de los isquiosurales, mientras el glúteo medio impide que la pelvis se hunda hacia un lado. El pie elevado apenas empuja: en un estudio con plataformas de fuerza, la pierna adelantada produjo de media el 84 % del empuje vertical. La rodilla de atrás baja casi hasta el suelo y el tronco va erguido, o algo inclinado si se busca más trabajo de cadera. Con mucha menos carga que una sentadilla de dos piernas, cada muslo y cada glúteo reciben por separado un trabajo intenso."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En 715 repeticiones medidas con dos plataformas de fuerza, el pie delantero aportó de media el 84,4 % de la fuerza vertical; la fuerza del pie trasero no pasó del peso de la propia pierna.",
+          "id": "helme2022",
+          "title": "Is the Rear Foot Elevated Split Squat Unilateral? An Investigation Into the Kinetic and Kinematic Demands",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32796420/"
+        },
+        {
+          "claim": "Con la misma carga relativa, la sentadilla búlgara activó más el bíceps femoral (63-77 %) y el oblicuo externo (58-62 %) que la sentadilla, menos el recto femoral (16-21 %) y por igual los vastos y el recto abdominal.",
+          "id": "andersen2014",
+          "title": "Muscle activation and strength in squat and Bulgarian squat on stable and unstable surface",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25254898/"
+        },
+        {
+          "claim": "Cuando el gesto exige también par extensor de cadera, el recto femoral se activa poco aunque la carga sea alta, mientras los vastos sí aumentan su activación.",
+          "id": "ema2016",
+          "title": "Unique activation of the quadriceps femoris during single- and multi-joint exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27032805/"
+        },
+        {
+          "claim": "En la sentadilla unilateral modificada con el pie trasero elevado, el glúteo mayor llegó al 65,6 % y los isquiosurales al 40,1 % de la contracción máxima, más que en la sentadilla bilateral y el peso muerto rígido.",
+          "id": "mccurdy2018",
+          "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29076958/"
+        },
+        {
+          "claim": "Con cargas de 10 RM, el momento extensor de cadera fue un 44 % mayor en el punto bajo y un 47 % mayor en el pico que en la sentadilla trasera, y también fueron mayores los momentos de abducción y rotación externa.",
+          "id": "arakawa2023",
+          "title": "Greater Hip Moments in Rear-Foot-Elevated Split Squats Than in Conventional Back Squats With the Same Relative Intensity of Loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36542838/"
+        },
+        {
+          "claim": "La sentadilla con el pie trasero elevado dio más actividad del bíceps femoral que la zancada estática; el resto de músculos fue similar al de la sentadilla trasera con el 85 % de la carga máxima.",
+          "id": "deforest2014",
+          "title": "Muscle Activity in Single- vs. Double-Leg Squats",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27182408/"
+        },
+        {
+          "claim": "La sentadilla unilateral modificada activó más el glúteo medio y los isquiosurales que la sentadilla de dos piernas, que activó más el cuádriceps.",
+          "id": "mccurdy2010",
+          "title": "Comparison of lower extremity EMG between the 2-leg squat and modified single-leg squat in female athletes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20231745/"
+        },
+        {
+          "claim": "En la búlgara, el impulso, el trabajo y el momento máximo de la cadera superaron a los de la rodilla y el tobillo; el impulso de momento del tobillo fue mayor que el de la rodilla y el recorrido de la rodilla, menor que en la sentadilla trasera.",
+          "id": "mackey2021",
+          "title": "Biomechanical Differences Between the Bulgarian Split-Squat and Back Squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34055144/"
+        },
+        {
+          "claim": "Inclinar el tronco hacia delante aumentó la activación del glúteo mayor, del bíceps femoral y del recto femoral, y el apoyo trasero en suspensión elevó la de los erectores de la columna.",
+          "id": "aygunpolat2025",
+          "title": "Targeted muscle activation in Bulgarian split squat variations: effects of trunk position and suspension-based execution",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40867012/"
+        },
+        {
+          "claim": "La posición de la barra no cambió la actividad muscular: la sentadilla frontal reclutó los músculos igual que la trasera, con menos fuerza de compresión y menos momento extensor en la rodilla.",
+          "id": "gullett2009",
+          "title": "A biomechanical comparison of back and front squats in healthy trained individuals",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19002072/"
+        },
+        {
+          "claim": "El glúteo medio y el menor abducen la cadera y son clave para la estabilidad de la pierna y la pelvis.",
+          "id": "statpearls_gluteus_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "La rodilla es sobre todo una bisagra que permite flexionar y extender la pierna, sostenida principalmente por la musculatura.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La articulación de la cadera soporta el peso del tronco y transmite la carga del esqueleto axial a la pierna.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "La superficie troclear del astrágalo permite la dorsiflexión y la flexión plantar del tobillo.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "En un modelo guiado por electromiografía, la subida al cajón y la sentadilla quedaron en el nivel más alto de fuerza para la porción isquiocondílea del aductor mayor, que generó fuerzas altas en los ejercicios orientados a extender la cadera.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de los dedos y de la muñeca que cierran el agarre sobre la carga.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla sobre una sola pierna con el empeine trasero en un banco detrás: la rodilla de atrás baja hacia el suelo y la pierna delantera, que soporta casi todo el peso, vuelve a extenderse. La carga puede ir en las manos, sobre la espalda o delante del pecho; el pie elevado sobre el banco la separa de la zancada estática, con los dos pies en el suelo.",
+        "keyPositions": [
+          "Arriba: pierna delantera casi recta, rodilla trasera doblada con el empeine sobre el banco y tronco erguido.",
+          "Punto bajo: muslo delantero cerca de la horizontal, rodilla delantera sobre el pie, talón delantero apoyado y rodilla de atrás suspendida justo encima del suelo."
+        ],
+        "mistakes": [
+          "Empujar con la pierna de atrás para salir del punto bajo.",
+          "Dejar que la rodilla de delante se vaya hacia el interior.",
+          "Despegar el talón delantero al bajar.",
+          "Poner el pie delantero tan cerca del banco que la rodilla de atrás no tiene sitio para bajar.",
+          "En polea, cruzar los cables por delante del cuerpo en lugar de llevar cada uno hacia su lado."
+        ],
+        "phases": [
+          {
+            "description": "La rodilla de atrás cae en vertical hacia el suelo mientras la de delante se dobla, con el peso sobre todo el pie delantero.",
+            "name": "Bajada"
+          },
+          {
+            "description": "El muslo delantero llega cerca de la horizontal y la rodilla de atrás queda suspendida a pocos centímetros del suelo.",
+            "name": "Punto bajo"
+          },
+          {
+            "description": "El pie delantero empuja el suelo hasta extender rodilla y cadera; el pie de atrás solo acompaña sobre el banco.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Banco plano detrás del atleta, más o menos a la altura de la rodilla; el empeine trasero apoyado con los cordones hacia abajo.",
+          "Pie delantero a una distancia que permita bajar con el talón apoyado y la rodilla sobre el pie.",
+          "Carga: mancuernas o mangos de polea colgando a los costados, barra libre o de Smith sobre la parte superior de la espalda, kettlebell delante del pecho o mangos de la máquina de palanca a los lados de la cadera."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral o de tres cuartos a la altura de la cadera, con el banco, los dos pies y la cabeza dentro del encuadre.",
+          "contacts": "Planta entera del pie delantero en el suelo; empeine del pie trasero apoyado encima del apoyo de detrás, un banco o un rodillo; la rodilla trasera no toca el suelo.",
+          "load": "La carga está sujeta por el atleta en todo momento y queda separada del suelo.",
+          "orientation": "Atleta de espaldas al apoyo trasero, con la pierna de trabajo delante y la otra estirada hacia atrás hasta ese apoyo.",
+          "phase": "Punto bajo: muslo delantero casi horizontal y rodilla trasera a pocos centímetros del suelo, justo antes de subir.",
+          "posture": "Tronco erguido o algo inclinado hacia delante, columna neutra, rodilla delantera alineada con el pie y pelvis nivelada."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica cruzada sobre la parte superior de la espalda, con las dos manos agarrándola a los lados de los hombros; discos a ambos lados; banco plano detrás."
+          },
+          "cable": {
+            "geometry": "De pie entre las dos torres de una máquina de poleas, que quedan a izquierda y derecha del atleta, con ambas poleas en la posición más baja, en la base de cada torre; un mango en cada mano junto a la cadera y cada cable bajando en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse; banco plano detrás."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano, colgando a los costados con los brazos estirados; banco plano detrás."
+          },
+          "kettlebell": {
+            "geometry": "Una kettlebell sujeta con las dos manos por los cuernos del asa delante del pecho, con la bola hacia abajo y los codos apuntando al suelo; banco plano detrás."
+          },
+          "machine": {
+            "geometry": "Máquina de palanca cargada con discos: el atleta de pie entre dos brazos de palanca, con un mango en cada mano a los lados de la cadera y los brazos estirados; el empeine trasero sobre el rodillo acolchado de la propia máquina."
+          },
+          "smith_machine": {
+            "geometry": "Barra de la máquina Smith sobre la parte superior de la espalda, dentro de los rieles verticales, con las manos a los lados de los hombros; un banco plano aparte, detrás, que no forma parte de la máquina."
+          }
+        },
+        "forbidden": [
+          "Pie trasero apoyado en el suelo: eso es una zancada estática, no una sentadilla búlgara.",
+          "Rodilla trasera apoyada en el suelo o atleta arrodillado.",
+          "Barra en el pliegue de los codos: eso es la búlgara Zercher, otra definición.",
+          "En polea: cables cruzados en X, poleas colocadas junto a los pies o cables que salen de cajas o bloques en el suelo; cada cable baja en diagonal hasta la polea baja de una torre real, una a cada lado del atleta.",
+          "En Smith: banco unido o fundido con la estructura de la máquina, o barra libre sobre unos soportes sin rieles.",
+          "En máquina: un soporte con rodillo y asas fijas sin carga, un banco suelto en lugar del rodillo de la máquina o discos sin brazos de palanca que los muevan.",
+          "Talón delantero despegado del suelo o rodilla delantera hundida hacia dentro.",
+          "Carga flotando sin que las manos la sujeten."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete frozen at the BOTTOM of a barbell Bulgarian split squat. A loaded barbell rests across the upper back and both hands grip it beside the shoulders. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. The plates are well clear of the floor.",
+          "cable": "Three-quarter front view of an athlete standing between the two towers of a cable machine, frozen at the BOTTOM of a cable Bulgarian split squat. The towers stand to the left and right of the athlete, with both pulleys set at the lowest position at the base of each tower. Each hand grips a single handle beside the hip, and each cable runs diagonally down and outward to the low pulley of its own tower, without crossing. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor, the rear knee is just above the floor and the torso is upright.",
+          "dumbbells": "Side view of an athlete frozen at the BOTTOM of a dumbbell Bulgarian split squat. Each hand grips one dumbbell hanging at the side with straight arms. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor with the heel down. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, front knee over the front foot. The dumbbells hang beside the hips, clear of the floor.",
+          "kettlebell": "Side view of an athlete frozen at the BOTTOM of a goblet kettlebell Bulgarian split squat. Both hands hold one kettlebell by the horns of the handle in front of the chest, bell facing down, elbows pointing to the floor. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright. The kettlebell stays against the chest, far above the floor.",
+          "machine": "Side view of an athlete on a plate-loaded lever machine for split squats, frozen at the BOTTOM of a machine Bulgarian split squat. The athlete stands between two lever arms loaded with weight plates, and each hand grips a lever handle beside the hip with straight arms. The top of the rear foot rests on the padded roller of the machine behind. The front foot is flat on the platform. The front thigh is nearly parallel to the floor, the rear knee is just above the floor and the torso is upright.",
+          "smith_machine": "Side view of an athlete inside a Smith machine, frozen at the BOTTOM of a Smith machine Bulgarian split squat. The bar rests across the upper back, locked in the vertical rails, and both hands grip it beside the shoulders. The top of the rear foot rests on a separate flat bench that stands on its own behind the athlete, not attached to the machine. The front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers just above the floor. Torso upright."
+        },
+        "qa": [
+          "¿El empeine del pie trasero está apoyado sobre el banco o el rodillo y el pie delantero entero en el suelo?",
+          "¿El muslo delantero está cerca de la horizontal y la rodilla trasera cerca del suelo sin tocarlo?",
+          "¿Las manos sujetan la carga y nada flota suelto?",
+          "¿En polea, las torres quedan a izquierda y derecha del atleta y cada cable baja en diagonal, hacia fuera, hasta la polea baja de su propia torre, sin cruzarse?",
+          "¿En Smith, la barra va dentro de los rieles y el banco es una pieza aparte?"
+        ]
+      }
     },
     "bulgarian_zercher": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "helme2022"
+            ],
+            "why": "La rodilla adelantada se dobla hasta dejar el muslo casi horizontal y se estira para volver arriba, soportando casi todo el peso del cuerpo y de la barra."
+          },
+          {
+            "actions": [
+              "Flexión de la cadera",
+              "Extensión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_hip",
+              "arakawa2023"
+            ],
+            "why": "La cadera delantera baja a una flexión profunda y se extiende al subir; con el pie de atrás elevado, el momento extensor de cadera superó al de la sentadilla de dos piernas (Arakawa et al.)."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_ankle",
+              "mackey2021"
+            ],
+            "why": "El tobillo adelantado se dobla cuando la rodilla avanza sobre el pie y se recupera al subir; en este gesto acumuló más impulso de momento que la rodilla (Mackey y Riemann)."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco con carga delantera"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "gullett2009",
+              "andersen2014"
+            ],
+            "why": "La barra cuelga por delante del abdomen y tiende a inclinar el tronco; la zona lumbar se queda erguida y quieta para que la carga no lo arrastre hacia delante."
+          },
+          {
+            "actions": [
+              "Flexión sostenida del codo"
+            ],
+            "id": "codo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "La barra descansa en el pliegue de los codos doblados y los antebrazos suben hacia el pecho; los flexores del codo sostienen ese ángulo sin moverlo durante toda la serie."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "helme2022",
+              "gullett2009"
+            ],
+            "why": "Endereza la rodilla adelantada mientras la barra cuelga de los codos. El pie de delante soporta casi toda la fuerza vertical en este gesto (Helme et al.). En la sentadilla frontal, llevar la barra delante no cambió la activación muscular respecto de la trasera (Gullett et al.); extrapolado a la barra en los codos, el cuádriceps conserva su papel de motor."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "mccurdy2018",
+              "arakawa2023"
+            ],
+            "why": "Abre la cadera adelantada desde la flexión del punto bajo. Con el pie trasero elevado, el glúteo mayor rozó dos tercios de su contracción máxima (McCurdy et al., 2018), y la barra en los codos no le quita esa función porque la cadera hace el mismo recorrido."
+          },
+          {
+            "id": "hamstrings",
+            "role": "SECONDARY",
+            "sources": [
+              "andersen2014",
+              "mccurdy2018"
+            ],
+            "why": "Acompañan al glúteo en la extensión de la cadera delantera. Con el pie de atrás en alto, el bíceps femoral trabajó más que en la sentadilla de dos piernas (Andersen et al.), sin llegar al nivel del glúteo mayor."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "collings2026"
+            ],
+            "why": "La porción isquiocondílea del aductor mayor acompaña al glúteo cuando la cadera adelantada sale de la flexión del fondo; su fuerza en la subida al cajón y en la sentadilla fue de las más altas medidas (Collings et al.), un dato que se extrapola a esta variante."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "mackey2021"
+            ],
+            "why": "Los gemelos y el sóleo controlan la tibia adelantada cuando la rodilla avanza sobre el pie y la empujan atrás al subir; con el pie trasero elevado, el tobillo acumuló más impulso de momento que la rodilla (Mackey y Riemann)."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "mccurdy2010",
+              "statpearls_gluteus_medius"
+            ],
+            "why": "Evita que la pelvis caiga hacia el lado del pie apoyado en el banco cuando casi todo el peso carga sobre la pierna adelantada; su actividad subió frente a la sentadilla bilateral (McCurdy et al., 2010)."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "gullett2009"
+            ],
+            "why": "La barra delante del abdomen intenta doblar el tronco hacia delante; la zona media lo sostiene erguido y sin giros sobre una base estrecha, el mismo trabajo de estabilidad que elevó el oblicuo externo en la búlgara (Andersen et al.)."
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "Sostiene el codo doblado bajo la barra durante toda la serie: el peso apoyado en el pliegue tiende a abrir el codo y los flexores lo impiden en isometría. No hay electromiografía de la variante Zercher; el rol se deduce de la función del músculo."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "bulgarian_zercher__barbell__zercher": {
-            "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "description": "La barra se apoya en la cara interna de los codos doblados, a la altura del ombligo, con los antebrazos en vertical y las manos unidas frente al esternón. Desde el soporte hasta la última repetición, los brazos sostienen la carga y el tronco sube y baja erguido detrás de ella.",
             "executionCues": [
-              "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Desciende hasta dejar la rodilla de atrás a pocos centímetros del suelo, con la barra pegada al abdomen.",
+              "Lleva el pecho alto y los codos por delante para que la barra no se escurra.",
+              "Empuja el suelo con la planta adelantada y vuelve arriba sin ayudarte del pie del banco."
             ],
             "setupCues": [
-              "Preparación: Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra."
+              "Coloca la barra en el soporte a la altura del ombligo y sácala encajada en el pliegue de los codos.",
+              "Junta las manos delante del pecho, retrocede hasta el banco y apoya encima el dorso del pie de atrás."
             ]
           }
         },
-        "description": "La Sentadilla Búlgara Zercher sube la apuesta de la búlgara: la pierna trasera apoyada en el banco y la carga abrazada contra el torso. El cuádriceps de la pierna delantera trabaja mientras el abdomen sostiene el peso sin dejarlo caer. La bajada es vertical y la subida pide el pecho orgulloso y los codos firmes. La búlgara más incómoda y una de las más completas que existen."
+        "description": "La Sentadilla Búlgara Zercher sujeta la barra en la flexura de los codos, pegada al abdomen, mientras el dorso del pie de atrás reposa en un banco. La pierna adelantada sube y baja con casi todo el peso: el cuádriceps endereza la rodilla y el glúteo mayor abre la cadera. Con la carga por delante, el pecho va alto y la zona media trabaja para que la barra no doble el tronco. Con los antebrazos verticales y las manos unidas, la barra acompaña al cuerpo en la bajada sin tocar el muslo. Es una forma de cargar la búlgara sin poner peso sobre la espalda, a cambio de que los brazos sostengan la barra durante toda la serie."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Con el pie trasero elevado, la pierna de delante produjo de media el 84 % de la fuerza vertical y la de atrás no aportó más que su propio peso.",
+          "id": "helme2022",
+          "title": "Is the Rear Foot Elevated Split Squat Unilateral? An Investigation Into the Kinetic and Kinematic Demands",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32796420/"
+        },
+        {
+          "claim": "Pasar la barra de la espalda a la parte delantera no cambió la activación muscular en la sentadilla y redujo la compresión y el momento extensor en la rodilla.",
+          "id": "gullett2009",
+          "title": "A biomechanical comparison of back and front squats in healthy trained individuals",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19002072/"
+        },
+        {
+          "claim": "En la sentadilla unilateral con pie trasero elevado, el glúteo mayor alcanzó el 65,6 % de la contracción máxima y los isquiosurales el 40,1 %.",
+          "id": "mccurdy2018",
+          "title": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29076958/"
+        },
+        {
+          "claim": "El momento extensor de cadera fue un 44-47 % mayor que en la sentadilla trasera con la misma intensidad relativa, aun con menos carga absoluta y el tronco más erguido.",
+          "id": "arakawa2023",
+          "title": "Greater Hip Moments in Rear-Foot-Elevated Split Squats Than in Conventional Back Squats With the Same Relative Intensity of Loads",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36542838/"
+        },
+        {
+          "claim": "Frente a la sentadilla, la búlgara aumentó la actividad del bíceps femoral y del oblicuo externo, con vastos parecidos y menos recto femoral.",
+          "id": "andersen2014",
+          "title": "Muscle activation and strength in squat and Bulgarian squat on stable and unstable surface",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25254898/"
+        },
+        {
+          "claim": "El glúteo medio y los isquiosurales se activaron más en la sentadilla unilateral modificada que en la de dos piernas.",
+          "id": "mccurdy2010",
+          "title": "Comparison of lower extremity EMG between the 2-leg squat and modified single-leg squat in female athletes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20231745/"
+        },
+        {
+          "claim": "En la búlgara, la cadera dominó el impulso y el trabajo articular, y el tobillo acumuló más impulso de momento que la rodilla.",
+          "id": "mackey2021",
+          "title": "Biomechanical Differences Between the Bulgarian Split-Squat and Back Squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34055144/"
+        },
+        {
+          "claim": "Los glúteos medio y menor actúan como abductores de la cadera y sostienen la estabilidad de la pelvis.",
+          "id": "statpearls_gluteus_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Describe la rodilla como una bisagra de flexión y extensión estabilizada sobre todo por los músculos que la rodean.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Describe la cadera como la articulación que sostiene el peso del tronco y lo transmite a las extremidades inferiores.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "Describe el tobillo como una bisagra cuya superficie astragalina permite la dorsiflexión y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "El bíceps braquial flexiona el codo, la acción que sostiene la barra en el pliegue de los brazos.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "La porción isquiocondílea del aductor mayor alcanzó el nivel más alto de fuerza en la subida al cajón y en la sentadilla, ejercicios orientados a extender la cadera.",
+          "id": "collings2026",
+          "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41931009/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla a una pierna con la barra sujeta en la flexura de los codos, contra el abdomen, y el dorso del pie trasero sobre un banco. Llevar la carga en los brazos doblados, por delante del tronco, la separa de la búlgara con la barra a la espalda o con el peso colgando de las manos.",
+        "keyPositions": [
+          "Arriba: barra contra el abdomen, pecho alto, pierna adelantada casi recta y el pie de atrás sobre el banco.",
+          "Abajo: muslo adelantado casi horizontal, barra todavía en los codos y separada del muslo, rodilla de atrás a pocos centímetros del suelo."
+        ],
+        "mistakes": [
+          "Abrir los codos hasta que la barra se deslice hacia las muñecas.",
+          "Encorvar la parte alta de la espalda bajo la barra.",
+          "Apoyar la barra en el muslo adelantado en el punto más hondo.",
+          "Ayudarse empujando con el pie del banco."
+        ],
+        "phases": [
+          {
+            "description": "La pierna de atrás se dobla, su rodilla se acerca al suelo y la barra desciende pegada al abdomen, con el pecho alto.",
+            "name": "Descenso"
+          },
+          {
+            "description": "El muslo adelantado queda casi horizontal y los codos siguen delante del tronco sin rozar la pierna.",
+            "name": "Fondo"
+          },
+          {
+            "description": "La planta adelantada empuja el suelo y cadera y rodilla se estiran a la vez hasta volver de pie.",
+            "name": "Ascenso"
+          }
+        ],
+        "setup": [
+          "La barra se saca de un soporte colocado a la altura del ombligo, encajada en la cara interna de los codos.",
+          "Antebrazos verticales y manos juntas o entrelazadas frente al pecho; el dorso del pie de atrás sobre un banco plano."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura de la cadera, con el banco, ambos pies, los brazos y la cabeza dentro del encuadre.",
+          "contacts": "Planta entera del pie adelantado en el suelo; dorso del pie trasero sobre el banco; la carga apoyada en el pliegue de ambos codos.",
+          "load": "La carga queda delante del abdomen, a la altura del ombligo, separada del muslo y lejos del suelo.",
+          "orientation": "Atleta de perfil y de espaldas al banco, con la pierna de trabajo delante.",
+          "phase": "Fondo de la bajada: muslo adelantado casi horizontal y rodilla de atrás a pocos centímetros del suelo.",
+          "posture": "Tronco erguido, pecho alto, antebrazos verticales, manos juntas delante del pecho y rodilla adelantada alineada con el pie."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica con un disco a cada lado, encajada en la cara interna de los dos codos y apretada contra el abdomen; banco plano detrás del atleta."
+          }
+        },
+        "forbidden": [
+          "Barra sobre la espalda o los hombros: eso es la sentadilla búlgara con barra, no la Zercher.",
+          "Barra agarrada con las manos, como en un curl o una sentadilla frontal, en lugar de apoyada en el pliegue de los codos.",
+          "Pie trasero en el suelo: eso sería una zancada estática.",
+          "Barra apoyada sobre el muslo adelantado en el fondo.",
+          "Rodilla de atrás apoyada en el suelo."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete frozen at the BOTTOM of a Zercher Bulgarian split squat. A loaded barbell sits in the crooks of both bent elbows, pressed against the lower torso at navel height, forearms pointing up and hands clasped in front of the chest. The top of the rear foot rests on a flat bench behind; the front foot is flat on the floor. The front thigh is nearly parallel to the floor and the rear knee hovers a few centimeters above the floor. Torso upright, chest up. The bar does not touch the thigh and the plates are well clear of the floor."
+        },
+        "qa": [
+          "¿La barra descansa en el pliegue de los dos codos, delante del tronco, y no sobre la espalda?",
+          "¿El dorso del pie trasero está sobre el banco y el pie adelantado entero en el suelo?",
+          "¿El muslo adelantado está casi horizontal y la rodilla de atrás cerca del suelo sin tocarlo?",
+          "¿La barra queda separada del muslo y los discos lejos del suelo?"
+        ]
+      }
     }
   },
   "familyId": "unilateral_knee_dominant_bulgarian",

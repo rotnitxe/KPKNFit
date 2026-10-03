@@ -1,30 +1,299 @@
 {
   "definitions": {
     "belt_squat": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de rodilla",
+              "Extensión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "layer2018",
+              "statpearls_knee"
+            ],
+            "why": "La rodilla soporta la mayor parte del trabajo: en pruebas isométricas, colgar la carga de la cadera aumentó el momento sobre ella frente a la sentadilla con barra."
+          },
+          {
+            "actions": [
+              "Flexión de cadera",
+              "Extensión de cadera"
+            ],
+            "id": "cadera",
+            "role": "SECONDARY",
+            "sources": [
+              "evans2019",
+              "joseph2020"
+            ],
+            "why": "Se flexiona y se extiende junto con la rodilla, pero el glúteo mayor, que la extiende, se activó entre un 17 y un 35 % menos que en la sentadilla trasera; por eso la cadera acompaña al empuje sin liderarlo."
+          },
+          {
+            "actions": [
+              "Dorsiflexión"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "layer2018",
+              "statpearls_foot_ankle"
+            ],
+            "why": "Las rodillas avanzan con el tronco erguido y el tobillo se flexiona hacia la espinilla; en isometría su momento creció frente a la sentadilla con barra, pero su papel es sostener el pie plano y transmitir el empuje."
+          },
+          {
+            "actions": [
+              "Estabilidad en posición neutra"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "layer2018",
+              "joseph2020"
+            ],
+            "why": "Sin peso sobre los hombros, la zona lumbar solo sostiene el tronco erguido: el momento lumbar bajó y la actividad de los erectores cayó cerca de la mitad frente a la sentadilla trasera."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "joseph2020",
+              "evans2019",
+              "layer2018"
+            ],
+            "why": "Extiende la rodilla con una exigencia parecida a la de la sentadilla trasera: con la carga en la cadera la actividad del cuádriceps no cambió, y en isometría el momento sobre la rodilla fue incluso mayor."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "SECONDARY",
+            "sources": [
+              "evans2019",
+              "joseph2020"
+            ],
+            "why": "Extiende la cadera al subir, pero se activó entre un 17 y un 35 % menos que en la sentadilla trasera; por eso cuenta como secundario y no como motor principal."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "kubo2019",
+              "statpearls_adductor_magnus"
+            ],
+            "why": "Con los pies algo abiertos y la cadera bajando profundo, el aductor mayor ayuda a extenderla desde el fondo. No hay datos propios del belt squat: se extrapola de la sentadilla completa, donde los aductores crecieron tanto como el glúteo."
+          }
+        ],
+        "overrides": {
+          "belt_squat__unilateral": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión de cadera",
+                  "Estabilización de la pelvis"
+                ],
+                "id": "cadera",
+                "role": "SECONDARY",
+                "sources": [
+                  "flack2012",
+                  "distefano2009"
+                ],
+                "why": "Sobre una sola pierna, la cadera extiende y además frena la caída de la pelvis hacia el lado libre; ese control en el plano frontal lo aportan los abductores."
+              },
+              {
+                "actions": [
+                  "Dorsiflexión",
+                  "Control del apoyo"
+                ],
+                "id": "tobillo",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_foot_ankle"
+                ],
+                "why": "Con un solo apoyo, el tobillo corrige el balanceo sobre el pie a la vez que se flexiona hacia la espinilla al bajar."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "gluteus_medius",
+                "role": "STABILIZER",
+                "sources": [
+                  "distefano2009",
+                  "joseph2020",
+                  "flack2012"
+                ],
+                "why": "Sobre un solo pie, el glúteo medio sostiene la pelvis nivelada para que el lado libre no caiga. En la sentadilla a una pierna su actividad ronda el 64 % de la contracción máxima, y en el belt squat bilateral ya aparece, aunque menos que con barra."
+              }
+            ]
+          }
+        }
+      },
       "public": {
         "configurations": {
           "belt_squat__bilateral": {
-            "description": "Con a dos lados, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
+            "description": "Los dos pies pisan la plataforma, a la anchura de los hombros o algo más, y la cadena cuelga centrada entre ellos. Es la versión que admite más carga, y las manos solo acompañan en las asas.",
             "executionCues": [
-              "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+              "Baja con el tronco erguido hasta que los muslos lleguen a la horizontal o la pasen.",
+              "Abre las rodillas siguiendo la dirección de los pies.",
+              "Sube empujando el suelo con toda la planta y usa las asas solo para no perder el sitio."
             ],
             "setupCues": [
-              "Preparación: Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa."
+              "Ajusta el cinturón bajo la cintura, sobre la cadera, y engancha la cadena por delante, centrada entre las piernas.",
+              "Súbete a la plataforma con los pies a la anchura de los hombros y las puntas algo abiertas.",
+              "Agarra las asas y ponte de pie para levantar la carga de su apoyo."
             ]
           },
           "belt_squat__unilateral": {
-            "description": "Con a un lado, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+            "description": "Una sola pierna sostiene y empuja el peso del cinturón mientras el otro pie queda en el aire, sin apoyar. Sin la segunda pierna la pelvis tiende a ladearse y el glúteo medio trabaja para sostenerla nivelada; las asas ayudan a no perder la vertical.",
             "executionCues": [
-              "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+              "Baja sobre la pierna de apoyo con la rodilla en la línea del pie y la cadera nivelada.",
+              "Detente cuando el muslo quede paralelo al suelo, sin apoyar el otro pie.",
+              "Extiende la pierna de apoyo hasta quedar de pie y completa la serie antes de cambiar de lado."
             ],
             "setupCues": [
-              "Preparación: Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga."
+              "Ajusta el cinturón sobre la cadera y engancha la cadena por delante, bajo tu pelvis.",
+              "Pon un pie en el centro de la plataforma, bajo la cadena, y levanta el otro sin cargarle peso.",
+              "Agarra las asas con las dos manos para sostener la vertical."
             ]
           }
         },
-        "description": "La Sentadilla \"Belt Squat\" cuelga la carga de un cinturón a la cintura y libera por completo la espalda y los hombros: las piernas empujan sin que nada pese sobre la columna. Se ejecuta subiendo a la plataforma de la máquina y bajando profundo con las manos libres o agarradas al soporte. Cuádriceps y glúteos trabajan sin peaje lumbar. La máquina soñada por quien entrena pierna con la espalda sensible."
+        "description": "La Sentadilla \"Belt Squat\" cuelga la carga de un cinturón ajustado a la cadera: una cadena baja entre las piernas hasta la palanca o el cable de la máquina, y el atleta, de pie en su plataforma, se sujeta a las asas con las manos. La columna no carga ninguna barra, de modo que el cuádriceps trabaja casi como en una sentadilla trasera mientras la espalda baja hace mucho menos. Glúteo mayor y aductores colaboran en la extensión de cadera, aunque el glúteo trabaja algo menos que con la barra en la espalda. Es la opción para hacer sentadilla pesada cuando los hombros o la espalda no admiten una barra."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Con 5RM, el belt squat y la sentadilla trasera solo difirieron en el glúteo mayor, que se activó menos en el belt squat (0,69 a 0,71 frente a 0,84 a 0,86); vastos y recto femoral no mostraron diferencias.",
+          "id": "evans2019",
+          "title": "Comparison of Muscle Activation Between Back Squats and Belt Squats",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28595237/"
+        },
+        {
+          "claim": "Frente a la sentadilla trasera, el belt squat redujo la actividad de los erectores lumbares (45 a 52 %), del glúteo mayor (32 a 35 %), del glúteo medio (54 a 55 %), del recto abdominal y de los oblicuos, con demandas similares para cuádriceps, isquiosurales y flexores plantares.",
+          "id": "joseph2020",
+          "title": "Activity of Trunk and Lower Extremity Musculature: Comparison Between Parallel Back Squats and Belt Squats",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32269663/"
+        },
+        {
+          "claim": "En isometría, el belt squat aumentó la fuerza máxima y los momentos de tobillo y rodilla y redujo el momento lumbar frente a la sentadilla trasera, sin cambios en el momento de cadera.",
+          "id": "layer2018",
+          "title": "Kinetic Analysis of Isometric Back Squats and Isometric Belt Squats",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30273281/"
+        },
+        {
+          "claim": "La sentadilla completa aumentó el volumen de los aductores (6,2 %) y del glúteo mayor (6,7 %) además de los extensores de rodilla.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "La sentadilla a una pierna activó el glúteo medio al 64 % y el glúteo mayor al 59 % de su contracción voluntaria máxima.",
+          "id": "distefano2009",
+          "title": "Gluteal muscle activation during common therapeutic exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19574661/"
+        },
+        {
+          "claim": "Los abductores de la cadera, con el glúteo medio, contribuyen a estabilizar la pelvis durante la marcha además de abducir y rotar la cadera.",
+          "id": "flack2012",
+          "title": "A review of the anatomy of the hip abductor muscles, gluteus medius, gluteus minimus, and tensor fascia lata",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22109658/"
+        },
+        {
+          "claim": "La porción isquiocondílea del aductor mayor extiende la cadera.",
+          "id": "statpearls_adductor_magnus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "La rodilla es una articulación en bisagra cuyo movimiento principal es la flexión y la extensión.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "El glúteo mayor es el principal extensor de la cadera.",
+          "id": "statpearls_glute_max",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "El tobillo realiza la dorsiflexión y la flexión plantar entre el astrágalo y la mortaja tibioperonea.",
+          "id": "statpearls_foot_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Foot and Ankle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536304/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla con la carga colgada de un cinturón en la cadera: el atleta, de pie sobre la plataforma de la máquina y de cara a sus asas, une la parte delantera del cinturón con una cadena a la palanca o al cable que queda entre las piernas. La columna y los hombros no soportan peso. Frente a las otras máquinas de sentadilla, aquí el peso tira de la pelvis hacia abajo en lugar de apoyarse en los hombros o recibirse con los pies.",
+        "keyPositions": [
+          "Arriba: de pie, cadera extendida y cadena tensa y vertical entre las piernas.",
+          "Fondo: tronco erguido, rodillas adelantadas en la línea de los pies, muslos horizontales o por debajo y talones apoyados; la cadena sigue vertical bajo la pelvis."
+        ],
+        "mistakes": [
+          "Tirar de las asas con los brazos para subir.",
+          "Dejar que el cinturón suba a la cintura y tire de la zona lumbar.",
+          "Inclinar el tronco como en una bisagra y alejar la cadena de la vertical.",
+          "En la unilateral, apoyar el pie libre para ayudarse o dejar caer la cadera de ese lado."
+        ],
+        "phases": [
+          {
+            "description": "Con el cinturón enganchado, el atleta se pone de pie y levanta la carga de su apoyo.",
+            "name": "Colocación"
+          },
+          {
+            "description": "La pelvis desciende en vertical mientras se doblan rodillas y cadera, con la cadena tirando hacia el suelo.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Muslos horizontales o por debajo, tronco erguido y talones abajo, sin rebote.",
+            "name": "Fondo"
+          },
+          {
+            "description": "La pierna o las piernas extienden rodilla y cadera y la carga sube colgada del cinturón.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Cinturón acolchado ajustado sobre la cadera, por debajo de la cintura; la cadena se engancha delante y cuelga vertical entre las piernas.",
+          "Plataforma con un hueco o una ranura en el centro para la cadena; asas o barra de apoyo delante del atleta, a la altura de la cintura o del pecho.",
+          "Bilateral: pies a la anchura de los hombros. Unilateral: un pie en el centro, bajo la cadena, y el otro en el aire."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura con el atleta, el cinturón, la cadena, la plataforma y la palanca dentro del encuadre.",
+          "contacts": "Cinturón ajustado sobre la cadera con la cadena enganchada delante; plantas completas en la plataforma; manos apoyadas en las asas sin tirar.",
+          "load": "La carga cuelga del cinturón: la cadena baja vertical entre las piernas hasta la palanca de la máquina, y nada pesa sobre los hombros ni la espalda.",
+          "orientation": "Atleta de perfil, de pie sobre la plataforma y de cara a las asas de la máquina.",
+          "phase": "Fondo de la sentadilla: muslos horizontales o algo más abajo y tronco erguido, justo antes de subir.",
+          "posture": "Tronco erguido, columna neutra, rodillas adelantadas en la línea de los pies y talones abajo."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Máquina de belt squat de palanca: plataforma ancha con un hueco central; una palanca cargada con discos pasa bajo el atleta, entre los pies, y su extremo se une a la cadena del cinturón; delante se alza un poste con asas a la altura de la cintura o del pecho."
+          }
+        },
+        "byVariant": {
+          "belt_squat__unilateral": {
+            "difference": "Un solo pie en el centro de la plataforma, bajo la cadena; la otra pierna doblada con el pie en el aire, sin tocar la plataforma, y la pelvis nivelada."
+          }
+        },
+        "forbidden": [
+          "Barra sobre los hombros o la espalda: en el belt squat la carga cuelga del cinturón.",
+          "Cadena enganchada por detrás, o cinturón a la altura de la cintura alta o del pecho.",
+          "Discos colgando sueltos de la cadena sin máquina, o palanca flotando sin estructura.",
+          "Brazos tirando de las asas con los codos doblados para subir el cuerpo.",
+          "Tronco inclinado casi horizontal, como en un peso muerto."
+        ],
+        "promptCore": {
+          "machine": "Side view of an athlete on a lever belt squat machine, frozen at the BOTTOM of the squat. A padded belt is strapped around the hips, and a short chain hangs straight down from the front of the belt, between the legs, to the end of a plate-loaded lever arm that runs below the athlete between the feet. Both feet are flat on the wide platform, a little wider than the hips. Both hands rest on the handles of the upright post in front, arms extended forward. Torso upright, knees bent forward over the toes, thighs level with the floor. Nothing rests on the shoulders or the back. The plates on the lever are clear of the floor."
+        },
+        "qa": [
+          "¿El cinturón está en la cadera y la cadena baja vertical entre las piernas hasta la máquina?",
+          "¿Los hombros y la espalda están libres de carga, sin barra?",
+          "¿Las manos se apoyan en las asas de la máquina y la carga no flota suelta?",
+          "¿Los muslos están horizontales con el tronco erguido, en el fondo de la sentadilla?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_dominant_belt_squat",
