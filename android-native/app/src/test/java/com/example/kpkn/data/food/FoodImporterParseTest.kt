@@ -25,11 +25,13 @@ import java.util.concurrent.atomic.AtomicInteger
  * importación ([FoodImporter.parseUsda]), de modo que también se prueba el orden "food.csv primero, filtro de ids
  * Foundation, y solo entonces los nutrientes".
  *
- * Ids del extracto (copiados tal cual de los CSV de `assets/food_data`; sin la fila de alias de la frutilla a propósito):
- * 746782 leche entera (energía 2048 > 2047 > 1008, azúcar solo en 1063), 748967 huevo, 331960 pechuga cocida, 330458 aceite
- * de coco ("1 tablespoon, liquid oil"), 321358 hummus ("2 tablespoon = 33,9 g"), 2346409 frutilla (sin alias ni porción);
- * 321505 sal (Foundation sin energía) y 2727569 pollo con piel (carbohidrato por diferencia negativo) quedan fuera; 319877 y
- * 335241 no son Foundation pero tienen nutrientes que el filtro debe saltar; 319874 y 319875 tampoco lo son.
+ * Ids del extracto (copiados tal cual de los CSV de `assets/food_data`, ver su README.md; sin la fila de alias de la frutilla a
+ * propósito): 746782 leche entera (energía 2048 > 2047 > 1008, azúcar solo en 1063), 748967 huevo, 331960 pechuga cocida, 330458
+ * aceite de coco ("1 tablespoon, liquid oil"), 321358 hummus ("2 tablespoon = 33,9 g"), 2346409 frutilla (sin alias ni porción).
+ * WP-S9b: 2727569 pollo con piel (carbohidrato por diferencia -0,43 g: se recorta a 0), 748608 / 748278 / 1750351 / 1750349 aceites y
+ * 789828 / 790508 mantequillas (sin energía publicada: Atwater). 321505 sal (sin macros), 335912 poroto negro seco (proteína y grasa, sin carbohidrato)
+ * y 2747675 sandía (sin carbohidrato) quedan fuera; 319877 y 335241 no son Foundation pero tienen nutrientes que el filtro debe
+ * saltar; 319874 y 319875 tampoco lo son.
  */
 class FoodImporterParseTest {
 
@@ -63,6 +65,8 @@ class FoodImporterParseTest {
     )
 
     private fun aliasesOf(json: String): List<String> = Json.decodeFromString(json)
+
+    private fun flagsOf(json: String): List<String> = Json.decodeFromString(json)
 
     @Test
     fun `a Colun milk line becomes a catalog row with its brand and normalized fields filled`() {
@@ -206,7 +210,10 @@ class FoodImporterParseTest {
 
     // ─── USDA: extracto real mínimo ──────────────────────────────────────────────────────────────────
 
-    private val extractFoundationIds = listOf("usda_746782", "usda_748967", "usda_331960", "usda_330458", "usda_321358", "usda_2346409")
+    private val extractFoundationIds = listOf(
+        "usda_746782", "usda_748967", "usda_331960", "usda_330458", "usda_321358", "usda_2346409",
+        "usda_2727569", "usda_748608", "usda_748278", "usda_1750351", "usda_1750349", "usda_789828", "usda_790508",
+    )
 
     /** Abre los assets de USDA desde el extracto (misma ruta lógica que `context.assets.open`, otro origen). */
     private fun extract(without: Set<String> = emptySet()): (String) -> InputStream = { path ->
@@ -228,7 +235,7 @@ class FoodImporterParseTest {
     }
 
     @Test
-    fun `the extract keeps only foundation foods with energy and plausible macros`() = runBlocking {
+    fun `the extract keeps the foundation foods whose energy is published or can be trusted`() = runBlocking {
         val rows = FoodImporter.parseUsda(extract())
         assertEquals(extractFoundationIds, rows.map { it.foodId })
         rows.forEach { row ->
@@ -236,9 +243,10 @@ class FoodImporterParseTest {
             assertEquals(FoodImporter.DATA_VERSION.toString(), row.datasetVersion)
             assertEquals(row.foodId.removePrefix("usda_"), row.sourceRecordId)
         }
-        // Salt is Foundation but has no energy row; chicken with skin has energy but a negative carbohydrate by difference;
-        // 319877 / 335241 are not Foundation although food_nutrient.csv holds mapped nutrients for them.
-        listOf("usda_321505", "usda_2727569", "usda_319877", "usda_335241", "usda_319874", "usda_319875").forEach { id ->
+        // Salt is Foundation but has no macros; the black beans declare protein and fat but no carbohydrate and the watermelon only
+        // protein, so Atwater would give them a fraction of their energy (WP-S9b); 319877 / 335241 are not Foundation although
+        // food_nutrient.csv holds mapped nutrients for them.
+        listOf("usda_321505", "usda_335912", "usda_2747675", "usda_319877", "usda_335241", "usda_319874", "usda_319875").forEach { id ->
             assertFalse("$id must not be imported", rows.any { it.foodId == id })
         }
     }
@@ -246,7 +254,12 @@ class FoodImporterParseTest {
     @Test
     fun `only foundation_food rows of food_csv are read`() {
         val foods = FoodImporter.parseUsdaFoundationFoods(extractLines("food.csv").asSequence())
-        assertEquals(listOf(746782, 748967, 331960, 321505, 330458, 321358, 2346409, 2727569), foods.map { it.fdcId })
+        assertEquals(
+            listOf(
+                746782, 748967, 331960, 321505, 330458, 321358, 2346409, 2727569, 748608, 748278, 1750351, 1750349, 789828, 790508, 335912, 2747675,
+            ),
+            foods.map { it.fdcId },
+        )
         val milk = foods.first()
         assertEquals("Milk, whole, 3.25% milkfat, with added vitamin D", milk.description)
         assertEquals("1", milk.categoryId)
@@ -256,10 +269,10 @@ class FoodImporterParseTest {
     @Test
     fun `the nutrient filter skips every id that is not in the set`() {
         val nutrientLines = extractLines("food_nutrient.csv")
-        val everything = FoodImporter.parseUsdaNutrients(nutrientLines.asSequence(), 16)
+        val everything = FoodImporter.parseUsdaNutrients(nutrientLines.asSequence(), 32)
         // The extract has mapped nutrient rows for non-foundation foods too: without a filter they would be kept.
         assertTrue(everything.keys.containsAll(listOf(319877, 335241)))
-        assertEquals(10, everything.size)
+        assertEquals(18, everything.size)
 
         val foundationIds = FoodImporter.parseUsdaFoundationFoods(extractLines("food.csv").asSequence()).map { it.fdcId }.toSet()
         val filtered = FoodImporter.parseUsdaNutrients(nutrientLines.asSequence(), foundationIds.size, foundationIds)
@@ -282,6 +295,77 @@ class FoodImporterParseTest {
         assertEquals(60.0, milk.calories, 1e-6)
         assertEquals(4.81f.toDouble(), milk.sugar, 1e-9)
         assertEquals(3.2f.toDouble(), milk.fats, 1e-9)
+    }
+
+    @Test
+    fun `an oil or a butter without published energy gets Atwater energy and its flag`() = runBlocking {
+        val rows = FoodImporter.parseUsda(extract()).associateBy { it.foodId }
+        // "Total fat (NLEA)" (1085) is the only macro of the oils: 9 kcal per gram of fat; the butter adds its 17,4 g of water.
+        assertEquals(843.3, rows.getValue("usda_748608").calories, 1e-9)
+        assertEquals(850.5, rows.getValue("usda_748278").calories, 1e-9)
+        assertEquals(836.4, rows.getValue("usda_1750351").calories, 1e-9)
+        assertEquals(838.7, rows.getValue("usda_1750349").calories, 1e-9)
+        assertEquals(733.5, rows.getValue("usda_789828").calories, 1e-9)
+        assertEquals(739.8, rows.getValue("usda_790508").calories, 1e-9)
+        listOf("usda_748608", "usda_748278", "usda_1750351", "usda_1750349", "usda_789828", "usda_790508").forEach { id ->
+            assertEquals(id, listOf("ENERGY_ATWATER"), flagsOf(rows.getValue(id).qualityFlagsJson))
+            assertEquals(id, 0.0, rows.getValue(id).protein, 0.0)
+            assertEquals(id, 0.0, rows.getValue(id).carbs, 0.0)
+        }
+        assertEquals("Aceite de oliva extra virgen", rows.getValue("usda_748608").name)
+        assertEquals("Fats and Oils", rows.getValue("usda_748608").category)
+        assertEquals("Mantequilla sin sal en barra", rows.getValue("usda_789828").name)
+        assertEquals("Aceite de maravilla", rows.getValue("usda_1750349").name)
+        // The coconut oil publishes 833 kcal (2048): that value stands and the row carries no flag.
+        assertEquals(833.0, rows.getValue("usda_330458").calories, 0.0)
+        assertEquals("[]", rows.getValue("usda_330458").qualityFlagsJson)
+    }
+
+    @Test
+    fun `the chicken breast with skin keeps its published energy and its negative carbohydrate is clamped`() = runBlocking {
+        val chicken = FoodImporter.parseUsda(extract()).first { it.foodId == "usda_2727569" }
+        assertEquals(132.8359f.toDouble(), chicken.calories, 1e-9)
+        assertEquals(0.0, chicken.carbs, 0.0)
+        assertEquals(listOf("CARB_CLAMPED"), flagsOf(chicken.qualityFlagsJson))
+        assertEquals("Pechuga de pollo con piel cruda", chicken.name)
+        assertEquals("RAW", chicken.foodState)
+    }
+
+    @Test
+    fun `parseUsda applies the Atwater fallback and the carbohydrate clamp to the files it reads`() = runBlocking {
+        fun quoted(vararg fields: Any) = fields.joinToString(",") { "\"$it\"" }
+        val foodCsv = (
+            listOf(quoted("fdc_id", "data_type", "description", "food_category_id", "publication_date")) + listOf(
+                quoted(1, "foundation_food", "Oil, test", 4, "2026-01-01"),
+                quoted(2, "foundation_food", "Beans, test", 16, "2026-01-01"),
+                quoted(3, "foundation_food", "Meat, carbohydrate slightly below zero", 13, "2026-01-01"),
+                quoted(4, "foundation_food", "Meat, carbohydrate far below zero", 13, "2026-01-01"),
+                quoted(5, "foundation_food", "Beans, dry, no carbohydrate", 16, "2026-01-01"),
+            )
+            ).joinToString("\n")
+        val rows = listOf(
+            Triple(1, 1004, "100"),
+            Triple(2, 1051, "11"), Triple(2, 1003, "21.6"), Triple(2, 1005, "62.4"), Triple(2, 1004, "1.4"),
+            Triple(3, 2048, "132.8"), Triple(3, 1003, "21.4"), Triple(3, 1004, "4.78"), Triple(3, 1005, "-0.43"),
+            Triple(4, 2048, "132.8"), Triple(4, 1003, "21.4"), Triple(4, 1004, "4.78"), Triple(4, 1005, "-3.0"),
+            Triple(5, 1051, "0.0"), Triple(5, 1003, "24.4"), Triple(5, 1004, "1.45"),
+        )
+        val nutrientCsv = (
+            listOf(quoted("id", "fdc_id", "nutrient_id", "amount")) +
+                rows.mapIndexed { i, (fdc, nutrient, amount) -> quoted(i + 1, fdc, nutrient, amount) }
+            ).joinToString("\n")
+        val parsed = FoodImporter.parseUsda(textAssets("food_data/food.csv" to foodCsv, "food_data/food_nutrient.csv" to nutrientCsv))
+        // 100 g of fat is 900 kcal; the bean adds up 4P + 4C + 9F; the -0,43 g carbohydrate is raised to zero. A carbohydrate of -3 g and a
+        // dry bean with protein and fat only (4P + 9F would be a third of its energy) do not enter.
+        assertEquals(listOf("usda_1", "usda_2", "usda_3"), parsed.map { it.foodId })
+        val (oil, bean, meat) = parsed
+        assertEquals(900.0, oil.calories, 1e-9)
+        assertEquals(listOf("ENERGY_ATWATER"), flagsOf(oil.qualityFlagsJson))
+        assertEquals(348.6, bean.calories, 1e-9)
+        assertEquals(listOf("ENERGY_ATWATER"), flagsOf(bean.qualityFlagsJson))
+        assertEquals(0.0, meat.carbs, 0.0)
+        assertEquals(132.8f.toDouble(), meat.calories, 1e-9)
+        assertEquals(listOf("CARB_CLAMPED"), flagsOf(meat.qualityFlagsJson))
     }
 
     @Test

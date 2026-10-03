@@ -325,7 +325,7 @@ class NutritionRepositoryStartupTest {
         assertEquals("sanity: the counter sees asset requests", 1, spy.assetAccesses.get())
         spy.assetAccesses.set(0)
 
-        // WP-S10: la huella de ESTE build es "v10+<sha256>" si los assets fusionados traen el manifiesto que genera Gradle y "v10" si no.
+        // WP-S10: la huella de ESTE build es "v<DATA_VERSION>+<sha256>" si los assets fusionados traen el manifiesto que genera Gradle y "v<DATA_VERSION>" si no.
         val current = NutritionRepository.FoodCatalogMeta(
             FoodImporter.DATA_VERSION,
             FoodImporter.expectedFingerprint(context),

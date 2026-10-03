@@ -10,7 +10,19 @@ object NutrientBasis {
     /** A zero-energy declaration only holds up to this energy per nutrient basis (kcal): a mislabelled row cannot hide calories. */
     const val ZERO_ENERGY_MAX_KCAL = 5.0
 
-    fun isVerified(food: FoodItem): Boolean = food.qualityFlags.isEmpty() && FoodIdentity.hasPlausibleMacros(food)
+    /** The importer computed the row's energy with the Atwater general factors because the source publishes none (WP-S9b). */
+    const val FLAG_ENERGY_ATWATER = "ENERGY_ATWATER"
+
+    /** The source's carbohydrate by difference was slightly negative (analytical noise) and the importer raised it to zero (WP-S9b). */
+    const val FLAG_CARB_CLAMPED = "CARB_CLAMPED"
+
+    /**
+     * Quality flags that only record a correction or a derivation the importer made, not a doubt about the row: they never take a row
+     * out of the logger. The rest (ENERGY_MISMATCH, LOW_QUALITY, INCOMPLETE, UNVERIFIED_NUTRIENT_BASIS) still do.
+     */
+    private val INFORMATIONAL_FLAGS = setOf(FLAG_ENERGY_ATWATER, FLAG_CARB_CLAMPED)
+
+    fun isVerified(food: FoodItem): Boolean = food.qualityFlags.all { it in INFORMATIONAL_FLAGS } && FoodIdentity.hasPlausibleMacros(food)
 
     /**
      * True for a catalog row declared as zero-energy ([ZERO_ENERGY_TAG], at most [ZERO_ENERGY_MAX_KCAL] kcal). Such a row

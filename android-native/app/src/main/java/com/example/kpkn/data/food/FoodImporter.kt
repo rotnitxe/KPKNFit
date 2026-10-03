@@ -7,6 +7,7 @@ import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.NutritionDao
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.HouseholdPortions
+import com.example.kpkn.domain.nutrition.NutrientBasis
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -38,18 +39,23 @@ import kotlin.coroutines.CoroutineContext
  *
  * WP-S8: la importación se parte en análisis de los CSV (sin lock, en [Dispatchers.Default]) y un commit corto
  * de Room ([commitRows]); ver [importIfNeeded].
+ *
+ * WP-S9b: un alimento USDA que no publica energía la recibe de los factores de Atwater cuando sus macros la sostienen, y un
+ * carbohidrato por diferencia levemente negativo se recorta a 0; las dos correcciones llevan su bandera ([usdaEntityOrNull]).
  */
 object FoodImporter {
     private const val TAG = "FoodImporter"
     private const val BATCH_SIZE = 2000
     /**
      * Versión de datos del catálogo importado: subirla fuerza un re-import en todas las instalaciones.
+     * 11 (WP-S9b): energía Atwater (4/4/9, alcohol 7) para los alimentos USDA que no publican energía y cuyos macros la
+     * sostienen, y carbohidrato por diferencia levemente negativo recortado a 0 (ver [usdaEntityOrNull]): de 366 a 386 filas USDA.
      * 10 (WP-S9): nutrientes por prioridad (azúcar 2000 > 1063, grasa 1004 > 1085), porción de UNA unidad, categoría
      * legible y nombres/alias en español desde `usda_es_aliases.csv`.
      * Un cambio en el CONTENIDO de los CSV ya no exige subirla (WP-S10): su SHA-256 viaja en la huella ([expectedFingerprint]).
      * Se sube cuando cambia el análisis (el parser), que ningún hash de los CSV detecta.
      */
-    internal const val DATA_VERSION = 10
+    internal const val DATA_VERSION = 11
     private const val USDA_FOOD_CSV = "food_data/food.csv"
     private const val USDA_NUTRIENT_CSV = "food_data/food_nutrient.csv"
     private const val USDA_PORTION_CSV = "food_data/food_portion.csv"
@@ -101,12 +107,12 @@ object FoodImporter {
     private val _importProgress = MutableStateFlow<Float?>(null)
     val importProgress: StateFlow<Float?> = _importProgress.asStateFlow()
 
-    /** Huella del catálogo sin manifiesto: solo la versión de datos ("v10"). También es lo que queda si el manifiesto no se puede leer. */
+    /** Huella del catálogo sin manifiesto: solo la versión de datos ("v<DATA_VERSION>"). También es lo que queda si el manifiesto no se puede leer. */
     internal fun versionFingerprint(): String = "v$DATA_VERSION"
 
     /**
      * Huella del dataset embebido (WP-S10): la versión de datos y, tras un "+", el SHA-256 de los CSV que resume el manifiesto del build
-     * ("v10+<sha256>"). Un CSV que cambia cambia la huella y se vuelve a importar aunque nadie suba [DATA_VERSION]; sin manifiesto
+     * ("v<DATA_VERSION>+<sha256>"). Un CSV que cambia cambia la huella y se vuelve a importar aunque nadie suba [DATA_VERSION]; sin manifiesto
      * ([manifestFingerprint] nulo o vacío) es solo [versionFingerprint].
      */
     internal fun composeFingerprint(manifestFingerprint: String?): String =
@@ -538,22 +544,23 @@ object FoodImporter {
 
     /**
      * Flags de calidad USDA: incoherencia energética frente al diagnóstico
-     * Atwater (4P+4C+9G). Se marca, no se rechaza — diferencias explicables
-     * por fibra, alcohol, polioles o factores específicos no deben caerse.
+     * Atwater (4P+4C+9G, más 7 por gramo de [alcohol] si la fuente lo declara). Se marca, no se rechaza — diferencias
+     * explicables por fibra, polioles o factores específicos no deben caerse.
      */
     internal fun usdaQualityFlags(
         calories: Double,
         protein: Double,
         carbs: Double,
         fats: Double,
+        alcohol: Double = 0.0,
     ): List<String> {
         val flags = mutableListOf<String>()
-        val macroEnergy = protein * 4.0 + carbs * 4.0 + fats * 9.0
+        val macroEnergy = protein * 4.0 + carbs * 4.0 + fats * 9.0 + alcohol * 7.0
         if (macroEnergy > 0.0) {
             val deviation = kotlin.math.abs(calories - macroEnergy) / macroEnergy
             if (deviation > ENERGY_MISMATCH_TOLERANCE) flags.add("ENERGY_MISMATCH")
         }
-        if (protein <= 0.0 && carbs <= 0.0 && fats <= 0.0) flags.add("INCOMPLETE")
+        if (protein <= 0.0 && carbs <= 0.0 && fats <= 0.0 && alcohol <= 0.0) flags.add("INCOMPLETE")
         return flags
     }
 
@@ -598,14 +605,16 @@ object FoodImporter {
     private const val COL_POTASSIUM_MG = 7
     private const val COL_WATER = 8
     private const val COL_CAFFEINE_MG = 9
-    private const val COLUMN_COUNT = 10
+    private const val COL_ALCOHOL = 10
+    private const val COLUMN_COUNT = 11
 
     private class NutrientTarget(val column: Int, val rank: Int)
 
     /**
      * Id de `nutrient.csv` -> columna de salida y prioridad. Varios ids pueden alimentar la misma columna y gana, POR
      * ALIMENTO, el de mayor prioridad que esté presente: azúcar 2000 > 1063 (casi todo Foundation solo trae el 1063,
-     * "Sugars, Total"), grasa 1004 > 1085 ("Total fat (NLEA)") y energía 2048 > 2047 > 1008.
+     * "Sugars, Total"), grasa 1004 > 1085 ("Total fat (NLEA)"), carbohidrato 1005 > 1050 ("Carbohydrate, by summation") y energía
+     * 2048 > 2047 > 1008. El alcohol (1018) solo alimenta la energía Atwater de [usdaEntityOrNull].
      */
     private val NUTRIENT_TARGETS: Map<Int, NutrientTarget> = mapOf(
         2048 to NutrientTarget(COL_ENERGY, 3), // Energy, Atwater specific factors (kcal)
@@ -614,7 +623,8 @@ object FoodImporter {
         1003 to NutrientTarget(COL_PROTEIN, 1),
         1004 to NutrientTarget(COL_FAT, 2), // Total lipid (fat)
         1085 to NutrientTarget(COL_FAT, 1), // Total fat (NLEA): solo si falta el 1004
-        1005 to NutrientTarget(COL_CARBS, 1),
+        1005 to NutrientTarget(COL_CARBS, 2), // Carbohydrate, by difference
+        1050 to NutrientTarget(COL_CARBS, 1), // Carbohydrate, by summation: solo si falta el 1005 (los 47 foundation que lo traen tienen también el 1005)
         1079 to NutrientTarget(COL_FIBER, 1),
         2000 to NutrientTarget(COL_SUGAR, 2), // Total Sugars
         1063 to NutrientTarget(COL_SUGAR, 1), // Sugars, Total: solo si falta el 2000
@@ -622,6 +632,7 @@ object FoodImporter {
         1092 to NutrientTarget(COL_POTASSIUM_MG, 1),
         1051 to NutrientTarget(COL_WATER, 1), // g ~= ml
         1057 to NutrientTarget(COL_CAFFEINE_MG, 1),
+        1018 to NutrientTarget(COL_ALCOHOL, 1), // Alcohol, ethyl (g): ningún foundation lo trae hoy
     )
 
     /**
@@ -642,6 +653,7 @@ object FoodImporter {
         val potassiumMg: Float get() = values[COL_POTASSIUM_MG]
         val water: Float get() = values[COL_WATER]
         val caffeineMg: Float get() = values[COL_CAFFEINE_MG]
+        val alcohol: Float get() = values[COL_ALCOHOL]
 
         /** Registra una fila de `food_nutrient`. Devuelve true si cambió el valor de alguna columna. */
         fun accept(nutrientId: Int, amount: Float): Boolean {
@@ -806,10 +818,56 @@ object FoodImporter {
     internal fun cleanUsdaDescription(raw: String): String =
         raw.replace(Char(0x00A0), ' ').trim().replace(WHITESPACE, " ")
 
+    // ─── Energía Atwater y carbohidrato levemente negativo (WP-S9b) ─────────────────────────────────────
+
+    /** Factores generales de Atwater (kcal por gramo). */
+    private const val ATWATER_PROTEIN = 4.0
+    private const val ATWATER_CARBS = 4.0
+    private const val ATWATER_FAT = 9.0
+    private const val ATWATER_ALCOHOL = 7.0
+
     /**
-     * Entidad global de un alimento USDA, o null si la fila no entra al catálogo (sin energía o físicamente imposible).
-     * El nombre es el español curado de `usda_es_aliases.csv` o, sin él, la descripción en inglés; el estado crudo/cocido
-     * se deduce SIEMPRE de la descripción en inglés, que es la que declara la fuente.
+     * La energía Atwater solo es fiable si los macros (y el alcohol) explican al menos esta fracción de la materia seca (100 g
+     * menos el agua): si no, la fuente no declara alguno de ellos y la suma queda muy por debajo de la energía real.
+     */
+    private const val ATWATER_MIN_DRY_MATTER_COVERAGE = 0.9
+
+    /** Un carbohidrato por diferencia entre este valor y 0 es ruido analítico (agua + proteína + grasa + ceniza pasan de 100 g); por debajo es un dato roto. */
+    private const val MIN_CLAMPABLE_CARBS_G = -2.0
+
+    /**
+     * Energía en kcal por 100 g con los factores generales de Atwater (proteína 4, carbohidrato 4, grasa 9 y alcohol 7 kcal/g),
+     * redondeada a 0,1, o null si no es de fiar: los macros no explican el [ATWATER_MIN_DRY_MATTER_COVERAGE] de la materia seca
+     * ([water] son los gramos de agua por 100 g) o la suma no es positiva. Un poroto seco que declara proteína y grasa pero no
+     * carbohidrato daría 110 kcal en vez de ~340, y una sandía con solo proteína 3,5 en vez de 30: mejor sin fila que con una
+     * energía muy por debajo de la real.
+     */
+    internal fun atwaterEnergyOrNull(protein: Double, carbs: Double, fat: Double, alcohol: Double, water: Double): Double? {
+        val dryMatter = 100.0 - water
+        val explained = protein + carbs + fat + alcohol
+        if (!(dryMatter > 0.0) || !(explained >= ATWATER_MIN_DRY_MATTER_COVERAGE * dryMatter)) return null
+        val kcal = ATWATER_PROTEIN * protein + ATWATER_CARBS * carbs + ATWATER_FAT * fat + ATWATER_ALCOHOL * alcohol
+        return (kotlin.math.round(kcal * 10.0) / 10.0).takeIf { it > 0.0 }
+    }
+
+    /**
+     * Entidad global de un alimento USDA, o null si la fila no entra al catálogo (sin energía que se pueda sostener o físicamente
+     * imposible). El nombre es el español curado de `usda_es_aliases.csv` o, sin él, la descripción en inglés; el estado
+     * crudo/cocido se deduce SIEMPRE de la descripción en inglés, que es la que declara la fuente.
+     *
+     * WP-S9b: la energía publicada (ids 2048 > 2047 > 1008) manda; si no hay, se calcula con [atwaterEnergyOrNull] y la fila lleva
+     * la bandera [NutrientBasis.FLAG_ENERGY_ATWATER]. Un carbohidrato por diferencia entre -2 g y 0 se recorta a 0 con la bandera
+     * [NutrientBasis.FLAG_CARB_CLAMPED]; uno por debajo de -2 g sigue descartando la fila. Las dos banderas solo informan: la fila
+     * sigue siendo verificada para el buscador del registro ([NutrientBasis.isVerified]).
+     *
+     * Medido sobre los CSV embebidos (436 foundation_food): 60 no publican energía (8 aceites, 2 mantequillas, 34 porotos secos
+     * = 17 especies con dos fdc_id cada una, 13 frutas, verduras y jugos del lote 2727577-2727589, la sandía 2747675 y 2 sales) y
+     * 10 publican un carbohidrato entre -0,71 y -0,06 g (pollo con piel, cordero, bisonte, cerdo, halibut y atún). Atwater recupera
+     * 10: los 8 aceites y las 2 mantequillas (733-851 kcal; sus macros cubren el 93-99 % de la materia seca, y los aceites quedan
+     * 4-5 % bajo los 884 kcal de SR Legacy porque "Total fat (NLEA)" no cuenta el glicerol). Los otros 50 siguen fuera: ninguno
+     * declara carbohidrato (los porotos son "0 % moisture" con solo proteína, grasa, almidón y fibra; las frutas y verduras traen
+     * agua, proteína, ceniza y azúcares) y su energía Atwater sería una fracción de la real; las sales no declaran macros (0 kcal).
+     * El recorte rescata los 10 negativos. En total, de 366 a 386 filas USDA.
      */
     internal fun usdaEntityOrNull(
         fdcId: Int,
@@ -821,15 +879,25 @@ object FoodImporter {
     ): GlobalFoodEntity? {
         val english = cleanUsdaDescription(description)
         if (english.isBlank()) return null
-        if (nutrients.energy <= 0f) return null
-        val calories = nutrients.energy.toDouble()
         val protein = nutrients.protein.toDouble()
         val fats = nutrients.fat.toDouble()
-        val carbs = nutrients.carbs.toDouble()
+        val rawCarbs = nutrients.carbs.toDouble()
+        val carbsClamped = rawCarbs < 0.0 && rawCarbs >= MIN_CLAMPABLE_CARBS_G
+        val carbs = if (carbsClamped) 0.0 else rawCarbs
+        val alcohol = nutrients.alcohol.toDouble()
+        val publishedCalories = nutrients.energy.toDouble()
+        val atwaterCalories = if (publishedCalories > 0.0) null else {
+            atwaterEnergyOrNull(protein, carbs, fats, alcohol, nutrients.water.toDouble())
+        }
+        val calories = if (publishedCalories > 0.0) publishedCalories else atwaterCalories ?: return null
         // Validación física (plan Fase 2): negativos, no finitos o macros individuales > 100 g/100 g no entran.
         if (!hasPhysicallyPlausibleMacros(calories, protein, carbs, fats)) return null
         val name = alias?.esName ?: english
         val state = stateForDescription(english)
+        val flags = usdaQualityFlags(calories, protein, carbs, fats, alcohol) + listOfNotNull(
+            NutrientBasis.FLAG_ENERGY_ATWATER.takeIf { atwaterCalories != null },
+            NutrientBasis.FLAG_CARB_CLAMPED.takeIf { carbsClamped },
+        )
         return GlobalFoodEntity(
             foodId = "usda_$fdcId",
             name = name,
@@ -856,7 +924,7 @@ object FoodImporter {
             category = category,
             portionGrams = portion?.grams,
             portionUnit = portion?.unit,
-            qualityFlagsJson = encodeQualityFlags(usdaQualityFlags(calories, protein, carbs, fats)),
+            qualityFlagsJson = encodeQualityFlags(flags),
         )
     }
 

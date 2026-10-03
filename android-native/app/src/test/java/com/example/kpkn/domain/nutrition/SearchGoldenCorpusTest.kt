@@ -16,7 +16,10 @@ import org.junit.Test
  * (GENERIC_FOODS + CHILEAN_FOODS), the curated branded catalogs and a deterministic slice of OFF Chile
  * (`src/test/resources/food_data/off_chile_search_fixture.tsv`, built by `scripts/build_off_search_fixture.py`) that
  * includes the rows that used to bury the curated ones: OFF rows named exactly "Pan", "Arroz", "yogurt", "Aguacate",
- * "Hallulla", substring decoys (empanaditas, biopan, panchitos for "pan") and "DULCE DE LECHE & CO.".
+ * "Hallulla", substring decoys (empanaditas, biopan, panchitos for "pan") and "DULCE DE LECHE & CO.". WP-S9b adds the USDA
+ * rows `FoodImporter.parseUsda` makes of the committed extract (`src/test/resources/food_data/usda_extract`, see [UsdaSearchFixture]):
+ * Spanish names and aliases, and the oils, butters and chicken with skin that only the Atwater fallback and the carbohydrate clamp
+ * bring into the catalog.
  *
  * Each case is a query of the logger tab (`loggerFilter = true`, limit 15) and what the person must see. The pipeline
  * mirrors `NutritionRepository.searchFoodCandidates` without the DAO: anchor, duplicates collapsed, ranked, filter
@@ -25,7 +28,7 @@ import org.junit.Test
 class SearchGoldenCorpusTest {
 
     private companion object {
-        val pool: List<FoodItem> by lazy { buildFoodDatabase() + OffSearchFixture.foods() }
+        val pool: List<FoodItem> by lazy { buildFoodDatabase() + OffSearchFixture.foods() + UsdaSearchFixture.foods() }
     }
 
     /** The ranker's anchor, as `NutritionRepository.searchFoodCandidates` resolves it (WP-S6): the static row the query names. */
@@ -46,6 +49,8 @@ class SearchGoldenCorpusTest {
     }
 
     private fun isOff(candidate: FoodCandidate) = candidate.foodId.startsWith("off_")
+
+    private fun isOffId(foodId: String) = foodId.startsWith("off_")
 
     // Leche
 
@@ -302,6 +307,58 @@ class SearchGoldenCorpusTest {
         assertTop("coca cola zero", "gen147")
     }
 
+    // USDA (WP-S9b): the oils, butters and chicken the importer now recovers are in the pool; a curated row the query names keeps the lead
+
+    @Test
+    fun `45 aceite de oliva keeps the curated oil first and shows the USDA olive oils before any OFF row`() {
+        val found = ids("aceite de oliva")
+        assertEquals("gen015", found.first())
+        assertEquals(setOf("gen015", "usda_748608", "usda_1750351"), found.take(3).toSet())
+        assertTrue("first OFF row at ${found.indexOfFirst(::isOffId)}: $found", found.indexOfFirst(::isOffId) >= 3)
+    }
+
+    @Test
+    fun `46 aceite de oliva extra virgen finds the USDA row because the curated oil does not claim it`() {
+        assertTop("aceite de oliva extra virgen", "usda_748608")
+        assertTrue("gen015" !in ids("aceite de oliva extra virgen"))
+        // The curated oil is still in the pool: the identity gate (extra, virgen) is what keeps it out of the logger.
+        assertTrue("gen015" in ids("aceite de oliva extra virgen", 15, loggerFilter = false))
+    }
+
+    @Test
+    fun `47 aceite de canola, maravilla and girasol are answered by the USDA oils the curated catalog lacks`() {
+        assertTop("aceite de canola", "usda_748278")
+        assertTop("aceite de maravilla", "usda_1750349")
+        // maravilla is the Chilean name of sunflower oil: the curated "Aceite Vegetal" keeps the lead on "girasol" and the USDA row follows.
+        assertEquals(listOf("gen099", "usda_1750349"), ids("aceite de girasol").take(2))
+    }
+
+    @Test
+    fun `48 mantequilla keeps the curated butter first and sin sal and con sal find their own USDA stick`() {
+        val found = ids("mantequilla")
+        assertEquals("gen049", found.first())
+        assertTrue("usda_789828" in found.drop(1))
+        assertTop("mantequilla sin sal", "usda_789828")
+        assertTop("mantequilla con sal", "usda_790508")
+    }
+
+    @Test
+    fun `49 pechuga de pollo con piel finds the USDA chicken whose negative carbohydrate was clamped`() {
+        assertTop("pechuga de pollo con piel", "usda_2727569")
+        val food = search("pechuga de pollo con piel").first().food
+        assertEquals(listOf("CARB_CLAMPED"), food.qualityFlags)
+        assertEquals(0.0, food.carbs, 0.0)
+    }
+
+    @Test
+    fun `50 the USDA rows never take the lead from a curated row the query names`() {
+        mapOf(
+            "leche entera" to "gen016", "aceite de coco" to "gen098", "hummus" to "gen042", "frutilla" to "gen032", "aceite" to "gen015",
+            // The curated hummus has no "humus" spelling: the alias of the USDA row answers it.
+            "humus" to "usda_321358",
+        ).forEach { (query, expected) -> assertTop(query, expected) }
+    }
+
     // Todo el corpus
 
     private val corpusQueries = listOf(
@@ -310,6 +367,8 @@ class SearchGoldenCorpusTest {
         "nuggets", "nuggets de pollo", "arroz", "papas fritas", "papas", "tomate", "tomates", "palta", "aguacate",
         "plátano", "lentejas", "yogurt", "galletas", "coca cola", "red bull", "completo", "empanada", "empanadas",
         "sopaipilla", "cazuela", "whey", "xyzq", "coca cola zero", "bebida", "gaseosa", "sprite",
+        "aceite de oliva", "aceite de oliva extra virgen", "aceite de canola", "aceite de maravilla", "aceite de girasol", "mantequilla",
+        "mantequilla sin sal", "mantequilla con sal", "pechuga de pollo con piel", "leche entera", "aceite de coco", "hummus", "humus",
     )
 
     @Test
@@ -354,6 +413,23 @@ class SearchGoldenCorpusTest {
                 .filter { NutrientBasis.isVerified(it.food) && FoodIdentity.matchesDeclaredIdentity(query, it.food) }
             assertEquals(query, everyRule.take(15).map { it.foodId }, FoodSearchRanker.rank(q, collapsed, null, 15, loggerFilter = true).map { it.foodId })
         }
+    }
+
+    @Test
+    fun `the USDA fixture is the committed extract as the importer stores it and every row is verified for the logger`() {
+        val rows = UsdaSearchFixture.entities().associateBy { it.foodId }
+        val expected = setOf(
+            "usda_746782", "usda_748967", "usda_331960", "usda_330458", "usda_321358", "usda_2346409", "usda_2727569",
+            "usda_748608", "usda_748278", "usda_1750351", "usda_1750349", "usda_789828", "usda_790508",
+        )
+        assertEquals(expected, rows.keys)
+        // What the importer leaves out stays out of the pool: salt has no macros, the dry beans and the watermelon no carbohydrate.
+        assertTrue(listOf("usda_321505", "usda_335912", "usda_2747675").none { it in rows })
+        val usda = pool.filter { it.id.startsWith("usda_") }
+        assertEquals(listOf("ENERGY_ATWATER"), usda.first { it.id == "usda_748608" }.qualityFlags)
+        assertEquals(listOf("CARB_CLAMPED"), usda.first { it.id == "usda_2727569" }.qualityFlags)
+        assertEquals(rows.size, usda.size)
+        usda.forEach { assertTrue(it.id, NutrientBasis.isVerified(it)) }
     }
 
     @Test

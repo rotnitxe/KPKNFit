@@ -11,7 +11,7 @@ import org.junit.Test
  * antes se calculaba en cada arranque en frío, antes de publicar las comidas del usuario, ya no participa.
  *
  * WP-S10: la huella que espera la compuerta trae, además de la versión de datos, el SHA-256 de los CSV que resume el manifiesto del
- * build ("v10+<sha256>"). Aquí solo se prueba la compuerta; la lectura del manifiesto está en FoodDataManifestTest.
+ * build ("v<DATA_VERSION>+<sha256>"). Aquí solo se prueba la compuerta; la lectura del manifiesto está en FoodDataManifestTest.
  */
 class FoodImporterGateTest {
 
@@ -125,7 +125,7 @@ class FoodImporterGateTest {
     fun `an install holding the version only fingerprint imports once when the build ships a manifest`() {
         val shipped = FoodImporter.composeFingerprint(manifestA)
 
-        // Las instalaciones de WP-S3 a WP-S9 guardaron "v10"; tras ese único import guardan la huella del manifiesto y se callan.
+        // Las instalaciones sin manifiesto guardaron solo la versión ("v<DATA_VERSION>"); tras ese único import guardan la huella del manifiesto y se callan.
         assertTrue(FoodImporter.shouldImport(true, meta(checksum = fingerprint), shipped))
         assertFalse(FoodImporter.shouldImport(true, meta(checksum = shipped), shipped))
     }
