@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.food.CHILEAN_FOODS
+import com.example.kpkn.data.food.GENERIC_FOODS
 import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.models.CookingMethod
@@ -61,22 +63,37 @@ object CookingStateResolver {
             FoodIdentity.stateFor(food) in setOf(FoodState.COOKED, FoodState.HYDRATED)
     }
 
+    /**
+     * Word stems that name each method inside a catalog name (accent-free, lower case). A word names the method when it STARTS with
+     * one of them, after an optional prefix of [NAME_PREFIXES]: "frita", "fritos", "refritos", "precocida". A stem inside another word
+     * is not the method: "amasado" and "pasadas" hold "asad".
+     */
+    private fun methodNameStems(method: CookingMethod): List<String> = when (method) {
+        // B5: "revuelto" también es una fila preparada para FRITO (huevos revueltos);
+        // sin esto se aplicaba factor FRITO + aceite sobre la fila cruda aunque existiera.
+        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> listOf("frit", "revuelt")
+        CookingMethod.PLANCHA -> listOf("plancha")
+        CookingMethod.HORNO -> listOf("horno")
+        CookingMethod.VAPOR -> listOf("vapor")
+        CookingMethod.ASADO_PARRILLA -> listOf("parrilla", "asad")
+        CookingMethod.COCIDO, CookingMethod.OLLA, CookingMethod.GUISADO -> listOf("cocid", "cocinad", "hidratad")
+        CookingMethod.AHUMADO -> listOf("ahumad")
+        CookingMethod.CRUDO -> emptyList()
+    }
+
+    private val NAME_PREFIXES = listOf("", "re", "so", "pre")
+
+    /**
+     * True when [food] is itself the preparation for [method]: one of the words of its name names the method ("Pechuga de Pollo
+     * (parrilla)", "Papas fritas", "Tamal asado") and the row does not say it is raw. A row that says it is raw is a base row whatever
+     * else its name holds: "Asado de Tira (crudo)" is a raw cut, not a roast (WP-N10b).
+     */
     fun isAlreadyPreparedForMethod(food: FoodItem, method: CookingMethod?): Boolean {
         if (method == null || method == CookingMethod.CRUDO) return false
-        val name = food.name.lowercase()
-        return when (method) {
-            CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO ->
-                // B5: "revuelto" también es una fila preparada para FRITO (huevos revueltos);
-                // sin esto se aplicaba factor FRITO + aceite sobre la fila cruda aunque existiera.
-                name.contains("frit") || name.contains("revuelto")
-            CookingMethod.PLANCHA -> name.contains("plancha")
-            CookingMethod.HORNO -> name.contains("horno")
-            CookingMethod.VAPOR -> name.contains("vapor")
-            CookingMethod.ASADO_PARRILLA -> name.contains("parrilla") || name.contains("asad")
-            CookingMethod.COCIDO, CookingMethod.OLLA, CookingMethod.GUISADO ->
-                name.contains("cocid") || name.contains("cocinad") || name.contains("hidratad")
-            CookingMethod.AHUMADO -> name.contains("ahumad")
-            CookingMethod.CRUDO -> false
+        if (FoodIdentity.stateFor(food.name) == FoodState.RAW) return false
+        val stems = methodNameStems(method)
+        return TextKeys.normalize(food.name).split(' ').any { word ->
+            stems.any { stem -> NAME_PREFIXES.any { prefix -> word.startsWith(prefix + stem) } }
         }
     }
 
@@ -116,6 +133,10 @@ object CookingStateResolver {
     /**
      * Prefer a DB row that already encodes the preparation (e.g. pechuga frita). [cookingWord] is the word the person typed
      * ("revueltos"): its row wins over a sibling prepared the same way ("huevos revueltos" is gen007r, not gen007f).
+     *
+     * When the mention is only a word of the method ("asado") there is no such row, and the answer is the dish called by that word
+     * ([dishNamedByMethodWord]). That row is a BASE row, not a prepared one: the caller tells them apart with
+     * [isAlreadyPreparedForMethod] and converts the base row once, like any other raw row.
      */
     fun findPreparedVariant(tag: String, method: CookingMethod?, cookingWord: String? = null): FoodItem? {
         if (method == null || method == CookingMethod.CRUDO) return null
@@ -135,7 +156,25 @@ object CookingStateResolver {
                 }?.let { return it }
             }
         }
-        return null
+        return dishNamedByMethodWord(tag, method)
+    }
+
+    /**
+     * A mention that is only a word of the method ("asado", "asados") names the catalog dish that is called by it ("Asado de Tira
+     * (crudo)"): the word is the dish and the method at once. Only a raw row qualifies; null when the tag is not such a word.
+     */
+    internal fun dishNamedByMethodWord(tag: String, method: CookingMethod): FoodItem? {
+        val word = TextKeys.normalize(tag)
+        if (word.isEmpty() || ' ' in word || methodNameStems(method).none { word.startsWith(it) }) return null
+        val dishes = RAW_DISHES_BY_FIRST_WORD[word] ?: RAW_DISHES_BY_FIRST_WORD[word.removeSuffix("s")]
+        return dishes.orEmpty().firstOrNull { FoodIdentity.matchesDeclaredIdentity(tag, it) }
+    }
+
+    /** The raw rows of the static catalog by the first word of their name: "Asado de Tira (crudo)" is under "asado". */
+    private val RAW_DISHES_BY_FIRST_WORD: Map<String, List<FoodItem>> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        (GENERIC_FOODS + CHILEAN_FOODS)
+            .filter { FoodIdentity.stateFor(it.name) == FoodState.RAW }
+            .groupBy { TextKeys.normalize(it.name).substringBefore(' ') }
     }
 
     /**

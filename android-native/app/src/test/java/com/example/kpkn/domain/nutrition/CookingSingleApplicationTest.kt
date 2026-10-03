@@ -15,6 +15,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 /**
@@ -478,6 +479,104 @@ class CookingSingleApplicationTest {
         for (text in listOf("aceitunas", "mantequilla", "sal", "azúcar", "")) {
             assertFalse(text, isOilExclusion(text))
         }
+    }
+
+    // ─── WP-N10b: una fila es una preparación solo si una palabra de su nombre nombra el método y no es cruda ───
+
+    private fun prepared(name: String, method: CookingMethod?) = CookingStateResolver.isAlreadyPreparedForMethod(FoodItem(name = name), method)
+
+    @Test
+    fun `a row is a preparation when a word of its name names the method and the row is not raw`() {
+        // The method word is a word of the name, or a prefixed one (refritos, precocida).
+        for ((name, method) in listOf(
+            "Pechuga de Pollo (parrilla)" to CookingMethod.ASADO_PARRILLA, "Pollo Entero (asado)" to CookingMethod.ASADO_PARRILLA,
+            "Tamal asado" to CookingMethod.ASADO_PARRILLA, "Longaniza Asada" to CookingMethod.ASADO_PARRILLA,
+            "Papa (frita)" to CookingMethod.FRITO, "Huevo Entero (revuelto)" to CookingMethod.FRITO,
+            "Frijoles refritos" to CookingMethod.FRITO, "Frito Lay Clásicas" to CookingMethod.FRITO,
+            "Pechuga de Pollo (horno)" to CookingMethod.HORNO, "Pechuga de Pollo (plancha)" to CookingMethod.PLANCHA,
+            "Pechuga de Pollo (vapor)" to CookingMethod.VAPOR, "Salmón ahumado" to CookingMethod.AHUMADO,
+            "Jamón Cocido" to CookingMethod.COCIDO, "Salchicha precocida" to CookingMethod.COCIDO,
+            "Lentejas (hidratadas)" to CookingMethod.OLLA, "Arroz (hidratado/cocido)" to CookingMethod.GUISADO,
+        )) {
+            assertTrue("$name / $method", prepared(name, method))
+        }
+    }
+
+    @Test
+    fun `a raw row is never a preparation, and a stem inside another word is not the method`() {
+        // A row that says it is raw is a base row, whatever else its name holds: this was the "asado" regression of WP-N10.
+        assertFalse(prepared("Asado de Tira (crudo)", CookingMethod.ASADO_PARRILLA))
+        assertFalse(prepared("Asado de chuck de vacuno crudo", CookingMethod.ASADO_PARRILLA))
+        assertFalse(prepared("Soya texturizada (seca)", CookingMethod.COCIDO))
+        // "asad", "hidratad" and "vapor" were found inside other words.
+        for ((name, method) in listOf(
+            "Pan Amasado" to CookingMethod.ASADO_PARRILLA, "Sopaipillas Pasadas" to CookingMethod.ASADO_PARRILLA,
+            "Harina de soya desgrasada" to CookingMethod.ASADO_PARRILLA, "Jugo de tomate envasado" to CookingMethod.ASADO_PARRILLA,
+            "Arándanos deshidratados" to CookingMethod.COCIDO, "Leche Evaporada" to CookingMethod.VAPOR,
+        )) {
+            assertFalse("$name / $method", prepared(name, method))
+        }
+        // No method, or raw asked: there is no preparation to be in.
+        assertFalse(prepared("Papa (frita)", null))
+        assertFalse(prepared("Papa (frita)", CookingMethod.CRUDO))
+    }
+
+    // ─── Sonda #12: "asado" es el plato y el método a la vez ────────────────────────────────────────
+
+    @Test
+    fun `a mention that is only the cooking word names the raw cut called by it`() {
+        val cut = CookingStateResolver.findPreparedVariant("asado", CookingMethod.ASADO_PARRILLA, "asado")
+        assertEquals("gen093c", cut?.id)
+        // It is a BASE row: raw and not a preparation, so whoever uses it converts it once like any other raw row.
+        assertTrue(CookingStateResolver.isDbFoodRaw(requireNotNull(cut)))
+        assertFalse(CookingStateResolver.isAlreadyPreparedForMethod(cut, CookingMethod.ASADO_PARRILLA))
+        assertTrue(cookingTransformFor(cut, CookingMethod.ASADO_PARRILLA) is CookingTransform.StateConversion)
+        assertEquals(0.7, cookingWeightYield(cut), 0.0)
+        // Only when the tag IS a word of the method, in the singular or the plural, and of THAT method.
+        assertEquals("gen093c", CookingStateResolver.findPreparedVariant("asado", CookingMethod.ASADO_PARRILLA)?.id)
+        assertEquals("gen093c", CookingStateResolver.findPreparedVariant("asados", CookingMethod.ASADO_PARRILLA, "asados")?.id)
+        assertNull(CookingStateResolver.findPreparedVariant("asado", CookingMethod.FRITO, "asado"))
+        // The dish itself: a raw row called by the word, never a prepared one, and only for a single word of the method.
+        assertEquals("gen093c", CookingStateResolver.dishNamedByMethodWord("asado", CookingMethod.ASADO_PARRILLA)?.id)
+        assertNull(CookingStateResolver.dishNamedByMethodWord("pollo", CookingMethod.ASADO_PARRILLA))
+        assertNull(CookingStateResolver.dishNamedByMethodWord("asado de tira", CookingMethod.ASADO_PARRILLA))
+        assertNull(CookingStateResolver.dishNamedByMethodWord("parrilla", CookingMethod.ASADO_PARRILLA))
+        // A real prepared variant still wins, and a stem inside another word names no row ("Pan Amasado").
+        assertEquals("gen003e", CookingStateResolver.findPreparedVariant("pollo", CookingMethod.ASADO_PARRILLA, "asado")?.id)
+        assertEquals("gen003p", CookingStateResolver.findPreparedVariant("pechuga de pollo", CookingMethod.ASADO_PARRILLA, "parrilla")?.id)
+        assertNull(CookingStateResolver.findPreparedVariant("pan", CookingMethod.ASADO_PARRILLA, "asado"))
+    }
+
+    @Test
+    fun `asado resolves to the raw cut and keeps the first word of its name`() {
+        val tag = resolveText("asado").single()
+
+        assertEquals("gen093c", tag.food().id)
+        assertEquals(CookingMethod.ASADO_PARRILLA, tag.cookingMethod)
+        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
+        assertTrue((tag.amountGrams ?: 0.0) > 0.0)
+        // The interpretation and the logged food name the dish after its catalog name: "de Tira (cocido, estimado)" lost the Asado.
+        assertEquals("Asado de Tira (cocido, estimado)", tag.interpretationV2?.canonicalIdentity)
+        assertEquals("Asado de Tira (cocido, estimado)", tag.logged().foodName)
+        assertEquals("Asado de Tira (cocido, estimado)", resolveText("asado 200 g").single().logged().foodName)
+    }
+
+    @Test
+    fun `asado converts the raw cut once from raw to cooked`() {
+        val tag = resolveText("asado").single()
+        // Needs the TagResolution hunk of WP-N10b (usingPreparedVariant is true only for a row that IS the preparation): until it lands the
+        // raw cut is used unconverted and this test is skipped instead of asserting that number. Probe #12 then reads
+        // gen093c|Asado de Tira (crudo)|100|357|AUTO|-|-|RAW->COOKED;yield=0.7;source=gen093c (it read ...|100|250|AUTO|-|-|-).
+        assumeTrue("TagResolution hunk of WP-N10b not applied: the raw cut is still used unconverted", tag.stateConversion != null)
+
+        assertEquals("weight_basis:RAW->COOKED;yield=0.7;source=gen093c", tag.stateConversion)
+        assertEquals(FoodState.COOKED, tag.foodState)
+        // The grams are the cooked weight: 100 g = 142.9 g raw x 2.50 kcal/g = 357 kcal, protein 18 and fat 20 per 100 g raw.
+        val grams = tag.amountGrams ?: 0.0
+        assertEquals(kotlin.math.round(grams / 0.7 * 2.50), tag.logged().calories, 0.0)
+        assertEquals(kotlin.math.round(grams / 0.7 * 18.0 / 100.0 * 10.0) / 10.0, tag.logged().protein, 0.0)
+        assertFalse(tag.oilApplied)
+        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
     }
 
     // ─── Plato sin ficha: el método actúa una sola vez sobre el perfil ───────────

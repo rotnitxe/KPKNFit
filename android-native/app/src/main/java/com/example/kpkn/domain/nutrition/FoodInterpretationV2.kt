@@ -293,9 +293,7 @@ class FoodInterpretationV2Engine(
             (tag.stateConversion != null || tag.cookingMethod != null)
         val conversion = if (convertsWeightBasis) "weight_basis:${sourceState.name}->${tag.foodState.name};yield=${cookingWeightYield(food!!)};source=${food.id}" else null
         val calculatedName = if (convertsWeightBasis) {
-            val stem = food!!.name.replace(Regex("\\b(?:crud[oa]s?|sec[oa]s?|cocid[oa]s?|hidratad[oa]s?|asad[oa]s?|frit[oa]s?)\\b", RegexOption.IGNORE_CASE), "")
-                .replace(Regex("\\(\\s*\\)"), "").replace(Regex("\\s+"), " ").trim()
-            "$stem (${if (tag.foodState == FoodState.RAW) "crudo" else "cocido"}, estimado)"
+            "${conversionStem(food!!.name)} (${if (tag.foodState == FoodState.RAW) "crudo" else "cocido"}, estimado)"
         } else food?.name ?: logged?.foodName
         fun minimum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * minGrams / grams.coerceAtLeast(1.0)
         fun maximum(value: Double?, explicit: Double?) = explicit ?: (value ?: 0.0) * maxGrams / grams.coerceAtLeast(1.0)
@@ -842,4 +840,47 @@ fun ResolvedTag.rebaseManualNutrients(): ResolvedTag {
         nutrientsManuallyEdited = true,
         nutritionSource = NutritionSourceKind.USER_PROVIDED,
     )
+}
+
+/** State and cooking words that a catalog name uses to qualify its food: crudo, seco, cocido, hidratado, asado and frito, in their four forms. */
+private val STATE_WORDS: Set<String> = listOf("crud", "sec", "cocid", "hidratad", "asad", "frit")
+    .flatMap { stem -> listOf("o", "a", "os", "as").map { ending -> stem + ending } }.toSet()
+
+/** Words that would be left hanging at the end of a name once its state word is gone ("Pollo al asado" would end in "al"). */
+private val HANGING_WORDS = setOf("de", "del", "al", "a", "la", "lo", "el", "en", "con", "y", "e")
+
+/** A parenthesis, kept whole, or any other run of characters that holds no blank and no parenthesis. */
+private val NAME_TOKEN = Regex("""\([^)]*\)|[^\s(]+""")
+
+private fun isStateWord(word: String): Boolean = TextKeys.normalize(word) in STATE_WORDS
+
+/** A parenthesis without its state words, or null when nothing else is left in it: "(cruda, sin piel)" is "(sin piel)", "(cruda)" goes. */
+private fun withoutStateWords(group: String): String? {
+    val pieces = group.removePrefix("(").removeSuffix(")").split(',', ';', '/')
+    if (pieces.none { piece -> piece.split(' ').any { it.isNotEmpty() && isStateWord(it) } }) return group
+    val kept = pieces.map { piece -> piece.split(' ').filter { it.isNotEmpty() && !isStateWord(it) }.joinToString(" ") }
+        .filter { it.isNotEmpty() }
+    return if (kept.isEmpty()) null else "(" + kept.joinToString(", ") + ")"
+}
+
+/**
+ * The name of a row without its raw/cooked qualifier: the stem of "Pechuga de Pollo (cocido, estimado)" (WP-N10b). A state or cooking
+ * word is a qualifier only inside parentheses ("(crudo)", "(hidratado/cocido)") or at the end of the name ("Papas Fritas"). The FIRST
+ * word is the dish and is never removed ("Asado de Tira (crudo)" is "Asado de Tira", not "de Tira"), and neither is a word in the
+ * middle of the name. An annotation at the end ("(FDC 334849)", "(snack)") stays and does not hide the qualifier before it.
+ */
+internal fun conversionStem(name: String): String {
+    val tokens = NAME_TOKEN.findAll(name).map { it.value }
+        .mapNotNull { token -> if (token.startsWith("(")) withoutStateWords(token) else token }.toList()
+    val annotationsFrom = tokens.indexOfLast { !it.startsWith("(") } + 1
+    val words = tokens.take(annotationsFrom).toMutableList()
+    var stripped = false
+    while (words.size > 1 && isStateWord(words.last())) {
+        words.removeAt(words.lastIndex)
+        stripped = true
+    }
+    if (stripped) {
+        while (words.size > 1 && TextKeys.normalize(words.last()) in HANGING_WORDS) words.removeAt(words.lastIndex)
+    }
+    return (words + tokens.drop(annotationsFrom)).joinToString(" ").ifBlank { name.trim() }
 }

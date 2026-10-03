@@ -1,6 +1,10 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.findFoodByNormalized
+import com.example.kpkn.data.food.findStaticFoodById
+import com.example.kpkn.data.models.CookingMethod
+import com.example.kpkn.data.models.FoodItem
+import com.example.kpkn.data.models.LoggedFood
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -80,5 +84,59 @@ class FoodInterpretationV2Test {
         val result = engine.interpret("200 g arroz")
         assertTrue(result.pendingQuestions.any { it is ClarificationRequest.WeightState })
         assertEquals(WeightBasis.UNKNOWN, result.weightBasis)
+    }
+
+    // ─── WP-N10b: the name of a converted row keeps its dish ────────────────────────────────────────
+
+    @Test
+    fun `conversion stem strips state words only as qualifiers and never the first word`() {
+        val cases = listOf(
+            "Asado de Tira (crudo)" to "Asado de Tira",
+            "Papas Fritas" to "Papas",
+            "Huevo Entero (frito)" to "Huevo Entero",
+            "Pechuga de Pollo (cruda)" to "Pechuga de Pollo",
+            "Arroz (hidratado/cocido)" to "Arroz",
+            "Pasta (hidratada/cocida)" to "Pasta",
+            "Soya texturizada (seca)" to "Soya texturizada",
+            "Posta Rosada (cocida)" to "Posta Rosada",
+            "Pavo (pechuga cocida)" to "Pavo (pechuga)",
+            "Jamón Cocido" to "Jamón",
+            "Pollo al asado" to "Pollo",
+            "Papas fritas (snack)" to "Papas (snack)",
+            "Pechuga de pollo (cruda, sin piel)" to "Pechuga de pollo (sin piel)",
+            "Lomo liso de vacuno magro crudo (FDC 334849)" to "Lomo liso de vacuno magro (FDC 334849)",
+            // The first word is the dish: it stays even when it is a state word.
+            "Asado alemán" to "Asado alemán",
+            "Frito Lay Clásicas" to "Frito Lay Clásicas",
+            "Asado" to "Asado",
+            "Fritos" to "Fritos",
+            // A word inside the name, or a stem inside a word, is not a qualifier.
+            "Pan Amasado" to "Pan Amasado",
+            "Pollo asado con papas" to "Pollo asado con papas",
+        )
+        for ((name, stem) in cases) assertEquals(name, stem, conversionStem(name))
+    }
+
+    private fun converted(food: FoodItem, to: FoodState, method: CookingMethod) = ResolvedTag(
+        tag = food.name, foodItem = food, cookingMethod = method, foodState = to, amountGrams = 100.0,
+        stateConversion = "weight_basis:test",
+        loggedFood = LoggedFood(foodName = food.name, amount = 100.0, calories = 300.0, protein = 20.0, fats = 20.0),
+    )
+
+    @Test
+    fun `the interpretation of a converted row is named after its dish`() {
+        val cut = requireNotNull(findStaticFoodById("gen093c"))
+        assertEquals("Asado de Tira (crudo)", cut.name)
+        // The raw cut asked as a roast: "de Tira (cocido, estimado)" lost the first word of the name.
+        val roast = engine.interpretResolved(converted(cut, FoodState.COOKED, CookingMethod.ASADO_PARRILLA))
+        assertEquals("Asado de Tira (cocido, estimado)", roast.canonicalIdentity)
+        assertTrue(roast.transformations.any { it.startsWith("weight_basis:RAW->COOKED;yield=0.7;source=gen093c") })
+        // The other direction, and the names of the probe: a cooked row asked raw.
+        for ((name, stem) in listOf("Papas Fritas" to "Papas", "Huevo Entero (frito)" to "Huevo Entero", "Arroz Blanco (cocido)" to "Arroz Blanco")) {
+            val raw = engine.interpretResolved(converted(FoodItem(name = name), FoodState.RAW, CookingMethod.CRUDO))
+            assertEquals(name, "$stem (crudo, estimado)", raw.canonicalIdentity)
+        }
+        val chicken = engine.interpretResolved(converted(FoodItem(name = "Pechuga de Pollo (cruda)"), FoodState.COOKED, CookingMethod.COCIDO))
+        assertEquals("Pechuga de Pollo (cocido, estimado)", chicken.canonicalIdentity)
     }
 }
