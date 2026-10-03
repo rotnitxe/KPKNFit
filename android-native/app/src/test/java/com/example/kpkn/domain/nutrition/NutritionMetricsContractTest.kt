@@ -8,24 +8,44 @@ import com.example.kpkn.data.models.FoodItem
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import kotlin.math.abs
-import kotlin.system.measureTimeMillis
+import kotlin.math.max
+import kotlin.system.measureNanoTime
 
 /**
  * E16 — Contrato de métricas de nutrición (Iteración 1).
  *
  * Umbrales del plan (medidos en CI sobre el pipeline real, sin Room):
- *  - precision@1 de identidad ≥ 95%
+ *  - precision@1 de identidad ≥ 49/50 (98 %; WP-N12 sube el 95 % del plan al valor medido, un solo fallo conocido: "ensalada")
  *  - un alias de aproximación no certifica otra identidad
  *  - error mediano de gramos ≤ 15%
  *  - idempotencia 3/3 (mismo input → mismo resultado)
- *  - p95 de resolución completa < 50 ms
+ *  - p95 de resolución completa < 50 ms en una corrida tranquila (regla de carga en [E16 p95 de resolucion completa bajo 50 ms])
  *
  * El baseline se imprime siempre: cualquier regresión debe leerse en el log
  * antes de mirar el fallo.
  */
 class NutritionMetricsContractTest {
+
+    private companion object {
+        /** WP-N12: hits of the 50-case identity corpus below which the contract fails (49/50 measured on HEAD 94eec56dd; the one miss is "ensalada"). */
+        const val MIN_IDENTITY_HITS = 49
+
+        /** The p95 budget of a quiet run. */
+        const val P95_BUDGET_MS = 50.0
+
+        /** Ceiling of [calibrationMs] that still counts as a quiet machine: 3.8-6.7 ms were measured across quiet runs of the development machine. */
+        const val CALIBRATION_QUIET_MS = 8.0
+
+        /** Beyond this slowdown the timing says nothing about the code: the test is skipped, not failed. */
+        const val MAX_LOAD_FACTOR = 8.0
+
+        const val WARM_UP_PASSES = 2
+        const val BATCHES = 3
+        const val PASSES_PER_BATCH = 3
+    }
 
     private class RealPort(
         private val resolver: SmartFoodResolver,
@@ -160,7 +180,7 @@ class NutritionMetricsContractTest {
         val precision = hits.toDouble() / identityCorpus.size
         println("BASELINE precision@1 identidad = $hits/${identityCorpus.size} = ${"%.1f".format(precision * 100)}%")
         misses.forEach { println("  MISS $it") }
-        assertTrue("precision@1 ≥ 95% (fue ${"%.1f".format(precision * 100)}%, ${misses.size} misses)", precision >= 0.95)
+        assertTrue("precision@1 ≥ $MIN_IDENTITY_HITS/${identityCorpus.size} (fue $hits, ${"%.1f".format(precision * 100)}%): $misses", hits >= MIN_IDENTITY_HITS)
     }
 
     @Test
@@ -234,21 +254,52 @@ class NutritionMetricsContractTest {
         assertEquals(first, signature())
     }
 
+    /** A fixed CPU task that never touches the pipeline: its time here and now says how loaded this machine is. */
+    private fun calibrationMs(): Double {
+        fun once(): Long = measureNanoTime {
+            val regex = Regex("""\b(\w+)\s+de\s+(\w+)\b""")
+            var acc = 0
+            for (i in 0 until 6_000) {
+                val text = "alimento" + i % 97 + " de prueba" + (i * 31 % 101)
+                acc += regex.find(text)?.groupValues?.get(1)?.length ?: 0
+                acc += text.lowercase().replace('a', 'e').hashCode() and 7
+            }
+            check(acc >= 0)
+        }
+        repeat(3) { once() }
+        return (1..7).minOf { once() } / 1_000_000.0
+    }
+
+    /** The p95, in ms, of one batch: [PASSES_PER_BATCH] passes over the queries, each resolution timed on its own. */
+    private suspend fun batchP95Ms(queries: List<String>): Double {
+        val samples = List(PASSES_PER_BATCH) { queries.map { measureNanoTime { resolve(it) } / 1_000_000.0 } }.flatten().sorted()
+        return samples[(samples.size * 0.95).toInt().coerceIn(0, samples.lastIndex)]
+    }
+
+    /**
+     * E16 rule (WP-N12): the p95 of a full resolution stays under [P95_BUDGET_MS] in a quiet run, and a run may be slower only as much as the
+     * machine is. After [WARM_UP_PASSES] untimed passes (class loading, lazy tables, JIT) the corpus is timed in [BATCHES] batches of
+     * [PASSES_PER_BATCH] passes and the verdict is the MEDIAN of the batch p95s, so one GC pause or one noisy neighbour cannot fail it.
+     * The budget is multiplied by the load factor of [calibrationMs] (a fixed task that does not touch the pipeline) over
+     * [CALIBRATION_QUIET_MS], never below 1: a quiet run keeps the strict 50 ms. Beyond [MAX_LOAD_FACTOR] the timing says nothing about the
+     * code and the test is skipped by assumption, not failed. precision@1 is a separate, hard test ([MIN_IDENTITY_HITS]).
+     */
     @Test
     fun `E16 p95 de resolucion completa bajo 50 ms`() = runBlocking {
         val queries = identityCorpus.map { it.description } + listOf(
             "desayuno con 2 huevos y pan", "arroz con pollo", "cazuela de vacuno con arroz",
         )
-        val timings = mutableListOf<Long>()
-        repeat(3) {
-            for (q in queries) {
-                val ms = measureTimeMillis { resolve(q) }
-                timings += ms
-            }
-        }
-        val sorted = timings.sorted()
-        val p95 = sorted[(sorted.size * 0.95).toInt().coerceIn(0, sorted.lastIndex)]
-        println("BASELINE p95 resolución = ${p95}ms (n=${sorted.size}, max=${sorted.last()}ms)")
-        assertTrue("p95 < 50 ms (fue ${p95}ms)", p95 < 50)
+        repeat(WARM_UP_PASSES) { queries.forEach { resolve(it) } }
+        val calibration = calibrationMs()
+        val loadFactor = max(1.0, calibration / CALIBRATION_QUIET_MS)
+        assumeTrue("machine too loaded to time (calibration ${"%.1f".format(calibration)} ms, x${"%.1f".format(loadFactor)})", loadFactor <= MAX_LOAD_FACTOR)
+        val batches = List(BATCHES) { batchP95Ms(queries) }
+        val median = batches.sorted()[BATCHES / 2]
+        val budget = P95_BUDGET_MS * loadFactor
+        println(
+            "BASELINE p95 resolución (mediana de 3 lotes) = ${"%.1f".format(median)}ms, lotes=${batches.map { "%.1f".format(it) }}, " +
+                "presupuesto=${"%.1f".format(budget)}ms (calibración ${"%.1f".format(calibration)}ms, factor x${"%.2f".format(loadFactor)}, n=${queries.size * PASSES_PER_BATCH} por lote)",
+        )
+        assertTrue("p95 < ${"%.1f".format(budget)} ms (fue ${"%.1f".format(median)} ms; lotes $batches)", median < budget)
     }
 }

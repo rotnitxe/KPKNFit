@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.GoalMetric
 import com.example.kpkn.data.models.PlanDirection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -44,7 +45,7 @@ class NutritionPlanEditorEngineTest {
         assertEquals(scaleMacrosToCalories(150.0, 250.0, 55.0, 2400).first, scaled.proteinG)
         assertEquals(scaleMacrosToCalories(150.0, 250.0, 55.0, 2400).second, scaled.carbsG)
         assertEquals(scaleMacrosToCalories(150.0, 250.0, 55.0, 2400).third, scaled.fatG)
-        assertTrue(scaled.proteinG != 150 || scaled.carbsG != 250 || scaled.fatG != 55)
+        assertNotEquals(Triple(150, 250, 55), Triple(scaled.proteinG, scaled.carbsG, scaled.fatG))
 
         // Un 0 manual es un cero válido y sobrevive al escalado.
         val withZeroCarbs = NutritionEditorBase(2000, 150, 0, 55).withCalories(2400)

@@ -3,6 +3,8 @@ package com.example.kpkn.domain.nutrition
 import com.example.kpkn.data.models.*
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Corpus dorado — la red de seguridad del parser.
@@ -10,10 +12,13 @@ import org.junit.Test
  * Cada caso es una descripción real (voz, typos, jerga chilena, medidas mixtas) con el
  * resultado esperado. Cualquier mejora del parser debe mantener este corpus verde.
  * Este archivo es SOLO de tests: no forma parte del APK ni del dataset de la app.
+ *
+ * WP-N12: [GoldenCorpusTest] corre UNA fila de JUnit por caso (nombre = la descripción) para que un
+ * fallo nombre su caso; las pruebas sueltas del parser viven en [GoldenCorpusInvariantsTest].
  */
-class GoldenCorpusTest {
+private object GoldenCorpus {
 
-    private data class Expectation(
+    data class Expectation(
         val tag: String,
         val quantity: Double = 1.0,
         val grams: Double? = null,
@@ -24,12 +29,12 @@ class GoldenCorpusTest {
         val excluded: Boolean = false,
     )
 
-    private data class GoldenCase(
+    data class GoldenCase(
         val description: String,
         val expectations: List<Expectation>,
     )
 
-    private val corpus: List<GoldenCase> = listOf(
+    val corpus: List<GoldenCase> = listOf(
 
         // ─── Caso canónico multi-alimento ──────────────────────────────────
         GoldenCase(
@@ -616,56 +621,85 @@ class GoldenCorpusTest {
         )),
     )
 
-    @Test
-    fun `golden corpus full coverage`() {
-        var failures = 0
-        val allFailures = StringBuilder()
-        for ((index, case) in corpus.withIndex()) {
-            val failuresForCase = StringBuilder()
-            val result = parseMealDescription(case.description)
-
-            if (result.items.size != case.expectations.size) {
-                failuresForCase.appendLine(
-                    "  items esperados=${case.expectations.size} obtenidos=${result.items.size}" +
-                        " tags=[${result.items.joinToString(", ") { it.tag }}]",
-                )
-            } else {
-                for ((i, expected) in case.expectations.withIndex()) {
-                    val item = result.items[i]
-                    val fieldFailures = mutableListOf<String>()
-                    if (item.tag != expected.tag) fieldFailures += "tag=${item.tag} (esperado ${expected.tag})"
-                    if (item.quantity != expected.quantity) fieldFailures += "quantity=${item.quantity} (esperado ${expected.quantity})"
-                    if (expected.grams != null && item.amountGrams != expected.grams) {
-                        fieldFailures += "grams=${item.amountGrams} (esperado ${expected.grams})"
-                    }
-                    if (expected.gramsPositive && (item.amountGrams == null || item.amountGrams <= 0.0)) {
-                        fieldFailures += "grams=${item.amountGrams} (esperado > 0)"
-                    }
-                    if (expected.intent != null && item.amountIntent != expected.intent) {
-                        fieldFailures += "intent=${item.amountIntent} (esperado ${expected.intent})"
-                    }
-                    if (expected.portion != null && item.portion != expected.portion) {
-                        fieldFailures += "portion=${item.portion} (esperado ${expected.portion})"
-                    }
-                    if (expected.cooking != null && item.cookingMethod != expected.cooking) {
-                        fieldFailures += "cooking=${item.cookingMethod} (esperado ${expected.cooking})"
-                    }
-                    if (item.isExcluded != expected.excluded) {
-                        fieldFailures += "excluded=${item.isExcluded} (esperado ${expected.excluded})"
-                    }
-                    if (fieldFailures.isNotEmpty()) {
-                        failuresForCase.appendLine("  item[$i]: ${fieldFailures.joinToString(" | ")}")
-                    }
-                }
-            }
-
-            if (failuresForCase.isNotEmpty()) {
-                failures++
-                allFailures.appendLine("CORPUS CASE ${index + 1} [${case.description}]:")
-                allFailures.append(failuresForCase)
-            }
+    /** Nombre de la fila JUnit de cada caso: la propia descripción (saltos de línea visibles; las repetidas, numeradas). */
+    val labels: List<String> = run {
+        val seen = mutableMapOf<String, Int>()
+        corpus.map { case ->
+            // "\u005C" is a backslash: a line break is shown as the two characters \n.
+            val base = case.description.replace("\r", "\u005Cr").replace("\n", "\u005Cn")
+            val times = (seen[base] ?: 0) + 1
+            seen[base] = times
+            if (times == 1) base else "$base #$times"
         }
-        assertTrue("$failures/${corpus.size} casos del corpus dorado fallaron\n$allFailures", failures == 0)
+    }
+
+    /** Diferencias entre el parser y el caso, una línea por ítem; vacío si el caso pasa. */
+    fun failures(case: GoldenCase): List<String> {
+        val result = parseMealDescription(case.description)
+        if (result.items.size != case.expectations.size) {
+            return listOf(
+                "items esperados=${case.expectations.size} obtenidos=${result.items.size}" +
+                    " tags=[${result.items.joinToString(", ") { it.tag }}]",
+            )
+        }
+        val failures = mutableListOf<String>()
+        for ((i, expected) in case.expectations.withIndex()) {
+            val item = result.items[i]
+            val fieldFailures = mutableListOf<String>()
+            if (item.tag != expected.tag) fieldFailures += "tag=${item.tag} (esperado ${expected.tag})"
+            if (item.quantity != expected.quantity) fieldFailures += "quantity=${item.quantity} (esperado ${expected.quantity})"
+            if (expected.grams != null && item.amountGrams != expected.grams) {
+                fieldFailures += "grams=${item.amountGrams} (esperado ${expected.grams})"
+            }
+            if (expected.gramsPositive && (item.amountGrams == null || item.amountGrams <= 0.0)) {
+                fieldFailures += "grams=${item.amountGrams} (esperado > 0)"
+            }
+            if (expected.intent != null && item.amountIntent != expected.intent) {
+                fieldFailures += "intent=${item.amountIntent} (esperado ${expected.intent})"
+            }
+            if (expected.portion != null && item.portion != expected.portion) {
+                fieldFailures += "portion=${item.portion} (esperado ${expected.portion})"
+            }
+            if (expected.cooking != null && item.cookingMethod != expected.cooking) {
+                fieldFailures += "cooking=${item.cookingMethod} (esperado ${expected.cooking})"
+            }
+            if (item.isExcluded != expected.excluded) {
+                fieldFailures += "excluded=${item.isExcluded} (esperado ${expected.excluded})"
+            }
+            if (fieldFailures.isNotEmpty()) failures += "item[$i]: ${fieldFailures.joinToString(" | ")}"
+        }
+        return failures
+    }
+}
+
+/** Una fila por caso del corpus dorado (WP-N12): el fallo de un caso lo nombra en vez de sumarse a 320 en un solo test. */
+@RunWith(Parameterized::class)
+class GoldenCorpusTest(private val index: Int, @Suppress("unused") private val label: String) {
+
+    @Test
+    fun `golden case`() {
+        val case = GoldenCorpus.corpus[index]
+        val failures = GoldenCorpus.failures(case)
+        assertTrue(
+            "CORPUS CASE ${index + 1} [${case.description}]:\n" + failures.joinToString("\n") { "  $it" },
+            failures.isEmpty(),
+        )
+    }
+
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters(name = "{1}")
+        fun cases(): List<Array<Any>> = GoldenCorpus.corpus.indices.map { arrayOf<Any>(it, GoldenCorpus.labels[it]) }
+    }
+}
+
+/** Pruebas del parser que no son filas del corpus (antes compartían clase con el test agregado). */
+class GoldenCorpusInvariantsTest {
+
+    @Test
+    fun `corpus keeps its size and every row name is unique`() {
+        assertTrue("el corpus dorado no debe encogerse en silencio (${GoldenCorpus.corpus.size} casos)", GoldenCorpus.corpus.size >= 320)
+        assertEquals(GoldenCorpus.labels.size, GoldenCorpus.labels.toSet().size)
     }
 
     @Test

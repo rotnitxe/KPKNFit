@@ -157,7 +157,7 @@ class FoodKnowledgeAssetTest {
     fun `density rules name known categories and each one can match something`() {
         snapshot.densities.rules.forEachIndexed { index, rule ->
             assertTrue("rule $index: ${rule.category}", rule.category in snapshot.densities.gramsPerMl)
-            assertTrue("rule $index matches nothing", rule.contains.isNotEmpty() || rule.words.isNotEmpty())
+            assertTrue("rule $index matches nothing", (rule.contains + rule.words).isNotEmpty())
             rule.contains.forEach { assertEquals("rule $index contains '$it'", it.trim().lowercase(), it) }
         }
         assertTrue(snapshot.densities.fallbackCategory in snapshot.densities.gramsPerMl)

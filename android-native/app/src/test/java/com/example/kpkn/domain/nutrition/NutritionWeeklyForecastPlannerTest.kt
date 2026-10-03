@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.NutritionPlanCalculationSnapshot
 import com.example.kpkn.data.models.PlanDirection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -248,7 +249,7 @@ class NutritionWeeklyForecastPlannerTest {
         val laterWednesday = sunday.plusDays(10) // 2026-10-07 (miércoles)
         val period = weeklyForecastPeriodFor(prior, laterWednesday)
         assertEquals(7, period.size)
-        assertTrue(period.first().isBefore(laterWednesday) || period.first() == laterWednesday)
+        assertFalse(period.first().isAfter(laterWednesday))
         assertTrue(period.last().isAfter(laterWednesday))
         assertEquals(java.time.DayOfWeek.MONDAY, period.first().dayOfWeek)
     }

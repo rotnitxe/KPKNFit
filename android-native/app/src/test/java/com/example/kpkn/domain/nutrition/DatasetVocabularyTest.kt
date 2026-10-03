@@ -64,7 +64,7 @@ class DatasetVocabularyTest {
     @Test
     fun `ranking tokens boost co-occurring foods for non-family queries`() {
         val tokens = SemanticPortionRetriever.rankingTokens("completo italiano")
-        assertTrue(tokens.contains("palta") || tokens.contains("completo"))
+        assertTrue(tokens.contains("palta"))
     }
 
     private fun buildSnapshot(): DatasetKnowledgeSnapshot {

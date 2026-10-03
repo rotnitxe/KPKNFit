@@ -113,7 +113,7 @@ class SystematicModeContractTest {
         assertTrue(two.isNotEmpty())
         val tacoGrams = two.sumOf { it.amountGrams ?: it.loggedFood?.amount ?: 0.0 }
         val one = resolve("taco").sumOf { it.amountGrams ?: it.loggedFood?.amount ?: 0.0 }
-        assertTrue("S4: 2 tacos ($tacoGrams) debe ser >= 2x unidad ($one)", tacoGrams >= one * 1.8 || tacoGrams >= 180.0)
+        assertEquals("S4: 2 tacos ($tacoGrams) son exactamente 2x la unidad ($one)", one * 2.0, tacoGrams, 0.5)
         val handful = resolve("un punado de almendras").single()
         val hg = handful.amountGrams ?: 0.0
         assertTrue("S4: punado $hg g no es ~25-40 g", hg in 20.0..45.0)
@@ -202,11 +202,8 @@ class SystematicModeContractTest {
         val cheese = resolve("queso").single()
         assertTrue((cheese.amountGrams ?: 0.0) in 25.0..40.0)
         val cheeseCtx = ContextDetector.detect("queso", mealType = MealType.LUNCH)
-        assertTrue(
-            "S8: slot LUNCH no convierte queso en almuerzo, shape=${cheeseCtx.shape} ctx=${cheeseCtx.primaryContext}",
-            cheeseCtx.shape == InferredMealContext.Shape.SNACK_ITEM ||
-                cheeseCtx.primaryContext == ContextDetector.MealContext.GENERAL,
-        )
+        assertEquals("S8: slot LUNCH no convierte queso en almuerzo", InferredMealContext.Shape.SNACK_ITEM, cheeseCtx.shape)
+        assertEquals("S8: ni le da contexto de comida", ContextDetector.MealContext.GENERAL, cheeseCtx.primaryContext)
         val drinkLunch = ContextDetector.detect("café con leche", mealType = MealType.LUNCH)
         assertEquals(InferredMealContext.Shape.BEVERAGE, drinkLunch.shape)
         val snackPlate = resolve("arroz con huevo", mealType = MealType.SNACK)

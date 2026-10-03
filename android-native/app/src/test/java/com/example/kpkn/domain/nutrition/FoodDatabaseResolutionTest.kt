@@ -46,7 +46,7 @@ class FoodDatabaseResolutionTest {
     fun `find food with accent`() {
         val food = findFoodByNormalized("aguacate")
         assertNotNull(food)
-        assertTrue(food!!.name.lowercase().contains("palta") || food.name.lowercase().contains("aguacate"))
+        assertEquals("gen014", food?.id)
     }
 
     @Test
@@ -67,7 +67,7 @@ class FoodDatabaseResolutionTest {
     fun `find food with alias banana`() {
         val food = findFoodByNormalized("banana")
         assertNotNull(food)
-        assertTrue(food!!.name.lowercase().contains("platano") || food.name.lowercase().contains("plátano"))
+        assertEquals("gen002", food?.id)
     }
 
     @Test

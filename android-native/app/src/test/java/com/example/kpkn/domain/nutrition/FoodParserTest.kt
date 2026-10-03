@@ -232,7 +232,7 @@ class FoodParserTest {
     @Test
     fun `parse sandwich de pollo con mayonesa as protected`() {
         val result = parseMealDescription("sandwich de pollo con mayonesa")
-        assertTrue(result.items.size == 1 || result.items.size >= 2)
+        assertEquals(listOf("sandwich de pollo con mayonesa"), result.items.map { it.tag })
     }
 
     @Test

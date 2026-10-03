@@ -187,7 +187,7 @@ class DatasetKnowledgeIntegrationTest {
     @Test
     fun `dataset still returns priors for non-staple dishes`() {
         val retrieval = SemanticPortionRetriever.retrieve("un puñado de almendras")
-        assertTrue(retrieval.matches.isNotEmpty() || retrieval.confidence >= 0.0)
+        assertTrue(retrieval.matches.isNotEmpty())
         assertNull(
             "19K never supplies final eaten grams",
             SemanticPortionRetriever.getGramsForFood("almendras", retrieval),

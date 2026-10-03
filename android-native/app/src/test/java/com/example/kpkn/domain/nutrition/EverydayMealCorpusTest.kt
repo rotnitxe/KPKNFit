@@ -98,22 +98,31 @@ class EverydayMealCorpusTest {
         }
     }
 
+    /**
+     * WP-N12: a declared mass, or a counted catalog unit, times a declared catalog profile is arithmetic, so it gets +-0.5 (grams or kcal)
+     * instead of a band. Vague portions (a bare staple, a utensil, a dish default) keep their wide bands. Catalog values the exact cases rest on:
+     * cl013 Hallulla 210 kcal per 80 g unit (262.5 kcal/100 g); cl010 Marraqueta 260 kcal/100 g, 100 g unit; gen007 Huevo 77 kcal per 50 g unit;
+     * gen019 Pan Blanco 265 kcal/100 g, 100 g unit; cl006 Sopaipillas 150 kcal per 60 g unit; cl001 Empanada de pino 450 kcal per 180 g unit;
+     * gen003c Pechuga (plancha) 173 kcal/100 g.
+     */
+    private fun exactly(value: Double): ClosedFloatingPointRange<Double> = (value - 0.5)..(value + 0.5)
+
     @Test
     fun `conteos y typos resuelven unidades de hogar`() = runBlocking {
-        assertSaveableEveryday(resolve("2 hallulas").single(), "cl013", 155.0..165.0, 400.0..450.0, "2 hallulas")
-        assertSaveableEveryday(resolve("2 hallullas").single(), "cl013", 155.0..165.0, 400.0..450.0, "2 hallullas")
-        assertSaveableEveryday(resolve("dos marraquetas").single(), "cl010", 190.0..210.0, 480.0..560.0, "dos marraquetas")
-        assertSaveableEveryday(resolve("3 huevos").single(), "gen007", 140.0..160.0, 210.0..250.0, "3 huevos")
-        assertSaveableEveryday(resolve("2 panes").single(), "gen019", 190.0..210.0, 500.0..560.0, "2 panes")
-        assertSaveableEveryday(resolve("una empanada").single(), "cl001", 160.0..200.0, 400.0..500.0, "una empanada")
-        assertSaveableEveryday(resolve("2 sopaipillas").single(), "cl006", 110.0..130.0, 280.0..320.0, "2 sopaipillas")
+        assertSaveableEveryday(resolve("2 hallulas").single(), "cl013", exactly(160.0), exactly(420.0), "2 hallulas")
+        assertSaveableEveryday(resolve("2 hallullas").single(), "cl013", exactly(160.0), exactly(420.0), "2 hallullas")
+        assertSaveableEveryday(resolve("dos marraquetas").single(), "cl010", exactly(200.0), exactly(520.0), "dos marraquetas")
+        assertSaveableEveryday(resolve("3 huevos").single(), "gen007", exactly(150.0), exactly(231.0), "3 huevos")
+        assertSaveableEveryday(resolve("2 panes").single(), "gen019", exactly(200.0), exactly(530.0), "2 panes")
+        assertSaveableEveryday(resolve("una empanada").single(), "cl001", exactly(180.0), exactly(450.0), "una empanada")
+        assertSaveableEveryday(resolve("2 sopaipillas").single(), "cl006", exactly(120.0), exactly(300.0), "2 sopaipillas")
         val poyo = resolve("poyo").single()
         assertEquals("gen004", poyo.foodItem?.id)
         assertTrue(poyo.amountGrams!! in 140.0..160.0)
         assertTrue(poyo.loggedFood!!.calories in 230.0..280.0)
         assertTrue(poyo.needsCutClarification)
         assertSaveableEveryday(resolve("arros").single(), "gen005", 100.0..140.0, 130.0..190.0, "arros")
-        assertSaveableEveryday(resolve("wevo").single(), "gen007", 40.0..70.0, 60.0..100.0, "wevo")
+        assertSaveableEveryday(resolve("wevo").single(), "gen007", exactly(50.0), exactly(77.0), "wevo")
         // WP-D1: gauda has a row of its own (gen157, FDC 171241); Cheddar is still no substitute for it.
         val gauda = resolve("gauda").single()
         assertEquals("gen157", gauda.foodItem?.id)
@@ -126,18 +135,18 @@ class EverydayMealCorpusTest {
         assertEquals("brie must retain the variety", "queso brie", FoodIdentity.normalize(brie.foodQuery))
         assertEquals("unavailable brie must remain visibly estimated", "queso brie (estimado)", checkNotNull(brie.loggedFood).foodName)
         assertTrue("incompatible Cheddar must not be offered for brie", brie.reviewCandidates.none { it.id == "gen047" })
-        assertSaveableEveryday(resolve("hallula").single(), "cl013", 70.0..90.0, 180.0..240.0, "hallula")
+        assertSaveableEveryday(resolve("hallula").single(), "cl013", exactly(80.0), exactly(210.0), "hallula")
     }
 
     @Test
     fun `masa explicita gana al pack y al conteo`() = runBlocking {
-        assertSaveableEveryday(resolve("100 g hallulla").single(), "cl013", 99.0..101.0, 250.0..280.0, "100 g hallulla")
+        assertSaveableEveryday(resolve("100 g hallulla").single(), "cl013", exactly(100.0), exactly(262.5), "100 g hallulla")
         val kilo = resolve("1 kg de hallullas").single()
         assertEquals("cl013", kilo.foodItem?.id)
         assertEquals(1000.0, kilo.amountGrams ?: 0.0, 1.0)
         assertTrue(kilo.isResolved)
         assertEquals(FoodResolutionStatus.AUTO, kilo.resolutionStatus)
-        assertSaveableEveryday(resolve("200 g pechuga a la plancha").single(), "gen003c", 199.0..201.0, 300.0..450.0, "200 g pechuga")
+        assertSaveableEveryday(resolve("200 g pechuga a la plancha").single(), "gen003c", exactly(200.0), exactly(346.0), "200 g pechuga")
         val rice = resolve("medio kilo de arroz").single()
         assertEquals("gen005", rice.foodItem?.id)
         assertEquals(500.0, rice.amountGrams ?: 0.0, 1.0)
@@ -209,7 +218,7 @@ class EverydayMealCorpusTest {
         val tuna = resolve("atún").single()
         assertSaveableEveryday(tuna, "gen029", 100.0..140.0, 110.0..180.0, "atún")
         assertTrue("atún protein", (tuna.loggedFood?.protein ?: 0.0) in 25.0..40.0)
-        assertSaveableEveryday(resolve("media marraqueta").single(), "cl010", 45.0..55.0, 110.0..150.0, "media marraqueta")
+        assertSaveableEveryday(resolve("media marraqueta").single(), "cl010", exactly(50.0), exactly(130.0), "media marraqueta")
     }
 
     @Test
@@ -298,9 +307,18 @@ class EverydayMealCorpusTest {
         inferred.forEach { tag ->
             val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 0.0
             assertTrue("${tag.tag} inferred grams $grams", grams > 20.0)
-            assertTrue(tag.isResolved || tag.hasMaterialQuestion())
             assertNotNull(tag.loggedFood)
         }
+        // WP-N12: the status each tag must reach, not "resolved or asked". Rice is a plain staple whose cooked state is assumed: saved on its own.
+        val inferredRice = inferred.single { it.tag.contains("arroz", ignoreCase = true) }
+        assertEquals(FoodResolutionStatus.AUTO, inferredRice.resolutionStatus)
+        assertTrue(inferredRice.isResolved)
+        assertFalse(inferredRice.hasMaterialQuestion())
+        // "pollo a la plancha" names no cut and no mass: the cut question is material and keeps the tag from being resolved.
+        val inferredChicken = inferred.single { it.tag.contains("pollo", ignoreCase = true) }
+        assertEquals(FoodResolutionStatus.NEEDS_CONFIRMATION, inferredChicken.resolutionStatus)
+        assertTrue(inferredChicken.needsCutClarification)
+        assertTrue(inferredChicken.hasMaterialQuestion())
 
         val countAndHandful = resolve("2 huevos con un punado de almendras")
         assertTrue("count+handful size ${countAndHandful.size}", countAndHandful.size >= 2)

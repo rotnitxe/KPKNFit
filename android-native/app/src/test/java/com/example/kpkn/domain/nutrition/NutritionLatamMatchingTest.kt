@@ -114,9 +114,6 @@ class NutritionLatamMatchingTest {
             "galleta must not resolve to pan blanco, was ${food?.id} ${food?.name}",
             food?.id == "gen019" || food?.name.equals("Pan Blanco", ignoreCase = true) == true,
         )
-        assertTrue(
-            food?.name?.contains("galleta", ignoreCase = true) == true ||
-                food?.category == "galletas",
-        )
+        assertEquals("gen137", food?.id)
     }
 }

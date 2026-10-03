@@ -50,6 +50,8 @@ class ContextDetectorTest {
         val drink = ContextDetector.detect("café con leche", mealType = MealType.LUNCH)
         assertEquals(InferredMealContext.Shape.BEVERAGE, drink.shape)
         val cheese = ContextDetector.detect("queso", mealType = MealType.LUNCH)
-        assertTrue(cheese.shape == InferredMealContext.Shape.SNACK_ITEM || cheese.primaryContext == ContextDetector.MealContext.GENERAL)
+        // WP-N12: one outcome, not two. A loose cheese is a snack item whatever the slot says, and the slot does not make it a meal context.
+        assertEquals(InferredMealContext.Shape.SNACK_ITEM, cheese.shape)
+        assertEquals(ContextDetector.MealContext.GENERAL, cheese.primaryContext)
     }
 }
