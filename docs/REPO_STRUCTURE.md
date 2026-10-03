@@ -47,7 +47,7 @@ com.example.kpkn/
 │                               #   manual constructor DI for repositories/ViewModels
 │
 ├── data/                       # ── DATA LAYER (Android-aware) ──
-│   ├── db/                     # Room: KpknDatabase (v19), Entities, WikiLabEntities,
+│   ├── db/                     # Room: KpknDatabase (v28), Entities, WikiLabEntities,
 │   │                           #   PerformanceRange/Snapshot entities, Daos, WikiLabDao,
 │   │                           #   DatabaseBackupHelper (full JSON export/import)
 │   ├── models/                 # Serializable domain models (Program, Session, WorkoutLog,
@@ -59,6 +59,8 @@ com.example.kpkn/
 │   ├── exercises/              # ExerciseDatabase loader (bundled JSON catalog)
 │   ├── food/                   # FoodDatabase, FoodImporter (USDA/OFF prepopulation),
 │   │                           #   FoodDescriptionParser
+│   ├── preferences/            # PreferenceStores: adaptadores SharedPreferences de KeyValueStore
+│   │                           #   (copias de estructura de programas, preferencias de variantes)
 │   ├── voice/                  # VoiceNutritionRecognizer (speech → food log)
 │   ├── remote/                 # ExternalAiService (Gemini/OpenAI/DeepSeek fallback) + DTOs
 │   ├── programs/               # ProgramTemplates (bundled program presets)
@@ -84,6 +86,8 @@ com.example.kpkn/
 │   ├── sessionassistant/       # SessionAssistantEngine (time optimization suggestions)
 │   ├── biomechanics/           # BiomechanicsEngine (levers, anthropometrics)
 │   ├── calculations/           # PlateCalculator, shared math helpers
+│   ├── storage/                # KeyValueStore (interfaz pura; implementación en data/preferences)
+│   ├── text/                   # SpanishPlurals (singular/plural en textos de interfaz)
 │   ├── energy/                 # TrainingEnergyEngine
 │   ├── performance/            # PerformanceRangeCalculator
 │   └── templates/              # SessionTemplateEngine + catalog policy
@@ -128,6 +132,7 @@ com.example.kpkn/
 | :--- | :--- | :--- |
 | `exercise_catalog_v2.json` | generated | Sole approved exercise catalog runtime asset: parent definitions, explicit configurations, chip axes, exact IDs, and rich AUGE/biomechanics/programming metadata. |
 | `catalog/exercises/v2/curation/evidence/legacy/` | evidence only | Archived v1 inputs used to justify editorial decisions; never loaded by the app and never used as an ID-alias fallback. |
+| `catalog/exercises/v2/curation/fichas/` | authoring source | One ficha per family (public copy, anatomy, internal technique and visual brief). `scripts/catalog_v2_apply_fichas.py` copies it into `source/families/`; the gate fails when the source differs from what the fichas produce. |
 | `food_data/` | ~80 MB | USDA/OFF CSVs imported into Room on first launch, plus compiled offline semantic index `dataset_knowledge.bin` (~1.3 MB gzip, 19,405 examples) used by `SemanticPortionRetriever`. |
 | `wikilab/` | ~104 KB | `muscles.json`, `joints.json`, `tendons.json`, `movement_patterns.json`, `kinetic_chains.json` (anatomy catalog). |
 

@@ -30,7 +30,12 @@ if ($StopDaemonsFirst) {
 # -Dorg.gradle.daemon=false es redundancia por si el wrapper ignora --no-daemon
 $extraFlags = "--no-daemon --console=plain --warning-mode=summary -Dorg.gradle.daemon=false"
 
-$cmd = ".\gradlew.bat $extraFlags $Tasks"
+# Normalizar comillas simples a dobles: cmd y el launcher de java no tratan ' como
+# delimitador, asi que '--tests *.Foo' llegaria a Gradle con las comillas literales
+# en el patron y fallaria con "No tests found for given includes".
+# Con comillas dobles, cmd/java las agrupan y las eliminan antes de Gradle.
+$normalizedTasks = $Tasks.Replace("'", '"')
+$cmd = ".\gradlew.bat $extraFlags $normalizedTasks"
 Write-Host ">> $cmd (workdir=$gradleDir, timeout=${TimeoutSec}s)" -ForegroundColor Cyan
 
 # Usar cmd /c para desacoplar handles del daemon (fix definitivo en pwsh + gradle 9.x)
