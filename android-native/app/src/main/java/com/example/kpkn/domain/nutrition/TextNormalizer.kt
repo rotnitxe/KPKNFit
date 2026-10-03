@@ -241,6 +241,12 @@ object TextNormalizer {
     private val SPACES_PATTERN = Regex("\\s+")
     private val MULTISPACE_PATTERN = Regex("\\s{2,}")
 
+    // normalize(): compiled once instead of on every call.
+    private val DECIMAL_COMMA_PATTERN = Regex("""(?<=\d),(?=\d)""")
+    private val MIXED_FRACTION_PATTERN = Regex("""\b(\d+)\s+(\d+)\s*/\s*(\d+)\b""")
+    private val SLASH_FRACTION_PATTERN = Regex("""(?<![\d/])(\d+)\s*/\s*(\d+)(?![\d/])""")
+    private val MEAL_REPORT_PREFIX_PATTERN = Regex("""(^|[,;\n]\s*)(?:(?:hoy|ayer|reci[eé]n)\s+)?(no\s+)?(?:me\s+)?(?:com[ií]|almorc[eé]|cen[eé]|desayun[eé]|tom[eé]|he\s+comido)\s+""", RegexOption.IGNORE_CASE)
+
     private val PLURAL_WORD_PATTERN = Regex(
         """(?<![a-záéíóúñü])[a-záéíóúñü]+(?:es|s)\b""",
         RegexOption.IGNORE_CASE,
@@ -252,6 +258,11 @@ object TextNormalizer {
             .map { (typo, correction) ->
                 Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE) to correction
             }
+    }
+
+    /** Multi-word typo keys only, same longest-first order; they are masked before the single-word pass. */
+    private val MULTIWORD_TYPO_REGEX_LIST: List<Pair<Regex, String>> by lazy {
+        TYPO_REGEX_LIST.filter { (regex, _) -> regex.pattern.contains(" ") }
     }
 
     private val EN_ES_REGEX_LIST: List<Pair<Regex, String>> by lazy {
@@ -373,6 +384,27 @@ object TextNormalizer {
         }
     }
 
+    /** Spoken-number vocabulary: the base words plus the compound-only ones ("veintiuno", ...). */
+    private val NUMBER_VOCABULARY: Map<String, Int> = NUMBER_WORDS + mapOf(
+        "once" to 11, "veintiuno" to 21, "veintiun" to 21, "veintiuna" to 21,
+        "veintidos" to 22, "veintidós" to 22, "veintitres" to 23, "veintitrés" to 23,
+        "veinticuatro" to 24, "veinticinco" to 25, "veintiseis" to 26, "veintiséis" to 26,
+        "veintisiete" to 27, "veintiocho" to 28, "veintinueve" to 29,
+    )
+
+    /** "ciento cincuenta", "dos mil y tres": one alternation over the whole vocabulary, compiled once. */
+    private val COMPOUND_NUMBER_REGEX: Regex by lazy {
+        val wordPattern = NUMBER_VOCABULARY.keys.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
+        Regex("""\b(?:$wordPattern)(?:\s+(?:y\s+)?(?:$wordPattern))+(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    }
+
+    /** Compound-only number words ("veintiuno", ...), each with its digit string, compiled once. */
+    private val EXTRA_NUMBER_WORD_REGEX_LIST: List<Pair<Regex, String>> by lazy {
+        NUMBER_VOCABULARY.filterKeys { it !in NUMBER_WORDS && it != "once" }.map { (word, number) ->
+            Regex("""\b${Regex.escape(word)}\b""", RegexOption.IGNORE_CASE) to number.toString()
+        }
+    }
+
     /**
      * Full normalization pipeline. Apply before FoodParser and SmartFoodResolver.
      */
@@ -381,21 +413,19 @@ object TextNormalizer {
         if (text.isEmpty()) return text
 
         // Decimal commas and written fractions belong to quantities, not lists.
-        text = text.replace(Regex("""(?<=\d),(?=\d)"""), ".")
-        text = text.replace(Regex("""\b(\d+)\s+(\d+)\s*/\s*(\d+)\b""")) { match ->
+        text = text.replace(DECIMAL_COMMA_PATTERN, ".")
+        text = text.replace(MIXED_FRACTION_PATTERN) { match ->
             val denominator = match.groupValues[3].toDouble()
             if (denominator == 0.0) match.value else
                 (match.groupValues[1].toDouble() + match.groupValues[2].toDouble() / denominator).toString()
         }
-        text = text.replace(Regex("""(?<![\d/])(\d+)\s*/\s*(\d+)(?![\d/])""")) { match ->
+        text = text.replace(SLASH_FRACTION_PATTERN) { match ->
             val denominator = match.groupValues[2].toDouble()
             if (denominator == 0.0) match.value else
                 (match.groupValues[1].toDouble() / denominator).toString()
         }
         // Strip only meal-reporting prefixes. Negation stays attached to the food.
-        text = text.replace(
-            Regex("""(^|[,;\n]\s*)(?:(?:hoy|ayer|reci[eé]n)\s+)?(no\s+)?(?:me\s+)?(?:com[ií]|almorc[eé]|cen[eé]|desayun[eé]|tom[eé]|he\s+comido)\s+""", RegexOption.IGNORE_CASE),
-        ) { it.groupValues[1] + it.groupValues[2] }
+        text = text.replace(MEAL_REPORT_PREFIX_PATTERN) { it.groupValues[1] + it.groupValues[2] }
 
         // 1. Strip emojis → replace with words
         text = replaceEmojis(text)
@@ -558,9 +588,7 @@ object TextNormalizer {
     private fun applyTypos(text: String): String {
         var result = text
         val placeholders = mutableListOf<String>()
-        for ((typo, correction) in TYPO_MAP.entries.sortedByDescending { it.key.length }) {
-            if (!typo.contains(' ')) continue
-            val regex = Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE)
+        for ((regex, correction) in MULTIWORD_TYPO_REGEX_LIST) {
             result = regex.replace(result) { match ->
                 val token = "\u0001PH${placeholders.size}\u0001"
                 placeholders.add(if (correction.equals(match.value, ignoreCase = true)) match.value else correction)
@@ -605,17 +633,9 @@ object TextNormalizer {
     private fun convertNumberWords(text: String): String {
         // A spoken number is one expression: "ciento cincuenta" is 150,
         // and its internal "y" must never become a food-list connector.
-        val vocabulary = NUMBER_WORDS + mapOf(
-            "once" to 11, "veintiuno" to 21, "veintiun" to 21, "veintiuna" to 21,
-            "veintidos" to 22, "veintidós" to 22, "veintitres" to 23, "veintitrés" to 23,
-            "veinticuatro" to 24, "veinticinco" to 25, "veintiseis" to 26, "veintiséis" to 26,
-            "veintisiete" to 27, "veintiocho" to 28, "veintinueve" to 29,
-        )
-        val wordPattern = vocabulary.keys.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }
-        val compound = Regex("""\b(?:$wordPattern)(?:\s+(?:y\s+)?(?:$wordPattern))+(?![\p{L}])""", RegexOption.IGNORE_CASE)
-        var result = compound.replace(text) { match ->
-            val values = match.value.lowercase().split(Regex("""\s+"""))
-                .filter { it != "y" }.mapNotNull(vocabulary::get)
+        var result = COMPOUND_NUMBER_REGEX.replace(text) { match ->
+            val values = match.value.lowercase().split(SPACES_PATTERN)
+                .filter { it != "y" }.mapNotNull(NUMBER_VOCABULARY::get)
             // Do not interpret a list of independent counts ("dos y tres") as 5.
             if (values.first() < 20 && values.first() != 1000 && values.size > 1) {
                 match.value
@@ -635,8 +655,8 @@ object TextNormalizer {
                 result = result.replace(regex, numStr)
             }
         }
-        for ((word, number) in vocabulary.filterKeys { it !in NUMBER_WORDS && it != "once" }) {
-            result = result.replace(Regex("""\b${Regex.escape(word)}\b""", RegexOption.IGNORE_CASE), number.toString())
+        for ((regex, numStr) in EXTRA_NUMBER_WORD_REGEX_LIST) {
+            result = result.replace(regex, numStr)
         }
         return result
     }

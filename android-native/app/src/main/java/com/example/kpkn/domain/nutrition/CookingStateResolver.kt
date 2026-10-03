@@ -32,12 +32,20 @@ object CookingStateResolver {
         "manzana", "plátano", "platano", "naranja", "pepino", "apio", "espinaca",
     )
 
+    // Compiled once: these used to be rebuilt on every call.
+    private val DRY_WORD_PATTERN = Regex("""\bsec(?:o|a|os|as)\b""")
+    private val PREPARED_SUFFIX_PAREN_PATTERN = Regex("""\s*\((?:cocid[oa]|frit[oa]|plancha|horno|asad[oa]|vapor|parrilla|hidratad[oa])\)""")
+    private val PREPARED_SUFFIX_WORD_PATTERN = Regex("""\s+(?:cocid[oa]|frit[oa]|plancha|horno|asad[oa]|hidratad[oa])""")
+    private val GRAIN_STATE_WORD_PATTERN = Regex("""\b(sec(?:o|a|os|as)|crudo[s]?|cocid(?:o|a|os|as)|hidratad(?:o|a|os|as))\b""")
+    private val PROTEIN_STATE_WORD_PATTERN = Regex("""\b(crudo|cruda|cocid[oa]|frit[oa]|plancha|horno|vapor|parrilla)\b""")
+    private val PARENTHESIS_GROUP_PATTERN = Regex("""\s*\([^)]*\)""")
+
     fun isDbFoodRaw(food: FoodItem): Boolean {
         if (food.foodState != "UNKNOWN") return FoodIdentity.stateFor(food) == FoodState.RAW
         val blob = (food.name + " " + food.searchAliases.joinToString(" ")).lowercase()
         return blob.contains("(crudo)") || blob.contains("cruda") || blob.contains("crudo") ||
             blob.contains("(seca)") || blob.contains("(seco)") ||
-            Regex("""\bsec(?:o|a|os|as)\b""").containsMatchIn(blob) ||
+            DRY_WORD_PATTERN.containsMatchIn(blob) ||
             blob.contains("deshidratad") || FoodIdentity.stateFor(food) == FoodState.RAW
     }
 
@@ -129,8 +137,8 @@ object CookingStateResolver {
     fun findRawVariant(food: FoodItem): FoodItem? {
         val foodName = food.name.lowercase()
         val rawName = foodName
-            .replace(Regex("""\s*\((?:cocid[oa]|frit[oa]|plancha|horno|asad[oa]|vapor|parrilla|hidratad[oa])\)"""), "")
-            .replace(Regex("""\s+(?:cocid[oa]|frit[oa]|plancha|horno|asad[oa]|hidratad[oa])"""), "")
+            .replace(PREPARED_SUFFIX_PAREN_PATTERN, "")
+            .replace(PREPARED_SUFFIX_WORD_PATTERN, "")
             .trim()
         if (rawName.isBlank() || rawName == foodName) return null
         return listOf("$rawName (cruda)", "$rawName (crudo)", rawName)
@@ -195,7 +203,7 @@ object CookingStateResolver {
                     food.name.lowercase().contains("crudo") || food.name.lowercase().contains("cocid") ||
                     food.name.lowercase().contains("hidratad"))
             // Still ask when user said only "arroz" / "soya" without state words in the tag
-            val tagHasState = Regex("""\b(sec(?:o|a|os|as)|crudo[s]?|cocid(?:o|a|os|as)|hidratad(?:o|a|os|as))\b""")
+            val tagHasState = GRAIN_STATE_WORD_PATTERN
                 .containsMatchIn(tag.lowercase())
             if (!tagHasState) return ClarificationKind.DRY_VS_COOKED
             if (!known) return ClarificationKind.DRY_VS_COOKED
@@ -203,7 +211,7 @@ object CookingStateResolver {
         }
 
         if (PROTEIN_KEYWORDS.any { blob.contains(it) }) {
-            val tagHasState = Regex("""\b(crudo|cruda|cocid[oa]|frit[oa]|plancha|horno|vapor|parrilla)\b""")
+            val tagHasState = PROTEIN_STATE_WORD_PATTERN
                 .containsMatchIn(tag.lowercase())
             if (!tagHasState && (food == null || isDbFoodRaw(food))) {
                 return ClarificationKind.RAW_VS_COOKED
@@ -273,7 +281,7 @@ object CookingStateResolver {
             findDryOrCookedVariant(tag, false)
         }
         if (fromTag != null && FoodIdentity.matchesDeclaredIdentity(tag, fromTag) && (if (wantCooked) isDbFoodCooked(fromTag) else isDbFoodRaw(fromTag))) return fromTag
-        val baseName = food?.name?.replace(Regex("""\s*\([^)]*\)"""), "")?.trim().orEmpty()
+        val baseName = food?.name?.replace(PARENTHESIS_GROUP_PATTERN, "")?.trim().orEmpty()
         if (baseName.isNotBlank()) {
             val fromName = if (wantCooked) {
                 findPreparedVariant(baseName, CookingMethod.COCIDO) ?: findDryOrCookedVariant(baseName, true)

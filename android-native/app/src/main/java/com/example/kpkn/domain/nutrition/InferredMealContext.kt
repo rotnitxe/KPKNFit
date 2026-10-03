@@ -64,6 +64,28 @@ object InferredMealContext {
     )
     private val NUT_SNACK = listOf("almendra", "nuez", "mani", "maní", "cacahuate", "pistacho")
 
+    /**
+     * One alternation per keyword list. `\b(?:k1|k2|...)\b` matches exactly when some `\bk\b`
+     * matches (the boundaries sit outside the group), so it replaces the per-keyword regexes
+     * that used to be compiled on every call. Blank keys are skipped as before.
+     */
+    private fun keywordPattern(keywords: List<String>): Regex? {
+        val alternatives = keywords.map { FoodIdentity.normalize(it) }.filter { it.isNotBlank() }
+        if (alternatives.isEmpty()) return null
+        return Regex("""\b(?:${alternatives.joinToString("|") { Regex.escape(it) }})\b""")
+    }
+
+    private val STARCH_PATTERN = keywordPattern(STARCH)
+    private val PROTEIN_PATTERN = keywordPattern(PROTEIN)
+    private val BREAKFAST_PATTERN = keywordPattern(BREAKFAST)
+    private val BREAD_PATTERN = keywordPattern(BREAD)
+    private val DRINK_PATTERN = keywordPattern(DRINK)
+    private val SNACK_PATTERN = keywordPattern(SNACK)
+    private val CHOCOLATE_DRINK_PATTERN = keywordPattern(CHOCOLATE_DRINK)
+    private val WRAP_PATTERN = keywordPattern(WRAP)
+    private val NUT_SNACK_PATTERN = keywordPattern(NUT_SNACK)
+    private val MULTI_MENTION_CONNECTOR = Regex("""\s+(?:con|y|e|and|with)\s+""")
+
     fun inferShape(description: String, foodTags: List<String> = emptyList()): Shape {
         val blob = FoodIdentity.normalize(
             (listOf(description) + foodTags).joinToString(" "),
@@ -71,17 +93,17 @@ object InferredMealContext {
         val tokens = blob.split(" ").filter { it.isNotBlank() && it !in STOP }
         if (tokens.isEmpty()) return Shape.UNKNOWN
 
-        val hasStarch = hasToken(blob, STARCH)
-        val hasProtein = hasToken(blob, PROTEIN)
-        val hasBreakfast = hasToken(blob, BREAKFAST)
-        val hasBread = hasToken(blob, BREAD)
-        val hasChocolateDrink = hasToken(blob, CHOCOLATE_DRINK)
-        val hasSnack = hasToken(blob, SNACK) && !hasChocolateDrink
-        val hasDrink = (hasToken(blob, DRINK) || hasChocolateDrink) && !hasSnack
-        val hasWrap = hasToken(blob, WRAP)
-        val hasNut = hasToken(blob, NUT_SNACK)
+        val hasStarch = hasToken(blob, STARCH_PATTERN)
+        val hasProtein = hasToken(blob, PROTEIN_PATTERN)
+        val hasBreakfast = hasToken(blob, BREAKFAST_PATTERN)
+        val hasBread = hasToken(blob, BREAD_PATTERN)
+        val hasChocolateDrink = hasToken(blob, CHOCOLATE_DRINK_PATTERN)
+        val hasSnack = hasToken(blob, SNACK_PATTERN) && !hasChocolateDrink
+        val hasDrink = (hasToken(blob, DRINK_PATTERN) || hasChocolateDrink) && !hasSnack
+        val hasWrap = hasToken(blob, WRAP_PATTERN)
+        val hasNut = hasToken(blob, NUT_SNACK_PATTERN)
         val multi = foodTags.size >= 2 ||
-            Regex("""\s+(?:con|y|e|and|with)\s+""").containsMatchIn(description.lowercase())
+            MULTI_MENTION_CONNECTOR.containsMatchIn(description.lowercase())
 
         if (hasWrap) return Shape.WRAP
         if (hasSnack) return Shape.SNACK_ITEM
@@ -189,11 +211,5 @@ object InferredMealContext {
         else -> fallback
     }
 
-    private fun hasToken(blob: String, keywords: List<String>): Boolean {
-        return keywords.any { keyword ->
-            val n = FoodIdentity.normalize(keyword)
-            if (n.isBlank()) return@any false
-            Regex("""\b${Regex.escape(n)}\b""").containsMatchIn(blob)
-        }
-    }
+    private fun hasToken(blob: String, pattern: Regex?): Boolean = pattern?.containsMatchIn(blob) == true
 }

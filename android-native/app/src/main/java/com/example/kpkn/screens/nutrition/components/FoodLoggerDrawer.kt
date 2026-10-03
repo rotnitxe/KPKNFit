@@ -294,21 +294,32 @@ fun FoodLoggerDrawer(
     }
 
     suspend fun resolveTags(parsed: ParsedMealDescription) {
-        val result = createTagResolver().resolveAll(parsed, detectedContext, mealType)
-
-        detectedContext = result.second
-        val newTags = result.first
-        // FIX NUT-04: key drawer state per request — don't keep stale tags from previous description
-        // If description changed, old manual edits for hallulla shouldn't block marraqueta analysis.
-        val isSameRequest = lastAnalyzedDescription.isNotBlank() &&
-            FoodIdentity.normalize(parsed.rawDescription) == FoodIdentity.normalize(lastAnalyzedDescription)
-        val mergedTags = if (isSameRequest || tags.isEmpty()) {
-            mergeTagsPreservingManualEdits(tags, newTags)
-        } else {
-            // Changed text supersedes every prior identity/portion decision.
-            newTags
+        // WP-N1: resolution, merge and enrichment run off the main thread. The inputs of resolveAll
+        // are read before the hop and every Compose state write happens after withContext returns.
+        val contextBefore = detectedContext
+        val currentMealType = mealType
+        val (resolvedContext, mergedTags) = withContext(Dispatchers.Default) {
+            val result = createTagResolver().resolveAll(parsed, contextBefore, currentMealType)
+            val newTags = result.first
+            // FIX NUT-04: key drawer state per request — don't keep stale tags from previous description
+            // If description changed, old manual edits for hallulla shouldn't block marraqueta analysis.
+            val previousTags = tags
+            val isSameRequest = lastAnalyzedDescription.isNotBlank() &&
+                FoodIdentity.normalize(parsed.rawDescription) == FoodIdentity.normalize(lastAnalyzedDescription)
+            val merged = if (isSameRequest || previousTags.isEmpty()) {
+                mergeTagsPreservingManualEdits(previousTags, newTags)
+            } else {
+                // Changed text supersedes every prior identity/portion decision.
+                newTags
+            }
+            // resolveAll already enriched every tag it returned (TagResolution.kt), and enriching again
+            // is a no-op for them, so only the tags kept from the previous list (manual edits) are
+            // enriched here against the new parse, exactly as before.
+            val freshIds = newTags.mapTo(HashSet()) { it.id }
+            result.second to merged.map { if (it.id in freshIds) it else NutritionInterpretationBridge.enrich(it, parsed) }
         }
-        tags = mergedTags.map { NutritionInterpretationBridge.enrich(it, parsed) }
+        detectedContext = resolvedContext
+        tags = mergedTags
         analysisKcalRange = tags.mapNotNull { it.interpretationV2 }.takeIf { it.isNotEmpty() }?.let { values ->
             values.sumOf { it.caloriesMin }.toInt() to values.sumOf { it.caloriesMax }.toInt()
         }
@@ -470,8 +481,11 @@ fun FoodLoggerDrawer(
                 }
             }
             try {
+                val contextMealType = mealType
                 detectedContext = analysisTrace.stage("context_detect") {
-                    ContextDetector.detect(descriptionSnapshot, mealType)
+                    withContext(Dispatchers.Default) {
+                        ContextDetector.detect(descriptionSnapshot, contextMealType)
+                    }
                 }
                 // Interpret every declared mention before applying compatible individual habits.
                 // Whole-meal templates must never replace the user's new description.
@@ -490,7 +504,10 @@ fun FoodLoggerDrawer(
                     ?.takeIf { descriptionRetrieval.confidence >= 0.35 }
                     ?.let { kotlin.math.round(it.kcalMin).toInt() to kotlin.math.round(it.kcalMax).toInt() }
                     ?.takeIf { it.second - it.first >= 30 }
-                detectedContext = ContextDetector.detect(descriptionSnapshot, mealType)
+                val parseMealType = mealType
+                detectedContext = withContext(Dispatchers.Default) {
+                    ContextDetector.detect(descriptionSnapshot, parseMealType)
+                }
                 NutritionTelemetry.markInFlight(analysisTrace.traceId, "parse")
                 val parseStartedAtMs = System.currentTimeMillis()
                 val parsed = withContext(Dispatchers.Default) {

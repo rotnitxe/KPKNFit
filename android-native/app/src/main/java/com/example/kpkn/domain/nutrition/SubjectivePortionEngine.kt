@@ -370,9 +370,7 @@ object SubjectivePortionEngine {
         // Match the utensil once and apply its count afterwards. Fractional
         // legacy patterns encoded the fraction in baseMl, which family remaps
         // subsequently erased (half a cup of milk became a full cup).
-        val quantityPrefix = Regex(
-            """^((?:un|1)\s+cuarto\s+de|(?:un|1)\s+tercio\s+de|media|medio|mitad\s+de|\d+(?:[.,]\d+)?(?:/\d+)?|un|una)\s+(?:de\s+)?""",
-        ).find(lower)
+        val quantityPrefix = QUANTITY_PREFIX_PATTERN.find(lower)
         val utensilCount = quantityPrefix?.groupValues?.get(1)?.let { amount ->
             when (amount) {
                 "un cuarto de", "1 cuarto de" -> 0.25
@@ -540,9 +538,7 @@ object SubjectivePortionEngine {
      * Auto-detect food density category from food name.
      */
     fun detectDensityCategory(foodName: String): FoodDensityCategory {
-        val lower = foodName.lowercase().replace(
-            Regex("""\bsin\s+(?:az[uú]car|lactosa|gluten)\b"""), "",
-        )
+        val lower = foodName.lowercase().replace(SIN_ATTRIBUTE_PATTERN, "")
 
         return when {
             lower.contains("leche") || lower.contains("bebida de avena") -> FoodDensityCategory.DAIRY
@@ -568,7 +564,7 @@ object SubjectivePortionEngine {
     fun densityGramsPerMl(foodTag: String, category: FoodDensityCategory? = null): Double {
         val normalized = FoodIdentity.normalize(foodTag)
         if (normalized.contains("avena") &&
-            !Regex("""\b(?:leche|bebida|galleta\w*|pan|barrita\w*|batido)\b""").containsMatchIn(normalized) &&
+            !PROCESSED_OAT_PATTERN.containsMatchIn(normalized) &&
             !normalized.contains("cocid") && !normalized.contains("hidrat")) {
             return 81.0 / 240.0
         }
@@ -584,6 +580,13 @@ object SubjectivePortionEngine {
     // ─── Internal ──────────────────────────────────────────────────────────
 
     private val DE_FOOD_PATTERN = Regex("""de\s+([a-záéíóúñü\s]{2,})""", RegexOption.IGNORE_CASE)
+
+    // Compiled once: these used to be rebuilt on every resolve / density lookup.
+    private val QUANTITY_PREFIX_PATTERN = Regex(
+        """^((?:un|1)\s+cuarto\s+de|(?:un|1)\s+tercio\s+de|media|medio|mitad\s+de|\d+(?:[.,]\d+)?(?:/\d+)?|un|una)\s+(?:de\s+)?""",
+    )
+    private val SIN_ATTRIBUTE_PATTERN = Regex("""\bsin\s+(?:az[uú]car|lactosa|gluten)\b""")
+    private val PROCESSED_OAT_PATTERN = Regex("""\b(?:leche|bebida|galleta\w*|pan|barrita\w*|batido)\b""")
 
     private fun extractFoodName(expression: String): String? {
         // Try to extract food name after "de"

@@ -1,6 +1,5 @@
 package com.example.kpkn.domain.nutrition
 
-import java.text.Normalizer
 import kotlin.math.sqrt
 
 /**
@@ -59,9 +58,7 @@ object SemanticPortionRetriever {
         val score: Double,
     )
 
-    private val combiningMarks = Regex("\\p{Mn}+")
-    private val nonAlphanumeric = Regex("[^\\p{L}\\p{Nd}]+")
-    private val spaces = Regex("\\s+")
+    private val spaces = TextKeys.SPACES
 
     private val stopwords = setOf(
         "de", "la", "el", "con", "sin", "a", "al", "en", "por", "y", "o", "un", "una",
@@ -110,6 +107,7 @@ object SemanticPortionRetriever {
         }
         knowledge = snapshot
         lastRetrieve = null
+        vocabCache = null
     }
 
     /** Snapshot instalado actualmente (diagnóstico y tests). */
@@ -281,7 +279,7 @@ object SemanticPortionRetriever {
         if (query.isBlank()) return query
         if (FoodStapleOntology.isFamilyDefault(query)) return query
         var changed = false
-        val rebuilt = query.split(Regex("\\s+")).joinToString(" ") { token ->
+        val rebuilt = query.split(spaces).joinToString(" ") { token ->
             val core = token.trim(',', '.', ';', ':', '!', '?')
             val repaired = repairToken(core)
             if (repaired != null && repaired != core) {
@@ -331,8 +329,24 @@ object SemanticPortionRetriever {
         return null
     }
 
-    private fun foodVocabTokens(snapshot: DatasetKnowledgeSnapshot): Set<String> =
-        snapshot.portionPriors.keys.flatMapTo(mutableSetOf()) { tokenize(normalize(it)) }
+    /** Food vocabulary of one dataset snapshot, derived once per snapshot instance. */
+    private class VocabCache(val snapshot: DatasetKnowledgeSnapshot, val tokens: Set<String>)
+
+    @Volatile
+    private var vocabCache: VocabCache? = null
+
+    /**
+     * The vocabulary (thousands of normalized keys) used to be rebuilt for every token that
+     * reached [repairToken]. A snapshot is immutable, so it is memoized by instance identity
+     * (a newly installed snapshot misses the cache) and keeps the same iteration order, which
+     * decides ties between equally scored repairs.
+     */
+    private fun foodVocabTokens(snapshot: DatasetKnowledgeSnapshot): Set<String> {
+        vocabCache?.takeIf { it.snapshot === snapshot }?.let { return it.tokens }
+        val tokens = snapshot.portionPriors.keys.flatMapTo(mutableSetOf()) { tokenize(normalize(it)) }
+        vocabCache = VocabCache(snapshot, tokens)
+        return tokens
+    }
 
     /** 0..1: frecuencia normalizada logarítmicamente para comparar fiabilidad de priors. */
     private fun reliabilityScore(prior: DatasetPortionPrior): Double =
@@ -461,13 +475,7 @@ object SemanticPortionRetriever {
         return intersection / leftTokens.union(rightTokens).size.coerceAtLeast(1)
     }
 
-    private fun normalize(text: String): String =
-        Normalizer.normalize(text, Normalizer.Form.NFD)
-            .replace(combiningMarks, "")
-            .lowercase()
-            .replace(nonAlphanumeric, " ")
-            .replace(spaces, " ")
-            .trim()
+    private fun normalize(text: String): String = TextKeys.normalize(text)
 
     private fun tokenize(normalized: String): List<String> =
         normalized.split(spaces).filter { it.length >= 2 && it !in stopwords }

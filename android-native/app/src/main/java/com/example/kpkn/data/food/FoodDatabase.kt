@@ -3,6 +3,7 @@ package com.example.kpkn.data.food
 import com.example.kpkn.data.models.CarbBreakdown
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.Micronutrient
+import com.example.kpkn.domain.nutrition.TextKeys
 
 /**
  * FoodDatabase — Static food catalog for KPKN Fit.
@@ -624,6 +625,10 @@ private val AMBIGUOUS_STATE_ALIASES = setOf(
     "pasta", "fideo", "fideos", "tallarin", "tallarines",
 )
 
+// Compiled/allocated once: findFoodByNormalized used to rebuild both for every catalog food on every call.
+private val NAME_WORD_SPLIT = "[\\s(),/]+".toRegex()
+private val FILLER_WORDS = setOf("de", "con", "y", "e", "la", "el")
+
 // ─── Lookup Helpers ──────────────────────────────────────────────────────────
 
 // O(1) HashMap para búsqueda rápida por nombre exacto
@@ -652,7 +657,7 @@ private val foodByExactName: Map<String, FoodItem> by lazy {
 
 private fun stripAccents(text: String): String =
     java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
-        .replace("\\p{Mn}+".toRegex(), "")
+        .replace(TextKeys.MARKS, "")
 
 /**
  * Lookup SOLO por coincidencia exacta/alias O(1) (sin fallbacks difusos por palabras).
@@ -687,11 +692,11 @@ fun findFoodByNormalized(text: String): FoodItem? {
     if (stripped != normalized) foodByExactName[stripped]?.let { return it }
 
     val allFoods = ALL_FOODS
-    val aliasWords = alias.split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
-    val contentWords = aliasWords.filter { it !in setOf("de", "con", "y", "e", "la", "el") }
+    val aliasWords = alias.split(NAME_WORD_SPLIT).filter { it.length > 1 }
+    val contentWords = aliasWords.filter { it !in FILLER_WORDS }
     if (aliasWords.isNotEmpty()) {
         val matches = allFoods.filter { food ->
-            val foodWords = food.name.lowercase().split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
+            val foodWords = food.name.lowercase().split(NAME_WORD_SPLIT).filter { it.length > 1 }
             aliasWords.all { aw -> foodWords.any { fw -> fw == aw } } &&
                 !queryStealsChild(contentWords, food.name)
         }
@@ -699,8 +704,8 @@ fun findFoodByNormalized(text: String): FoodItem? {
             val head = contentWords.first()
             matches.minByOrNull { food ->
                 val foodWords = food.name.lowercase()
-                    .split("[\\s(),/]+".toRegex())
-                    .filter { it.length > 1 && it !in setOf("de", "con", "y", "e", "la", "el") }
+                    .split(NAME_WORD_SPLIT)
+                    .filter { it.length > 1 && it !in FILLER_WORDS }
                 val extra = (foodWords.size - contentWords.size).coerceAtLeast(0)
                 val foodHead = foodWords.firstOrNull()
                 val headPenalty = if (foodHead == head || foodHead?.startsWith(head) == true || head.startsWith(foodHead ?: "")) 0 else 80
@@ -717,9 +722,9 @@ fun findFoodByNormalized(text: String): FoodItem? {
     allFoods.find { food ->
         val foodNameLower = food.name.lowercase()
         if (foodNameLower.length <= 3) return@find false
-        val foodWords = foodNameLower.split("[\\s(),/]+".toRegex()).filter { it.length > 2 }
+        val foodWords = foodNameLower.split(NAME_WORD_SPLIT).filter { it.length > 2 }
         if (foodWords.isEmpty()) return@find false
-        val aliasWordsAll = alias.split("[\\s(),/]+".toRegex())
+        val aliasWordsAll = alias.split(NAME_WORD_SPLIT)
         foodWords.all { fw -> aliasWordsAll.any { aw -> aw == fw || aw.startsWith(fw) } } &&
             !queryStealsChild(contentWords, food.name)
     }?.let { return it }
@@ -730,7 +735,7 @@ fun findFoodByNormalized(text: String): FoodItem? {
 private fun queryStealsChild(queryContent: List<String>, foodName: String): Boolean {
     if (queryContent.size < 2) return false
     val head = queryContent.first()
-    val foodTokens = foodName.lowercase().split("[\\s(),/]+".toRegex()).filter { it.length > 1 }
+    val foodTokens = foodName.lowercase().split(NAME_WORD_SPLIT).filter { it.length > 1 }
     val foodHasHead = foodTokens.any { it == head || it.startsWith(head) || head.startsWith(it) }
     if (foodHasHead) return false
     return foodTokens.isNotEmpty() && foodTokens.all { ft -> queryContent.any { it == ft || it.contains(ft) } }

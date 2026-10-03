@@ -641,7 +641,7 @@ class SmartFoodResolver(
             "energetica", "soda", "agua de", "leche con", "cafe con",
         )
         if (drinkTokens.any { n.contains(it) }) return true
-        return Regex("""\b(?:jugo|bebida|smoothie|batido|gaseosa|refresco)\b""").containsMatchIn(n)
+        return DRINK_WORD_PATTERN.containsMatchIn(n)
     }
 
     private fun isRealIdentityRival(
@@ -879,5 +879,8 @@ class SmartFoodResolver(
         const val LEARNED_AUTO_THRESHOLD = 0.74
         const val DATASET_MIN_CONFIDENCE = 0.35
         const val DATASET_MIN_MATCH_SCORE = 0.12
+
+        /** Compiled once: candidateLooksLiquid runs for every scored candidate. */
+        private val DRINK_WORD_PATTERN = Regex("""\b(?:jugo|bebida|smoothie|batido|gaseosa|refresco)\b""")
     }
 }

@@ -11,7 +11,7 @@ object PhoneticEs {
 
     fun encode(word: String): String {
         var s = Normalizer.normalize(word.lowercase(), Normalizer.Form.NFD)
-            .replace(Regex("\\p{Mn}+"), "") // strip diacritics
+            .replace(TextKeys.MARKS, "") // strip diacritics
             .trim()
 
         if (s.isEmpty()) return s

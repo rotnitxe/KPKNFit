@@ -29,7 +29,12 @@ object SubjectivePortionLexicon {
         val term: String,
         val unitId: String,
         val plural: Boolean = false,
-    )
+    ) {
+        /** Whole-word matcher for [term]: compiled on first use, then shared by every lookup. */
+        val regex: Regex by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            Regex("""\b${Regex.escape(term)}\b""")
+        }
+    }
 
     val UNITS: Map<String, UnitSpec> = listOf(
         UnitSpec(
@@ -223,6 +228,12 @@ object SubjectivePortionLexicon {
 
     private val FETA_UNIT_TERMS = setOf("feta", "fetas", "fetita", "fetitas")
 
+    // Compiled once: these used to be rebuilt on every lookup / matched term.
+    private val FETAS_DE_PATTERN = Regex("""\bfetas?\s+de\b""")
+    private val QUESO_FETA_PATTERN = Regex("""\bqueso\s+feta\b""")
+    private val PAR_SUFFIX_PATTERN = Regex("""(?:un|una|1)\s+par(?:\s+de)?$""")
+    private val TRAILING_NUMBER_PATTERN = Regex("""(\d+(?:[.,]\d+)?)$""")
+
     private val QUANTITY_WORDS = mapOf(
         "un" to 1.0, "una" to 1.0, "uno" to 1.0,
         "unos" to 2.0, "unas" to 2.0,
@@ -284,9 +295,7 @@ object SubjectivePortionLexicon {
 
     fun looksLikePortionExpression(expression: String): Boolean {
         val n = FoodIdentity.normalize(expression)
-        return TERMS.any { term ->
-            Regex("""\b${Regex.escape(term.term)}\b""").containsMatchIn(n)
-        }
+        return TERMS.any { term -> term.regex.containsMatchIn(n) }
     }
 
     /**
@@ -301,8 +310,7 @@ object SubjectivePortionLexicon {
         var bestTerm: TermSpec? = null
         var bestFound: MatchResult? = null
         for (term in TERMS) {
-            val regex = Regex("""\b${Regex.escape(term.term)}\b""")
-            val found = regex.find(normalized) ?: continue
+            val found = term.regex.find(normalized) ?: continue
             if (shouldSkipFetaUnit(term, normalized, found.range.first)) continue
             if (shouldSkipFoodNameAsUnit(term, normalized, found)) continue
             if (bestTerm == null ||
@@ -338,8 +346,7 @@ object SubjectivePortionLexicon {
         val classHint = detectFoodClass(foodHint ?: extractFoodAfterDe(normalized) ?: normalized)
         var best: Match? = null
         for (term in TERMS) {
-            val regex = Regex("""\b${Regex.escape(term.term)}\b""")
-            val found = regex.find(normalized) ?: continue
+            val found = term.regex.find(normalized) ?: continue
             if (shouldSkipFetaUnit(term, normalized, found.range.first)) continue
             if (shouldSkipFoodNameAsUnit(term, normalized, found)) continue
             val qty = parseQuantity(normalized, found.range.first, term)
@@ -374,15 +381,15 @@ object SubjectivePortionLexicon {
     }
 
     private fun isFetaCheeseIdentity(normalized: String): Boolean {
-        if (Regex("""\bfetas?\s+de\b""").containsMatchIn(normalized)) return false
-        if (Regex("""\bqueso\s+feta\b""").containsMatchIn(normalized)) return true
+        if (FETAS_DE_PATTERN.containsMatchIn(normalized)) return false
+        if (QUESO_FETA_PATTERN.containsMatchIn(normalized)) return true
         if (normalized == "feta" || normalized == "queso feta") return true
         return false
     }
 
     private fun shouldSkipFetaUnit(term: TermSpec, normalized: String, start: Int): Boolean {
         if (term.term !in FETA_UNIT_TERMS) return false
-        if (Regex("""\bfetas?\s+de\b""").containsMatchIn(normalized)) return false
+        if (FETAS_DE_PATTERN.containsMatchIn(normalized)) return false
         val before = normalized.substring(0, start).trim()
         if (before.endsWith("queso")) return true
         if (normalized == "feta" || normalized.startsWith("queso feta")) return true
@@ -414,9 +421,9 @@ object SubjectivePortionLexicon {
         if (before.isEmpty()) {
             return if (term.plural) UNITS[term.unitId]?.barePluralCount ?: BARE_PLURAL_COUNT else 1.0
         }
-        val par = Regex("""(?:un|una|1)\s+par(?:\s+de)?$""").find(before)
+        val par = PAR_SUFFIX_PATTERN.find(before)
         if (par != null) return 2.0
-        val digit = Regex("""(\d+(?:[.,]\d+)?)$""").find(before)
+        val digit = TRAILING_NUMBER_PATTERN.find(before)
         if (digit != null) {
             return digit.groupValues[1].replace(",", ".").toDoubleOrNull() ?: 1.0
         }

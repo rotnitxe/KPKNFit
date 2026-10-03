@@ -178,6 +178,17 @@ private val INHERITABLE_VESSEL = Regex(
     RegexOption.IGNORE_CASE,
 )
 
+// Segmentation / negation helpers: compiled once instead of on every fragment.
+private val SIN_PREFIX_PATTERN = Regex("""^sin\s+""", RegexOption.IGNORE_CASE)
+private val KNOWN_NEGATION_TARGET_PATTERN = Regex("""^(?:lactosa|gluten|az[uú]car(?:es)?)(?:\b|$)""")
+private val COMMA_BEFORE_EXCLUSION_PATTERN = Regex(""",[ \t]*(?=(?:sin|ni)[ \t]+)""", RegexOption.IGNORE_CASE)
+private val LEADING_CONNECTOR_PATTERN = Regex("""^(?:con|y|e)\s+""", RegexOption.IGNORE_CASE)
+private val CONNECTOR_SINO = Regex("""\s+sino\s+""", RegexOption.IGNORE_CASE)
+private val CONNECTOR_NI = Regex("""\s+ni\s+""", RegexOption.IGNORE_CASE)
+private val REPAIR_MARKER_PATTERN = Regex("""(?:perd[oó]n|digo|mejor dicho)""", RegexOption.IGNORE_CASE)
+private val LEADING_SINO_PATTERN = Regex("""^sino\s+""", RegexOption.IGNORE_CASE)
+private val TRAILING_NO_PATTERN = Regex("""^(.+?)\s+no$""", RegexOption.IGNORE_CASE)
+
 private val PROTECTED_ENTITY_PHRASES = (PROTECTED_ENTITIES + staticFoodPhrases() + listOf("salsa de tomate"))
     .distinct()
     .sortedByDescending { it.length }
@@ -291,9 +302,9 @@ internal fun isWholeProtectedMeal(text: String): Boolean {
 private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolean {
     val afterNeg = text.substring(negMatch.range.last + 1).trim().lowercase()
     if (!negMatch.value.equals("sin", ignoreCase = true)) return false
-    val firstWord = afterNeg.split("\\s+".toRegex()).firstOrNull() ?: return false
+    val firstWord = afterNeg.split(SPACES_PATTERN).firstOrNull() ?: return false
     return firstWord in listOf("piel", "grasa", "miga", "pieles", "grasas") ||
-        Regex("""^(?:lactosa|gluten|az[uú]car(?:es)?)(?:\b|$)""").containsMatchIn(afterNeg)
+        KNOWN_NEGATION_TARGET_PATTERN.containsMatchIn(afterNeg)
 }
 
 // ─── Fragment Parser ─────────────────────────────────────────────────────────
@@ -308,8 +319,7 @@ private fun parseFragment(
 
     // Handle negated items: "sin leche" → parse "leche" and mark excluded
     var isExcluded = false
-    val sinPrefix = Regex("""^sin\s+""", RegexOption.IGNORE_CASE)
-    val sinMatch = sinPrefix.find(text)
+    val sinMatch = SIN_PREFIX_PATTERN.find(text)
     if (sinMatch != null) {
         isExcluded = true
         text = text.removeRange(0, sinMatch.range.last + 1).trim()
@@ -458,9 +468,7 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
     // A comma before the exclusion preposition does not detach its modifier:
     // "completo, sin mayonesa" has the same ingredient scope as the inline form.
     // Keep sentence/line boundaries and conversational "no" repairs distinct.
-    var trimmed = description.trim().replace(
-        Regex(""",[ \t]*(?=(?:sin|ni)[ \t]+)""", RegexOption.IGNORE_CASE), " ",
-    )
+    var trimmed = description.trim().replace(COMMA_BEFORE_EXCLUSION_PATTERN, " ")
     if (trimmed.isEmpty()) return emptyList()
 
     // Mask protected entities
@@ -478,18 +486,18 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
     }
     splitBy(COMMA_OR_PLUS)
     parts = parts.mapIndexed { index, part ->
-        if (index == 0) part else part.replace(Regex("""^(?:con|y|e)\s+""", RegexOption.IGNORE_CASE), "")
+        if (index == 0) part else part.replace(LEADING_CONNECTOR_PATTERN, "")
     }
     splitBy(CONNECTOR_Y)
     splitBy(CONNECTOR_CON)
-    splitBy(Regex("""\s+sino\s+""", RegexOption.IGNORE_CASE))
+    splitBy(CONNECTOR_SINO)
 
     // Conversational repairs replace the preceding mention, after food-list
     // segmentation, so "pollo con arroz, perdón, fideos" keeps the chicken.
     val repairedParts = mutableListOf<String>()
     var replacedMention: String? = null
     for (part in parts) {
-        if (part.matches(Regex("""(?:perd[oó]n|digo|mejor dicho)""", RegexOption.IGNORE_CASE))) {
+        if (part.matches(REPAIR_MARKER_PATTERN)) {
             if (repairedParts.isNotEmpty()) replacedMention = repairedParts.removeAt(repairedParts.lastIndex)
         } else {
             val previous = replacedMention
@@ -501,7 +509,7 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
                 // "dos huevos, perdón, uno" changes the count, not the food.
                 val correctedCount = LITERAL_QUANTITIES[part.lowercase()] ?: part.replace(',', '.').toDouble()
                 "$correctedCount ${previousCount?.groupValues?.get(1) ?: previous}"
-            } else part.replace(Regex("""^sino\s+""", RegexOption.IGNORE_CASE), "")
+            } else part.replace(LEADING_SINO_PATTERN, "")
             replacedMention = null
         }
     }
@@ -521,7 +529,7 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
         for ((token, original) in masks) {
             unmasked = unmasked.replace(token, original)
         }
-        unmasked = unmasked.replace(Regex("""^(.+?)\s+no$""", RegexOption.IGNORE_CASE)) {
+        unmasked = unmasked.replace(TRAILING_NO_PATTERN) {
             "sin ${it.groupValues[1]}"
         }
         val negMatch = NEGATION_PATTERN.findAll(unmasked)
@@ -529,7 +537,7 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
         if (negMatch != null) {
             val beforeNeg = unmasked.substring(0, negMatch.range.first).trim()
             val afterNeg = unmasked.substring(negMatch.range.last + 1).trim()
-            val exclusions = afterNeg.split(Regex("""\s+ni\s+""", RegexOption.IGNORE_CASE))
+            val exclusions = afterNeg.split(CONNECTOR_NI)
                 .filter { it.isNotBlank() }
             listOfNotNull(beforeNeg.takeIf { it.isNotBlank() }?.let {
                 MentionFragment(it, exclusions.map(FoodIdentity::normalize).toSet())
@@ -860,7 +868,7 @@ private fun parseQuantityMultiplier(text: String): Pair<Double, String> {
 
 private fun stripAccents(text: String): String =
     java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
-        .replace("\\p{Mn}+".toRegex(), "")
+        .replace(TextKeys.MARKS, "")
 
 /**
  * Clave canónica para DEDUPE (G5/G7): minúsculas sin tildes y singularizada.

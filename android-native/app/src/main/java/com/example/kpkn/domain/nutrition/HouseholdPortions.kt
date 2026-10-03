@@ -45,9 +45,19 @@ object HouseholdPortions {
         "hallulla", "hallula", "marraqueta", "pan", "sopaipilla", "amasado",
     )
 
+    // Compiled once: these used to be rebuilt on every call (some once per candidate).
+    private val PACK_NAME_PATTERN = Regex("""\b(?:\d+\s*kg|kilo|pack|packe|x\s*\d+|x\d+)\b""")
+    private val CHIPS_PATTERN = Regex("""\bchips\b""")
+    private val WHOLE_DISH_PATTERN = Regex("""\b(?:sandwich|completo|hamburguesa|torta|quesadilla)\b""")
+    private val VESSEL_PATTERN = Regex("""\b(?:plato|bowl|bol|tazon|taza|vaso|fuente)\b""")
+    private val COUNT_EXPRESSION_PATTERN = Regex(
+        """^(?:un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|\d+(?:[.,]\d+)?)\s+\S+""",
+    )
+    private val EXPLICIT_KILOGRAM_PATTERN = Regex("""\b\d+(?:[.,]\d+)?\s*(?:kg|kilo|kilos)\b""")
+
     fun looksLikePackName(name: String): Boolean {
         val n = FoodIdentity.normalize(name)
-        return Regex("""\b(?:\d+\s*kg|kilo|pack|packe|x\s*\d+|x\d+)\b""").containsMatchIn(n) ||
+        return PACK_NAME_PATTERN.containsMatchIn(n) ||
             n.contains(" 1kg") || n.endsWith("kg") || n.contains("gramos") && n.contains("pack")
     }
 
@@ -132,7 +142,7 @@ object HouseholdPortions {
             CHEESE_MARKERS.any { blob.contains(it) } -> return 30.0
             queryNorm.contains("papas fritas") || queryNorm.contains("patatas fritas") ->
                 return 120.0
-            Regex("""\bchips\b""").containsMatchIn(queryNorm) -> return 30.0
+            CHIPS_PATTERN.containsMatchIn(queryNorm) -> return 30.0
             queryNorm.contains("galletas") -> return 30.0
             queryNorm.contains("galleta") || queryNorm.contains("cookie") -> return 12.0
             blob.contains("chocolate") && !blob.contains("caliente") && !blob.contains("bebida") ->
@@ -274,7 +284,7 @@ object HouseholdPortions {
         return capEnergyDenseGuess(food, query, grams, role).coerceIn(8.0, MAX_ITEM_GRAMS_WITHOUT_KG)
     }
 
-    fun isWholeDish(query: String): Boolean = Regex("""\b(?:sandwich|completo|hamburguesa|torta|quesadilla)\b""")
+    fun isWholeDish(query: String): Boolean = WHOLE_DISH_PATTERN
         .containsMatchIn(FoodIdentity.normalize(query))
 
     fun heuristicDishGrams(query: String, context: ContextDetector.ContextResult? = null): Double {
@@ -346,7 +356,7 @@ object HouseholdPortions {
 
     private fun hasExplicitVessel(query: String): Boolean {
         val blob = FoodIdentity.normalize(query)
-        return Regex("""\b(?:plato|bowl|bol|tazon|taza|vaso|fuente)\b""").containsMatchIn(blob)
+        return VESSEL_PATTERN.containsMatchIn(blob)
     }
 
     private fun isEnergyDenseFood(food: FoodItem?, query: String, role: String): Boolean {
@@ -377,14 +387,12 @@ object HouseholdPortions {
 
     fun looksLikeCountExpression(text: String): Boolean {
         val t = text.lowercase().trim()
-        return Regex(
-            """^(?:un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|\d+(?:[.,]\d+)?)\s+\S+""",
-        ).containsMatchIn(t)
+        return COUNT_EXPRESSION_PATTERN.containsMatchIn(t)
     }
 
     fun isExplicitKilogram(text: String): Boolean {
         val t = FoodIdentity.normalize(text)
-        return Regex("""\b\d+(?:[.,]\d+)?\s*(?:kg|kilo|kilos)\b""").containsMatchIn(t) ||
+        return EXPLICIT_KILOGRAM_PATTERN.containsMatchIn(t) ||
             t.contains("medio kilo") || t.contains("medio kilogramo")
     }
 

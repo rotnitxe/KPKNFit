@@ -3,8 +3,8 @@ package com.example.kpkn.domain.nutrition
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.toFoodItem
 import com.example.kpkn.data.models.FoodItem
-import java.text.Normalizer
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * FoodIndex — In-memory inverted index over all food sources (USDA, OFF Chile, static).
@@ -47,6 +47,18 @@ class FoodIndex {
 
     @Volatile
     private var built = false
+
+    /** One brand candidate: the original brand plus its padded normalized key (computed once). */
+    private class BrandKey(val brand: String, val paddedKey: String)
+
+    /** Brand candidates valid for one state of [foods] ([version] = [foodsVersion] when computed). */
+    private class BrandSnapshot(val version: Long, val keys: List<BrandKey>)
+
+    /** Bumped after every mutation of [foods] so [brandSnapshot] can never outlive its data. */
+    private val foodsVersion = AtomicLong()
+
+    @Volatile
+    private var brandSnapshot: BrandSnapshot? = null
 
     fun isBuilt(): Boolean = built
 
@@ -136,14 +148,26 @@ class FoodIndex {
 
     fun getFood(foodId: String): IndexedFood? = foods[foodId]
 
-    fun brandHintFor(query: String): String? {
-        val padded = " ${normalizeSearch(query)} "
-        return foods.values.mapNotNull { it.brand }.distinct()
-            .filter { normalizeSearch(it) !in setOf("generico", "generica", "local", "off", "usda") }
+    /**
+     * Brand candidates with their normalized keys. The filtering and normalization used to run
+     * over every brand of the index on each call; they are computed once per state of [foods]
+     * and iterate in the same order, so [maxByOrNull] breaks ties exactly as before.
+     */
+    private fun brandKeys(): List<BrandKey> {
+        val version = foodsVersion.get()
+        brandSnapshot?.takeIf { it.version == version }?.let { return it.keys }
+        val keys = foods.values.mapNotNull { it.brand }.distinct()
+            .filter { normalizeSearch(it) !in GENERIC_BRANDS }
             // A source may mistakenly put a food class in its brand column (OFF: brand=Avena).
             .filterNot { FoodIdentity.contentTokens(it).size == 1 && FoodIdentity.familyFor(it) != null }
-            .filter { " ${normalizeSearch(it)} " in padded }
-            .maxByOrNull { it.length }
+            .map { BrandKey(it, " ${normalizeSearch(it)} ") }
+        brandSnapshot = BrandSnapshot(version, keys)
+        return keys
+    }
+
+    fun brandHintFor(query: String): String? {
+        val padded = " ${normalizeSearch(query)} "
+        return brandKeys().filter { it.paddedKey in padded }.maxByOrNull { it.brand.length }?.brand
     }
 
     /** E16/IT2: indexa un alimento custom/estático añadido en runtime sin
@@ -198,6 +222,9 @@ class FoodIndex {
                 phoneticIndex.getOrPut(phoneticCode) { mutableSetOf() }.add(food.foodId)
             }
         }
+
+        // The cached brand list describes a previous state of [foods].
+        foodsVersion.incrementAndGet()
     }
 
     private fun indexStaticFood(food: FoodItem, catalogAliases: Set<String> = emptySet()): IndexedFood {
@@ -285,18 +312,14 @@ class FoodIndex {
             "para", "que", "es", "su", "se", "no", "más", "como",
         )
 
-        fun normalizeSearch(value: String): String {
-            val stripped = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replace(Regex("\\p{Mn}+"), "")
-            return stripped
-                .lowercase()
-                .replace(Regex("[^\\p{L}\\p{Nd}]+"), " ")
-                .replace(Regex("\\s+"), " ")
-                .trim()
-        }
+        /** Brand values that never identify a product line (checked on the normalized brand). */
+        private val GENERIC_BRANDS = setOf("generico", "generica", "local", "off", "usda")
+
+        /** Search key. Delegates to the single precompiled normalizer, [TextKeys.normalize]. */
+        fun normalizeSearch(value: String): String = TextKeys.normalize(value)
 
         fun tokenize(normalized: String): List<String> {
-            return normalized.split(Regex("\\s+"))
+            return normalized.split(TextKeys.SPACES)
                 .filter { it.length >= 2 && it !in SPANISH_STOPWORDS }
         }
 

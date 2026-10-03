@@ -1,7 +1,6 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.FoodItem
-import java.text.Normalizer
 
 /**
  * Shared identity rules for the nutrition pipeline.
@@ -76,14 +75,14 @@ object FoodIdentity {
     )
     private val HYDRATED_PATTERN = Regex("\\b(?:hidratado|hidratada|remojado|remojada)\\b")
 
-    fun normalize(value: String): String {
-        return Normalizer.normalize(value, Normalizer.Form.NFD)
-            .replace(Regex("\\p{Mn}+"), "")
-            .lowercase()
-            .replace(Regex("[^\\p{L}\\p{Nd}]+"), " ")
-            .replace(Regex("\\s+"), " ")
-            .trim()
-    }
+    // Compiled once: familyFor/declaredAttributes run per candidate inside the ranking loops.
+    private val UNTABLE_SPREAD_PATTERN = Regex("\\b(?:pasta|crema|mantequilla) de (?:mani|cacahuete|almendra|avellana|sesamo)s?\\b")
+    private val TOMATO_GARLIC_PASTE_PATTERN = Regex("\\bpasta de (?:tomate|ajo)\\b")
+    private val DECLARED_ABSENCE_PATTERN = Regex("\\bsin (?:azucar|lactosa|gluten|sal)\\b")
+    private val DECLARED_DIET_PATTERN = Regex("\\b(?:descremad[oa]|desnatad[oa]|semidescremad[oa]|integral|vegetal|vegano|vegana)\\b")
+
+    /** Search key. Delegates to the single precompiled normalizer, [TextKeys.normalize]. */
+    fun normalize(value: String): String = TextKeys.normalize(value)
 
     // Related breads share portion priors; their identities remain distinct.
     private val BREAD_CHILENO_WORDS = setOf(
@@ -204,9 +203,9 @@ object FoodIdentity {
         val normalized = normalize(value)
         val tokens = normalized.split(" ").filter { it.isNotBlank() }
         return when {
-            Regex("\\b(?:pasta|crema|mantequilla) de (?:mani|cacahuete|almendra|avellana|sesamo)s?\\b").containsMatchIn(normalized) ->
+            UNTABLE_SPREAD_PATTERN.containsMatchIn(normalized) ->
                 "untable_" + normalized.substringAfter(" de ").substringBefore(' ').removeSuffix("s").replace("cacahuete", "mani")
-            Regex("\\bpasta de (?:tomate|ajo)\\b").containsMatchIn(normalized) -> "pasta_concentrada"
+            TOMATO_GARLIC_PASTE_PATTERN.containsMatchIn(normalized) -> "pasta_concentrada"
             tokens.contains("pavo") -> "pavo"
             normalized.contains("salsa de tomate") || normalized == "salsa tomate" -> "salsa_de_tomate"
             normalized.contains("ketchup") || normalized.contains("catsup") -> "ketchup"
@@ -334,8 +333,8 @@ object FoodIdentity {
     fun declaredAttributes(value: String): Set<String> {
         val normalized = normalize(value)
         return buildSet {
-            Regex("\\bsin (?:azucar|lactosa|gluten|sal)\\b").findAll(normalized).forEach { add(it.value) }
-            Regex("\\b(?:descremad[oa]|desnatad[oa]|semidescremad[oa]|integral|vegetal|vegano|vegana)\\b")
+            DECLARED_ABSENCE_PATTERN.findAll(normalized).forEach { add(it.value) }
+            DECLARED_DIET_PATTERN
                 .findAll(normalized).forEach { add(it.value.replace("desnat", "descrem").replace("descremado", "descremada")) }
         }
     }
