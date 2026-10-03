@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,7 +30,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,8 +55,17 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
+import com.example.kpkn.ui.locale.LocaleManager
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
+
+/** Lado mínimo de una zona táctil (WP-U17): los controles de 24-36 dp se llevan a este tamaño. */
+private val MIN_TOUCH_TARGET = 40.dp
+
 private val PROTEIN_COLOR = Color(0xFFEF5350)
 private val CARBS_COLOR = Color(0xFF7E57C2)
 private val FATS_COLOR = Color(0xFF26A69A)
@@ -119,9 +132,14 @@ fun NutritionScreen(
     var selectedMealForLogger by rememberSaveable(stateSaver = MealTypeSaver) { mutableStateOf(defaultMealTypeNow()) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
     var foodLoggerInitialTab by rememberSaveable { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
-    // WP-U11: la comida registrada que se abrió para editar (null = comida nueva). Rotar la olvida y no importa: el
-    // borrador vive en el ViewModel del logger, que es quien sabe que se está editando y nunca manda confirmaciones.
-    var editingLog by remember { mutableStateOf<NutritionLog?>(null) }
+    // WP-U11 / WP-U17: la comida registrada que se abrió para editar (null = comida nueva). Se guarda su id (sobrevive a
+    // rotar) y la comida se lee de la lista viva, así que guardar tras rotar sigue siendo una edición. El borrador vive en
+    // el ViewModel del logger, que es quien sabe que se está editando y nunca manda confirmaciones.
+    var editingLogId by rememberSaveable { mutableStateOf<String?>(null) }
+    val nutritionLogs by viewModel.nutritionLogs.collectAsState()
+    val editingLog = remember(editingLogId, nutritionLogs) {
+        editingLogId?.let { id -> nutritionLogs.firstOrNull { it.id == id } }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingNutritionSetupDraftId by remember { mutableStateOf<String?>(null) }
     var pendingSetupRefresh by remember { mutableIntStateOf(0) }
@@ -168,7 +186,7 @@ fun NutritionScreen(
             viewModel.consumeFoodLoggerOpenRequest()
             return@LaunchedEffect
         }
-        editingLog = editTarget
+        editingLogId = editTarget?.id
         foodLoggerInitialDescription = request.description
         foodLoggerInitialTab = request.tab
         // C12: widget, share y deep link no eligen comida: heredan la de la hora.
@@ -235,7 +253,7 @@ fun NutritionScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .clickable { onOpenPendingDraft(pendingDraftId) },
+                                .clickable(role = Role.Button) { onOpenPendingDraft(pendingDraftId) },
                         ) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
@@ -349,7 +367,7 @@ fun NutritionScreen(
                 .navigationBarsPadding()
                 .padding(end = 16.dp, bottom = 106.dp)
                 .kpknGlass(hazeState = nutritionHazeState, shape = pillShape)
-                .clickable {
+                .clickable(role = Role.Button) {
                     // En modo «solo registro» el registro de alimentos sigue
                     // disponible aunque no haya plan activo.
                     if (!isFoodLoggingAvailable(settings, activePlan != null)) {
@@ -376,7 +394,8 @@ fun NutritionScreen(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Registrar comida",
+                            // El texto de al lado ya dice «Registrar comida»: así TalkBack no lo lee dos veces.
+                            contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(18.dp),
                         )
@@ -412,11 +431,11 @@ fun NutritionScreen(
             viewModel.consumeSharedDescription()
             foodLoggerInitialDescription = null
             foodLoggerInitialTab = 0
-            editingLog = null
+            editingLogId = null
         },
         // WP-U11: editar guarda sobre la misma comida y no enseña ningún hábito (el logger tampoco manda confirmaciones).
         onSave = { log, confirmations ->
-            if (editingLog != null) viewModel.updateLog(log) else viewModel.saveLog(log, confirmations)
+            if (isEditSave(editingLogId, log)) viewModel.updateLog(log) else viewModel.saveLog(log, confirmations)
         },
         foodDatabase = foodDatabase,
         initialDate = selectedDate,
@@ -458,6 +477,31 @@ fun NutritionScreen(
 // HERO HEADER — Central ring + macro summary
 // ═══════════════════════════════════════════════════════════════════════
 
+/**
+ * La fecha del encabezado: «Jueves, 2 de octubre» en español, «Thursday, October 2» en inglés y, en cualquier otro idioma,
+ * la fecha larga de ese idioma. Cada idioma arma su propio orden: el «de» solo existe en español. Si [selectedDate] no es
+ * una fecha válida se muestra tal cual.
+ */
+internal fun nutritionHeroDateLabel(selectedDate: String, locale: Locale): String =
+    try {
+        val formatter = when (locale.language) {
+            "es" -> DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", locale)
+            "en" -> DateTimeFormatter.ofPattern("EEEE, MMMM d", locale)
+            else -> DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
+        }
+        LocalDate.parse(selectedDate).format(formatter).replaceFirstChar { it.titlecase(locale) }
+    } catch (_: Exception) {
+        selectedDate
+    }
+
+/**
+ * Guardar la comida abierta es una edición si lo que se guarda lleva el id de la comida que se abrió para editar. El id
+ * manda, no solo que haya una edición abierta: un borrador nuevo (por ejemplo tras recuperar el proceso) nunca se confunde con
+ * ella, y una edición sigue siéndolo tras rotar.
+ */
+internal fun isEditSave(editingLogId: String?, saved: NutritionLog): Boolean =
+    editingLogId != null && saved.id == editingLogId
+
 @Composable
 private fun NutritionHeroHeader(
     macroRingPct: MacroRingPct,
@@ -468,11 +512,9 @@ private fun NutritionHeroHeader(
     onCreatePlan: () -> Unit,
     hasActivePlan: Boolean,
 ) {
-    val dateLabel = try {
-        java.time.LocalDate.parse(selectedDate)
-            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", java.util.Locale.getDefault()))
-            .replaceFirstChar { it.uppercase() }
-    } catch (_: Exception) { selectedDate }
+    // El idioma efectivo de la app (no el del dispositivo) decide palabras y orden: sin «Thursday, 2 de October».
+    val locale = LocaleManager.getEffectiveLocale(LocalContext.current)
+    val dateLabel = remember(selectedDate, locale) { nutritionHeroDateLabel(selectedDate, locale) }
 
     // Ausencia explícita de metas: sin anillos de objetivos y sin números
     // inventados. Un 0 explícito se muestra como 0.
@@ -516,7 +558,7 @@ private fun NutritionHeroHeader(
                     )
                 }
                 if (hasActivePlan) {
-                    IconButton(onClick = if (hasActivePlan) onEditPlan else onCreatePlan, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = if (hasActivePlan) onEditPlan else onCreatePlan, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
                         Icon(
                             if (hasActivePlan) Icons.Default.Edit else Icons.Default.Add,
                             if (hasActivePlan) "Editar plan" else "Crear plan",
@@ -825,7 +867,7 @@ private fun DateSelector(
     val todayKey = today.toString()
 
     LazyRow(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         items(dates) { date ->
@@ -838,7 +880,8 @@ private fun DateSelector(
             Surface(
                 modifier = Modifier
                     .clip(RoundedCornerShape(14.dp))
-                    .clickable { onDateChange(date) },
+                    .clickable(role = Role.Tab) { onDateChange(date) }
+                    .semantics { selected = isSelected },
                 shape = RoundedCornerShape(14.dp),
                 color = when {
                     isSelected -> TEAL
@@ -905,7 +948,7 @@ private fun QuickAddBar(onMealTypeClick: (MealType) -> Unit) {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable { onMealTypeClick(meal) },
+                            .clickable(role = Role.Button) { onMealTypeClick(meal) },
                         shape = RoundedCornerShape(12.dp),
                         color = Color(0xFF1E1E26),
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
@@ -1076,19 +1119,6 @@ private fun DailyEnergyBalanceCard(balance: DailyEnergyBalance, hasGoal: Boolean
     }
 }
 
-@Composable
-private fun DistributionLabel(label: String, pct: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(8.dp).clip(CircleShape).background(color))
-        Spacer(Modifier.width(4.dp))
-        Text(
-            "$label $pct",
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-        )
-    }
-}
-
 // ═══════════════════════════════════════════════════════════════════════
 // MEAL GROUP CARD
 // ═══════════════════════════════════════════════════════════════════════
@@ -1120,7 +1150,7 @@ private fun MealGroupCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+                    .clickable(onClickLabel = if (expanded) "Contraer" else "Expandir", role = Role.Button) { expanded = !expanded },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -1173,8 +1203,8 @@ private fun MealGroupCard(
                         }
                         Spacer(Modifier.width(4.dp))
                     }
-                    IconButton(onClick = onAddFood, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.Add, "Agregar", tint = TEAL, modifier = Modifier.size(18.dp))
+                    IconButton(onClick = onAddFood, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
+                        Icon(Icons.Default.Add, "Agregar comida a $label", tint = TEAL, modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -1396,76 +1426,6 @@ private fun NutritionHistoryCoverageCard(series: NutritionHistorySeries) {
             )
             series.averageCaloriesOnRegisteredDays?.let { average ->
                 Text("Promedio registrado: ${kotlin.math.round(average).toInt()} kcal", style = MaterialTheme.typography.labelSmall)
-            }
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// BODY KPI SECTION
-// ═══════════════════════════════════════════════════════════════════════
-
-@Composable
-private fun BodyKpiSection(
-    kpis: List<NutritionViewModel.BodyKpi>,
-    onSeeMore: (() -> Unit)? = null,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF16161C)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    "MÉTRICAS CORPORALES",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (onSeeMore != null) {
-                    TextButton(onClick = onSeeMore) {
-                        Text("Ver más", style = MaterialTheme.typography.labelSmall, color = TEAL)
-                    }
-                }
-            }
-            Spacer(Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                kpis.forEach { kpi ->
-                    Surface(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text(
-                                kpi.label,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                            )
-                            Text(
-                                kpi.value,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Black,
-                            )
-                        }
-                    }
-                }
             }
         }
     }

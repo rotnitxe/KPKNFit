@@ -34,6 +34,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardStep
 
+/** Cómo pesa el usuario sus alimentos: valor que guarda el perfil → nombre que se le muestra. */
+private val WEIGHING_CONVENTIONS = listOf("RAW" to "Crudo", "COOKED" to "Cocido", "DEPENDS" to "Depende")
+
+/** El nombre de la convención de pesaje: «sin definir» mientras no se haya elegido; un valor desconocido se muestra tal cual. */
+internal fun weighingConventionLabel(convention: String?): String =
+    if (convention == null) "sin definir" else WEIGHING_CONVENTIONS.firstOrNull { it.first == convention }?.second ?: convention
+
+/** El estado de la calibración tal como lo escribe `NutritionCalibrationEngine`, dicho para el usuario. */
+internal fun calibrationStatusLabel(status: String): String = when (status) {
+    "incomplete" -> "Faltan días de registro"
+    "needs_more_weights_or_complete_days" -> "Faltan pesajes o días completos"
+    "waiting_after_plan_change" -> "En espera: cambiaste el plan hace poco"
+    "ready" -> "Lista para ajustar"
+    else -> "En evaluación"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NutritionCalibrationScreen(
@@ -76,7 +92,7 @@ fun NutritionCalibrationScreen(
                             NutritionCalibrationWizardStep.WEIGHING_CONVENTION -> {
                                 Text("¿Cómo pesas normalmente los alimentos?")
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    listOf("RAW" to "Crudo", "COOKED" to "Cocido", "DEPENDS" to "Depende").forEach { (value, label) ->
+                                    WEIGHING_CONVENTIONS.forEach { (value, label) ->
                                         FilterChip(
                                             selected = wizard.profile.weighingConvention == value,
                                             onClick = { viewModel.answerWizard(value) },
@@ -87,7 +103,7 @@ fun NutritionCalibrationScreen(
                             }
                             NutritionCalibrationWizardStep.REVIEW -> {
                                 Text("Revisa y guarda el perfil cuando estés conforme.")
-                                Text("Pesaje: ${wizard.profile.weighingConvention ?: "sin definir"}")
+                                Text("Pesaje: ${weighingConventionLabel(wizard.profile.weighingConvention)}")
                                 Text("Porciones maduras: ${wizard.profile.maturePortionsGrams.size}")
                                 Button(
                                     onClick = { viewModel.answerWizard("listo") },
@@ -143,7 +159,7 @@ fun NutritionCalibrationScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("Estado: ${current.status}", fontWeight = FontWeight.Bold)
+                            Text("Estado: ${calibrationStatusLabel(current.status)}", fontWeight = FontWeight.Bold)
                             Text("Cobertura: ${current.observedDays}/${current.targetDays} días")
                             Text("Días completos: ${current.completeDays} · Pesajes: ${current.weightReadings}")
                             current.recommendedAdjustmentKcal?.let { adjustment ->

@@ -7,6 +7,7 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.training.AppClock
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -23,6 +24,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -513,7 +516,7 @@ class NutritionViewModelTest {
     }
 
     private fun dayViewModel(clock: FakeAppClock): NutritionViewModel =
-        NutritionViewModel(clock = clock, zoneProvider = { santiago })
+        NutritionViewModel(clock = clock, zoneProvider = { santiago }, computeDispatcher = testDispatcher)
 
     @Test
     fun `selected date follows today across a simulated midnight`() {
@@ -604,6 +607,48 @@ class NutritionViewModelTest {
         assertEquals(LocalDate.of(2026, 7, 11), series.points.last().date)
         assertEquals(LocalDate.of(2026, 6, 12), series.points.first().date) // ventana de 30 días
         assertEquals(30, series.points.size)
+    }
+
+    // ─── Hilos: lo que recorre todo el historial va al dispatcher de cálculo; lo que se lee al instante, no (WP-U17) ───
+
+    /** Ejecuta en el acto (como Unconfined, así `.value` sigue siendo síncrono) y cuenta cuántas veces se le pidió trabajo. */
+    private class CountingDispatcher : CoroutineDispatcher() {
+        val dispatches = AtomicInteger()
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatches.incrementAndGet()
+            block.run()
+        }
+    }
+
+    @Test
+    fun `history trend and creatine are computed on the injected compute dispatcher`() {
+        val compute = CountingDispatcher()
+        val computeVm = NutritionViewModel(computeDispatcher = compute)
+
+        collectors += testScope.launch { computeVm.historySeries.collect { } }
+        val afterHistory = compute.dispatches.get()
+        collectors += testScope.launch { computeVm.trendData.collect { } }
+        val afterTrend = compute.dispatches.get()
+        collectors += testScope.launch { computeVm.creatineSaturation.collect { } }
+        val afterCreatine = compute.dispatches.get()
+
+        assertTrue("historySeries does not use the compute dispatcher", afterHistory > 0)
+        assertTrue("trendData does not use the compute dispatcher", afterTrend > afterHistory)
+        assertTrue("creatineSaturation does not use the compute dispatcher", afterCreatine > afterTrend)
+    }
+
+    @Test
+    fun `what the screen reads at once never leaves the caller thread`() {
+        val compute = CountingDispatcher()
+        val computeVm = NutritionViewModel(computeDispatcher = compute)
+
+        collectors += testScope.launch { computeVm.todayLogs.collect { } }
+        collectors += testScope.launch { computeVm.dailyTotals.collect { } }
+        collectors += testScope.launch { computeVm.mealGroups.collect { } }
+        collectors += testScope.launch { computeVm.goals.collect { } }
+
+        assertEquals("todayLogs/dailyTotals/mealGroups/goals must stay synchronous", 0, compute.dispatches.get())
     }
 
     // ─── Balance energético: una fecha rota no tumba el flujo (C14) ────────

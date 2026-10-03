@@ -28,6 +28,9 @@ import kotlinx.coroutines.launch
  *  - 100% on-device; nada sale del teléfono salvo exportación manual del usuario.
  *  - Sin texto crudo de las comidas: solo métricas (longitudes, conteos, duraciones).
  *  - Nunca lanza excepciones y nunca bloquea el hilo llamante (salvo [recordCrash]).
+ *  - Sin mensajes de excepción: un fallo se registra como tipo + primer frame de la app
+ *    ([NutritionTelemetrySanitizer.errorSummary]); el mensaje puede citar lo que escribió el usuario.
+ *  - Siempre activa: no hay interruptor (la evidencia de parser y de crashes no debe poder apagarse).
  *
  * Layout en disco: filesDir/kpkn_logs/nutrition/<yyyyMMdd>/event-files.jsonl
  * Esquema de evento: contrato JSONL v2 del bus central.
@@ -74,11 +77,11 @@ object NutritionTelemetry {
 
     fun isInitialized(): Boolean = initialized
 
-    /** Nutrition diagnostics are mandatory so parser/crash evidence cannot be disabled. */
+    /**
+     * Nutrition diagnostics are mandatory so parser/crash evidence cannot be disabled: there is no switch, and [emit] has
+     * no gate to flip. Kept as the documented contract (an instrumented test asserts it).
+     */
     fun isEnabled(): Boolean = true
-
-    @Deprecated("Nutrition telemetry is always enabled")
-    fun setEnabled(enabled: Boolean) = Unit
 
     // ─── API de eventos y trazas ─────────────────────────────────────────────
 
@@ -130,7 +133,6 @@ object NutritionTelemetry {
         event("catalog_import_failed", mapOf("errorType" to errorType.take(120)))
 
     internal fun emit(name: String, fields: Map<String, Any?> = emptyMap(), traceId: String? = null) {
-        if (!isEnabled()) return
         val merged = baseFields(name, traceId)
         merged.putAll(fields)
         val sanitized = NutritionTelemetrySanitizer.sanitize(merged)
@@ -176,7 +178,7 @@ object NutritionTelemetry {
                 payload["ok"] = ok
                 if (error != null) {
                     payload["errorType"] = error.javaClass.name
-                    payload["errorMessage"] = error.message ?: ""
+                    payload["errorSummary"] = NutritionTelemetrySanitizer.errorSummary(error)
                 }
                 emit("analysis_stage", payload, traceId)
             }
@@ -211,16 +213,17 @@ object NutritionTelemetry {
     // ─── Marcadores in-flight / crash previo ─────────────────────────────────
 
     /**
-     * Persiste (con commit) la etapa en curso de un análisis. Si el proceso muere,
-     * el siguiente arranque emite `previous_session_exit` con la última etapa viva.
+     * Persiste la etapa en curso de un análisis. Si el proceso muere, el siguiente arranque emite
+     * `previous_session_exit` con la última etapa viva. Usa `apply()`: la memoria se actualiza al instante (el crash hook
+     * la lee) y el disco se escribe en segundo plano; con `commit()` cada etapa bloqueaba el hilo principal.
      */
     fun markInFlight(traceId: String, stage: String) {
         val descriptor = "$traceId|$stage|${Instant.now()}"
-        prefs()?.edit()?.putString(KEY_IN_FLIGHT, descriptor)?.commit()
+        prefs()?.edit()?.putString(KEY_IN_FLIGHT, descriptor)?.apply()
     }
 
     fun clearInFlight() {
-        prefs()?.edit()?.remove(KEY_IN_FLIGHT)?.commit()
+        prefs()?.edit()?.remove(KEY_IN_FLIGHT)?.apply()
     }
 
     private fun consumePendingMarkers() {
@@ -276,9 +279,11 @@ object NutritionTelemetry {
         val inFlight = prefs(app)?.getString(KEY_IN_FLIGHT, null)
         val crashFields = linkedMapOf<String, Any?>(
             "errorType" to throwable.javaClass.name,
-            "message" to (throwable.message ?: ""),
+            // Sin el mensaje de la excepción (puede citar lo que escribió el usuario) y con solo los frames de la app:
+            // los del framework y las librerías no dicen la causa y hacían el evento de 4 KB.
+            "errorSummary" to NutritionTelemetrySanitizer.errorSummary(throwable),
             "thread" to threadName,
-            "stack" to runCatching { throwable.stackTraceToString() }.getOrDefault("").take(4_000),
+            "stack" to NutritionTelemetrySanitizer.appStack(throwable),
             "inFlight" to inFlight,
         )
         runCatching {

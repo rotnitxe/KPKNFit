@@ -7,14 +7,14 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.energy.TrainingEnergyEngine
 import com.example.kpkn.domain.body.goalProgressPercent
-import com.example.kpkn.domain.body.bmi
-import com.example.kpkn.domain.body.latestCompatibleComposition
 import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.SystemAppClock
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
@@ -39,11 +39,15 @@ internal const val UNDO_WINDOW_MS = 30_000L
  * NutritionViewModel — State management for Nutrition screen.
  * Mirrors NutritionView.tsx + nutritionStore.ts from PWA.
  *
- * [clock] y [zoneProvider] definen «hoy»; son inyectables para probar el cambio de día.
+ * [clock] y [zoneProvider] definen «hoy»; son inyectables para probar el cambio de día. [computeDispatcher] es donde se
+ * calcula lo que recorre todo el historial (la serie de 30 días, la tendencia y la saturación de creatina), fuera del hilo
+ * principal; los tests inyectan uno propio para leer `.value` sin esperar. Lo que la pantalla lee al instante (`todayLogs`,
+ * `dailyTotals`, `mealGroups`, `goals`) no pasa por él.
  */
 class NutritionViewModel(
     private val clock: AppClock = SystemAppClock,
     private val zoneProvider: () -> ZoneId = { ZoneId.systemDefault() },
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     private val nutritionRepo = NutritionRepository.getInstance()
@@ -64,7 +68,6 @@ class NutritionViewModel(
     val nutritionLogs = nutritionRepo.nutritionLogs
     val nutritionPlans = nutritionRepo.nutritionPlans
     val foodDatabase = nutritionRepo.foodDatabase
-    val pantryItems: StateFlow<List<PantryItem>> = MutableStateFlow(emptyList())
     val mealTemplates: StateFlow<List<MealTemplate>> = nutritionRepo.mealTemplates
     val historySeries: StateFlow<NutritionHistorySeries> = combine(
         nutritionLogs,
@@ -72,7 +75,7 @@ class NutritionViewModel(
         _today,
     ) { logs, snapshots, end ->
         buildNutritionHistory(end.minusDays(29), end, logs, snapshots)
-    }.stateIn(
+    }.flowOn(computeDispatcher).stateIn(
         viewModelScope,
         SharingStarted.Lazily,
         buildNutritionHistory(_today.value.minusDays(29), _today.value, emptyList()),
@@ -289,6 +292,7 @@ class NutritionViewModel(
         computeTrendData(logs, goalKcalByDate, days)
     }
         .distinctUntilChanged()
+        .flowOn(computeDispatcher)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // ─── Supplement tracking (caffeine / creatine) ───────────────────────────
@@ -316,7 +320,7 @@ class NutritionViewModel(
             weightKg = settings.userVitals.weight,
             logs = logs,
         )
-    }.stateIn(
+    }.flowOn(computeDispatcher).stateIn(
         viewModelScope,
         SharingStarted.Lazily,
         CreatineSaturationEngine.computeSaturation(CreatineProtocol.NONE, null, null, emptyList()),
@@ -549,38 +553,6 @@ class NutritionViewModel(
         }
     }
 
-    // ─── Body KPIs ──────────────────────────────────────────────────────────
-
-    data class BodyKpi(val label: String, val value: String)
-
-    val bodyKpis: StateFlow<List<BodyKpi>> = combine(
-        programRepo.settings,
-        nutritionRepo.bodyProgressRepository.observations,
-    ) { settings, observations ->
-            val v = settings.userVitals
-            val latest = latestValidByMetric(observations)
-            val weight = latest[BodyMetric.WEIGHT]?.valueSi
-            val height = v.height
-            val composition = latestCompatibleComposition(observations)
-            val bodyFat = composition?.bodyFatPercent ?: latest[BodyMetric.BODY_FAT_PERCENT]?.valueSi
-            val muscle = composition?.muscleMassPercent ?: latest[BodyMetric.MUSCLE_MASS_PERCENT]?.valueSi
-            val compositionWeight = composition?.weightKg ?: weight
-            val bodyMassIndex = bmi(compositionWeight, height)
-            val ffmi = if (compositionWeight != null && height != null && bodyFat != null) {
-                com.example.kpkn.domain.calculations.calculateFFMI(height, compositionWeight, bodyFat)?.normalizedFfmi
-            } else null
-
-            listOf(
-                BodyKpi("Peso", if (weight != null) "${(kotlin.math.round(weight * 10) / 10.0)} kg" else "—"),
-                BodyKpi("% Grasa", if (bodyFat != null) "${(kotlin.math.round(bodyFat * 10) / 10.0)}%" else "—"),
-                BodyKpi("% Músculo", if (muscle != null) "${(kotlin.math.round(muscle * 10) / 10.0)}%" else "—"),
-                BodyKpi("FFMI", if (ffmi != null) "$ffmi" else "—"),
-                BodyKpi("IMC", if (bodyMassIndex != null) "${(kotlin.math.round(bodyMassIndex * 10) / 10.0)}" else "—"),
-            )
-        }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
     // ─── Progress Calculation ───────────────────────────────────────────────
 
     val progressPct: StateFlow<Int> = combine(
@@ -644,129 +616,6 @@ class NutritionViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, DailyEnergyBalance())
 
-    // ─── Wizard State ───────────────────────────────────────────────────────
-
-    private val _isPlanOverlayOpen = MutableStateFlow(false)
-    val isPlanOverlayOpen: StateFlow<Boolean> = _isPlanOverlayOpen.asStateFlow()
-
-    fun openPlanOverlay() {
-        _isPlanOverlayOpen.value = true
-    }
-
-    fun closePlanOverlay() {
-        _isPlanOverlayOpen.value = false
-    }
-
-    data class NutritionUiState(
-        val selectedDate: String,
-        val totals: DailyMacroTotals,
-        val goals: DayGoalsResult,
-        val macroRingPct: MacroRingPct,
-        val nutrientProgress: List<NutrientProgress>,
-        val mealGroups: List<MealGroup>,
-        val trendData: List<TrendPoint>,
-        val bodyKpis: List<BodyKpi>,
-        val dailyEnergyBalance: DailyEnergyBalance = DailyEnergyBalance(),
-        val historySeries: NutritionHistorySeries = buildNutritionHistory(
-            LocalDate.now().minusDays(29), LocalDate.now(), emptyList(),
-        ),
-    )
-
-    private data class UiPrimaryState(
-        val selectedDate: String,
-        val totals: DailyMacroTotals,
-        val goals: DayGoalsResult,
-        val macroRingPct: MacroRingPct,
-    )
-
-    private data class UiSecondaryState(
-        val nutrientProgress: List<NutrientProgress>,
-        val mealGroups: List<MealGroup>,
-        val trendData: List<TrendPoint>,
-        val bodyKpis: List<BodyKpi>,
-        val dailyEnergyBalance: DailyEnergyBalance,
-    )
-
-    private val uiPrimaryState: StateFlow<UiPrimaryState> = combine(
-        selectedDate,
-        dailyTotals,
-        goals,
-        macroRingPct,
-    ) { selectedDateValue, totals, goalValues, ring ->
-        UiPrimaryState(
-            selectedDate = selectedDateValue,
-            totals = totals,
-            goals = goalValues,
-            macroRingPct = ring,
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        UiPrimaryState(
-            selectedDate = LocalDate.now().toString(),
-            totals = DailyMacroTotals(),
-            goals = DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY),
-            macroRingPct = MacroRingPct(),
-        )
-    )
-
-    private val uiSecondaryState: StateFlow<UiSecondaryState> = combine(
-        nutrientProgress,
-        mealGroups,
-        trendData,
-        bodyKpis,
-        dailyEnergyBalance,
-    ) { progress, groups, trend, kpis, energy ->
-        UiSecondaryState(
-            nutrientProgress = progress,
-            mealGroups = groups,
-            trendData = trend,
-            bodyKpis = kpis,
-            dailyEnergyBalance = energy,
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        UiSecondaryState(
-            nutrientProgress = emptyList(),
-            mealGroups = emptyList(),
-            trendData = emptyList(),
-            bodyKpis = emptyList(),
-            dailyEnergyBalance = DailyEnergyBalance(),
-        )
-    )
-
-    val uiState: StateFlow<NutritionUiState> = combine(
-        uiPrimaryState,
-        uiSecondaryState,
-    ) { primary, secondary ->
-        NutritionUiState(
-            selectedDate = primary.selectedDate,
-            totals = primary.totals,
-            goals = primary.goals,
-            macroRingPct = primary.macroRingPct,
-            nutrientProgress = secondary.nutrientProgress,
-            mealGroups = secondary.mealGroups,
-            trendData = secondary.trendData,
-            bodyKpis = secondary.bodyKpis,
-            dailyEnergyBalance = secondary.dailyEnergyBalance,
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        NutritionUiState(
-            selectedDate = LocalDate.now().toString(),
-            totals = DailyMacroTotals(),
-            goals = DayGoalsResult.Absent(GoalsAbsence.TRACKING_ONLY),
-            macroRingPct = MacroRingPct(),
-            nutrientProgress = emptyList(),
-            mealGroups = emptyList(),
-            trendData = emptyList(),
-            bodyKpis = emptyList(),
-            dailyEnergyBalance = DailyEnergyBalance(),
-        )
-    )
-
     private fun applyPlanToSettings(plan: NutritionPlan) {
         val goalObjective = when (plan.direction) {
             PlanDirection.DEFICIT -> CalorieGoalObjective.DEFICIT
@@ -775,16 +624,12 @@ class NutritionViewModel(
             // Legacy plans are not reinterpreted from target/body values.
             null -> programRepo.settings.value.calorieGoalObjective
         }
+        // La pantalla vuelve a sincronizar el plan activo en cada visita: si los ajustes ya coinciden no hay nada que escribir
+        // (cada `updateSettings` regraba la fila de ajustes en Room).
+        val current = programRepo.settings.value
+        if (settingsWithPlanGoals(current, plan, goalObjective) == current) return
         viewModelScope.launch {
-            programRepo.updateSettings { current ->
-                current.copy(
-                    dailyCalorieGoal = plan.calorieTarget.takeIf { it > 0 } ?: current.dailyCalorieGoal,
-                    dailyProteinGoal = plan.proteinGoal.takeIf { it > 0 } ?: current.dailyProteinGoal,
-                    dailyCarbGoal = plan.carbGoal.takeIf { it > 0 } ?: current.dailyCarbGoal,
-                    dailyFatGoal = plan.fatGoal.takeIf { it > 0 } ?: current.dailyFatGoal,
-                    calorieGoalObjective = goalObjective,
-                )
-            }
+            programRepo.updateSettings { settingsWithPlanGoals(it, plan, goalObjective) }
         }
     }
 
@@ -826,3 +671,16 @@ class NutritionViewModel(
         }
     }
 }
+
+/**
+ * Los ajustes con las metas del plan. Una meta en 0 del plan NO pisa la que ya había (decisión de producto: un plan sin
+ * meta no borra la del usuario); el objetivo calórico sí se copia siempre.
+ */
+internal fun settingsWithPlanGoals(current: Settings, plan: NutritionPlan, objective: CalorieGoalObjective): Settings =
+    current.copy(
+        dailyCalorieGoal = plan.calorieTarget.takeIf { it > 0 } ?: current.dailyCalorieGoal,
+        dailyProteinGoal = plan.proteinGoal.takeIf { it > 0 } ?: current.dailyProteinGoal,
+        dailyCarbGoal = plan.carbGoal.takeIf { it > 0 } ?: current.dailyCarbGoal,
+        dailyFatGoal = plan.fatGoal.takeIf { it > 0 } ?: current.dailyFatGoal,
+        calorieGoalObjective = objective,
+    )

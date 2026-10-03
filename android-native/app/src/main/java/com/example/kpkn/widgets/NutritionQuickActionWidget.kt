@@ -56,12 +56,12 @@ private fun QuickActionWidgetContent(context: Context) {
     ) {
         Image(
             provider = ImageProvider(R.drawable.ic_logo_kpkn),
-            contentDescription = "Acciones de nutricion",
+            contentDescription = "Acciones de nutrición",
             modifier = GlanceModifier.size(24.dp),
         )
         Spacer(modifier = GlanceModifier.height(4.dp))
         Text(
-            text = "Nutricion",
+            text = "Nutrición",
             style = TextStyle(fontWeight = FontWeight.Bold),
         )
         Spacer(modifier = GlanceModifier.height(10.dp))
@@ -78,7 +78,7 @@ private fun QuickActionWidgetContent(context: Context) {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "Log",
+                    text = "Registrar",
                     style = TextStyle(fontWeight = FontWeight.Medium),
                 )
             }

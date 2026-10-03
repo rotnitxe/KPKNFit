@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,6 +30,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -43,6 +49,7 @@ import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.FoodLoggerPrimaryAction
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetrySanitizer
 import com.example.kpkn.domain.nutrition.SmartFoodResolver
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
 import com.example.kpkn.domain.nutrition.CookingStateResolver
@@ -107,12 +114,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-private const val PREF_FILE = "kpkn_nutrition_prefs"
-private const val PREF_ANALYSIS_MODE = "analysis_mode"
-private const val MODE_BASIC = "BASIC"
-
 // WP-U7: internal (not private) because the draft holder in FoodLoggerViewModel.kt stores these three types.
 internal enum class ParseStage { INTERPRETING, ESTIMATING }
+
+/** Pausa tras la última tecla de «Corrección avanzada» antes de buscar: cada pulsación cancela la búsqueda pendiente. */
+private const val CORRECTION_SEARCH_DEBOUNCE_MS = 250L
+
+/** Lado mínimo de una zona táctil (WP-U17): los botones y chips de 24-32 dp se llevan a este tamaño. */
+private val MIN_TOUCH_TARGET = 40.dp
 
 private val MEAL_OPTIONS = listOf(
     MealType.BREAKFAST to "Desayuno",
@@ -120,6 +129,14 @@ private val MEAL_OPTIONS = listOf(
     MealType.DINNER to "Cena",
     MealType.SNACK to "Snack",
 )
+
+/** El nombre de una porción tal como se le muestra al usuario: nunca el identificador `SMALL`/`MEDIUM`/`LARGE`. */
+internal fun portionPresetLabel(preset: PortionPreset): String = when (preset) {
+    PortionPreset.SMALL -> "Pequeño"
+    PortionPreset.MEDIUM -> "Mediano"
+    PortionPreset.LARGE -> "Grande"
+    PortionPreset.EXTRA -> "Extra"
+}
 
 private val PROTEIN_COLOR = Color(0xFFB3261E)
 private val CARBS_COLOR = Color(0xFF6750A4)
@@ -144,18 +161,6 @@ internal data class AnalysisNotice(
      *  Truncado. Solo para diagnóstico; nunca texto crudo de comidas. */
     val technicalDetail: String? = null,
 )
-
-private fun shouldUseAiLoggedFood(item: ParsedMealItem): Boolean {
-    return item.macroOverrides != null && (
-        item.analysisSource == AnalysisSource.LOCAL_AI_ESTIMATE ||
-            item.analysisSource == AnalysisSource.EXTERNAL_API_ESTIMATE
-    )
-}
-
-private fun isOilTag(tag: String): Boolean {
-    val lower = tag.lowercase().trim()
-    return lower == "aceite" || lower == "aceite vegetal" || lower == "aceite de oliva" || lower == "aceite de maravilla" || lower == "aceite de girasol"
-}
 
 // ─── Composable ──────────────────────────────────────────────────────────────
 
@@ -198,7 +203,8 @@ fun FoodLoggerDrawer(
     val scope = vm.viewModelScope
     val context = LocalContext.current
     val appContext = remember(context) { context.applicationContext }
-    val prefs = remember { context.getSharedPreferences(PREF_FILE, android.content.Context.MODE_PRIVATE) }
+    // WP-S8: avance (0..1) de la importación del catálogo global; null si no hay ninguna en curso.
+    val catalogImportProgress by nutritionRepo.catalogImportProgress.collectAsState()
 
     // Draft state (FoodLoggerDraft): the delegates keep every local function below working unchanged. The property
     // references are remembered: lambdas that capture them are memoized by identity, so a fresh reference on every
@@ -300,12 +306,6 @@ fun FoodLoggerDrawer(
         }
     }
 
-    // Mostrar diálogo de selección si es la primera vez en tab Descripción
-    LaunchedEffect(activeTab) {
-        if (activeTab == 0 && false) {
-        }
-    }
-
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     suspend fun createTagResolver(): TagResolver {
@@ -372,27 +372,6 @@ fun FoodLoggerDrawer(
         reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
-    fun buildAnalysisNotice(parsed: ParsedMealDescription): AnalysisNotice? {        val engine = parsed.analysisEngine
-        return when {
-            engine == "local-ai-timeout" -> AnalysisNotice(
-                title = "La lectura tardó más de lo esperado",
-                message = "Completamos el registro con una estimación rápida para no frenarte. Si quieres, puedes ajustar los alimentos antes de guardar.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            engine == "local-ai-unavailable" -> AnalysisNotice(
-                title = "Se usó una lectura alternativa",
-                message = "Igualmente preparamos el registro para que puedas continuar y revisar los datos antes de guardar.",
-                tone = AnalysisNoticeTone.WARNING,
-            )
-            engine == "local-ai-empty" -> AnalysisNotice(
-                title = "Faltó contexto en la descripción",
-                message = "Prueba con una descripción simple, por ejemplo alimento + cantidad, para obtener un registro más claro.",
-                tone = AnalysisNoticeTone.INFO,
-            )
-            else -> null
-        }
-    }
-
     /** D7: aviso no-silencioso cuando el dataset de porciones no cargó. */
     fun datasetNotReadyNotice(): AnalysisNotice? {
         val status = SemanticPortionRetriever.status()
@@ -409,11 +388,13 @@ fun FoodLoggerDrawer(
     // pipeline de análisis se registra en NutriTelemetry y degrada a un aviso
     // visible en vez de tumbar el proceso.
     val analysisErrorHandler = CoroutineExceptionHandler { _, handlerError ->
+        // Telemetría de fallos: tipo + primer frame de la app. Nunca el mensaje de la excepción (puede citar lo que escribió
+        // el usuario); `technicalDetailOf` es solo para el aviso en pantalla, en el teléfono.
         NutritionTelemetry.event(
             "analysis_coroutine_crash",
             mapOf(
                 "errorType" to handlerError.javaClass.name,
-                "message" to (handlerError.message ?: ""),
+                "errorSummary" to NutritionTelemetrySanitizer.errorSummary(handlerError),
             ),
         )
         NutritionTelemetry.clearInFlight()
@@ -580,10 +561,7 @@ fun FoodLoggerDrawer(
                     createLastResortManualTags(descriptionSnapshot)
                 }
                 lastAnalyzedDescription = descriptionSnapshot
-                analysisNotice = buildAnalysisNotice(parsed) ?: datasetNotReadyNotice()
-                if (parsed.aiInferredFoods.isNotEmpty()) {
-                    nutritionRepo.saveAiInferredFoods(parsed.aiInferredFoods)
-                }
+                analysisNotice = datasetNotReadyNotice()
                 endTraceOnce(
                     "completed",
                     mapOf(
@@ -607,7 +585,7 @@ fun FoodLoggerDrawer(
                     "analysis_pipeline_failed",
                     mapOf(
                         "errorType" to pipelineError.javaClass.name,
-                        "message" to (pipelineError.message ?: ""),
+                        "errorSummary" to NutritionTelemetrySanitizer.errorSummary(pipelineError),
                     ),
                 )
                 // CRASH-FIX: el fallback ejecuta las mismas operaciones que pueden
@@ -636,7 +614,7 @@ fun FoodLoggerDrawer(
                         "analysis_salvage_failed",
                         mapOf(
                             "errorType" to salvageError.javaClass.name,
-                            "message" to (salvageError.message ?: ""),
+                            "errorSummary" to NutritionTelemetrySanitizer.errorSummary(salvageError),
                         ),
                     )
                     // ÚLTIMO NIVEL: independiente de parser/dataset/resolver/Room. Crea tags
@@ -1212,6 +1190,17 @@ fun FoodLoggerDrawer(
         }
     }
 
+    // WP-S8: una búsqueda hecha con el catálogo a medias se repite cuando termina de prepararse (solo si el aviso se vio).
+    var importWasRunning by remember { mutableStateOf(false) }
+    LaunchedEffect(catalogImportProgress != null) {
+        if (catalogImportProgress != null) {
+            importWasRunning = true
+        } else if (importWasRunning) {
+            importWasRunning = false
+            if (searchQuery.isNotBlank()) performSearch()
+        }
+    }
+
     fun saveLog() {
         if (isSaving || showSuccess) return
         val activeTags = tags.filterNot { it.isExcluded }
@@ -1241,7 +1230,10 @@ fun FoodLoggerDrawer(
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (error: Exception) {
                 saveError = "No se pudo guardar la comida. Tu borrador sigue aquí; vuelve a intentarlo."
-                NutritionTelemetry.event("save_failed", mapOf("errorType" to error.javaClass.simpleName))
+                NutritionTelemetry.event(
+                    "save_failed",
+                    mapOf("errorType" to error.javaClass.simpleName, "errorSummary" to NutritionTelemetrySanitizer.errorSummary(error)),
+                )
             } finally { isSaving = false }
         }
     }
@@ -1278,7 +1270,7 @@ fun FoodLoggerDrawer(
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
+                            .clickable(role = Role.Button) {
                                 showSettingsDialog = false
                                 utensilValues = currentUtensilValues()
                                 showUtensilDialog = true
@@ -1314,7 +1306,7 @@ fun FoodLoggerDrawer(
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
+                            .clickable(role = Role.Button) {
                                 scope.launch {
                                     try {
                                         nutritionRepo.clearLearnedResolutions()
@@ -1501,7 +1493,7 @@ fun FoodLoggerDrawer(
             // ── Tab Selector ────────────────────────────────────────────────
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     TabChip("Describir comida", activeTab == 0, modifier = Modifier.weight(1f)) { activeTab = 0 }
@@ -1539,7 +1531,7 @@ fun FoodLoggerDrawer(
                             )
                             IconButton(
                                 onClick = { showPrivacyInfo = true },
-                                modifier = Modifier.size(28.dp),
+                                modifier = Modifier.size(MIN_TOUCH_TARGET),
                             ) {
                                 Icon(
                                     Icons.Default.Info,
@@ -1572,39 +1564,6 @@ fun FoodLoggerDrawer(
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
                             )
                         )
-
-                        // Barra de progreso de copia del modelo (sólo modo PRO mientras copia)
-                        AnimatedVisibility(
-                            visible = false && 0f > 0f && 0f < 1f,
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                ) {
-                                    Text(
-                                        text = "Preparando Parser...",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = PRO_COLOR,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                    Text(
-                                        text = "${(0f * 100).toInt()}%",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = PRO_COLOR,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                }
-                                LinearProgressIndicator(
-                                    progress = { 0f },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
-                                    color = PRO_COLOR,
-                                )
-                            }
-                        }
 
                         AnimatedVisibility(
                             visible = isAnalyzing,
@@ -1661,6 +1620,10 @@ fun FoodLoggerDrawer(
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
                         )
                     )
+                }
+                // Mientras el catálogo se prepara, los resultados salen de lo que ya hay: el aviso lo dice.
+                catalogImportProgress?.let { progress ->
+                    item(key = "catalog_import_progress") { CatalogImportProgress(progress) }
                 }
                 items(searchResults, key = { "search_" + it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } }) { food ->
                     FoodSearchResultCard(candidate = food, onClick = {
@@ -1906,7 +1869,7 @@ fun FoodLoggerDrawer(
                         modifier = Modifier
                             .size(52.dp)
                             .clip(CircleShape)
-                            .clickable {
+                            .clickable(role = Role.Button) {
                                 if (activeTab == 0) activeTab = 1
                                 else activeTab = 0
                             },
@@ -1944,6 +1907,41 @@ fun FoodLoggerDrawer(
                 type = SnackbarType.SUCCESS,
             )
         }
+    }
+}
+
+/** WP-S8: «Preparando catálogo…» con su avance mientras el catálogo global se importa (null = no hay importación). */
+@Composable
+private fun CatalogImportProgress(progress: Float, modifier: Modifier = Modifier) {
+    val shown = progress.coerceIn(0f, 1f)
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Preparando catálogo…",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "${(shown * 100).toInt()}%",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        LinearProgressIndicator(
+            progress = { shown },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
+        )
     }
 }
 
@@ -2123,92 +2121,34 @@ private fun AnalysisNoticeCard(notice: AnalysisNotice) {
     }
 }
 
-// ─── Mode Option Card ────────────────────────────────────────────────────────
-
-@Composable
-private fun ModeOptionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconTint: Color,
-    title: String,
-    subtitle: String,
-    badge: String?,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(iconTint.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, null, tint = iconTint, modifier = Modifier.size(22.dp))
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
-                    if (badge != null) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = PRO_COLOR,
-                        ) {
-                            Text(
-                                text = badge,
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color.White,
-                            )
-                        }
-                    }
-                }
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
 // ─── Sub-composables ─────────────────────────────────────────────────────────
 
 @Composable
 private fun MealTypeSelector(mealType: MealType, onSelect: (MealType) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         MEAL_OPTIONS.forEach { (type, label) ->
-            val selected = type == mealType
+            val isSelected = type == mealType
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
-                modifier = Modifier.clickable { onSelect(type) },
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
+                modifier = Modifier
+                    .heightIn(min = MIN_TOUCH_TARGET)
+                    .clickable(role = Role.RadioButton) { onSelect(type) }
+                    .semantics { selected = isSelected },
             ) {
-                Text(
-                    text = label,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = if (selected) FontWeight.Black else FontWeight.SemiBold,
-                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = label,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -2219,7 +2159,10 @@ private fun TabChip(label: String, active: Boolean, modifier: Modifier = Modifie
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = if (active) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier
+            .heightIn(min = MIN_TOUCH_TARGET)
+            .clickable(role = Role.Tab, onClick = onClick)
+            .semantics { selected = active },
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
@@ -2244,7 +2187,7 @@ private fun MacroBadge(label: String, value: String, color: Color) {
 private fun FoodSearchResultCard(candidate: FoodCandidate, onClick: () -> Unit) {
     val food = candidate.food
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().clickable(onClickLabel = "Agregar a la comida", role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
@@ -2316,15 +2259,18 @@ private fun ClarificationChoiceChip(
         color = Color.White.copy(alpha = 0.10f),
         modifier = Modifier
             .alpha(alpha)
-            .clickable(enabled = enabled, onClick = onClick),
+            .heightIn(min = MIN_TOUCH_TARGET)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
     ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
@@ -2410,10 +2356,10 @@ private fun TagCard(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    IconButton(onClick = onToggleExpanded, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onToggleExpanded, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
                         Icon(if (tag.isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, if (tag.isExpanded) "Cerrar edición de ${tag.tag}" else "Editar ${tag.tag}", modifier = Modifier.size(18.dp))
                     }
-                    IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onRemove, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
                         Icon(Icons.Default.Close, "Quitar ${tag.tag}", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
                     }
                 }
@@ -2530,7 +2476,7 @@ private fun TagCard(
                                         }
                                     } else {
                                         PortionPreset.entries.take(3).forEach { preset ->
-                                            ClarificationChoiceChip(preset.name) { onPortionChange(preset) }
+                                            ClarificationChoiceChip(portionPresetLabel(preset)) { onPortionChange(preset) }
                                         }
                                     }
                                     ClarificationChoiceChip(
@@ -2549,25 +2495,26 @@ private fun TagCard(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("Porción", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.selectableGroup()) {
                         PortionPreset.entries.forEach { preset ->
-                            val label = when (preset) {
-                                PortionPreset.SMALL -> "Pequeño"
-                                PortionPreset.MEDIUM -> "Mediano"
-                                PortionPreset.LARGE -> "Grande"
-                                PortionPreset.EXTRA -> "Extra"
-                            }
+                            val label = portionPresetLabel(preset)
+                            val isSelected = tag.portion == preset
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (tag.portion == preset) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
-                                modifier = Modifier.clickable { onPortionChange(preset) },
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
+                                modifier = Modifier
+                                    .heightIn(min = MIN_TOUCH_TARGET)
+                                    .clickable(role = Role.RadioButton) { onPortionChange(preset) }
+                                    .semantics { selected = isSelected },
                             ) {
-                                Text(
-                                    text = label,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (tag.portion == preset) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = label,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         }
                     }
@@ -2608,7 +2555,11 @@ private fun TagCard(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showMatchCorrection = !showMatchCorrection }
+                            .heightIn(min = MIN_TOUCH_TARGET)
+                            .clickable(
+                                onClickLabel = if (showMatchCorrection) "Ocultar la corrección avanzada" else "Mostrar la corrección avanzada",
+                                role = Role.Button,
+                            ) { showMatchCorrection = !showMatchCorrection }
                             .padding(vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -2649,10 +2600,13 @@ private fun TagCard(
                             mutableStateOf<List<FoodCandidate>?>(null)
                         }
                         LaunchedEffect(lookup, foodDatabase.size) {
-                            delay(250) // debounce: the next keystroke cancels this effect before it searches
-                            suggestions = nutritionRepo.searchFoodCandidates(lookup, limit = 15, loggerFilter = true)
-                                .filter { FoodIdentity.matchesExclusions(it.food, tag.excludedIngredients) }
-                                .take(5)
+                            delay(CORRECTION_SEARCH_DEBOUNCE_MS) // debounce: the next keystroke cancels this effect before it searches
+                            // The repository searches on IO; filtering and trimming its rows stays off the main thread too.
+                            suggestions = withContext(Dispatchers.Default) {
+                                nutritionRepo.searchFoodCandidates(lookup, limit = 15, loggerFilter = true)
+                                    .filter { FoodIdentity.matchesExclusions(it.food, tag.excludedIngredients) }
+                                    .take(5)
+                            }
                         }
                         val found = suggestions
                         if (found == null) {
@@ -2669,7 +2623,7 @@ private fun TagCard(
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = MaterialTheme.colorScheme.surfaceContainer,
-                                    modifier = Modifier.fillMaxWidth().clickable {
+                                    modifier = Modifier.fillMaxWidth().clickable(onClickLabel = "Usar esta coincidencia", role = Role.Button) {
                                         onResolve(food, lookup)
                                         showMatchCorrection = false
                                     },
@@ -2713,15 +2667,17 @@ private fun TagCard(
 }
 @Composable
 private fun MacroOverrideCol(label: String, value: Double, step: Double = 1.0, onChange: (Double) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
+    val macro = label.lowercase()
+    // Con botones de 40 dp la etiqueta ya no cabe al lado de los dos en media pantalla: va encima.
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { onChange((value - step).coerceAtLeast(0.0)) }, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Remove, null, modifier = Modifier.size(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            IconButton(onClick = { onChange((value - step).coerceAtLeast(0.0)) }, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
+                Icon(Icons.Default.Remove, contentDescription = "Menos $macro", modifier = Modifier.size(16.dp))
             }
             Text(
                 text = "${kotlin.math.round(value).toInt()}",
@@ -2730,8 +2686,8 @@ private fun MacroOverrideCol(label: String, value: Double, step: Double = 1.0, o
                 modifier = Modifier.width(36.dp),
                 textAlign = TextAlign.Center,
             )
-            IconButton(onClick = { onChange((value + step).coerceAtMost(9999.0)) }, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Default.Add, null, modifier = Modifier.size(12.dp))
+            IconButton(onClick = { onChange((value + step).coerceAtMost(9999.0)) }, modifier = Modifier.size(MIN_TOUCH_TARGET)) {
+                Icon(Icons.Default.Add, contentDescription = "Más $macro", modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -2785,6 +2741,10 @@ private fun UtensilSettingsDialog(
                         value = current.coerceIn(spec.range.start, spec.range.endInclusive),
                         onValueChange = { onValueChange(spec.key, it) },
                         valueRange = spec.range,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Volumen de ${spec.label.lowercase()} en mililitros"
+                            stateDescription = "${current.toInt()} ml"
+                        },
                     )
                 }
             }
