@@ -1,10 +1,11 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 28.** Recoge hallazgos
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 30b.** Recoge hallazgos
 > por lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0
-> bajo Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de
-> los 55 hallazgos con id: **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de
-> `\b` (sin id) es **INFERIDO** (ver «Qué se verificó y cómo»).
+> bajo Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado: los
+> instrumentados no llegaron a ejecutarse (ver «Pruebas instrumentadas (cierre)»). Evidencia de los 55 hallazgos con id:
+> **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de `\b` (sin id) es
+> **INFERIDO** (ver «Qué se verificó y cómo»).
 
 | Campo | Valor |
 |---|---|
@@ -439,6 +440,26 @@ cuando la confirmación no abarca todos sus ejemplos, dice cuáles no se probaro
   `SubjectivePortionEngine.detectIntensifier`, `CookingFactors.isLikelyLiquid`, `InferredMealContext.portionAdjustment`
   (ignorado en `MacroCalculator.kt:99`), avisos `local-ai-*` y `aiInferredFoods` del drawer (`:318-337`, `:516-518`),
   `FoodDescriptionParser` (solo import).
+- **Tras WP-N7 (gate 29): archivos borrados.** `FoodMentionReconciler.kt`, `CookingMethodParser.kt` (440 patrones nunca
+  conectados), `FoodTemplateMatcher.kt` con sus 2 clases de test (`FoodTemplateMatcherTest` y
+  `FoodTemplateMatcherRobustnessTest`) y `CookingFactorsAndroidTest.kt` (solo probaba `isLikelyLiquid`).
+- **Tras WP-N7 (gate 29): código retirado de archivos que siguen vivos.** El mini-pipeline de `FoodInterpretationV2`
+  (`interpret`, `answerClarification`, `finalize` y `recordCorrection`, con sus tipos; `FoodInterpretationV2Test` se
+  reescribió sobre `interpretResolved` y conserva los 2 tests de WP-N10b); las rutas de gramos del dataset
+  (`SemanticPortionRetriever.getGramsForFood`, `detectIntensifier` e `INTENSIFIER_FACTORS`, con sus ramas en
+  `FoodParser`, `SubjectivePortionEngine` y `TagResolution`); de `TagResolution`, `shouldUseAiLoggedFood`,
+  `preferAiLoggedFood` e `interpretation`; de `CookingFactors`, `applyCooking`, `applyCookingToMacros` e
+  `isLikelyLiquid`; `extractGlobalPortion`; `ContextDetector.adjustPortion`; `MealLanguageGrammar.classifyDe/Con/Y`;
+  `ParsedMealItem.basePer100g` y `reviewRequired`; `ParsedMealDescription.analysisEngine` y `aiInferredFoods`, con los
+  campos `engine` y `aiInferred` del evento de telemetría `completed`; `NutritionRepository.saveAiInferredFood(s)` y
+  `findMealTemplateMatch` (con `scoreMealTemplate` y `queryQuantitiesMismatch`);
+  `NutritionViewModel.recordFoodSelection`, `saveAiInferredFoods` y `deletePlan`;
+  `NavigationBus.emitSharedNutritionText`, y el titular `CookingFactors` de `NutritionRegexRegistry`. Sin cambio de
+  comportamiento (la sonda queda idéntica) y con 23 tests unitarios y 1 instrumentado menos.
+- **Tras WP-N7: lo que se conservó.** `DatasetKnowledgeSource.kt` y `FoodDescriptionParser.kt` (el plan y el informe A
+  los daban por muertos o «solo import») siguen vivos; también quedan `parseMealDescription` con su parámetro
+  `retrievalResult`, que ya no se lee, y el par de métodos de `NavigationBus` con el `DisposableEffect` de
+  `MainActivity.kt`. Los motivos y los seguimientos están en «Límites».
 
 #### Bugs de parseo y segmentación
 
@@ -878,7 +899,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP. Avance tras los gates 1 a 28: 43 de los 45 paquetes del plan cerrados, más S2b
+divide el WP. Avance tras los gates 1 a 30b: 44 de los 45 paquetes del plan cerrados, más S2b
 (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
@@ -1125,6 +1146,63 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
   WP-N0 (escritor "probe") en paralelo -> gate de sonda (JSON baseline) -> fase 1 con tres escritores en paralelo: U
   (U1, U3-U6), S (S3 incl. U2; luego S1 + U16 cuando U libere el drawer) y N (N1 incl. S7; luego N2-N4).
 
+### Pruebas instrumentadas (cierre)
+
+El criterio de cierre 2 incluye los instrumentados `FoodParserAndroidTest` (3 tests), `FoodLoggerDrawerDraftUiTest` (3)
+y `NutritionMigrationTest` (1). El 2026-10-03 se hicieron cuatro intentos de correrlos y ninguno ejecutó un solo test:
+el resultado es «instrumentados no ejecutados en esta sesión», ni verde ni rojo. Los logs de la sesión (no versionados)
+son `closing-instrumented.log` y sus variantes `-2`, `-3` y `-4`; la evidencia del arnés (sin commitear) está en las
+carpetas `*nutrition-audit*` de `artifacts/consolidation-20261001/device-evidence/instrumentation/base/`.
+
+- **APK.** `assembleBaseDebug` y `assembleBaseDebugAndroidTest` bajo el candado de Gradle: BUILD SUCCESSFUL en 10 min
+  25 s (75 tareas, 16 ejecutadas), tras ~3,5 min de espera del candado, ocupado por la curaduría de programas. Se
+  compilaron sobre el código de `611fdf2c4` más ediciones sin commitear de otras sesiones (p. ej. `PlanInfoModel.kt`,
+  que la sesión de programas commiteó después en `e5e428e54`), así que no incluyen WP-N7 ni WP-N13 (3).
+- **AVD y arnés.** Se usó `artifacts/consolidation-20261001/tools/avd` (`start_avd.ps1`, `install_apks.py` y
+  `run_instrumentation.py`) y no `connectedBaseDebugAndroidTest`, para no tocar los emuladores del usuario
+  (`emulator-5554` y `emulator-5556` no se usaron). AVD propio `KPKNFitSessionAudit20260929` en `emulator-5580`: Android
+  16 (API 36, x86_64, imagen `google_apis_playstore`), sin ventana (`-no-window`), 2 núcleos y `-memory 2048` (el
+  emulador subió la RAM a 3.072 MB) y arranque en frío sin snapshot (`-no-snapshot-load -no-snapshot-save`).
+- **Intento 1 (16:52-17:08).** Con los APK compilados y el AVD arrancado, `run_instrumentation.py` se negó a correr
+  (salida 4): el APK instalado en el AVD era de otra compilación (`installed app APK differs from the requested build`).
+  Sin tests.
+- **Intento 2 (17:09-17:14).** Arranque en frío, instalación (`install_apks.py`: PASS; el APK de la app, de 550 MB,
+  tardó 102 s) y 4 clases con 8 tests declarados (las 3 anteriores y `CookingFactorsAndroidTest`, que entonces aún
+  existía). A los 38 s el runner terminó con «Process crashed» y 0 de 8 tests reportados. El logcat no muestra un fallo
+  de test: el proceso de la aplicación arrancó a las 17:13:41 y el sistema lo declaró en ANR
+  (`failed to complete startup`) a los 28,9 s; la verificación de bytecode de ese proceso tardaba 105-353 ms por método
+  (13 muestras). Según el orquestador, el equipo estaba cargado: otra sesión corría Gradle (un daemon de 6 GB y un
+  worker de 2,4 GB), los dos emuladores del usuario seguían abiertos y quedaban 4,4 GB libres de 32.
+- **Intento 3 (18:07-18:09).** En una ventana de 15 min sin Gradle acordada con la sesión de programas, el arnés abortó
+  antes de correr (`MISSING_INPUT`, salida 4): la selección aún nombraba `CookingFactorsAndroidTest`, que WP-N7 acababa
+  de borrar del árbol (su commit llegó a las 18:18).
+- **Intento 4 (18:10-18:12).** Misma ventana, tras 45 s de espera para que el sistema asentara después del arranque; las
+  3 clases (7 tests) y `--no-apk-check`, sobre los APK que había dejado el intento 2 (anteriores a WP-N7). Mismo
+  resultado a los 38 s: ANR `failed to complete startup` a los 28,7 s de arrancar el proceso (18:11:41 a 18:12:09) y 0
+  de 7 tests reportados. El logcat no tiene ninguna línea de `KpknApplication` ni de `newApplication`: no se ejecutó
+  código de la aplicación. Google Play Services también estaba en ANR (un broadcast `SIM_STATE_CHANGED`, 18:11:37)
+  cuando arrancó el proceso.
+
+**Lectura.** El fallo está en el arranque del proceso, no en un test: en el intento 4 no se ejecutó ni una línea de la
+aplicación y Google Play Services también falló, así que no hay evidencia a favor ni en contra de los tests. Apunta al
+entorno (un AVD de 2 núcleos arrancado en frío, en un equipo cargado) y no al código; no se aisló qué pesa más, si la
+carga del equipo o el arranque en frío. Se aplicó el tope de iteraciones (memoria del usuario): cuatro intentos y se
+documenta.
+
+**Cómo repetirlo.** Con el equipo sin otras sesiones de Gradle: recompilar los APK (WP-N7 y WP-N13 (3) cambiaron el
+código y el instalador rechaza los APK más viejos que las fuentes, `src/main` y `androidTest`; `--allow-stale` lo omite
+y lo anota en el recibo), arrancar el AVD, esperar al menos 5 min tras el arranque (o usar un emulador ya caliente o
+Android Studio) e instalar y correr:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File artifacts\consolidation-20261001\tools\avd\start_avd.ps1 -Avd Audit -Headless -WaitBoot -BootTimeoutSeconds 420
+python -X utf8 artifacts\consolidation-20261001\tools\avd\install_apks.py --flavor base --serial emulator-5580
+python -X utf8 artifacts\consolidation-20261001\tools\avd\run_instrumentation.py --flavor base --serial emulator-5580 --classes com.example.kpkn.domain.nutrition.FoodParserAndroidTest,com.example.kpkn.screens.nutrition.components.FoodLoggerDrawerDraftUiTest,com.example.kpkn.data.db.NutritionMigrationTest
+```
+
+Hasta que corran, el criterio de cierre 2 (instrumentados verdes) y el 3 (en dispositivo) quedan sin medir y la
+divergencia de `\b` sigue INFERIDA (ver «Límites»).
+
 ## Registro de ejecución
 
 | Fecha | Gate | Resultado | Commit |
@@ -1162,8 +1240,11 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 | 2026-10-03, 15:45-15:59 | Gate 27 | FALLÓ al compilar los tests (BUILD FAILED en 8 min 48 s en `compileBaseDebugUnitTestKotlin`, tras ~4,5 min esperando que `classes.jar` quedara libre) por una edición en curso de otra sesión: `SetupWizardActivationGateTest` usa `setupRejectionOf`, que pasó de `private` a `internal` en `SetupWizardViewModel.kt` entre la compilación principal y la de tests (ambos archivos ajenos y sin commitear). Ningún test corrió. Se reencoló como gate 27b | - |
 | 2026-10-03, 16:00-16:21 | Gate 27b | BUILD SUCCESSFUL en 13 min 19 s, tras ~8 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:08 a 16:21); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.722 tests, 0 fallos. `GoldenCorpusTest` 320 (parametrizado; eran 4) y `GoldenCorpusInvariantsTest` 4; `BlindMealCorpusTest` 7; `NoDoubleOutcomeAssertionsTest` 2; `DessertPiecePortionTest` 16, `SandwichFillingMentionTest` 14 y `FatMarkerAndDrinkPortionTest` 7; `NutritionMetricsContractTest` 5 (E16 robusta a la carga; precisión@1 como aserción dura de 49/50 como mínimo). Corpus ciego: identidad 97,6 %, cobertura 100 %, gramos 83,1 %, kcal 68,7 % y pregunta 95,2 % (ver «Corpus ciego permanente»). Frente al estado tras el gate 25, la sonda cambia en cuatro líneas (#27, #28, #50 y #53); 42 de las 60 difieren de la línea base oficial en la línea de resultado y ninguna pierde una ficha ni gana un fantasma (ver «Línea base»). Paquete cerrado: N12; seguimientos cerrados: N11b y N12b | `6420f5983` "fix(nutrition): WP-N11b — porciones por pieza de postres y hot dogs sin ficha, sándwich de un relleno o lista expandido a pan + rellenos, marcador de grasa por palabra y bebidas con su porción junto a un plato"; `25e8cf787` "test(nutrition): WP-N12 — suite endurecida: golden parametrizado, sin aserciones de doble resultado, bandas exactas con masa declarada, corpus ciego permanente con umbrales y E16 robusto a carga" |
 | 2026-10-03, 16:32-16:47 | Gate 28 | BUILD SUCCESSFUL en 11 min 21 s, tras ~4 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:36 a 16:47); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.745 tests, 0 fallos. `FoodImporterParseTest` 29 (+3), `FoodImporterUsdaMappingTest` 47 (+13; fija los conteos reales: 60 fichas sin energía, 50 que siguen fuera, 20 filas nuevas y 386 importadas), `SearchGoldenCorpusTest` 58 (+7), `FoodImporterUsageTest` 12, `UsdaAliasTableTest` 11 y `NutritionRepositoryStartupTest` 14. La sonda es idéntica a la del estado tras WP-N11b en todos los campos, también con las 386 filas USDA inyectadas en el pool de búsqueda. Seguimiento cerrado: S9b (de las 436 fichas Foundation, los 8 aceites y las 2 mantequillas sin fila de energía reciben la de Atwater, con la bandera `ENERGY_ATWATER`, y las 10 con carbohidrato levemente negativo se recortan a 0, con `CARB_CLAMPED`: de 366 a 386 filas USDA, sin cambiar ninguna existente; `DATA_VERSION` pasa de 10 a 11, con una reimportación en las instalaciones existentes porque la huella del manifiesto no cambia; el pool de `SearchGoldenCorpusTest` incluye ya filas USDA del extracto de test: "aceite de oliva extra virgen" resuelve a `usda_748608` y "aceite de canola" y "aceite de maravilla" ya no dan un resultado vacío) | `611fdf2c4` "feat(nutrition): WP-S9b — energía Atwater para aceites y mantequillas USDA sin fila de energía, carbohidrato negativo recortado y filas USDA en el corpus de búsqueda" |
+| 2026-10-03, 18:13-18:16 | Gate 29 | BUILD SUCCESSFUL en 3 min 30 s, sin espera (el candado estaba libre); compilación principal y de los androidTest (`compileBaseDebugAndroidTestKotlin`), con 3 de las 43 tareas ejecutadas (las compilaciones principal y de tests ya estaban al día; corrieron las pruebas, KSP de los androidTest y su compilación); filtros `domain.nutrition.*`, `data.food.*`, `data.repository.Nutrition*` y `screens.nutrition.*`; 123 suites, 1.806 tests, 0 fallos. Frente al gate 28 (118 suites y 1.745 tests con los tres primeros filtros), WP-N7 retira 2 suites y 23 tests y este gate vuelve a incluir `screens.nutrition.*`. Tests retirados (cuentas de `@Test` del commit, que suman los 23): `FoodTemplateMatcherTest` (8) y `FoodTemplateMatcherRobustnessTest` (6), borradas; `CookingFactorsTest` 17 (-5); `FoodInterpretationV2Test` 6 (-1; reescrita sobre `interpretResolved`, conserva los 2 de WP-N10b); `NutritionLoggerReliabilityTest` 19, `NutritionResolutionConsistencyTest` 16 y `StapleOntologyTest` 20 (-1 cada una); sale además `CookingFactorsAndroidTest` (-1 instrumentado). La sonda es idéntica a la del estado tras WP-N11b en todos los campos salvo los tiempos (120 casos, 0 diferencias) y el informe del corpus ciego permanente es idéntico byte a byte. Paquete cerrado: N7 (31 archivos, +114/-1.667, sin cambio de comportamiento; criterio de aceptación «cero referencias»: `git grep` de los símbolos retirados da 0 en `app/src`, salvo homónimos de otros tipos, como `NutritionRepository.recordFoodSelection`, y un comentario de `RegexEs.kt` que aún nombra `CookingFactorsAndroidTest`). Se conservan `DatasetKnowledgeSource.kt` y `FoodDescriptionParser.kt` porque siguen vivos (ver «Límites») | `3234cb23a` "refactor(nutrition): WP-N7 — retiro de módulos muertos del pipeline de descripciones" |
+| 2026-10-03, 18:20-18:29 | Gate 30 | FALLÓ (BUILD FAILED en 8 min 44 s; compilación principal y filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`) en `compileBaseDebugUnitTestKotlin`, por ediciones en curso de otra sesión, ajenas al paquete: `ProtocolAttributionTest` usaba `KPKN_OWN_PLAN_DISCLAIMER` y `TrainingMaxWizardCopyTest` usaba `trainingMaxIntro`, `trainingMaxFiveRepNote` y `trainingMaxPreviewLine` antes de que existieran en `main` (10 errores de referencia sin resolver). La compilación principal con el paquete sí pasó, el candado estaba libre y ningún test corrió; el árbol quedó resuelto minutos después y se reencoló como gate 30b | - |
+| 2026-10-03, 18:30-18:40 | Gate 30b | BUILD SUCCESSFUL en 10 min 22 s, sin espera del candado (libre); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 116 suites (las 118 del gate 28 menos las 2 de `FoodTemplateMatcher` que retiró WP-N7), 1.738 tests (1.745 menos los 23 de WP-N7, más los 16 de este paquete), 0 fallos. `FoodKnowledgeParityTest` 13 (+2), `FoodKnowledgeAssetTest` 26 (+7) y `FoodKnowledgeInstallTest` 23 (+7); `FoodCombinationParserTest` 17, `SandwichMentionBoundaryTest` 12 y `SandwichFillingMentionTest` 14, sin cambios, cubren el parser que ahora lee `dishCompositions`. La sonda es idéntica a la del estado tras WP-N11b en todos los campos salvo los tiempos (120 casos, 0 diferencias) y el informe del corpus ciego permanente es idéntico byte a byte. Paquete cerrado: N13, sección 3 (9 archivos, +1.251/-390). La sección `dishCompositions` del asset recibe la tabla `KNOWN_DISHES` de `FoodCombinationParser` tal como estaba: 302 platos en el mismo orden, cada uno con su base (el primer componente) y sus acompañamientos (alimento, proporción y rol); `parseFoodKnowledge` rechaza un nombre repetido, un plato sin componentes, un rol que no sea de `FoodCombinationParser.Role` y proporciones que no sumen 1 ± 0,01 (la tabla suma 1 exacto). `recipeNotes` documenta las recetas de las siete fichas `RECIPE_ESTIMATE` (gen183 a gen188 y gen196: ingrediente, perfil y porcentaje del peso, igual palabra por palabra al `sourceRecordId` de cada ficha) y ningún código las lee todavía. `FoodCombinationParser` lee `FoodKnowledge.current().dishCompositions` por un `KnowledgeCache` (la regex de cada plato y la lista de sándwiches se derivan una vez por snapshot) y la memoria de platos de `MassBoundDish` pasa a ser por snapshot, que una instalación vacía. `FoodKnowledgeDefaults.kt` guarda la copia Kotlin y el asset pasa de 12 a 75 KB, muy por debajo del tope de 300 KB que fija el plan. Sin cambio de comportamiento: la sonda de 60 y una ampliada de 4.099 entradas (8.198 filas) salen idénticas con la copia Kotlin, con el asset instalado y con una instalación a mitad de uso, y un diferencial de 48.921 entradas (`parse`, `splitFoods`, `sandwichMentions`, `MassBoundDish` y `parseMealDescription`) coincide en las cuatro variantes (mediciones del escritor del paquete, no repetidas en el gate) | `72858962e` "feat(nutrition): WP-N13 (3) — composiciones de platos en el asset de conocimiento: 302 platos con sus proporciones y roles, y las recetas de las fichas RECIPE_ESTIMATE" |
 
-Nota sobre las horas: las de los gates 3 a 28 son las marcas de creación (inicio) y de última escritura (fin) de los
+Nota sobre las horas: las de los gates 3 a 30b son las marcas de creación (inicio) y de última escritura (fin) de los
 logs de cada gate (no versionados), en hora local; incluyen los pasos previos a Gradle (aplicar el parche y esperar el
 candado de Gradle o a que `classes.jar` quede libre). Las filas de los gates 3 a 18 se corrigieron con los logs: las
 horas anotadas durante la ejecución diferían de las que muestran los logs y los commits hasta 13 minutos en los gates 3
@@ -1180,19 +1261,20 @@ Detalle del gate 1:
 - Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
   (WP-S10/S11); ver «Límites».
 
-Avance acumulado (gates 1 a 28):
+Avance acumulado (gates 1 a 30b):
 
-- Paquetes cerrados: 43 de los 45 del plan, más S2b (añadido en la ejecución): WP-0; N0 a N6 y N8 a N13 (N13: secciones
-  1 y 2); S1 a S11 y S2b; U1 a U17; D1. Por bloque: WP-0 1/1, N 13/14, S 11/12 más S2b, U 17/17, D 1/1.
-- Pendientes del plan (2): N7 (en curso) y S12 (diferido). Seguimientos cerrados, fuera del plan: N10b, N11b, S9b, S10a,
-  S10c y N12b; en curso: la sección 3 de N13 (`dishCompositions`; las secciones 4 a 6 son incrementales); abiertos: N8b,
-  N10c, S1b y D1b (ver «Límites» y «Corpus ciego permanente»).
+- Paquetes cerrados: 44 de los 45 del plan, más S2b (añadido en la ejecución): WP-0; N0 a N13 (N13: secciones 1 a 3); S1
+  a S11 y S2b; U1 a U17; D1. Por bloque: WP-0 1/1, N 14/14, S 11/12 más S2b, U 17/17, D 1/1.
+- Pendiente del plan (1): S12 (diferido por diseño). Seguimientos cerrados, fuera del plan: N10b, N11b, S9b, S10a, S10c
+  y N12b; en curso: N8b (lanzado tras el gate 29 contra el backlog del corpus ciego); abiertos: N10c, S1b, D1b y las
+  secciones 4 a 6 de N13 (rendimientos, factores y aceite de cocción; alias; perfiles heurísticos), que llegan por
+  incrementos (ver «Límites» y «Corpus ciego permanente»).
 - Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y el gate 11 repite
   esa salida; tras el gate 14 difiere de la línea base en 27 casos, con WP-N6/N8 en 30, con WP-N10 en 37, con WP-N9 en
   42, tras el gate 23 en 45, con WP-N11 en 47 y con WP-N11b en 48 (42 en la línea de resultado y 6 solo en campos
-  internos); los gates 19 y 23 no cambian ninguna línea, el gate 25 deja la sonda idéntica a la de WP-N11 y el gate 28 a
-  la de WP-N11b. Con WP-N11 y WP-N11b ningún caso pierde una ficha ni gana un fantasma frente a la línea base: #10, que
-  WP-N9 dejó como una mención sin ficha, vuelve a resolver (`gen193`) (ver «Línea base»).
+  internos); los gates 19 y 23 no cambian ninguna línea, el gate 25 deja la sonda idéntica a la de WP-N11 y los gates
+  28, 29 y 30b a la de WP-N11b. Con WP-N11 y WP-N11b ningún caso pierde una ficha ni gana un fantasma frente a la línea
+  base: #10, que WP-N9 dejó como una mención sin ficha, vuelve a resolver (`gen193`) (ver «Línea base»).
 - Cobertura del catálogo estático: de 118/174 términos con ficha en WP-0 a 169/174 tras WP-D1 (gate 19; criterio de
   frase completa, más estricto que el grep de WP-0); quedan sin ficha mate, tallarines, negrita, pre entreno y pap (ver
   «Sonda de cobertura de términos cotidianos»).
@@ -1212,11 +1294,19 @@ Avance acumulado (gates 1 a 28):
 - Gate 26: falló solo la guarda nueva `NoDoubleOutcomeAssertionsTest`, por una aserción legítima de «al menos uno de»
   que N13 escribió después de la foto de N12; se corrigió con el seguimiento N12b. Gate 27: no compiló los tests por una
   edición en curso de otra sesión; el gate 27b (N12, N12b y N11b) es su repetición verde.
+- Gate 30: no compiló los tests por ediciones en curso de otra sesión (`ProtocolAttributionTest` y
+  `TrainingMaxWizardCopyTest` usaban símbolos que aún no estaban en `main`); el gate 30b (N13, sección 3) es su
+  repetición verde.
+- Instrumentados: cuatro intentos el 2026-10-03 en un AVD propio, sin ningún test ejecutado: el proceso de la aplicación
+  no llegó a terminar de arrancar (ANR de arranque, con el equipo cargado; ver «Pruebas instrumentadas (cierre)» y
+  «Límites»).
 - Hallazgo extra (WP-S5): los triggers FTS heredados rompían UPDATE y DELETE sobre `global_foods`; B11 solo anticipaba
   doble escritura FTS y un índice posiblemente inconsistente.
 - Documentación: `docs/ARCHITECTURE.md`, `docs/ANDROID_ARCHITECTURE_MAP.md` y `docs/REPO_STRUCTURE.md` están al día con
   el flujo de importación (WP-S3, S8 y la huella por manifiesto de S10), con los assets de `food_data/` (WP-S11) y con
-  el asset de conocimiento de WP-N13 (`food_knowledge_v1.json`, contrato en `docs/contracts/food_knowledge_v1.md`).
+  el asset de conocimiento de WP-N13 (`food_knowledge_v1.json`, contrato en `docs/contracts/food_knowledge_v1.md`),
+  incluida su sección 3 (`dishCompositions` y `recipeNotes`; el asset pasó de 12 a 75 KB).
+  `docs/ANDROID_ARCHITECTURE_MAP.md` ya no nombra `CookingMethodParser.kt` (retirado por WP-N7).
 
 ## Corpus ciego permanente
 
@@ -1295,18 +1385,28 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
 
 - **Sin QA en dispositivo ni en emulador.** Los gates registrados son pruebas JVM bajo Gradle; no hay QA de dispositivo
   o emulador registrado. Los criterios de cierre en dispositivo (arranque en caliente, búsqueda < 150 ms, medianoche,
-  widget, AUGE) son metas, no mediciones.
+  widget, AUGE) son metas, no mediciones. Los intentos de correr los instrumentados en un emulador no ejecutaron ningún
+  test (ver el punto siguiente).
+- **Instrumentados no ejecutados en esta sesión.** `FoodParserAndroidTest` (3 tests), `FoodLoggerDrawerDraftUiTest` (3)
+  y `NutritionMigrationTest` (1) compilan (`compileBaseDebugAndroidTestKotlin` en los gates 7, 14, 21, 23b y 29), pero
+  ninguno corrió: cuatro intentos el 2026-10-03 en un AVD propio no llegaron a ejecutar ningún test, porque el proceso
+  de la aplicación no terminó de arrancar (ver «Pruebas instrumentadas (cierre)»). Quedan sin medir el criterio de
+  cierre 2 (instrumentados verdes) y el 3 (en dispositivo), y la divergencia de `\b` sigue INFERIDA. Los APK instalados
+  en el AVD son anteriores a WP-N7 y a WP-N13 (3): hay que recompilarlos antes de repetir. Repetir queda a decisión del
+  usuario (tope de iteraciones).
 - **Sonda WP-N0.** Corrió bajo Gradle (`BlindMealCorpusProbeTest` 2/2, gate 1) y su salida es la línea base oficial, que
   sigue siendo la referencia para el delta final. Los `expect` de las 60 descripciones son objetivos posteriores a la
   remediación y la sonda no los afirma. La divergencia de `\b` no se puede medir en la JVM (entrada #34): WP-N4 (gate 7)
-  añade `RegexEs.bounded` y el test instrumentado `FoodParserAndroidTest`, y los gates 7, 14 y 21 compilaron los
-  androidTest (`compileBaseDebugAndroidTestKotlin`), pero no hay ejecución en dispositivo registrada. Los hallazgos
-  REPORTADO esperan confirmación en los tests de su paquete.
+  añade `RegexEs.bounded` y el test instrumentado `FoodParserAndroidTest`, y los gates 7, 14, 21, 23b y 29 compilaron
+  los androidTest (`compileBaseDebugAndroidTestKotlin`), pero no hay ejecución en dispositivo registrada (cuatro
+  intentos sin resultado: ver «Pruebas instrumentadas (cierre)»). Los hallazgos REPORTADO esperan confirmación en los
+  tests de su paquete.
 - **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
   master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`). Los commits de WP-S11 (gate 19) y WP-S10 (gate 23)
   no tocan el bin y ninguno de los gates registrados ejecutó esa tarea, así que sigue pendiente y sin paquete asignado.
-- **WP-N8b, abierto.** Los topes por ítem frenan los conteos grandes ("3 completos" y "5 manzanas" quedan en revisión) y
-  reúne las porciones por defecto y las identidades que fallan en el corpus ciego (ver «Corpus ciego permanente»).
+- **WP-N8b, en curso (lanzado tras el gate 29).** Reúne las porciones por defecto y las identidades que fallan en el
+  corpus ciego (ver «Corpus ciego permanente») y los topes por ítem, que frenan los conteos grandes ("3 completos" y "5
+  manzanas" quedan en revisión).
 - **Plural corto de 3 letras.** El plural corto con conteo se corrigió en el gate 17; "tés" y "tes" sin conteo siguen
   sin resolverse.
 - **Límites de WP-U11 (gate 21), tras WP-U17.** `MealHistoryScreen` sigue de solo lectura. WP-U17 (gate 23) pasó
@@ -1319,6 +1419,22 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
 - **Seguimientos de WP-N9.** Los platos protegidos sin fila en el catálogo caen a los valores por defecto del marcador
   (papas con mayo 15 g, tortilla de maíz 350 g); "2 pasteles de choclo" (frase en plural sin fila plural) sigue como
   estimación; queda opcional endurecer `CookingStateResolver.findPreparedVariant` con búsquedas exactas primero.
+- **Desviaciones aceptadas de WP-N7.** El plan daba `DatasetKnowledgeSource.kt` por muerto y se conserva: ningún código
+  nombra un símbolo `DatasetKnowledgeSource`, pero el archivo define las clases de datos del snapshot de
+  `dataset_knowledge.bin` (`DatasetKnowledgeSnapshot`, `DatasetMacros`, `DatasetPortionPrior` y otras), que usan
+  `DatasetKnowledgeStore` y `SemanticPortionRetriever`. `FoodDescriptionParser.kt` también sigue vivo: `FoodImporter` lo
+  llama para los nombres de producto de OFF Chile (el informe A lo daba por «solo import»). `parseMealDescription`
+  conserva su parámetro `retrievalResult`, que ya no se lee, para no tocar los archivos de corpus.
+  `NavigationBus.registerNutritionShareListener` y `unregisterNutritionShareListener`, y el `DisposableEffect` de
+  `MainActivity.kt` que los usa, siguen en pie: `MainActivity.kt` es un hub que tocan otras sesiones y ya nadie emite el
+  texto compartido.
+- **Seguimientos de WP-N7.** `RetrievalResult.portionPriors` se calcula en cada recuperación y ningún código de
+  producción lo lee; `reliabilityScore` (privada en `SemanticPortionRetriever`) no tiene llamadores. `MealTemplate`
+  sigue en Room (tabla `nutrition_templates`) y en el respaldo JSON de ajustes, pero ninguna pantalla lo lee
+  (`NutritionViewModel.mealTemplates` no tiene colectores) y nada crea plantillas nuevas (`rememberMealTemplateFromLog`
+  no tiene llamadores): tras retirar `findMealTemplateMatch`, darle una pantalla o retirarlo es una decisión de
+  producto. El par de métodos de `NavigationBus` y el `DisposableEffect` de `MainActivity.kt` se pueden retirar cuando
+  se edite ese hub, y un comentario de `RegexEs.kt` (línea 12) aún nombra `CookingFactorsAndroidTest`.
 - **WP-S1b, nuevo y pendiente.** WP-S10 encontró que, con una fila estática y una consulta con kg o litro explícito,
   `eatenGramsForSearchPick` (`HouseholdPortions.kt`) devuelve el `servingSize` de la fila (100 g) en lugar de la masa
   pedida; es la regla de S1, anterior a S10.
@@ -1333,16 +1449,18 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   pueden importar con seguridad (ver «Datos y catálogos»).
 - **Negación en la búsqueda.** `matchesDeclaredIdentity` ignora la negación: con "con sal" entra la fila "sin sal" en el
   segundo puesto (hallado por WP-S9b; sin paquete asignado).
-- **Doble fuente del conocimiento (WP-N13, secciones 1 y 2).** El asset `food_knowledge_v1.json` (mantenido a mano, sin
-  generador) y la copia Kotlin `FoodKnowledgeDefaults.kt` coexisten: la copia es el respaldo si el asset falla y se
-  borrará cuando `FoodKnowledgeParityTest` lo permita; antes hay que adelantar la instalación al inicio de la app,
-  porque hoy corre en la fase que prepara el dataset semántico y nada cubre el tiempo anterior. Las demás secciones del
-  plan llegan por incrementos.
+- **Doble fuente del conocimiento (WP-N13, secciones 1 a 3).** El asset `food_knowledge_v1.json` (75 KB, mantenido a
+  mano, sin generador) y la copia Kotlin `FoodKnowledgeDefaults.kt` coexisten: la copia es el respaldo si el asset falla
+  y se borrará cuando `FoodKnowledgeParityTest` lo permita; antes hay que adelantar la instalación al inicio de la app,
+  porque hoy corre en la fase que prepara el dataset semántico y nada cubre el tiempo anterior. `recipeNotes` (las
+  recetas de las siete fichas `RECIPE_ESTIMATE`) se interpreta y se prueba, pero ningún código lo lee todavía. Las
+  secciones 4 a 6 del plan (rendimientos, factores y aceite de cocción; alias; perfiles heurísticos) llegan por
+  incrementos.
 - **Cifras de lectura estática.** Los conteos de regex y los tiempos de rendimiento en dispositivo salen de leer el
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 28 de «Registro de ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 30b de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
