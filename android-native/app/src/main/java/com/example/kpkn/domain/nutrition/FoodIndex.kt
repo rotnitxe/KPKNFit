@@ -38,6 +38,8 @@ class FoodIndex {
         val state: FoodState = FoodState.UNKNOWN,
         /** Curated inclusion is independent of the nutrient source label (e.g. USDA). */
         val isCuratedCatalog: Boolean = false,
+        /** Declared zero-energy catalog row (water, diet soda): its all-zero macros are real, not a broken row. */
+        val isZeroEnergy: Boolean = false,
     )
 
     /** One brand candidate: the original brand plus its padded normalized key (computed once). */
@@ -299,6 +301,7 @@ class FoodIndex {
             sourcePriority = food.sourcePriority,
             isCuratedCatalog = !food.isCustom && !food.isAiInferred && NutrientBasis.isVerified(food) &&
                 NutrientBasis.source(food) !in setOf(NutritionSourceKind.HEURISTIC_ESTIMATE, NutritionSourceKind.DATASET_ESTIMATE, NutritionSourceKind.EXTERNAL_ESTIMATE),
+            isZeroEnergy = NutrientBasis.isZeroEnergy(food),
             source = when {
                 food.isAiInferred -> "AI_ESTIMATE"
                 food.isCustom -> "USER"

@@ -173,10 +173,14 @@ object TextNormalizer {
     )
 
     // ─── Shorthand / chat abbreviations ───────────────────────────────────
+    // Units too: "1 lt" and "2 lts" are litres, "500 cc" and "200 cm3" millilitres, "kilogramo(s)" kilograms.
     private val SHORTHAND_PATTERN = Regex(
-        """\b(xq|pq|porq|q|ke|tmb|tb|grs?|gramit[oa]s|gramines?|gramos?|gr|kilit[oa]s|kls|kgs|mililitr[oa]s|mlts|cdas?|cdita|cucharaditas?)\b""",
+        """\b(xq|pq|porq|q|ke|tmb|tb|grs?|gramit[oa]s|gramines?|gramos?|gr|kilit[oa]s|kilogramos?|kls|kgs|mililitr[oa]s|mlts|lts?|cc|cm3|cdas?|cdita|cucharaditas?)\b""",
         RegexOption.IGNORE_CASE
     )
+
+    // "cm³" cannot sit in the pattern above: its trailing \b would need a word character after the superscript.
+    private val CUBIC_CENTIMETRE = Regex("cm\u00B3", RegexOption.IGNORE_CASE)
 
     // ─── Number words → digits ────────────────────────────────────────────
     private val NUMBER_WORDS = mapOf(
@@ -208,8 +212,10 @@ object TextNormalizer {
     )
 
     // ─── Fractional patterns ──────────────────────────────────────────────
+    // A weight or volume said as a part of the kilo or the litre: "medio kilo", "cuarto de kilo", "tres cuartos de
+    // litro", "kilo y medio". The article is part of the phrase: "un cuarto de kilo" is 250 g, not "1 250 g".
     private val FRACTION_PATTERN = Regex(
-        """\b(medio\s+kilo|cuarto\s+kilo|un\s+kilo\s+y\s+medio)\b""",
+        """\b(?:(?:un|1)\s+)?(?:(?:medio|cuarto|tres\s+cuartos)\s+(?:de\s+)?(?:kilo|kg|litro)|(?:kilo|litro)\s+y\s+medio)\b""",
         RegexOption.IGNORE_CASE
     )
 
@@ -590,15 +596,16 @@ object TextNormalizer {
     }
 
     private fun applyShorthand(text: String): String {
-        return SHORTHAND_PATTERN.replace(text) { match ->
+        return SHORTHAND_PATTERN.replace(CUBIC_CENTIMETRE.replace(text, "cm3")) { match ->
             val word = match.value.lowercase()
             when {
                 word == "xq" || word == "pq" || word == "porq" -> "porque"
                 word == "q" || word == "ke" -> "que"
                 word == "tmb" || word == "tb" -> "tambien"
                 word == "gr" || word == "g" || word == "grs" || word == "gramos" || word.startsWith("gramit") || word.startsWith("gramin") -> "g"
-                word == "kls" || word == "kgs" || word.startsWith("kilit") -> "kg"
-                word == "ml" || word == "mlts" || word.startsWith("mililitr") -> "ml"
+                word == "kls" || word == "kgs" || word.startsWith("kilit") || word.startsWith("kilogramo") -> "kg"
+                word == "ml" || word == "mlts" || word.startsWith("mililitr") || word == "cc" || word == "cm3" -> "ml"
+                word == "lt" || word == "lts" -> "l"
                 // B7: "cucharadita" es 5g, NO "cucharada" (15g). "cdita" y "cda" son abreviaturas distintas.
                 word == "cdita" || word == "cucharadita" || word.startsWith("cucharadita") -> "cucharadita"
                 word == "cda" || word == "cucharada" || word.startsWith("cda") -> "cucharada"
@@ -643,12 +650,15 @@ object TextNormalizer {
 
     private fun expandFractions(text: String): String {
         return FRACTION_PATTERN.replace(text) { match ->
-            when (match.value.lowercase().trim()) {
-                "medio kilo" -> "500 g"
-                "cuarto kilo" -> "250 g"
-                "un kilo y medio" -> "1500 g"
-                else -> match.value
+            val phrase = match.value.lowercase().replace(SPACES_PATTERN, " ").removePrefix("un ").removePrefix("1 ")
+            val amount = when {
+                phrase.startsWith("tres cuartos") -> 750
+                phrase.startsWith("cuarto") -> 250
+                phrase.startsWith("medio") -> 500
+                else -> 1500 // "kilo y medio", "litro y medio"
             }
+            // A litre becomes millilitres, so the parser reads it as a volume and applies the density of the drink.
+            "$amount ${if ("litro" in phrase) "ml" else "g"}"
         }
     }
 

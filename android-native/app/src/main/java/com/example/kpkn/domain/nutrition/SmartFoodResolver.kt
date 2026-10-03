@@ -676,7 +676,8 @@ class SmartFoodResolver(
     private fun hasPlausibleMacros(food: FoodIndex.IndexedFood): Boolean {
         val values = listOf(food.calories, food.protein, food.carbs, food.fats)
         if (values.any { !it.isFinite() || it < 0.0 }) return false
-        if (food.calories <= 0.0 && values.drop(1).all { it == 0.0 }) return false
+        // Same rule as FoodIdentity.hasPlausibleMacros: all-zero is plausible only for a declared zero-energy row.
+        if (food.calories <= 0.0 && values.drop(1).all { it == 0.0 }) return food.isZeroEnergy
         val macroEnergy = food.protein * 4.0 + food.carbs * 4.0 + food.fats * 9.0
         if (food.calories <= 0.0 || macroEnergy <= 0.0) return true
         return kotlin.math.abs(food.calories - macroEnergy) <= maxOf(100.0, food.calories * 0.75)

@@ -81,7 +81,8 @@ class NutritionMetricsContractTest {
         IdentityCase("papas fritas", "papa", expectedId = "gen021f", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("manjar", "manjar", expectedId = "gen109", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("torta", "torta", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
-        IdentityCase("café con leche", "café con leche", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
+        // WP-N5: "café con leche" is the recipe row gen145, no longer an approximation that needs review.
+        IdentityCase("café con leche", "café con leche", expectedId = "gen145", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("quesadilla", "quesadilla", expectedStatus = FoodResolutionStatus.NEEDS_REVIEW),
         IdentityCase("fideos", "fideos", expectedId = "gen040h", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("200g pollo a la plancha", "pollo", expectedId = "gen003c", expectedStatus = FoodResolutionStatus.AUTO),
@@ -110,6 +111,10 @@ class NutritionMetricsContractTest {
         IdentityCase("yogurt", "yogurt", expectedId = "gen017", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("té", "té", expectedId = "gen060", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("jugo de naranja", "jugo de naranja", expectedId = "gen103", expectedStatus = FoodResolutionStatus.AUTO),
+        // WP-N5: water, soda and beer have a row of their own (water is zero-energy).
+        IdentityCase("agua", "agua", expectedId = "gen143", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("coca cola", "coca cola", expectedId = "gen146", expectedStatus = FoodResolutionStatus.AUTO),
+        IdentityCase("cerveza", "cerveza", expectedId = "gen149", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("zanahoria", "zanahoria", expectedId = "gen024", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("brócoli", "brócoli", expectedId = "gen022", expectedStatus = FoodResolutionStatus.AUTO),
         IdentityCase("pollo al horno", "pollo", expectedId = "gen003h", expectedStatus = FoodResolutionStatus.NEEDS_CONFIRMATION),
@@ -160,7 +165,8 @@ class NutritionMetricsContractTest {
 
     @Test
     fun `E16 rejected approximations preserve user identity and useful estimate`() = runBlocking {
-        val required = listOf("torta", "quesadilla", "galletas", "once", "café con leche")
+        // "café con leche" left this list with WP-N5: it has its own row (see the identity corpus).
+        val required = listOf("torta", "quesadilla", "galletas", "once")
         for (query in required) {
             val tag = resolve(query).single()
             assertEquals(query, null, tag.foodItem)
@@ -186,7 +192,8 @@ class NutritionMetricsContractTest {
         GramsCase("2 huevos", 100.0, tolerance = 0.05),
         GramsCase("2 marraquetas", 200.0, tolerance = 0.05),
         GramsCase("un vaso de leche", 250.0, tolerance = 0.25),
-        GramsCase("una botella de agua", 750.0, tolerance = 0.15),
+        // WP-N5: a bottle of water is 500 ml (the former 750 g was the wine bottle).
+        GramsCase("una botella de agua", 500.0, tolerance = 0.15),
         GramsCase("un puñado de almendras", 30.0, tolerance = 0.35),
         GramsCase("una rodaja de tomate", 30.0, tolerance = 0.35),
         GramsCase("150g arroz 100g pollo", 150.0),

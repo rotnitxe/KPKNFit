@@ -95,7 +95,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         micronutrients = listOf(Micronutrient("Hierro", 8.8, "mg"), Micronutrient("Calcio", 350.0, "mg"))),
     FoodItem(id = "gen058", name = "Avena Instantánea", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 389.0, protein = 16.9, carbs = 66.0, fats = 6.9,
         micronutrients = listOf(Micronutrient("Hierro", 4.7, "mg"), Micronutrient("Magnesio", 177.0, "mg"))),
-    FoodItem(id = "gen059", name = "Café (negro)", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 2.0, protein = 0.1, carbs = 0.0, fats = 0.0, caffeineMg = 40.0),
+    FoodItem(id = "gen059", name = "Café (negro)", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 2.0, protein = 0.1, carbs = 0.0, fats = 0.0, caffeineMg = 40.0, tags = listOf("zero_energy"), searchAliases = listOf("café sin azúcar", "café solo", "espresso", "americano")),
     FoodItem(id = "gen060", name = "Té Verde", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 1.0, protein = 0.0, carbs = 0.0, fats = 0.0, caffeineMg = 15.0),
     FoodItem(id = "gen061", name = "Cacao en polvo", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 228.0, protein = 20.0, carbs = 58.0, fats = 14.0,
         micronutrients = listOf(Micronutrient("Hierro", 13.9, "mg"), Micronutrient("Magnesio", 499.0, "mg"))),
@@ -345,6 +345,172 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         carbBreakdown = CarbBreakdown(sugar = 80.0),
         searchAliases = listOf("dulce", "golosina", "caramelo"),
     ),
+    // ─── WP-N5: bebidas y alimentos de 0 kcal ────────────────────────────────────────────────────────────────────────
+    // Valores por 100 g/ml como se bebe (PER_100G_AS_SOLD); `servingSize` es la porción individual típica (un vaso, una
+    // lata, una copa), nunca el denominador nutricional. `sourceRecordId` es el id FDC de data/usdaFoodsOffline.json.
+    // El tag "zero_energy" (<= 5 kcal) declara que sus macros en cero son reales: FoodIdentity.hasPlausibleMacros no
+    // los rechaza y ningún tope de masa los frena (dos litros de agua no son un envase de comida).
+    FoodItem(
+        id = "gen143",
+        name = "Agua",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 250.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "173647", // Beverages, water, tap, drinking
+        calories = 0.0,
+        protein = 0.0,
+        carbs = 0.0,
+        fats = 0.0,
+        tags = listOf("zero_energy"),
+        searchAliases = listOf("agua", "agua mineral", "agua sin gas", "agua mineral sin gas", "agua de la llave", "agua potable", "agua purificada", "agüita"),
+    ),
+    FoodItem(
+        id = "gen144",
+        name = "Té sin azúcar",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 240.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "173227", // Beverages, tea, black, brewed, prepared with tap water
+        calories = 1.0,
+        protein = 0.0,
+        carbs = 0.3,
+        fats = 0.0,
+        caffeineMg = 20.0, // té negro de taza: ~47 mg por 240 ml, en línea con el té verde (gen060)
+        tags = listOf("zero_energy"),
+        searchAliases = listOf("té", "te", "té negro", "agua de hierbas", "té de hierbas", "infusión"),
+    ),
+    // Receta: 60 % leche entera (gen016, FDC 171265) + 40 % café (FDC 171890): 37 kcal, 1,9 P, 2,9 C, 2,0 G por 100 ml.
+    FoodItem(
+        id = "gen145",
+        name = "Café con leche",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 240.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (receta: 60 % leche entera + 40 % café)",
+        sourceRecordId = "171265+171890",
+        calories = 37.0,
+        protein = 1.9,
+        carbs = 2.9,
+        fats = 2.0,
+        caffeineMg = 16.0, // 40 % de café (gen059: 40 mg por 100 ml)
+    ),
+    FoodItem(
+        id = "gen146",
+        name = "Bebida gaseosa",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 350.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "174852", // Beverages, carbonated, cola, regular
+        calories = 42.0,
+        protein = 0.0,
+        carbs = 10.4,
+        fats = 0.3,
+        caffeineMg = 8.0, // cola; las limón-lima (sprite) no llevan: promedio de los alias
+        searchAliases = listOf("bebida", "gaseosa", "coca cola", "coca-cola", "cocacola", "coca", "sprite", "fanta", "pepsi", "refresco", "bebida cola"),
+    ),
+    FoodItem(
+        id = "gen147",
+        name = "Bebida zero/light",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 350.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "171876", // Beverages, carbonated, low calorie, cola or pepper-types, with sodium saccharin
+        calories = 0.0,
+        protein = 0.0,
+        carbs = 0.1,
+        fats = 0.0,
+        caffeineMg = 10.0, // cola dietética
+        tags = listOf("zero_energy"),
+        searchAliases = listOf(
+            "bebida zero", "bebida light", "bebida diet", "bebida sin azúcar",
+            "gaseosa zero", "gaseosa light", "gaseosa diet", "gaseosa sin azúcar",
+            "coca cola zero", "coca zero", "coca cola light", "coca light", "coca cola diet", "coca cola sin azúcar",
+            "cocacola zero", "cocacola light", "cocacola diet",
+            "pepsi zero", "pepsi light", "pepsi diet", "pepsi max", "sprite zero", "sprite light", "fanta zero", "fanta light",
+        ),
+    ),
+    // Néctar típico de caja (~45 kcal/100 ml, ~11 g de azúcares); referencia USDA 171947 (jugo de fruta > 3 %: 46 kcal).
+    FoodItem(
+        id = "gen148",
+        name = "Jugo en caja (néctar)",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 200.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (néctar típico en caja)",
+        sourceRecordId = "171947",
+        calories = 45.0,
+        protein = 0.1,
+        carbs = 11.0,
+        fats = 0.0,
+        searchAliases = listOf("jugo", "néctar", "jugo en caja", "jugo de caja", "jugo envasado"),
+    ),
+    FoodItem(
+        id = "gen149",
+        name = "Cerveza",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 330.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "168746", // Alcoholic beverage, beer, regular, all
+        calories = 43.0,
+        protein = 0.5,
+        carbs = 3.6,
+        fats = 0.0,
+        searchAliases = listOf("cerveza", "chela", "schop", "cerveza rubia"),
+    ),
+    FoodItem(
+        id = "gen150",
+        name = "Vino",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 150.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "173190", // Alcoholic beverage, wine, table, red
+        calories = 85.0,
+        protein = 0.1,
+        carbs = 2.6,
+        fats = 0.0,
+        searchAliases = listOf("vino", "vino tinto", "vino blanco", "tinto", "blanco"),
+    ),
+    // El agua con gas va aparte porque su nombre es compuesto: "agua con gas" no puede ser un alias de "Agua", que
+    // FoodIdentity.matchesDeclaredIdentity rechaza por el " con " de la consulta frente al nombre simple de la ficha.
+    FoodItem(
+        id = "gen151",
+        name = "Agua con gas",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 250.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "USDA SR Legacy (rounded)",
+        sourceRecordId = "174842", // Beverages, carbonated, club soda
+        calories = 0.0,
+        protein = 0.0,
+        carbs = 0.0,
+        fats = 0.0,
+        tags = listOf("zero_energy"),
+        searchAliases = listOf("agua mineral con gas", "agua gasificada", "agua carbonatada"),
+    ),
 )
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
@@ -531,7 +697,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "queque del casino" to "queque",
     "galletas del casino" to "galleta",
     "café de máquina" to "café (negro)",
-    "café con leche" to "leche entera",
     // Postres / dulces
     "arroz con leche" to "arroz con leche",
     "leche asada" to "leche asada",
@@ -568,7 +733,7 @@ val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
     "empanada colombiana",
     // Internacionales / conceptos generales
     "cereal", "batido", "smoothie", "ensalada", "trigo",
-    "cafe con leche", "nuggets",
+    "nuggets",
 )
 
 /** Claves de aproximación normalizadas una sola vez (sin tildes, minúsculas). */
@@ -627,6 +792,16 @@ private val AMBIGUOUS_STATE_ALIASES = setOf(
 
 // Compiled/allocated once: findFoodByNormalized used to rebuild both for every catalog food on every call.
 private val NAME_WORD_SPLIT = "[\\s(),/]+".toRegex()
+
+// "Té sin azúcar" has no sugar: a declared absence is an attribute of the food, never a word of its identity, so a
+// query for "azúcar" must not find the tea (and borrow its serving size).
+private val DECLARED_ABSENCE_WORDS = Regex("""\bsin\s+\S+""")
+
+private fun nameForMatching(name: String): String {
+    val lower = name.lowercase()
+    // The lookups below run over the whole catalog on every call: only a name with a "sin" pays for the regex.
+    return if (" sin " in lower) lower.replace(DECLARED_ABSENCE_WORDS, " ") else lower
+}
 private val FILLER_WORDS = setOf("de", "con", "y", "e", "la", "el")
 
 // ─── Lookup Helpers ──────────────────────────────────────────────────────────
@@ -696,14 +871,14 @@ fun findFoodByNormalized(text: String): FoodItem? {
     val contentWords = aliasWords.filter { it !in FILLER_WORDS }
     if (aliasWords.isNotEmpty()) {
         val matches = allFoods.filter { food ->
-            val foodWords = food.name.lowercase().split(NAME_WORD_SPLIT).filter { it.length > 1 }
+            val foodWords = nameForMatching(food.name).split(NAME_WORD_SPLIT).filter { it.length > 1 }
             aliasWords.all { aw -> foodWords.any { fw -> fw == aw } } &&
                 !queryStealsChild(contentWords, food.name)
         }
         val chosen = if (contentWords.size >= 2) {
             val head = contentWords.first()
             matches.minByOrNull { food ->
-                val foodWords = food.name.lowercase()
+                val foodWords = nameForMatching(food.name)
                     .split(NAME_WORD_SPLIT)
                     .filter { it.length > 1 && it !in FILLER_WORDS }
                 val extra = (foodWords.size - contentWords.size).coerceAtLeast(0)
@@ -720,7 +895,7 @@ fun findFoodByNormalized(text: String): FoodItem? {
     // Segundo fallback inverso: que todas las palabras de la comida estén en el alias.
     // Queries de 2+ tokens no pueden elegir un hijo (taco de pollo ≠ Pollo).
     allFoods.find { food ->
-        val foodNameLower = food.name.lowercase()
+        val foodNameLower = nameForMatching(food.name)
         if (foodNameLower.length <= 3) return@find false
         val foodWords = foodNameLower.split(NAME_WORD_SPLIT).filter { it.length > 2 }
         if (foodWords.isEmpty()) return@find false
@@ -735,7 +910,7 @@ fun findFoodByNormalized(text: String): FoodItem? {
 private fun queryStealsChild(queryContent: List<String>, foodName: String): Boolean {
     if (queryContent.size < 2) return false
     val head = queryContent.first()
-    val foodTokens = foodName.lowercase().split(NAME_WORD_SPLIT).filter { it.length > 1 }
+    val foodTokens = nameForMatching(foodName).split(NAME_WORD_SPLIT).filter { it.length > 1 }
     val foodHasHead = foodTokens.any { it == head || it.startsWith(head) || head.startsWith(it) }
     if (foodHasHead) return false
     return foodTokens.isNotEmpty() && foodTokens.all { ft -> queryContent.any { it == ft || it.contains(ft) } }

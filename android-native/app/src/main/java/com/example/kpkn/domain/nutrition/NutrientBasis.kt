@@ -4,7 +4,20 @@ import com.example.kpkn.data.models.FoodItem
 
 /** Nutrient denominator is independent of the portion the person eats. */
 object NutrientBasis {
+    /** Tag of a food whose energy is nil or negligible (water, black tea, diet soda): its all-zero macros are real data. */
+    const val ZERO_ENERGY_TAG = "zero_energy"
+
+    /** A zero-energy declaration only holds up to this energy per nutrient basis (kcal): a mislabelled row cannot hide calories. */
+    const val ZERO_ENERGY_MAX_KCAL = 5.0
+
     fun isVerified(food: FoodItem): Boolean = food.qualityFlags.isEmpty() && FoodIdentity.hasPlausibleMacros(food)
+
+    /**
+     * True for a catalog row declared as zero-energy ([ZERO_ENERGY_TAG], at most [ZERO_ENERGY_MAX_KCAL] kcal). Such a row
+     * is valid with every macro at zero and is never held back by a mass cap: two litres of water are not a pack of food.
+     */
+    fun isZeroEnergy(food: FoodItem): Boolean =
+        food.calories <= ZERO_ENERGY_MAX_KCAL && food.tags.any { it.equals(ZERO_ENERGY_TAG, ignoreCase = true) }
 
     fun grams(food: FoodItem): Double = when {
         // Old custom JSON encoded the default PER_100G_AS_SOLD even though its

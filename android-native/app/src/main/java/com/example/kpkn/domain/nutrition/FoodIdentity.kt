@@ -424,7 +424,8 @@ object FoodIdentity {
     fun hasPlausibleMacros(food: FoodItem): Boolean {
         val values = listOf(food.calories, food.protein, food.carbs, food.fats)
         if (values.any { !it.isFinite() || it < 0.0 }) return false
-        if (food.calories <= 0.0 && values.drop(1).all { it == 0.0 }) return false
+        // An all-zero row is a broken one, unless the catalog declares it zero-energy (water, diet soda).
+        if (food.calories <= 0.0 && values.drop(1).all { it == 0.0 }) return NutrientBasis.isZeroEnergy(food)
         val macroEnergy = food.protein * 4.0 + food.carbs * 4.0 + food.fats * 9.0
         if (food.calories <= 0.0 || macroEnergy <= 0.0) return true
         return kotlin.math.abs(food.calories - macroEnergy) <= maxOf(80.0, food.calories * 0.70)

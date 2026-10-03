@@ -92,11 +92,12 @@ class ResolutionGoldenCorpusTest {
     }
 
     @Test
-    fun `café con leche conserva plato y estimación pendiente`() = runBlocking {
+    fun `café con leche resuelve a su ficha de receta y se guarda sin pregunta`() = runBlocking {
+        // WP-N5: antes era una aproximación (leche entera) en revisión; ahora tiene ficha propia (gen145).
         val tag = resolve("café con leche").single()
-        assertEquals(null, tag.foodItem)
-        assertEquals(FoodResolutionStatus.NEEDS_REVIEW, tag.resolutionStatus)
-        assertTrue(tag.hasMaterialQuestion())
+        assertEquals("gen145", tag.foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
+        assertFalse(tag.hasMaterialQuestion())
         assertNotNull(tag.loggedFood)
         assertTrue(tag.loggedFood!!.foodName.contains("café con leche", ignoreCase = true))
         assertTrue(tag.amountGrams!! in 150.0..350.0)

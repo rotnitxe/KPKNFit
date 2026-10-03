@@ -290,18 +290,94 @@ object SubjectivePortionEngine {
 
     // ─── Envases comerciales ────────────────────────────────────────────────
 
+    /** One container word; [fraction] is the share of one container the phrase names ("media botella" = 0.5). */
+    private class ContainerPattern(val pattern: Regex, val id: String, val fraction: Double = 1.0)
+
+    // The count is matched like a utensil's (see [resolve]): "2 latas" is read as "una latas", so the article and the
+    // plural agree with nothing here and only the container word matters. A "chica" variant goes before its container.
     private val CONTAINER_PATTERNS = listOf(
-        Triple(Regex("""\buna\s+lata\b""", RegexOption.IGNORE_CASE), 180.0, "lata"),
-        Triple(Regex("""\bun\s+bote\b""", RegexOption.IGNORE_CASE), 400.0, "bote"),
-        Triple(Regex("""\bun\s+frasco\b""", RegexOption.IGNORE_CASE), 250.0, "frasco"),
-        Triple(Regex("""\buna\s+botella\b""", RegexOption.IGNORE_CASE), 750.0, "botella"),
-        Triple(Regex("""\bmedia\s+botella\b""", RegexOption.IGNORE_CASE), 375.0, "media_botella"),
-        Triple(Regex("""\bun\s+cuarto\s+de\s+botella\b""", RegexOption.IGNORE_CASE), 187.0, "cuarto_botella"),
-        Triple(Regex("""\buna\s+c[aá]psula\b""", RegexOption.IGNORE_CASE), 6.0, "capsula"),
-        Triple(Regex("""\bun\s+cart[oó]n\b""", RegexOption.IGNORE_CASE), 1000.0, "carton"),
-        Triple(Regex("""\buna\s+caja\b""", RegexOption.IGNORE_CASE), 500.0, "caja"),
-        Triple(Regex("""\buna\s+bolsa\b""", RegexOption.IGNORE_CASE), 200.0, "bolsa"),
+        ContainerPattern(Regex("""\bmedia\s+botella\b""", RegexOption.IGNORE_CASE), "botella", 0.5),
+        ContainerPattern(Regex("""\bun\s+cuarto\s+de\s+botella\b""", RegexOption.IGNORE_CASE), "botella", 0.25),
+        ContainerPattern(Regex("""\b(?:un|una)\s+(?:latas?\s+(?:chicas?|peque[ñn][oa]s?)|latitas?)\b""", RegexOption.IGNORE_CASE), "lata_chica"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+latas?\b""", RegexOption.IGNORE_CASE), "lata"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+botellitas?\b""", RegexOption.IGNORE_CASE), "botellita"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+botellas?\b""", RegexOption.IGNORE_CASE), "botella"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+vasit[oa]s?\b""", RegexOption.IGNORE_CASE), "vasito"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+cajitas?\b""", RegexOption.IGNORE_CASE), "cajita"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+cajas?\b""", RegexOption.IGNORE_CASE), "caja"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+cart[oó](?:n|nes)\b""", RegexOption.IGNORE_CASE), "carton"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+botes?\b""", RegexOption.IGNORE_CASE), "bote"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+frascos?\b""", RegexOption.IGNORE_CASE), "frasco"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+bolsas?\b""", RegexOption.IGNORE_CASE), "bolsa"),
+        ContainerPattern(Regex("""\b(?:un|una)\s+c[aá]psulas?\b""", RegexOption.IGNORE_CASE), "capsula"),
     )
+
+    private const val CONTAINER_DEFAULT = "default"
+
+    /**
+     * Content of ONE container by food class (WP-N5): ml for a drink, g for a solid. A can holds 350 ml of soda or
+     * beer but 170 g of tuna and 400 g of beans, so the container alone says nothing: the class of the food picks the
+     * row, and [CONTAINER_DEFAULT] is the content of a container of anything else (the former fixed table). Common
+     * retail sizes: soda/beer can 350 ml, small can 250 ml, water or soda bottle 500 ml, beer bottle 330 ml, wine
+     * bottle 750 ml, juice carton 1 L, single-serve juice box 200 ml. Per-class values only where the size is standard.
+     */
+    private val CONTAINER_ML: Map<String, Map<String, Double>> = mapOf(
+        "lata" to mapOf("bebida" to 350.0, "cerveza" to 350.0, "jugo" to 350.0, "conserva" to 170.0, "legumbre" to 400.0, CONTAINER_DEFAULT to 180.0),
+        "lata_chica" to mapOf("bebida" to 250.0, "cerveza" to 250.0, "conserva" to 120.0, CONTAINER_DEFAULT to 120.0),
+        "botellita" to mapOf(CONTAINER_DEFAULT to 330.0),
+        "botella" to mapOf("agua" to 500.0, "bebida" to 500.0, "cerveza" to 330.0, "vino" to 750.0, CONTAINER_DEFAULT to 750.0),
+        "vasito" to mapOf(CONTAINER_DEFAULT to 150.0),
+        "cajita" to mapOf(CONTAINER_DEFAULT to 200.0),
+        "caja" to mapOf("jugo" to 200.0, "bebida" to 200.0, CONTAINER_DEFAULT to 500.0),
+        "carton" to mapOf(CONTAINER_DEFAULT to 1000.0),
+        "bote" to mapOf(CONTAINER_DEFAULT to 400.0),
+        "frasco" to mapOf(CONTAINER_DEFAULT to 250.0),
+        "bolsa" to mapOf(CONTAINER_DEFAULT to 200.0),
+        "capsula" to mapOf(CONTAINER_DEFAULT to 6.0),
+    )
+
+    // Food classes of [CONTAINER_ML] on an accent-free key; wine, beer and canned fish go before water ("atun al agua").
+    private val CONTAINER_WINE = Regex("""\b(?:vinos?|tintos?|espumantes?)\b""")
+    private val CONTAINER_BEER = Regex("""\b(?:cervezas?|chelas?|schops?)\b""")
+    private val CONTAINER_CANNED_FISH = Regex("""\b(?:atun|jurel|sardinas?|caballa|anchoas?|salmon|choritos?|machas?|almejas?|mejillones)\b""")
+    private val CONTAINER_LEGUME = Regex("""\b(?:porotos?|lentejas?|garbanzos?|arvejas?|frijoles?|frejoles?|habas?)\b""")
+    private val CONTAINER_WATER = Regex("""\baguas?\b""")
+    private val CONTAINER_JUICE = Regex("""\b(?:jugos?|zumos?|nectar(?:es)?)\b""")
+    private val CONTAINER_SODA = Regex("""\b(?:bebidas?|gaseosas?|refrescos?|coca|cola|sprite|fanta|pepsi|energeticas?|gatorade|powerade|monster)\b""")
+
+    private fun containerClass(food: String): String? {
+        val key = FoodIdentity.normalize(food)
+        return when {
+            CONTAINER_WINE.containsMatchIn(key) -> "vino"
+            CONTAINER_BEER.containsMatchIn(key) -> "cerveza"
+            CONTAINER_CANNED_FISH.containsMatchIn(key) -> "conserva"
+            CONTAINER_LEGUME.containsMatchIn(key) -> "legumbre"
+            CONTAINER_WATER.containsMatchIn(key) -> "agua"
+            CONTAINER_JUICE.containsMatchIn(key) -> "jugo"
+            CONTAINER_SODA.containsMatchIn(key) -> "bebida"
+            else -> null
+        }
+    }
+
+    /** Content of one [id] container holding [food] (ml for a drink, g for a solid). */
+    private fun containerContent(id: String, food: String): Double {
+        val row = CONTAINER_ML[id].orEmpty()
+        return containerClass(food)?.let(row::get) ?: row[CONTAINER_DEFAULT] ?: 0.0
+    }
+
+    // Containers that only hold liquids: their content is a volume, converted like any measured volume (see below).
+    private val LIQUID_CONTAINERS = setOf("botella", "botellita", "carton", "vasito", "cajita")
+
+    /**
+     * The mass of [content] ml of [food]: milk, oil and drinks weigh what their density says (a 1 L carton of milk is as
+     * heavy as "1 litro de leche", 1030 g); anything else keeps 1 g per ml, the former reading of these containers.
+     */
+    private fun liquidGrams(content: Double, food: String, category: FoodDensityCategory?): Double {
+        val density = (category ?: detectDensityCategory(food))
+            .takeIf { it == FoodDensityCategory.DAIRY || it == FoodDensityCategory.FAT || it == FoodDensityCategory.LIQUID }
+            ?.densityGPerMl ?: 1.0
+        return content * density
+    }
 
     // ─── Comparaciones con objetos ──────────────────────────────────────────
 
@@ -456,14 +532,17 @@ object SubjectivePortionEngine {
             )
         }
 
-        for ((pattern, baseGrams, source) in CONTAINER_PATTERNS) {
-            val match = pattern.find(lower) ?: continue
+        // Containers take their count like utensils do ("2 latas de atún" = 2 cans), and their content by food class.
+        for (container in CONTAINER_PATTERNS) {
+            if (!container.pattern.containsMatchIn(utensilExpression)) continue
+            val count = (utensilCount ?: 1.0) * container.fraction
+            val content = containerContent(container.id, foodName ?: lower)
             return PortionResult(
-                grams = baseGrams,
+                grams = (if (container.id in LIQUID_CONTAINERS) liquidGrams(content, foodName ?: lower, foodCategory) else content) * count,
                 confidence = 0.65,
-                source = "container:$source",
+                source = "container:${container.id}",
                 expression = expression,
-                relativeFactor = 1.0,
+                relativeFactor = count,
             )
         }
 
@@ -541,7 +620,9 @@ object SubjectivePortionEngine {
         val lower = foodName.lowercase().replace(SIN_ATTRIBUTE_PATTERN, "")
 
         return when {
-            lower.contains("leche") || lower.contains("bebida de avena") -> FoodDensityCategory.DAIRY
+            lower.contains("leche") || lower.contains("bebida de avena") || BLENDED_DRINK_PATTERN.containsMatchIn(lower) -> FoodDensityCategory.DAIRY
+            // A drink is a liquid whatever it is made of: "jugo de naranja" must not weigh like an orange (60 %).
+            BEVERAGE_PATTERN.containsMatchIn(lower) -> FoodDensityCategory.LIQUID
             lower.contains("aceite") || lower.contains("mantequilla") || lower.contains("manteca") || lower.contains("ghee") || lower.contains("margarina") || lower.contains("mayonesa") || lower.contains("mayo") -> FoodDensityCategory.FAT
             lower.contains("azúcar") || lower.contains("azucar") || lower.contains("harina") || lower.contains("cacao") || lower.contains("canela") -> FoodDensityCategory.POWDER
             lower.contains("arroz") || lower.contains("pasta") || lower.contains("quinoa") || lower.contains("avena") || lower.contains("lenteja") || lower.contains("garbanzo") || lower.contains("poroto") -> FoodDensityCategory.GRAIN
@@ -550,7 +631,6 @@ object SubjectivePortionEngine {
             lower.contains("manzana") || lower.contains("plátano") || lower.contains("naranja") || lower.contains("uva") || lower.contains("frutilla") || lower.contains("pera") -> FoodDensityCategory.FRUIT
             lower.contains("leche") || lower.contains("yogurt") || lower.contains("yogur") || lower.contains("queso") || lower.contains("crema") -> FoodDensityCategory.DAIRY
             lower.contains("almendra") || lower.contains("nuez") || lower.contains("maní") || lower.contains("cashew") || lower.contains("chía") -> FoodDensityCategory.NUTS
-            lower.contains("agua") || lower.contains("jugo") || lower.contains("zumo") || lower.contains("leche") || lower.contains("vino") || lower.contains("cerveza") -> FoodDensityCategory.LIQUID
             else -> FoodDensityCategory.MIXED
         }
     }
@@ -586,6 +666,13 @@ object SubjectivePortionEngine {
         """^((?:un|1)\s+cuarto\s+de|(?:un|1)\s+tercio\s+de|media|medio|mitad\s+de|\d+(?:[.,]\d+)?(?:/\d+)?|un|una)\s+(?:de\s+)?""",
     )
     private val SIN_ATTRIBUTE_PATTERN = Regex("""\bsin\s+(?:az[uú]car|lactosa|gluten)\b""")
+
+    // Whole words only, so "aguacate", "tomate" and "mate" never match one another.
+    private val BEVERAGE_PATTERN = Regex(
+        RegexEs.bounded("""aguas?|t[eé]s?|caf[eé]s?|bebidas?|gaseosas?|jugos?|zumos?|n[eé]ctar(?:es)?|cervezas?|chelas?|schops?|vinos?|refrescos?|mates?|infusi[oó]n(?:es)?|caldos?|coca|sprite|fanta|pepsi"""),
+        RegexOption.IGNORE_CASE,
+    )
+    private val BLENDED_DRINK_PATTERN = Regex(RegexEs.bounded("""batidos?|licuados?|smoothies?|malteadas?"""), RegexOption.IGNORE_CASE)
     private val PROCESSED_OAT_PATTERN = Regex("""\b(?:leche|bebida|galleta\w*|pan|barrita\w*|batido)\b""")
 
     private fun extractFoodName(expression: String): String? {

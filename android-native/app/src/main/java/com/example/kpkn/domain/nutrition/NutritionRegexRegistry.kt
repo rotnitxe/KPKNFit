@@ -21,6 +21,8 @@ object NutritionRegexRegistry {
         Holder("TextNormalizer") {
             TextNormalizer.normalize("hoy me comí dos huevos poché, medio kilo de pollo a la plancha, 1,5 tazas de arroz y un vaso de agua \uD83E\uDD51")
             TextNormalizer.normalize("two eggs and a cup of oats with honey, no sugar")
+            // WP-N5: units and fractions of the kilo and the litre.
+            TextNormalizer.normalize("1 lt de agua, 500 cc de leche, 200 cm\u00B3 de leche, 2 kilogramos de arroz, un cuarto de kilo de carne y litro y medio de jugo")
             TextNormalizer.canonicalizeDiminutives("huevitos")
             TextNormalizer.normalizeFoodName("pollote")
             TextNormalizer.startsWithNumberWordFoodName("tres leches")
@@ -28,6 +30,8 @@ object NutritionRegexRegistry {
         // File-level patterns of FoodParser.kt, plus everything the parser calls on the way.
         Holder("FoodParser") {
             parseMealDescription("Desayuno: 2 huevos poché. Almorcé 150 g de salmón ahumado con arroz, sin sal, 3 tomates y una porción de pastel de choclo")
+            // WP-N5: a drink in its vessel or container, a counted catalog phrase and a "sin" modifier of a drink.
+            parseMealDescription("un vaso de jugo de naranja, una lata chica de coca cola, 2 botellas de agua, una bebida light y agua sin gas")
         },
         Holder("ContextDetector") { ContextDetector.detect("desayuno en la oficina, un tentempié") },
         Holder("FoodCombinationParser") { FoodCombinationParser.parse("pan con palta y huevo") },
@@ -37,12 +41,18 @@ object NutritionRegexRegistry {
         Holder("SubjectivePortionEngine") {
             SubjectivePortionEngine.resolve("un puñado de almendras")
             SubjectivePortionEngine.detectDensityCategory("jugo de naranja")
+            // WP-N5: containers by food class and drinks.
+            SubjectivePortionEngine.resolve("2 latas de atún")
+            SubjectivePortionEngine.resolve("una lata chica de coca cola")
+            SubjectivePortionEngine.detectDensityCategory("té sin azúcar")
         },
         Holder("SubjectivePortionLexicon") { SubjectivePortionLexicon.resolve("dos rebanadas de queso") },
         Holder("HouseholdPortions") {
             HouseholdPortions.isCountable(null, "huevo")
             HouseholdPortions.looksLikeCountExpression("2 huevos")
             HouseholdPortions.isExplicitKilogram("1 kg de papas")
+            HouseholdPortions.isExplicitKilogram("2 litros de agua")
+            HouseholdPortions.unitGrams(null, "jugo de naranja")
             HouseholdPortions.looksLikePackName("pack 1kg")
         },
         Holder("FoodIdentity") {

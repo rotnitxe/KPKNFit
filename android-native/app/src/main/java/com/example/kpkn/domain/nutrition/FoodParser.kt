@@ -14,7 +14,8 @@ import com.example.kpkn.data.models.*
 
 // ─── Regex Patterns ──────────────────────────────────────────────────────────
 
-private const val GRAM_UNITS = "g|gr|gramos?|kg|kilos?|ml|mililitros?|l|litros?|oz|onzas?|lb|libras?"
+// "lt/lts", "cc" and "cm3" are rewritten by the normalizer (litres, millilitres); they stay here for text that skips it.
+private const val GRAM_UNITS = "g|gr|gramos?|kg|kilogramos?|kilos?|ml|cc|cm3|mililitros?|lts?|l|litros?|oz|onzas?|lb|libras?"
 
 private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:$GRAM_UNITS)\b(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
 
@@ -156,7 +157,7 @@ private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
 private val NEGATION_PATTERN = Regex("""\b(?:sin|no|ni)\b""", RegexOption.IGNORE_CASE)
 private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*($GRAM_UNITS)\b""", RegexOption.IGNORE_CASE)
-private val KG_LITER_PATTERN = Regex("kg|kilos?|l$|litros?")
+private val KG_LITER_PATTERN = Regex("kg|kilogramos?|kilos?|l$|lts?|litros?")
 private val OZ_PATTERN = Regex("oz|onzas?")
 private val LB_PATTERN = Regex("lb|libras?")
 private val MULTISPACE_PATTERN = Regex("\\s{2,}")
@@ -190,7 +191,7 @@ private val INHERITABLE_VESSEL = Regex(
 
 // Segmentation / negation helpers: compiled once instead of on every fragment.
 private val SIN_PREFIX_PATTERN = Regex("""^sin\s+""", RegexOption.IGNORE_CASE)
-private val KNOWN_NEGATION_TARGET_PATTERN = Regex("""^(?:lactosa|gluten|az[uú]car(?:es)?)(?:\b|$)""")
+private val KNOWN_NEGATION_TARGET_PATTERN = Regex("""^(?:lactosa|gluten|gas|az[uú]car(?:es)?)(?:\b|$)""")
 private val COMMA_BEFORE_EXCLUSION_PATTERN = Regex(""",[ \t]*(?=(?:sin|ni)[ \t]+)""", RegexOption.IGNORE_CASE)
 private val LEADING_CONNECTOR_PATTERN = Regex("""^(?:con|y|e)\s+""", RegexOption.IGNORE_CASE)
 private val CONNECTOR_SINO = Regex("""\s+sino\s+""", RegexOption.IGNORE_CASE)
@@ -695,7 +696,8 @@ private fun extractGramsFromFragment(text: String): MeasuredAmount {
     }
 
     val cleaned = text.replace(match.value, " ").replace(MULTISPACE_PATTERN, " ").trim()
-    val isVolume = unit == "ml" || unit == "l" || unit.startsWith("mililitro") || unit.startsWith("litro")
+    val isVolume = unit == "ml" || unit == "cc" || unit == "cm3" || unit == "l" || unit == "lt" || unit == "lts" ||
+        unit.startsWith("mililitro") || unit.startsWith("litro")
     return MeasuredAmount(
         grams = if (isVolume) SubjectivePortionEngine.massFromVolumeMl(value, cleaned) else value,
         foodPart = cleaned,
@@ -771,14 +773,29 @@ private val SUBJECTIVE_PHRASE_STRIP = Regex(
     RegexOption.IGNORE_CASE,
 )
 
+// A drink in a vessel or a container ("un vaso de jugo de naranja", "una lata chica de coca cola", "2 botellas de agua con
+// gas"): the vessel measures the drink, whatever the drink is called. Group 1 is the drink.
+private val DRINK_IN_VESSEL = Regex(
+    """^(?:(?:un|una|unos|unas|\d+(?:[.,]\d+)?|media|medio)\s+|(?:un|1)\s+cuarto\s+de\s+)?""" +
+        """(?:vasos?|tazas?|copas?|jarr[oa]s?|pocillos?|tazones?|botell(?:as?|itas?)|latas?|latitas?|cart[oó](?:n|nes)|cajas?|cajitas?|vasit[oa]s?)""" +
+        """(?:\s+(?:chic[oa]s?|peque[ñn][oa]s?|grandes?|rebosantes?))?\s+de\s+(.+)$""",
+    RegexOption.IGNORE_CASE,
+)
+private val DRINK_HEAD = Regex(
+    "^" + RegexEs.bounded("""aguas?|t[eé]s?|caf[eé]s?|jugos?|zumos?|n[eé]ctar(?:es)?|bebidas?|gaseosas?|cervezas?|chelas?|schops?|vinos?|refrescos?|mates?|infusi[oó]n(?:es)?|caldos?|leche|coca|sprite|fanta|pepsi|batidos?|licuados?|smoothies?"""),
+    RegexOption.IGNORE_CASE,
+)
+
 private fun resolveViaSubjectiveEngine(
     text: String,
     retrievalResult: SemanticPortionRetriever.RetrievalResult?,
 ): ReferenceResult {
+    val drinkInVessel = DRINK_IN_VESSEL.find(text)?.groupValues?.get(1)?.trim()?.takeIf { DRINK_HEAD.containsMatchIn(it) }
     // Entidades protegidas ("empanada de pino", "café con leche"…) se resuelven
     // como plato completo: el motor las fragmentaría mal ("una empanada de pino"
-    // dejaría "pino" como alimento).
-    if (PROTECTED_ENTITIES_REGEX.containsMatchIn(text)) {
+    // dejaría "pino" como alimento). Una bebida en su vaso o envase sí se mide: el
+    // envase la mide y la bebida es todo lo que sigue a su "de".
+    if (drinkInVessel == null && PROTECTED_ENTITIES_REGEX.containsMatchIn(text)) {
         return ReferenceResult(null, 1.0, text)
     }
     val food = findFoodByNormalized(text)
@@ -795,7 +812,9 @@ private fun resolveViaSubjectiveEngine(
     // Quitar la frase subjetiva ("un montón de") conservando el alimento. Si no hay
     // "de" (ej. "una marraqueta"), se deja el texto completo: parseQuantityMultiplier
     // se encarga del artículo y deja "marraqueta" como nombre.
-    val foodPart = SUBJECTIVE_PHRASE_STRIP.find(text)
+    // The strip below takes up to three words before the "de", which would swallow "vaso de jugo" of
+    // "un vaso de jugo de manzana": a drink keeps its whole name.
+    val foodPart = drinkInVessel?.takeIf { it.length >= 2 } ?: SUBJECTIVE_PHRASE_STRIP.find(text)
         ?.groupValues
         ?.get(1)
         ?.trim()
@@ -809,7 +828,7 @@ private fun resolveViaSubjectiveEngine(
         quantity = result.relativeFactor.takeIf {
             foodPart != text && (result.source.startsWith("lexicon:") ||
                 result.source.startsWith("utensil:") || result.source.startsWith("scoop:") ||
-                result.source.startsWith("bread:"))
+                result.source.startsWith("bread:") || result.source.startsWith("container:"))
         } ?: 1.0,
         foodPart = foodPart,
         unitId = result.source.takeUnless { it == "dataset-prior" || it.startsWith("subjective:") }
@@ -984,6 +1003,8 @@ private data class MacroScale(
     val fats: Double = 1.0,
 )
 
+private val LEADING_COUNT_PATTERN = Regex("""^(?:\d+(?:[.,]\d+)?|un|una|uno)\s+""", RegexOption.IGNORE_CASE)
+
 private val MODIFIER_PATTERNS = listOf(
     // sin piel / sin grasa → fats ×0.6
     Pair(Regex("""\bsin\s+(piel|grasa)\b""", RegexOption.IGNORE_CASE),
@@ -1023,7 +1044,10 @@ private fun extractModifiers(
     // E16: una frase de alimento conocida completa ("pan integral", "arroz
     // integral") es identidad: el modificador ya vive en la fila del catálogo
     // y no debe arrancarle la palabra ("pan integral" ≠ "pan").
-    if (PROTECTED_ENTITY_PHRASES.any { it.equals(text.trim(), ignoreCase = true) }) {
+    // The count in front of it ("1 bebida light") does not turn the catalog phrase into another food.
+    val phrase = text.trim()
+    val phraseWithoutCount = phrase.replace(LEADING_COUNT_PATTERN, "")
+    if (PROTECTED_ENTITY_PHRASES.any { it.equals(phrase, ignoreCase = true) || it.equals(phraseWithoutCount, ignoreCase = true) }) {
         return Triple(null, currentGrams, text)
     }
     var working = text

@@ -157,13 +157,15 @@ class EverydayMealCorpusTest {
     fun `platos chilenos cotidianos se guardan solos`() = runBlocking {
         assertSaveableEveryday(resolve("completo").single(), "cl002", 150.0..250.0, 300.0..460.0, "completo")
         assertSaveableEveryday(resolve("cazuela").single(), "cl004", 300.0..450.0, 280.0..420.0, "cazuela")
-        for (query in listOf("once", "café con leche")) {
+        for (query in listOf("once")) {
             val estimated = resolve(query).single()
             assertEquals(null, estimated.foodItem)
             assertTrue(estimated.hasMaterialQuestion())
             assertNotNull(estimated.loggedFood)
             assertTrue(estimated.loggedFood!!.foodName.contains(query, ignoreCase = true))
         }
+        // WP-N5: "café con leche" is a catalog row (37 kcal/100 ml, a cup of it), saved like any everyday dish.
+        assertSaveableEveryday(resolve("café con leche").single(), "gen145", 180.0..280.0, 60.0..110.0, "café con leche")
         val mixed = resolve("arroz con pollo")
         assertEquals(2, mixed.size)
         val arroz = mixed.single { it.tag.contains("arroz", ignoreCase = true) }

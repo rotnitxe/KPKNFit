@@ -19,6 +19,18 @@ object HouseholdPortions {
     const val MAX_ITEM_GRAMS_WITHOUT_KG = 600.0
     const val MAX_ITEM_KCAL_WITHOUT_KG = 1200.0
 
+    /** A liquid in a declared container ("2 latas", a 1 L carton) is no pack-sized meal: its mass cap is higher. */
+    const val MAX_LIQUID_GRAMS_WITHOUT_KG = 1500.0
+
+    /** [FoodItem.category] of the drinks of the static catalog (water, tea, soda, beer, wine...). */
+    const val BEVERAGE_CATEGORY = "bebida"
+
+    /** One counted drink with no vessel named ("un jugo de naranja", "2 jugos") is one standard glass, 250 ml. */
+    private const val GLASS_GRAMS = 250.0
+
+    /** A "jugo en caja" is the 200 ml carton sold for one person. */
+    private const val JUICE_BOX_GRAMS = 200.0
+
     /** Grams a per-100 g basis refers to: a denominator, not a portion anyone eats. */
     private const val NUTRIENT_DENOMINATOR_GRAMS = 100.0
 
@@ -56,7 +68,13 @@ object HouseholdPortions {
     private val COUNT_EXPRESSION_PATTERN = Regex(
         """^(?:un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|medio|\d+(?:[.,]\d+)?)\s+\S+""",
     )
-    private val EXPLICIT_KILOGRAM_PATTERN = Regex("""\b\d+(?:[.,]\d+)?\s*(?:kg|kilo|kilos)\b""")
+    // An amount stated in a bulk unit: kilograms or litres ("2 kg", "1 kilogramo", "2 litros", "1 l", "1 lt").
+    private val EXPLICIT_BULK_UNIT_PATTERN = Regex(
+        """\b\d+(?:[.,]\d+)?\s*(?:kg|kilos?|kilogramos?|l|lts?|litros?)\b""",
+    )
+
+    // A juice named by its head noun ("jugo de naranja", "zumo", "nectar"): counted in glasses, never in fruits.
+    private val JUICE_HEAD_PATTERN = Regex("""^(?:jugos?|zumos?|nectar(?:es)?)(?: |$)""")
 
     fun looksLikePackName(name: String): Boolean {
         val n = FoodIdentity.normalize(name)
@@ -78,6 +96,8 @@ object HouseholdPortions {
     }
 
     fun isCountable(food: FoodItem?, query: String? = null): Boolean {
+        // "un jugo de naranja" counts glasses of juice ([unitGrams]); it is not an orange, whatever fruit it names.
+        if (query != null && JUICE_HEAD_PATTERN.containsMatchIn(FoodIdentity.normalize(query))) return true
         if (food != null) {
             if (food.unit.equals("u", ignoreCase = true)) return true
             val family = FoodIdentity.familyFor(food)
@@ -93,6 +113,7 @@ object HouseholdPortions {
 
     fun unitGrams(food: FoodItem?, query: String? = null): Double {
         val q = FoodIdentity.normalize(query ?: food?.name.orEmpty())
+        if (JUICE_HEAD_PATTERN.containsMatchIn(q)) return if (q.contains("caja")) JUICE_BOX_GRAMS else GLASS_GRAMS
         if (q.contains("marraqueta")) return 100.0
         if (q.contains("hallulla") || q.contains("hallula")) return 80.0
         if (q.contains("sopaipilla")) return 60.0
@@ -134,6 +155,8 @@ object HouseholdPortions {
     fun defaultGrams(food: FoodItem?, query: String? = null): Double {
         if (isCountable(food, query)) return unitGrams(food, query)
         FoodStapleOntology.householdDefaultGrams(query ?: "", food)?.let { return it }
+        // A beverage row declares its own single serving: a glass of water, a can of soda, a copa of wine.
+        food?.takeIf(::isBeverageRow)?.let { return NutrientBasis.massForServingUnits(it, it.servingSize) }
         val queryNorm = FoodIdentity.normalize(query.orEmpty())
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
@@ -175,9 +198,13 @@ object HouseholdPortions {
         }
     }
 
+    private fun isBeverageRow(food: FoodItem?): Boolean = food?.category.equals(BEVERAGE_CATEGORY, ignoreCase = true)
+
     internal fun hasClassDefault(food: FoodItem?, query: String?): Boolean {
         if (FoodStapleOntology.hasAnchoredPortion(query ?: "", food)) return true
         if (isCountable(food, query)) return true
+        // A beverage row of the catalog declares its own single serving (a glass, a can, a copa).
+        if (isBeverageRow(food)) return true
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
         )
@@ -250,6 +277,8 @@ object HouseholdPortions {
         query: String,
         context: ContextDetector.ContextResult,
     ): Double {
+        // A drink keeps its own serving whatever plate surrounds it: "un completo y una coca cola" is not 40 g of cola.
+        if (isBeverageRow(food)) return defaultGrams(food, query)
         val factor = context.primaryContext.portionFactor.coerceIn(0.55, 1.45)
         val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
         val role = inferredRole(blob)
@@ -395,10 +424,16 @@ object HouseholdPortions {
         return COUNT_EXPRESSION_PATTERN.containsMatchIn(t)
     }
 
-    fun isExplicitKilogram(text: String): Boolean {
+    /**
+     * True when the text states its amount in a bulk unit, kilograms or litres: such a mass is what the person ate,
+     * never a pack default to cap ("2 litros de agua", "1 kg de papas"). Legacy name: the drawer and the warm-up call it.
+     */
+    fun isExplicitKilogram(text: String): Boolean = isExplicitBulkUnit(text)
+
+    fun isExplicitBulkUnit(text: String): Boolean {
         val t = FoodIdentity.normalize(text)
-        return EXPLICIT_KILOGRAM_PATTERN.containsMatchIn(t) ||
-            t.contains("medio kilo") || t.contains("medio kilogramo")
+        return EXPLICIT_BULK_UNIT_PATTERN.containsMatchIn(t) ||
+            t.contains("medio kilo") || t.contains("medio kilogramo") || t.contains("medio litro")
     }
 
     fun plausibilityClamp(
@@ -437,10 +472,18 @@ object HouseholdPortions {
         explicitKilogram: Boolean,
     ): Boolean {
         if (explicitKilogram) return true
+        // Zero energy has no calories to cap: a litre of water is not a pack-sized meal.
+        if (NutrientBasis.isZeroEnergy(food)) return true
         val serving = NutrientBasis.grams(food)
         val kcal = food.calories * grams / serving
-        return kcal <= MAX_ITEM_KCAL_WITHOUT_KG && grams <= MAX_ITEM_GRAMS_WITHOUT_KG
+        val maxGrams = if (isLiquidFood(food)) MAX_LIQUID_GRAMS_WITHOUT_KG else MAX_ITEM_GRAMS_WITHOUT_KG
+        return kcal <= MAX_ITEM_KCAL_WITHOUT_KG && grams <= maxGrams
     }
+
+    /** A volume-measured row ("ml"/"l") or a drink by name: its mass is a container's, not a pack's. */
+    private fun isLiquidFood(food: FoodItem): Boolean =
+        food.unit.trim().lowercase() in setOf("ml", "l") ||
+            SubjectivePortionEngine.detectDensityCategory(food.name) == SubjectivePortionEngine.FoodDensityCategory.LIQUID
 
     fun catalogFoodFor(query: String): FoodItem? = householdStaticFood(query)
 
