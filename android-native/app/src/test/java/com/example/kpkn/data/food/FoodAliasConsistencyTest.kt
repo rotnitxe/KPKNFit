@@ -57,7 +57,7 @@ class FoodAliasConsistencyTest {
         val declared = FOOD_ALIASES.keys.map(::foodAliasKey).toSet()
         FOOD_ALIASES_APPROXIMATION.forEach { assertTrue("approximation \"$it\" is no declared alias", foodAliasKey(it) in declared) }
         // The plural of an approximation is the same approximation; a plain alias is none.
-        listOf("torta", "tortas", "Torta de jamón", "ensaladas", "cereales", "galletas").forEach { assertTrue(it, isApproximationAlias(it)) }
+        listOf("torta", "tortas", "Torta de jamón", "ensaladas", "milanesas", "galletas").forEach { assertTrue(it, isApproximationAlias(it)) }
         listOf("papas", "huevos", "pechuga", "tomate").forEach { assertFalse(it, isApproximationAlias(it)) }
     }
 

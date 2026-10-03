@@ -167,10 +167,12 @@ class SearchGoldenCorpusTest {
     fun `21 pechuga de pollo finds the cooked breast`() = assertTop("pechuga de pollo", "gen004")
 
     @Test
-    fun `22 nuggets finds supermarket SKUs and never raw chicken`() {
+    fun `22 nuggets finds the curated row and supermarket SKUs and never raw chicken`() {
         val results = search("nuggets")
         assertTrue(results.isNotEmpty())
-        assertTrue(results.all { it.source == SearchSource.OFF })
+        // WP-D1: nuggets have a curated row of their own (gen164); the supermarket SKUs of the pool are still found.
+        assertTrue("gen164" in results.map { it.foodId })
+        assertTrue(results.any { it.source == SearchSource.OFF })
         assertTrue("gen003" !in results.take(3).map { it.foodId })
         assertTrue(results.first().food.name.contains("nugget", ignoreCase = true))
     }

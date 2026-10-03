@@ -31,7 +31,26 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen003", name = "Pechuga de Pollo (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 106.0, protein = 22.5, carbs = 0.0, fats = 1.9, cookingWeightFactor = 0.75),
     FoodItem(id = "gen004", name = "Pechuga de Pollo (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 166.0, protein = 32.1, carbs = 0.0, fats = 3.2),
     FoodItem(id = "gen005", name = "Arroz Blanco (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3),
-    FoodItem(id = "gen006", name = "Arroz Integral (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 111.0, protein = 2.6, carbs = 23.0, fats = 0.9),
+    // WP-S11: la única ficha de arroz integral cocido. FDC 169704 (Rice, brown, long-grain, cooked): 123 kcal, 2,7 P, 26 C, 0,9 G por 100 g,
+    // redondeados como la antigua gen136, que se fusionó aquí (111 kcal de esta fila contradecían los 123 de la otra). El id viejo sigue
+    // resolviendo por LEGACY_FOOD_ID_REDIRECTS: los aprendizajes y plantillas que lo guardaron no se pierden.
+    FoodItem(
+        id = "gen006",
+        name = "Arroz Integral (cocido)",
+        brand = "Genérico",
+        category = "cereal",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 169704, brown rice long-grain cooked)",
+        sourceRecordId = "169704", // Rice, brown, long-grain, cooked
+        calories = 123.0,
+        protein = 2.7,
+        carbs = 26.0,
+        fats = 0.9,
+        foodState = "COOKED",
+        searchAliases = listOf("arroz integral", "arroz integral cocido"),
+    ),
     FoodItem(id = "gen007", name = "Huevo Entero (cocido)", servingSize = 50.0, unit = "g", calories = 77.0, protein = 6.3, carbs = 0.6, fats = 5.3),
     FoodItem(id = "gen008", name = "Clara de Huevo", servingSize = 100.0, unit = "g", calories = 52.0, protein = 11.0, carbs = 0.7, fats = 0.2),
     FoodItem(id = "gen009", name = "Salmón (crudo)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 208.0, protein = 20.0, carbs = 0.0, fats = 13.0, cookingWeightFactor = 0.78),
@@ -66,7 +85,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen035", name = "Posta Rosada (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 205.0, protein = 36.0, carbs = 0.0, fats = 6.0),
     FoodItem(id = "gen036", name = "Pimentón Rojo", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 31.0, protein = 1.0, carbs = 6.0, fats = 0.3),
     FoodItem(id = "gen037", name = "Pepino", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 15.0, protein = 0.7, carbs = 3.6, fats = 0.1),
-    FoodItem(id = "gen038", name = "Champiñones (crudos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 22.0, protein = 3.1, carbs = 3.3, fats = 0.3),
+    FoodItem(id = "gen038", name = "Champiñones (crudos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 22.0, protein = 3.1, carbs = 3.3, fats = 0.3, searchAliases = listOf("champiñón", "champinon", "hongo", "hongos")),
     FoodItem(id = "gen039", name = "Nueces", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 654.0, protein = 15.0, carbs = 14.0, fats = 65.0, searchAliases = listOf("nuez")),
     FoodItem(id = "gen040", name = "Pasta (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 131.0, protein = 5.0, carbs = 25.0, fats = 1.1),
     FoodItem(id = "gen041", name = "Tofu", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 76.0, protein = 8.1, carbs = 1.9, fats = 4.8),
@@ -128,7 +147,24 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen082", name = "Arándanos", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 57.0, protein = 0.7, carbs = 14.0, fats = 0.3, searchAliases = listOf("arándanos", "arandanos", "blueberries")),
     FoodItem(id = "gen083", name = "Mango", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 60.0, protein = 0.8, carbs = 15.0, fats = 0.4),
     // ─── Lácteos ──────────────────────────────────────────────────────────────
-    FoodItem(id = "gen084", name = "Queso Fresco", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 98.0, protein = 6.7, carbs = 2.7, fats = 7.1, searchAliases = listOf("queso fresco", "queso blanco")),
+    // WP-D1: 98 kcal por 100 g es el queso cottage (gen018), no un queso fresco. El queso fresco chileno de etiqueta ronda 130-177 kcal
+    // (Colun 7802920000701: 177 kcal, 12,6 P, 4,5 C, 12,1 G; La Vaquita 7804613390533: 177 kcal; Tilos light: 172 kcal).
+    FoodItem(
+        id = "gen084",
+        name = "Queso Fresco",
+        brand = "Genérico",
+        category = "lacteo",
+        servingSize = 50.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (etiquetas de queso fresco chileno, Colun 177 kcal)",
+        sourceRecordId = "7802920000701",
+        calories = 177.0,
+        protein = 12.6,
+        carbs = 4.5,
+        fats = 12.1,
+        searchAliases = listOf("queso fresco", "queso blanco"),
+    ),
     FoodItem(id = "gen085", name = "Leche Semidescremada", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 46.0, protein = 3.2, carbs = 4.8, fats = 1.5, micronutrients = listOf(Micronutrient("Calcio", 120.0, "mg"))),
     FoodItem(id = "gen086", name = "Crema de Leche", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 292.0, protein = 2.2, carbs = 2.8, fats = 30.0, searchAliases = listOf("crema", "nata", "crema de leche")),
     FoodItem(id = "gen087", name = "Yogurt Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 59.0, protein = 3.5, carbs = 4.7, fats = 3.3, searchAliases = listOf("yogurt natural", "yogur")),
@@ -267,7 +303,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen133", name = "Pan Integral", brand = "Genérico", servingSize = 50.0, unit = "u", calories = 265.0, protein = 9.5, carbs = 45.0, fats = 4.2, nutritionBasis = "PER_100G_AS_SOLD", searchAliases = listOf("pan integral", "pan de molde integral", "pan centeno")),
     FoodItem(id = "gen134", name = "Sopa (casera)", brand = "Genérico", servingSize = 250.0, unit = "ml", calories = 42.0, protein = 2.0, carbs = 4.0, fats = 1.5, searchAliases = listOf("sopa", "sopa casera", "caldo", "sopa de verduras", "sopa de pollo")),
     FoodItem(id = "gen135", name = "Porotos (cocidos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 140.0, protein = 8.5, carbs = 25.0, fats = 0.5, searchAliases = listOf("porotos", "poroto", "porotos cocidos", "porotos negros", "frijoles", "frijol")),
-    FoodItem(id = "gen136", name = "Arroz Integral (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 123.0, protein = 2.7, carbs = 26.0, fats = 0.9, searchAliases = listOf("arroz integral", "arroz integral cocido")),
+    // gen136 (segundo "Arroz Integral (cocido)") se fusionó en gen006 (WP-S11): ver LEGACY_FOOD_ID_REDIRECTS.
     FoodItem(
         id = "gen137",
         name = "Galletas de chocolate",
@@ -293,7 +329,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         protein = 9.0,
         carbs = 70.0,
         fats = 13.0,
-        searchAliases = listOf("galleta salada", "galletas saladas", "crackers"),
+        searchAliases = listOf("galleta salada", "galletas saladas", "crackers", "galleta de agua", "galletas de agua", "galleta de soda", "galletas de soda"),
     ),
     FoodItem(
         id = "gen139",
@@ -369,7 +405,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         carbs = 0.0,
         fats = 0.0,
         tags = listOf("zero_energy"),
-        searchAliases = listOf("agua", "agua mineral", "agua sin gas", "agua mineral sin gas", "agua de la llave", "agua potable", "agua purificada", "agüita"),
+        searchAliases = listOf("agua", "agua mineral", "agua sin gas", "agua mineral sin gas", "agua de la llave", "agua potable", "agua purificada", "agüita", "cachantún", "cachantun"),
     ),
     FoodItem(
         id = "gen144",
@@ -513,7 +549,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         carbs = 0.0,
         fats = 0.0,
         tags = listOf("zero_energy"),
-        searchAliases = listOf("agua mineral con gas", "agua gasificada", "agua carbonatada"),
+        searchAliases = listOf("agua mineral con gas", "agua gasificada", "agua carbonatada", "cachantún con gas", "cachantun con gas"),
     ),
     // ─── WP-S6: aliases that named nothing, now backed by a row of their own ─────────────────────────────────────────────
     // Valores por 100 g (PER_100G_AS_SOLD); `servingSize` es la porción típica (un trozo de queque, un tamal). La procedencia es el
@@ -553,6 +589,823 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         fats = 9.0,
         tags = listOf("preparacion"),
         searchAliases = listOf("tamal", "tamales"),
+    ),
+    // ─── WP-D1: Convenciones de las fichas nuevas ───────────────────────────────────────────────────────────────────────────────
+    // Valores por 100 g/ml como se venden o se beben (PER_100G_AS_SOLD; PER_100G_COOKED si la ficha es un alimento cocido); `servingSize` es la
+    // porción individual típica (un vaso, una lata, una lonja), nunca el denominador nutricional. `sourceRecordId` es el id FDC
+    // (data/usdaFoodsOffline.json) que sustenta los macros, o el código de barras de la etiqueta chilena cuando el valor sale de ella; los
+    // platos llevan su receta. `source` no lleva "USDA" ni "OFF" para que HouseholdPortions.isGlobalSku no trate una ficha curada como un
+    // SKU de supermercado.
+    // `unit = "u"` marca una pieza o una porción de uso (lata de jurel, filete, chuleta, porción de margarina o de leche condensada, trozo de
+    // lasaña): HouseholdPortions.isCountable la trata como "con porción doméstica propia" y no la reemplaza por los 350 g de un plato inferido
+    // ("jurel en lata"), por los 40 g de un relleno de sándwich ("pan con margarina") ni por los 200 g de la familia "leche" o los 160 g de la
+    // familia "pasta" (FoodIdentity las asigna por palabra). El queso gauda declara 100 g (sin porción propia, como los demás quesos: HouseholdPortions da
+    // 30 g a todo queso). El azúcar declara 30 g, la porción estándar de los polvos del motor de porciones: "un poco de azúcar" son 0,15 de
+    // ella, 4,5 g.
+    // ─── WP-D1: Lácteos y grasas ────────────────────────────────────────────────────────────────────────────────────────────────
+    FoodItem(
+        id = "gen154",
+        name = "Leche sin lactosa",
+        brand = "Genérico",
+        category = "lacteo",
+        servingSize = 200.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 2705391, lactose-free milk 2%)",
+        sourceRecordId = "2705391", // Milk, lactose free, reduced fat (2%)
+        calories = 50.0,
+        protein = 3.4,
+        carbs = 4.9,
+        fats = 1.9,
+        searchAliases = listOf(
+            "leche sin lactosa", "leche deslactosada", "leche cero lactosa", "leche zero lactosa", "leche semidescremada sin lactosa",
+            "leche sin lactosa semidescremada", "leche deslactosada semidescremada",
+        ),
+    ),
+    FoodItem(
+        id = "gen155",
+        name = "Leche condensada",
+        brand = "Genérico",
+        category = "lacteo",
+        servingSize = 20.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 171275, sweetened condensed milk)",
+        sourceRecordId = "171275", // Milk, canned, condensed, sweetened
+        calories = 321.0,
+        protein = 7.9,
+        carbs = 54.4,
+        fats = 8.7,
+        carbBreakdown = CarbBreakdown(sugar = 54.4),
+        searchAliases = listOf("leche condensada", "leche condensada azucarada", "lechera"),
+    ),
+    FoodItem(
+        id = "gen156",
+        name = "Queso crema",
+        brand = "Genérico",
+        category = "lacteo",
+        servingSize = 20.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 173418, cream cheese)",
+        sourceRecordId = "173418", // Cheese, cream
+        calories = 350.0,
+        protein = 6.2,
+        carbs = 5.5,
+        fats = 34.4,
+        searchAliases = listOf("queso crema", "queso untable", "queso crema untable", "cream cheese"),
+    ),
+    FoodItem(
+        id = "gen157",
+        name = "Queso gauda",
+        brand = "Genérico",
+        category = "lacteo",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 171241, gouda)",
+        sourceRecordId = "171241", // Cheese, gouda; las etiquetas chilenas de gauda dan 341-355 kcal, 22-25 g P y 28 g G
+        calories = 356.0,
+        protein = 24.9,
+        carbs = 2.2,
+        fats = 27.4,
+        searchAliases = listOf("queso gauda", "queso gouda", "gauda", "gouda", "queso gauda laminado", "queso gouda laminado", "gauda laminado"),
+    ),
+    FoodItem(
+        id = "gen158",
+        name = "Quesillo",
+        brand = "Genérico",
+        category = "lacteo",
+        servingSize = 50.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 171248, ricotta part skim; etiquetas de quesillo chileno 138-148 kcal)",
+        sourceRecordId = "171248", // Cheese, ricotta, part skim milk; etiquetas: Colun 7802920000749 (138 kcal), Quillayes 7802930004362 (148 kcal)
+        calories = 138.0,
+        protein = 11.4,
+        carbs = 5.1,
+        fats = 7.9,
+        searchAliases = listOf("quesillo", "quesillo fresco", "quesillo natural"),
+    ),
+    FoodItem(
+        id = "gen159",
+        name = "Margarina",
+        brand = "Genérico",
+        category = "grasa",
+        servingSize = 10.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 172347, margarine tub 80% fat)",
+        sourceRecordId = "172347", // Margarine, regular, 80% fat, composite, tub, with salt
+        calories = 713.0,
+        protein = 0.2,
+        carbs = 0.8,
+        fats = 80.2,
+        searchAliases = listOf("margarina", "margarina de mesa", "margarina con sal"),
+    ),
+    // ─── WP-D1: Pescados, carnes y proteínas ────────────────────────────────────────────────────────────────────────────────────
+    // Jurel y reineta son pescados de consumo diario en Chile sin registro propio en USDA: se usa el pariente más cercano (FDC citado en
+    // `source`) y el valor de las etiquetas chilenas cuando existe.
+    FoodItem(
+        id = "gen160",
+        name = "Jurel en lata (al natural)",
+        brand = "Genérico",
+        category = "pescado",
+        servingSize = 150.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 175121, canned jack mackerel; etiquetas chilenas 140-160 kcal)",
+        sourceRecordId = "175121", // Fish, mackerel, jack, canned, drained solids; el jurel en aceite ronda 225 kcal
+        calories = 156.0,
+        protein = 23.2,
+        carbs = 0.0,
+        fats = 6.3,
+        searchAliases = listOf("jurel", "jurel en lata", "jurel al natural", "jurel en conserva", "lata de jurel", "conserva de jurel"),
+    ),
+    FoodItem(
+        id = "gen161",
+        name = "Reineta (cocida)",
+        brand = "Genérico",
+        category = "pescado",
+        servingSize = 150.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (proxy FDC 173694, sea bass cooked)",
+        sourceRecordId = "173694", // Fish, sea bass, mixed species, cooked, dry heat (la reineta, Brama australis, no tiene registro USDA)
+        calories = 124.0,
+        protein = 23.6,
+        carbs = 0.0,
+        fats = 2.6,
+        foodState = "COOKED",
+        searchAliases = listOf("reineta", "filete de reineta", "reineta cocida"),
+    ),
+    FoodItem(
+        id = "gen162",
+        name = "Salame",
+        brand = "Genérico",
+        category = "embutido",
+        servingSize = 20.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 174603, Italian pork salami; etiquetas chilenas 407-421 kcal)",
+        sourceRecordId = "174603", // Salami, Italian, pork
+        calories = 425.0,
+        protein = 21.7,
+        carbs = 1.2,
+        fats = 37.0,
+        searchAliases = listOf("salame", "salame italiano", "salame ahumado", "salami"),
+    ),
+    FoodItem(
+        id = "gen163",
+        name = "Chuleta de cerdo (cocida)",
+        brand = "Genérico",
+        category = "carne",
+        servingSize = 120.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 167827, pork loin chop broiled)",
+        sourceRecordId = "167827", // Pork, fresh, loin, center loin (chops), bone-in, separable lean and fat, cooked, broiled (porción comestible, sin hueso)
+        calories = 209.0,
+        protein = 25.6,
+        carbs = 0.0,
+        fats = 11.1,
+        foodState = "COOKED",
+        searchAliases = listOf("chuleta", "chuleta de cerdo", "chuleta de chancho", "chuleta cocida"),
+    ),
+    FoodItem(
+        id = "gen164",
+        name = "Nuggets de pollo (fritos)",
+        brand = "Genérico",
+        category = "carne",
+        servingSize = 90.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 2706096, chicken nuggets from frozen)",
+        sourceRecordId = "2706096", // Chicken nuggets, from frozen
+        calories = 298.0,
+        protein = 13.4,
+        carbs = 17.9,
+        fats = 19.2,
+        foodState = "COOKED",
+        searchAliases = listOf(
+            "nuggets", "nugget", "nuggets de pollo", "nugget de pollo", "chicken nuggets", "nuggets fritos", "nuggets de pollo fritos",
+        ),
+    ),
+    FoodItem(
+        id = "gen165",
+        name = "Barra de proteína",
+        brand = "Genérico",
+        category = "snack",
+        servingSize = 50.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (mediana de 52 barras de proteína del catálogo chileno)",
+        sourceRecordId = "mediana n=52 (etiquetas chilenas)", // no hay una barra genérica en USDA (las formuladas van de 412 a 426 kcal); mediana de las barras con energía declarada
+        calories = 332.0,
+        protein = 31.3,
+        carbs = 31.3,
+        fats = 9.1,
+        searchAliases = listOf(
+            "barra de proteína", "barra de proteina", "barras de proteína", "barras de proteina", "barra proteica", "barras proteicas",
+            "barrita de proteína", "protein bar",
+        ),
+    ),
+    // ─── WP-D1: Frutas y verduras ───────────────────────────────────────────────────────────────────────────────────────────────
+    // Frutas frescas: FDC SR Legacy "raw" por 100 g de porción comestible. `unit = "u"` con `servingSize` = peso de UNA pieza para las que
+    // se cuentan (mandarina, limón, chirimoya, membrillo, ají): HouseholdPortions.unitGrams devuelve ese peso.
+    FoodItem(
+        id = "gen166",
+        name = "Mandarina",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 90.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 169105, tangerines raw)",
+        sourceRecordId = "169105", // Tangerines, (mandarin oranges), raw; una mandarina mediana pesa ~88 g
+        calories = 53.0,
+        protein = 0.8,
+        carbs = 13.3,
+        fats = 0.3,
+        foodState = "RAW",
+        searchAliases = listOf("mandarina", "mandarinas", "clementina", "clementinas"),
+    ),
+    FoodItem(
+        id = "gen167",
+        name = "Limón",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 60.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 167746, lemon raw without peel)",
+        sourceRecordId = "167746", // Lemons, raw, without peel; un limón mediano pesa ~58 g
+        calories = 29.0,
+        protein = 1.1,
+        carbs = 9.3,
+        fats = 0.3,
+        foodState = "RAW",
+        searchAliases = listOf("limón", "limon", "limones", "limón de pica", "limon de pica"),
+    ),
+    FoodItem(
+        id = "gen168",
+        name = "Frambuesa",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 167755, raspberries raw)",
+        sourceRecordId = "167755", // Raspberries, raw
+        calories = 52.0,
+        protein = 1.2,
+        carbs = 11.9,
+        fats = 0.7,
+        foodState = "RAW",
+        searchAliases = listOf("frambuesa", "frambuesas", "frambuesa fresca", "raspberry"),
+    ),
+    FoodItem(
+        id = "gen169",
+        name = "Cereza",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 80.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 171719, sweet cherries raw)",
+        sourceRecordId = "171719", // Cherries, sweet, raw; un puñado de 10 cerezas sin cuesco pesa ~80 g
+        calories = 63.0,
+        protein = 1.1,
+        carbs = 16.0,
+        fats = 0.2,
+        foodState = "RAW",
+        searchAliases = listOf("cereza", "cerezas", "cereza fresca"),
+    ),
+    FoodItem(
+        id = "gen170",
+        name = "Chirimoya",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 235.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 173953, cherimoya raw)",
+        sourceRecordId = "173953", // Cherimoya, raw; una fruta sin cáscara ni semillas pesa ~235 g
+        calories = 75.0,
+        protein = 1.6,
+        carbs = 17.7,
+        fats = 0.7,
+        foodState = "RAW",
+        searchAliases = listOf("chirimoya", "chirimoyas", "cherimoya"),
+    ),
+    FoodItem(
+        id = "gen171",
+        name = "Membrillo",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 92.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 168163, quince raw)",
+        sourceRecordId = "168163", // Quinces, raw; una fruta pesa ~92 g. El dulce de membrillo (pasta) es otro alimento, ~270 kcal/100 g
+        calories = 57.0,
+        protein = 0.4,
+        carbs = 15.3,
+        fats = 0.1,
+        foodState = "RAW",
+        searchAliases = listOf("membrillo", "membrillos", "quince"),
+    ),
+    FoodItem(
+        id = "gen172",
+        name = "Papaya",
+        brand = "Genérico",
+        category = "fruta",
+        servingSize = 150.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 169926, papaya raw)",
+        sourceRecordId = "169926", // Papayas, raw; la papaya en conserva (almíbar) tiene ~2x las kcal
+        calories = 43.0,
+        protein = 0.5,
+        carbs = 10.8,
+        fats = 0.3,
+        foodState = "RAW",
+        searchAliases = listOf("papaya", "papayas", "papaya fresca"),
+    ),
+    FoodItem(
+        id = "gen173",
+        name = "Porotos verdes (cocidos)",
+        brand = "Genérico",
+        category = "verdura",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 169141, green snap beans boiled)",
+        sourceRecordId = "169141", // Beans, snap, green, cooked, boiled, drained, without salt
+        calories = 35.0,
+        protein = 1.9,
+        carbs = 7.9,
+        fats = 0.3,
+        foodState = "COOKED",
+        searchAliases = listOf(
+            "porotos verdes", "poroto verde", "porotos verdes cocidos", "vainitas", "ejotes", "judías verdes", "judias verdes", "chauchas",
+        ),
+    ),
+    FoodItem(
+        id = "gen174",
+        name = "Habas (cocidas)",
+        brand = "Genérico",
+        category = "verdura",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 170378, broadbeans immature boiled)",
+        sourceRecordId = "170378", // Broadbeans, immature seeds, cooked, boiled, drained, without salt
+        calories = 62.0,
+        protein = 4.8,
+        carbs = 10.1,
+        fats = 0.5,
+        foodState = "COOKED",
+        searchAliases = listOf("habas", "haba", "habas cocidas"),
+    ),
+    FoodItem(
+        id = "gen175",
+        name = "Ají verde",
+        brand = "Genérico",
+        category = "condimento",
+        servingSize = 15.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 170497, hot chili pepper green raw)",
+        sourceRecordId = "170497", // Peppers, hot chili, green, raw; un ají pesa ~15 g
+        calories = 40.0,
+        protein = 2.0,
+        carbs = 9.5,
+        fats = 0.2,
+        foodState = "RAW",
+        searchAliases = listOf("ají", "aji", "ajíes", "ajies", "ají verde", "aji verde", "ají cacho de cabra", "aji cacho de cabra"),
+    ),
+    FoodItem(
+        id = "gen176",
+        name = "Merkén",
+        brand = "Genérico",
+        category = "condimento",
+        servingSize = 3.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (proxy FDC 171319, chili powder)",
+        sourceRecordId = "171319", // Spices, chili powder; el merkén (ají cacho de cabra ahumado, sal y semilla de cilantro) no tiene registro USDA y el proxy no lleva la sal añadida
+        calories = 282.0,
+        protein = 13.5,
+        carbs = 49.7,
+        fats = 14.3,
+        searchAliases = listOf("merkén", "merken", "merquén", "merquen", "ají merkén", "aji merken"),
+    ),
+    // ─── WP-D1: Cereales, panes y pastas ────────────────────────────────────────────────────────────────────────────────────────
+    // Panes y cereales como se venden; pastas rellenas y ñoquis cocidos. Las etiquetas chilenas sustentan el cereal de desayuno y los ñoquis
+    // (USDA no tiene un cereal genérico ni ñoquis simples).
+    FoodItem(
+        id = "gen177",
+        name = "Pan pita",
+        brand = "Genérico",
+        category = "pan",
+        servingSize = 60.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 174915, white pita bread)",
+        sourceRecordId = "174915", // Bread, pita, white, enriched; un pan pita grande pesa ~60 g
+        calories = 275.0,
+        protein = 9.1,
+        carbs = 55.7,
+        fats = 1.2,
+        searchAliases = listOf("pan pita", "panes pita", "pita", "pan de pita", "pan árabe", "pan arabe"),
+    ),
+    FoodItem(
+        id = "gen178",
+        name = "Tostada (pan tostado)",
+        brand = "Genérico",
+        category = "pan",
+        servingSize = 25.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 174925, white bread toasted)",
+        sourceRecordId = "174925", // Bread, white, commercially prepared, toasted; una rebanada tostada pesa ~25 g
+        calories = 290.0,
+        protein = 9.0,
+        carbs = 54.5,
+        fats = 4.0,
+        searchAliases = listOf("tostada", "tostadas", "pan tostado", "tostada de pan", "tostadas de pan", "pan de molde tostado"),
+    ),
+    FoodItem(
+        id = "gen179",
+        name = "Cereal de desayuno",
+        brand = "Genérico",
+        category = "cereal",
+        servingSize = 40.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (mediana de 44 cereales de desayuno del catálogo chileno; FDC 173884)",
+        sourceRecordId = "173884", // mediana de los cereales de desayuno chilenos con energía declarada (370 kcal); Cereals ready-to-eat, GENERAL MILLS, CHEERIOS: 372 kcal
+        calories = 370.0,
+        protein = 7.6,
+        carbs = 74.1,
+        fats = 3.5,
+        searchAliases = listOf(
+            "cereal", "cereales", "cereal de desayuno", "cereales de desayuno", "corn flakes", "cornflakes", "copos de maíz",
+            "copos de maiz",
+        ),
+    ),
+    FoodItem(
+        id = "gen180",
+        name = "Lasaña",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 250.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 2708750, lasagna with meat)",
+        sourceRecordId = "2708750", // Lasagna with meat
+        calories = 139.0,
+        protein = 7.5,
+        carbs = 16.2,
+        fats = 5.0,
+        foodState = "COOKED",
+        tags = listOf("preparacion"),
+        searchAliases = listOf("lasaña", "lasana", "lasañas", "lasaña de carne", "lasagna", "lasagna de carne"),
+    ),
+    FoodItem(
+        id = "gen181",
+        name = "Ravioles (cocidos)",
+        brand = "Genérico",
+        category = "pasta",
+        servingSize = 200.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 2708760, ravioli no sauce)",
+        sourceRecordId = "2708760", // Ravioli, NS as to filling, no sauce
+        calories = 185.0,
+        protein = 10.3,
+        carbs = 19.9,
+        fats = 7.0,
+        foodState = "COOKED",
+        searchAliases = listOf("ravioles", "raviol", "ravioli", "raviolis", "ravioles cocidos"),
+    ),
+    FoodItem(
+        id = "gen182",
+        name = "Ñoquis (cocidos)",
+        brand = "Genérico",
+        category = "pasta",
+        servingSize = 200.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (etiquetas de ñoquis de papa chilenos 154-159 kcal)",
+        sourceRecordId = "7802500000411+8003039013159", // Talliani 7802500000411 (154 kcal, 4,0 P, 33,3 C, 0,3 G) y Maffei 8003039013159 (159 kcal, 3,7 P, 34,0 C, 0,4 G); el FNDDS Gnocchi, potato (2708722) trae grasa añadida
+        calories = 156.0,
+        protein = 3.9,
+        carbs = 33.7,
+        fats = 0.4,
+        foodState = "COOKED",
+        searchAliases = listOf("ñoquis", "noquis", "ñoquis cocidos", "gnocchi", "gnocchis"),
+    ),
+    // ─── WP-D1: Platos (RECIPE_ESTIMATE) ────────────────────────────────────────────────────────────────────────────────────────
+    // Estimación por receta (método FAO/INFOODS del contrato nutrition_interpretation_v2): macros por 100 g del plato armado = suma ponderada de
+    // los perfiles NOMBRADOS de cada ficha (ids del propio catálogo o FDC) con las proporciones por peso que ahí se listan. `source` =
+    // RECIPE_ESTIMATE y `sourceRecordId` repite la receta para que la suposición sea visible. `qualityFlags` queda VACÍO a propósito:
+    // NutrientBasis.isVerified exige que lo esté, y una ficha con bandera deja de ser identidad válida para la búsqueda y el resolvedor.
+    // Receta (Chacarero): Sándwich chileno de 270 g: marraqueta 100 g + churrasco cocido 85 g + tomate 50 g + porotos verdes 30 g + ají verde 5 g.
+    // Por 100 g: 163 kcal, 12,6 P, 20,3 C, 3,5 G (receta: cl010 37 % + gen093 31,5 % + gen026 18,5 % + gen173 11 % + gen175 2 %).
+    FoodItem(
+        id = "gen183",
+        name = "Chacarero",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 270.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: cl010 37 % + gen093 31,5 % + gen026 18,5 % + gen173 11 % + gen175 2 %",
+        calories = 163.0,
+        protein = 12.6,
+        carbs = 20.3,
+        fats = 3.5,
+        foodState = "COOKED",
+        tags = listOf("preparacion", "chileno"),
+        searchAliases = listOf("chacarero", "chacareros", "sándwich chacarero", "sandwich chacarero"),
+    ),
+    // Receta (Barros Luco): Sándwich chileno de 230 g: marraqueta 100 g + churrasco cocido 90 g + queso gauda 40 g derretido ("barros luna" es la forma que se escribe a menudo).
+    // Por 100 g: 248 kcal, 19,2 P, 22,1 C, 9,0 G (receta: cl010 43,5 % + gen093 39,1 % + gen157 17,4 %).
+    FoodItem(
+        id = "gen184",
+        name = "Barros Luco",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 230.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: cl010 43,5 % + gen093 39,1 % + gen157 17,4 %",
+        calories = 248.0,
+        protein = 19.2,
+        carbs = 22.1,
+        fats = 9.0,
+        foodState = "COOKED",
+        tags = listOf("preparacion", "chileno"),
+        searchAliases = listOf("barros luco", "barros luna", "barroluco", "sándwich barros luco", "sandwich barros luco"),
+    ),
+    // Receta (Ave mayo): Sándwich chileno de 180 g: marraqueta 80 g + pollo cocido deshilachado 70 g + mayonesa 30 g.
+    // Por 100 g: 293 kcal, 16,7 P, 22,3 C, 14,9 G (receta: cl010 44,4 % + gen004 38,9 % + gen065 16,7 %).
+    FoodItem(
+        id = "gen185",
+        name = "Ave mayo",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 180.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: cl010 44,4 % + gen004 38,9 % + gen065 16,7 %",
+        calories = 293.0,
+        protein = 16.7,
+        carbs = 22.3,
+        fats = 14.9,
+        foodState = "COOKED",
+        tags = listOf("preparacion", "chileno"),
+        searchAliases = listOf("ave mayo", "ave mayonesa", "ave con mayo", "sándwich ave mayo", "sandwich ave mayo"),
+    ),
+    // Receta (Carbonada): Plato hondo de 400 g: caldo 45 % + carne de vacuno 12 % + papa 20 % + zapallo 6 % + choclo 5 % + arroz 5 % + zanahoria 3 % + arvejas 3 % + cebolla 1 %.
+    // Por 100 g: 56 kcal, 4,3 P, 7,6 C, 1,1 G (receta: agua 45 % + gen093 12 % + gen021 20 % + gen072 6 % + gen071 5 % + gen005 5 % + gen024 3 % + gen055 3 % + gen027 1 %).
+    FoodItem(
+        id = "gen186",
+        name = "Carbonada",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 400.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: agua 45 % + gen093 12 % + gen021 20 % + gen072 6 % + gen071 5 % + gen005 5 % + gen024 3 % + gen055 3 % + gen027 1 %",
+        calories = 56.0,
+        protein = 4.3,
+        carbs = 7.6,
+        fats = 1.1,
+        foodState = "COOKED",
+        tags = listOf("preparacion", "chileno"),
+        searchAliases = listOf("carbonada", "carbonadas", "carbonada de vacuno"),
+    ),
+    // Receta (Ajiaco): Ajiaco chileno (sobras de carne asada con papas, cebolla y ají) de 350 g: carne 25 % + papa 40 % + cebolla 12 % + caldo 17 % + aceite 3 % + pimentón 3 %. No es el ajiaco colombiano.
+    // Por 100 g: 114 kcal, 7,9 P, 9,3 C, 5,1 G (receta: gen093 25 % + gen021 40 % + gen027 12 % + agua 17 % + gen099 3 % + gen036 3 %).
+    FoodItem(
+        id = "gen187",
+        name = "Ajiaco",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 350.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: gen093 25 % + gen021 40 % + gen027 12 % + agua 17 % + gen099 3 % + gen036 3 %",
+        calories = 114.0,
+        protein = 7.9,
+        carbs = 9.3,
+        fats = 5.1,
+        foodState = "COOKED",
+        tags = listOf("preparacion", "chileno"),
+        searchAliases = listOf("ajiaco", "ajiaco chileno", "ajiaco de carne"),
+    ),
+    // Receta (Ceviche): Plato de 250 g: pescado blanco crudo 68 % (FDC 173713, whiting raw) + cebolla 18 % + jugo de limón 12 % (FDC 167747) + cilantro y ají 2 %; sin acompañamientos.
+    // Por 100 g: 71 kcal, 12,7 P, 2,4 C, 0,9 G (receta: FDC 173713 68 % + gen027 18 % + FDC 167747 12 % + agua 2 %).
+    FoodItem(
+        id = "gen188",
+        name = "Ceviche",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 250.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: FDC 173713 68 % + gen027 18 % + FDC 167747 12 % + agua 2 %",
+        calories = 71.0,
+        protein = 12.7,
+        carbs = 2.4,
+        fats = 0.9,
+        tags = listOf("preparacion", "chileno"),
+        searchAliases = listOf("ceviche", "cebiche", "ceviches", "ceviche de pescado", "cebiche de pescado"),
+    ),
+    FoodItem(
+        id = "gen189",
+        name = "Arepa",
+        brand = "Genérico",
+        category = "plato",
+        servingSize = 120.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_COOKED",
+        source = "KPKN Curated (FDC 168070, arepa)",
+        sourceRecordId = "168070", // Restaurant, Latino, arepa (unleavened cornmeal bread); arepa sola, sin relleno
+        calories = 219.0,
+        protein = 5.5,
+        carbs = 37.1,
+        fats = 5.4,
+        foodState = "COOKED",
+        tags = listOf("preparacion"),
+        searchAliases = listOf("arepa", "arepas", "arepa de maíz", "arepa de maiz"),
+    ),
+    // ─── WP-D1: Dulces y postres ────────────────────────────────────────────────────────────────────────────────────────────────
+    // Kuchen: pariente USDA del coffeecake de fruta (el kuchen de manzana de OFF Chile da 280 kcal, el de nuez 435). Chilenito y cuchuflí no
+    // existen en USDA: valores de etiquetas chilenas (código de barras en `sourceRecordId`); el peso de la pieza es el típico del producto.
+    FoodItem(
+        id = "gen190",
+        name = "Kuchen",
+        brand = "Genérico",
+        category = "postre",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 174937, fruit cake)",
+        sourceRecordId = "174937", // Cake, coffeecake, fruit
+        calories = 311.0,
+        protein = 5.2,
+        carbs = 51.5,
+        fats = 10.2,
+        tags = listOf("chileno", "postre"),
+        searchAliases = listOf("kuchen", "kuchenes", "kuchen de fruta"),
+    ),
+    FoodItem(
+        id = "gen191",
+        name = "Chilenito",
+        brand = "Genérico",
+        category = "dulce",
+        servingSize = 40.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (etiqueta de chilenito chileno 400 kcal)",
+        sourceRecordId = "0742032346078", // Chilenito de papaya, Lili's: 400 kcal, 4,2 P, 60 C, 12 G
+        calories = 400.0,
+        protein = 4.2,
+        carbs = 60.0,
+        fats = 12.0,
+        tags = listOf("chileno", "postre"),
+        searchAliases = listOf("chilenito", "chilenitos"),
+    ),
+    FoodItem(
+        id = "gen192",
+        name = "Cuchuflí",
+        brand = "Genérico",
+        category = "dulce",
+        servingSize = 25.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (mediana de etiquetas de cuchuflí chilenos 400-439 kcal)",
+        sourceRecordId = "7802245000882+7804674350026+7804674380023", // Entrelagos 7802245000882 (400 kcal), Donenic 7804674350026 (400 kcal), Chocolada 7804674380023 (439 kcal); mediana de P, C y G
+        calories = 400.0,
+        protein = 5.3,
+        carbs = 56.4,
+        fats = 15.8,
+        tags = listOf("chileno", "postre"),
+        searchAliases = listOf("cuchuflí", "cuchufli", "cuchuflís", "cuchuflies", "cuchuflí de manjar", "cuchufli de manjar"),
+    ),
+    FoodItem(
+        id = "gen193",
+        name = "Helado",
+        brand = "Genérico",
+        category = "postre",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 167575, vanilla ice cream)",
+        sourceRecordId = "167575", // Ice creams, vanilla
+        calories = 207.0,
+        protein = 3.5,
+        carbs = 23.6,
+        fats = 11.0,
+        searchAliases = listOf("helado", "helados", "ice cream"),
+    ),
+    FoodItem(
+        id = "gen194",
+        name = "Azúcar",
+        brand = "Genérico",
+        category = "dulce",
+        servingSize = 30.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 169655, granulated sugar)",
+        sourceRecordId = "169655", // Sugars, granulated; una cucharadita pesa ~5 g y una cucharada ~12,5 g
+        calories = 387.0,
+        protein = 0.0,
+        carbs = 100.0,
+        fats = 0.0,
+        carbBreakdown = CarbBreakdown(sugar = 100.0),
+        searchAliases = listOf("azúcar", "azucar", "azúcar blanca", "azucar blanca", "azúcar granulada", "azucar granulada", "sugar"),
+    ),
+    // ─── WP-D1: Bebidas ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+    // Como las de WP-N5: `category = "bebida"` (HouseholdPortions.BEVERAGE_CATEGORY) y `servingSize` = el vaso, la botella o la copa. Los nombres
+    // llevan "bebida" o "vino" para que SubjectivePortionEngine.detectDensityCategory los pese como líquido (1 g/ml).
+    FoodItem(
+        id = "gen195",
+        name = "Bebida isotónica",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 500.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (etiqueta de isotónica chilena 24 kcal; FDC 2710771)",
+        sourceRecordId = "7801620005191", // Gatorade Cool Blue: 24 kcal y 6 g de carbohidratos por 100 ml (Powerade: 21 kcal); FNDDS 2710771, Sports drink NFS: 26 kcal
+        calories = 24.0,
+        protein = 0.0,
+        carbs = 6.0,
+        fats = 0.0,
+        searchAliases = listOf("bebida isotónica", "bebida isotonica", "isotónica", "isotonica", "gatorade", "powerade", "bebida deportiva"),
+    ),
+    // Receta (Piscola (pisco con bebida cola)): 300 ml: pisco 22 % (FDC 174815, destilado de 80 proof: 231 kcal por 100 g) + bebida cola 78 % (gen146, FDC 174852); el alcohol (7 kcal/g) no aparece en los macros.
+    // Por 100 g: 84 kcal, 0,0 P, 8,1 C, 0,2 G (receta: FDC 174815 22 % + gen146 78 %).
+    FoodItem(
+        id = "gen196",
+        name = "Piscola (pisco con bebida cola)",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 300.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "RECIPE_ESTIMATE",
+        sourceRecordId = "receta: FDC 174815 22 % + gen146 78 %",
+        calories = 84.0,
+        protein = 0.0,
+        carbs = 8.1,
+        fats = 0.2,
+        caffeineMg = 6.0,
+        tags = listOf("chileno"),
+        searchAliases = listOf("piscola", "piscolas", "pisco con coca", "pisco con coca cola", "pisco con cola", "pisco cola"),
+    ),
+    FoodItem(
+        id = "gen197",
+        name = "Bebida destilada (pisco, ron, vodka, whisky)",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 45.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 174815, distilled spirits 80 proof)",
+        sourceRecordId = "174815", // Alcoholic beverage, distilled, all (gin, rum, vodka, whiskey) 80 proof: 231 kcal por 100 g, todas del alcohol (7 kcal/g); un trago son 45 ml
+        calories = 231.0,
+        protein = 0.0,
+        carbs = 0.0,
+        fats = 0.0,
+        searchAliases = listOf("pisco", "ron", "vodka", "whisky", "whiskey", "güisqui", "ginebra", "gin", "tequila", "destilado"),
+    ),
+    FoodItem(
+        id = "gen198",
+        name = "Vino espumante",
+        brand = "Genérico",
+        category = "bebida",
+        servingSize = 120.0,
+        unit = "ml",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 2710687, sparkling wine)",
+        sourceRecordId = "2710687", // Wine, sparkling; una copa de espumante son 120 ml
+        calories = 75.0,
+        protein = 0.1,
+        carbs = 2.3,
+        fats = 0.0,
+        searchAliases = listOf("espumante", "espumantes", "vino espumante", "champaña", "champana", "champagne", "champán"),
     ),
 )
 
@@ -648,7 +1501,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "marraqueta" to "marraqueta", "marraquetas" to "marraqueta",
     "hallulla" to "hallulla", "hallullas" to "hallulla",
     "hallula" to "hallulla", "hallulas" to "hallulla",
-    "gouda" to "queso cheddar", "gauda" to "queso cheddar", "queso gouda" to "queso cheddar",
+    "gouda" to "queso gauda", "gauda" to "queso gauda", "queso gouda" to "queso gauda",
     "panes" to "pan blanco",
     "longaniza" to "longaniza asada",
     "filete" to "filete de vacuno", "lomo" to "filete de vacuno",
@@ -687,7 +1540,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "bife" to "filete de vacuno", "bife de chorizo" to "filete de vacuno",
     "provoleta" to "queso cheddar",
     // Perú
-    "ceviche" to "merluza (cocida)", "cebiche" to "merluza (cocida)",
+    "ceviche" to "ceviche", "cebiche" to "ceviche",
     "lomo saltado" to "filete de vacuno",
     "ají de gallina" to "pechuga de pollo",
     "causa" to "papa",
@@ -711,7 +1564,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     // stays an approximation (generic sweet, never bread) and the person is asked which cookie it was.
     "galleta" to "dulce genérico",
     "galletas" to "dulce genérico",
-    "cereal" to "avena en hojuelas",
+    "cereal" to "cereal de desayuno",
     "batido" to "leche entera",
     "smoothie" to "leche entera",
     "ensalada" to "lechuga",
@@ -762,7 +1615,8 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
 /**
  * Alias que NO son el mismo alimento que la consulta (aproximación): el destino
  * es lo "más parecido" del catálogo, no la identidad del plato escrito
- * ("torta" ≈ pan blanco, "ensalada" ≈ lechuga, "ceviche" ≈ merluza cocida).
+ * ("torta" ≈ pan blanco, "ensalada" ≈ lechuga, "milanesa" ≈ filete de vacuno). Un alimento con ficha propia (ceviche, cereal) ya no es
+ * aproximación: su alias apunta a la ficha.
  * Siguen siendo aproximaciones (el plato escrito no es la ficha), pero el
  * sistema elige el genérico y guarda sin preguntar.
  * Las claves se normalizan sin tildes y en minúsculas.
@@ -775,12 +1629,12 @@ val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
     // Argentina / Uruguay
     "milanga", "milanesa", "milanesa napolitana", "facturas", "medialunas", "asado", "provoleta",
     // Perú
-    "ceviche", "cebiche", "lomo saltado", "aji de gallina", "causa", "anticucho",
+    "lomo saltado", "aji de gallina", "causa", "anticucho",
     // Colombia / Venezuela
     "cachapa", "pabellon", "tequeños", "bandeja paisa",
     "empanada colombiana",
     // Internacionales / conceptos generales
-    "cereal", "batido", "smoothie", "ensalada", "trigo",
+    "batido", "smoothie", "ensalada", "trigo",
     "galleta", "galletas",
 )
 
@@ -822,7 +1676,17 @@ private val ALL_FOODS: List<FoodItem> by lazy { GENERIC_FOODS + CHILEAN_FOODS }
 
 private val foodById: Map<String, FoodItem> by lazy { ALL_FOODS.associateBy { it.id } }
 
-fun findStaticFoodById(id: String): FoodItem? = foodById[id]
+/**
+ * Ids that no longer name a row of the static catalog -> the row that replaced them. A learned resolution (the personal mapping of
+ * "arroz integral" to a food id) keeps the id it was saved with, so a deleted row must keep answering (WP-S11: gen136 was a second
+ * "Arroz Integral (cocido)" with other values and was merged into gen006).
+ */
+val LEGACY_FOOD_ID_REDIRECTS: Map<String, String> = mapOf("gen136" to "gen006")
+
+/** [id] as the catalog knows it today: the row that replaced a deleted one, or [id] itself. */
+fun resolveLegacyFoodId(id: String): String = LEGACY_FOOD_ID_REDIRECTS[id] ?: id
+
+fun findStaticFoodById(id: String): FoodItem? = foodById[resolveLegacyFoodId(id)]
 
 /** Multi-word catalog phrases used by the deterministic parser before connectors split them. */
 fun staticFoodPhrases(): List<String> = ALL_FOODS

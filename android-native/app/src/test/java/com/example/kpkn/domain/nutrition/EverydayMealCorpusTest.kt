@@ -114,12 +114,18 @@ class EverydayMealCorpusTest {
         assertTrue(poyo.needsCutClarification)
         assertSaveableEveryday(resolve("arros").single(), "gen005", 100.0..140.0, 130.0..190.0, "arros")
         assertSaveableEveryday(resolve("wevo").single(), "gen007", 40.0..70.0, 60.0..100.0, "wevo")
+        // WP-D1: gauda has a row of its own (gen157, FDC 171241); Cheddar is still no substitute for it.
         val gauda = resolve("gauda").single()
-        assertEquals(null, gauda.foodItem)
-        assertTrue(gauda.hasMaterialQuestion())
-        assertEquals("gauda must retain the Gouda variety", "gouda", FoodIdentity.normalize(gauda.foodQuery))
-        assertEquals("unavailable Gouda must remain visibly estimated", "gouda (estimado)", gauda.loggedFood!!.foodName)
+        assertEquals("gen157", gauda.foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, gauda.resolutionStatus)
         assertTrue("incompatible Cheddar must not be offered for Gouda", gauda.reviewCandidates.none { it.id == "gen047" })
+        // A cheese variety the catalog does not have stays visibly estimated, never a Cheddar in disguise.
+        val brie = resolve("queso brie").single()
+        assertEquals(null, brie.foodItem)
+        assertTrue(brie.hasMaterialQuestion())
+        assertEquals("brie must retain the variety", "queso brie", FoodIdentity.normalize(brie.foodQuery))
+        assertEquals("unavailable brie must remain visibly estimated", "queso brie (estimado)", checkNotNull(brie.loggedFood).foodName)
+        assertTrue("incompatible Cheddar must not be offered for brie", brie.reviewCandidates.none { it.id == "gen047" })
         assertSaveableEveryday(resolve("hallula").single(), "cl013", 70.0..90.0, 180.0..240.0, "hallula")
     }
 

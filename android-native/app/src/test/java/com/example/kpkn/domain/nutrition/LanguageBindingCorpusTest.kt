@@ -42,7 +42,8 @@ class LanguageBindingCorpusTest {
 
     @Test
     fun mixPolloArrozLaminas_keepsPlateGramsAndLockedCheese() = runBlocking {
-        val tags = resolve("pollo a la plancha, arroz cocido y láminas de queso gouda")
+        // The variety is brie on purpose: gouda has a row since WP-D1 (see laminasDeQuesoGouda_areTheGoudaRowLockedToTheSlices).
+        val tags = resolve("pollo a la plancha, arroz cocido y láminas de queso brie")
         assertEquals(3, tags.size)
         val cheese = tags.single { FoodIdentity.normalize(it.tag + " " + it.foodQuery).contains("queso") }
         val rice = tags.single { it.tag.contains("arroz", ignoreCase = true) }
@@ -55,11 +56,26 @@ class LanguageBindingCorpusTest {
         assertTrue("arroz plato $riceG", riceG in 180.0..280.0)
         assertTrue("pollo plato $chickenG", chickenG in 120.0..180.0)
         assertFalse(cheese.foodQuery.contains("lamina"))
-        assertEquals("unavailable cheese variety remains in the query", "queso gouda", cheese.foodQuery)
-        assertEquals("estimate must preserve the declared variety", "queso gouda (estimado)", cheese.loggedFood!!.foodName)
-        assertEquals("Cheddar is not a substitute for Gouda", null, cheese.foodItem)
-        assertTrue("Gouda without a verified profile requires identity review", cheese.hasMaterialQuestion())
+        assertEquals("unavailable cheese variety remains in the query", "queso brie", cheese.foodQuery)
+        assertEquals("estimate must preserve the declared variety", "queso brie (estimado)", checkNotNull(cheese.loggedFood).foodName)
+        assertEquals("Cheddar is not a substitute for Brie", null, cheese.foodItem)
+        assertTrue("Brie without a verified profile requires identity review", cheese.hasMaterialQuestion())
         assertTrue("incompatible Cheddar must not be offered", cheese.reviewCandidates.none { it.id == "gen047" })
+    }
+
+    @Test
+    fun laminasDeQuesoGouda_areTheGoudaRowLockedToTheSlices() = runBlocking {
+        // WP-D1: gouda has a row of its own (gen157); the slices still lock the grams and Cheddar is no substitute.
+        val tags = resolve("pollo a la plancha, arroz cocido y láminas de queso gouda")
+        assertEquals(3, tags.size)
+        val cheese = tags.single { FoodIdentity.normalize(it.tag + " " + it.foodQuery).contains("queso") }
+        assertEquals(AmountIntent.RESOLVED_SUBJECTIVE, cheese.amountIntent)
+        val cheeseG = cheese.amountGrams ?: 0.0
+        assertTrue("queso locked $cheeseG", cheeseG in 35.0..50.0)
+        assertEquals("gen157", cheese.foodItem?.id)
+        assertEquals(FoodResolutionStatus.AUTO, cheese.resolutionStatus)
+        assertTrue("incompatible Cheddar must not be offered", cheese.reviewCandidates.none { it.id == "gen047" })
+        assertTrue("kcal ${cheese.loggedFood?.calories}", (cheese.loggedFood?.calories ?: 0.0) in 120.0..160.0)
     }
 
     @Test
@@ -109,12 +125,21 @@ class LanguageBindingCorpusTest {
     @Test
     fun identityMapping_cannotChangeDeclaredCheeseVariety() = runBlocking {
         val profile = NutritionCalibrationProfile(
+            identityMappings = mapOf("queso brie" to "gen047"),
+        )
+        val tags = resolve("láminas de queso brie", profile)
+        assertEquals(null, tags.single().foodItem)
+        assertTrue(tags.single().hasMaterialQuestion())
+        assertTrue(checkNotNull(tags.single().loggedFood).foodName.contains("brie", ignoreCase = true))
+    }
+
+    @Test
+    fun identityMapping_toCheddar_cannotReplaceTheGoudaRow() = runBlocking {
+        val profile = NutritionCalibrationProfile(
             identityMappings = mapOf("queso gouda" to "gen047"),
         )
         val tags = resolve("láminas de queso gouda", profile)
-        assertEquals(null, tags.single().foodItem)
-        assertTrue(tags.single().hasMaterialQuestion())
-        assertTrue(tags.single().loggedFood!!.foodName.contains("gouda", ignoreCase = true))
+        assertEquals("gen157", tags.single().foodItem?.id)
     }
 
     @Test
