@@ -92,7 +92,7 @@ class FoodImporterUsageTest {
     }
 
     private fun currentMeta() =
-        FoodImporter.ImportMetadata(FoodImporter.DATA_VERSION, FoodImporter.datasetFingerprint(), "2026-10-03T00:00:00Z")
+        FoodImporter.ImportMetadata(FoodImporter.DATA_VERSION, FoodImporter.versionFingerprint(), "2026-10-03T00:00:00Z")
 
     private val usedOnce = "2026-10-01T10:00:00Z"
     private val usedLater = "2026-10-02T18:30:00Z"
@@ -254,14 +254,18 @@ class FoodImporterUsageTest {
         val dao = dao()
         dao.insertGlobalFoods(listOf(food("off_1", "Yogur natural", usage = 5, lastUsedAt = usedOnce)))
         var meta: FoodImporter.ImportMetadata? = null
+        // WP-S10: la meta guarda la huella con que la compuerta decidió (en producción la del manifiesto de los CSV).
+        val fingerprint = FoodImporter.composeFingerprint("c".repeat(64))
 
-        val imported = FoodImporter.runImport(db, alreadyImported = true, existingMeta = null, onMetaUpdated = { meta = it }, dao = dao) {
+        val imported = FoodImporter.runImport(
+            db, alreadyImported = true, existingMeta = null, onMetaUpdated = { meta = it }, dao = dao, fingerprint = fingerprint,
+        ) {
             listOf(food("off_1", "Yogur natural light"), food("off_2", "Leche entera"))
         }
 
         assertTrue(imported)
         assertEquals(FoodImporter.DATA_VERSION, meta?.version)
-        assertEquals(FoodImporter.datasetFingerprint(), meta?.checksum)
+        assertEquals(fingerprint, meta?.checksum)
         assertEquals("Yogur natural light", requireNotNull(dao.getGlobalFoodById("off_1")).name)
         assertEquals(5, requireNotNull(dao.getGlobalFoodById("off_1")).usageCount)
         assertEquals(usedOnce, requireNotNull(dao.getGlobalFoodById("off_1")).lastUsedAt)

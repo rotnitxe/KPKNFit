@@ -18,10 +18,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.InputStream
 import java.security.MessageDigest
 import java.text.Normalizer
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -42,6 +46,8 @@ object FoodImporter {
      * Versión de datos del catálogo importado: subirla fuerza un re-import en todas las instalaciones.
      * 10 (WP-S9): nutrientes por prioridad (azúcar 2000 > 1063, grasa 1004 > 1085), porción de UNA unidad, categoría
      * legible y nombres/alias en español desde `usda_es_aliases.csv`.
+     * Un cambio en el CONTENIDO de los CSV ya no exige subirla (WP-S10): su SHA-256 viaja en la huella ([expectedFingerprint]).
+     * Se sube cuando cambia el análisis (el parser), que ningún hash de los CSV detecta.
      */
     internal const val DATA_VERSION = 10
     private const val USDA_FOOD_CSV = "food_data/food.csv"
@@ -51,6 +57,12 @@ object FoodImporter {
     private const val USDA_CATEGORY_CSV = "food_data/food_category.csv"
     private const val USDA_ALIASES_CSV = "food_data/usda_es_aliases.csv"
     private const val OFF_CHILE_CSV = "food_data/off_chile.csv"
+
+    /**
+     * SHA-256 de los CSV de arriba (< 1 KB), escrito en el build por la tarea Gradle `generateFoodDataManifest`: la compuerta de
+     * arranque lee esto y nunca un CSV ([expectedFingerprint]). El importador no lo lee como dato, así que no está en [IMPORT_ASSETS].
+     */
+    internal const val MANIFEST_ASSET = "food_data/manifest.json"
 
     // Progreso de la importación (WP-S8): el análisis sin lock ocupa la banda 0,05..0,95; antes solo hay arranque y
     // después el commit corto y el cierre en 1,0.
@@ -89,12 +101,64 @@ object FoodImporter {
     private val _importProgress = MutableStateFlow<Float?>(null)
     val importProgress: StateFlow<Float?> = _importProgress.asStateFlow()
 
+    /** Huella del catálogo sin manifiesto: solo la versión de datos ("v10"). También es lo que queda si el manifiesto no se puede leer. */
+    internal fun versionFingerprint(): String = "v$DATA_VERSION"
+
     /**
-     * Huella esperada del dataset embebido (WP-S3). En esta etapa es solo la versión de datos: un cambio de contenido
-     * en los CSV exige subir [DATA_VERSION]. Calcularla no abre ningún asset, a diferencia del SHA-256 de ~72 MB que
-     * antes se hasheaba en CADA arranque en frío, antes de publicar las comidas del usuario.
+     * Huella del dataset embebido (WP-S10): la versión de datos y, tras un "+", el SHA-256 de los CSV que resume el manifiesto del build
+     * ("v10+<sha256>"). Un CSV que cambia cambia la huella y se vuelve a importar aunque nadie suba [DATA_VERSION]; sin manifiesto
+     * ([manifestFingerprint] nulo o vacío) es solo [versionFingerprint].
      */
-    internal fun datasetFingerprint(): String = "v$DATA_VERSION"
+    internal fun composeFingerprint(manifestFingerprint: String?): String =
+        if (manifestFingerprint.isNullOrBlank()) versionFingerprint() else "${versionFingerprint()}+$manifestFingerprint"
+
+    private val MANIFEST_FINGERPRINT = Regex("[0-9a-f]{64}")
+
+    /** Se avisa una sola vez por proceso: un manifiesto ausente se repite en cada arranque y no aporta nada nuevo. */
+    private val manifestWarned = AtomicBoolean(false)
+
+    /**
+     * La huella (SHA-256 en hexadecimal, 64 caracteres) de un manifiesto `{"version":1,"files":{...},"fingerprint":"..."}`, o null si el
+     * texto no es JSON, no es un objeto o su `fingerprint` no es un SHA-256. Pura: no abre nada.
+     */
+    internal fun parseManifestFingerprint(json: String): String? = try {
+        (Json.parseToJsonElement(json) as? JsonObject)
+            ?.get("fingerprint")?.jsonPrimitive?.takeIf { it.isString }?.content
+            ?.takeIf { MANIFEST_FINGERPRINT.matches(it) }
+    } catch (_: IllegalArgumentException) {
+        // JSON mal formado (SerializationException) o un `fingerprint` que no es un valor simple.
+        null
+    }
+
+    /**
+     * Huella esperada del dataset embebido (WP-S3, WP-S10): la compuerta de versión del arranque. Solo lee el manifiesto de los CSV
+     * ([MANIFEST_ASSET], < 1 KB), no los ~72 MB de CSV que antes se hasheaban en CADA arranque en frío, antes de publicar las comidas
+     * del usuario. Nunca lanza: si el manifiesto falta o no se puede leer devuelve [versionFingerprint] y lo registra una sola vez, y
+     * como ese valor es estable no hay re-importaciones en bucle.
+     */
+    internal fun expectedFingerprint(context: Context): String = expectedFingerprint { context.assets.open(MANIFEST_ASSET) }
+
+    /** [expectedFingerprint] sobre cualquier origen del manifiesto: la costura de las pruebas sin Android. */
+    internal fun expectedFingerprint(openManifest: () -> InputStream): String {
+        val fingerprint = try {
+            val parsed = openManifest().use { parseManifestFingerprint(it.readBytes().toString(Charsets.UTF_8)) }
+            if (parsed == null) warnManifestOnce("el manifiesto no trae una huella SHA-256 válida", null)
+            parsed
+        } catch (e: Exception) {
+            warnManifestOnce("no se pudo leer el manifiesto", e)
+            null
+        }
+        return composeFingerprint(fingerprint)
+    }
+
+    private fun warnManifestOnce(reason: String, error: Throwable?) {
+        if (!manifestWarned.compareAndSet(false, true)) return
+        try {
+            android.util.Log.w(TAG, "$reason ($MANIFEST_ASSET): la huella queda en ${versionFingerprint()}", error)
+        } catch (_: RuntimeException) {
+            // Sin Android (pruebas JVM puras) no hay dónde registrar; la huella de respaldo ya cubre el caso.
+        }
+    }
 
     /**
      * Compuerta pura del arranque (no lee assets ni la base): importa si el catálogo global está vacío, si falta la
@@ -118,11 +182,12 @@ object FoodImporter {
      * Las instalaciones previas guardaron el SHA-256 de los CSV como `checksum`. Con la MISMA [DATA_VERSION] el
      * dataset importado es el mismo, así que se adopta la huella vigente en vez de re-importar ~72 MB (el análisis tarda
      * varios segundos y el commit bloquea brevemente las escrituras de Room mientras la app ya es usable). Solo
-     * aplica mientras la huella sea el esquema por versión; cualquier otro esquema compara de forma estricta.
+     * aplica mientras la huella sea el esquema por versión (sin manifiesto); con la huella del manifiesto se compara de forma
+     * estricta, porque aquel SHA-256 y el del manifiesto no resumen lo mismo.
      */
     internal fun adoptLegacyChecksum(meta: ImportMetadata?, expectedFingerprint: String): ImportMetadata? {
         if (meta == null || meta.version != DATA_VERSION) return meta
-        if (expectedFingerprint != datasetFingerprint()) return meta
+        if (expectedFingerprint != versionFingerprint()) return meta
         return if (LEGACY_CONTENT_SHA256.matches(meta.checksum)) meta.copy(checksum = expectedFingerprint) else meta
     }
 
@@ -137,8 +202,8 @@ object FoodImporter {
     }
 
     /**
-     * Importa el catálogo global si hace falta. La decisión es barata (sin leer assets, ver [shouldImport]); el SHA-256
-     * de los CSV solo se calcula dentro de la importación, para dejar rastro de qué contenido se importó.
+     * Importa el catálogo global si hace falta. La decisión es barata (solo lee el manifiesto, < 1 KB, ver [expectedFingerprint]
+     * y [shouldImport]); el SHA-256 de los CSV solo se calcula dentro de la importación, para dejar rastro de qué contenido se importó.
      *
      * WP-S8: ya no es UNA transacción larga. Los ~72 MB de CSV se analizan en [Dispatchers.Default] sin tocar la base
      * (el progreso va de 0,05 a 0,95) y solo después una transacción corta de Room reemplaza las filas ([commitRows]).
@@ -150,7 +215,10 @@ object FoodImporter {
         alreadyImported: Boolean,
         existingMeta: ImportMetadata?,
         onMetaUpdated: (ImportMetadata) -> Unit,
-    ): Boolean = runImport(db, alreadyImported, existingMeta, onMetaUpdated) { onProgress ->
+    ): Boolean = runImport(
+        db, alreadyImported, existingMeta, onMetaUpdated,
+        fingerprint = withContext(Dispatchers.IO) { expectedFingerprint(context) },
+    ) { onProgress ->
         // Solo documenta el contenido importado; ya no decide nada ni corre en el arranque normal.
         val contentSha256 = runCatching { computeDatasetChecksum(context) }.getOrNull()
         android.util.Log.i(TAG, "Importando catálogo v$DATA_VERSION (sha256 de los CSV: ${contentSha256 ?: "no disponible"})")
@@ -161,7 +229,8 @@ object FoodImporter {
      * Ciclo completo de una importación, sin acoplarse a los assets: compuerta, análisis con [parse] (sin lock sobre la
      * base), [commitRows], meta y telemetría. Atómica: un fallo de análisis no abre transacción y un fallo del commit
      * hace rollback, así que el catálogo anterior sigue entero; la meta se persiste solo al final. `onProgress` de
-     * [parse] recibe la fracción 0..1 del análisis, que aquí ocupa la banda 0,05..0,95 de [importProgress].
+     * [parse] recibe la fracción 0..1 del análisis, que aquí ocupa la banda 0,05..0,95 de [importProgress]. [fingerprint] es la
+     * huella que espera la compuerta y que la meta guarda al terminar: en producción la de [expectedFingerprint].
      */
     internal suspend fun runImport(
         db: KpknDatabase,
@@ -169,9 +238,9 @@ object FoodImporter {
         existingMeta: ImportMetadata?,
         onMetaUpdated: (ImportMetadata) -> Unit,
         dao: NutritionDao = db.nutritionDao(),
+        fingerprint: String = versionFingerprint(),
         parse: suspend (onProgress: (Float) -> Unit) -> List<GlobalFoodEntity>,
     ): Boolean = withContext(Dispatchers.IO) {
-        val fingerprint = datasetFingerprint()
         if (!shouldImport(alreadyImported, adoptLegacyChecksum(existingMeta, fingerprint), fingerprint)) {
             return@withContext false
         }

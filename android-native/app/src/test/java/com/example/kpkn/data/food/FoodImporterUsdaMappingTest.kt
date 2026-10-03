@@ -342,7 +342,7 @@ class FoodImporterUsdaMappingTest {
 
     @Test
     fun `an install holding the previous data version imports the catalog once more`() {
-        val fingerprint = FoodImporter.datasetFingerprint()
+        val fingerprint = FoodImporter.versionFingerprint()
         val previous = FoodImporter.ImportMetadata(version = 9, checksum = "ab12".repeat(16), importedAt = "2026-10-01T00:00:00Z")
         assertTrue(FoodImporter.DATA_VERSION >= 10)
         assertTrue(FoodImporter.shouldImport(true, FoodImporter.adoptLegacyChecksum(previous, fingerprint), fingerprint))

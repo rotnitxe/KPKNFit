@@ -122,8 +122,9 @@ class StaticCatalogContentTest {
     @Test
     fun `no name repeats with the same state`() {
         val clash = all.groupBy { TextKeys.normalize(it.name) to FoodIdentity.stateFor(it) }.filterValues { it.size > 1 }
-        // Pan Integral (gen020 and gen133) and Charquicán (cl015 and cl039) are older duplicates that this work package did not add.
-        val older = setOf("pan integral", "charquican")
+        // Pan Integral (gen020 and gen133) is an older twin that this work package did not add (kept on purpose, see
+        // StaticCatalogProvenanceTest); WP-S10 merged the other one, Charquicán (cl015 and cl039).
+        val older = setOf("pan integral")
         assertTrue(
             "duplicate (name, state): ${clash.mapValues { (_, rows) -> rows.map { it.id } }}",
             clash.keys.all { (name, _) -> name in older },
@@ -192,7 +193,7 @@ class StaticCatalogContentTest {
         assertEquals(1, all.count { TextKeys.normalize(it.name) == "arroz integral cocido" })
         assertTrue(all.none { it.id == "gen136" })
         // The learned resolutions and the templates that saved "gen136" keep their food.
-        assertEquals(mapOf("gen136" to "gen006"), LEGACY_FOOD_ID_REDIRECTS)
+        assertEquals(mapOf("gen136" to "gen006", "cl039" to "cl015"), LEGACY_FOOD_ID_REDIRECTS)
         assertEquals("gen006", findStaticFoodById("gen136")?.id)
         assertEquals("gen006", resolveLegacyFoodId("gen136"))
         assertEquals("gen004", resolveLegacyFoodId("gen004"))

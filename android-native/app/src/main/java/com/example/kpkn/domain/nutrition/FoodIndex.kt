@@ -3,6 +3,7 @@ package com.example.kpkn.domain.nutrition
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.toFoodItem
 import com.example.kpkn.data.food.FOOD_ALIAS_IDS
+import com.example.kpkn.data.food.STATIC_CATALOG_SOURCE
 import com.example.kpkn.data.food.foodAliasKey
 import com.example.kpkn.data.models.FoodItem
 import java.util.concurrent.ConcurrentHashMap
@@ -354,7 +355,9 @@ class FoodIndex {
             source = when {
                 food.isAiInferred -> "AI_ESTIMATE"
                 food.isCustom -> "USER"
-                else -> food.source ?: "LOCAL"
+                // "LOCAL" is a row of the static catalog that has no provenance of its own (TagResolution trusts it): the label the
+                // catalog gives such a row (WP-S10) does not make it anything else.
+                else -> food.source?.takeUnless { it == STATIC_CATALOG_SOURCE } ?: "LOCAL"
             },
         )
     }

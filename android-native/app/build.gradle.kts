@@ -1,3 +1,4 @@
+import java.security.MessageDigest
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
+
+// Where `generateFoodDataManifest` writes the assets it generates (WP-S10); registered below as an assets source of the main source set.
+val foodDataManifestDir = layout.buildDirectory.dir("generated/foodDataManifest")
 
 android {
     namespace = "com.example.kpkn"
@@ -104,6 +108,8 @@ android {
 
     // Esquemas Room exportados como assets para MigrationTestHelper (androidTest + JVM)
     sourceSets {
+        // The manifest of the catalog CSV (generateFoodDataManifest, WP-S10) is an asset of every variant: food_data/manifest.json.
+        getByName("main").assets.srcDir(foodDataManifestDir.get().asFile)
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
         getByName("test").assets.srcDir("$projectDir/schemas")
         maybeCreate("testBaseDebug").assets.srcDir("$projectDir/schemas")
@@ -114,6 +120,68 @@ android {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+/**
+ * Writes `food_data/manifest.json` (WP-S10): the SHA-256 of every catalog CSV and one fingerprint over them,
+ * `{"version":1,"files":{"<name>":{"sha256":"...","bytes":N}},"fingerprint":"<sha256 of the lines "<name>:<sha256>" joined by \n>"}`
+ * with the files sorted by name. The app reads this small file (< 1 KB) at start (FoodImporter.expectedFingerprint) instead of hashing ~72 MB of
+ * CSV, and a CSV that changes imports the catalog again without anybody bumping DATA_VERSION.
+ */
+abstract class GenerateFoodDataManifest : DefaultTask() {
+    /** The catalog tables the importer reads (the CSV files of src/main/assets/food_data): only their names and contents matter. */
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val csvFiles: ConfigurableFileCollection
+
+    /** Root of the generated assets: the manifest lands in `<outputDir>/food_data/manifest.json`. */
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val files = csvFiles.files.filter { it.isFile && it.extension == "csv" }.sortedBy { it.name }
+        if (files.isEmpty()) logger.warn("No CSV under src/main/assets/food_data: the manifest is empty")
+        val hashes = files.associate { it.name to sha256(it.inputStream()) }
+        val fingerprint = sha256(files.joinToString("\n") { "${it.name}:${hashes.getValue(it.name)}" }.byteInputStream(Charsets.UTF_8))
+        val manifest = buildString {
+            append("{\"version\":1,\"files\":{")
+            append(files.joinToString(",") { "\"${it.name}\":{\"sha256\":\"${hashes.getValue(it.name)}\",\"bytes\":${it.length()}}" })
+            append("},\"fingerprint\":\"$fingerprint\"}")
+        }
+        val manifestFile = outputDir.get().asFile.resolve("food_data/manifest.json")
+        manifestFile.parentFile.deleteRecursively()
+        manifestFile.parentFile.mkdirs()
+        manifestFile.writeText(manifest, Charsets.UTF_8)
+    }
+
+    private fun sha256(input: java.io.InputStream): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        input.use { stream ->
+            val buffer = ByteArray(1 shl 16)
+            while (true) {
+                val read = stream.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+}
+
+val generateFoodDataManifest by tasks.registering(GenerateFoodDataManifest::class) {
+    group = "build"
+    description = "Writes food_data/manifest.json: the SHA-256 of every catalog CSV, the fingerprint of the import gate."
+    csvFiles.from(fileTree("src/main/assets/food_data") { include("*.csv") })
+    outputDir.set(foodDataManifestDir)
+}
+
+// The importer's start gate reads that asset: it is built before anything else (preBuild), and the asset merges that read the directory
+// depend on it explicitly, so that Gradle never finds a task reading the output of one it does not wait for.
+tasks.configureEach {
+    if (name == "preBuild" || (name.startsWith("merge") && name.endsWith("Assets"))) {
+        dependsOn(generateFoodDataManifest)
+    }
 }
 
 val verifyDatasetKnowledge by tasks.registering(Exec::class) {

@@ -9,10 +9,14 @@ import org.junit.Test
 /**
  * WP-S3 (B3): la decisión de importar el catálogo global es pura y barata. No lee assets: el SHA-256 de ~72 MB que
  * antes se calculaba en cada arranque en frío, antes de publicar las comidas del usuario, ya no participa.
+ *
+ * WP-S10: la huella que espera la compuerta trae, además de la versión de datos, el SHA-256 de los CSV que resume el manifiesto del
+ * build ("v10+<sha256>"). Aquí solo se prueba la compuerta; la lectura del manifiesto está en FoodDataManifestTest.
  */
 class FoodImporterGateTest {
 
-    private val fingerprint = FoodImporter.datasetFingerprint()
+    /** La huella de un build sin manifiesto: solo la versión de datos. */
+    private val fingerprint = FoodImporter.versionFingerprint()
 
     /** Checksum que guardaban las instalaciones anteriores a WP-S3: SHA-256 hexadecimal de los CSV. */
     private val legacySha256 = "ab12".repeat(16)
@@ -25,8 +29,9 @@ class FoodImporterGateTest {
     // ─── Compuerta ────────────────────────────────────────────────────────
 
     @Test
-    fun `the fingerprint is derived from the data version alone`() {
+    fun `the fingerprint of a build without a manifest is the data version alone`() {
         assertEquals("v${FoodImporter.DATA_VERSION}", fingerprint)
+        assertEquals(fingerprint, FoodImporter.composeFingerprint(null))
     }
 
     @Test
@@ -100,5 +105,46 @@ class FoodImporterGateTest {
     @Test
     fun `a missing meta stays missing`() {
         assertNull(FoodImporter.adoptLegacyChecksum(null, fingerprint))
+    }
+
+    // ─── WP-S10: la huella trae el manifiesto de los CSV ──────────────────
+
+    private val manifestA = "a".repeat(64)
+    private val manifestB = "b".repeat(64)
+
+    @Test
+    fun `a changed manifest imports even when the data version is the same`() {
+        val withA = FoodImporter.composeFingerprint(manifestA)
+        val withB = FoodImporter.composeFingerprint(manifestB)
+
+        assertTrue(FoodImporter.shouldImport(alreadyImported = true, meta = meta(checksum = withA), expectedFingerprint = withB))
+        assertFalse(FoodImporter.shouldImport(alreadyImported = true, meta = meta(checksum = withA), expectedFingerprint = withA))
+    }
+
+    @Test
+    fun `an install holding the version only fingerprint imports once when the build ships a manifest`() {
+        val shipped = FoodImporter.composeFingerprint(manifestA)
+
+        // Las instalaciones de WP-S3 a WP-S9 guardaron "v10"; tras ese único import guardan la huella del manifiesto y se callan.
+        assertTrue(FoodImporter.shouldImport(true, meta(checksum = fingerprint), shipped))
+        assertFalse(FoodImporter.shouldImport(true, meta(checksum = shipped), shipped))
+    }
+
+    @Test
+    fun `a legacy sha256 is never adopted under a manifest fingerprint`() {
+        val shipped = FoodImporter.composeFingerprint(manifestA)
+        val legacy = meta(checksum = legacySha256)
+
+        assertEquals(legacy, FoodImporter.adoptLegacyChecksum(legacy, shipped))
+        assertTrue(FoodImporter.shouldImport(alreadyImported = true, meta = legacy, expectedFingerprint = shipped))
+    }
+
+    @Test
+    fun `a build that loses its manifest falls back to the version and then stays quiet`() {
+        val shipped = FoodImporter.composeFingerprint(manifestA)
+
+        // Una vez (lo guardado era la huella del manifiesto), y como la huella de respaldo es estable no hay bucle de importaciones.
+        assertTrue(FoodImporter.shouldImport(true, meta(checksum = shipped), fingerprint))
+        assertFalse(FoodImporter.shouldImport(true, meta(checksum = fingerprint), fingerprint))
     }
 }

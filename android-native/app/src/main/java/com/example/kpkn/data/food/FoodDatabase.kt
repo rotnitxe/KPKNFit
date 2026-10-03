@@ -18,6 +18,43 @@ import com.example.kpkn.domain.nutrition.TextKeys
 fun buildFoodDatabase(context: android.content.Context? = null): List<FoodItem> =
     ALL_FOODS + BrandedEnergyKcalCatalog.load(context) + BrandedSnackCatalog.load(context)
 
+// ─── Provenance of the static catalog (WP-S10) ───────────────────────────────
+
+/**
+ * The `source` of a static row that declares none: written by the KPKN team, not imported from a dataset. The resolver's index reports such
+ * a row as "LOCAL" (see FoodIndex), so the label never changes who is a catalog row.
+ */
+internal const val STATIC_CATALOG_SOURCE = "KPKN curated"
+
+/** The `datasetVersion` of a static row that declares none: the review of the static catalog it belongs to (year-month). */
+private const val STATIC_CATALOG_VERSION = "static-2026-10"
+
+private const val BASIS_PER_SERVING = "PER_SERVING"
+private const val BASIS_PER_100G = "PER_100G_AS_SOLD"
+
+/**
+ * Fills in what a row of the static catalog leaves unsaid, so that every row states where it comes from ([GENERIC_FOODS] and
+ * [CHILEAN_FOODS] pass through here). A value a row declares itself is never touched: the USDA, recipe and per-100 g rows of
+ * WP-N5, WP-S6 and WP-D1 keep their own `source`, `sourceRecordId` and `nutritionBasis`.
+ *  - `source` and `datasetVersion`: [STATIC_CATALOG_SOURCE] and [STATIC_CATALOG_VERSION] when blank.
+ *  - `nutritionBasis`: [FoodItem] defaults to PER_SERVING and no row of the catalog writes that default on purpose, so a row that
+ *    still says it is a row that said nothing. When its serving is the 100 g (or 100 ml) its table was written for, its macros ARE
+ *    per 100 g: PER_100G_AS_SOLD, and that 100 is a denominator, not a portion anybody eats. A serving of any other size or unit
+ *    ("Empanada de Pino", 180 u) is a real serving and stays PER_SERVING.
+ */
+internal fun List<FoodItem>.withCuratedProvenance(): List<FoodItem> = map { it.curated() }
+
+private fun FoodItem.curated(): FoodItem = copy(
+    source = source?.takeIf { it.isNotBlank() } ?: STATIC_CATALOG_SOURCE,
+    datasetVersion = datasetVersion?.takeIf { it.isNotBlank() } ?: STATIC_CATALOG_VERSION,
+    nutritionBasis = if (nutritionBasis.isBlank() || nutritionBasis == BASIS_PER_SERVING) staticBasis() else nutritionBasis,
+)
+
+private fun FoodItem.staticBasis(): String {
+    val per100 = servingSize == 100.0 && (unit.equals("g", ignoreCase = true) || unit.equals("ml", ignoreCase = true))
+    return if (per100) BASIS_PER_100G else BASIS_PER_SERVING
+}
+
 // ─── Generic Foods (serving 100g unless noted) ───────────────────────────────
 
 val GENERIC_FOODS: List<FoodItem> = listOf(
@@ -66,7 +103,9 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen016", name = "Leche Entera", brand = "Genérico", servingSize = 100.0, unit = "ml", nutritionBasis = "PER_100G_AS_SOLD", source = "USDA SR Legacy (rounded)", sourceRecordId = "171265", calories = 61.0, protein = 3.2, carbs = 4.8, fats = 3.3),
     FoodItem(id = "gen017", name = "Yogurt Griego Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 97.0, protein = 9.0, carbs = 3.9, fats = 5.0),
     FoodItem(id = "gen018", name = "Queso Cottage", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 98.0, protein = 11.0, carbs = 3.4, fats = 4.3),
-    FoodItem(id = "gen019", name = "Pan Blanco", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 265.0, protein = 9.0, carbs = 49.0, fats = 3.2),
+    // WP-S10: sus macros son por 100 g (PER_100G_AS_SOLD) y por eso esos 100 g ya no cuentan como porción; el pan que come la gente (un pan, "2 panes" =
+    // 200 g en EverydayMealCorpusTest) sí pesa 100 g, y la fila lo declara en vez de heredarlo del denominador.
+    FoodItem(id = "gen019", name = "Pan Blanco", brand = "Genérico", servingSize = 100.0, unit = "g", portionGrams = 100.0, portionUnit = "unidad", calories = 265.0, protein = 9.0, carbs = 49.0, fats = 3.2),
     FoodItem(id = "gen020", name = "Pan Integral", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 265.0, protein = 9.5, carbs = 45.0, fats = 4.2, nutritionBasis = "PER_100G_AS_SOLD"),
     FoodItem(id = "gen021", name = "Papa (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 87.0, protein = 1.9, carbs = 20.0, fats = 0.1),
     FoodItem(id = "gen022", name = "Brócoli (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 35.0, protein = 2.4, carbs = 7.2, fats = 0.4),
@@ -268,7 +307,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "cl036", name = "Sándwich de Pavita", servingSize = 150.0, unit = "g", calories = 280.0, protein = 18.0, carbs = 25.0, fats = 12.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("sandwich de pavita", "pavita")),
     FoodItem(id = "cl037", name = "Ave Palta", servingSize = 180.0, unit = "g", calories = 350.0, protein = 12.0, carbs = 30.0, fats = 22.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("ave palta")),
     FoodItem(id = "cl038", name = "Bistec a lo Pobre", servingSize = 400.0, unit = "g", calories = 850.0, protein = 45.0, carbs = 60.0, fats = 48.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("bistec a lo pobre", "lomo a lo pobre")),
-    FoodItem(id = "cl039", name = "Charquicán", servingSize = 350.0, unit = "g", calories = 380.0, protein = 20.0, carbs = 35.0, fats = 16.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("charquican", "charquicán")),
+    // cl039 (segundo "Charquicán", idéntico a cl015) se fusionó en cl015 (WP-S10): ver LEGACY_FOOD_ID_REDIRECTS.
     FoodItem(id = "cl040", name = "Porotos Granados con Mazamorra", servingSize = 350.0, unit = "g", calories = 420.0, protein = 18.0, carbs = 60.0, fats = 14.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("porotos granados con mazamorra")),
 
     // ─── Alimentos adicionales del dataset ───────────────────────────────────
@@ -1407,7 +1446,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         fats = 0.0,
         searchAliases = listOf("espumante", "espumantes", "vino espumante", "champaña", "champana", "champagne", "champán"),
     ),
-)
+).withCuratedProvenance()
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
 
@@ -1432,7 +1471,7 @@ val CHILEAN_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "cl018", name = "Pebre", servingSize = 50.0, unit = "g", calories = 18.0, protein = 0.7, carbs = 4.0, fats = 0.3, tags = listOf("condimento", "chileno"), searchAliases = listOf("pebre")),
     FoodItem(id = "cl019", name = "Merluza Frita", servingSize = 150.0, unit = "g", calories = 290.0, protein = 22.0, carbs = 18.0, fats = 14.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("merluza frita", "pescado frito")),
     FoodItem(id = "cl020", name = "Leche con Plátano", servingSize = 300.0, unit = "ml", calories = 195.0, protein = 5.5, carbs = 38.0, fats = 2.5, tags = listOf("preparacion", "chileno"), searchAliases = listOf("leche con plátano", "leche con platano", "leche platano")),
-)
+).withCuratedProvenance()
 
 // ─── Search Aliases ──────────────────────────────────────────────────────────
 
@@ -1679,9 +1718,10 @@ private val foodById: Map<String, FoodItem> by lazy { ALL_FOODS.associateBy { it
 /**
  * Ids that no longer name a row of the static catalog -> the row that replaced them. A learned resolution (the personal mapping of
  * "arroz integral" to a food id) keeps the id it was saved with, so a deleted row must keep answering (WP-S11: gen136 was a second
- * "Arroz Integral (cocido)" with other values and was merged into gen006).
+ * "Arroz Integral (cocido)" with other values and was merged into gen006; WP-S10: cl039 was the same "Charquicán" as cl015, which is the
+ * row every lookup answered, and was merged into it).
  */
-val LEGACY_FOOD_ID_REDIRECTS: Map<String, String> = mapOf("gen136" to "gen006")
+val LEGACY_FOOD_ID_REDIRECTS: Map<String, String> = mapOf("gen136" to "gen006", "cl039" to "cl015")
 
 /** [id] as the catalog knows it today: the row that replaced a deleted one, or [id] itself. */
 fun resolveLegacyFoodId(id: String): String = LEGACY_FOOD_ID_REDIRECTS[id] ?: id

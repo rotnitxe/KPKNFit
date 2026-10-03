@@ -231,7 +231,7 @@ class NutritionRepositoryStartupTest {
         val seen = CopyOnWriteArrayList<Pair<Boolean, FoodImporter.ImportMetadata?>>()
         val reported = FoodImporter.ImportMetadata(
             version = FoodImporter.DATA_VERSION,
-            checksum = FoodImporter.datasetFingerprint(),
+            checksum = FoodImporter.versionFingerprint(),
             importedAt = "2026-10-02T10:00:00Z",
         )
         val repo = repository(
@@ -296,8 +296,8 @@ class NutritionRepositoryStartupTest {
 
     // ─── Compuerta de versión: arranque sin leer los CSV ──────────────────
 
-    /** Cuenta cuántas veces se piden los assets: la compuerta de versión no debe abrir ninguno. */
-    private class AssetCountingContext(base: Context) : ContextWrapper(base) {
+    /** Cuenta cuántas veces se piden los assets: la compuerta de versión solo puede pedir el manifiesto, nunca un CSV. */
+    private open class AssetCountingContext(base: Context) : ContextWrapper(base) {
         val assetAccesses = AtomicInteger(0)
 
         override fun getAssets(): AssetManager {
@@ -306,8 +306,16 @@ class NutritionRepositoryStartupTest {
         }
     }
 
+    /** Un APK sin manifiesto (o con uno ilegible): sus assets no responden. */
+    private class NoAssetsContext(base: Context) : AssetCountingContext(base) {
+        override fun getAssets(): AssetManager {
+            assetAccesses.incrementAndGet()
+            throw IllegalStateException("the assets are not available")
+        }
+    }
+
     @Test
-    fun `a start whose stored meta is current never opens the catalog assets`() = runBlocking {
+    fun `a start whose stored meta is current reads the manifest and never a catalog CSV`() = runBlocking {
         // Catálogo ya importado (una fila) y el importador REAL: antes se hasheaban ~72 MB de CSV en cada arranque en
         // frío, incluso cuando nada había cambiado, y solo después se publicaban las comidas del usuario.
         db.nutritionDao().insertGlobalFoods(listOf(GlobalFoodEntity(foodId = "off_1", name = "Yogur natural")))
@@ -317,25 +325,59 @@ class NutritionRepositoryStartupTest {
         assertEquals("sanity: the counter sees asset requests", 1, spy.assetAccesses.get())
         spy.assetAccesses.set(0)
 
+        // WP-S10: la huella de ESTE build es "v10+<sha256>" si los assets fusionados traen el manifiesto que genera Gradle y "v10" si no.
         val current = NutritionRepository.FoodCatalogMeta(
             FoodImporter.DATA_VERSION,
-            FoodImporter.datasetFingerprint(),
+            FoodImporter.expectedFingerprint(context),
             "2026-10-02T10:00:00Z",
         )
         repo.restoreFoodCatalogMeta(current)
         repo.refreshData(spy)
         withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
-        assertEquals("the version gate must decide without opening any CSV", 0, spy.assetAccesses.get())
+        // UNA petición: el manifiesto (< 1 KB). Un CSV sería la importación, y la meta dice que no hay nada que importar.
+        assertEquals("the version gate asks for the manifest only, never for a CSV", 1, spy.assetAccesses.get())
         assertEquals(current, repo.getFoodCatalogMetaForBackup())
+    }
 
-        // Instalación anterior a WP-S3: la meta guardada trae el SHA-256 de los CSV con la MISMA versión de datos. Se
-        // adopta la huella vigente en memoria: ni se reimporta ni se leen los assets, y la meta guardada no se toca.
+    @Test
+    fun `without a manifest the gate falls back to the data version and adopts a legacy checksum instead of importing`() = runBlocking {
+        db.nutritionDao().insertGlobalFoods(listOf(GlobalFoodEntity(foodId = "off_1", name = "Yogur natural")))
+        val repo = repository(FoodCatalogImporter.Default)
+        val spy = NoAssetsContext(context)
+
+        // Instalación anterior a WP-S3: la meta guardada trae el SHA-256 de los CSV con la MISMA versión de datos. Sin manifiesto la
+        // huella es solo la versión: se adopta en memoria, ni se reimporta ni se leen los CSV, y la meta guardada no se toca.
         val legacy = NutritionRepository.FoodCatalogMeta(FoodImporter.DATA_VERSION, "ab12".repeat(16), "2026-07-25T10:00:00Z")
         repo.restoreFoodCatalogMeta(legacy)
         repo.refreshData(spy)
         withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
-        assertEquals("a legacy checksum at the current version must not trigger a re-import", 0, spy.assetAccesses.get())
-        assertEquals(legacy, repo.getFoodCatalogMetaForBackup())
+        assertEquals("only the manifest was asked for", 1, spy.assetAccesses.get())
+        assertEquals("a legacy checksum at the current version must not trigger a re-import", legacy, repo.getFoodCatalogMetaForBackup())
+
+        // Y una meta con la huella de versión (la de WP-S3 a WP-S9) tampoco reimporta: la compuerta es estable, no hay bucle.
+        val current = NutritionRepository.FoodCatalogMeta(FoodImporter.DATA_VERSION, FoodImporter.versionFingerprint(), "2026-10-02T10:00:00Z")
+        repo.restoreFoodCatalogMeta(current)
+        spy.assetAccesses.set(0)
+        repo.refreshData(spy)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+        assertEquals(1, spy.assetAccesses.get())
+        assertEquals(current, repo.getFoodCatalogMetaForBackup())
+    }
+
+    @Test
+    fun `the expected fingerprint is the data version plus the manifest of the assets when the build has one`() {
+        val fingerprint = FoodImporter.expectedFingerprint(context)
+
+        assertTrue("fingerprint '$fingerprint'", fingerprint.isNotBlank() && fingerprint.startsWith("v${FoodImporter.DATA_VERSION}"))
+        // Esté o no el manifiesto generado en los assets fusionados, es la composición pura de lo que traen, y no cambia entre llamadas.
+        val manifest = runCatching { context.assets.open(FoodImporter.MANIFEST_ASSET).use { it.readBytes().toString(Charsets.UTF_8) } }.getOrNull()
+        assertEquals(FoodImporter.composeFingerprint(manifest?.let(FoodImporter::parseManifestFingerprint)), fingerprint)
+        assertEquals(fingerprint, FoodImporter.expectedFingerprint(context))
+    }
+
+    @Test
+    fun `an unreadable manifest never crashes the gate and leaves the data version as the fingerprint`() {
+        assertEquals(FoodImporter.versionFingerprint(), FoodImporter.expectedFingerprint(NoAssetsContext(context)))
     }
 
     // ─── WP-S4: el índice del resolvedor sigue al catálogo ────────────────
