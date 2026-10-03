@@ -63,8 +63,35 @@ private val SAUCE_DRESSING  = NutritionProfile(250.0,  1.5, 15.0, 20.0)
 private val MIXED_DISH      = NutritionProfile(160.0, 10.0, 16.0,  6.0)  // generic fallback
 private val NOODLE_DISH     = NutritionProfile(165.0,  7.0, 22.0,  6.0)
 
+// Dessert (WP-N11), per 100 g: the median of 13 sourced rows. USDA FoodData Central (data/usdaFoodsOffline.json): flan 167574
+// (145 kcal), vanilla ice cream 167575 (207), apple pie 175011 (237), lemon meringue pie 172785 (268), sponge cake 172706 (290),
+// fruit coffeecake 174937 (311, the kuchen row of the catalog), pound cake 172704 (353, the queque row), commercial cheesecake
+// 172711 (321), iced cream puff 2708031 (334, the closest to a mil hojas), commercial brownies 172713 (405) and brownies from
+// recipe 174949 (466); and the catalog's own "tres leches" (280) and homemade alfajor (390). The median is 311 kcal, 5.0 g
+// protein and 12.0 g fat, with carbohydrate by difference (46 g) so that 4/4/9 closes; DESSERT_RANGE holds the lowest and the
+// highest value of each nutrient over the same rows.
+private val DESSERT         = NutritionProfile(310.0,  5.0, 46.0, 12.0)
+
+// Hot dog / "completo" (WP-N11), per 100 g: the app's two curated completos, "Completo Italiano" (cl002, 380 kcal per 200 g) and
+// "Completo Americano" (cl035, 420 kcal per 220 g), are 190 and 191 kcal, 6 g protein, 16 g carbohydrate and 11 g fat. The plain
+// parts are denser (USDA hot dog roll 172796: 279 kcal, frankfurter 172968: 290 kcal), so this is the figure of a dressed one.
+private val HOT_DOG         = NutritionProfile(190.0,  6.0, 16.0, 11.0)
+
+/** Marginal per-100 g bounds of a profile that has a sourced range (not a confidence interval): the lowest and highest value of each nutrient. */
+private class SourcedRange(val min: NutritionProfile, val max: NutritionProfile)
+
+private val DESSERT_RANGE = SourcedRange(
+    min = NutritionProfile(145.0, 1.5, 22.8, 2.7),
+    max = NutritionProfile(466.0, 6.2, 63.9, 29.1),
+)
+
+/** The profiles whose evidence carries a sourced range instead of the generic 0..900 kcal of a category guess. */
+private val SOURCED_RANGES: Map<NutritionProfile, SourcedRange> = mapOf(DESSERT to DESSERT_RANGE)
+
 // ─── Keyword → Profile mapping ───────────────────────────────────────────────
-// Rules are checked in order — more specific rules first.
+// Rules are checked in order — more specific rules first. A keyword names the food only as a whole word (or whole words) of the
+// name, never inside a longer word (WP-N11): "repollo" is not "pollo", "fresa" and "fresco" are not "res", "papaya" is not "papa",
+// and "tres leches" is a dessert, not three milks. See PROFILE_MATCHERS.
 
 private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listOf(
 
@@ -81,6 +108,19 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
         "caseína", "caseina", "suplemento proteico", "mass gainer", "gainers"
     ) to PROTEIN_POWDER,
 
+    // ── Pastas de frutos secos (antes que "pasta" y "mantequilla"): la pasta de maní no son fideos ni aceite ──
+    // USDA: peanut butter 172470 (598 kcal), almond butter 168588 (614), tahini 168604 (592).
+    listOf(
+        "pasta de mani", "crema de mani", "mantequilla de mani",
+        "pasta de almendras", "crema de almendras", "mantequilla de almendras",
+        "mantequilla de nueces", "tahini",
+    ) to NUTS_SEEDS,
+
+    // ── Completo / hot dog (antes que embutidos y proteínas: un completo con vienesa es un completo) ──
+    listOf(
+        "completo", "completo italiano", "completo americano", "hot dog", "hotdog", "perro caliente",
+    ) to HOT_DOG,
+
     // ── Proteínas magras ──────────────────────────────────────────────────────
     listOf(
         "pechuga de pollo", "pechuga de pavo", "pollo a la plancha",
@@ -94,7 +134,7 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     // ── Proteínas con grasa ───────────────────────────────────────────────────
     listOf(
         "carne molida", "carne de vacuno", "carne de res", "carne de cerdo",
-        "asado", "costilla", "lomo vetado", "punta de ganso", "tapapecho",
+        "asado", "costilla", "costillar", "lomo vetado", "punta de ganso", "tapapecho", "huachalomo",
         "paleta", "pierna de cerdo", "chuleta", "filete", "lomo",
         "vacuno", "res", "cerdo", "carne"
     ) to FATTY_PROTEIN,
@@ -114,6 +154,12 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
         "jamón", "jamon", "salchicha", "vienesa", "longaniza",
         "mortadela", "salame", "cecina", "tocino", "panceta"
     ) to PROCESSED_MEAT,
+
+    // ── Postres (antes que legumbres, lácteos, frutas y dulces: "helado de frutilla" y "torta de zanahoria" son postres) ──
+    listOf(
+        "tres leches", "torta", "queque", "kuchen", "helado", "pie", "flan",
+        "mil hojas", "milhojas", "brownie", "alfajor",
+    ) to DESSERT,
 
     // ── Legumbres ─────────────────────────────────────────────────────────────
     listOf(
@@ -140,7 +186,8 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     // ── Pan / masas ───────────────────────────────────────────────────────────
     listOf(
         "marraqueta", "hallulla", "baguette", "pan de molde",
-        "pan integral", "pan blanco", "pan", "tortilla", "arepa", "pita"
+        "pan integral", "pan blanco", "pan", "tortilla", "arepa", "pita",
+        "empanada", "panqueque", "choripan"
     ) to BREAD,
 
     // ── Vegetales con almidón ─────────────────────────────────────────────────
@@ -180,7 +227,7 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     listOf(
         "manzana", "plátano", "platano", "banana", "naranja", "uva",
         "pera", "durazno", "mango", "papaya", "sandía", "sandia",
-        "melón", "melon", "piña", "pina", "frutilla", "frambuesa",
+        "melón", "melon", "piña", "pina", "frutilla", "fresa", "frambuesa",
         "arándano", "arandano", "kiwi", "ciruela", "damasco",
         "maracuyá", "lúcuma", "fruta"
     ) to FRUIT,
@@ -206,6 +253,27 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
         "salsa de soya", "salsa", "aderezo", "vinagreta"
     ) to SAUCE_DRESSING,
 )
+
+/**
+ * One matcher per profile, compiled once (WP-N11): all its keywords in a single alternation, longest first, that has to match
+ * whole words of the accent-free, lower-case name ([RegexEs.bounded], which reads the same on the JVM and on Android), with an
+ * optional Spanish plural ("papa" -> "papas", "alfajor" -> "alfajores"). A keyword is folded like the name, so "atún" and "atun"
+ * are one entry; folded keywords hold only letters, digits and single spaces, so they go into the pattern as they are.
+ */
+private val PROFILE_MATCHERS: List<Pair<Regex, NutritionProfile>> = KEYWORD_PROFILES.map { (words, profile) ->
+    val keywords = words.map { TextKeys.normalize(it) }.filter { it.isNotEmpty() }.distinct().sortedByDescending { it.length }
+    Regex(RegexEs.bounded("(?:" + keywords.joinToString("|") + ")(?:e?s)?")) to profile
+}
+
+/** "helado" is also the adjective of an iced drink ("té helado", "café helado"): that drink is not a dessert. */
+private val ICED_DRINK = Regex(RegexEs.bounded("""(?:te|cafe|mate|agua|jugo|bebida|refresco|batido)\s+helad[oa]s?"""))
+
+/** The profile whose keywords name [foodName]: the first rule, in table order, with a keyword among the whole words of the name. */
+private fun profileFor(foodName: String): NutritionProfile? {
+    val key = TextKeys.normalize(foodName).replace(ICED_DRINK, " ").trim()
+    if (key.isEmpty()) return null
+    return PROFILE_MATCHERS.firstOrNull { (matcher, _) -> matcher.containsMatchIn(key) }?.second
+}
 
 object NutritionHeuristicEstimator {
     fun estimatePer100g(foodName: String): NutritionProfile {
@@ -251,13 +319,16 @@ object NutritionHeuristicEstimator {
                 requiresCompositionClarification = true,
             ))
         }
-        val matched = KEYWORD_PROFILES.any { (words, _) -> words.any { foodName.lowercase().contains(it) } }
+        val keywordProfile = profileFor(foodName)
+        val matched = keywordProfile != null
+        val range = keywordProfile?.let { SOURCED_RANGES[it] }
         return NutritionEstimate(estimatePer100g(foodName), NutritionEstimateEvidence(
             assumption = if (matched) "Perfil provisional por categoría; composición sin confirmar."
                 else "Sin referencia nutricional: valores provisionales de un plato genérico.",
-            // Conservative marginal composition bounds, not an empirical confidence interval.
-            minPer100g = NutritionProfile(0.0, 0.0, 0.0, 0.0),
-            maxPer100g = NutritionProfile(900.0, 100.0, 100.0, 100.0),
+            // The sourced range of the profile when it has one; otherwise conservative marginal composition bounds, not an
+            // empirical confidence interval.
+            minPer100g = range?.min ?: NutritionProfile(0.0, 0.0, 0.0, 0.0),
+            maxPer100g = range?.max ?: NutritionProfile(900.0, 100.0, 100.0, 100.0),
             isUnmatchedFallback = !matched,
         ))
     }
@@ -269,11 +340,7 @@ fun estimateNutritionByKeyword(foodName: String): NutritionProfile? {
     // Detect cooking method indicators in the food name
     val cookingBoost = detectCookingBoost(lower)
 
-    for ((keywords, profile) in KEYWORD_PROFILES) {
-        if (keywords.any { lower.contains(it) }) {
-            return cookingBoost?.applyTo(profile) ?: profile
-        }
-    }
+    profileFor(foodName)?.let { profile -> return cookingBoost?.applyTo(profile) ?: profile }
     return if (lower.length >= 3) cookingBoost?.applyTo(MIXED_DISH) ?: MIXED_DISH else null
 }
 

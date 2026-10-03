@@ -110,10 +110,19 @@ object FoodStapleOntology {
         StapleNode(Family.WHEY, Cut.SCOOP, "gen105", 30.0, 400.0, StapleState.AS_SOLD, null, "PER_SERVING", null, setOf("whey", "proteina en polvo", "proteína en polvo", "proteina whey")),
     )
 
-    private val ambiguousFamilies = mapOf(
-        Family.POLLO to listOf("gen004", "gen003t", "gen003e"),
-        Family.VACUNO to listOf("gen093", "gen010"),
-    )
+    /**
+     * The cuts a bare family name offers when the person did not name one, every option in the state the person declared
+     * ([state]; cooked unless they said raw): one question compares alternatives of the same eaten food, never a raw cut beside
+     * cooked ones (WP-N11). POLLO is pechuga, trutro and whole chicken cooked, or pechuga and trutro raw (the catalog has no raw
+     * whole bird). VACUNO has only cooked cuts, so a raw beef mention offers none.
+     */
+    private fun ambiguousFamilies(family: Family, state: FoodState?): List<String> = when (family) {
+        Family.POLLO ->
+            if (state == FoodState.RAW) listOf("gen003", "gen003t") else listOf("gen004", "gen003tc", "gen003e")
+        Family.VACUNO ->
+            if (state == FoodState.RAW) emptyList() else listOf("gen093", "gen010")
+        else -> emptyList()
+    }
 
     private val supplementMarkers = listOf(
         "whey", "scoop", "batido de proteina", "batido de proteína", "shake", "proteina en polvo", "proteína en polvo",
@@ -202,11 +211,14 @@ object FoodStapleOntology {
      *
      * @param rawHint original user fragment before typo normalization (e.g. poyo→pollo).
      * @param learnedFoodId user habit for this query; suppresses the chip.
+     * @param state the state the person declared with the mention (the parsed cooking method: raw or cooked). When it is absent
+     * the state is read from [rawHint] ("pollo crudo 200 g" is raw); with neither, the options are the cooked cuts.
      */
     fun cutClarification(
         query: String,
         rawHint: String? = null,
         learnedFoodId: String? = null,
+        state: FoodState? = null,
     ): CutClarification? {
         if (!learnedFoodId.isNullOrBlank()) return null
         val blob = normalizeQuery(query)
@@ -216,7 +228,8 @@ object FoodStapleOntology {
         if (blob.split(" ").size > 3) return null
         if (blob != "pollo" && blob != "carne") return null
         val family = detectFamily(query) ?: return null
-        val foodIds = ambiguousFamilies[family] ?: return null
+        val declaredState = state?.takeIf { it != FoodState.UNKNOWN } ?: FoodIdentity.stateFor(raw)
+        val foodIds = ambiguousFamilies(family, declaredState).takeIf { it.isNotEmpty() } ?: return null
         if (family == Family.POLLO && listOf("pechuga", "trutro", "muslo", "ala", "entero").any { blob.contains(it) }) {
             return null
         }

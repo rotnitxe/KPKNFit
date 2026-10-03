@@ -95,7 +95,8 @@ object NutritionInterpretationBridge {
         val acceptedEstimate = tag.explicitDecision && tag.confirmedDimensions.isEmpty()
         val grams = tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0
         val mentionText = item?.foodQuery?.ifBlank { item.tag } ?: tag.foodQuery.ifBlank { tag.tag }
-        val cut = FoodStapleOntology.cutClarification(tag.tag, mentionText, tag.learnedFoodId)
+        // The options are cuts in the state the person declared ("pollo crudo" offers raw cuts, a bare "pollo" cooked ones).
+        val cut = FoodStapleOntology.cutClarification(tag.tag, mentionText, tag.learnedFoodId, CookingStateResolver.stateForMethod(tag.cookingMethod))
             ?.takeIf { (item?.amountIntent ?: tag.amountIntent) == AmountIntent.UNSPECIFIED }
             ?.let { clarification -> clarification.copy(options = clarification.options.filter { option ->
                 findStaticFoodById(option.foodId)?.let { NutrientBasis.isVerified(it) && FoodIdentity.matchesExclusions(it, tag.excludedIngredients) } == true

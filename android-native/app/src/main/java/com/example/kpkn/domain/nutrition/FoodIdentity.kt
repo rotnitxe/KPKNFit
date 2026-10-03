@@ -189,6 +189,50 @@ object FoodIdentity {
         return extra.isEmpty() && foodTokens.any { it in queryTokens || queryFamily != null }
     }
 
+    /** A food that comes in flavours and the flavours the person named: "helado de vainilla y chocolate" (WP-N11). */
+    class FlavouredMention(val head: String, val flavours: List<String>)
+
+    /**
+     * Foods that come in flavours, as a person writes them (accent-free, plural included): after one of them "de vainilla y
+     * chocolate" names its flavours and not another food. They are the heads that [ProtectedPhrases] keeps whole (WP-N9) except the
+     * ones that are also another food (a "crema" is no custard, a "barra" no cake, a "paleta" is a cut of beef, a "pastel" is
+     * often a stew).
+     */
+    private val FLAVOURED_HEADS = setOf(
+        "helado", "helados", "yogur", "yogures", "yogurt", "yogurts", "torta", "tortas", "queque", "queques", "keke", "kekes",
+        "kuchen", "kuchenes", "galleta", "galletas", "alfajor", "alfajores", "flan", "flanes", "pie", "pies", "brownie", "brownies",
+        "budin", "budines", "bizcocho", "bizcochos", "panqueque", "panqueques", "crepe", "crepes", "mousse", "sorbete", "sorbetes",
+        "cheesecake", "cupcake", "cupcakes", "muffin", "muffins",
+    )
+
+    /**
+     * The flavours of those foods, accent-free and singular: the fourteen that [ProtectedPhrases] keeps in pairs, plus the fruit,
+     * nut and coffee flavours of a single flavour ("yogur de durazno") and the ones of a cake ("queque de zanahoria"). Only a flavour
+     * can follow the "de" of a flavoured mention: "crema de zapallo" is a soup.
+     */
+    val flavourWords: Set<String> = setOf(
+        "vainilla", "chocolate", "frutilla", "lucuma", "manjar", "menta", "frambuesa", "mora", "coco", "caramelo", "avellana",
+        "pistacho", "limon", "maracuya",
+        "cafe", "platano", "durazno", "pina", "naranja", "cereza", "arandano", "manzana", "chirimoya", "nuez", "almendra", "miel",
+        "canela", "mango",
+        "zanahoria", "amapola", "pasa", "ciruela",
+    )
+
+    /**
+     * "<food that comes in flavours> de <flavour> [y <flavour>...]" as a [FlavouredMention], or null (WP-N11). The first word is the
+     * head, "de" follows and every word after it is a flavour (in the singular or the plural) or the "y" / "e" between two: "crema
+     * de zapallo" and "helado de vainilla con salsa" are not flavoured mentions, and neither is a bare "helado".
+     */
+    fun flavouredMention(query: String): FlavouredMention? {
+        val tokens = normalize(query).split(' ').filter { it.isNotEmpty() }
+        if (tokens.size < 3 || tokens[0] !in FLAVOURED_HEADS || tokens[1] != "de") return null
+        val rest = tokens.drop(2).map { SpanishSingularizer.singularizeWord(it) }
+        if (rest.any { it != "y" && it != "e" && it !in flavourWords }) return null
+        val flavours = rest.filter { it in flavourWords }
+        if (flavours.isEmpty()) return null
+        return FlavouredMention(head = tokens[0], flavours = flavours)
+    }
+
     private val STOP_TOKENS = setOf(
         "de", "con", "y", "e", "la", "el", "los", "las", "un", "una", "a", "al", "del",
         "and", "with", "the",

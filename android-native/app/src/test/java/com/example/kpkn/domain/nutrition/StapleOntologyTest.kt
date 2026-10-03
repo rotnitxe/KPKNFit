@@ -3,6 +3,7 @@ package com.example.kpkn.domain.nutrition
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.MealType
 import kotlinx.coroutines.runBlocking
@@ -180,6 +181,86 @@ class StapleOntologyTest {
         val tags = TagResolver(RealPort(resolver, foods)).resolveAll(parsed).first
         assertEquals("gen003t", tags.single().foodItem?.id)
         assertFalse(tags.single().needsCutClarification)
+    }
+
+    // ─── WP-N11: the options of a cut question are all in the state the person declared ──────────────────────────
+
+    @Test
+    fun `a bare pollo offers cooked cuts only`() {
+        val cut = requireNotNull(FoodStapleOntology.cutClarification("pollo"))
+        assertEquals(listOf("gen004", "gen003tc", "gen003e"), cut.options.map { it.foodId })
+        assertEquals(listOf("Pechuga", "Trutro", "Entero"), cut.options.map { it.label })
+        assertEquals("gen004", cut.defaultFoodId)
+        for (option in cut.options) {
+            val state = FoodIdentity.stateFor(requireNotNull(findStaticFoodById(option.foodId)))
+            assertEquals("${option.foodId} is a cooked row", FoodState.COOKED, state)
+        }
+    }
+
+    @Test
+    fun `pollo crudo offers the raw cuts, by the declared state or by the words typed`() {
+        val byState = requireNotNull(FoodStapleOntology.cutClarification("pollo", "pollo", null, FoodState.RAW))
+        assertEquals(listOf("gen003", "gen003t"), byState.options.map { it.foodId })
+        assertEquals(listOf("Pechuga", "Trutro"), byState.options.map { it.label })
+        val byWords = requireNotNull(FoodStapleOntology.cutClarification("pollo", "pollo crudo 200 g"))
+        assertEquals(listOf("gen003", "gen003t"), byWords.options.map { it.foodId })
+        for (option in byWords.options) {
+            assertEquals("${option.foodId} is a raw row", FoodState.RAW, FoodIdentity.stateFor(requireNotNull(findStaticFoodById(option.foodId))))
+        }
+        // a cooked state, declared or typed, keeps the cooked cuts
+        val declaredCooked = requireNotNull(FoodStapleOntology.cutClarification("pollo", "pollo", null, FoodState.COOKED))
+        assertEquals(listOf("gen004", "gen003tc", "gen003e"), declaredCooked.options.map { it.foodId })
+        val typedCooked = requireNotNull(FoodStapleOntology.cutClarification("pollo", "pollo asado"))
+        assertEquals(listOf("gen004", "gen003tc", "gen003e"), typedCooked.options.map { it.foodId })
+    }
+
+    @Test
+    fun `the declared state does not hide a learned cut or a named one`() {
+        assertNull(FoodStapleOntology.cutClarification("pollo", "pollo", "gen003t", FoodState.RAW))
+        assertNull(FoodStapleOntology.cutClarification("trutro de pollo", "trutro de pollo", null, FoodState.RAW))
+        assertNull(FoodStapleOntology.cutClarification("pechuga", "pechuga", null, FoodState.RAW))
+    }
+
+    @Test
+    fun `beef has cooked cuts only, so a raw beef mention offers none`() {
+        assertEquals(listOf("gen093", "gen010"), requireNotNull(FoodStapleOntology.cutClarification("carne")).options.map { it.foodId })
+        assertNull(FoodStapleOntology.cutClarification("carne", "carne", null, FoodState.RAW))
+    }
+
+    @Test
+    fun `the question of the tag carries the cuts of its state`() = runBlocking {
+        val bare = resolve("pollo").single()
+        assertTrue(bare.needsCutClarification)
+        assertEquals(listOf("gen004", "gen003tc", "gen003e"), bare.stapleCutOptions.map { it.foodId })
+        val question = requireNotNull(bare.interpretationV2).pendingQuestions.filterIsInstance<ClarificationRequest.Identity>().single { it.requestId == "cut" }
+        assertEquals(listOf("gen004", "gen003tc", "gen003e"), question.candidateIds)
+        assertEquals(listOf("Pechuga", "Trutro", "Entero"), question.candidateLabels)
+
+        val raw = resolve("pollo crudo").single()
+        assertTrue(raw.needsCutClarification)
+        assertEquals(listOf("gen003", "gen003t"), raw.stapleCutOptions.map { it.foodId })
+        val rawQuestion = requireNotNull(raw.interpretationV2).pendingQuestions.filterIsInstance<ClarificationRequest.Identity>().single { it.requestId == "cut" }
+        assertEquals(listOf("gen003", "gen003t"), rawQuestion.candidateIds)
+
+        // an explicit mass answers the portion, not the cut: the declared state picks the row and nothing is asked
+        val grams = resolve("pollo crudo 200 g").single()
+        assertFalse(grams.needsCutClarification)
+        assertEquals("gen003", grams.foodItem?.id)
+    }
+
+    @Test
+    fun `every option of the question can be applied`() = runBlocking {
+        for ((text, ids) in listOf(
+            "pollo" to listOf("gen004", "gen003tc", "gen003e"),
+            "pollo crudo" to listOf("gen003", "gen003t"),
+        )) {
+            val tag = resolve(text).single()
+            for (id in ids) {
+                val applied = NutritionInterpretationBridge.applyCutOption(tag, id)
+                assertEquals("$text -> $id", id, applied.foodItem?.id)
+                assertFalse("$text -> $id", applied.needsCutClarification)
+            }
+        }
     }
 
     @Suppress("UNCHECKED_CAST")

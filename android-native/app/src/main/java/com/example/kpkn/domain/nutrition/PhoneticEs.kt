@@ -4,8 +4,14 @@ import java.text.Normalizer
 
 /**
  * PhoneticEs — Metaphone adapted for Spanish for food name matching.
- * Collapses: b/v, c/z/s, h muda, j/g suave, ll/y, qu/k.
- * Used by SmartFoodResolver for fuzzy token matching.
+ * Collapses: b/v, c/z/s, h muda, j/g suave, ll/y, qu/k, w/u.
+ *
+ * The five vowels stay distinct and only a run of the same vowel collapses (WP-N11). The code is evidence that two spellings are
+ * one word: with every vowel folded into a single letter "uva", "huevo", "ave" and "haba" encoded alike, and so did "pasta",
+ * "pesto" and "posta", "mote" and "mate", "lima" and "lomo". Variant spellings of one sound still meet through their
+ * consonants: "poyo" = "pollo", "uebo" = "wevo" = "huevo", "keso" = "queso".
+ *
+ * Used by SmartFoodResolver for fuzzy token matching and by FoodIdentity as evidence of identity.
  */
 object PhoneticEs {
 
@@ -99,10 +105,11 @@ object PhoneticEs {
                 // y/ll collapse to the same consonant sound.
                 c == 'y' -> result.append('Y')
 
-                // Vowels collapse to a single neutral vowel so regional variants still match.
+                // A vowel keeps its identity; only a run of the same vowel collapses ("polloooo" = "pollo").
                 isVowel(c) -> {
-                    if (result.isEmpty() || !isVowel(result.last())) {
-                        result.append('A')
+                    val vowel = c.uppercaseChar()
+                    if (result.isEmpty() || result.last() != vowel) {
+                        result.append(vowel)
                     }
                 }
 

@@ -13,12 +13,36 @@ object FoodCombinationParser {
 
     private val CON_Y_COMMA_LEADING_PATTERN = Regex("""^\s*(?:con|y|,)\s*""")
     private val COMBO_SPLIT_PATTERN = Regex("""\s+(?:con|y|,)\s+""")
+
+    /** The first word of a new, quantified mention: a digit, an article or a number word ("1 jugo", "una coca cola", "media palta"). */
+    private const val QUANTIFIED_OPENER =
+        """(?:\d|(?:un|una|unos|unas|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|medio|media|otro|otra)(?![\p{L}\p{N}_]))"""
+
+    /** A word that can join a sandwich to the mention that follows it. */
+    private const val MENTION_JOINER = """(?:y|e|con|mas|más|ademas|además)"""
+
+    /**
+     * "sándwich de A y B" bounded to its own mention (WP-N11). Neither filling crosses punctuation, and the second one ends where
+     * the mention ends: at punctuation, before a conjunction that opens a quantified mention ("... y una coca cola"), or at the
+     * end of the text. A "y" followed by a quantified mention is not a filling separator at all: "sándwich de ave mayo y un jugo"
+     * has one filling. The greedy tail this replaces swallowed everything said after the sandwich.
+     */
     private val SANDWICH_DE_Y = Regex(
-        """(?:s[aá]ndwich|sandwich)\s+de\s+(.+?)\s+y\s+(.+)$""",
+        RegexEs.LEFT_EDGE + """(?:s[aá]ndwich|sandwich)\s+de\s+([^,;.]{1,120}?)\s+y\s+(?!$QUANTIFIED_OPENER)([^,;.]{1,120}?)""" +
+            """(?=\s*[,;.]|\s+$MENTION_JOINER\s+$QUANTIFIED_OPENER|\s*$)""",
         RegexOption.IGNORE_CASE,
     )
 
-    private val dishRegexCache = mutableMapOf<String, Regex>()
+    /** One compiled regex per known dish, shared by every analysis: the logger can run two of them at once. */
+    private val dishRegexCache = java.util.concurrent.ConcurrentHashMap<String, Regex>()
+
+    /** A known dish as a whole phrase: it ends the text or is followed by a connector ("arroz con leche condensada" is not "arroz con leche"). */
+    private fun dishRegex(dishName: String): Regex = dishRegexCache.getOrPut(dishName) {
+        Regex(
+            RegexEs.boundedLiteral(dishName) + """(?=$|\s+(?:con|y|e|mas|más|sin|a|al|de|,)\b)""",
+            RegexOption.IGNORE_CASE,
+        )
+    }
 
     data class ParsedCombination(
         val baseFood: String,
@@ -391,6 +415,26 @@ object FoodCombinationParser {
     )
 
     /**
+     * The part of [text] that ONE sandwich mention consumes, or null when [text] names no sandwich (WP-N11): the longest known
+     * sandwich dish, else "sándwich de A y B" bounded by [SANDWICH_DE_Y]. Whatever the person said before or after it is not
+     * part of it. Give this span to [parse]: the whole description would let the sandwich take the mentions that follow it.
+     */
+    fun sandwichMention(text: String): String? {
+        val lower = text.lowercase().trim()
+        var knownName: String? = null
+        var known: MatchResult? = null
+        for (dishName in KNOWN_DISHES.keys) {
+            if (!dishName.startsWith("sandwich") && !dishName.startsWith("sándwich")) continue
+            val match = dishRegex(dishName).find(lower) ?: continue
+            if (knownName == null || dishName.length > knownName.length) {
+                knownName = dishName
+                known = match
+            }
+        }
+        return (known ?: SANDWICH_DE_Y.find(lower))?.value?.trim()
+    }
+
+    /**
      * Parse a food combination string.
      */
     fun parse(text: String): ParsedCombination {
@@ -403,12 +447,7 @@ object FoodCombinationParser {
         var bestDishName: String? = null
         var bestDishRegex: Regex? = null
         for ((dishName, _) in KNOWN_DISHES) {
-            val regex = dishRegexCache.getOrPut(dishName) {
-                Regex(
-                    RegexEs.boundedLiteral(dishName) + """(?=$|\s+(?:con|y|e|mas|más|sin|a|al|de|,)\b)""",
-                    RegexOption.IGNORE_CASE,
-                )
-            }
+            val regex = dishRegex(dishName)
             if (regex.containsMatchIn(lower) && (bestDishName == null || dishName.length > bestDishName.length)) {
                 bestDishName = dishName
                 bestDishRegex = regex

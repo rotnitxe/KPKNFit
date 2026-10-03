@@ -249,7 +249,7 @@ class TagResolver(
         val analysisTraceId = UUID.randomUUID().toString().substring(0, 8)
         for ((itemIndex, item) in parsed.items.withIndex()) {
             val tagStart = System.nanoTime()
-            val identityQuery = item.effectiveFoodQuery()
+            val declaredQuery = item.effectiveFoodQuery()
             val hasGreaseCooking = item.cookingMethod in setOf(CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO)
             val hasExcludedOil = item.excludedIngredients.any(::isOilExclusion)
             // Frying "sin aceite" is a dry pan (WP-N10): no oil and no frying factor. The prepared fried row is dropped (it carries its
@@ -267,8 +267,8 @@ class TagResolver(
             }
             val mappedCanonicalId = calibrationProfile?.identityMappings?.let { map ->
                 sequenceOf(
-                    identityQuery.trim().lowercase(),
-                    FoodIdentity.normalize(identityQuery),
+                    declaredQuery.trim().lowercase(),
+                    FoodIdentity.normalize(declaredQuery),
                     item.tag.trim().lowercase(),
                     FoodIdentity.normalize(item.tag),
                 ).mapNotNull { key -> map[key]?.takeIf { it.isNotBlank() } }.firstOrNull()
@@ -287,15 +287,19 @@ class TagResolver(
             // las menciones negadas no pueden contaminar el ranking de identidad;
             // stateHint = estado declarado vía método, porque el parser ya extrajo
             // la palabra "cocida/cruda" del tag antes de resolver)
-            val preferenceHint = if (item.cookingMethod == null) calibrationProfile?.statePreferences?.get(FoodIdentity.normalize(identityQuery))
+            val preferenceHint = if (item.cookingMethod == null) calibrationProfile?.statePreferences?.get(FoodIdentity.normalize(declaredQuery))
                 ?.let { runCatching { FoodState.valueOf(it) }.getOrNull() }?.takeUnless { it == FoodState.UNKNOWN } else null
-            val assumedHint = preferenceHint ?: CookingStateResolver.assumedDefault(identityQuery, null)
+            val assumedHint = preferenceHint ?: CookingStateResolver.assumedDefault(declaredQuery, null)
             val smartResult = port.resolveSmart(
-                identityQuery,
+                declaredQuery,
                 item.brandHint,
                 consumedDescription,
                 CookingStateResolver.stateForMethod(item.cookingMethod) ?: assumedHint,
             )
+            // WP-N11: a flavoured mention that resolved through its head noun ("helado de vainilla y chocolate" -> "helado") is that food
+            // from here on: its portion, its identity gate and its state read the head. Read whole, the flavour word would make a
+            // chocolate square of it (25 g) and keep the row out of the gate.
+            val identityQuery = smartResult.headNoun ?: declaredQuery
             val smartCandidate = smartResult.candidates.firstOrNull()
             val effectiveBrandHint = item.brandHint ?: smartCandidate?.brand?.takeIf { brand ->
                 val normalized = FoodIdentity.normalize(brand).replace(" ", "")
@@ -382,7 +386,9 @@ class TagResolver(
                             FoodStapleOntology.cutOf(food.id) != FoodStapleOntology.cutOf(variant.id)
                     }
             } else null
-            val usingPreparedVariant = preparedVariant != null ||
+            // A row found by name that is not itself the preparation (the dish "asado" is a raw cut) is a base row: it converts once.
+            val usingPreparedVariant = (preparedVariant != null &&
+                CookingStateResolver.isAlreadyPreparedForMethod(preparedVariant, item.cookingMethod)) ||
                 (assumedVariant != null && assumedVariant.id != food?.id &&
                     (CookingStateResolver.isDbFoodCooked(assumedVariant) ||
                         assumedState == FoodState.RAW))
@@ -475,9 +481,11 @@ class TagResolver(
             val countApplied = item.countExpressed && item.amountIntent == AmountIntent.UNSPECIFIED &&
                 ambiguousPackageGrams == null &&
                 HouseholdPortions.countAppliesTo(effectiveFood, identityQuery, item.quantity)
+            // A mention read through its head noun takes the serving of its row: the plate the context was read from counted the flavour
+            // words as foods ("manzana" of a "kuchen de manzana"), so it does not size the portion.
             val rawItemIntent = if (ambiguousPackageGrams != null) {
                 AmountIntent.UNSPECIFIED
-            } else if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED && !countApplied) {
+            } else if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED && !countApplied && smartResult.headNoun == null) {
                 AmountIntent.INFERRED_CONTEXT
             } else {
                 item.amountIntent
@@ -661,6 +669,7 @@ class TagResolver(
                     else -> null
                 }
                 val warningText = listOfNotNull(
+                    smartResult.headNoun?.let { "Sin ficha propia para «$declaredQuery»: usé «${effectiveFood.name}»." },
                     calibratedGrams?.let { "Usé tu habitual: ${it.toInt()} g." },
                     assumedPortionText?.takeIf { calibratedGrams == null },
                     validated.warnings.firstOrNull()?.takeIf { it.isNotBlank() },
@@ -840,8 +849,11 @@ class TagResolver(
         val compositionDescription = if (parsed.items.any { it.isExcluded }) consumedDescription else parsed.rawDescription
         val combination = FoodCombinationParser.parse(compositionDescription)
         // A full-dish expansion has no recipe quantities with which to remove an ingredient.
-        val sandwichExpanded = if (parsed.items.any { it.excludedIngredients.isNotEmpty() || it.isExcluded }) null
-            else expandSandwichComponents(combination, parsed.rawDescription, resolvedTags)
+        val sandwichMention = if (parsed.items.any { it.excludedIngredients.isNotEmpty() || it.isExcluded }) null
+            else FoodCombinationParser.sandwichMention(parsed.rawDescription)
+        // The sandwich is expanded inside its own mention, and the parser is given only that mention (WP-N11): the drink or the
+        // course said after it keeps its tag, and no other dish of the description can be taken for the sandwich.
+        val sandwichExpanded = sandwichMention?.let { expandSandwichComponents(FoodCombinationParser.parse(it), it, resolvedTags) }
         if (sandwichExpanded != null) {
             resolvedTags.clear()
             resolvedTags.addAll(sandwichExpanded)
@@ -932,15 +944,26 @@ class TagResolver(
         Pair(clarified, contextResult)
     }
 
+    /**
+     * The tags of ONE sandwich mention, in place of the tags that mention produced inside [existing]; null when it does not
+     * expand (WP-N11). [combination] is the parse of [mention] alone, so it describes that sandwich and nothing said around it.
+     * The result is the whole [existing] list: the tags outside the mention come back untouched and in their position.
+     */
     private suspend fun expandSandwichComponents(
         combination: FoodCombinationParser.ParsedCombination,
-        rawDescription: String,
+        mention: String,
         existing: List<ResolvedTag>,
     ): List<ResolvedTag>? {
-        val blob = FoodIdentity.normalize(rawDescription)
-        if (!blob.contains("sandwich")) return null
+        if (!FoodIdentity.normalize(mention).contains("sandwich")) return null
         if (combination.baseFood != "pan" || combination.confidence < 0.70) return null
-        val hasBread = existing.any { tag ->
+        // The tags this mention produced: the sandwich tag (made only of its words) and the ones right after it that are too.
+        val words = mentionWords(mention)
+        val first = existing.indexOfFirst { belongsToMention(it, words) && tagWords(it).any { word -> word.startsWith("sandwich") } }
+            .takeIf { it >= 0 } ?: existing.indexOfFirst { belongsToMention(it, words) }
+        if (first < 0) return null
+        var end = first + 1
+        while (end < existing.size && belongsToMention(existing[end], words)) end++
+        val hasBread = existing.subList(first, end).any { tag ->
             val n = FoodIdentity.normalize("${tag.foodItem?.name.orEmpty()} ${tag.tag}")
             n.contains("pan") || n.contains("hallulla") || n.contains("marraqueta")
         }
@@ -1014,7 +1037,20 @@ class TagResolver(
                 )
             }
         }
-        return tags.takeIf { it.size >= 2 }
+        val expansion = tags.takeIf { it.size >= 2 } ?: return null
+        return existing.subList(0, first) + expansion + existing.subList(end, existing.size)
+    }
+
+    /** The singular, accent-free content words of a mention: what a tag must be made of to have come from it. */
+    private fun mentionWords(mention: String): Set<String> =
+        FoodIdentity.contentTokens(mention).mapTo(HashSet()) { SpanishSingularizer.singularizeWord(it) }
+
+    /** The content words of what the parser read for [tag]. */
+    private fun tagWords(tag: ResolvedTag): List<String> = FoodIdentity.contentTokens(tag.foodQuery.ifBlank { tag.tag })
+
+    private fun belongsToMention(tag: ResolvedTag, mentionWords: Set<String>): Boolean {
+        val words = tagWords(tag)
+        return words.isNotEmpty() && words.all { SpanishSingularizer.singularizeWord(it) in mentionWords }
     }
 }
 

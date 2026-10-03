@@ -5,6 +5,7 @@ import com.example.kpkn.data.db.LearnedResolutionDao
 import com.example.kpkn.data.db.NutritionDao
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.food.findFoodByNormalized
+import com.example.kpkn.data.food.isApproximationAlias
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -53,6 +54,11 @@ class SmartFoodResolver(
         val state: FoodState = FoodState.UNKNOWN,
         val learnedPortionGrams: Double? = null,
         val learnedFoodId: String? = null,
+        /**
+         * The head noun of a flavoured mention that resolved through it ("helado" for "helado de vainilla y chocolate"), else null
+         * (WP-N11). The candidates are those of the head, so whoever reads them must read the mention as the head.
+         */
+        val headNoun: String? = null,
     )
 
     enum class Decision { AUTO_SELECT, NEEDS_REVIEW, UNRESOLVED }
@@ -126,17 +132,50 @@ class SmartFoodResolver(
         // F1.3 (G4): singularización dirigida por resolución. Si el intento inicial
         // fue débil y la query termina en plural ("huevos" → "huevo"), se reintenta
         // en singular y se queda con el mejor puntaje. Nunca empeora un resultado.
+        var best = first
         val singular = singularizeQuery(query)
         if (singular != null) {
             val retry = attemptResolve(singular, effectiveBrand, contextHint, stateHint)
             val firstScore = first.candidates.firstOrNull()?.score ?: 0.0
             val retryScore = retry.candidates.firstOrNull()?.score ?: 0.0
             if (retryScore > firstScore) {
-                return@withContext retry.copy(query = query)
+                best = retry.copy(query = query)
             }
         }
-        return@withContext first
+        // WP-N11: a flavoured mention with no candidate of its own is the food it is a flavour of.
+        if (best.decision != Decision.AUTO_SELECT && best.candidates.all { it.isHeuristicMarker() }) {
+            resolveByHeadNoun(query, effectiveBrand, contextHint, stateHint)?.let { return@withContext it }
+        }
+        return@withContext best
     }
+
+    /**
+     * A flavoured mention that has no candidate of its own ("helado de vainilla y chocolate", "yogur de frutilla") is the food it
+     * is a flavour of: the result of its head noun, read as the head (see [ResolutionResult.headNoun]), when the head resolves to a
+     * row that names no flavour the mention does not (WP-N11). The flavour does not change the food, only its taste: the generic row
+     * stands in for it with its own household portion. A head that is a food only by approximation ("torta" is bread) is no row.
+     * Null when the mention is not a flavoured one or its head has no row to give.
+     */
+    private suspend fun resolveByHeadNoun(
+        query: String,
+        brandHint: String?,
+        contextHint: String?,
+        stateHint: FoodState?,
+    ): ResolutionResult? {
+        val mention = FoodIdentity.flavouredMention(query) ?: return null
+        val head = SpanishSingularizer.singularizeWord(mention.head)
+        if (isApproximationAlias(head)) return null
+        val byHead = resolve(head, brandHint, contextHint, stateHint)
+        val usable = byHead.candidates.filterNot { it.isHeuristicMarker() || namesOtherFlavour(it, mention) }
+        if (usable.isEmpty() || usable.first().foodId != byHead.candidates.firstOrNull()?.foodId) return null
+        return byHead.copy(query = query, candidates = usable, headNoun = head)
+    }
+
+    /** True when the NAME of the row holds a flavour that [mention] does not ("Galletas de chocolate" is no stand-in for "galletas de vainilla"). */
+    private fun namesOtherFlavour(candidate: ResolutionCandidate, mention: FoodIdentity.FlavouredMention): Boolean =
+        FoodIndex.tokenize(FoodIndex.normalizeSearch(candidate.name)).any { it in FoodIdentity.flavourWords && it !in mention.flavours }
+
+    private fun ResolutionCandidate.isHeuristicMarker(): Boolean = foodId.startsWith(HEURISTIC_ID_PREFIX)
 
     private suspend fun attemptResolve(
         query: String,
@@ -417,8 +456,11 @@ class SmartFoodResolver(
             learned != null && learned.foodId == winner.foodId && baseTopScore >= LEARNED_AUTO_THRESHOLD && gapOk -> Decision.AUTO_SELECT
             plainLocalWinner && gapOk -> Decision.AUTO_SELECT
             localWinner && baseTopScore >= 0.70 && gapOk -> Decision.AUTO_SELECT
+            // A local winner that is plain by name but scores under PLAIN_LOCAL_MIN_SCORE (a fuzzy or phonetic bonus, or few shared
+            // words against many unused alias words) asks instead of choosing (WP-N11). MIN_THRESHOLD only decides whether there is
+            // a candidate at all.
             localWinner && HouseholdPortions.looksLikePackName(winner.name).not() &&
-                FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) && gapOk -> Decision.AUTO_SELECT
+                FoodIdentity.isPlainSimpleFood(originalQuery, winner.name) && baseTopScore >= PLAIN_LOCAL_MIN_SCORE && gapOk -> Decision.AUTO_SELECT
             baseTopScore >= HIGH_THRESHOLD && gapOk -> Decision.AUTO_SELECT
             top.first().score >= MEDIUM_THRESHOLD -> Decision.NEEDS_REVIEW
             else -> Decision.NEEDS_REVIEW
@@ -444,7 +486,7 @@ class SmartFoodResolver(
     ): ResolutionResult {
         val profile = NutritionHeuristicEstimator.estimatePer100g(query)
         val fallbackCandidate = ResolutionCandidate(
-            foodId = "heuristic_${normalizedQuery.replace(" ", "_")}",
+            foodId = HEURISTIC_ID_PREFIX + normalizedQuery.replace(" ", "_"),
             name = "${query.trim()} (estimado)",
             brand = "Estimación KPKN",
             score = 0.45,
@@ -863,9 +905,19 @@ class SmartFoodResolver(
         const val FUZZY_HIGH_THRESHOLD = 0.90
         const val MEDIUM_THRESHOLD = 0.6
         const val MIN_THRESHOLD = 0.18
+
+        /**
+         * Lowest base score (the score without the learned and dataset boosts) at which a local plain-food winner is selected
+         * without asking when no other branch of the decision accepts it (WP-N11). Between [MIN_THRESHOLD] and this floor the
+         * match is a candidate, not a choice.
+         */
+        const val PLAIN_LOCAL_MIN_SCORE = 0.45
         const val SAFE_GAP = 0.16
         const val LEARNED_AUTO_THRESHOLD = 0.74
         const val DATASET_MIN_CONFIDENCE = 0.35
+
+        /** Prefix of the id of the estimate that stands in when no row matches: it is a marker, not a food of the catalog. */
+        private const val HEURISTIC_ID_PREFIX = "heuristic_"
         const val DATASET_MIN_MATCH_SCORE = 0.12
 
         /** Compiled once: candidateLooksLiquid runs for every scored candidate. */
