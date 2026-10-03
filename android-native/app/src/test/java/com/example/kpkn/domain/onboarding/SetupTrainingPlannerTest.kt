@@ -104,6 +104,21 @@ class SetupTrainingPlannerTest {
         )
         assertTrue(candidates.isNotEmpty())
         assertTrue(candidates.all { it.schedulesCardio })
+        // C.P2b: strength-cardio ya no declara disciplina (references = ∅) y sigue siendo el candidato
+        // del modo mixto, porque `schedulesCardio` no depende de las referencias.
+        val strengthCardio = candidates.single { it.id == "native:strength-cardio" }
+        assertTrue(strengthCardio.references.isEmpty())
+    }
+
+    @Test
+    fun strengthCardioIsNoLongerAMuscleCandidateOutsideTheMixedGoal() {
+        (1..6).forEach { days ->
+            val muscle = SetupTrainingPlanner.candidates(
+                input(reference = TrainingReference.HYPERTROPHY, frequency = days, level = CatalogLevel.BEGINNER),
+            )
+            assertFalse("strength-cardio no es Músculo ($days días)", muscle.any { it.id == "native:strength-cardio" })
+            assertTrue("el plan propio de Músculo cubre $days días", muscle.any { it.id == "native:muscle-foundation-v2" })
+        }
     }
 
     @Test
@@ -119,5 +134,38 @@ class SetupTrainingPlannerTest {
             input(reference = null, frequency = 7, equipment = setOf("general_gym")),
         )
         assertFalse(candidates.any { it.id == "native:one-day" })
+        // Ningún nativo admite 7 días: los propios cubren 1..6 y los históricos llegan a 6 como mucho.
+        assertTrue(candidates.none { it.source == CatalogSource.NATIVE })
+    }
+
+    /**
+     * C.P2b (D2): antes `native:one-day` entraba con 1 día. Ahora un histórico oculto no es candidato
+     * ni siquiera cuando su frecuencia encaja; el plan propio cubre ese caso.
+     */
+    @Test
+    fun hiddenHistoricalsAreNotCandidatesEvenWhenTheirFrequencyMatches() {
+        val oneDay = SetupTrainingPlanner.candidates(
+            input(reference = TrainingReference.HYPERTROPHY, frequency = 1, level = CatalogLevel.BEGINNER),
+        )
+        assertFalse(oneDay.any { it.id == "native:one-day" })
+        assertTrue("el propio de Músculo cubre 1 día", oneDay.any { it.id == "native:muscle-foundation-v2" })
+
+        val hiddenByDays = mapOf(
+            "native:full-body" to (2..3),
+            "native:return-training" to (2..3),
+            "native:home-training" to (2..4),
+            "native:gym-muscle" to (3..6),
+        )
+        hiddenByDays.forEach { (id, days) ->
+            days.forEach { frequency ->
+                // Sin referencia y con la de hipertrofia (la que antes los ofrecía).
+                listOf<TrainingReference?>(null, TrainingReference.HYPERTROPHY).forEach { reference ->
+                    val ids = SetupTrainingPlanner.candidates(
+                        input(reference = reference, frequency = frequency, level = CatalogLevel.BEGINNER),
+                    ).map { it.id }
+                    assertFalse("$id no es candidato con $frequency días (ref=$reference)", id in ids)
+                }
+            }
+        }
     }
 }

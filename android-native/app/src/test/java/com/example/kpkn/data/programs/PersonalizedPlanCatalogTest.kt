@@ -51,6 +51,159 @@ class PersonalizedPlanCatalogTest {
         assertTrue(entries.all { it.title.isNotBlank() && it.description.isNotBlank() })
     }
 
+    /**
+     * C.P2b (D2): `entries()` conserva los 12 nativos, pero solo 7 se ofrecen. Los cinco ocultos
+     * son los históricos que ya no se listan; `machine-muscle`, `bodyweight` y `strength-cardio`
+     * siguen listados (relegados) y los cuatro planes propios también.
+     */
+    @Test
+    fun listedEntriesOfferSevenNativesAndHideTheFiveHistoricals() {
+        val hidden = listOf(
+            "native:full-body",
+            "native:gym-muscle",
+            "native:one-day",
+            "native:return-training",
+            "native:home-training",
+        )
+        val all = PersonalizedPlanCatalog.entries()
+        val listed = PersonalizedPlanCatalog.listedEntries()
+
+        assertEquals("nativos en entries()", 12, all.count { it.source == CatalogSource.NATIVE })
+        assertEquals("nativos en listedEntries()", 7, listed.count { it.source == CatalogSource.NATIVE })
+        assertEquals(
+            "ocultos exactos",
+            hidden.sorted(),
+            all.filterNot { it.listed }.map { it.id }.sorted(),
+        )
+        assertEquals(
+            "los nativos que se ofrecen",
+            listOf(
+                "native:bodyweight",
+                "native:complete-athlete-v2",
+                "native:machine-muscle",
+                "native:muscle-foundation-v2",
+                "native:powerbuilding-foundation-v2",
+                "native:strength-cardio",
+                "native:strength-foundation-v2",
+            ),
+            listed.filter { it.source == CatalogSource.NATIVE }.map { it.id }.sorted(),
+        )
+        // Lo que no es nativo no se oculta: plantillas y métodos están completos en ambas listas.
+        assertEquals(
+            all.count { it.source != CatalogSource.NATIVE },
+            listed.count { it.source != CatalogSource.NATIVE },
+        )
+        // Ocultar no borra: cada histórico sigue resolviendo y sigue siendo ejecutable por id.
+        hidden.forEach { id ->
+            val entry = requireNotNull(PersonalizedPlanCatalog.find(id)) { "falta $id en find()" }
+            assertFalse("$id debe estar oculto", entry.listed)
+            assertEquals(PublicationState.PUBLISHED, entry.publication)
+        }
+    }
+
+    /**
+     * C.P2b (D2): el planner no devuelve nunca ninguno de los cinco ocultos, sea cual sea la
+     * referencia, la frecuencia (1..6 y sin frecuencia), el nivel, el material o el modo.
+     * BBB aparece en Fuerza y músculo a 4 días; `strength-cardio` ya no cuenta como Músculo
+     * pero sigue siendo el único candidato del modo mixto.
+     */
+    @Test
+    fun plannerNeverOffersTheHiddenHistoricalsAndStillServesTheMixedGoal() {
+        val hidden = setOf(
+            "native:full-body",
+            "native:gym-muscle",
+            "native:one-day",
+            "native:return-training",
+            "native:home-training",
+        )
+        val references = listOf<TrainingReference?>(null) + TrainingReference.entries
+        val frequencies = listOf<Int?>(null) + (1..6).toList()
+        val materials = listOf(setOf("general_gym"), setOf("bodyweight"), emptySet())
+        var evaluated = 0
+        references.forEach { reference ->
+            frequencies.forEach { frequency ->
+                CatalogLevel.entries.forEach { level ->
+                    materials.forEach { equipment ->
+                        listOf(false, true).forEach { mixed ->
+                            listOf(false, true).forEach { protocolOnly ->
+                                val ids = SetupTrainingPlanner.candidates(
+                                    SetupTrainingPlannerInput(
+                                        reference = reference,
+                                        frequency = frequency,
+                                        equipment = equipment,
+                                        level = level,
+                                        focus = TrainingFocus.FULL_BODY,
+                                        protocolOnly = protocolOnly,
+                                        mixedTraining = mixed,
+                                    ),
+                                ).map { it.id }
+                                evaluated++
+                                assertTrue(
+                                    "histórico oculto en el planner: ${ids.filter { it in hidden }} " +
+                                        "(ref=$reference freq=$frequency nivel=$level mixto=$mixed solo-protocolos=$protocolOnly)",
+                                    ids.none { it in hidden },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assertEquals("combinaciones recorridas", 4 * 7 * 3 * 3 * 2 * 2, evaluated)
+
+        fun plan(
+            reference: TrainingReference?,
+            frequency: Int,
+            level: CatalogLevel = CatalogLevel.INTERMEDIATE,
+            mixed: Boolean = false,
+        ) = SetupTrainingPlanner.candidates(
+            SetupTrainingPlannerInput(
+                reference = reference,
+                frequency = frequency,
+                equipment = setOf("general_gym"),
+                level = level,
+                focus = TrainingFocus.FULL_BODY,
+                mixedTraining = mixed,
+            ),
+        ).map { it.id }
+
+        // BBB: powerlifting y powerbuilding, solo a 4 días.
+        val bbb = "protocol:wendler-531-bbb"
+        assertTrue("BBB en Fuerza y músculo a 4 días", bbb in plan(TrainingReference.POWERBUILDING, 4))
+        assertTrue("BBB sigue en Fuerza a 4 días", bbb in plan(TrainingReference.POWERLIFTING, 4))
+        assertFalse("BBB no está en Músculo", bbb in plan(TrainingReference.HYPERTROPHY, 4))
+        listOf(1, 2, 3, 5, 6).forEach { days ->
+            assertFalse("BBB solo existe a 4 días (pedidos $days)", bbb in plan(TrainingReference.POWERBUILDING, days))
+        }
+        assertTrue(
+            "FSL no entra en Fuerza y músculo: sigue solo en powerlifting",
+            "protocol:wendler-531-fsl" !in plan(TrainingReference.POWERBUILDING, 4),
+        )
+
+        // strength-cardio: fuera de Músculo, dentro del modo mixto con cualquier frecuencia 1..6.
+        val strengthCardio = "native:strength-cardio"
+        (1..6).forEach { days ->
+            assertFalse(
+                "strength-cardio ya no es Músculo ($days días)",
+                strengthCardio in plan(TrainingReference.HYPERTROPHY, days),
+            )
+            assertTrue(
+                "strength-cardio sigue sirviendo el modo mixto ($days días)",
+                strengthCardio in plan(TrainingReference.HYPERTROPHY, days, mixed = true),
+            )
+            assertEquals(
+                "en el modo mixto es el único candidato ($days días)",
+                listOf(strengthCardio),
+                plan(TrainingReference.HYPERTROPHY, days, mixed = true),
+            )
+        }
+        // Los históricos que se conservan listados siguen ofreciéndose en Músculo.
+        val muscleAtThreeDays = plan(TrainingReference.HYPERTROPHY, 3, CatalogLevel.BEGINNER)
+        assertTrue("machine-muscle sigue listado", "native:machine-muscle" in muscleAtThreeDays)
+        assertTrue("bodyweight sigue listado", "native:bodyweight" in muscleAtThreeDays)
+        assertTrue("el propio de Músculo está", "native:muscle-foundation-v2" in muscleAtThreeDays)
+    }
+
     @Test
     fun classificationAndTemporalLabelsDoNotFlattenMultiweekRecipes() {
         assertEquals(CatalogClassification.SIMPLE, PersonalizedPlanCatalog.classify(CatalogSource.PROTOCOL, ProgramStructure.SIMPLE, 1, 1, false, true))

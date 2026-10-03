@@ -171,8 +171,9 @@ object PersonalizedPlanCatalog {
             supportedFocuses = TrainingFocus.entries.toSet(), adaptation = AdaptationPolicy.CURATED_WEEKLY,
             publication = PublicationState.PUBLISHED, sourceAuthor = "KPKN", sourceRevision = REVISION,
             // SimpleCyclePersonalizer generates hypertrophy cycles; they are never
-            // relabelled as another discipline.
-            references = setOf(TrainingReference.HYPERTROPHY),
+            // relabelled as another discipline. Único override editorial (C.P2b):
+            // `native:strength-cardio` declara `references = ∅` y sale del objetivo Músculo.
+            references = editorial.references ?: setOf(TrainingReference.HYPERTROPHY),
             editorial = editorial, durationWeeks = 1,
         )
     }
@@ -237,7 +238,7 @@ object PersonalizedPlanCatalog {
             publication = PublicationState.PUBLISHED,
             sourceAuthor = "KPKN",
             sourceRevision = REVISION,
-            references = spec.references,
+            references = editorial.references ?: spec.references,
             capabilities = spec.capabilities,
             editorial = editorial,
             durationWeeks = NativeWeekBuilder.WEEKS,
@@ -370,7 +371,8 @@ object PersonalizedPlanCatalog {
             recipe = recipe,
             // PHUL/PHAT son powerbuilding real con días de hipertrofia: se ofrecen
             // en Fuerza y músculo y en Músculo; nunca como powerlifting (§11.1).
-            references = setOf(TrainingReference.POWERBUILDING, TrainingReference.HYPERTROPHY),
+            references = editorial.references
+                ?: setOf(TrainingReference.POWERBUILDING, TrainingReference.HYPERTROPHY),
             provenance = recipe.provenance,
             authoredSource = source,
             editorial = editorial,
@@ -440,7 +442,7 @@ object PersonalizedPlanCatalog {
                 duration = duration,
                 supportedFocuses = setOf(TrainingFocus.FULL_BODY), adaptation = AdaptationPolicy.FIXED_PRESCRIPTION,
                 publication = PublicationState.PUBLISHED, template = template, sourceAuthor = "KPKN",
-                references = templateReferences(template),
+                references = editorial.references ?: templateReferences(template),
                 editorial = editorial, durationWeeks = template.weeks,
             )
         }
@@ -462,12 +464,19 @@ object PersonalizedPlanCatalog {
                 publication = PublicationState.PUBLISHED, sourceAuthor = protocol.author,
                 sourceUrl = protocol.source.primaryUrl, sourceRevision = protocol.source.revision ?: protocol.source.catalogRevision,
                 disclaimer = protocol.source.disclaimer, recipe = protocol.recipe,
-                references = protocolReferences(protocol),
+                references = editorial.references ?: protocolReferences(protocol),
                 editorial = editorial, durationWeeks = weeks,
             )
         }
         return nativeSpecs.map(::nativeEntry) + ownProfileEntries.map(::ownProfileEntry) + templates + protocols + authoredEntriesLazy
     }
+
+    /**
+     * Entradas que se ofrecen al usuario (planner y biblioteca): las de [entries] salvo las
+     * ocultas con `listed = false` en la ficha editorial (C.P2b, decisión D2). [entries] y
+     * [find] siguen devolviendo todas, para programas ya activados, ids antiguos y [lookup].
+     */
+    fun listedEntries(): List<CatalogEntry> = entries().filter { it.listed }
 
     fun find(id: String): CatalogEntry? = entries().firstOrNull { it.id == id }
 

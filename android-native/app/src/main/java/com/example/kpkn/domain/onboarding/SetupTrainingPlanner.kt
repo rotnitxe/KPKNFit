@@ -23,10 +23,14 @@ data class SetupTrainingPlannerInput(
  * One adapter for candidate choice; actual materialization remains in the
  * existing engines. Candidates are selected by their real discipline metadata,
  * never by their provenance: a template or protocol is not strength by default.
+ *
+ * Solo se consideran las entradas listadas (`listed = true`): los nativos históricos
+ * ocultos por C.P2b (D2) nunca son candidatos, aunque `PersonalizedPlanCatalog.find`
+ * los siga resolviendo para los programas ya activados.
  */
 object SetupTrainingPlanner {
     fun candidates(input: SetupTrainingPlannerInput): List<CatalogEntry> {
-        val entries = PersonalizedPlanCatalog.entries().filter { it.publication == PublicationState.PUBLISHED }
+        val entries = PersonalizedPlanCatalog.listedEntries().filter { it.publication == PublicationState.PUBLISHED }
         return entries
             .filter { !input.protocolOnly || it.source == CatalogSource.PROTOCOL }
             .filter { it.supportedFrequencies.contains(input.frequency ?: it.supportedFrequencies.first) }

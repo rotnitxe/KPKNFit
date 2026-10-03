@@ -107,15 +107,29 @@ class NativeProfileSpecCatalogTest {
             "one-day" to (1..1),
             "strength-cardio" to (1..6),
         )
+        // C.P2b (D2): estas cinco familias se siguen resolviendo (programas ya activados, ids antiguos)
+        // pero ya no se listan; machine-muscle, bodyweight y strength-cardio siguen listadas.
+        val hiddenFamilies = setOf("full-body", "gym-muscle", "return-training", "one-day", "home-training")
         historical.forEach { (sourceId, range) ->
             val entry = requireNotNull(natives[sourceId]) { "falta la familia histórica $sourceId" }
             assertEquals("rango de $sourceId", range, entry.supportedFrequencies)
             assertEquals("id de $sourceId", "native:$sourceId", entry.id)
+            assertEquals("listada: $sourceId", sourceId !in hiddenFamilies, entry.listed)
+            // Disciplina: hipertrofia como siempre; solo strength-cardio la pierde por decisión editorial.
+            assertEquals(
+                "referencias de $sourceId",
+                if (sourceId == "strength-cardio") emptySet<TrainingReference>() else setOf(TrainingReference.HYPERTROPHY),
+                entry.references,
+            )
         }
-        // §14.3: el prefilto mixto legacy sigue apuntando solo a strength-cardio.
+        // Los cuatro planes propios nunca se ocultan.
+        assertTrue("los planes propios siguen listados", ownIds.all { id -> natives.values.first { it.id == id }.listed })
+        // §14.3: el prefilto mixto legacy sigue apuntando solo a strength-cardio, que no depende de
+        // `references` (con references = ∅ sigue programando cardio).
         val cardioScheduling = PersonalizedPlanCatalog.entries().filter { it.schedulesCardio }.map { it.id }
         assertEquals(listOf("native:strength-cardio"), cardioScheduling)
         assertEquals(12, natives.size)
+        assertEquals("nativos listados", 7, natives.values.count { it.listed })
     }
 
     @Test

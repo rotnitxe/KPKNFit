@@ -29,9 +29,10 @@ import org.junit.Test
  *
  * Clasificación honesta (AC-T004-02):
  * - `candidates()` no vacío → PASS para esa combinación.
- * - Vacío con ENTRADA PUBLICADA de esa referencia a esa frecuencia → **FALLA**
- *   (un filtro la está excluyendo indebidamente).
- * - Vacío SIN entrada publicada de esa referencia a esa frecuencia → fila
+ * - Vacío con ENTRADA PUBLICADA Y LISTADA de esa referencia a esa frecuencia → **FALLA**
+ *   (un filtro la está excluyendo indebidamente). Los históricos ocultos por C.P2b
+ *   (`listed = false`) no cuentan como cobertura: no pueden tapar un hueco.
+ * - Vacío SIN entrada publicada y listada de esa referencia a esa frecuencia → fila
  *   **REGISTRADA con causa** (`sin-entrada-publicada`): el catálogo no tiene un
  *   plan honesto de esa disciplina para esa frecuencia y las nativas no se
  *   reetiquetan (`PersonalizedPlanCatalog.nativeEntry`). El conjunto registrado
@@ -149,7 +150,7 @@ class SetupTrainingPlannerAvailabilitySweepTest {
         registered.keys.forEach { key ->
             val reference = key.substringAfter("ref=").trim()
             val frequency = key.substringAfter("freq=").substringBefore(" ").toInt()
-            val covered = PersonalizedPlanCatalog.entries().any { entry ->
+            val covered = PersonalizedPlanCatalog.listedEntries().any { entry ->
                 entry.publication.name == "PUBLISHED" &&
                     entry.references.any { it.name == reference } &&
                     entry.supportedFrequencies.contains(frequency)
@@ -188,10 +189,13 @@ class SetupTrainingPlannerAvailabilitySweepTest {
         else -> CatalogLevel.BEGINNER
     }
 
-    /** ¿Existe alguna entrada PUBLICADA de esa referencia que soporte esa frecuencia? */
+    /**
+     * ¿Existe alguna entrada PUBLICADA y LISTADA de esa referencia que soporte esa frecuencia?
+     * Un histórico oculto (C.P2b, D2) no cuenta: no puede tapar un hueco de cobertura del planner.
+     */
     private fun publishedCoverage(row: GoalRow, frequency: Int): Boolean {
         if (row.mixed) return true // MIXED no filtra por referencia: exige schedulesCardio
-        return PersonalizedPlanCatalog.entries().any { entry ->
+        return PersonalizedPlanCatalog.listedEntries().any { entry ->
             entry.publication.name == "PUBLISHED" &&
                 entry.references.contains(row.expectedReference) &&
                 entry.supportedFrequencies.contains(frequency)
@@ -202,7 +206,7 @@ class SetupTrainingPlannerAvailabilitySweepTest {
         listOf(TrainingReference.POWERLIFTING, TrainingReference.HYPERTROPHY, TrainingReference.POWERBUILDING)
             .associateWith { reference ->
                 (1..6).filter { frequency ->
-                    PersonalizedPlanCatalog.entries().none { entry ->
+                    PersonalizedPlanCatalog.listedEntries().none { entry ->
                         entry.publication.name == "PUBLISHED" &&
                             entry.references.contains(reference) &&
                             entry.supportedFrequencies.contains(frequency)

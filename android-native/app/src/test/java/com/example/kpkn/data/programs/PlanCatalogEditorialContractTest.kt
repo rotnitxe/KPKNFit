@@ -15,7 +15,6 @@ import com.example.kpkn.data.protocols.definitions.NativeWeekBuilder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -458,16 +457,66 @@ class PlanCatalogEditorialContractTest {
         }
     }
 
-    // ─── 11 · Lo que este paso deja inerte ────────────────────────────────────
+    // ─── 11 · Ocultar históricos y override de disciplina (C.P2b, D2) ─────────
 
     @Test
-    fun listed_and_the_references_override_are_inert_in_this_step() {
-        // C.P2b activa `listed = false` (ocultar históricos) y `references` (re-baseline de cobertura).
-        PlanEditorialTable.byId.forEach { (id, editorial) ->
-            assertTrue("$id: listed debe seguir en true", editorial.listed)
-            assertNull("$id: references debe seguir en null", editorial.references)
+    fun only_the_five_hidden_historicals_are_unlisted_and_only_two_cards_override_the_references() {
+        // `listed = false` exactamente en los cinco nativos históricos que D2 oculta.
+        val unlisted = PlanEditorialTable.byId.filterValues { !it.listed }.keys
+        assertEquals("fichas con listed = false", HIDDEN_HISTORICALS, unlisted)
+
+        // `references` no nulo exactamente en strength-cardio (∅) y en BBB (PL+PB).
+        val overrides = PlanEditorialTable.byId.filterValues { it.references != null }
+        assertEquals(
+            "fichas con override de references",
+            setOf(STRENGTH_CARDIO, BBB),
+            overrides.keys,
+        )
+        assertEquals(emptySet<TrainingReference>(), overrides.getValue(STRENGTH_CARDIO).references)
+        assertEquals(
+            setOf(TrainingReference.POWERLIFTING, TrainingReference.POWERBUILDING),
+            overrides.getValue(BBB).references,
+        )
+
+        // El override gana al cálculo del catálogo; sin override rige el cálculo de siempre.
+        assertEquals(emptySet<TrainingReference>(), entry(STRENGTH_CARDIO).references)
+        assertEquals(
+            setOf(TrainingReference.POWERLIFTING, TrainingReference.POWERBUILDING),
+            entry(BBB).references,
+        )
+        assertEquals(
+            "un nativo histórico sin override sigue siendo hipertrofia",
+            setOf(TrainingReference.HYPERTROPHY),
+            entry("native:machine-muscle").references,
+        )
+        assertEquals(
+            "FSL no cambia: solo powerlifting",
+            setOf(TrainingReference.POWERLIFTING),
+            entry("protocol:wendler-531-fsl").references,
+        )
+    }
+
+    @Test
+    fun hidden_entries_stay_in_the_catalog_but_not_in_the_listed_entries() {
+        // `entries()` conserva las 55 (programas ya activados, `lookup`, ruta histórica del personalizador).
+        assertEquals(EXPECTED_ENTRIES, entries.size)
+        assertEquals(
+            "entradas ocultas en entries()",
+            HIDDEN_HISTORICALS,
+            entries.filterNot { it.listed }.map { it.id }.toSet(),
+        )
+
+        // `listedEntries()` ofrece 50: las mismas sin las cinco ocultas, en el mismo orden.
+        val listed = PersonalizedPlanCatalog.listedEntries()
+        assertEquals(EXPECTED_ENTRIES - HIDDEN_HISTORICALS.size, listed.size)
+        assertEquals(entries.filter { it.id !in HIDDEN_HISTORICALS }.map { it.id }, listed.map { it.id })
+        assertTrue("listedEntries() solo contiene entradas con listed = true", listed.all { it.listed })
+
+        // Cada oculto sigue resolviendo por id, por lookup y por el programa que lo guardó.
+        HIDDEN_HISTORICALS.forEach { id ->
+            assertNotNull("find($id)", PersonalizedPlanCatalog.find(id))
+            assertEquals("lookup($id)", id, PersonalizedPlanCatalog.lookup(id)?.entry?.id)
         }
-        entries.forEach { assertTrue("${it.id}: listed", it.listed) }
     }
 
     // ─── Ayudas ───────────────────────────────────────────────────────────────
@@ -519,6 +568,17 @@ class PlanCatalogEditorialContractTest {
         const val EXPECTED_ENTRIES = 55
         const val MAX_NAME_LENGTH = 48
         const val OWN_PLAN = "Plan propio de KPKN."
+        const val STRENGTH_CARDIO = "native:strength-cardio"
+        const val BBB = "protocol:wendler-531-bbb"
+
+        /** D2 (2026-10-03): los cinco nativos históricos que dejan de listarse. */
+        val HIDDEN_HISTORICALS = setOf(
+            "native:full-body",
+            "native:gym-muscle",
+            "native:one-day",
+            "native:return-training",
+            "native:home-training",
+        )
 
         val ENGLISH_WORDS = listOf(
             "Beginner", "Intermediate", "Advanced", "Upper", "Lower", "Push", "Pull", "Legs",

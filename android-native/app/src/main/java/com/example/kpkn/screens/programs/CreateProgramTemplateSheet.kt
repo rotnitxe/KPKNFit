@@ -67,8 +67,9 @@ fun CreateProgramTemplateSheet(
     var originFilter by remember { mutableStateOf(LibraryOriginFilter.ALL) }
     var infoEntry by remember { mutableStateOf<CatalogEntry?>(null) }
 
+    // Solo lo listado: los históricos ocultos (C.P2b) siguen resolviéndose por id, pero no se ofrecen.
     val entries = remember {
-        PersonalizedPlanCatalog.entries().filter { it.publication == PublicationState.PUBLISHED }
+        PersonalizedPlanCatalog.listedEntries().filter { it.publication == PublicationState.PUBLISHED }
     }
     val visible = entries.filter { entry ->
         (daysFilter == null || daysFilter in entry.supportedFrequencies) &&

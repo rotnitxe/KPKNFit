@@ -16,9 +16,16 @@ import com.example.kpkn.data.protocols.definitions.AuthoredSources
  * 4 frases, y los términos técnicos (máximo de entrenamiento, máximo de
  * repeticiones, repeticiones en reserva…) se explican en la misma frase.
  *
- * Qué NO hace este paso: no cambia `references` (todas las fichas llevan
- * `references = null`) ni oculta ninguna entrada (todas `listed = true`); eso va
- * junto con el re-baseline de cobertura en C.P2b.
+ * C.P2b (decisión D2, DEC-w2-07): dos campos de ficha dejan de ser inertes.
+ * - `listed = false` en cinco nativos históricos (`full-body`, `gym-muscle`,
+ *   `one-day`, `return-training`, `home-training`): desaparecen del planner y de
+ *   la biblioteca, pero siguen en `entries()` y `find()` (programas ya activados,
+ *   `lookup`, ruta histórica del personalizador).
+ * - `references` (override de disciplina) solo en dos fichas: `native:strength-cardio`
+ *   con `emptySet()` (sale del objetivo Músculo; el modo mixto sigue funcionando
+ *   porque `schedulesCardio` no depende de las referencias) y `protocol:wendler-531-bbb`
+ *   con powerlifting y powerbuilding. El resto de fichas llevan `references = null`
+ *   y conservan la disciplina que calcula `PersonalizedPlanCatalog`.
  */
 internal object PlanEditorialTable {
     private const val OWN_PLAN = "Plan propio de KPKN."
@@ -111,6 +118,10 @@ internal object PlanEditorialTable {
         )
 
         // ── Familias nativas históricas (§2.2): relegadas al final del orden ──
+        // C.P2b (D2): `machine-muscle`, `bodyweight` y `strength-cardio` siguen listados (relegados);
+        // `home-training`, `gym-muscle`, `full-body`, `return-training` y `one-day` llevan
+        // `listed = false`: no se ofrecen en el planner ni en la biblioteca, pero `entries()` y
+        // `find()` los conservan para los programas ya activados y los ids antiguos.
         add(
             "native:machine-muscle",
             own(
@@ -142,6 +153,7 @@ internal object PlanEditorialTable {
                     "series a tu experiencia y a tu tiempo.",
                 rank = 620,
                 terms = setOf(PlanTerm.CYCLE),
+                listed = false,
             ),
         )
         add(
@@ -153,6 +165,7 @@ internal object PlanEditorialTable {
                     "cuerpo.",
                 rank = 630,
                 terms = setOf(PlanTerm.CYCLE),
+                listed = false,
             ),
         )
         add(
@@ -163,6 +176,7 @@ internal object PlanEditorialTable {
                     "3 días. Ajustamos las series a tu experiencia y al tiempo que tengas por sesión.",
                 rank = 640,
                 terms = setOf(PlanTerm.CYCLE),
+                listed = false,
             ),
         )
         add(
@@ -174,6 +188,7 @@ internal object PlanEditorialTable {
                     "días por semana.",
                 rank = 650,
                 terms = setOf(PlanTerm.CYCLE),
+                listed = false,
             ),
         )
         add(
@@ -183,9 +198,11 @@ internal object PlanEditorialTable {
                 summary = "Una sesión completa a la semana para cuando tienes poco tiempo. Priorizamos lo esencial " +
                     "de tu entrenamiento, sin prometer los resultados de un plan de varios días.",
                 rank = 660,
+                listed = false,
             ),
         )
-        // C.P2b: references = ∅ (hoy sigue HYPERTROPHY: se retira junto con ocultar los históricos).
+        // C.P2b: references = ∅ saca esta entrada del objetivo Músculo (antes HYPERTROPHY). El modo
+        // mixto legacy sigue funcionando: `schedulesCardio` depende del id, no de las referencias.
         add(
             "native:strength-cardio",
             own(
@@ -195,6 +212,7 @@ internal object PlanEditorialTable {
                     "combinar fuerza, músculo y cardio es mejor Atleta completo KPKN.",
                 rank = 670,
                 terms = setOf(PlanTerm.CYCLE),
+                references = emptySet(),
             ),
         )
 
@@ -348,7 +366,7 @@ internal object PlanEditorialTable {
                 terms = setOf(PlanTerm.DUP, PlanTerm.CYCLE),
             ),
         )
-        // C.P2b: references = PL+PB (hoy solo PL).
+        // C.P2b: references = PL+PB (antes solo PL) para que aparezca también en «Fuerza y músculo».
         add(
             "protocol:wendler-531-bbb",
             thirdParty(
@@ -368,6 +386,7 @@ internal object PlanEditorialTable {
                     PlanTerm.POWERLIFTING,
                     PlanTerm.POWERBUILDING,
                 ),
+                references = setOf(TrainingReference.POWERLIFTING, TrainingReference.POWERBUILDING),
             ),
         )
         add(
@@ -844,7 +863,11 @@ internal object PlanEditorialTable {
 
     // ─── Constructores de fichas ──────────────────────────────────────────────
 
-    /** Plan propio de KPKN: nativos, plantillas y planes KPKN con receta fija. */
+    /**
+     * Plan propio de KPKN: nativos, plantillas y planes KPKN con receta fija.
+     * [references] solo se rellena para sobrescribir la disciplina que calcula el catálogo;
+     * [listed] = false oculta la entrada del planner y de la biblioteca (C.P2b).
+     */
     private fun own(
         displayName: String,
         summary: String,
@@ -853,6 +876,8 @@ internal object PlanEditorialTable {
         kind: PlanKind = PlanKind.PLAN,
         attributionLine: String = OWN_PLAN,
         terms: Set<PlanTerm> = emptySet(),
+        references: Set<TrainingReference>? = null,
+        listed: Boolean = true,
     ): PlanEditorial = PlanEditorial(
         displayName = displayName,
         summary = summary,
@@ -862,6 +887,8 @@ internal object PlanEditorialTable {
         levels = levels,
         attributionLine = attributionLine,
         terms = terms,
+        references = references,
+        listed = listed,
     )
 
     /**
@@ -880,6 +907,7 @@ internal object PlanEditorialTable {
         legacy: Boolean = false,
         notes: List<String> = emptyList(),
         terms: Set<PlanTerm> = emptySet(),
+        references: Set<TrainingReference>? = null,
     ): PlanEditorial = PlanEditorial(
         displayName = displayName,
         summary = summary,
@@ -894,6 +922,7 @@ internal object PlanEditorialTable {
         },
         notes = notes,
         terms = terms,
+        references = references,
     )
 
     /**
