@@ -95,6 +95,10 @@ object SessionCompositionPolicy {
      * Hallazgos de la receta **sin** filtrar por exenciones. Los tests lo usan para
      * inventariar H11/H11b y para comprobar que migrar el ámbito de una exención
      * no pierde ni amplía lo que silencia.
+     *
+     * Al final suma el contrato de receta válida ([RecipeContractPolicy], B.S2). Por ahora en
+     * modo inventario: todos sus hallazgos son SOFT, así que `hardFindings` no cambia, y
+     * [evaluateRecipe] los filtra con las exenciones igual que al resto.
      */
     internal fun evaluateRecipeRaw(
         recipe: TrainingPlanRecipe,
@@ -108,6 +112,7 @@ object SessionCompositionPolicy {
             raw += evaluateWeek(week, recipe, metadata)
         }
         raw += evaluateBlocks(recipe)
+        raw += RecipeContractPolicy.evaluate(recipe, metadata)
         return raw
     }
 
@@ -1299,8 +1304,15 @@ object SessionCompositionPolicy {
      * casa con cualquier secuencia de caracteres (la barra incluida) y el resto es literal. Ya no
      * hay `contains` ni `startsWith`: un ámbito sin asterisco solo casa con ese texto exacto.
      *
-     * La política emite cuatro formas de ámbito:
+     * La política emite seis formas de ámbito:
      * - `w{n}/{día}`: hallazgo de un día (reglas H, META, TAXONOMY y las S de día).
+     * - `w{n}/{día}/{slot}`: hallazgo de un slot concreto de un día; `{slot}` es el `id` del
+     *   `SlotRecipe`. Lo emite el contrato de receta válida ([RecipeContractPolicy]) en C1, C3, C8 y
+     *   C9, para poder exentar un slot sin silenciar el resto del día (p. ej. el slot `t1` del día
+     *   «Banca/OHP» en cualquier semana: `w*` seguido de la barra, `Banca/OHP`, la barra y `t1`).
+     *   Un glob de día (`w*`, la barra y `Banca/OHP`) NO casa los hallazgos por slot (el glob está
+     *   anclado): hay que añadirle la barra y un asterisco final (todos los slots del día) o
+     *   escribir el slot concreto.
      * - `w{n}`: hallazgo de una semana (reglas W salvo W5, las S de semana y los BLOCK de semana
      *   del plan propio).
      * - `block{i}/{bloque}`: hallazgo de un bloque (BLOCK y W5).
@@ -1308,11 +1320,15 @@ object SessionCompositionPolicy {
      *   semanas 1–6» de `checkNativeBlockSemantics`: cuelga de la receta entera y no de una semana,
      *   un día o un bloque. `w*` y los ámbitos de bloque no lo casan: lo silencian `"*"` o el
      *   literal `native`.
+     * - `recipe`: literal. Lo usa el contrato de receta válida ([RecipeContractPolicy]) para lo que
+     *   cuelga de la receta entera (C5 y C6); el resto de sus reglas usa las formas de arriba
+     *   (C1, C3, C8 y C9 por slot; C2 por día; C4 y C10 por semana; C7 por día, semana o bloque).
+     *   Igual que `native`, lo silencian `"*"` o el literal `recipe`.
      *
-     * Como el asterisco casa también la barra, `w*` silencia a la vez los hallazgos de semana y los
-     * de día (ambos empiezan por `w`). Para un solo día de cualquier semana se escribe `w*` seguido
-     * de la barra y la etiqueta del día (p. ej. la del día «Test»), y para un bloque `block*`
-     * seguido de la barra y su nombre (p. ej. «Conjugate»).
+     * Como el asterisco casa también la barra, `w*` silencia a la vez los hallazgos de semana, de
+     * día y de slot (todos empiezan por `w`). Para un solo día de cualquier semana se escribe `w*`
+     * seguido de la barra y la etiqueta del día (p. ej. la del día «Test»), y para un bloque
+     * `block*` seguido de la barra y su nombre (p. ej. «Conjugate»).
      */
     fun applyExemptions(
         findings: List<CompositionFinding>,

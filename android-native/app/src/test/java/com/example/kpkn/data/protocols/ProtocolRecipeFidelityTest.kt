@@ -337,13 +337,47 @@ class ProtocolRecipeFidelityTest {
         assertTrue("Configs de receta fuera del catálogo: $missing", missing.isEmpty())
     }
 
+    /**
+     * Protocolos cuya frecuencia real hoy no cuadra con `fidelitySpec.expectedDaysPerWeek` (E-10):
+     * usan más días distintos que los que declaran. Se alinean en B.S6 (Smolov w9-13 a 3 días contra
+     * 4 declarados y 5 días distintos en total, Candito w1 con 5 días, Lilliebridge con un taper en
+     * martes, jueves y sábado frente a sus lunes, miércoles y viernes). No es un comodín: cualquier
+     * otra receta que no cuadre falla, y una de estas que ya cuadre también (hay que sacarla).
+     */
+    private val KNOWN_FREQUENCY_MISMATCH = setOf("smolov", "candito-6", "lilliebridge")
+
+    /**
+     * Días reales de una receta: los `weekday` distintos que usa en todo el plan. Es la misma cuenta
+     * que hace `PlanCandidateEvaluator.programSessionDays` para el rechazo «usa N días distintos»
+     * (el materializador copia el weekday de cada día al `dayOfWeek` de su sesión), no el claim
+     * `claimedDaysPerWeek`. Si algún día no declara weekday cuenta, en su lugar, los días de la
+     * semana más cargada.
+     */
+    private fun realTrainingDays(recipe: TrainingPlanRecipe): Int {
+        val weekdays = recipe.weeks.flatMap { week -> week.days.map { it.weekday } }
+        return if (weekdays.isNotEmpty() && weekdays.all { it != null }) {
+            weekdays.filterNotNull().distinct().size
+        } else {
+            recipe.weeks.maxOfOrNull { it.days.size } ?: 0
+        }
+    }
+
     @Test
     fun every_visible_recipe_matches_fidelity_spec_weeks_and_days() {
+        val frequencyMismatches = mutableMapOf<String, String>()
         visible().forEach { protocol ->
             val spec = protocol.fidelitySpec!!
             val recipe = protocol.recipe!!
             assertEquals("${protocol.id} semanas", spec.expectedWeeks, recipe.weeks.size)
-            assertEquals("${protocol.id} días", spec.expectedDaysPerWeek, recipe.daysPerWeek)
+            // El claim de la receta (lo que publica el catálogo) coincide con el spec...
+            assertEquals("${protocol.id} días declarados", spec.expectedDaysPerWeek, recipe.daysPerWeek)
+            // ...y los días reales (weekday distintos de todo el plan) también, salvo los conocidos.
+            val realDays = realTrainingDays(recipe)
+            if (realDays != spec.expectedDaysPerWeek) {
+                val perWeek = recipe.weeks.map { it.days.size }
+                frequencyMismatches[protocol.id] =
+                    "spec ${spec.expectedDaysPerWeek} días, reales $realDays (por semana ${perWeek.minOrNull()}..${perWeek.maxOrNull()})"
+            }
             if (spec.requiresAmrap) {
                 assertTrue("${protocol.id} promete AMRAP", recipe.weeks.any { week -> week.days.any { day -> day.slots.any { slot -> slot.sets.any { it.amrap } } } })
             }
@@ -363,6 +397,18 @@ class ProtocolRecipeFidelityTest {
                 )
             }
         }
+        frequencyMismatches.forEach { (id, detail) -> println("FRECUENCIA REAL $id: $detail") }
+        val unexpected = frequencyMismatches.keys - KNOWN_FREQUENCY_MISMATCH
+        assertTrue(
+            "Recetas cuya frecuencia real no cuadra con su fidelitySpec (corrige el dato o el spec; " +
+                "KNOWN_FREQUENCY_MISMATCH no admite más): " + unexpected.sorted().joinToString { "$it → ${frequencyMismatches.getValue(it)}" },
+            unexpected.isEmpty(),
+        )
+        val stale = KNOWN_FREQUENCY_MISMATCH - frequencyMismatches.keys
+        assertTrue(
+            "Estas recetas ya cuadran con su fidelitySpec: sácalas de KNOWN_FREQUENCY_MISMATCH: ${stale.sorted()}",
+            stale.isEmpty(),
+        )
     }
 
     // ─── §10.2/§10.3: tablas normativas de los originales autorados (E) ──────

@@ -2,6 +2,8 @@ package com.example.kpkn.data.protocols
 
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.templates.CatalogV2TestFixture
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.RecipeContractPolicy
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -55,14 +57,78 @@ class ProtocolAuditTest {
             catalogIds = CatalogV2TestFixture.configurationLookup().keys
         }
 
+        /**
+         * Orden de fase de un goal de bloque. Reconoce los goals en español y en inglés, y en los
+         * dos idiomas las mismas variantes de cada fase (acumulación o hipertrofia, intensificación
+         * o fuerza, realización o pico, descarga o taper): los bloques de Juggernaut salen del
+         * nombre del enum («Accumulation», «Peak») y antes caían en el «else», así que nunca
+         * contaban como regresión de fase.
+         */
         private fun goalRank(goal: String): Int = when {
-            goal.contains("acumul", ignoreCase = true) -> 1
-            goal.contains("intensif", ignoreCase = true) -> 2
-            goal.contains("realiz", ignoreCase = true) || goal.contains("pico", ignoreCase = true) -> 3
-            goal.contains("descarga", ignoreCase = true) || goal.contains("deload", ignoreCase = true) -> 4
+            goal.contains("acumul", ignoreCase = true) ||
+                goal.contains("accumul", ignoreCase = true) ||
+                goal.contains("hipertrofia", ignoreCase = true) ||
+                goal.contains("hypertroph", ignoreCase = true) -> 1
+            goal.contains("intensif", ignoreCase = true) ||
+                goal.contains("fuerza", ignoreCase = true) ||
+                goal.contains("strength", ignoreCase = true) -> 2
+            goal.contains("realiz", ignoreCase = true) ||
+                goal.contains("pico", ignoreCase = true) ||
+                goal.contains("peak", ignoreCase = true) -> 3
+            goal.contains("descarga", ignoreCase = true) ||
+                goal.contains("deload", ignoreCase = true) ||
+                goal.contains("taper", ignoreCase = true) -> 4
             goal.contains("custom", ignoreCase = true) -> 2
             else -> 2
         }
+    }
+
+    @Test
+    fun goalRank_recognizes_spanish_and_english_goals() {
+        val expected = mapOf(
+            "Acumulación" to 1, "Accumulation" to 1, "Hipertrofia" to 1, "Hypertrophy" to 1,
+            "Intensificación" to 2, "Intensification" to 2, "Fuerza" to 2, "Strength" to 2,
+            "Realización" to 3, "Realization" to 3, "Pico" to 3, "Peak" to 3,
+            "Descarga" to 4, "Deload" to 4, "Taper" to 4,
+            "Custom" to 2, "Especificidad" to 2,
+        )
+        expected.forEach { (goal, rank) -> org.junit.Assert.assertEquals(goal, rank, goalRank(goal)) }
+    }
+
+    /**
+     * Coherencia de [NO_DELOAD_WHITELIST] con el contrato de receta válida (C5). El objetivo de B.S6 es
+     * que la lista salga de las exenciones C5: las recetas visibles que exigen descarga (no se repiten,
+     * duran 8 semanas o más y no traen ninguna semana de descarga ni de taper) más las que se repiten
+     * (un ciclo que se repite no necesita descarga final). Hoy solo falla lo peligroso: una receta que
+     * exige descarga y no está en la lista. Lo que sobra en la lista se imprime y no falla.
+     */
+    @Test
+    fun no_deload_whitelist_covers_every_visible_recipe_that_needs_a_deload() {
+        val metadata = CatalogCompositionTestSupport.metadata
+        val visible = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }
+        val visibleIds = visible.map { it.id }.toSet()
+        val needsDeload = visible
+            .filter { protocol ->
+                RecipeContractPolicy.evaluate(requireNotNull(protocol.recipe), metadata)
+                    .any { it.rule == RecipeContractPolicy.C5_DELOAD_REQUIRED }
+            }
+            .map { it.id }
+            .toSet()
+        val repeating = visible.filter { it.recipe?.repeats == true }.map { it.id }.toSet()
+        val target = needsDeload + repeating
+        val current = NO_DELOAD_WHITELIST.intersect(visibleIds)
+
+        println("WHITELIST en visibles (${current.size}): ${current.sorted()}")
+        println("WHITELIST objetivo = C5 + repeats (${target.size}): ${target.sorted()}")
+        println("WHITELIST exigen descarga y faltan en la lista: ${(needsDeload - NO_DELOAD_WHITELIST).sorted()}")
+        println("WHITELIST sobran (ni exigen descarga ni se repiten): ${(current - target).sorted()}")
+        println("WHITELIST objetivo que la lista aún no trae: ${(target - current).sorted()}")
+
+        val missing = needsDeload - NO_DELOAD_WHITELIST
+        assertTrue(
+            "Recetas visibles que exigen descarga (C5) y no están en NO_DELOAD_WHITELIST: ${missing.sorted()}",
+            missing.isEmpty(),
+        )
     }
 
     @Test
