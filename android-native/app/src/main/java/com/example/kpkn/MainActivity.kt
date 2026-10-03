@@ -166,8 +166,14 @@ class MainActivity : ComponentActivity() {
         telemetryHelper.logAppOpen()
 
         RepairBenchmarkTrace.workoutEntryIntentReceived(intent)
-        pendingDeepLinkRoute.value = resolveNavigationRouteFromIntent(intent)
-        pendingSharedNutritionText.value = extractSharedNutritionText(intent)
+        // C6: una Activity recreada (rotación, plegado, idioma, muerte del proceso) recibe de nuevo el
+        // intent ORIGINAL (ACTION_SEND, extra del widget); solo un lanzamiento fresco puede consumirlo.
+        val launchRequest = com.example.kpkn.navigation.LaunchIntentResolver.forLaunch(
+            intent = intent,
+            isRecreation = savedInstanceState != null,
+        )
+        pendingDeepLinkRoute.value = launchRequest?.route
+        pendingSharedNutritionText.value = launchRequest?.sharedText
 
         // Initialize repositories synchronously before setContent
         runCatching {
@@ -283,14 +289,14 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         RepairBenchmarkTrace.workoutEntryIntentReceived(intent)
-        val deepLinkRoute = resolveNavigationRouteFromIntent(intent)
+        val deepLinkRoute = com.example.kpkn.navigation.LaunchIntentResolver.route(intent)
         pendingDeepLinkRoute.value = deepLinkRoute
         
         if (!deepLinkRoute.isNullOrBlank()) {
             telemetryHelper.logDeepLinkOpen(deepLinkRoute)
         }
         
-        val shared = extractSharedNutritionText(intent)
+        val shared = com.example.kpkn.navigation.LaunchIntentResolver.sharedText(intent)
         pendingSharedNutritionText.value = shared
         if (!shared.isNullOrBlank()) {
             telemetryHelper.logFoodItemAdd("shared_text", "Shared nutrition text", null)
@@ -392,37 +398,6 @@ class MainActivity : ComponentActivity() {
                 "blocker" to false
             )
         }
-    }
-
-    private fun extractSharedNutritionText(intent: Intent?): String? {
-        if (intent == null) return null
-        if (intent.action != Intent.ACTION_SEND) return null
-        val mime = intent.type.orEmpty()
-        if (!mime.contains("text", ignoreCase = true)) return null
-        return intent.getStringExtra(Intent.EXTRA_TEXT)?.trim()?.takeIf { it.isNotBlank() }
-    }
-
-    private fun resolveNavigationRouteFromIntent(intent: Intent?): String? {
-        if (intent == null) return null
-        val explicitAction = intent.getStringExtra("kpkn_nutrition_action")
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-        if (explicitAction != null) {
-            return KpknRoute.NutritionAction.create(explicitAction)
-        }
-
-        val dataRoute = DeepLinkRouter.resolve(intent.data)?.route
-        if (dataRoute != null) return dataRoute
-
-        val data = intent.data
-        if (data != null && data.scheme.equals("kpkn", ignoreCase = true)) {
-            val action = data.getQueryParameter("action")
-                ?: data.pathSegments.lastOrNull()
-            if (!action.isNullOrBlank()) {
-                return KpknRoute.NutritionAction.create(action)
-            }
-        }
-        return null
     }
 }
 

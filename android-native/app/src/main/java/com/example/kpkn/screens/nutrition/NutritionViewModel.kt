@@ -100,6 +100,8 @@ class NutritionViewModel(
     data class FoodLoggerOpenRequest(
         val tab: Int = 0,
         val description: String? = null,
+        /** null: la pantalla elige el tipo de comida según la hora (widget, share y deep link; C12). */
+        val mealType: MealType? = null,
     )
 
     private val _foodLoggerOpenRequest = MutableStateFlow<FoodLoggerOpenRequest?>(null)
@@ -142,10 +144,15 @@ class NutritionViewModel(
         _pendingSharedTab.value = 0
     }
 
-    fun requestFoodLoggerOpen(tab: Int = 0, description: String? = null) {
+    /**
+     * Pide abrir el logger. [mealType] es la comida elegida a propósito (botón de una comida concreta);
+     * si es null la pantalla aplica el tipo por defecto de la hora (`defaultMealTypeNow`).
+     */
+    fun requestFoodLoggerOpen(tab: Int = 0, description: String? = null, mealType: MealType? = null) {
         _foodLoggerOpenRequest.value = FoodLoggerOpenRequest(
             tab = tab.coerceIn(0, 1),
             description = description?.trim()?.takeIf { it.isNotBlank() },
+            mealType = mealType,
         )
     }
 

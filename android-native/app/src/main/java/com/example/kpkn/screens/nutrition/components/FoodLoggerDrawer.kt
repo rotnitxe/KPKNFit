@@ -2495,16 +2495,9 @@ private fun TagCard(
                     }
 
                     if (tag.amountGrams != null || tag.loggedFood != null) {
-                        val currentGrams = tag.amountGrams ?: tag.loggedFood?.amount ?: 100.0
-                        val gramsLabel = kotlin.math.round(currentGrams).toInt()
-                        Text("Gramos (${gramsLabel}g)", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
-                        // B11: tope dinámico — "1.5 kg de arroz" (1500g) no debe colapsar a 500g.
-                        val gramsMax = maxOf(600.0, kotlin.math.round(currentGrams * 2.0))
-                        Slider(
-                            value = (currentGrams / gramsMax).toFloat().coerceIn(0f, 1f),
-                            onValueChange = { onGramsChange(kotlin.math.round(it * gramsMax)) },
-                            valueRange = 0f..1f,
-                        )
+                        // C8: tope anclado a la masa base ("1.5 kg de arroz" no colapsa a 500 g, el pulgar no se
+                        // escapa) y un solo cambio por gesto; el campo numérico también vive en GramsEditor.
+                        GramsEditor(tag = tag, onGramsChange = onGramsChange)
                     }
 
                     Text("Ajustar macros", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)

@@ -132,16 +132,6 @@ fun HomeScreen(
     var showNutritionOverlay by remember { mutableStateOf(false) }
     var showAugeRecommendations by remember { mutableStateOf(false) }
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
-    var selectedMealForLogger by remember {
-        mutableStateOf(
-            when (java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)) {
-                in 5..10 -> MealType.BREAKFAST
-                in 11..15 -> MealType.LUNCH
-                in 16..20 -> MealType.DINNER
-                else -> MealType.SNACK
-            }
-        )
-    }
     val context = LocalContext.current
     LaunchedEffect(uiState.activeProgramId) {
         viewModel.loadFeedbacks(context)
@@ -324,7 +314,8 @@ fun HomeScreen(
         if (showFoodLogger) {
             HomeFoodLoggerHost(
                 nutritionRepo = nutritionRepo,
-                selectedMealForLogger = selectedMealForLogger,
+                // C12: la misma regla horaria que Nutrición, resuelta cada vez que se abre el logger.
+                selectedMealForLogger = remember { com.example.kpkn.domain.nutrition.defaultMealTypeNow() },
                 onDismiss = { showFoodLogger = false },
             )
         }

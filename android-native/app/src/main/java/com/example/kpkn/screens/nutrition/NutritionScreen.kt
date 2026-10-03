@@ -105,7 +105,8 @@ fun NutritionScreen(
 
     var showFoodLogger by remember { mutableStateOf(false) }
     var showPlanRequiredDialog by remember { mutableStateOf(false) }
-    var selectedMealForLogger by remember { mutableStateOf(MealType.LUNCH) }
+    // C12: la comida por defecto sigue a la hora, no es siempre «Almuerzo»; cada apertura la resuelve de nuevo.
+    var selectedMealForLogger by remember { mutableStateOf(defaultMealTypeNow()) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
     var foodLoggerInitialTab by remember { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
     var pendingNutritionSetupDraftId by remember { mutableStateOf<String?>(null) }
@@ -140,6 +141,7 @@ fun NutritionScreen(
         if (!sharedDescription.isNullOrBlank()) {
             foodLoggerInitialDescription = sharedDescription
             foodLoggerInitialTab = sharedTab.coerceIn(0, 1)
+            selectedMealForLogger = defaultMealTypeNow()
             showFoodLogger = true
         }
     }
@@ -148,6 +150,8 @@ fun NutritionScreen(
         val request = foodLoggerOpenRequest ?: return@LaunchedEffect
         foodLoggerInitialDescription = request.description
         foodLoggerInitialTab = request.tab
+        // C12: widget, share y deep link no eligen comida: heredan la de la hora.
+        selectedMealForLogger = request.mealType ?: defaultMealTypeNow()
         showFoodLogger = true
         viewModel.consumeFoodLoggerOpenRequest()
     }
@@ -251,7 +255,7 @@ fun NutritionScreen(
                             selectedMealForLogger = meal
                             foodLoggerInitialDescription = null
                             foodLoggerInitialTab = 0
-                            viewModel.requestFoodLoggerOpen(tab = 0)
+                            viewModel.requestFoodLoggerOpen(tab = 0, mealType = meal)
                         },
                     )
                 }
@@ -267,7 +271,7 @@ fun NutritionScreen(
                             selectedMealForLogger = mealType
                             foodLoggerInitialDescription = null
                             foodLoggerInitialTab = 0
-                            viewModel.requestFoodLoggerOpen(tab = 0)
+                            viewModel.requestFoodLoggerOpen(tab = 0, mealType = mealType)
                         },
                     )
                 }
@@ -311,7 +315,7 @@ fun NutritionScreen(
                     if (!isFoodLoggingAvailable(settings, activePlan != null)) {
                         showPlanRequiredDialog = true
                     } else {
-                        selectedMealForLogger = MealType.LUNCH
+                        // C12: sin comida elegida, la solicitud deja que el logger proponga la de la hora.
                         foodLoggerInitialDescription = null
                         foodLoggerInitialTab = 0
                         viewModel.requestFoodLoggerOpen(tab = 0)
