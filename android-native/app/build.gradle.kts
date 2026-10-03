@@ -120,7 +120,13 @@ val verifyDatasetKnowledge by tasks.registering(Exec::class) {
     group = "verification"
     description = "Verifies that the compiled nutrition dataset matches its master JSON."
     workingDir(rootProject.projectDir)
-    commandLine("python3", "scripts/process_dataset.py", "--check")
+    // On Windows the interpreter is `python` (no `python3` alias); elsewhere `python3`.
+    val pythonCommand = if (System.getProperty("os.name").lowercase().contains("windows")) "python" else "python3"
+    commandLine(pythonCommand, "scripts/process_dataset.py", "--check")
+    // The master JSON is an authoring input: a checkout that does not carry it has nothing to verify, so the task
+    // is skipped instead of failing `check`.
+    val masterDataset = rootProject.file("DATASET_KPKN_TRINIDAD_MASTER.json")
+    onlyIf { masterDataset.isFile }
 }
 
 tasks.named("check").configure {

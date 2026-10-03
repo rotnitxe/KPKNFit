@@ -158,6 +158,8 @@ object SettingsJsonBackup {
         )
     }
 
+    // `nutritionRepository` stays in the signature for API compatibility (the stored catalog meta is no longer restored).
+    @Suppress("UNUSED_PARAMETER")
     suspend fun importPayload(
         context: Context,
         payload: SettingsExportPayload,
@@ -275,16 +277,11 @@ object SettingsJsonBackup {
         val schedule = payload.measurementSchedule ?: MeasurementSchedule()
         onMeasurementSchedule(schedule)
 
-        if (v5 && payload.includesFoodCatalogMetaSection) {
-            if (payload.foodCatalogMeta != null) {
-                nutritionRepository.restoreFoodCatalogMeta(payload.foodCatalogMeta)
-            }
-        } else if (!v5) {
-            if (payload.foodCatalogMeta != null) {
-                nutritionRepository.restoreFoodCatalogMeta(payload.foodCatalogMeta)
-            }
-        }
-
+        // The catalog meta describes what THIS device's `global_foods` table holds (dataset version/fingerprint of its
+        // last import). A backup carries the meta of another install or build, so applying it only made the next start
+        // see a mismatch and import the whole catalog again (double import). The device's own meta stays
+        // authoritative: `payload.foodCatalogMeta` is still exported and decoded for format compatibility, but it is
+        // never applied. An empty catalog (e.g. restoring before the first import finished) is regenerated below.
         ensureRegenerableAssetsIfEmpty(context, db)
         return settingsProfileToken
     }

@@ -3,6 +3,7 @@ package com.example.kpkn.data.settings
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.db.toCompetitionRecord
@@ -213,4 +214,34 @@ class SettingsJsonBackupTest {
         }
     }
 
+    @Test
+    fun `restore does not touch the stored food catalog meta`() = runBlocking {
+        val db = KpknDatabase.createInMemory(context)
+        try {
+            // Catálogo global ya presente: la restauración no lo regenera (evita importar los CSV en esta prueba).
+            db.nutritionDao().insertGlobalFoods(listOf(GlobalFoodEntity(foodId = "off_1", name = "Yogur natural")))
+            val repository = nutritionRepo(db)
+            // La meta describe lo que ESTE dispositivo importó; la del respaldo viene de otra instalación o build.
+            val deviceMeta = NutritionRepository.FoodCatalogMeta(version = 9, checksum = "v9", importedAt = "2026-10-01T10:00:00Z")
+            repository.restoreFoodCatalogMeta(deviceMeta)
+            val foreignMeta = NutritionRepository.FoodCatalogMeta(version = 3, checksum = "f".repeat(64), importedAt = "2026-01-01T00:00:00Z")
+
+            // Esquema vigente (con la sección de meta) y formato anterior a v5: ninguno puede pisar la meta del dispositivo.
+            listOf(
+                minimalPayload().copy(foodCatalogMeta = foreignMeta),
+                minimalPayload().copy(schemaVersion = 4, includesFoodCatalogMetaSection = false, foodCatalogMeta = foreignMeta),
+            ).forEach { payload ->
+                SettingsJsonBackup.importPayload(
+                    context = context,
+                    payload = payload,
+                    db = db,
+                    nutritionRepository = repository,
+                    onMeasurementSchedule = {},
+                )
+                assertEquals(deviceMeta, repository.getFoodCatalogMetaForBackup())
+            }
+        } finally {
+            db.close()
+        }
+    }
 }

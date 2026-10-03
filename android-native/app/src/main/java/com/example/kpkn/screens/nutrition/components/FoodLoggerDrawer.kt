@@ -1130,7 +1130,7 @@ fun FoodLoggerDrawer(
         scope.launch {
             val results = nutritionRepo.searchFoodCandidates(query, limit = 15).filter {
                 NutrientBasis.isVerified(it.food) && FoodIdentity.matchesDeclaredIdentity(query, it.food)
-            }
+            }.distinctBy { it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } } // C13: una ficha por id (keys únicas)
             if (searchQuery == query) searchResults = results
         }
     }
@@ -1565,7 +1565,7 @@ fun FoodLoggerDrawer(
                         )
                     )
                 }
-                items(searchResults, key = { "search_${it.food.name}_${it.food.brand.orEmpty()}" }) { food ->
+                items(searchResults, key = { "search_" + it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } }) { food ->
                     FoodSearchResultCard(candidate = food, onClick = {
                         val selectedFood = food.food
                         if (!NutrientBasis.isVerified(selectedFood)) {

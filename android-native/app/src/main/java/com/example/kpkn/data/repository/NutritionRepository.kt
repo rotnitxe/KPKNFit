@@ -3,6 +3,7 @@ package com.example.kpkn.data.repository
 import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.DatasetKnowledgeStore
+import com.example.kpkn.data.food.FoodImporter
 import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
@@ -23,9 +24,13 @@ import com.example.kpkn.domain.nutrition.dailyGoalSnapshotOf
 import com.example.kpkn.domain.nutrition.planDayTargetForDate
 import androidx.room.withTransaction
 import com.example.kpkn.services.nutrition.NutritionNotificationManager
+import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
@@ -43,6 +48,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.text.Normalizer
 import java.time.Instant
 import java.time.LocalDate
@@ -50,13 +56,53 @@ import java.time.ZoneId
 import java.util.UUID
 
 /**
+ * Seam de arranque del catálogo global (WP-S3/U2): misma forma que [FoodImporter.importIfNeeded]. En producción es
+ * [Default]; las pruebas inyectan uno suspendido o que lanza para demostrar que las filas del usuario se publican
+ * antes de la importación y con independencia de ella.
+ */
+internal interface FoodCatalogImporter {
+    suspend fun importIfNeeded(
+        db: KpknDatabase,
+        context: Context,
+        alreadyImported: Boolean,
+        existingMeta: FoodImporter.ImportMetadata?,
+        onMetaUpdated: (FoodImporter.ImportMetadata) -> Unit,
+    ): Boolean
+
+    companion object {
+        /** Importador de producción: delega en [FoodImporter.importIfNeeded]. */
+        val Default: FoodCatalogImporter = object : FoodCatalogImporter {
+            override suspend fun importIfNeeded(
+                db: KpknDatabase,
+                context: Context,
+                alreadyImported: Boolean,
+                existingMeta: FoodImporter.ImportMetadata?,
+                onMetaUpdated: (FoodImporter.ImportMetadata) -> Unit,
+            ): Boolean = FoodImporter.importIfNeeded(db, context, alreadyImported, existingMeta, onMetaUpdated)
+        }
+    }
+}
+
+/**
  * NutritionRepository — Write-through cache para estado nutricional.
  */
 class NutritionRepository private constructor(
     context: Context,
-    private val db: KpknDatabase = KpknDatabase.getInstance(context),
-    private val ownsDatabase: Boolean = false,
+    private val db: KpknDatabase,
+    private val ownsDatabase: Boolean,
+    /** Seam de arranque (WP-S3/U2): ver [FoodCatalogImporter]. */
+    private val catalogImporter: FoodCatalogImporter,
 ) {
+    /**
+     * Forma `(Context, KpknDatabase, Boolean)` conservada: varias pruebas construyen el repositorio por reflexión con
+     * esa firma exacta (NutritionDurableSaveTest, SettingsJsonBackupTest).
+     */
+    private constructor(
+        context: Context,
+        db: KpknDatabase = KpknDatabase.getInstance(context),
+        ownsDatabase: Boolean = false,
+    ) : this(context, db, ownsDatabase, FoodCatalogImporter.Default)
+
     /** Normalized body observations are shared with the body feature and never stored in Settings. */
     private val normalizedBodyRepository by lazy { BodyProgressRepository.getInstance(appContext) }
     val bodyProgressRepository: BodyProgressRepository
@@ -66,6 +112,8 @@ class NutritionRepository private constructor(
     private val repositoryJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + repositoryJob)
     private val foodSaveMutex = Mutex()
+    /** Serializa las importaciones del catálogo global (el arranque y un `refreshData` pueden solaparse). */
+    private val catalogImportMutex = Mutex()
     private val foodCalibration by lazy { NutritionCalibrationRepository.forDatabase(appContext, db) }
     private val foodPrefs by lazy { appContext.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE) }
 
@@ -929,17 +977,150 @@ class NutritionRepository private constructor(
 
     // ─── Bootstrap ──────────────────────────────────────────────────────────
 
-    private fun loadFromDb(context: Context) {
-        scope.launch {
+    /** Última carga de arranque; las pruebas la esperan para observar el final de sus tres fases. */
+    @Volatile
+    private var startupLoadJob: Job? = null
+
+    /** Solo para pruebas JVM: espera a que terminen las tres fases de la última carga de arranque. */
+    internal suspend fun awaitStartupLoadForTests() {
+        startupLoadJob?.join()
+    }
+
+    /**
+     * Arranque en tres fases independientes (WP-S3 + WP-U2); ninguna arrastra a la anterior:
+     *
+     * 1. [publishUserState]: lee UNA vez las filas del usuario y las publica. El catálogo global no interviene, así
+     *    una importación lenta o fallida jamás oculta logs, planes ni metas.
+     * 2. [importCatalog]: importa el catálogo global. Un fallo solo se registra: nunca limpia estado ni cancela el
+     *    recordatorio de medición.
+     * 3. Calienta el conocimiento semántico y el índice de alimentos, ya con el catálogo importado. Pendiente de
+     *    WP-S4 (generaciones del índice): un `initFoodIndex()` previo, p. ej. un análisis durante la importación, deja
+     *    el índice sin las filas recién importadas hasta el próximo arranque.
+     *
+     * @return se completa al terminar la fase 1 (estado publicado), aunque la importación siga en curso.
+     */
+    private fun loadFromDb(context: Context): Deferred<Unit> {
+        val userStatePublished = CompletableDeferred<Unit>()
+        val load = scope.launch {
             try {
-                // Ensure Massive Food DB is ready
+                publishUserState(context)
+            } finally {
+                userStatePublished.complete(Unit)
+            }
+            importCatalog(context)
+
+            // Initialize verified and semantic indexes proactively in the background.
+            launch(Dispatchers.Default) {
+                ensureDatasetKnowledge()
+                initFoodIndex()
+            }
+        }
+        // Respaldo: si el scope ya estaba cancelado el cuerpo nunca corre y nadie debe esperar para siempre.
+        load.invokeOnCompletion { userStatePublished.complete(Unit) }
+        startupLoadJob = load
+        return userStatePublished
+    }
+
+    /**
+     * Fase 1. La subfase 1a lee y publica las filas del usuario; la 1b publica el cuerpo y programa el recordatorio
+     * de medición. Cada una tiene su propio `catch` con el respaldo mínimo de siempre: un fallo del cuerpo no deshace
+     * comidas ya publicadas.
+     */
+    private suspend fun publishUserState(context: Context) {
+        try {
+            // Lo costoso queda fuera del candado: alimentos propios + catálogo estático y de marcas.
+            val customFoods = db.nutritionDao().getAllCustomFoods()
+                .map { it.toFoodItem() }
+                .filterNot { custom ->
+                    // Drop stale AI-inferred duplicates when a curated static entry exists.
+                    custom.isAiInferred && findFoodByNormalized(custom.name) != null
+                }
+                .map(::normalizeFoodItem)
+            val foodCatalog = (buildFoodDatabase(appContext) + customFoods)
+                .map(::normalizeFoodItem)
+                .distinctBy { it.id.ifBlank { it.normalizedName ?: it.name.lowercase() } }
+
+            // UNA sola lectura bajo el mismo candado que guardan/olvidan comidas: la carga puede solaparse con un
+            // guardado y no debe publicar una foto anterior. Los alimentos se publican al final, de modo que quien
+            // espera el catálogo sabe que el resto del estado ya está publicado.
+            foodSaveMutex.withLock {
+                val dao = db.nutritionDao()
+                val logs = dao.getAllLogs().map { it.toNutritionLog() }
+                val templates = dao.getAllTemplates().map { it.toMealTemplate() }
+                val learning = loadFoodLearning()
+                val snapshots = dao.getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
+                val plans = dao.getAllPlans().map { it.toNutritionPlan() }
+                val activeId = dao.getActiveState()?.activePlanId
+
+                _nutritionLogs.value = logs
+                _mealTemplates.value = templates
+                _foodQueryLearning.value = learning
+                _dailyGoalSnapshots.value = snapshots
+                _nutritionPlans.value = plans
+                _activeNutritionPlanId.value = activeId
+                _foodDatabase.value = foodCatalog
+            }
+
+            // Los utensilios guardados vuelven al motor de porciones en cada arranque (WP-U2/U12): sin esto se
+            // pierden al reiniciar el proceso. Es secundario: un fallo aquí no debe activar el respaldo de la fase.
+            runCatching { loadUtensilOverrides() }
+                .onFailure { android.util.Log.w("NutritionRepository", "Could not reapply saved utensil overrides", it) }
+
+            // Con el estado nutricional publicado, la previsión semanal del
+            // plan activo se revisa sola cuando cambia el calendario
+            // (después de que el repositorio de programas esté listo).
+            startCalendarForecastUpdates()
+        } catch (t: Throwable) {
+            if (t is CancellationException) throw t
+            android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)
+            _foodDatabase.value = runCatching { buildFoodDatabase(appContext) }.getOrDefault(emptyList())
+            _mealTemplates.value = emptyList()
+            _foodQueryLearning.value = emptyMap()
+        }
+
+        try {
+            // BodyProgressRepository performs the one-time legacy JSON
+            // migration and verifies its Room row count before removing
+            // the old preference. Do not read that preference here again.
+            normalizedBodyRepository.awaitReady()
+            _bodyMeasurements.value = normalizedBodyRepository.observations.value.toLegacyMeasurementEntries()
+            _measurementSchedule.value = normalizedBodyRepository.measurementSchedule.value
+
+            val notifier = NutritionNotificationManager(context)
+            val currentSchedule = _measurementSchedule.value
+            if (currentSchedule.enabled && currentSchedule.nextDate != null) {
+                notifier.scheduleMeasurementReminder(
+                    currentSchedule.nextDate,
+                    currentSchedule.reminderHour,
+                    currentSchedule.reminderMinute,
+                )
+            } else {
+                notifier.cancelMeasurementReminder()
+            }
+        } catch (t: Throwable) {
+            if (t is CancellationException) throw t
+            android.util.Log.e("NutritionRepository", "Body progress load failed: ${t.javaClass.simpleName}", t)
+            _bodyMeasurements.value = emptyList()
+            _measurementSchedule.value = MeasurementSchedule()
+            NutritionNotificationManager(appContext).cancelMeasurementReminder()
+        }
+    }
+
+    /**
+     * Fase 2: importa el catálogo global. Corre DESPUÉS de publicar el estado del usuario y nunca lo toca: un fallo
+     * solo se registra (log + telemetría); jamás limpia estado ni cancela el recordatorio de medición.
+     */
+    private suspend fun importCatalog(context: Context) {
+        val outcome = runCatching {
+            // Serializa importaciones solapadas: la segunda reevalúa la compuerta con la meta ya guardada.
+            catalogImportMutex.withLock {
                 val globalCount = db.nutritionDao().getGlobalFoodCount()
-                val imported = com.example.kpkn.data.food.FoodImporter.importIfNeeded(
+                catalogImporter.importIfNeeded(
                     db = db,
                     context = context,
                     alreadyImported = globalCount > 0,
                     existingMeta = loadFoodCatalogMeta()?.let {
-                        com.example.kpkn.data.food.FoodImporter.ImportMetadata(
+                        FoodImporter.ImportMetadata(
                             version = it.version,
                             checksum = it.checksum,
                             importedAt = it.importedAt,
@@ -955,79 +1136,19 @@ class NutritionRepository private constructor(
                         )
                     },
                 )
-                if (imported) {
-                    android.util.Log.i("NutritionRepository", "Food catalog importado/actualizado")
-                }
-
-                val logs = db.nutritionDao().getAllLogs().map { it.toNutritionLog() }
-                val snapshots = db.nutritionDao().getAllDailyGoalSnapshots().mapNotNull { it.toDailyGoalSnapshot() }
-                val plans = db.nutritionDao().getAllPlans().map { it.toNutritionPlan() }
-                val activeId = db.nutritionDao().getActiveState()?.activePlanId
-                val customFoods = db.nutritionDao().getAllCustomFoods()
-                    .map { it.toFoodItem() }
-                    .filterNot { custom ->
-                        // Drop stale AI-inferred duplicates when a curated static entry exists.
-                        custom.isAiInferred && findFoodByNormalized(custom.name) != null
-                    }
-                    .map(::normalizeFoodItem)
-                val templates = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() }
-                val learning = loadFoodLearning()
-
-                // BodyProgressRepository performs the one-time legacy JSON
-                // migration and verifies its Room row count before removing
-                // the old preference. Do not read that preference here again.
-                normalizedBodyRepository.awaitReady()
-                val measurements = normalizedBodyRepository.observations.value.toLegacyMeasurementEntries()
-                val schedule = normalizedBodyRepository.measurementSchedule.value
-
-                // Loading may overlap a save/forget. Re-read these rows under the
-                // same lock instead of publishing an earlier stale snapshot.
-                foodSaveMutex.withLock {
-                    _nutritionLogs.value = db.nutritionDao().getAllLogs().map { it.toNutritionLog() }
-                    _mealTemplates.value = db.nutritionDao().getAllTemplates().map { it.toMealTemplate() }
-                    _foodQueryLearning.value = loadFoodLearning()
-                }
-                _dailyGoalSnapshots.value = snapshots
-                _nutritionPlans.value = plans
-                _activeNutritionPlanId.value = activeId
-                _foodDatabase.value = (buildFoodDatabase(appContext) + customFoods)
-                    .map(::normalizeFoodItem)
-                    .distinctBy { it.id.ifBlank { it.normalizedName ?: it.name.lowercase() } }
-                _bodyMeasurements.value = measurements
-                _measurementSchedule.value = schedule
-
-                // Initialize verified and semantic indexes proactively in the background.
-                launch(Dispatchers.Default) {
-                    ensureDatasetKnowledge()
-                    initFoodIndex()
-                }
-
-                val notifier = NutritionNotificationManager(context)
-                val currentSchedule = _measurementSchedule.value
-                if (currentSchedule.enabled && currentSchedule.nextDate != null) {
-                    notifier.scheduleMeasurementReminder(
-                        currentSchedule.nextDate,
-                        currentSchedule.reminderHour,
-                        currentSchedule.reminderMinute,
-                    )
-                } else {
-                    notifier.cancelMeasurementReminder()
-                }
-
-                // Con el estado nutricional publicado, la previsión semanal del
-                // plan activo se revisa sola cuando cambia el calendario
-                // (después de que el repositorio de programas esté listo).
-                startCalendarForecastUpdates()
-            } catch (t: Throwable) {
-                if (t is CancellationException) throw t
-                android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)
-                _foodDatabase.value = buildFoodDatabase(appContext)
-                _mealTemplates.value = emptyList()
-                _foodQueryLearning.value = emptyMap()
-                _bodyMeasurements.value = emptyList()
-                _measurementSchedule.value = MeasurementSchedule()
-                NutritionNotificationManager(appContext).cancelMeasurementReminder()
             }
+        }
+        val failure = outcome.exceptionOrNull()
+        if (failure is CancellationException) throw failure
+        if (failure != null) {
+            android.util.Log.e(
+                "NutritionRepository",
+                "Catalog import failed; user data stays published: ${failure.javaClass.simpleName}",
+                failure,
+            )
+            runCatching { NutritionTelemetry.catalogImportFailed(failure.javaClass.simpleName) }
+        } else if (outcome.getOrDefault(false)) {
+            android.util.Log.i("NutritionRepository", "Food catalog importado/actualizado")
         }
     }
 
@@ -1301,17 +1422,35 @@ class NutritionRepository private constructor(
     }
 
     companion object {
+        /** Espera máxima de [initForTests] a que se publique el estado del usuario (fase 1 del arranque). */
+        private const val TEST_STARTUP_TIMEOUT_MS = 30_000L
+
         @Volatile private var INSTANCE: NutritionRepository? = null
         fun init(context: Context): NutritionRepository = INSTANCE ?: synchronized(this) {
             INSTANCE ?: NutritionRepository(context.applicationContext).also { INSTANCE = it; it.loadFromDb(context.applicationContext) }
         }
-        fun initForTests(context: Context): NutritionRepository = synchronized(this) {
-            closeInstance()
-            NutritionRepository(
-                context = context.applicationContext,
-                db = KpknDatabase.createInMemory(context.applicationContext),
-                ownsDatabase = true,
-            ).also { INSTANCE = it; it.loadFromDb(context.applicationContext) }
+        fun initForTests(context: Context): NutritionRepository = initForTests(context, FoodCatalogImporter.Default)
+
+        /**
+         * Igual que [initForTests] con el importador del catálogo inyectado (suspendido o que lanza). Retorna con el
+         * estado del usuario YA publicado (fase 1): ninguna publicación tardía del arranque pisa lo que la prueba
+         * escribe a continuación. La importación (fase 2) sigue en segundo plano.
+         */
+        internal fun initForTests(context: Context, catalogImporter: FoodCatalogImporter): NutritionRepository {
+            val appContext = context.applicationContext
+            val (repository, userStatePublished) = synchronized(this) {
+                closeInstance()
+                val created = NutritionRepository(
+                    context = appContext,
+                    db = KpknDatabase.createInMemory(appContext),
+                    ownsDatabase = true,
+                    catalogImporter = catalogImporter,
+                )
+                INSTANCE = created
+                created to created.loadFromDb(appContext)
+            }
+            runBlocking { withTimeoutOrNull(TEST_STARTUP_TIMEOUT_MS) { userStatePublished.await() } }
+            return repository
         }
         fun getInstance(): NutritionRepository = INSTANCE ?: error("Not initialized")
         internal fun closeInstance() {

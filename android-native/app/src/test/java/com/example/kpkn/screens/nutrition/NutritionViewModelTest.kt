@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.*
+import com.example.kpkn.domain.training.AppClock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -18,6 +19,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -295,6 +299,162 @@ class NutritionViewModelTest {
         val newDate = "2025-06-15"
         vm.setSelectedDate(newDate)
         assertEquals(newDate, vm.selectedDate.value)
+    }
+
+    // ─── Date rollover: «hoy» avanza con el calendario (C1) ────────────────
+
+    private val santiago: ZoneId = ZoneId.of("America/Santiago")
+
+    // 2026-07-10 23:59:30 en Santiago (UTC-4, invierno): faltan 30 s para la medianoche.
+    private val justBeforeMidnight: Instant = Instant.parse("2026-07-11T03:59:30Z")
+
+    // 2026-07-11 00:00:05 en Santiago: ya es otro día.
+    private val justAfterMidnight: Instant = Instant.parse("2026-07-11T04:00:05Z")
+
+    /**
+     * Reloj manual: el test fija «ahora»; el VM solo lo relee al refrescar o cuando salta su ticker.
+     * Ojo: cada VM arma un ticker de medianoche que se re-programa solo (nunca queda ocioso), así que
+     * en estos tests el tiempo virtual se avanza con `advanceTimeBy` + `runCurrent`, nunca con
+     * `advanceUntilIdle()` (no terminaría).
+     */
+    private class FakeAppClock(var current: Instant) : AppClock {
+        override fun now(): Instant = current
+        override fun today(zoneId: ZoneId): LocalDate = current.atZone(zoneId).toLocalDate()
+    }
+
+    private fun dayViewModel(clock: FakeAppClock): NutritionViewModel =
+        NutritionViewModel(clock = clock, zoneProvider = { santiago })
+
+    @Test
+    fun `selected date follows today across a simulated midnight`() {
+        val clock = FakeAppClock(justBeforeMidnight)
+        val dayVm = dayViewModel(clock)
+        assertEquals(LocalDate.of(2026, 7, 10), dayVm.today.value)
+        assertEquals("2026-07-10", dayVm.selectedDate.value)
+        assertTrue(dayVm.followsToday)
+
+        clock.current = justAfterMidnight
+        dayVm.refreshToday()
+
+        assertEquals(LocalDate.of(2026, 7, 11), dayVm.today.value)
+        assertEquals("2026-07-11", dayVm.selectedDate.value)
+        assertTrue(dayVm.followsToday)
+    }
+
+    @Test
+    fun `refreshing within the same day changes nothing`() {
+        val clock = FakeAppClock(justBeforeMidnight)
+        val dayVm = dayViewModel(clock)
+
+        clock.current = Instant.parse("2026-07-11T03:59:59Z") // sigue siendo el día 10
+        dayVm.refreshToday()
+
+        assertEquals(LocalDate.of(2026, 7, 10), dayVm.today.value)
+        assertEquals("2026-07-10", dayVm.selectedDate.value)
+    }
+
+    @Test
+    fun `an explicitly selected past date is kept when midnight passes`() {
+        val clock = FakeAppClock(justBeforeMidnight)
+        val dayVm = dayViewModel(clock)
+
+        dayVm.setSelectedDate("2026-07-08")
+        assertFalse(dayVm.followsToday)
+
+        clock.current = justAfterMidnight
+        dayVm.refreshToday()
+
+        assertEquals("2026-07-08", dayVm.selectedDate.value) // la elección explícita se respeta
+        assertEquals(LocalDate.of(2026, 7, 11), dayVm.today.value) // pero hoy sí avanzó
+        assertFalse(dayVm.followsToday)
+    }
+
+    @Test
+    fun `reselecting today re-enables following`() {
+        val clock = FakeAppClock(justBeforeMidnight)
+        val dayVm = dayViewModel(clock)
+        dayVm.setSelectedDate("2026-07-08")
+        assertFalse(dayVm.followsToday)
+
+        dayVm.setSelectedDate(dayVm.today.value.toString())
+        assertTrue(dayVm.followsToday)
+
+        clock.current = justAfterMidnight
+        dayVm.refreshToday()
+        assertEquals("2026-07-11", dayVm.selectedDate.value)
+    }
+
+    @Test
+    fun `midnight ticker moves today without any screen call`() {
+        val clock = FakeAppClock(justBeforeMidnight)
+        val dayVm = dayViewModel(clock) // el ticker espera 30 s hasta medianoche + 1 s de margen
+
+        // El reloj ya cruzó la medianoche, pero el VM solo se entera cuando salta su ticker.
+        clock.current = justAfterMidnight
+        testDispatcher.scheduler.advanceTimeBy(30_999)
+        assertEquals("2026-07-10", dayVm.selectedDate.value)
+
+        testDispatcher.scheduler.advanceTimeBy(1)
+        testDispatcher.scheduler.runCurrent()
+        assertEquals(LocalDate.of(2026, 7, 11), dayVm.today.value)
+        assertEquals("2026-07-11", dayVm.selectedDate.value)
+    }
+
+    @Test
+    fun `history series is anchored on the view model today and rolls with it`() {
+        val clock = FakeAppClock(justBeforeMidnight)
+        val dayVm = dayViewModel(clock)
+        collectors += testScope.launch { dayVm.historySeries.collect { } }
+        assertEquals(LocalDate.of(2026, 7, 10), dayVm.historySeries.value.points.last().date)
+
+        clock.current = justAfterMidnight
+        dayVm.refreshToday()
+
+        val series = dayVm.historySeries.value
+        assertEquals(LocalDate.of(2026, 7, 11), series.points.last().date)
+        assertEquals(LocalDate.of(2026, 6, 12), series.points.first().date) // ventana de 30 días
+        assertEquals(30, series.points.size)
+    }
+
+    // ─── Balance energético: una fecha rota no tumba el flujo (C14) ────────
+
+    /** ProgramRepository carga Room en segundo plano y publica el historial al terminar. */
+    private fun awaitProgramRepositoryReady(timeoutMs: Long = 10_000) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (!programRepo.isReady.value && System.currentTimeMillis() < deadline) Thread.sleep(10)
+        assertTrue("ProgramRepository no terminó de cargar en ${timeoutMs}ms", programRepo.isReady.value)
+    }
+
+    private fun workoutLog(id: String, date: String, burnKcal: Int, actualDate: String? = null) = WorkoutLog(
+        id = id,
+        programId = "program-$id",
+        sessionId = "session-$id",
+        sessionName = "Sesión $id",
+        date = date,
+        durationMinutes = 45,
+        actualDate = actualDate,
+        energySummary = SessionEnergySummary(
+            totalKcal = CalorieRange(low = burnKcal, mid = burnKcal, high = burnKcal),
+        ),
+    )
+
+    @Test
+    fun `energy balance ignores workouts with unparseable dates instead of crashing`() {
+        awaitProgramRepositoryReady()
+        collectors += testScope.launch { vm.dailyEnergyBalance.collect { } }
+        val today = LocalDate.now()
+
+        // Fecha importada/legacy no ISO: antes LocalDate.parse lanzaba dentro del flow y lo mataba.
+        programRepo.addWorkoutLog(workoutLog(id = "broken", date = "not-a-date", burnKcal = 999))
+        assertEquals(0, vm.dailyEnergyBalance.value.trainingBurnKcal)
+
+        // Con actualDate válida cuenta; con solo el prefijo de fecha también; la rota sigue fuera.
+        programRepo.addWorkoutLog(
+            workoutLog(id = "valid", date = "${today}T10:00:00.000Z", burnKcal = 300, actualDate = today.toString()),
+        )
+        programRepo.addWorkoutLog(workoutLog(id = "date-only", date = today.toString(), burnKcal = 50))
+
+        assertEquals(350, vm.dailyEnergyBalance.value.trainingBurnKcal)
     }
 
     // ─── Wizard State ──────────────────────────────────────────────────────

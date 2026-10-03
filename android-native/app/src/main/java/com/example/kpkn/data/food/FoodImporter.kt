@@ -29,7 +29,8 @@ import java.time.Instant
 object FoodImporter {
     private const val TAG = "FoodImporter"
     private const val BATCH_SIZE = 2000
-    private const val DATA_VERSION = 9
+    /** Versión de datos del catálogo importado: subirla fuerza un re-import en todas las instalaciones. */
+    internal const val DATA_VERSION = 9
     private const val USDA_FOOD_CSV = "food_data/food.csv"
     private const val USDA_NUTRIENT_CSV = "food_data/food_nutrient.csv"
     private const val USDA_PORTION_CSV = "food_data/food_portion.csv"
@@ -47,6 +48,43 @@ object FoodImporter {
     private val _importProgress = MutableStateFlow<Float?>(null)
     val importProgress: StateFlow<Float?> = _importProgress.asStateFlow()
 
+    /**
+     * Huella esperada del dataset embebido (WP-S3). En esta etapa es solo la versión de datos: un cambio de contenido
+     * en los CSV exige subir [DATA_VERSION]. Calcularla no abre ningún asset, a diferencia del SHA-256 de ~72 MB que
+     * antes se hasheaba en CADA arranque en frío, antes de publicar las comidas del usuario.
+     */
+    internal fun datasetFingerprint(): String = "v$DATA_VERSION"
+
+    /**
+     * Compuerta pura del arranque (no lee assets ni la base): importa si el catálogo global está vacío, si falta la
+     * meta guardada, si cambió [DATA_VERSION] o si cambió la huella [expectedFingerprint].
+     */
+    internal fun shouldImport(
+        alreadyImported: Boolean,
+        meta: ImportMetadata?,
+        expectedFingerprint: String,
+    ): Boolean = !(
+        alreadyImported &&
+            meta != null &&
+            meta.version == DATA_VERSION &&
+            meta.checksum == expectedFingerprint
+        )
+
+    /** Antes de WP-S3 el `checksum` guardado era el SHA-256 hexadecimal (64 caracteres) de los CSV. */
+    private val LEGACY_CONTENT_SHA256 = Regex("^[0-9a-f]{64}$")
+
+    /**
+     * Las instalaciones previas guardaron el SHA-256 de los CSV como `checksum`. Con la MISMA [DATA_VERSION] el
+     * dataset importado es el mismo, así que se adopta la huella vigente en vez de re-importar ~72 MB (la importación
+     * actual es una sola transacción larga que bloquea las escrituras de Room mientras la app ya es usable). Solo
+     * aplica mientras la huella sea el esquema por versión; cualquier otro esquema compara de forma estricta.
+     */
+    internal fun adoptLegacyChecksum(meta: ImportMetadata?, expectedFingerprint: String): ImportMetadata? {
+        if (meta == null || meta.version != DATA_VERSION) return meta
+        if (expectedFingerprint != datasetFingerprint()) return meta
+        return if (LEGACY_CONTENT_SHA256.matches(meta.checksum)) meta.copy(checksum = expectedFingerprint) else meta
+    }
+
     suspend fun importIfEmpty(alreadyImported: Boolean, context: Context) = withContext(Dispatchers.IO) {
         importIfNeeded(
             db = KpknDatabase.getInstance(context),
@@ -57,6 +95,10 @@ object FoodImporter {
         )
     }
 
+    /**
+     * Importa el catálogo global si hace falta. La decisión es barata (sin leer assets, ver [shouldImport]); el SHA-256
+     * de los CSV solo se calcula dentro de la importación, para dejar rastro de qué contenido se importó.
+     */
     suspend fun importIfNeeded(
         db: KpknDatabase,
         context: Context,
@@ -64,42 +106,49 @@ object FoodImporter {
         existingMeta: ImportMetadata?,
         onMetaUpdated: (ImportMetadata) -> Unit,
     ): Boolean = withContext(Dispatchers.IO) {
-        val checksum = computeDatasetChecksum(context)
-        if (alreadyImported && existingMeta != null && existingMeta.version == DATA_VERSION && existingMeta.checksum == checksum) {
+        val fingerprint = datasetFingerprint()
+        if (!shouldImport(alreadyImported, adoptLegacyChecksum(existingMeta, fingerprint), fingerprint)) {
             return@withContext false
         }
 
-        _importProgress.value = 0.01f
-        NutritionTelemetry.catalogImportStarted(DATA_VERSION.toString())
-        val dao = db.nutritionDao()
-        // Atómica: clear+insert dentro de una transacción. Si algo falla a
-        // mitad de importación, el rollback conserva la versión anterior
-        // completa (antes clearGlobalFoods() borraba primero y un fallo dejaba
-        // el catálogo vacío). El FTS external-content se mantiene por triggers
-        // dentro de la misma transacción y la meta se persiste solo al final.
-        val imported = runCatching {
-            db.withTransaction {
-                importAll(dao, context)
+        try {
+            _importProgress.value = 0.01f
+            NutritionTelemetry.catalogImportStarted(DATA_VERSION.toString())
+            val dao = db.nutritionDao()
+            // Atómica: clear+insert dentro de una transacción. Si algo falla a
+            // mitad de importación, el rollback conserva la versión anterior
+            // completa (antes clearGlobalFoods() borraba primero y un fallo dejaba
+            // el catálogo vacío). El FTS external-content se mantiene por triggers
+            // dentro de la misma transacción y la meta se persiste solo al final.
+            val imported = runCatching {
+                // Solo documenta el contenido importado; ya no decide nada ni corre en el arranque normal.
+                val contentSha256 = runCatching { computeDatasetChecksum(context) }.getOrNull()
+                android.util.Log.i(TAG, "Importando catálogo v$DATA_VERSION (sha256 de los CSV: ${contentSha256 ?: "no disponible"})")
+                db.withTransaction {
+                    importAll(dao, context)
+                }
+                val meta = ImportMetadata(
+                    version = DATA_VERSION,
+                    checksum = fingerprint,
+                    importedAt = Instant.now().toString(),
+                )
+                onMetaUpdated(meta)
+                NutritionTelemetry.catalogImportCompleted(DATA_VERSION.toString(), dao.getGlobalFoodCount())
+                true
+            }.getOrElse { throwable ->
+                if (throwable is CancellationException) throw throwable
+                android.util.Log.e(TAG, "Error importando (${throwable.javaClass.simpleName})", throwable)
+                NutritionTelemetry.catalogImportFailed(throwable.javaClass.simpleName)
+                false
             }
-            val meta = ImportMetadata(
-                version = DATA_VERSION,
-                checksum = checksum,
-                importedAt = Instant.now().toString(),
-            )
-            onMetaUpdated(meta)
-            NutritionTelemetry.catalogImportCompleted(DATA_VERSION.toString(), dao.getGlobalFoodCount())
-            true
-        }.getOrElse { throwable ->
-            if (throwable is CancellationException) throw throwable
-            android.util.Log.e(TAG, "Error importando (${throwable.javaClass.simpleName})", throwable)
-            NutritionTelemetry.catalogImportFailed(throwable.javaClass.simpleName)
-            false
-        }
 
-        _importProgress.value = if (imported) 1.0f else null
-        if (imported) delay(600)
-        _importProgress.value = null
-        imported
+            _importProgress.value = if (imported) 1.0f else null
+            if (imported) delay(600)
+            imported
+        } finally {
+            // También ante cancelación: el indicador nunca queda colgado a mitad de camino.
+            _importProgress.value = null
+        }
     }
 
     private suspend fun importAll(dao: NutritionDao, context: Context) {

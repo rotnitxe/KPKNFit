@@ -12,18 +12,41 @@ import com.example.kpkn.domain.body.latestCompatibleComposition
 import com.example.kpkn.domain.body.latestValidByMetric
 import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.time.ActivityLocalDate
+import com.example.kpkn.domain.training.AppClock
+import com.example.kpkn.domain.training.SystemAppClock
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
+
+/** Margen tras la medianoche local para que el reloj ya marque el día nuevo. */
+private const val MIDNIGHT_TICK_SLACK_MS = 1_000L
 
 /**
  * NutritionViewModel — State management for Nutrition screen.
  * Mirrors NutritionView.tsx + nutritionStore.ts from PWA.
+ *
+ * [clock] y [zoneProvider] definen «hoy»; son inyectables para probar el cambio de día.
  */
-class NutritionViewModel : ViewModel() {
+class NutritionViewModel(
+    private val clock: AppClock = SystemAppClock,
+    private val zoneProvider: () -> ZoneId = { ZoneId.systemDefault() },
+) : ViewModel() {
 
     private val nutritionRepo = NutritionRepository.getInstance()
     private val programRepo = ProgramRepository.getInstance()
+
+    // ─── Today (C1) ──────────────────────────────────────────────────────────
+
+    /**
+     * «Hoy» según el reloj del dispositivo. Este VM está scoped a la Activity y puede
+     * vivir varios días: [today] avanza solo (ticker de medianoche) y en [refreshToday]
+     * (ON_RESUME de la pantalla, cambio de zona horaria).
+     */
+    private val _today = MutableStateFlow(clock.today(zoneProvider()))
+    val today: StateFlow<LocalDate> = _today.asStateFlow()
 
     // ─── Core State ──────────────────────────────────────────────────────────
 
@@ -35,17 +58,38 @@ class NutritionViewModel : ViewModel() {
     val historySeries: StateFlow<NutritionHistorySeries> = combine(
         nutritionLogs,
         nutritionRepo.dailyGoalSnapshots,
-    ) { logs, snapshots ->
-        val end = LocalDate.now()
+        _today,
+    ) { logs, snapshots, end ->
         buildNutritionHistory(end.minusDays(29), end, logs, snapshots)
     }.stateIn(
         viewModelScope,
         SharingStarted.Lazily,
-        buildNutritionHistory(LocalDate.now().minusDays(29), LocalDate.now(), emptyList()),
+        buildNutritionHistory(_today.value.minusDays(29), _today.value, emptyList()),
     )
 
-    private val _selectedDate = MutableStateFlow(LocalDate.now().toString())
+    private val _selectedDate = MutableStateFlow(_today.value.toString())
     val selectedDate: StateFlow<String> = _selectedDate.asStateFlow()
+
+    /**
+     * True mientras el día visible ES hoy: la selección rueda con el calendario.
+     * Elegir otra fecha lo desactiva; volver a elegir hoy lo reactiva.
+     */
+    val followsToday: Boolean
+        get() = _selectedDate.value == _today.value.toString()
+
+    init {
+        // C1: con la pestaña abierta la app puede cruzar la medianoche viva. El ticker
+        // avanza «hoy» sin depender de que la pantalla vuelva a primer plano.
+        viewModelScope.launch {
+            while (isActive) {
+                delay(
+                    NutritionDayBoundary.msUntilNextLocalMidnight(clock.now(), zoneProvider()) +
+                        MIDNIGHT_TICK_SLACK_MS,
+                )
+                refreshToday()
+            }
+        }
+    }
 
     private val _pendingSharedDescription = MutableStateFlow<String?>(null)
     val pendingSharedDescription: StateFlow<String?> = _pendingSharedDescription.asStateFlow()
@@ -61,8 +105,25 @@ class NutritionViewModel : ViewModel() {
     private val _foodLoggerOpenRequest = MutableStateFlow<FoodLoggerOpenRequest?>(null)
     val foodLoggerOpenRequest: StateFlow<FoodLoggerOpenRequest?> = _foodLoggerOpenRequest.asStateFlow()
 
+    /** Selección explícita del usuario: una fecha distinta de hoy deja de seguir al calendario. */
     fun setSelectedDate(date: String) {
         _selectedDate.value = date
+    }
+
+    /**
+     * Relee «hoy» del reloj. Si el día cambió, [today] avanza y, si la selección seguía a
+     * hoy ([followsToday]), también [selectedDate]; una fecha elegida explícitamente
+     * (pasada o futura) se conserva. Llamar desde el hilo principal (ON_RESUME y el
+     * ticker de medianoche).
+     */
+    fun refreshToday() {
+        val current = clock.today(zoneProvider())
+        val previous = _today.value
+        if (current == previous) return
+        // Se decide ANTES de mover «hoy»: la selección sigue solo si mostraba el hoy anterior.
+        val follows = _selectedDate.value == previous.toString()
+        _today.value = current
+        if (follows) _selectedDate.value = current.toString()
     }
 
     fun enqueueSharedDescription(text: String, openTab: Int = 0) {
@@ -187,8 +248,8 @@ class NutritionViewModel : ViewModel() {
         programRepo.settings,
         activePlan,
         nutritionRepo.dailyGoalSnapshots,
-    ) { logs, settings, plan, snapshots ->
-        val end = LocalDate.now()
+        _today,
+    ) { logs, settings, plan, snapshots, end ->
         val days = 7
         val goalKcalByDate = resolveDayGoalsByDate(
             dates = (0L until days.toLong()).map { end.minusDays(it) },
@@ -439,20 +500,23 @@ class NutritionViewModel : ViewModel() {
         val (totals, history, date) = dayTriple
         val (settings, plan, snapshots) = goalsTriple
         val consumedKcal = totals.calories.toInt()
+        // La fecha seleccionada se parsea una sola vez y sin lanzar: una excepción dentro de
+        // este flow llegaría hasta viewModelScope y tumbaría la app (C14).
+        val activityDay = runCatching { LocalDate.parse(date) }.getOrDefault(_today.value)
         // A daily balance is meaningful only against the goal resolved for the
         // selected date (its snapshot first, never the current plan for a past
         // day); never invent a target when that day has no goals.
         val dayGoals = resolveDayGoals(
-            date = LocalDate.parse(date),
+            date = activityDay,
             settings = settings,
             activePlan = plan,
             snapshot = snapshots.find { it.date.trim().take(10) == date.trim().take(10) },
         )
         val targetKcal = (dayGoals as? DayGoalsResult.Present)?.goals?.calorieGoal ?: 0
-        val activityDay = LocalDate.parse(date)
         val workoutsToday = history.filter { log ->
-            val logDay = log.actualDate?.take(10)?.let(LocalDate::parse)
-                ?: ActivityLocalDate.fromInstantIsoOrDatePrefix(log.date)
+            // Fechas importadas o legacy no ISO se ignoran: ningún parse puede lanzar.
+            val logDay = log.actualDate?.take(10)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                ?: ActivityLocalDate.fromInstantIsoOrDatePrefixOrNull(log.date)
             logDay == activityDay
         }
         val trainingBurn = workoutsToday.sumOf { it.energySummary?.totalKcal?.mid ?: 0 }

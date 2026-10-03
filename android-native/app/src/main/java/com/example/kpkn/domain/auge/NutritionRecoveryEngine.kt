@@ -37,7 +37,11 @@ object NutritionRecoveryEngine {
 
         val recentLogs = nutritionLogs.filter { log ->
             try {
-                val logMs = java.time.LocalDate.parse(log.date)
+                // El drawer (y MacroCalculator) guardan "${fecha}T12:00:00.000Z": solo
+                // cuenta el prefijo de fecha. Antes LocalDate.parse(log.date) lanzaba y
+                // esas comidas se descartaban en silencio (WP-U4 / C4). Un formato roto
+                // sigue ignorándose sin lanzar.
+                val logMs = java.time.LocalDate.parse(log.date.take(10))
                     .atStartOfDay(java.time.ZoneId.systemDefault())
                     .toInstant().toEpochMilli()
                 logMs > windowStartMs

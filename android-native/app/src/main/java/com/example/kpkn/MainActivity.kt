@@ -1328,31 +1328,23 @@ private fun KPKNNavGraph(
             )
         }
 
-        // Route de acciones rápidas internas para navegación directa desde widgets/atajos
+        // Route de acciones rápidas internas para navegación directa desde widgets/atajos.
+        // C3: la composición NO hace nada; un único LaunchedEffect resuelve el destino, pide
+        // abrir el logger si corresponde y REEMPLAZA esta entrada de la pila (popUpTo inclusive
+        // en el propio navigate). Antes se navegaba durante la composición y luego
+        // popBackStack(NutritionAction, inclusive) sacaba también Nutrición: el widget aterrizaba
+        // en Home sin logger y «weight» no abría la pantalla de cuerpo.
         composable(KpknRoute.NutritionAction.route) { backStack ->
-            val action = backStack.arguments?.getString(KpknRoute.NutritionAction.ARG_ACTION)?.lowercase().orEmpty()
-            when (action) {
-                "openfoodlog", "foodlog", "log" -> {
-                    nutritionViewModel.requestFoodLoggerOpen(tab = 0)
-                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                }
-                "opensearch", "search" -> {
-                    nutritionViewModel.requestFoodLoggerOpen(tab = 1)
-                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                }
-                "openweighteditor", "weight" -> {
-                    navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
-                }
-                "opendashboard", "dashboard" -> {
-                    navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
-                }
-                else -> {
-                    navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
-                }
-            }
-
+            val action = backStack.arguments?.getString(KpknRoute.NutritionAction.ARG_ACTION)
             LaunchedEffect(action) {
-                navController.popBackStack(KpknRoute.NutritionAction.route, inclusive = true)
+                val target = com.example.kpkn.navigation.NutritionActionRouting.resolve(action)
+                if (target is com.example.kpkn.navigation.NutritionActionTarget.OpenLogger) {
+                    nutritionViewModel.requestFoodLoggerOpen(tab = target.tab)
+                }
+                navController.navigate(target.route) {
+                    popUpTo(KpknRoute.NutritionAction.route) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
         composable(

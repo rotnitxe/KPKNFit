@@ -85,6 +85,7 @@ fun NutritionScreen(
     val macroRingPct by viewModel.macroRingPct.collectAsState()
     val mealGroups by viewModel.mealGroups.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val today by viewModel.today.collectAsState()
     val activePlan by viewModel.activePlan.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
     val trendData by viewModel.trendData.collectAsState()
@@ -111,9 +112,14 @@ fun NutritionScreen(
     var pendingSetupRefresh by remember { mutableIntStateOf(0) }
     val nutritionContext = androidx.compose.ui.platform.LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, viewModel) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) pendingSetupRefresh++
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                pendingSetupRefresh++
+                // C1: tras pasar la noche (o cambiar de zona horaria) la app vuelve con «hoy»
+                // desfasado; si el usuario miraba hoy, el día visible avanza con el calendario.
+                viewModel.refreshToday()
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -234,6 +240,7 @@ fun NutritionScreen(
                 item {
                     DateSelector(
                         selectedDate = selectedDate,
+                        today = today,
                         onDateChange = { viewModel.setSelectedDate(it) },
                     )
                 }
@@ -736,10 +743,13 @@ private fun AnimatedMacroRing(
 @Composable
 private fun DateSelector(
     selectedDate: String,
+    today: java.time.LocalDate,
     onDateChange: (String) -> Unit,
 ) {
-    val today = remember { java.time.LocalDate.now() }
-    val dates = remember { (-3..3).map { today.plusDays(it.toLong()).toString() } }
+    // C1: «hoy» viene del ViewModel y las fechas se reconstruyen cuando cambia (medianoche
+    // con la app viva); antes se congelaba con LocalDate.now() en la primera composición.
+    val dates = remember(today) { (-3..3).map { today.plusDays(it.toLong()).toString() } }
+    val todayKey = today.toString()
 
     LazyRow(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -747,7 +757,7 @@ private fun DateSelector(
     ) {
         items(dates) { date ->
             val isSelected = date == selectedDate
-            val isToday = date == today.toString()
+            val isToday = date == todayKey
             val d = try { java.time.LocalDate.parse(date) } catch (_: Exception) { today }
             val dayName = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.getDefault()))
             val dayNum = d.dayOfMonth.toString()

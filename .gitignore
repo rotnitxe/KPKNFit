@@ -22,3 +22,6 @@ debug-9ba5f2.log
 /kpkn-*.jpg
 android-native/*_scrolled.png
 android-native/fab_glass*.png
+
+# Candado de Gradle entre sesiones de agentes (run-gradle-locked.ps1)
+android-native/.gradle-session.lock/
