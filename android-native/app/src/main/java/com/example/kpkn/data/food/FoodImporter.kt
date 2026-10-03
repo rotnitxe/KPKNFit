@@ -6,6 +6,7 @@ import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.NutritionDao
 import com.example.kpkn.domain.nutrition.FoodIdentity
+import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -29,12 +30,28 @@ import java.time.Instant
 object FoodImporter {
     private const val TAG = "FoodImporter"
     private const val BATCH_SIZE = 2000
-    /** Versión de datos del catálogo importado: subirla fuerza un re-import en todas las instalaciones. */
-    internal const val DATA_VERSION = 9
+    /**
+     * Versión de datos del catálogo importado: subirla fuerza un re-import en todas las instalaciones.
+     * 10 (WP-S9): nutrientes por prioridad (azúcar 2000 > 1063, grasa 1004 > 1085), porción de UNA unidad, categoría
+     * legible y nombres/alias en español desde `usda_es_aliases.csv`.
+     */
+    internal const val DATA_VERSION = 10
     private const val USDA_FOOD_CSV = "food_data/food.csv"
     private const val USDA_NUTRIENT_CSV = "food_data/food_nutrient.csv"
     private const val USDA_PORTION_CSV = "food_data/food_portion.csv"
+    private const val USDA_MEASURE_UNIT_CSV = "food_data/measure_unit.csv"
+    private const val USDA_CATEGORY_CSV = "food_data/food_category.csv"
+    private const val USDA_ALIASES_CSV = "food_data/usda_es_aliases.csv"
     private const val OFF_CHILE_CSV = "food_data/off_chile.csv"
+
+    /**
+     * Assets que lee el import. Los auxiliares se degradan en silencio si faltan (ver [readOptionalCsv]), así que un test
+     * comprueba que todos existen; también son lo que resume el SHA-256 del log.
+     */
+    internal val IMPORT_ASSETS = listOf(
+        USDA_FOOD_CSV, USDA_NUTRIENT_CSV, USDA_PORTION_CSV, USDA_MEASURE_UNIT_CSV, USDA_CATEGORY_CSV, USDA_ALIASES_CSV,
+        OFF_CHILE_CSV,
+    )
 
     /** Umbral de incoherencia energética kcal vs 4P+4C+9G para flag (no rechazo). */
     internal const val ENERGY_MISMATCH_TOLERANCE = 0.35
@@ -155,70 +172,23 @@ object FoodImporter {
         dao.clearGlobalFoods()
 
         android.util.Log.d(TAG, "Importando USDA...")
-        val nutIdxMap = mapOf(
-            1003 to 1, // protein
-            1004 to 2, // fat
-            1005 to 3, // carbs
-            1079 to 4, // fiber
-            2000 to 5, // sugar
-            1093 to 6, // sodium mg
-            1092 to 7, // potassium mg
-            1051 to 8, // water g ~= ml
-            1057 to 9, // caffeine mg
-        )
-        val energyPriorityByFood = HashMap<Int, Int>()
-
-        val foodNutrients = HashMap<Int, FloatArray>(120_000)
-        context.assets.open(USDA_NUTRIENT_CSV).bufferedReader().use { reader ->
+        val foodNutrients = context.assets.open(USDA_NUTRIENT_CSV).bufferedReader().use { reader ->
             reader.readLine()
-            for (line in reader.lineSequence()) {
-                val parts = parseCsvLine(line)
-                if (parts.size < 4) continue
-                val fdcId = parts[1].toIntOrNull() ?: continue
-                val nutrientId = parts[2].toIntOrNull() ?: continue
-                val amount = parts[3].toFloatOrNull() ?: 0f
-                val nutrients = foodNutrients.getOrPut(fdcId) { FloatArray(10) }
-                val energyPriority = when (nutrientId) {
-                    2048 -> 3 // Energy, Atwater specific factors (kcal)
-                    2047 -> 2 // Energy, Atwater general factors (kcal)
-                    1008 -> 1 // Legacy Energy (kcal)
-                    else -> null
-                }
-                if (energyPriority != null) {
-                    if (amount > 0f && energyPriority > (energyPriorityByFood[fdcId] ?: 0)) {
-                        nutrients[0] = amount
-                        energyPriorityByFood[fdcId] = energyPriority
-                    }
-                } else {
-                    val idx = nutIdxMap[nutrientId] ?: continue
-                    nutrients[idx] = amount
-                }
-            }
+            parseUsdaNutrients(reader.lineSequence())
         }
         _importProgress.value = 0.18f
 
-        // Porciones domésticas autoritativas de USDA (food_portion.csv): la
-        // primera porción declarada por ficha. Sin esto, todo alimento global
-        // caería en el "100 g" genérico aunque la fuente declare "1 breast =
-        // 174 g" (compuerta Fase 2).
-        val authoritativePortions = HashMap<Int, Pair<Double, String>>(30_000)
-        runCatching {
-            context.assets.open(USDA_PORTION_CSV).bufferedReader().use { reader ->
-                reader.readLine() // header
-                for (line in reader.lineSequence()) {
-                    val parts = parseCsvLine(line)
-                    if (parts.size < 8) continue
-                    val fdcId = parts[1].toIntOrNull() ?: continue
-                    val gramWeight = parts[7].toDoubleOrNull() ?: continue
-                    if (gramWeight <= 0.0 || !gramWeight.isFinite()) continue
-                    val unit = parts[4].trim('"').takeIf { it.isNotBlank() } ?: "g"
-                    // La primera fila (seq_num menor) es la porción principal.
-                    authoritativePortions.putIfAbsent(fdcId, gramWeight to unit)
-                }
-            }
-        }.onFailure {
-            android.util.Log.w(TAG, "food_portion.csv no disponible: porciones domésticas omitidas", it)
+        // Tablas auxiliares (WP-S9). Ninguna es imprescindible: si falta o no se puede leer, el catálogo USDA se importa
+        // igual (sin porción, sin categoría o con el nombre en inglés) en vez de perderse entero.
+        val measureUnits = readOptionalCsv(context, USDA_MEASURE_UNIT_CSV, emptyMap<Int, String>()) { parseMeasureUnits(it) }
+        // Porciones domésticas autoritativas de USDA (food_portion.csv): la primera porción declarada por ficha, ya
+        // dividida por su cantidad. Sin esto, todo alimento global caería en el "100 g" genérico aunque la fuente
+        // declare "1 breast = 174 g" (compuerta Fase 2).
+        val authoritativePortions = readOptionalCsv(context, USDA_PORTION_CSV, emptyMap<Int, UsdaPortion>()) {
+            parseUsdaPortions(it, measureUnits)
         }
+        val categories = readOptionalCsv(context, USDA_CATEGORY_CSV, emptyMap<Int, String>()) { parseFoodCategories(it) }
+        val spanishAliases = readOptionalCsv(context, USDA_ALIASES_CSV, emptyMap<Int, UsdaAlias>()) { parseUsdaAliases(it) }
 
         val usdaBatch = mutableListOf<GlobalFoodEntity>()
         context.assets.open(USDA_FOOD_CSV).bufferedReader().use { reader ->
@@ -230,50 +200,16 @@ object FoodImporter {
                 val fdcId = parts[0].toIntOrNull() ?: continue
                 val dataType = parts[1].trim('"')
                 if (dataType != "foundation_food") continue
-                val name = parts[2].trim('"')
-                if (name.isBlank()) continue
-                val normalizedName = normalizeSearch(name)
                 val nutrients = foodNutrients[fdcId] ?: continue
-                if (nutrients[0] <= 0f) continue
-                val calories = nutrients[0].toDouble()
-                val protein = nutrients[1].toDouble()
-                val fats = nutrients[2].toDouble()
-                val carbs = nutrients[3].toDouble()
-                // Validación física (plan Fase 2): negativos, no finitos o
-                // macros individuales > 100 g/100 g no entran al catálogo.
-                if (!hasPhysicallyPlausibleMacros(calories, protein, carbs, fats)) continue
-                usdaBatch.add(
-                    GlobalFoodEntity(
-                        foodId = "usda_$fdcId",
-                        name = name,
-                        normalizedName = normalizedName,
-                        calories = calories,
-                        protein = protein,
-                        fats = fats,
-                        carbs = carbs,
-                        fiber = nutrients[4].toDouble(),
-                        sugar = nutrients[5].toDouble(),
-                        sodiumMg = nutrients[6].toDouble(),
-                        potassiumMg = nutrients[7].toDouble(),
-                        waterMl = nutrients[8].toDouble(),
-                        caffeineMg = nutrients[9].toDouble(),
-                        aliasesJson = "[]",
-                        source = "USDA",
-                        sourcePriority = 70,
-                        verifiedScore = 0.85,
-                        // Procedencia v22
-                        sourceRecordId = fdcId.toString(),
-                        foodState = stateForDescription(name),
-                        nutritionBasis = nutritionBasisFor(stateForDescription(name)),
-                        datasetVersion = DATA_VERSION.toString(),
-                        category = parts.getOrNull(3)?.trim('"')?.takeIf { it.isNotBlank() },
-                        portionGrams = authoritativePortions[fdcId]?.first,
-                        portionUnit = authoritativePortions[fdcId]?.second,
-                        qualityFlagsJson = encodeQualityFlags(
-                            usdaQualityFlags(calories, protein, carbs, fats)
-                        ),
-                    )
-                )
+                val entity = usdaEntityOrNull(
+                    fdcId = fdcId,
+                    description = parts[2],
+                    category = usdaCategory(parts.getOrNull(3), categories),
+                    nutrients = nutrients,
+                    portion = authoritativePortions[fdcId],
+                    alias = spanishAliases[fdcId],
+                ) ?: continue
+                usdaBatch.add(entity)
                 processed++
 
                 if (usdaBatch.size >= BATCH_SIZE) {
@@ -507,6 +443,270 @@ object FoodImporter {
         return "[" + flags.joinToString(",") { "\"$it\"" } + "]"
     }
 
+    // ─── USDA: nutrientes, porciones, categoría y alias (WP-S9, testeables sin Android) ───────────────
+
+    /** Columnas de salida de un alimento USDA (posiciones dentro de [UsdaNutrients]). */
+    private const val COL_ENERGY = 0
+    private const val COL_PROTEIN = 1
+    private const val COL_FAT = 2
+    private const val COL_CARBS = 3
+    private const val COL_FIBER = 4
+    private const val COL_SUGAR = 5
+    private const val COL_SODIUM_MG = 6
+    private const val COL_POTASSIUM_MG = 7
+    private const val COL_WATER = 8
+    private const val COL_CAFFEINE_MG = 9
+    private const val COLUMN_COUNT = 10
+
+    private class NutrientTarget(val column: Int, val rank: Int)
+
+    /**
+     * Id de `nutrient.csv` -> columna de salida y prioridad. Varios ids pueden alimentar la misma columna y gana, POR
+     * ALIMENTO, el de mayor prioridad que esté presente: azúcar 2000 > 1063 (casi todo Foundation solo trae el 1063,
+     * "Sugars, Total"), grasa 1004 > 1085 ("Total fat (NLEA)") y energía 2048 > 2047 > 1008.
+     */
+    private val NUTRIENT_TARGETS: Map<Int, NutrientTarget> = mapOf(
+        2048 to NutrientTarget(COL_ENERGY, 3), // Energy, Atwater specific factors (kcal)
+        2047 to NutrientTarget(COL_ENERGY, 2), // Energy, Atwater general factors (kcal)
+        1008 to NutrientTarget(COL_ENERGY, 1), // Legacy Energy (kcal)
+        1003 to NutrientTarget(COL_PROTEIN, 1),
+        1004 to NutrientTarget(COL_FAT, 2), // Total lipid (fat)
+        1085 to NutrientTarget(COL_FAT, 1), // Total fat (NLEA): solo si falta el 1004
+        1005 to NutrientTarget(COL_CARBS, 1),
+        1079 to NutrientTarget(COL_FIBER, 1),
+        2000 to NutrientTarget(COL_SUGAR, 2), // Total Sugars
+        1063 to NutrientTarget(COL_SUGAR, 1), // Sugars, Total: solo si falta el 2000
+        1093 to NutrientTarget(COL_SODIUM_MG, 1),
+        1092 to NutrientTarget(COL_POTASSIUM_MG, 1),
+        1051 to NutrientTarget(COL_WATER, 1), // g ~= ml
+        1057 to NutrientTarget(COL_CAFFEINE_MG, 1),
+    )
+
+    /**
+     * Nutrientes de UN alimento USDA, resueltos por prioridad (ver [NUTRIENT_TARGETS]). Los valores siguen siendo float,
+     * como antes: los números importados no cambian salvo el azúcar, que quedaba en 0 si solo existía el id 1063.
+     */
+    internal class UsdaNutrients {
+        private val values = FloatArray(COLUMN_COUNT)
+        private val ranks = IntArray(COLUMN_COUNT)
+
+        val energy: Float get() = values[COL_ENERGY]
+        val protein: Float get() = values[COL_PROTEIN]
+        val fat: Float get() = values[COL_FAT]
+        val carbs: Float get() = values[COL_CARBS]
+        val fiber: Float get() = values[COL_FIBER]
+        val sugar: Float get() = values[COL_SUGAR]
+        val sodiumMg: Float get() = values[COL_SODIUM_MG]
+        val potassiumMg: Float get() = values[COL_POTASSIUM_MG]
+        val water: Float get() = values[COL_WATER]
+        val caffeineMg: Float get() = values[COL_CAFFEINE_MG]
+
+        /** Registra una fila de `food_nutrient`. Devuelve true si cambió el valor de alguna columna. */
+        fun accept(nutrientId: Int, amount: Float): Boolean {
+            val target = NUTRIENT_TARGETS[nutrientId] ?: return false
+            // Una energía nula no cuenta: ni tapa a una fuente de menor prioridad con valor ni crea energía de la nada.
+            if (target.column == COL_ENERGY && !(amount > 0f)) return false
+            if (target.rank <= ranks[target.column]) return false
+            values[target.column] = amount
+            ranks[target.column] = target.rank
+            return true
+        }
+    }
+
+    /**
+     * `food_nutrient.csv` (id, fdc_id, nutrient_id, amount, ...; sin la cabecera) -> nutrientes por alimento. Las filas
+     * de nutrientes que el catálogo no usa, o sin cantidad legible, no crean entrada.
+     */
+    internal fun parseUsdaNutrients(lines: Sequence<String>, expectedFoods: Int = 120_000): HashMap<Int, UsdaNutrients> {
+        val byFood = HashMap<Int, UsdaNutrients>(expectedFoods)
+        for (line in lines) {
+            val parts = parseCsvLine(line)
+            if (parts.size < 4) continue
+            val fdcId = parts[1].toIntOrNull() ?: continue
+            val nutrientId = parts[2].toIntOrNull() ?: continue
+            if (nutrientId !in NUTRIENT_TARGETS) continue
+            val amount = parts[3].toFloatOrNull() ?: continue
+            byFood.getOrPut(fdcId) { UsdaNutrients() }.accept(nutrientId, amount)
+        }
+        return byFood
+    }
+
+    /** Porción doméstica de UNA unidad: 1 [unit] = [grams] g (ya dividida por la cantidad `amount` de la fuente). */
+    internal data class UsdaPortion(val grams: Double, val unit: String)
+
+    /** Por debajo de 5 g por unidad es una densidad (aceite: 100 ml = 90,7 g), no una porción que alguien coma. */
+    private const val MIN_PORTION_GRAMS = 5.0
+
+    /** `amount` viene con un decimal (0.2 por 0.25 taza): bajo 0,5 el redondeo distorsiona los gramos por unidad. */
+    private const val MIN_PORTION_AMOUNT = 0.5
+
+    private class SeqPortion(val seq: Int, val portion: UsdaPortion)
+
+    /**
+     * Porción doméstica por alimento desde `food_portion.csv` (id, fdc_id, seq_num, amount, measure_unit_id,
+     * portion_description, modifier, gram_weight, ...; sin la cabecera). `gram_weight` pesa `amount` unidades (hummus:
+     * 2 cucharadas = 33,9 g), así que la porción de UNA unidad es gram_weight / amount. Por alimento se queda con la
+     * primera fila (menor `seq_num`) cuya porción por unidad cae entre [MIN_PORTION_GRAMS] y
+     * [HouseholdPortions.PACK_GRAMS]; las filas sin unidad ni descripción conocidas se omiten.
+     */
+    internal fun parseUsdaPortions(lines: Sequence<String>, measureUnits: Map<Int, String>): Map<Int, UsdaPortion> {
+        val best = HashMap<Int, SeqPortion>()
+        for (line in lines) {
+            val parts = parseCsvLine(line)
+            if (parts.size < 8) continue
+            val fdcId = parts[1].trim().toIntOrNull() ?: continue
+            val amount = parts[3].trim().toDoubleOrNull()?.takeIf { it.isFinite() && it >= MIN_PORTION_AMOUNT } ?: continue
+            val gramWeight = parts[7].trim().toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: continue
+            val gramsPerUnit = gramWeight / amount
+            if (gramsPerUnit < MIN_PORTION_GRAMS || gramsPerUnit > HouseholdPortions.PACK_GRAMS) continue
+            val unitName = parts[4].trim().toIntOrNull()?.let { measureUnits[it] }
+            val label = usdaPortionLabel(unitName, parts[5].ifBlank { parts[6] }) ?: continue
+            // Sin seq_num (filas que no son de Foundation) queda al final; a igual seq_num gana la fila que aparece antes.
+            val seq = parts[2].trim().toIntOrNull() ?: Int.MAX_VALUE
+            val current = best[fdcId]
+            if (current == null || seq < current.seq) best[fdcId] = SeqPortion(seq, UsdaPortion(gramsPerUnit, label))
+        }
+        return best.mapValues { it.value.portion }
+    }
+
+    /**
+     * Etiqueta de la unidad: "tablespoon", "cup, chopped", "egg, whole without shell". Une el nombre de `measure_unit.csv`
+     * con el detalle (`portion_description`, si no `modifier`) para no perder la unidad cuando hay detalle. "undetermined"
+     * o una unidad desconocida no es unidad: queda solo el detalle, y sin detalle devuelve null.
+     */
+    internal fun usdaPortionLabel(unitName: String?, detail: String): String? {
+        val unit = unitName?.trim()?.takeUnless { it.isEmpty() || it.equals("undetermined", ignoreCase = true) }
+        val extra = detail.trim()
+        return when {
+            unit != null && extra.isNotEmpty() -> "$unit, $extra"
+            unit != null -> unit
+            extra.isNotEmpty() -> extra
+            else -> null
+        }
+    }
+
+    /** `measure_unit.csv` (id, name; sin la cabecera) -> id a nombre. */
+    internal fun parseMeasureUnits(lines: Sequence<String>): Map<Int, String> = parseIdNameCsv(lines, nameColumn = 1)
+
+    /** `food_category.csv` (id, code, description; sin la cabecera) -> id a descripción. */
+    internal fun parseFoodCategories(lines: Sequence<String>): Map<Int, String> = parseIdNameCsv(lines, nameColumn = 2)
+
+    private fun parseIdNameCsv(lines: Sequence<String>, nameColumn: Int): Map<Int, String> {
+        val result = HashMap<Int, String>()
+        for (line in lines) {
+            val parts = parseCsvLine(line)
+            if (parts.size <= nameColumn) continue
+            val id = parts[0].trim().toIntOrNull() ?: continue
+            val name = parts[nameColumn].trim()
+            if (name.isNotEmpty()) result[id] = name
+        }
+        return result
+    }
+
+    /** Categoría legible (`food.csv` solo trae el id numérico); null si el id no existe en `food_category.csv`. */
+    internal fun usdaCategory(rawCategoryId: String?, categories: Map<Int, String>): String? =
+        rawCategoryId?.trim()?.toIntOrNull()?.let { categories[it] }
+
+    /** Fila de `usda_es_aliases.csv`: nombre en español (null = se queda el inglés) y sinónimos tal como se curaron. */
+    internal data class UsdaAlias(val esName: String?, val aliases: List<String>)
+
+    /**
+     * `usda_es_aliases.csv` (fdc_id, en_description, es_name, aliases; sin la cabecera). `aliases` separa con `|`. Las
+     * filas sin nombre ni alias se omiten: ese alimento conserva su descripción en inglés.
+     */
+    internal fun parseUsdaAliases(lines: Sequence<String>): Map<Int, UsdaAlias> {
+        val result = HashMap<Int, UsdaAlias>()
+        for (line in lines) {
+            if (line.isBlank()) continue
+            val parts = parseCsvLine(line)
+            if (parts.size < 3) continue
+            val fdcId = parts[0].trim().toIntOrNull() ?: continue
+            val esName = parts[2].trim().takeIf { it.isNotEmpty() }
+            val aliases = parts.getOrNull(3).orEmpty().split('|').map { it.trim() }.filter { it.isNotEmpty() }
+            if (esName != null || aliases.isNotEmpty()) result[fdcId] = UsdaAlias(esName, aliases)
+        }
+        return result
+    }
+
+    /** Alias de búsqueda: `[normalize(es_name), normalize(descripción en inglés)] + alias`, sin vacíos ni repetidos. */
+    internal fun usdaSearchAliases(description: String, alias: UsdaAlias?): List<String> = buildList {
+        alias?.esName?.let { add(normalizeSearch(it)) }
+        add(normalizeSearch(description))
+        alias?.aliases?.forEach { add(normalizeSearch(it)) }
+    }.filter { it.isNotEmpty() }.distinct()
+
+    private val WHITESPACE = Regex("""\s+""")
+
+    /** `food.csv` trae espacios duros (U+00A0) y espacios sobrantes en algunas descripciones. */
+    internal fun cleanUsdaDescription(raw: String): String =
+        raw.replace(Char(0x00A0), ' ').trim().replace(WHITESPACE, " ")
+
+    /**
+     * Entidad global de un alimento USDA, o null si la fila no entra al catálogo (sin energía o físicamente imposible).
+     * El nombre es el español curado de `usda_es_aliases.csv` o, sin él, la descripción en inglés; el estado crudo/cocido
+     * se deduce SIEMPRE de la descripción en inglés, que es la que declara la fuente.
+     */
+    internal fun usdaEntityOrNull(
+        fdcId: Int,
+        description: String,
+        category: String?,
+        nutrients: UsdaNutrients,
+        portion: UsdaPortion?,
+        alias: UsdaAlias?,
+    ): GlobalFoodEntity? {
+        val english = cleanUsdaDescription(description)
+        if (english.isBlank()) return null
+        if (nutrients.energy <= 0f) return null
+        val calories = nutrients.energy.toDouble()
+        val protein = nutrients.protein.toDouble()
+        val fats = nutrients.fat.toDouble()
+        val carbs = nutrients.carbs.toDouble()
+        // Validación física (plan Fase 2): negativos, no finitos o macros individuales > 100 g/100 g no entran.
+        if (!hasPhysicallyPlausibleMacros(calories, protein, carbs, fats)) return null
+        val name = alias?.esName ?: english
+        val state = stateForDescription(english)
+        return GlobalFoodEntity(
+            foodId = "usda_$fdcId",
+            name = name,
+            normalizedName = normalizeSearch(name),
+            calories = calories,
+            protein = protein,
+            fats = fats,
+            carbs = carbs,
+            fiber = nutrients.fiber.toDouble(),
+            sugar = nutrients.sugar.toDouble(),
+            sodiumMg = nutrients.sodiumMg.toDouble(),
+            potassiumMg = nutrients.potassiumMg.toDouble(),
+            waterMl = nutrients.water.toDouble(),
+            caffeineMg = nutrients.caffeineMg.toDouble(),
+            aliasesJson = encodeAliases(usdaSearchAliases(english, alias)),
+            source = "USDA",
+            sourcePriority = 70,
+            verifiedScore = 0.85,
+            // Procedencia v22
+            sourceRecordId = fdcId.toString(),
+            foodState = state,
+            nutritionBasis = nutritionBasisFor(state),
+            datasetVersion = DATA_VERSION.toString(),
+            category = category,
+            portionGrams = portion?.grams,
+            portionUnit = portion?.unit,
+            qualityFlagsJson = encodeQualityFlags(usdaQualityFlags(calories, protein, carbs, fats)),
+        )
+    }
+
+    /** Lee un CSV auxiliar (sin la cabecera); si no existe o no se puede leer devuelve [fallback] y el import sigue. */
+    private inline fun <T> readOptionalCsv(context: Context, path: String, fallback: T, parse: (Sequence<String>) -> T): T =
+        runCatching {
+            context.assets.open(path).bufferedReader().use { reader ->
+                reader.readLine() // cabecera
+                parse(reader.lineSequence())
+            }
+        }.getOrElse {
+            android.util.Log.w(TAG, "$path no disponible: se importa sin él", it)
+            fallback
+        }
+
     /**
      * Parse a TAB-separated line (OFF Chile format).
      * The OFF Chile CSV uses tabs, not commas.
@@ -515,7 +715,7 @@ object FoodImporter {
         return line.split('\t')
     }
 
-    private fun normalizeSearch(value: String): String {
+    internal fun normalizeSearch(value: String): String {
         val stripped = Normalizer.normalize(value, Normalizer.Form.NFD)
             .replace(Regex("\\p{Mn}+"), "")
         return stripped
@@ -547,10 +747,7 @@ object FoodImporter {
             }
         }
 
-        updateAsset(USDA_FOOD_CSV)
-        updateAsset(USDA_NUTRIENT_CSV)
-        updateAsset(USDA_PORTION_CSV)
-        updateAsset(OFF_CHILE_CSV)
+        IMPORT_ASSETS.forEach(::updateAsset)
 
         return digest.digest().joinToString(separator = "") { "%02x".format(it) }
     }

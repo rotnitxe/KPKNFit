@@ -536,7 +536,7 @@ data class GlobalFoodEntity(
     val nutritionBasis: String = "PER_100G_AS_SOLD",
     /** Versión del dataset importado que produjo la fila. */
     val datasetVersion: String = "",
-    /** Categoría declarada por la fuente (p. ej. food_category_id de USDA). */
+    /** Categoría legible declarada por la fuente (USDA: `description` de food_category.csv); null si no se conoce. */
     val category: String? = null,
     /** Porción doméstica autoritativa en gramos, si la fuente la declara. */
     val portionGrams: Double? = null,
@@ -558,6 +558,7 @@ fun GlobalFoodEntity.toFoodItem() = FoodItem(
     brand = brand,
     normalizedName = if (normalizedName.isBlank()) normalizeSearch(name) else normalizedName,
     normalizedBrand = normalizedBrand,
+    category = category,
     servingSize = if (nutritionBasis == "PER_SERVING") portionGrams?.takeIf { it.isFinite() && it > 0.0 } ?: 100.0 else 100.0,
     calories = calories,
     protein = protein,
