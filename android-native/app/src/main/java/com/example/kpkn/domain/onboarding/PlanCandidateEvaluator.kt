@@ -178,6 +178,12 @@ sealed interface PlanCandidateEvaluation {
         val missingCapabilities: List<String> = emptyList(),
         val requiredMinutes: Int? = null,
         val details: String? = null,
+        /**
+         * Paquete A · B1: requisitos de material (tokens del vocabulario: `rack`, `bench`, `barbell`…) que
+         * causaron un rechazo `APPARATUS_ABSENT` o `APPARATUS_UNKNOWN`. Vacío cuando el motivo es de otra
+         * clase o cuando el motor no los informó; así la UI no tiene que leer el texto del mensaje.
+         */
+        val missingRequirements: List<String> = emptyList(),
     ) : PlanCandidateEvaluation
 }
 
@@ -192,6 +198,8 @@ class PlanMaterializationException(
     message: String,
     val affectedSlots: List<String> = emptyList(),
     val requiredMinutes: Int? = null,
+    /** Paquete A · B1: tokens de material que faltan (ver [PlanCandidateEvaluation.Rejected.missingRequirements]). */
+    val missingRequirements: List<String> = emptyList(),
 ) : IllegalStateException(message)
 
 /** Puerto de materialización: en producción el motor real del wizard. */
@@ -306,6 +314,7 @@ object PlanCandidateEvaluator {
                 affectedSlots = typed.affectedSlots,
                 requiredMinutes = typed.requiredMinutes,
                 details = typed.message,
+                missingRequirements = typed.missingRequirements,
             )
         } catch (error: Throwable) {
             return PlanCandidateEvaluation.Rejected(

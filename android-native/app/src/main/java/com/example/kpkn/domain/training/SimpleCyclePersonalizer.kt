@@ -106,8 +106,8 @@ data class PersonalizationReport(
     val provenance: CatalogProvenance,
     /**
      * Motivo tipado §15.2 cuando el programa no se pudo publicar (`TIME_BUDGET`,
-     * `COMPOSITION`…); null cuando todo encajó o el motivo es de otra capa.
-     * Los planes propios lo rellenan en la ruta nativa.
+     * `COMPOSITION`, `APPARATUS_ABSENT`, `APPARATUS_UNKNOWN`, `PROFILE_MISMATCH`…); null cuando todo
+     * encajó o el motivo es de otra capa. Los planes propios lo rellenan en la ruta nativa.
      */
     val reasonCode: String? = null,
     /** Máximo de minutos por sesión estimado con el estimador común (§12.2). */
@@ -124,6 +124,13 @@ data class PersonalizationReport(
      * [limitations]; vacío si el plan no trae ninguna.
      */
     val planNotes: List<String> = emptyList(),
+    /**
+     * Paquete A · B1: tokens de material (`barbell`, `rack`, `bench`…) que el gate de un plan propio
+     * negó (`reasonCode = APPARATUS_ABSENT`) o no pudo confirmar (`APPARATUS_UNKNOWN`). Vacío en
+     * cualquier otro caso. El mapeador los pasa al evaluador y la UI los convierte en la llave
+     * confirmable del panel, sin leer el texto de [limitations].
+     */
+    val missingRequirements: List<String> = emptyList(),
 )
 
 /** B-03 (antes DEV-r2-01, con jerga): Músculo corporal de 5–6 días hace el puente de glúteo una vez por semana. */
@@ -256,10 +263,12 @@ class SimpleCyclePersonalizer(
         val pools = curatedPools()
         val allowedIds = pools.values.flatten().toSet()
         // Exigencia de configuración exacta: hay una declaración CONCRETA de
-        // aparatos/soportes (presencia por clave) o inventario declarado sin
-        // disponibilidad nueva. Una disponibilidad puramente categórica sigue
-        // permitiendo variantes máquina nativas aprobadas.
-        val requireExactMachineConfiguration = options.availability?.hasExplicitPresence ?: (options.inventory != null)
+        // máquinas o poleas (presencia por clave; los soportes, la barra de
+        // dominadas y la bici exterior no cuentan, paquete A · B3) o inventario
+        // declarado sin disponibilidad nueva. Una disponibilidad categórica, con
+        // o sin soportes confirmados, sigue permitiendo variantes máquina
+        // nativas aprobadas.
+        val requireExactMachineConfiguration = options.availability?.hasExplicitMachinePresence() ?: (options.inventory != null)
         val candidates = ready.catalog.families.flatMap { it.definitions }.flatMap { definition ->
             definition.configurations.mapNotNull { configuration ->
                 if (configuration.id !in allowedIds || configuration.evidence.reviewStatus != CatalogReviewStatusV2.APPROVED) return@mapNotNull null
@@ -688,7 +697,12 @@ class SimpleCyclePersonalizer(
         provenance: CatalogProvenance,
         unavailable: (String) -> PersonalizationResult,
     ): PersonalizationResult {
-        fun fail(message: String, reasonCode: String? = null, maxMinutes: Int? = null) = PersonalizationResult(
+        fun fail(
+            message: String,
+            reasonCode: String? = null,
+            maxMinutes: Int? = null,
+            missingRequirements: List<String> = emptyList(),
+        ) = PersonalizationResult(
             null,
             PersonalizationReport(
                 executable = false,
@@ -698,34 +712,83 @@ class SimpleCyclePersonalizer(
                 provenance = provenance,
                 reasonCode = reasonCode,
                 maxSessionMinutes = maxMinutes,
+                missingRequirements = missingRequirements,
             ),
         )
 
         // §11.1: la disciplina decide el requisito mínimo de material ANTES de
         // construir nada. Un `general_gym` genérico sirve para leer/usar
         // programas legacy, pero no confirma el SBD competitivo requerido.
-        val legacyGym = "general_gym" in equipment
-        fun has(token: String) = token in equipment
-        val barbellOk = has("barbell")
-        val rackOk = has("rack")
-        val benchOk = has("bench")
-        val dumbbellsOk = has("dumbbells")
+        //
+        // Paquete A · B2: cada requisito (`barbell`, `rack`, `bench`, `dumbbells`) tiene su evidencia
+        // PRESENT / ABSENT / UNKNOWN con el MISMO criterio que `PlanAdaptationResolver.evidenceOfKind`
+        // aplica a las recetas fijas. Así un gimnasio sin confirmar (rack y banco sin responder) deja de
+        // reportarse como «declaraste ausente»: falta confirmar, y el rechazo lleva qué (`missingRequirements`).
+        val resolved = options.resolveEffectiveEquipment(input.equipment)
+        fun evidence(token: String): RequirementEvidence = when {
+            // Acreditado por el equipo efectivo. En la ruta legacy el paraguas del chip `support` cuenta
+            // (acredita rack y banco), pero `general_gym` a secas NO acredita barra, rack ni banco.
+            token in equipment -> RequirementEvidence.PRESENT
+            // Ruta legacy sin disponibilidad confirmada: no existe «sin confirmar», lo que no consta no está.
+            options.availability == null -> RequirementEvidence.ABSENT
+            // Soportes del vocabulario del panel (`bench`, `rack`…): la evidencia estructurada del
+            // resolver ya separa «negado» de «falta confirmar».
+            token in KNOWN_REQUIREMENTS -> resolved.requirements[token] ?: RequirementEvidence.UNKNOWN
+            // Categoría (`barbell`, `dumbbells`…) sin marcar con disponibilidad confirmada: ausencia declarada.
+            else -> RequirementEvidence.ABSENT
+        }
+        fun humanName(token: String): String = when (token) {
+            "barbell" -> "barra y carga"
+            "rack" -> "rack"
+            "bench" -> "banco"
+            "dumbbells" -> "mancuernas"
+            else -> "material"
+        }
+        fun List<String>.asSpanishList(): String =
+            if (size < 2) joinToString("") else dropLast(1).joinToString(", ") + " y " + last()
         when (kind) {
             NativeProfileKind.STRENGTH -> {
-                val missing = buildList {
-                    if (!barbellOk) add("barra y carga")
-                    if (!rackOk) add("rack")
-                    if (!benchOk) add("banco")
-                }
-                if (missing.isNotEmpty()) {
+                val required = listOf("barbell", "rack", "bench")
+                val absent = required.filter { evidence(it) == RequirementEvidence.ABSENT }
+                if (absent.isNotEmpty()) {
                     return fail(
-                        "Este perfil trabaja sentadilla, banca y peso muerto con barra. Falta ${missing.joinToString(", ")}.",
+                        "Este perfil trabaja sentadilla, banca y peso muerto con barra. " +
+                            "Falta ${absent.joinToString(", ") { humanName(it) }}.",
                         reasonCode = "APPARATUS_ABSENT",
+                        missingRequirements = absent,
+                    )
+                }
+                val unknown = required.filter { evidence(it) == RequirementEvidence.UNKNOWN }
+                if (unknown.isNotEmpty()) {
+                    return fail(
+                        "Falta confirmar si tienes ${unknown.map { humanName(it) }.asSpanishList()}.",
+                        reasonCode = "APPARATUS_UNKNOWN",
+                        missingRequirements = unknown,
                     )
                 }
             }
             NativeProfileKind.POWERBUILDING -> {
-                if (!(barbellOk && rackOk && benchOk) && !dumbbellsOk) {
+                // Ruta barra (barra + rack + banco acreditados) o ruta mancuernas, como siempre. Solo cuando
+                // no hay ninguna de las dos se distingue «falta confirmar rack y banco» (hay barra y nadie
+                // los negó) de «no hay resistencia externa» (PROFILE_MISMATCH). Con mancuernas el plan se
+                // entrega sin preguntar: un gimnasio sin confirmar (T-001) no vuelve a quedar bloqueado.
+                val barbellRoute = listOf("barbell", "rack", "bench").all { evidence(it) == RequirementEvidence.PRESENT }
+                if (!barbellRoute && evidence("dumbbells") != RequirementEvidence.PRESENT) {
+                    val rack = evidence("rack")
+                    val bench = evidence("bench")
+                    if (evidence("barbell") == RequirementEvidence.PRESENT &&
+                        rack != RequirementEvidence.ABSENT && bench != RequirementEvidence.ABSENT
+                    ) {
+                        val unknown = listOf("rack" to rack, "bench" to bench)
+                            .filter { (_, value) -> value == RequirementEvidence.UNKNOWN }
+                            .map { (token, _) -> token }
+                        return fail(
+                            "Tienes barra, pero falta confirmar si tienes ${unknown.map { humanName(it) }.asSpanishList()} " +
+                                "para los principales.",
+                            reasonCode = "APPARATUS_UNKNOWN",
+                            missingRequirements = unknown,
+                        )
+                    }
                     return fail(
                         "Fuerza y músculo necesita resistencia externa para sus principales: barra con rack y banco, o mancuernas. " +
                             "Con solo bandas o peso corporal te ofrecemos Músculo o Atleta completo.",
@@ -735,32 +798,13 @@ class SimpleCyclePersonalizer(
             }
             else -> Unit
         }
-        val pullAvailable = legacyGym || barbellOk || dumbbellsOk || has("band") ||
-            has("cable") || has("pull_up_bar") || equipment.any { it.startsWith("machine_config:") }
-        // La bolsa de prioridades sigue siendo SOLO orden y sigue con su contrato.
-        val exerciseOrderPoints = orderPoints(options.applyTo(input))
-            ?: return unavailable(
-                "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 puntos en total y ningún punto negativo. Ajusta tus prioridades.",
-            )
 
-        val doseLevel = when (input.level) {
-            CatalogLevel.BEGINNER -> NativeDoseLevel.BEGINNER
-            CatalogLevel.INTERMEDIATE -> NativeDoseLevel.INTERMEDIATE
-            CatalogLevel.ADVANCED -> NativeDoseLevel.ADVANCED
-        }
-        val selectedDays = input.weekdays.sorted()
-            .ifEmpty { NativeProfileCalendars.DEFAULT_WEEKDAYS.getValue(input.frequency) }
-        val archetypes = when (kind) {
-            NativeProfileKind.STRENGTH -> NativeProfileCalendars.strength(selectedDays.size)
-            NativeProfileKind.MUSCLE -> NativeProfileCalendars.muscle(selectedDays.size, pullAvailable)
-            NativeProfileKind.POWERBUILDING -> NativeProfileCalendars.powerbuilding(selectedDays.size)
-            NativeProfileKind.COMPLETE_ATHLETE -> NativeProfileCalendars.athlete(selectedDays.size, pullAvailable)
-        }
-        val startDay = selectedDays.first()
-        // Identidad de calendario (§14.3): el día de receta rota con la misma
-        // regla de `PlanMaterializer.rotateWeekday` para caer en el día elegido.
-        fun recipeWeekday(day: Int) = ((day - startDay).mod(7)) + 1
-        val requireExactMachineConfiguration = options.availability?.hasExplicitPresence ?: (options.inventory != null)
+        // Paquete A · B3: la elección de configuraciones (`resolveConfiguration`) se declara ANTES de
+        // elegir el calendario, porque el tirón disponible ya no es una lista de tokens sino «existe
+        // alguna configuración de remo o de jalón que este material y este nivel permiten».
+        // Modo «configuración exacta» de máquinas: solo con presencia declarada de ALGUNA máquina o polea
+        // (los soportes, la barra de dominadas y la bici exterior no cuentan; DEV-r2-06).
+        val requireExactMachineConfiguration = options.availability?.hasExplicitMachinePresence() ?: (options.inventory != null)
         // §13.1: el peso corporal no necesita aparato y siempre está disponible.
         val nativeEquipment = equipment + "bodyweight"
         val approvedConfigurations = ready.catalog.families.flatMap { it.definitions }
@@ -792,6 +836,32 @@ class SimpleCyclePersonalizer(
                 configuration
             }
         }
+
+        val pullAvailable = resolveConfiguration(NativeSlotKey.R, SlotIntent.H) != null ||
+            resolveConfiguration(NativeSlotKey.V, SlotIntent.H) != null
+        // La bolsa de prioridades sigue siendo SOLO orden y sigue con su contrato.
+        val exerciseOrderPoints = orderPoints(options.applyTo(input))
+            ?: return unavailable(
+                "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 puntos en total y ningún punto negativo. Ajusta tus prioridades.",
+            )
+
+        val doseLevel = when (input.level) {
+            CatalogLevel.BEGINNER -> NativeDoseLevel.BEGINNER
+            CatalogLevel.INTERMEDIATE -> NativeDoseLevel.INTERMEDIATE
+            CatalogLevel.ADVANCED -> NativeDoseLevel.ADVANCED
+        }
+        val selectedDays = input.weekdays.sorted()
+            .ifEmpty { NativeProfileCalendars.DEFAULT_WEEKDAYS.getValue(input.frequency) }
+        val archetypes = when (kind) {
+            NativeProfileKind.STRENGTH -> NativeProfileCalendars.strength(selectedDays.size)
+            NativeProfileKind.MUSCLE -> NativeProfileCalendars.muscle(selectedDays.size, pullAvailable)
+            NativeProfileKind.POWERBUILDING -> NativeProfileCalendars.powerbuilding(selectedDays.size)
+            NativeProfileKind.COMPLETE_ATHLETE -> NativeProfileCalendars.athlete(selectedDays.size, pullAvailable)
+        }
+        val startDay = selectedDays.first()
+        // Identidad de calendario (§14.3): el día de receta rota con la misma
+        // regla de `PlanMaterializer.rotateWeekday` para caer en el día elegido.
+        fun recipeWeekday(day: Int) = ((day - startDay).mod(7)) + 1
 
         fun competitionLiftSlot(key: NativeSlotKey, configurationId: String): LiftSlot? = when {
             key == NativeSlotKey.S && configurationId == CatalogIds.SQ_LOW -> LiftSlot.SQUAT

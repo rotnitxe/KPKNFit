@@ -57,6 +57,32 @@ object SetupApparatusPanel {
         category == null || category in supportCategories
 
     /**
+     * Paquete A · B1: llave curada del panel que confirma un token del vocabulario de material
+     * (`rack` → `squat_rack`, `bench` → `bench_flat`, `pull_up_bar` → `pullup_bar`…). Es la primera
+     * llave de [EFFECTIVE_EQUIPMENT_KEYS] cuyos `attestedTokens` contienen el token o cuyas
+     * `machineConfigurations` contienen el id de la configuración (con o sin el prefijo
+     * `machine_config:`). Devuelve `null` para `machine` y para los tokens de categoría (`barbell`,
+     * `dumbbells`, `kettlebell`…): una categoría no tiene una llave que confirmar, solo se marca o no.
+     */
+    fun keyForToken(token: String): String? {
+        val configurationId = token.removePrefix("machine_config:")
+        return EFFECTIVE_EQUIPMENT_KEYS.firstOrNull { key ->
+            token in key.attestedTokens || configurationId in key.machineConfigurations
+        }?.key
+    }
+
+    /**
+     * Paquete A · B1: categorías que hay que tener confirmadas para que las llaves [keys] se
+     * muestren y cuenten (§13.1 regla 2). Una llave sin categoría propia (la barra EZ) cuenta como
+     * [EquipmentCategory.SUPPORT]; las llaves desconocidas se ignoran.
+     */
+    fun categoriesFor(keys: Collection<String>): Set<EquipmentCategory> =
+        keys.mapNotNullTo(LinkedHashSet<EquipmentCategory>()) { key ->
+            EFFECTIVE_EQUIPMENT_KEYS.firstOrNull { it.key == key }
+                ?.let { it.category ?: EquipmentCategory.SUPPORT }
+        }
+
+    /**
      * Ítems relevantes para [categories] elegidas. Una clave sin categoría
      * propia solo aparece cuando hay al menos una categoría confirmada
      * (§13.1 regla 2); con `bodyweight_only` (conjunto vacío) no se muestra

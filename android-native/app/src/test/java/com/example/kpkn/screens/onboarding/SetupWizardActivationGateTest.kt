@@ -22,6 +22,8 @@ import com.example.kpkn.data.onboarding.SetupCommitResult
 import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.PlanCandidateEvaluation
+import com.example.kpkn.domain.onboarding.PlanEvaluationStage
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.SetupTrainingOptions
 import com.example.kpkn.domain.onboarding.WizChatMachineState
@@ -330,9 +332,14 @@ class SetupWizardActivationGateTest {
         )
         val store = ViewModelStore().also { it.put("apparatus-reason", vm) }
         try {
+            // Paquete A · B7: un soporte es ausente solo si TODAS las llaves que lo acreditan se negaron;
+            // `bench` lo acreditan el banco plano y el regulable, así que aquí se niegan los dos.
             val availability = EquipmentAvailability(
                 categories = setOf(EquipmentCategory.MACHINES, EquipmentCategory.SUPPORT),
-                supports = mapOf("bench_flat" to ApparatusPresence.ABSENT),
+                supports = mapOf(
+                    "bench_flat" to ApparatusPresence.ABSENT,
+                    "bench_adjustable" to ApparatusPresence.ABSENT,
+                ),
             )
             val draft = SetupWizardDraft().copy(
                 trainingOptions = SetupTrainingOptions(availability = availability),
@@ -346,6 +353,90 @@ class SetupWizardActivationGateTest {
                 PlanRejectionReason.APPARATUS_UNKNOWN,
                 vm.apparatusReason("Esta receta necesita material: machine", draft),
             )
+
+            // Antes bastaba negar solo el banco plano para declarar `bench` ausente (ANY). Con ALL, el banco
+            // regulable sin responder deja el banco por confirmar y el rechazo es APPARATUS_UNKNOWN.
+            val onlyFlatDenied = draft.copy(
+                trainingOptions = SetupTrainingOptions(
+                    availability = availability.copy(supports = mapOf("bench_flat" to ApparatusPresence.ABSENT)),
+                ),
+            )
+            assertEquals(
+                PlanRejectionReason.APPARATUS_UNKNOWN,
+                vm.apparatusReason("Esta receta necesita material: bench, machine", onlyFlatDenied),
+            )
+        } finally {
+            store.clear()
+        }
+    }
+
+    /**
+     * Paquete A · B1: la llave confirmable de un rechazo de aparatos sale de `missingRequirements` (tokens que
+     * informa el motor) y NO del texto del mensaje; el parseo del texto solo queda para rechazos sin lista.
+     */
+    @Test
+    fun apparatusRejectionsTakeTheConfirmableKeyFromMissingRequirementsInsteadOfTheMessage() = runTest(dispatcher.scheduler) {
+        val vm = SetupWizardViewModel(
+            ApplicationProvider.getApplicationContext(),
+            SavedStateHandle(),
+            persistence = InMemoryPersistence(),
+            environment = FixedSettingsEnvironment(Settings()),
+        )
+        val store = ViewModelStore().also { it.put("apparatus-key", vm) }
+        try {
+            fun rejected(reason: PlanRejectionReason, details: String, requirements: List<String>) =
+                PlanCandidateEvaluation.Rejected(
+                    planId = "native:strength-foundation-v2",
+                    stage = PlanEvaluationStage.MATERIAL,
+                    reasonCode = reason,
+                    details = details,
+                    missingRequirements = requirements,
+                )
+
+            // Fuerza con el gimnasio sin confirmar: el motor pide confirmar rack y banco; se abre el rack.
+            val unknown = vm.setupRejectionOf(
+                rejected(PlanRejectionReason.APPARATUS_UNKNOWN, "Falta confirmar si tienes rack y banco.", listOf("rack", "bench")),
+            )
+            assertEquals(listOf("rack", "bench"), unknown.missingRequirements)
+            assertEquals("squat_rack", unknown.apparatusKey)
+            assertTrue(unknown.needsApparatusConfirmation)
+            assertEquals(SetupCandidateRejectionStage.MATERIAL, unknown.stage)
+            assertEquals(PlanRejectionReason.APPARATUS_UNKNOWN, unknown.reasonCode)
+
+            // Si el primer requisito no tiene llave (la barra es una categoría), se usa el primero que sí la tiene.
+            val mixed = vm.setupRejectionOf(
+                rejected(PlanRejectionReason.APPARATUS_ABSENT, "Falta barra y carga, rack.", listOf("barbell", "rack")),
+            )
+            assertEquals("squat_rack", mixed.apparatusKey)
+
+            // Solo una categoría: no hay llave que confirmar y NO se lee el mensaje, aunque nombre tokens tras «:».
+            val categoryOnly = vm.setupRejectionOf(
+                rejected(PlanRejectionReason.APPARATUS_ABSENT, "Esta receta necesita material: bench", listOf("barbell")),
+            )
+            assertNull(categoryOnly.apparatusKey)
+            assertEquals(listOf("barbell"), categoryOnly.missingRequirements)
+            assertTrue(categoryOnly.needsApparatusConfirmation)
+
+            // Sin lista (ruta heredada de la excepción de fallo): se conserva el parseo del texto.
+            val legacy = vm.setupRejectionOf(
+                rejected(PlanRejectionReason.APPARATUS_UNKNOWN, "Esta receta necesita material: bench", emptyList()),
+            )
+            assertEquals("bench_flat", legacy.apparatusKey)
+            assertTrue(legacy.missingRequirements.isEmpty())
+
+            // Un motivo que no es de aparatos no lleva llave ni confirmación.
+            val time = vm.setupRejectionOf(
+                PlanCandidateEvaluation.Rejected(
+                    planId = "native:strength-foundation-v2",
+                    stage = PlanEvaluationStage.SESSION_DURATION,
+                    reasonCode = PlanRejectionReason.TIME_BUDGET,
+                    requiredMinutes = 40,
+                    details = "Este plan necesita 40 min.",
+                ),
+            )
+            assertNull(time.apparatusKey)
+            assertFalse(time.needsApparatusConfirmation)
+            assertTrue(time.missingRequirements.isEmpty())
         } finally {
             store.clear()
         }

@@ -37,13 +37,16 @@ import java.util.concurrent.atomic.AtomicInteger
  * (la rebanada smoke está contenida en `ci/0`); `full` = todas las filas (= suma de los cuatro shards).
  */
 private val VIOLATION_CEILING: Map<String, Int> = mapOf(
-    // baseline 2026-10-03 (antes de A.B1–E2): corrida `full` de 25 650 filas = 3 537 violaciones.
-    "smoke" to 226,
-    "ci/0" to 887,
-    "ci/1" to 885,
-    "ci/2" to 886,
-    "ci/3" to 879,
-    "full" to 3_537,
+    // baseline 2026-10-03 (antes de A.B1–E2): corrida `full` de 25 650 filas = 3 537 violaciones
+    // (smoke 226, ci/0 887, ci/1 885, ci/2 886, ci/3 879).
+    // tras A.B1–B3/B7 (2026-10-03): corrida `full` = 3 162 (NOT_HONEST 195 → 120, DISHONEST_ABSENT 270 → 0,
+    // NO_REPAIR 30 → 0; TIME_BUDGET_INEXACT 1 578 y MATERIAL_UNUSED 1 464 no cambian: A.C2 y A.B5).
+    "smoke" to 200,
+    "ci/0" to 790,
+    "ci/1" to 787,
+    "ci/2" to 797,
+    "ci/3" to 788,
+    "full" to 3_162,
 )
 
 /** Filas de la rejilla C1: 3 objetivos x 3 niveles x 6 días x 5 duraciones x 19 fixtures + Atleta x 12 (cardio). */
@@ -176,6 +179,8 @@ class PlanCoverageContractTest {
             val stage: PlanEvaluationStage,
             val requiredMinutes: Int?,
             val details: String,
+            /** Tokens de material que el motor negó o no pudo confirmar (A.B1); vacío si no es un rechazo de aparatos. */
+            val missingRequirements: List<String> = emptyList(),
         ) : Outcome
 
         /** Excepción inesperada o catálogo no listo: nunca es un resultado de producto. */
@@ -291,6 +296,7 @@ class PlanCoverageContractTest {
                         stage = result.stage,
                         requiredMinutes = result.requiredMinutes,
                         details = result.details.orEmpty().take(300),
+                        missingRequirements = result.missingRequirements,
                     )
                 }
             } catch (cancel: CancellationException) {
@@ -341,40 +347,54 @@ class PlanCoverageContractTest {
 
         // ── C1: honestidad del rechazo ──
 
-        /** Evidencia explícita de ausencia: una llave ABSENT o la categoría exigida por el objetivo sin marcar. */
-        private fun hasExplicitAbsenceEvidence(row: Spec): Boolean {
+        /**
+         * Evidencia explícita de ausencia (A.B1/B2): el rechazo trae `missingRequirements` y CADA token tiene una
+         * ausencia declarada en el fixture. `barbell` es una categoría (ausente = sin marcar con la disponibilidad
+         * confirmada); `rack` y `bench` son soportes, ausentes solo si se negaron TODAS las llaves que los acreditan
+         * (B7). Una lista vacía no prueba nada: el rechazo sería «declaraste ausente» sin decir qué.
+         */
+        private fun hasExplicitAbsenceEvidence(row: Spec, missingRequirements: List<String>): Boolean {
+            if (missingRequirements.isEmpty()) return false
             val availability = row.fixture.availability
-            if (availability.apparatus.values.any { it == ApparatusPresence.ABSENT } ||
-                availability.supports.values.any { it == ApparatusPresence.ABSENT }
-            ) {
-                return true
-            }
-            val categories = availability.categories
-            return when (row.profile) {
-                Profile.STRENGTH -> EquipmentCategory.BARBELL !in categories
-                Profile.POWERBUILDING ->
-                    EquipmentCategory.BARBELL !in categories && EquipmentCategory.DUMBBELLS !in categories
-                Profile.MUSCLE, Profile.COMPLETE_ATHLETE -> false
+            return missingRequirements.all { token ->
+                if (token == "barbell") {
+                    EquipmentCategory.BARBELL !in availability.categories
+                } else {
+                    val owners = EFFECTIVE_EQUIPMENT_KEYS.filter { token in it.attestedTokens }
+                    owners.isNotEmpty() && owners.all { availability.presenceOf(it.key) == ApparatusPresence.ABSENT }
+                }
             }
         }
 
+        /** APPARATUS_UNKNOWN honesto (C2): trae la lista y cada token resuelve una llave confirmable del panel. */
+        private fun unknownHasConfirmableKeys(missingRequirements: List<String>): Boolean =
+            missingRequirements.isNotEmpty() && missingRequirements.all { SetupApparatusPanel.keyForToken(it) != null }
+
         private suspend fun classifyRejected(row: Spec, rejected: Outcome.Rejected, group: GroupStats) {
             val reason = rejected.reason
-            val note = "etapa=${rejected.stage} ${rejected.details}"
+            val note = "etapa=${rejected.stage} ${rejected.details} requisitos=${rejected.missingRequirements}"
             when (reason) {
                 PlanRejectionReason.APPARATUS_UNKNOWN -> {
-                    // TODO A.B1/C2: exigir apparatusKey != null (la llave confirmable llega con missingRequirements).
-                    handleHonest(row, rejected, group)
+                    if (unknownHasConfirmableKeys(rejected.missingRequirements)) {
+                        handleHonest(row, rejected, group)
+                    } else {
+                        violate(
+                            ViolationKind.NOT_HONEST,
+                            row,
+                            reason.name,
+                            "APPARATUS_UNKNOWN sin llave confirmable (cada requisito debe resolver una llave del panel): $note",
+                        )
+                    }
                 }
                 PlanRejectionReason.APPARATUS_ABSENT -> {
-                    if (hasExplicitAbsenceEvidence(row)) {
+                    if (hasExplicitAbsenceEvidence(row, rejected.missingRequirements)) {
                         handleHonest(row, rejected, group)
                     } else {
                         violate(
                             ViolationKind.DISHONEST_ABSENT,
                             row,
                             reason.name,
-                            "APPARATUS_ABSENT sin evidencia explícita en ${row.fixture.id} (solo UNKNOWN): $note",
+                            "APPARATUS_ABSENT sin evidencia explícita en ${row.fixture.id} (solo UNKNOWN o sin requisitos): $note",
                         )
                     }
                 }
@@ -447,7 +467,7 @@ class PlanCoverageContractTest {
         /** Nombre de la primera reparación que deja el plan `Ready`, o null si ninguna lo logra. */
         private suspend fun findRepair(row: Spec, rejected: Outcome.Rejected): String? = when (rejected.reason) {
             PlanRejectionReason.TIME_BUDGET -> timeBudgetRepair(row, rejected)
-            PlanRejectionReason.APPARATUS_UNKNOWN -> confirmApparatusRepair(row)
+            PlanRejectionReason.APPARATUS_UNKNOWN -> confirmApparatusRepair(row, rejected)
             PlanRejectionReason.APPARATUS_ABSENT,
             PlanRejectionReason.PROFILE_MISMATCH -> switchGoalRepair(row)
             else -> null
@@ -467,19 +487,42 @@ class PlanCoverageContractTest {
             return null
         }
 
-        /** ConfirmApparatus([squat_rack, bench_flat], +SUPPORT si falta); solo Fuerza y Fuerza y músculo. */
-        private suspend fun confirmApparatusRepair(row: Spec): String? {
-            if (row.profile != Profile.STRENGTH && row.profile != Profile.POWERBUILDING) return null
-            val availability = row.fixture.availability
-            val confirmed = availability.copy(
-                categories = availability.categories + EquipmentCategory.SUPPORT,
-                supports = availability.supports + mapOf(
-                    EquipmentKeys.SQUAT_RACK to ApparatusPresence.PRESENT,
-                    EquipmentKeys.BENCH_FLAT to ApparatusPresence.PRESENT,
-                ),
-            )
+        /**
+         * ConfirmApparatus: confirma como PRESENT EXACTAMENTE las llaves que el rechazo pidió (las de
+         * `missingRequirements`, vía [SetupApparatusPanel.keyForToken]) y añade las categorías que esas llaves
+         * necesitan para mostrarse y contar (`SUPPORT` para rack y banco; una llave sin categoría cuenta como
+         * `SUPPORT`). Es lo que haría el panel con un toque; ya no se confirman rack y banco fijos. Si con el
+         * material confirmado el plan solo falla por tiempo (TIME_BUDGET honesto) se encadena UN solo SetMinutes,
+         * igual que en [switchGoalRepair].
+         */
+        private suspend fun confirmApparatusRepair(row: Spec, rejected: Outcome.Rejected): String? {
+            val keys = rejected.missingRequirements.mapNotNull(SetupApparatusPanel::keyForToken).distinct()
+            if (keys.isEmpty()) return null
+            val withCategories = row.fixture.availability.let {
+                it.copy(categories = it.categories + SetupApparatusPanel.categoriesFor(keys))
+            }
+            val confirmed = keys.fold(withCategories) { current, key ->
+                val spec = EFFECTIVE_EQUIPMENT_KEYS.first { it.key == key }
+                requireNotNull(
+                    SetupApparatusPanel.withPresence(current, key, ApparatusPresence.PRESENT, SetupApparatusPanel.isSupport(spec.category)),
+                )
+            }
             val repaired = row.copy(fixture = EquipmentFixture("${row.fixture.id}+confirm", confirmed))
-            return if (evaluate(repaired) is Outcome.Ready) "ConfirmApparatus" else null
+            return when (val first = evaluate(repaired)) {
+                is Outcome.Ready -> "ConfirmApparatus"
+                is Outcome.Rejected -> {
+                    val required = first.requiredMinutes
+                    if (first.reason == PlanRejectionReason.TIME_BUDGET && required != null &&
+                        required > row.minutes && required <= MAX_SESSION_MINUTES &&
+                        evaluate(repaired.copy(minutes = required)) is Outcome.Ready
+                    ) {
+                        "ConfirmApparatus+SetMinutes"
+                    } else {
+                        null
+                    }
+                }
+                is Outcome.Failed -> null
+            }
         }
 
         /**

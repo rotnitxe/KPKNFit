@@ -112,10 +112,14 @@ class EffectiveEquipmentResolverContractTest {
 
     @Test
     fun requirements_distinguish_absent_from_unknown() {
+        // Paquete A · B7: `bench` lo acreditan el banco plano y el regulable; solo está ausente si se niegan los dos.
         val result = TrainingOptions(
             availability = EquipmentAvailability(
                 categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.PULL_UP_BAR),
-                supports = mapOf(EquipmentKeys.BENCH_FLAT to ApparatusPresence.ABSENT),
+                supports = mapOf(
+                    EquipmentKeys.BENCH_FLAT to ApparatusPresence.ABSENT,
+                    EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.ABSENT,
+                ),
             ),
         ).resolveEffectiveEquipment(emptySet())
 
@@ -127,6 +131,53 @@ class EffectiveEquipmentResolverContractTest {
         assertTrue("pull_up_bar" in result.presentRequirements)
         assertTrue("rack" in result.unknownRequirements)
         assertTrue("dip_bars" in result.unknownRequirements)
+    }
+
+    /**
+     * Paquete A · B7 (ANY → ALL): un requisito de soporte es ABSENT solo si TODAS las llaves que lo acreditan están
+     * ABSENT. Antes bastaba una: «banco plano = No» con el banco regulable sin responder declaraba el banco ausente,
+     * y el wizard reportaba «declaraste ausente» a quien nunca negó el regulable.
+     */
+    @Test
+    fun requirements_are_absent_only_when_every_attesting_key_is_denied() {
+        val support = setOf(EquipmentCategory.SUPPORT)
+        fun resolve(vararg supports: Pair<String, ApparatusPresence>) = TrainingOptions(
+            availability = EquipmentAvailability(categories = support, supports = mapOf(*supports)),
+        ).resolveEffectiveEquipment(emptySet())
+
+        // Solo el plano negado: el regulable, que también acredita `bench`, sigue sin responder.
+        val flatOnly = resolve(EquipmentKeys.BENCH_FLAT to ApparatusPresence.ABSENT)
+        assertEquals(RequirementEvidence.UNKNOWN, flatOnly.requirements["bench"])
+        assertEquals("el banco inclinado solo lo acredita el regulable", RequirementEvidence.UNKNOWN, flatOnly.requirements["bench_incline"])
+        assertFalse("bench" in flatOnly.missingRequirements)
+        assertTrue("bench" in flatOnly.unknownRequirements)
+
+        // Solo el regulable negado: el plano sigue sin responder, así que el banco no está ausente; el inclinado sí.
+        val adjustableOnly = resolve(EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.ABSENT)
+        assertEquals(RequirementEvidence.UNKNOWN, adjustableOnly.requirements["bench"])
+        assertEquals(RequirementEvidence.ABSENT, adjustableOnly.requirements["bench_incline"])
+
+        // Los dos negados: ausente.
+        val both = resolve(
+            EquipmentKeys.BENCH_FLAT to ApparatusPresence.ABSENT,
+            EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.ABSENT,
+        )
+        assertEquals(RequirementEvidence.ABSENT, both.requirements["bench"])
+        assertEquals(RequirementEvidence.ABSENT, both.requirements["bench_incline"])
+        assertTrue("bench" in both.missingRequirements)
+
+        // Con una llave presente el requisito está acreditado, aunque la otra se haya negado.
+        val adjustablePresent = resolve(
+            EquipmentKeys.BENCH_FLAT to ApparatusPresence.ABSENT,
+            EquipmentKeys.BENCH_ADJUSTABLE to ApparatusPresence.PRESENT,
+        )
+        assertEquals(RequirementEvidence.PRESENT, adjustablePresent.requirements["bench"])
+        assertTrue("bench" in adjustablePresent.presentRequirements)
+
+        // Un requisito con una sola llave (rack) no cambia: negarla basta.
+        val rack = resolve(EquipmentKeys.SQUAT_RACK to ApparatusPresence.ABSENT)
+        assertEquals(RequirementEvidence.ABSENT, rack.requirements["rack"])
+        assertEquals(RequirementEvidence.UNKNOWN, rack.requirements["bench"])
     }
 
     @Test

@@ -1789,8 +1789,11 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
     }
 
-    /** Rechazo del evaluador → instrumentación estructurada del wizard (paquete A). */
-    private fun setupRejectionOf(evaluation: PlanCandidateEvaluation.Rejected): SetupCandidateRejection =
+    /**
+     * Rechazo del evaluador → instrumentación estructurada del wizard (paquete A). `internal` para que las
+     * pruebas fijen la copia de `missingRequirements` y la llave confirmable (A.B1) sin montar un barrido completo.
+     */
+    internal fun setupRejectionOf(evaluation: PlanCandidateEvaluation.Rejected): SetupCandidateRejection =
         SetupCandidateRejection(
             planId = evaluation.planId,
             stage = setupStageOf(evaluation.stage),
@@ -1803,6 +1806,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
             needsApparatusConfirmation = evaluation.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN ||
                 evaluation.reasonCode == PlanRejectionReason.APPARATUS_ABSENT,
             apparatusKey = apparatusKeyFor(evaluation),
+            missingRequirements = evaluation.missingRequirements,
         )
 
     /**
@@ -1823,11 +1827,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
         PlanEvaluationStage.SESSION_DURATION -> SetupCandidateRejectionStage.DURATION
     }
 
-    /** Clave curada del panel a la que lleva la acción «Falta confirmar X». */
+    /**
+     * Clave curada del panel a la que lleva la acción «Falta confirmar X».
+     *
+     * Paquete A · B1: con `missingRequirements` informados por el motor la llave sale de
+     * [SetupApparatusPanel.keyForToken] y NO se lee el texto del mensaje (si ningún token tiene
+     * llave, como `barbell`, no hay nada que confirmar y devuelve null). El parseo del texto con
+     * `substringAfter(":")` queda solo para la ruta heredada de `SetupCandidateFailureException`,
+     * que no trae la lista.
+     */
     private fun apparatusKeyFor(evaluation: PlanCandidateEvaluation.Rejected): String? {
         if (evaluation.reasonCode != PlanRejectionReason.APPARATUS_UNKNOWN &&
             evaluation.reasonCode != PlanRejectionReason.APPARATUS_ABSENT
         ) return null
+        if (evaluation.missingRequirements.isNotEmpty()) {
+            return evaluation.missingRequirements.firstNotNullOfOrNull(SetupApparatusPanel::keyForToken)
+        }
         val tokens = evaluation.details?.let(::missingEquipmentTokens).orEmpty()
         return tokens.firstNotNullOfOrNull { token ->
             EFFECTIVE_EQUIPMENT_KEYS.firstOrNull { key ->

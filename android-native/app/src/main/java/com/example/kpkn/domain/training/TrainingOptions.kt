@@ -457,8 +457,10 @@ private fun applyLegacySupportUmbrella(origins: LinkedHashMap<String, EffectiveE
  * Estado de cada requisito del vocabulario para el resultado estructurado:
  * - `PRESENT`: el token está entre los acreditados (o el perfil legacy reclama
  *   `general_gym`, que en esa ruta solo sirve para leer programas previos).
- * - `ABSENT`: una clave que lo acredita está `ABSENT` o su categoría está
- *   confirmada y el token se cayó por ausencias.
+ * - `ABSENT`: TODAS las claves que lo acreditan están `ABSENT` (y hay al menos una; paquete A · B7,
+ *   antes bastaba una sola) o su categoría está confirmada y el token se cayó por ausencias. Caso
+ *   típico: «banco plano = No» con «banco regulable» sin responder deja `bench` en `UNKNOWN`, porque
+ *   el regulable también acredita `bench`; solo negar los dos lo deja `ABSENT`.
  * - `UNKNOWN`: falta confirmar (nunca se niega sin una respuesta explícita).
  */
 private fun requirementEvidence(
@@ -467,13 +469,12 @@ private fun requirementEvidence(
 ): Map<String, RequirementEvidence> {
     val legacyBlanket = availability == null && KIND_GENERAL_GYM in tokens
     return KNOWN_REQUIREMENTS.associateWith { requirement ->
+        val owners = EFFECTIVE_EQUIPMENT_KEYS.filter { requirement in it.attestedTokens }
         when {
             requirement in tokens || legacyBlanket -> RequirementEvidence.PRESENT
             availability == null -> RequirementEvidence.UNKNOWN
-            EFFECTIVE_EQUIPMENT_KEYS.any {
-                requirement in it.attestedTokens &&
-                    availability.presenceOf(it.key) == ApparatusPresence.ABSENT
-            } -> RequirementEvidence.ABSENT
+            owners.isNotEmpty() && owners.all { availability.presenceOf(it.key) == ApparatusPresence.ABSENT } ->
+                RequirementEvidence.ABSENT
             else -> {
                 val category = EquipmentCategory.entries.firstOrNull { it.canonicalToken() == requirement }
                 if (category != null && category in availability.categories && requirement !in tokens) {

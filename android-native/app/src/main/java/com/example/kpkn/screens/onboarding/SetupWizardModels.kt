@@ -918,6 +918,12 @@ data class SetupCandidateRejection(
     val needsApparatusConfirmation: Boolean = false,
     /** Clave curada a confirmar cuando [needsApparatusConfirmation]. */
     val apparatusKey: String? = null,
+    /**
+     * Paquete A · B1: tokens de material (`rack`, `bench`, `barbell`…) que el motor negó o no pudo
+     * confirmar. Vacío si el rechazo no es de aparatos o el motor no los informó; con ellos la
+     * [apparatusKey] sale de `SetupApparatusPanel.keyForToken` y ya no se lee el texto de [reason].
+     */
+    val missingRequirements: List<String> = emptyList(),
 )
 
 /**

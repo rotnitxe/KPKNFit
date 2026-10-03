@@ -14,9 +14,14 @@ import com.example.kpkn.domain.training.PersonalizationReport
  * | `reasonCode`        | etapa              | motivo             |
  * |---------------------|--------------------|--------------------|
  * | `TIME_BUDGET`       | `SESSION_DURATION` | `TIME_BUDGET` + `requiredMinutes = maxSessionMinutes` |
- * | `APPARATUS_ABSENT`  | `MATERIAL`         | `APPARATUS_ABSENT` |
+ * | `APPARATUS_ABSENT`  | `MATERIAL`         | `APPARATUS_ABSENT` + `missingRequirements` (paquete A · B1) |
+ * | `APPARATUS_UNKNOWN` | `MATERIAL`         | `APPARATUS_UNKNOWN` + `missingRequirements` (paquete A · B1) |
  * | `PROFILE_MISMATCH`  | `PROFILE`          | `PROFILE_MISMATCH` |
  * | `COMPOSITION`       | `COMPOSITION`      | `COMPOSITION`      |
+ *
+ * `missingRequirements` son los tokens de material (`rack`, `bench`, `barbell`…) que el fitter
+ * negó (`APPARATUS_ABSENT`) o no pudo confirmar (`APPARATUS_UNKNOWN`); la UI los traduce a la llave
+ * del panel con `SetupApparatusPanel.keyForToken` y ya no necesita leer el texto del mensaje.
  *
  * Devuelve `null` cuando el informe no trae un motivo cerrado conocido: el
  * llamador conserva entonces su `SetupCandidateFailureException` heredada
@@ -37,6 +42,13 @@ object NativePlanFailureMapper {
                 PlanEvaluationStage.MATERIAL,
                 PlanRejectionReason.APPARATUS_ABSENT,
                 message,
+                missingRequirements = report.missingRequirements,
+            )
+            "APPARATUS_UNKNOWN" -> PlanMaterializationException(
+                PlanEvaluationStage.MATERIAL,
+                PlanRejectionReason.APPARATUS_UNKNOWN,
+                message,
+                missingRequirements = report.missingRequirements,
             )
             "PROFILE_MISMATCH" -> PlanMaterializationException(
                 PlanEvaluationStage.PROFILE,

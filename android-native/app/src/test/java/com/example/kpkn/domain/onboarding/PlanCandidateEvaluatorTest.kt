@@ -310,6 +310,37 @@ class PlanCandidateEvaluatorTest {
         assertEquals(PlanEvaluationStage.MATERIAL, result.stage)
         assertEquals(PlanRejectionReason.APPARATUS_UNKNOWN, result.reasonCode)
         assertEquals("Falta confirmar hack squat", result.details)
+        assertTrue("sin lista en la excepción no se inventan requisitos", result.missingRequirements.isEmpty())
+    }
+
+    /** Paquete A · B1: los requisitos de material de la excepción tipada llegan al rechazo sin tocar el texto. */
+    @Test
+    fun typedMaterialFailuresCarryTheirMissingRequirementsIntoTheRejection() = runBlockingTest {
+        listOf(
+            PlanRejectionReason.APPARATUS_UNKNOWN to listOf("rack", "bench"),
+            PlanRejectionReason.APPARATUS_ABSENT to listOf("barbell"),
+        ).forEach { (reason, requirements) ->
+            val engine = PlanMaterializationPort { _, _ ->
+                throw PlanMaterializationException(
+                    PlanEvaluationStage.MATERIAL,
+                    reason,
+                    "mensaje de usuario sin tokens",
+                    missingRequirements = requirements,
+                )
+            }
+            val result = PlanCandidateEvaluator.evaluate(
+                request(),
+                snapshot(entry()),
+                entryId = "native:test",
+                engine = engine,
+            )
+            assertTrue(result is PlanCandidateEvaluation.Rejected)
+            result as PlanCandidateEvaluation.Rejected
+            assertEquals(reason, result.reasonCode)
+            assertEquals(PlanEvaluationStage.MATERIAL, result.stage)
+            assertEquals(requirements, result.missingRequirements)
+            assertEquals("mensaje de usuario sin tokens", result.details)
+        }
     }
 
     @Test

@@ -70,6 +70,7 @@ class NativePlanFailureMapperTest {
     fun everyKnownReasonCodeMapsToItsClosedStageAndReason() {
         val expected = mapOf(
             "APPARATUS_ABSENT" to (PlanEvaluationStage.MATERIAL to PlanRejectionReason.APPARATUS_ABSENT),
+            "APPARATUS_UNKNOWN" to (PlanEvaluationStage.MATERIAL to PlanRejectionReason.APPARATUS_UNKNOWN),
             "PROFILE_MISMATCH" to (PlanEvaluationStage.PROFILE to PlanRejectionReason.PROFILE_MISMATCH),
             "COMPOSITION" to (PlanEvaluationStage.COMPOSITION to PlanRejectionReason.COMPOSITION),
         )
@@ -79,7 +80,88 @@ class NativePlanFailureMapperTest {
             assertEquals(code, pair.second, failure.reason)
             assertNull("$code no inventa minutos", failure.requiredMinutes)
             assertEquals("motivo $code", failure.message)
+            assertTrue("$code sin lista en el informe no inventa requisitos", failure.missingRequirements.isEmpty())
         }
+    }
+
+    // ─── Paquete A · B1: los requisitos de material viajan con el rechazo ─────────────────────────
+
+    private fun reportWithRequirements(reasonCode: String, requirements: List<String>, message: String) = PersonalizationReport(
+        executable = false,
+        classification = CatalogClassification.SIMPLE,
+        limitations = listOf(message),
+        muscles = emptyList(),
+        provenance = CatalogProvenance("native:test", "rev", CatalogSource.NATIVE, "test"),
+        reasonCode = reasonCode,
+        missingRequirements = requirements,
+    )
+
+    @Test
+    fun apparatusUnknownMapsToTheMaterialStageAndCarriesTheRequirementsTheFitterCouldNotConfirm() {
+        val failure = requireNotNull(
+            NativePlanFailureMapper.typedFailure(
+                reportWithRequirements("APPARATUS_UNKNOWN", listOf("rack", "bench"), "Falta confirmar si tienes rack y banco."),
+            ),
+        )
+        assertEquals(PlanEvaluationStage.MATERIAL, failure.stage)
+        assertEquals(PlanRejectionReason.APPARATUS_UNKNOWN, failure.reason)
+        assertEquals(listOf("rack", "bench"), failure.missingRequirements)
+        assertEquals("Falta confirmar si tienes rack y banco.", failure.message)
+        assertNull("un motivo de aparato no inventa minutos", failure.requiredMinutes)
+        assertTrue(failure.affectedSlots.isEmpty())
+    }
+
+    @Test
+    fun apparatusAbsentPropagatesTheRequirementsToo() {
+        val failure = requireNotNull(
+            NativePlanFailureMapper.typedFailure(
+                reportWithRequirements("APPARATUS_ABSENT", listOf("barbell"), "Este perfil trabaja con barra. Falta barra y carga."),
+            ),
+        )
+        assertEquals(PlanEvaluationStage.MATERIAL, failure.stage)
+        assertEquals(PlanRejectionReason.APPARATUS_ABSENT, failure.reason)
+        assertEquals(listOf("barbell"), failure.missingRequirements)
+    }
+
+    @Test
+    fun onlyTheApparatusReasonsCarryRequirements() {
+        listOf("TIME_BUDGET", "PROFILE_MISMATCH", "COMPOSITION").forEach { code ->
+            val failure = requireNotNull(
+                NativePlanFailureMapper.typedFailure(reportWithRequirements(code, listOf("rack"), "motivo $code")),
+            )
+            assertTrue("$code no lleva requisitos de aparato", failure.missingRequirements.isEmpty())
+        }
+    }
+
+    /**
+     * Gimnasio sin confirmar (todas las categorías, soportes sin responder) + Fuerza: ya no es «declaraste
+     * ausente» sino APPARATUS_UNKNOWN con la lista de lo que falta confirmar, y el mapeador la conserva.
+     */
+    @Test
+    fun theRealFitterTurnsAnUnconfirmedGymIntoAnUnknownApparatusWithItsRequirements() {
+        val result = SimpleCyclePersonalizer(
+            InMemoryExerciseCatalogRepositoryV2(CatalogCompositionTestSupport.catalog).also { runBlocking { it.load() } },
+        ).personalize(
+            programId = "b1-strength-unconfirmed-gym",
+            input = PersonalizerInput(
+                catalogEntryId = NativeProfileKind.STRENGTH.entryId,
+                focus = TrainingFocus.FULL_BODY,
+                frequency = 3,
+                weekdays = listOf(1, 3, 5),
+                equipment = emptySet(),
+                level = CatalogLevel.INTERMEDIATE,
+                availableMinutes = 90,
+            ),
+            options = TrainingOptions(availability = EquipmentAvailability(EquipmentCategory.entries.toSet())),
+        )
+
+        assertNull(result.program)
+        assertEquals("APPARATUS_UNKNOWN", result.report.reasonCode)
+        assertEquals(listOf("rack", "bench"), result.report.missingRequirements)
+        val failure = requireNotNull(NativePlanFailureMapper.typedFailure(result.report))
+        assertEquals(PlanEvaluationStage.MATERIAL, failure.stage)
+        assertEquals(PlanRejectionReason.APPARATUS_UNKNOWN, failure.reason)
+        assertEquals(listOf("rack", "bench"), failure.missingRequirements)
     }
 
     @Test

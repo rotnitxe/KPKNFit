@@ -429,6 +429,23 @@ internal fun curatedConfigurationsOf(key: String): Set<String> =
 internal fun attestedTokensOf(key: String): Set<String> =
     EFFECTIVE_EQUIPMENT_KEYS.firstOrNull { it.key == key }?.attestedTokens.orEmpty()
 
+/**
+ * Paquete A · B3: true cuando la persona declaró (Sí o No) la presencia de ALGUNA máquina o polea
+ * curada, es decir, una llave de [EFFECTIVE_EQUIPMENT_KEYS] cuya categoría es `MACHINES` o `CABLE`.
+ * Los soportes (banco, rack, paralelas…), la barra de dominadas y la bicicleta exterior
+ * (`outdoor_bike`, que ni siquiera es una llave del panel) NO cuentan.
+ *
+ * Es el criterio del modo «configuración exacta» del generador: con una máquina concreta declarada,
+ * solo se admiten las máquinas cuyo token `machine_config:<id>` esté acreditado; con las máquinas
+ * solo por categoría (aunque haya soportes confirmados), el plan propio puede usar las variantes de
+ * máquina aprobadas sin afirmar una configuración. Ver DEV-r2-06 en `docs/WIZARD_PLAN_DEVIATIONS.md`.
+ */
+internal fun EquipmentAvailability.hasExplicitMachinePresence(): Boolean =
+    EFFECTIVE_EQUIPMENT_KEYS.any { spec ->
+        (spec.category == EquipmentCategory.MACHINES || spec.category == EquipmentCategory.CABLE) &&
+            presenceOf(spec.key) != ApparatusPresence.UNKNOWN
+    }
+
 /** true si ALGUNA clave con ausencia explícita es dueña de esa configuración. */
 internal fun configurationDeniedByAbsentKey(
     configurationId: String,
