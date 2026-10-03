@@ -30,6 +30,11 @@ private val TRAINING_CONCEPT_SHORT_DESCRIPTIONS: Map<String, String> = mapOf(
     "sobrecarga-progresiva" to "Incrementar gradualmente el estímulo para forzar adaptaciones continuas",
     "deload" to "Reducción planificada del volumen o intensidad para disipar fatiga acumulada",
     "especificidad" to "Las adaptaciones son específicas al tipo de estímulo aplicado",
+    // Términos de planes (glosario de dos niveles, diseño editorial §6): los enlaza PlanGlossary.
+    "rm-tm" to "Tu máximo de una repetición y el peso de referencia, más bajo, con el que se calculan los porcentajes.",
+    "amrap" to "Una serie con tantas repeticiones como puedas con una carga fija.",
+    "ondulacion-diaria" to "Variar pesado, ligero y volumen dentro de la misma semana.",
+    "mev-mrv" to "El rango de series semanales entre lo que ya produce mejora y lo que aún puedes recuperar.",
 )
 
 /** Additional practical context for the long Conceptos Clave body. */
@@ -371,6 +376,55 @@ val TRAINING_CONCEPTS_DATABASE: List<TrainingConcept> = listOf(
             La especificidad significa que las adaptaciones se parecen a las demandas que practicas. La fuerza mejora especialmente en el patrón, rango, velocidad, tipo de contracción y herramienta que entrenas; la resistencia también depende de la duración y del ritmo de la tarea. Ganar capacidad general puede ayudar, pero la transferencia se reduce cuando cambia demasiado el contexto de la prueba o del deporte.
 
             Este principio no exige copiar exactamente el gesto objetivo en cada sesión. El entrenamiento general puede construir masa, fuerza y tolerancia, mientras que el trabajo específico enseña a expresarlas donde importan. El equilibrio cambia según la fase: aprender una técnica, aumentar músculo o preparar una competición no requieren la misma mezcla. Confundir especificidad con exclusividad lleva a practicar siempre el gesto final y acumular fatiga innecesaria. Define primero qué resultado quieres transferir y selecciona variantes que compartan las demandas relevantes, no solo el aspecto visual.
+        """.trimIndent(),
+    ),
+    // Términos de planes (glosario de dos niveles, diseño editorial §6): los enlaza PlanGlossary.
+    TrainingConcept(
+        id = "rm-tm",
+        name = "1RM y Training Max",
+        category = ConceptCategory.LOAD_MANAGEMENT,
+        description = """
+            El 1RM (una repetición máxima) es el mayor peso que puedes levantar una sola vez, con buena técnica y en todo el recorrido del ejercicio. Es una referencia útil, pero cambia de un día a otro y probarlo con frecuencia resulta cansado y arriesgado, sobre todo en ejercicios técnicos. Por eso muchos planes no calculan las cargas sobre él, sino sobre el Training Max, o TM (máximo de entrenamiento): un peso de referencia deliberadamente más bajo que tu 1RM.
+
+            En muchos planes de KPKN con porcentajes, las cargas se calculan sobre el TM. Normalmente el TM es el 90 % de tu 1RM; algunos métodos, como Texas Method de tres días y Madcow, usan el 87 %, que se parece al peso máximo con el que harías cinco repeticiones. Al quedar por debajo de tu máximo real, las series de trabajo dejan margen para repetirse con buena técnica semana tras semana, y las subidas de carga se mantienen pequeñas y previsibles.
+
+            Si no conoces tu 1RM, no hace falta probarlo: deja que la app lo calcule desde tu historial o estímalo a partir de una serie reciente con varias repeticiones. Ante la duda, elige un valor prudente. Si las primeras semanas resultan demasiado pesadas, baja el TM y continúa; si todo sube con facilidad, súbelo en el siguiente ciclo.
+        """.trimIndent(),
+    ),
+    TrainingConcept(
+        id = "amrap",
+        name = "AMRAP",
+        category = ConceptCategory.INTENSITY,
+        description = """
+            AMRAP es la sigla inglesa de «tantas repeticiones como sea posible». Es una serie en la que el peso está fijado de antemano y tú haces todas las repeticiones que puedas con buena técnica. Terminas cuando la siguiente repetición ya no saldría limpia, no cuando te quedas sin fuerza para moverla de cualquier forma.
+
+            En tus sesiones aparece como «AMRAP (mín. 3)», por ejemplo: al menos tres repeticiones y todas las que puedas después. Su función es medir cuánto puedes hacer de verdad: cuantas más repeticiones consigas por encima del mínimo, más margen indica que tienes con esa carga. El plan usa ese resultado para ajustar tus cargas, de modo que la progresión se basa en lo que realmente has conseguido y no solo en el calendario. Como llegas cerca del límite, es una de las series más exigentes de la semana.
+
+            Para que el dato sirva, hazla siempre en las mismas condiciones: descansa lo suficiente antes, mantén la técnica y detente cuando dudes de la siguiente repetición. Anota el número exacto de repeticiones, sin redondear. En banca y sentadilla usa topes de seguridad o un compañero. Un resultado honesto, aunque sea menor del esperado, es más útil que una repetición extra hecha con mala técnica.
+        """.trimIndent(),
+    ),
+    TrainingConcept(
+        id = "ondulacion-diaria",
+        name = "Ondulación diaria (DUP)",
+        category = ConceptCategory.PERIODIZATION,
+        description = """
+            La ondulación diaria, conocida por sus siglas en inglés DUP, consiste en cambiar el tipo de sesión de un mismo levantamiento a lo largo de la semana, en vez de repetir siempre el mismo trabajo. Con la sentadilla, por ejemplo, un día es pesado, con pocas repeticiones y mucha carga; otro es ligero o técnico; y otro es de volumen, con más series y repeticiones y una carga moderada. Cada día exige algo distinto y la fatiga que deja también cambia.
+
+            Su ventaja práctica es poder trabajar fuerza, técnica y volumen dentro de la misma semana, sin esperar a bloques de varias semanas. La evidencia disponible no permite afirmar que sea mejor que otras formas de organizar el entrenamiento; su valor está en la variedad y en repartir la fatiga, que puede ayudarte a mantener la calidad de las series. Un ejemplo es el Texas Method de tres días: volumen el lunes, ligero el miércoles y pesado el viernes.
+
+            Consejo práctico: respeta el carácter de cada día. En el ligero, termina con margen y buena velocidad; en el pesado, descansa lo necesario entre series; en el de volumen, no subas tanto la carga que no puedas completar las series previstas. Si todos los días acaban pareciendo iguales, pierdes justo la variación que busca el método.
+        """.trimIndent(),
+    ),
+    TrainingConcept(
+        id = "mev-mrv",
+        name = "Volumen mínimo efectivo y máximo recuperable",
+        category = ConceptCategory.LOAD_MANAGEMENT,
+        description = """
+            MEV y MRV son dos referencias para dosificar el volumen semanal de un músculo, es decir, cuántas series le dedicas. El volumen mínimo efectivo (MEV) es la menor cantidad de series por semana con la que ya se aprecian mejoras. El volumen máximo recuperable (MRV) es la mayor cantidad que puedes hacer y recuperar de una semana a otra: por encima, el rendimiento y las ganas de entrenar tienden a caer. Entre ambos queda el rango donde conviene trabajar.
+
+            No son cifras universales ni se miden con exactitud: dependen del músculo, del ejercicio, de tu experiencia, del sueño, de la alimentación y del estrés. Los estudios indican que, en general, más series semanales se asocian con más crecimiento hasta cierto punto, con rendimientos cada vez menores, pero no fijan un número exacto para cada persona. Por eso KPKN guarda una referencia por músculo y sus planes propios procuran repartir las series dentro de ese rango, sin pasar del máximo recuperable.
+
+            Consejo práctico: empieza por la parte baja del rango y sube las series solo mientras progreses con facilidad. Si el rendimiento se estanca, aparecen molestias o necesitas más descanso de lo habitual durante varias semanas, probablemente te acercas a tu máximo recuperable: baja el volumen o programa una descarga antes de añadir más.
         """.trimIndent(),
     ),
 )

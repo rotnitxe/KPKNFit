@@ -141,6 +141,11 @@ val TRAINING_CONCEPT_SOURCES: Map<String, List<ConceptSourceRef>> = mapOf(
     "sobrecarga-progresiva" to listOf(resistancePrescription, periodizationReview),
     "deload" to listOf(periodizationReview, proximityReview),
     "especificidad" to listOf(specificityReview, periodizationReview),
+    // Términos de planes (glosario de dos niveles, diseño editorial §6): reutilizan referencias ya registradas.
+    "rm-tm" to listOf(resistancePrescription, periodizationReview),
+    "amrap" to listOf(resistancePrescription, proximityReview),
+    "ondulacion-diaria" to listOf(periodizationReview, resistancePrescription),
+    "mev-mrv" to listOf(volumeReview, resistancePrescription),
 )
 
 fun sourceReferencesForConcept(id: String): List<ConceptSourceRef> =
