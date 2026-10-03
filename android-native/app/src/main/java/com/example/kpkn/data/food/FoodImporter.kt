@@ -10,14 +10,19 @@ import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.telemetry.nutrition.NutritionTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.security.MessageDigest
 import java.text.Normalizer
 import java.time.Instant
+import kotlin.coroutines.CoroutineContext
 
 /**
  * FoodImporter — Soporta USDA y OpenFoodFacts Chile.
@@ -26,6 +31,9 @@ import java.time.Instant
  * procedencia (ID de registro, estado, base nutricional, versión del dataset,
  * categoría, porción y flags de calidad) y la importación es atómica — un
  * fallo a mitad de camino deja intacta la versión anterior del catálogo.
+ *
+ * WP-S8: la importación se parte en análisis de los CSV (sin lock, en [Dispatchers.Default]) y un commit corto
+ * de Room ([commitRows]); ver [importIfNeeded].
  */
 object FoodImporter {
     private const val TAG = "FoodImporter"
@@ -43,6 +51,22 @@ object FoodImporter {
     private const val USDA_CATEGORY_CSV = "food_data/food_category.csv"
     private const val USDA_ALIASES_CSV = "food_data/usda_es_aliases.csv"
     private const val OFF_CHILE_CSV = "food_data/off_chile.csv"
+
+    // Progreso de la importación (WP-S8): el análisis sin lock ocupa la banda 0,05..0,95; antes solo hay arranque y
+    // después el commit corto y el cierre en 1,0.
+    private const val PROGRESS_STARTED = 0.01f
+    private const val PROGRESS_PARSE_START = 0.05f
+    private const val PROGRESS_PARSE_END = 0.95f
+
+    /** Fracción del análisis que ocupa USDA (~24 % de los bytes, ~35 % del tiempo medido); el resto es OFF Chile. */
+    private const val PARSE_USDA_SHARE = 0.30f
+
+    /** Cada cuántas líneas un CSV comprueba la cancelación y publica su avance. */
+    private const val CSV_CHECK_EVERY = 256
+
+    /** Tamaños esperados para reservar listas de una vez: ~436 Foundation y ~5,4 mil filas OFF aceptadas. */
+    private const val FOUNDATION_EXPECTED_FOODS = 512
+    private const val OFF_EXPECTED_ROWS = 6_000
 
     /**
      * Assets que lee el import. Los auxiliares se degradan en silencio si faltan (ver [readOptionalCsv]), así que un test
@@ -92,8 +116,8 @@ object FoodImporter {
 
     /**
      * Las instalaciones previas guardaron el SHA-256 de los CSV como `checksum`. Con la MISMA [DATA_VERSION] el
-     * dataset importado es el mismo, así que se adopta la huella vigente en vez de re-importar ~72 MB (la importación
-     * actual es una sola transacción larga que bloquea las escrituras de Room mientras la app ya es usable). Solo
+     * dataset importado es el mismo, así que se adopta la huella vigente en vez de re-importar ~72 MB (el análisis tarda
+     * varios segundos y el commit bloquea brevemente las escrituras de Room mientras la app ya es usable). Solo
      * aplica mientras la huella sea el esquema por versión; cualquier otro esquema compara de forma estricta.
      */
     internal fun adoptLegacyChecksum(meta: ImportMetadata?, expectedFingerprint: String): ImportMetadata? {
@@ -115,6 +139,10 @@ object FoodImporter {
     /**
      * Importa el catálogo global si hace falta. La decisión es barata (sin leer assets, ver [shouldImport]); el SHA-256
      * de los CSV solo se calcula dentro de la importación, para dejar rastro de qué contenido se importó.
+     *
+     * WP-S8: ya no es UNA transacción larga. Los ~72 MB de CSV se analizan en [Dispatchers.Default] sin tocar la base
+     * (el progreso va de 0,05 a 0,95) y solo después una transacción corta de Room reemplaza las filas ([commitRows]).
+     * Mientras se analiza, el resto de la app escribe en Room sin esperar el lock del import.
      */
     suspend fun importIfNeeded(
         db: KpknDatabase,
@@ -122,6 +150,26 @@ object FoodImporter {
         alreadyImported: Boolean,
         existingMeta: ImportMetadata?,
         onMetaUpdated: (ImportMetadata) -> Unit,
+    ): Boolean = runImport(db, alreadyImported, existingMeta, onMetaUpdated) { onProgress ->
+        // Solo documenta el contenido importado; ya no decide nada ni corre en el arranque normal.
+        val contentSha256 = runCatching { computeDatasetChecksum(context) }.getOrNull()
+        android.util.Log.i(TAG, "Importando catálogo v$DATA_VERSION (sha256 de los CSV: ${contentSha256 ?: "no disponible"})")
+        parseCatalog({ path -> context.assets.open(path) }, onProgress)
+    }
+
+    /**
+     * Ciclo completo de una importación, sin acoplarse a los assets: compuerta, análisis con [parse] (sin lock sobre la
+     * base), [commitRows], meta y telemetría. Atómica: un fallo de análisis no abre transacción y un fallo del commit
+     * hace rollback, así que el catálogo anterior sigue entero; la meta se persiste solo al final. `onProgress` de
+     * [parse] recibe la fracción 0..1 del análisis, que aquí ocupa la banda 0,05..0,95 de [importProgress].
+     */
+    internal suspend fun runImport(
+        db: KpknDatabase,
+        alreadyImported: Boolean,
+        existingMeta: ImportMetadata?,
+        onMetaUpdated: (ImportMetadata) -> Unit,
+        dao: NutritionDao = db.nutritionDao(),
+        parse: suspend (onProgress: (Float) -> Unit) -> List<GlobalFoodEntity>,
     ): Boolean = withContext(Dispatchers.IO) {
         val fingerprint = datasetFingerprint()
         if (!shouldImport(alreadyImported, adoptLegacyChecksum(existingMeta, fingerprint), fingerprint)) {
@@ -129,21 +177,16 @@ object FoodImporter {
         }
 
         try {
-            _importProgress.value = 0.01f
+            _importProgress.value = PROGRESS_STARTED
             NutritionTelemetry.catalogImportStarted(DATA_VERSION.toString())
-            val dao = db.nutritionDao()
-            // Atómica: clear+insert dentro de una transacción. Si algo falla a
-            // mitad de importación, el rollback conserva la versión anterior
-            // completa (antes clearGlobalFoods() borraba primero y un fallo dejaba
-            // el catálogo vacío). El FTS external-content se mantiene por triggers
-            // dentro de la misma transacción y la meta se persiste solo al final.
             val imported = runCatching {
-                // Solo documenta el contenido importado; ya no decide nada ni corre en el arranque normal.
-                val contentSha256 = runCatching { computeDatasetChecksum(context) }.getOrNull()
-                android.util.Log.i(TAG, "Importando catálogo v$DATA_VERSION (sha256 de los CSV: ${contentSha256 ?: "no disponible"})")
-                db.withTransaction {
-                    importAll(dao, context)
+                val rows = withContext(Dispatchers.Default) {
+                    parse { fraction ->
+                        publishProgress(PROGRESS_PARSE_START + (PROGRESS_PARSE_END - PROGRESS_PARSE_START) * fraction.coerceIn(0f, 1f))
+                    }
                 }
+                publishProgress(PROGRESS_PARSE_END)
+                commitRows(db, dao, rows)
                 val meta = ImportMetadata(
                     version = DATA_VERSION,
                     checksum = fingerprint,
@@ -168,202 +211,232 @@ object FoodImporter {
         }
     }
 
-    private suspend fun importAll(dao: NutritionDao, context: Context) {
-        dao.clearGlobalFoods()
+    /** El progreso solo sube durante una importación: un valor menor que el ya publicado se ignora. */
+    private fun publishProgress(value: Float) {
+        _importProgress.update { current -> maxOf(current ?: 0f, value.coerceIn(0f, 1f)) }
+    }
 
+    /**
+     * Analiza TODO el catálogo embebido (USDA + OFF Chile) sin tocar la base. `onProgress` recibe la fracción 0..1 del
+     * análisis completo: USDA ocupa el primer [PARSE_USDA_SHARE] y OFF Chile el resto.
+     */
+    private suspend fun parseCatalog(openAsset: (String) -> InputStream, onProgress: (Float) -> Unit): List<GlobalFoodEntity> {
+        val started = System.nanoTime()
         android.util.Log.d(TAG, "Importando USDA...")
-        val foodNutrients = context.assets.open(USDA_NUTRIENT_CSV).bufferedReader().use { reader ->
-            reader.readLine()
-            parseUsdaNutrients(reader.lineSequence())
+        val usda = parseUsda(openAsset) { onProgress(PARSE_USDA_SHARE * it) }
+        android.util.Log.d(TAG, "Importando OpenFoodFacts Chile...")
+        val off = parseOff(openAsset) { onProgress(PARSE_USDA_SHARE + (1f - PARSE_USDA_SHARE) * it) }
+        android.util.Log.d(TAG, "Catálogo analizado: ${usda.size} USDA + ${off.size} OFF Chile en ${elapsedMs(started)} ms")
+        return usda + off
+    }
+
+    /**
+     * Reemplaza el catálogo global por [rows] en UNA transacción corta (solo la escritura de ~6 mil filas: el análisis
+     * de los CSV ya terminó): lee los contadores de uso, vacía la tabla, inserta por lotes y restaura los contadores.
+     * Si algo falla, Room hace rollback y las filas anteriores (con su uso) siguen intactas. El log `Catálogo
+     * reemplazado` deja el tiempo real de la transacción en el dispositivo.
+     *
+     * Compromiso: los ids son estables (`usda_<fdcId>`, `off_<código>`), así que el uso sobrevive cuando la fila sigue
+     * en el dataset nuevo; una fila que ya no está pierde sus contadores junto con ella.
+     *
+     * Después de la transacción reconstruye el índice FTS: `insertGlobalFoods` usa REPLACE y, con `recursive_triggers`
+     * apagado, un REPLACE sobre un `foodId` existente salta el trigger de borrado y deja una entrada FTS huérfana. El
+     * índice solo lo usa `searchGlobalFoodsWithFts` (la búsqueda de producción usa `searchGlobalFoodsNormalized`), así
+     * que un fallo de la reconstrucción se registra pero no deshace un catálogo ya publicado.
+     */
+    internal suspend fun commitRows(db: KpknDatabase, dao: NutritionDao, rows: List<GlobalFoodEntity>) {
+        // Un análisis vacío (CSV truncados o con otro formato) no debe vaciar el catálogo que sí funciona.
+        check(rows.isNotEmpty()) { "El análisis del catálogo no produjo filas: se conserva el catálogo anterior" }
+        val started = System.nanoTime()
+        val keptUsage = db.withTransaction {
+            val usage = dao.getGlobalFoodUsage()
+            dao.clearGlobalFoods()
+            rows.chunked(BATCH_SIZE).forEach { dao.insertGlobalFoods(it) }
+            usage.forEach { dao.restoreGlobalFoodUsage(it.foodId, it.usageCount, it.lastUsedAt) }
+            usage.size
         }
-        _importProgress.value = 0.18f
+        val committed = System.nanoTime()
+        rebuildFtsIndex(db)
+        info("Catálogo reemplazado: ${rows.size} filas (uso de $keptUsage conservado) en ${elapsedMs(started, committed)} ms de transacción + ${elapsedMs(committed)} ms de índice FTS")
+    }
+
+    private fun elapsedMs(from: Long, to: Long = System.nanoTime()): Long = (to - from) / 1_000_000
+
+    private fun rebuildFtsIndex(db: KpknDatabase) {
+        try {
+            db.openHelper.writableDatabase.execSQL("INSERT INTO `global_foods_fts`(`global_foods_fts`) VALUES('rebuild')")
+        } catch (e: Exception) {
+            warn("No se pudo reconstruir global_foods_fts; quedan entradas huérfanas hasta la próxima importación", e)
+        }
+    }
+
+    // ─── Análisis de los CSV embebidos (sin base de datos: testeable sin Android) ──────────────────────
+
+    /**
+     * USDA Foundation como filas del catálogo. Lee `food.csv` PRIMERO para quedarse con los ids Foundation (~436) y así
+     * saltar, sin reservar objetos, las filas de `food_nutrient.csv` de los ~14 mil alimentos que no lo son. [openAsset]
+     * entrega un asset por su ruta (en producción `context.assets.open`). Los auxiliares (unidades, porciones,
+     * categorías, alias en español) son opcionales: si faltan, el catálogo se importa igual sin ellos.
+     * `onProgress` recibe la fracción 0..1 de este análisis.
+     */
+    internal suspend fun parseUsda(openAsset: (String) -> InputStream, onProgress: (Float) -> Unit = {}): List<GlobalFoodEntity> {
+        val ctx = currentCoroutineContext()
+        val foods = readCsv(ctx, openAsset, USDA_FOOD_CSV, report = { onProgress(0.40f * it) }) { parseUsdaFoundationFoods(it) }
+        val foundationIds = foods.mapTo(HashSet(foods.size * 2)) { it.fdcId }
+        val foodNutrients = readCsv(ctx, openAsset, USDA_NUTRIENT_CSV, report = { onProgress(0.40f + 0.55f * it) }) {
+            parseUsdaNutrients(it, expectedFoods = foundationIds.size * 2, onlyFoodIds = foundationIds)
+        }
 
         // Tablas auxiliares (WP-S9). Ninguna es imprescindible: si falta o no se puede leer, el catálogo USDA se importa
         // igual (sin porción, sin categoría o con el nombre en inglés) en vez de perderse entero.
-        val measureUnits = readOptionalCsv(context, USDA_MEASURE_UNIT_CSV, emptyMap<Int, String>()) { parseMeasureUnits(it) }
+        val measureUnits = readOptionalCsv(ctx, openAsset, USDA_MEASURE_UNIT_CSV, emptyMap<Int, String>()) { parseMeasureUnits(it) }
         // Porciones domésticas autoritativas de USDA (food_portion.csv): la primera porción declarada por ficha, ya
         // dividida por su cantidad. Sin esto, todo alimento global caería en el "100 g" genérico aunque la fuente
         // declare "1 breast = 174 g" (compuerta Fase 2).
-        val authoritativePortions = readOptionalCsv(context, USDA_PORTION_CSV, emptyMap<Int, UsdaPortion>()) {
+        val authoritativePortions = readOptionalCsv(ctx, openAsset, USDA_PORTION_CSV, emptyMap<Int, UsdaPortion>()) {
             parseUsdaPortions(it, measureUnits)
         }
-        val categories = readOptionalCsv(context, USDA_CATEGORY_CSV, emptyMap<Int, String>()) { parseFoodCategories(it) }
-        val spanishAliases = readOptionalCsv(context, USDA_ALIASES_CSV, emptyMap<Int, UsdaAlias>()) { parseUsdaAliases(it) }
+        val categories = readOptionalCsv(ctx, openAsset, USDA_CATEGORY_CSV, emptyMap<Int, String>()) { parseFoodCategories(it) }
+        val spanishAliases = readOptionalCsv(ctx, openAsset, USDA_ALIASES_CSV, emptyMap<Int, UsdaAlias>()) { parseUsdaAliases(it) }
 
-        val usdaBatch = mutableListOf<GlobalFoodEntity>()
-        context.assets.open(USDA_FOOD_CSV).bufferedReader().use { reader ->
-            reader.readLine()
-            var processed = 0
-            for (line in reader.lineSequence()) {
-                val parts = parseCsvLine(line)
-                if (parts.size < 3) continue
-                val fdcId = parts[0].toIntOrNull() ?: continue
-                val dataType = parts[1].trim('"')
-                if (dataType != "foundation_food") continue
-                val nutrients = foodNutrients[fdcId] ?: continue
-                val entity = usdaEntityOrNull(
-                    fdcId = fdcId,
-                    description = parts[2],
-                    category = usdaCategory(parts.getOrNull(3), categories),
-                    nutrients = nutrients,
-                    portion = authoritativePortions[fdcId],
-                    alias = spanishAliases[fdcId],
-                ) ?: continue
-                usdaBatch.add(entity)
-                processed++
-
-                if (usdaBatch.size >= BATCH_SIZE) {
-                    dao.insertGlobalFoods(usdaBatch)
-                    usdaBatch.clear()
-                    _importProgress.value = (0.18f + (processed.coerceAtMost(65000) / 65000f) * 0.44f).coerceIn(0.18f, 0.62f)
-                }
-            }
+        val rows = ArrayList<GlobalFoodEntity>(foods.size)
+        for (food in foods) {
+            val nutrients = foodNutrients[food.fdcId] ?: continue
+            val entity = usdaEntityOrNull(
+                fdcId = food.fdcId,
+                description = food.description,
+                category = usdaCategory(food.categoryId, categories),
+                nutrients = nutrients,
+                portion = authoritativePortions[food.fdcId],
+                alias = spanishAliases[food.fdcId],
+            ) ?: continue
+            rows.add(entity)
         }
-        if (usdaBatch.isNotEmpty()) dao.insertGlobalFoods(usdaBatch)
-        foodNutrients.clear()
-        _importProgress.value = 0.64f
+        onProgress(1f)
+        return rows
+    }
 
-        android.util.Log.d(TAG, "Importando OpenFoodFacts Chile...")
-        var offProcessed = 0
-        var offSkipped = 0
-        var offDbFilled = 0
-        val offBatch = mutableListOf<GlobalFoodEntity>()
-            context.assets.open(OFF_CHILE_CSV).bufferedReader().use { reader ->
-                // OFF Chile CSV is TAB-separated with NO header row.
-                // Column positions (0-indexed, tab-separated):
-                //   0   = code (barcode)
-                //   10  = product_name
-                //   18  = brands
-                //   88  = energy-kj_100g
-                //   89  = energy-kcal_100g
-                //   92  = fat_100g
-                //   146 = fiber_100g
-                //   156 = sodium_100g (in grams)
-                //   129 = carbohydrates_100g
-                //   130 = sugars_100g
-                //   131 = fiber_100g
-                //   150 = proteins_100g
-                val idxCode = 0
-                val idxName = 10
-                val idxBrand = 18
-                val idxKcal = 89
-                val idxFat = 92
-                val idxCarb = 129
-                val idxSugar = 130
-                val idxFiber = 146
-                val idxProt = 150
-                val idxSodium = 156
-
-                for (line in reader.lineSequence()) {
-                    val parts = parseTsvLine(line)
-                    if (parts.size <= idxSodium) {
-                        offSkipped++
-                        continue
-                    }
-
-                    val code = parts[idxCode].trim()
-                    if (code.isBlank()) continue
-
-                    val rawName = parts[idxName].trim()
-                    if (rawName.isBlank()) {
-                        offSkipped++
-                        continue
-                    }
-                    val rawBrand = parts[idxBrand].trim().takeIf { it.isNotBlank() }
-
-                    // Parse raw nutrition values and reject physically impossible/corrupt values.
-                    fun boundedValue(index: Int, max: Double): Double {
-                        return parts[index].toDoubleOrNull()
-                            ?.takeIf { it.isFinite() && it in 0.0..max }
-                            ?: 0.0
-                    }
-                    val rawKcal = boundedValue(idxKcal, 1000.0)
-                    val rawProt = boundedValue(idxProt, 100.0)
-                    val rawFat = boundedValue(idxFat, 100.0)
-                    val rawCarb = boundedValue(idxCarb, 100.0)
-                    val rawFiber = boundedValue(idxFiber, 100.0)
-                    val rawSugar = boundedValue(idxSugar, 100.0)
-                    val rawSodium = parts[idxSodium].toDoubleOrNull()
-                        ?.takeIf { it.isFinite() && it in 0.0..5.0 }
-                    if (parts[idxSodium].isNotBlank() && rawSodium == null) {
-                        offSkipped++
-                        continue
-                    }
-
-                    val macroEnergy = rawProt * 4.0 + rawFat * 9.0 + rawCarb * 4.0
-                    val hasRawNutrition = rawKcal > 0.0 && macroEnergy > 0.0
-                    if (!hasRawNutrition) {
-                        offSkipped++
-                        continue
-                    }
-                    val energyDeviation = kotlin.math.abs(rawKcal - macroEnergy) / macroEnergy
-                    if (energyDeviation > 0.5) {
-                        offSkipped++
-                        continue
-                    }
-
-                    // Clean and validate declared OFF data without substituting generic catalog macros.
-                    val parsed = FoodDescriptionParser.parse(
-                        rawName = rawName,
-                        rawBrand = rawBrand,
-                        rawCalories = rawKcal,
-                        rawProtein = rawProt,
-                        rawFat = rawFat,
-                        rawCarbs = rawCarb,
-                        rawFiber = rawFiber,
-                        rawSugars = rawSugar,
-                        rawSodium = rawSodium ?: 0.0,
-                        allowDatabaseMatch = false,
-                    )
-
-                    val normalizedName = normalizeSearch(parsed.cleanedName)
-                    val normalizedBrand = parsed.brandHint?.let(::normalizeSearch)
-                    val aliases = buildList {
-                        add(normalizedName)
-                        if (!normalizedBrand.isNullOrBlank()) add(normalizedBrand)
-                        parsed.matchedFoodName?.let { add(normalizeSearch(it)) }
-                    }.distinct().filter { it.isNotBlank() }
-
-                    offBatch.add(
-                        GlobalFoodEntity(
-                            foodId = "off_$code",
-                            name = parsed.cleanedName,
-                            brand = parsed.brandHint,
-                            normalizedName = normalizedName,
-                            normalizedBrand = normalizedBrand,
-                            aliasesJson = encodeAliases(aliases),
-                            calories = parsed.calories,
-                            protein = parsed.protein,
-                            fats = parsed.fats,
-                            carbs = parsed.carbs,
-                            fiber = parsed.fiber,
-                            sugar = parsed.sugars,
-                            sodiumMg = parsed.sodiumMg,
-                            source = "OFF Chile",
-                            sourcePriority = 80,
-                            verifiedScore = parsed.confidence.toDouble(),
-                            // Procedencia v22: OFF declara per-100g tal como se
-                            // vende; el código de barras es el ID de registro.
-                            sourceRecordId = code,
-                            foodState = "UNKNOWN",
-                            nutritionBasis = "PER_100G_AS_SOLD",
-                            datasetVersion = DATA_VERSION.toString(),
-                            qualityFlagsJson = encodeQualityFlags(
-                                offQualityFlags(rawKcal, rawProt, rawCarb, rawFat, parsed.confidence)
-                            ),
-                        )
-                    )
-                    offProcessed++
-
-                    if (offBatch.size >= BATCH_SIZE) {
-                        dao.insertGlobalFoods(offBatch)
-                        offBatch.clear()
-                        _importProgress.value = (0.64f + (offProcessed.coerceAtMost(22000) / 22000f) * 0.35f).coerceIn(0.64f, 0.99f)
-                    }
-                }
+    /** OpenFoodFacts Chile (TSV sin cabecera) como filas del catálogo: las líneas que [parseOffLine] rechaza se omiten. */
+    internal suspend fun parseOff(openAsset: (String) -> InputStream, onProgress: (Float) -> Unit = {}): List<GlobalFoodEntity> {
+        val ctx = currentCoroutineContext()
+        return readCsv(ctx, openAsset, OFF_CHILE_CSV, hasHeader = false, report = onProgress) { lines ->
+            val rows = ArrayList<GlobalFoodEntity>(OFF_EXPECTED_ROWS)
+            for (line in lines) parseOffLine(line)?.let(rows::add)
+            rows
         }
-        if (offBatch.isNotEmpty()) dao.insertGlobalFoods(offBatch)
-        android.util.Log.d(TAG, "OFF import done: $offProcessed products ($offDbFilled DB-filled), $offSkipped skipped")
+    }
+
+    // OFF Chile CSV is TAB-separated with NO header row. Column positions (0-indexed, tab-separated):
+    //   0   = code (barcode)
+    //   10  = product_name
+    //   18  = brands
+    //   89  = energy-kcal_100g
+    //   92  = fat_100g
+    //   129 = carbohydrates_100g
+    //   130 = sugars_100g
+    //   146 = fiber_100g
+    //   150 = proteins_100g
+    //   156 = sodium_100g (in grams)
+    private const val OFF_CODE = 0
+    private const val OFF_NAME = 10
+    private const val OFF_BRAND = 18
+    private const val OFF_KCAL = 89
+    private const val OFF_FAT = 92
+    private const val OFF_CARBS = 129
+    private const val OFF_SUGAR = 130
+    private const val OFF_FIBER = 146
+    private const val OFF_PROTEIN = 150
+    private const val OFF_SODIUM = 156
+
+    /** Una línea con kcal declaradas a más de esta fracción de 4P+4C+9G es un dato corrupto y se rechaza (no se marca). */
+    private const val OFF_MAX_ENERGY_DEVIATION = 0.5
+
+    /**
+     * La ÚNICA vía de una línea de `off_chile.csv` a una fila del catálogo: la usan el importador, el corpus de búsqueda
+     * y las pruebas de regresión, para que ninguno se desvíe del importador real. Devuelve null si la línea no entra:
+     * columnas de menos, sin código o sin nombre, sodio ilegible, sin energía o macros, o energía declarada incoherente.
+     */
+    internal fun parseOffLine(line: String): GlobalFoodEntity? {
+        val parts = parseTsvLine(line)
+        if (parts.size <= OFF_SODIUM) return null
+
+        val code = parts[OFF_CODE].trim()
+        if (code.isBlank()) return null
+        val rawName = parts[OFF_NAME].trim()
+        if (rawName.isBlank()) return null
+        val rawBrand = parts[OFF_BRAND].trim().takeIf { it.isNotBlank() }
+
+        // Parse raw nutrition values and reject physically impossible/corrupt values.
+        fun boundedValue(index: Int, max: Double): Double {
+            return parts[index].toDoubleOrNull()
+                ?.takeIf { it.isFinite() && it in 0.0..max }
+                ?: 0.0
+        }
+        val rawKcal = boundedValue(OFF_KCAL, 1000.0)
+        val rawProt = boundedValue(OFF_PROTEIN, 100.0)
+        val rawFat = boundedValue(OFF_FAT, 100.0)
+        val rawCarb = boundedValue(OFF_CARBS, 100.0)
+        val rawFiber = boundedValue(OFF_FIBER, 100.0)
+        val rawSugar = boundedValue(OFF_SUGAR, 100.0)
+        val rawSodium = parts[OFF_SODIUM].toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it in 0.0..5.0 }
+        if (parts[OFF_SODIUM].isNotBlank() && rawSodium == null) return null
+
+        val macroEnergy = rawProt * 4.0 + rawFat * 9.0 + rawCarb * 4.0
+        val hasRawNutrition = rawKcal > 0.0 && macroEnergy > 0.0
+        if (!hasRawNutrition) return null
+        val energyDeviation = kotlin.math.abs(rawKcal - macroEnergy) / macroEnergy
+        if (energyDeviation > OFF_MAX_ENERGY_DEVIATION) return null
+
+        // Clean and validate declared OFF data without substituting generic catalog macros.
+        val parsed = FoodDescriptionParser.parse(
+            rawName = rawName,
+            rawBrand = rawBrand,
+            rawCalories = rawKcal,
+            rawProtein = rawProt,
+            rawFat = rawFat,
+            rawCarbs = rawCarb,
+            rawFiber = rawFiber,
+            rawSugars = rawSugar,
+            rawSodium = rawSodium ?: 0.0,
+            allowDatabaseMatch = false,
+        )
+
+        val normalizedName = normalizeSearch(parsed.cleanedName)
+        val normalizedBrand = parsed.brandHint?.let(::normalizeSearch)
+        val aliases = buildList {
+            add(normalizedName)
+            if (!normalizedBrand.isNullOrBlank()) add(normalizedBrand)
+            parsed.matchedFoodName?.let { add(normalizeSearch(it)) }
+        }.distinct().filter { it.isNotBlank() }
+
+        return GlobalFoodEntity(
+            foodId = "off_$code",
+            name = parsed.cleanedName,
+            brand = parsed.brandHint,
+            normalizedName = normalizedName,
+            normalizedBrand = normalizedBrand,
+            aliasesJson = encodeAliases(aliases),
+            calories = parsed.calories,
+            protein = parsed.protein,
+            fats = parsed.fats,
+            carbs = parsed.carbs,
+            fiber = parsed.fiber,
+            sugar = parsed.sugars,
+            sodiumMg = parsed.sodiumMg,
+            source = "OFF Chile",
+            sourcePriority = 80,
+            verifiedScore = parsed.confidence.toDouble(),
+            // Procedencia v22: OFF declara per-100g tal como se
+            // vende; el código de barras es el ID de registro.
+            sourceRecordId = code,
+            foodState = "UNKNOWN",
+            nutritionBasis = "PER_100G_AS_SOLD",
+            datasetVersion = DATA_VERSION.toString(),
+            qualityFlagsJson = encodeQualityFlags(
+                offQualityFlags(rawKcal, rawProt, rawCarb, rawFat, parsed.confidence)
+            ),
+        )
     }
 
     private fun parseCsvLine(line: String): List<String> {
@@ -513,16 +586,39 @@ object FoodImporter {
         }
     }
 
+    /** Fila Foundation de `food.csv`: lo único que hace falta para decidir qué filas de `food_nutrient.csv` se leen. */
+    internal class UsdaFoodRow(val fdcId: Int, val description: String, val categoryId: String?)
+
+    /** `food.csv` (fdc_id, data_type, description, food_category_id, ...; sin la cabecera) -> solo los `foundation_food`. */
+    internal fun parseUsdaFoundationFoods(lines: Sequence<String>): List<UsdaFoodRow> {
+        val rows = ArrayList<UsdaFoodRow>(FOUNDATION_EXPECTED_FOODS)
+        for (line in lines) {
+            val parts = parseCsvLine(line)
+            if (parts.size < 3) continue
+            val fdcId = parts[0].toIntOrNull() ?: continue
+            val dataType = parts[1].trim('"')
+            if (dataType != "foundation_food") continue
+            rows.add(UsdaFoodRow(fdcId, parts[2], parts.getOrNull(3)))
+        }
+        return rows
+    }
+
     /**
      * `food_nutrient.csv` (id, fdc_id, nutrient_id, amount, ...; sin la cabecera) -> nutrientes por alimento. Las filas
-     * de nutrientes que el catálogo no usa, o sin cantidad legible, no crean entrada.
+     * de nutrientes que el catálogo no usa, o sin cantidad legible, no crean entrada. Con [onlyFoodIds] las filas de
+     * cualquier otro alimento se saltan ANTES de reservar nada (WP-S8): de ~14 mil alimentos con nutrientes a los ~436 Foundation.
      */
-    internal fun parseUsdaNutrients(lines: Sequence<String>, expectedFoods: Int = 120_000): HashMap<Int, UsdaNutrients> {
+    internal fun parseUsdaNutrients(
+        lines: Sequence<String>,
+        expectedFoods: Int = 120_000,
+        onlyFoodIds: Set<Int>? = null,
+    ): HashMap<Int, UsdaNutrients> {
         val byFood = HashMap<Int, UsdaNutrients>(expectedFoods)
         for (line in lines) {
             val parts = parseCsvLine(line)
             if (parts.size < 4) continue
             val fdcId = parts[1].toIntOrNull() ?: continue
+            if (onlyFoodIds != null && fdcId !in onlyFoodIds) continue
             val nutrientId = parts[2].toIntOrNull() ?: continue
             if (nutrientId !in NUTRIENT_TARGETS) continue
             val amount = parts[3].toFloatOrNull() ?: continue
@@ -695,17 +791,68 @@ object FoodImporter {
         )
     }
 
-    /** Lee un CSV auxiliar (sin la cabecera); si no existe o no se puede leer devuelve [fallback] y el import sigue. */
-    private inline fun <T> readOptionalCsv(context: Context, path: String, fallback: T, parse: (Sequence<String>) -> T): T =
-        runCatching {
-            context.assets.open(path).bufferedReader().use { reader ->
-                reader.readLine() // cabecera
-                parse(reader.lineSequence())
+    /**
+     * Abre [path] con [openAsset], salta la cabecera si [hasHeader] y entrega las líneas a [parse]. Cada
+     * [CSV_CHECK_EVERY] líneas comprueba la cancelación de [ctx] y publica en [report] el avance por bytes (los
+     * caracteres leídos sobre los bytes que el flujo declaraba al abrirse); sin tamaño conocido solo publica el 1,0 final.
+     */
+    private fun <T> readCsv(
+        ctx: CoroutineContext,
+        openAsset: (String) -> InputStream,
+        path: String,
+        hasHeader: Boolean = true,
+        report: (Float) -> Unit = {},
+        parse: (Sequence<String>) -> T,
+    ): T = openAsset(path).use { stream ->
+        val totalBytes = stream.available().toLong()
+        val reader = stream.bufferedReader()
+        if (hasHeader) reader.readLine()
+        var consumed = 0L
+        var lineNumber = 0
+        val lines = reader.lineSequence().onEach { line ->
+            consumed += line.length + 1
+            if (++lineNumber % CSV_CHECK_EVERY == 0) {
+                ctx.ensureActive()
+                if (totalBytes > 0) report((consumed.toFloat() / totalBytes).coerceIn(0f, 1f))
             }
-        }.getOrElse {
-            android.util.Log.w(TAG, "$path no disponible: se importa sin él", it)
-            fallback
         }
+        val result = parse(lines)
+        report(1f)
+        result
+    }
+
+    /** Lee un CSV auxiliar (con cabecera); si no existe o no se puede leer devuelve [fallback] y el import sigue. */
+    private fun <T> readOptionalCsv(
+        ctx: CoroutineContext,
+        openAsset: (String) -> InputStream,
+        path: String,
+        fallback: T,
+        parse: (Sequence<String>) -> T,
+    ): T = try {
+        readCsv(ctx, openAsset, path, parse = parse)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        warn("$path no disponible: se importa sin él", e)
+        fallback
+    }
+
+    /** `android.util.Log` lanza "not mocked" en las pruebas JVM puras: un log nunca debe romper el análisis. */
+    private fun warn(message: String, error: Throwable) {
+        try {
+            android.util.Log.w(TAG, message, error)
+        } catch (_: RuntimeException) {
+            // Sin Android no hay dónde registrar; el fallback ya cubre el caso.
+        }
+    }
+
+    private fun info(message: String) {
+        try {
+            android.util.Log.i(TAG, message)
+        } catch (_: RuntimeException) {
+            // Ver warn.
+        }
+    }
 
     /**
      * Parse a TAB-separated line (OFF Chile format).

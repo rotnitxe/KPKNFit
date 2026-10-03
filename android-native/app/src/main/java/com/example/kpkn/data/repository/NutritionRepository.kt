@@ -288,6 +288,12 @@ class NutritionRepository private constructor(
     private val _foodDatabase = MutableStateFlow<List<FoodItem>>(emptyList())
     val foodDatabase: StateFlow<List<FoodItem>> = _foodDatabase.asStateFlow()
 
+    /**
+     * Progreso (0..1) de la importación del catálogo global; null si no hay ninguna en curso (WP-S8). El selector de
+     * alimentos lo muestra en la pestaña Buscar mientras el catálogo se prepara.
+     */
+    val catalogImportProgress: StateFlow<Float?> = FoodImporter.importProgress
+
     // Phase B: SmartFoodResolver lazy-init. `by lazy` is synchronized: two threads can never end up with two FoodIndex
     // instances (the one the resolver reads and another one `initFoodIndex` fills). The instance never changes for the
     // life of the repository; what changes is its content, through FoodIndex.build (WP-S4).

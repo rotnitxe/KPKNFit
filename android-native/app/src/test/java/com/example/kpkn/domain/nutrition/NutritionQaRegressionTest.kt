@@ -8,7 +8,6 @@ import com.example.kpkn.data.models.AmountIntent
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.MealType
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.*
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
@@ -186,26 +185,12 @@ class NutritionQaRegressionTest {
     }
 
     companion object {
-        /** Import the shipped TSV through its real description parser. Do not replace its rows with invented fixtures. */
+        /**
+         * The shipped TSV through the importer's own line parser (WP-S8): one seam shared with the importer, not a private
+         * copy of it. Do not replace its rows with invented fixtures.
+         */
         private val offFoods: List<GlobalFoodEntity> by lazy {
-            File("src/main/assets/food_data/off_chile.csv").useLines { lines -> lines.mapNotNull { line ->
-                val p = line.split('\t')
-                if (p.size <= 156 || p[0].isBlank() || p[10].isBlank()) return@mapNotNull null
-                fun value(i: Int, max: Double = 100.0) = p[i].toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..max } ?: 0.0
-                val kcal = value(89, 1000.0); val protein = value(150); val fat = value(92); val carbs = value(129)
-                val energy = protein * 4.0 + fat * 9.0 + carbs * 4.0
-                if (kcal <= 0.0 || energy <= 0.0 || kotlin.math.abs(kcal - energy) / energy > 0.5) return@mapNotNull null
-                val parsed = FoodDescriptionParser.parse(p[10], p[18].takeIf { it.isNotBlank() }, kcal,
-                    protein, fat, carbs, value(146), value(130), value(156, 5.0), allowDatabaseMatch = false)
-                val name = FoodIndex.normalizeSearch(parsed.cleanedName)
-                val brand = parsed.brandHint?.let { FoodIndex.normalizeSearch(it) }
-                GlobalFoodEntity(foodId = "off_${p[0]}", name = parsed.cleanedName, brand = parsed.brandHint,
-                    normalizedName = name, normalizedBrand = brand,
-                    aliasesJson = JsonArray(listOfNotNull(name, brand).map(::JsonPrimitive)).toString(),
-                    calories = parsed.calories, protein = parsed.protein, carbs = parsed.carbs, fats = parsed.fats,
-                    source = "OFF Chile", sourcePriority = 80, sourceRecordId = p[0], nutritionBasis = "PER_100G_AS_SOLD",
-                    qualityFlagsJson = FoodImporter.encodeQualityFlags(FoodImporter.offQualityFlags(kcal, protein, carbs, fat, parsed.confidence)))
-            }.toList() }
+            File("src/main/assets/food_data/off_chile.csv").useLines { lines -> lines.mapNotNull(FoodImporter::parseOffLine).toList() }
         }
     }
 }

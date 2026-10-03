@@ -273,6 +273,9 @@ interface AugeDao {
 
 // ─── Nutrition ───────────────────────────────────────────────────────────────
 
+/** Contadores de uso de un alimento global: lo que WP-S8 conserva al reemplazar el catálogo importado. */
+data class GlobalFoodUsage(val foodId: String, val usageCount: Int, val lastUsedAt: String?)
+
 @Dao
 interface NutritionDao {
     // NutritionLog
@@ -421,6 +424,14 @@ interface NutritionDao {
         """
     )
     suspend fun incrementGlobalFoodUsage(foodId: String, lastUsedAt: String)
+
+    /** Los alimentos globales que se han usado alguna vez (WP-S8: se leen antes de reemplazar el catálogo). */
+    @Query("SELECT foodId, usageCount, lastUsedAt FROM global_foods WHERE usageCount > 0")
+    suspend fun getGlobalFoodUsage(): List<GlobalFoodUsage>
+
+    /** Devuelve a una fila recién importada el uso que tenía (WP-S8); si la fila ya no existe, no hace nada. */
+    @Query("UPDATE global_foods SET usageCount = :usageCount, lastUsedAt = :lastUsedAt WHERE foodId = :foodId")
+    suspend fun restoreGlobalFoodUsage(foodId: String, usageCount: Int, lastUsedAt: String?)
 
     @Query("DELETE FROM global_foods")
     suspend fun clearGlobalFoods()
