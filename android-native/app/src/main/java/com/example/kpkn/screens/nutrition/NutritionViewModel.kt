@@ -14,15 +14,26 @@ import com.example.kpkn.domain.nutrition.*
 import com.example.kpkn.domain.time.ActivityLocalDate
 import com.example.kpkn.domain.training.AppClock
 import com.example.kpkn.domain.training.SystemAppClock
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
 
 /** Margen tras la medianoche local para que el reloj ya marque el día nuevo. */
 private const val MIDNIGHT_TICK_SLACK_MS = 1_000L
+
+/**
+ * Cuánto dura la posibilidad de deshacer una eliminación aunque ninguna pantalla la esté mostrando (WP-U11). El aviso
+ * mismo dura unos segundos; esto solo evita que, tras salir de Nutrición y volver mucho después, reaparezca un
+ * «Deshacer» viejo. Es más largo que el aviso para no cortarlo con lectores de pantalla, que lo alargan.
+ */
+internal const val UNDO_WINDOW_MS = 30_000L
 
 /**
  * NutritionViewModel — State management for Nutrition screen.
@@ -102,6 +113,8 @@ class NutritionViewModel(
         val description: String? = null,
         /** null: la pantalla elige el tipo de comida según la hora (widget, share y deep link; C12). */
         val mealType: MealType? = null,
+        /** Id de la comida registrada que se abre para editarla (WP-U11); null abre el logger para una comida nueva. */
+        val editLogId: String? = null,
     )
 
     private val _foodLoggerOpenRequest = MutableStateFlow<FoodLoggerOpenRequest?>(null)
@@ -146,13 +159,20 @@ class NutritionViewModel(
 
     /**
      * Pide abrir el logger. [mealType] es la comida elegida a propósito (botón de una comida concreta);
-     * si es null la pantalla aplica el tipo por defecto de la hora (`defaultMealTypeNow`).
+     * si es null la pantalla aplica el tipo por defecto de la hora (`defaultMealTypeNow`). [editLogId] abre esa
+     * comida ya registrada para editarla (WP-U11): la pantalla la busca por id y la entrega al logger.
      */
-    fun requestFoodLoggerOpen(tab: Int = 0, description: String? = null, mealType: MealType? = null) {
+    fun requestFoodLoggerOpen(
+        tab: Int = 0,
+        description: String? = null,
+        mealType: MealType? = null,
+        editLogId: String? = null,
+    ) {
         _foodLoggerOpenRequest.value = FoodLoggerOpenRequest(
             tab = tab.coerceIn(0, 1),
             description = description?.trim()?.takeIf { it.isNotBlank() },
             mealType = mealType,
+            editLogId = editLogId?.takeIf { it.isNotBlank() },
         )
     }
 
@@ -386,9 +406,97 @@ class NutritionViewModel(
         nutritionRepo.saveAiInferredFoods(foods)
     }
 
-    fun deleteLog(logId: String) {
-        nutritionRepo.deleteNutritionLog(logId)
+    // ─── Deshacer, editar y avisos (WP-U11 / C9) ──────────────────────────────
+
+    private val _pendingUndo = MutableStateFlow<NutritionLog?>(null)
+
+    /** La última comida eliminada mientras todavía se puede deshacer; null si no hay nada que restaurar. */
+    val pendingUndo: StateFlow<NutritionLog?> = _pendingUndo.asStateFlow()
+
+    private val _uiMessage = MutableStateFlow<String?>(null)
+
+    /** Aviso para el usuario (un borrado o una restauración que falló); la pantalla lo muestra y lo consume. */
+    val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
+
+    fun consumeUiMessage() {
+        _uiMessage.value = null
     }
+
+    /**
+     * Elimina una comida y deja la eliminada en [pendingUndo] para poder deshacerlo. El borrado se espera: si falla, el
+     * usuario lo sabe ([uiMessage]) en vez de ver desaparecer una comida que sigue guardada. Corre sin cancelación: salir
+     * de la pantalla a mitad de un borrado no lo deja a medias.
+     */
+    fun deleteLog(logId: String) {
+        viewModelScope.launch {
+            try {
+                val deleted = withContext(NonCancellable) { nutritionRepo.deleteNutritionLogAndAwait(logId) }
+                if (deleted != null) offerUndo(deleted)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo eliminar la comida", error)
+                _uiMessage.value = "No se pudo eliminar la comida. Inténtalo de nuevo."
+            }
+        }
+    }
+
+    /**
+     * Restaura la comida que se acaba de eliminar: el mismo id, así que vuelve a su lugar y no duplica nada. Si falla,
+     * sigue pendiente (salvo que otra eliminación ya ocupe su lugar) para que se pueda reintentar.
+     */
+    fun undoDelete() {
+        val log = _pendingUndo.value ?: return
+        closeUndoWindow()
+        viewModelScope.launch {
+            try {
+                withContext(NonCancellable) { nutritionRepo.updateNutritionLog(log) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                android.util.Log.w("NutritionViewModel", "No se pudo restaurar la comida", error)
+                if (_pendingUndo.compareAndSet(null, log)) startUndoWindow()
+                _uiMessage.value = "No se pudo restaurar la comida. Inténtalo de nuevo."
+            }
+        }
+    }
+
+    /** El plazo para deshacer terminó (o el usuario cerró el aviso): la eliminación queda firme. */
+    fun dismissUndo() {
+        closeUndoWindow()
+    }
+
+    @Volatile
+    private var undoWindow: Job? = null
+
+    /**
+     * La eliminación nueva ocupa el lugar de la anterior y abre su propio plazo. El plazo se abre antes de publicarla: quien
+     * la ve ya sabe cuándo vence.
+     */
+    private fun offerUndo(deleted: NutritionLog) {
+        startUndoWindow()
+        _pendingUndo.value = deleted
+    }
+
+    private fun startUndoWindow() {
+        undoWindow?.cancel()
+        undoWindow = viewModelScope.launch {
+            delay(UNDO_WINDOW_MS)
+            _pendingUndo.value = null
+        }
+    }
+
+    private fun closeUndoWindow() {
+        undoWindow?.cancel()
+        undoWindow = null
+        _pendingUndo.value = null
+    }
+
+    /**
+     * Guarda la edición de una comida ya registrada. A diferencia de [saveLog] no lleva confirmaciones: editar una comida
+     * nunca enseña un hábito. Suspende hasta que la escritura termina; un fallo llega al logger, que conserva el borrador.
+     */
+    suspend fun updateLog(log: NutritionLog) = nutritionRepo.updateNutritionLog(log)
 
     fun duplicateLog(log: NutritionLog) {
         val duplicated = duplicateLog(log, _selectedDate.value)

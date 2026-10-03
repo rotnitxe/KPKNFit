@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,6 +45,9 @@ import com.example.kpkn.screens.nutrition.components.MealTypeSaver
 import com.example.kpkn.screens.nutrition.components.SupplementTrackingCard
 import com.example.kpkn.screens.nutrition.components.CreatineSaturationOverlay
 import com.example.kpkn.ui.components.KpknAlertDialog
+import com.example.kpkn.ui.components.KpknSnackbar
+import com.example.kpkn.ui.components.SnackbarType
+import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.LocalHazeState
 import com.example.kpkn.ui.components.kpknGlass
 import com.example.kpkn.ui.components.kpknGlassOrFallback
@@ -95,6 +99,8 @@ fun NutritionScreen(
     val sharedDescription by viewModel.pendingSharedDescription.collectAsState()
     val sharedTab by viewModel.pendingSharedTab.collectAsState()
     val foodLoggerOpenRequest by viewModel.foodLoggerOpenRequest.collectAsState()
+    val pendingUndo by viewModel.pendingUndo.collectAsState()
+    val uiMessage by viewModel.uiMessage.collectAsState()
     val dailyEnergyBalance by viewModel.dailyEnergyBalance.collectAsState()
     val caffeineLimits by viewModel.caffeineLimits.collectAsState()
     val creatineSaturation by viewModel.creatineSaturation.collectAsState()
@@ -113,6 +119,10 @@ fun NutritionScreen(
     var selectedMealForLogger by rememberSaveable(stateSaver = MealTypeSaver) { mutableStateOf(defaultMealTypeNow()) }
     var foodLoggerInitialDescription by remember { mutableStateOf<String?>(sharedDescription) }
     var foodLoggerInitialTab by rememberSaveable { mutableIntStateOf(sharedTab.coerceIn(0, 1)) }
+    // WP-U11: la comida registrada que se abrió para editar (null = comida nueva). Rotar la olvida y no importa: el
+    // borrador vive en el ViewModel del logger, que es quien sabe que se está editando y nunca manda confirmaciones.
+    var editingLog by remember { mutableStateOf<NutritionLog?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
     var pendingNutritionSetupDraftId by remember { mutableStateOf<String?>(null) }
     var pendingSetupRefresh by remember { mutableIntStateOf(0) }
     val nutritionContext = androidx.compose.ui.platform.LocalContext.current
@@ -152,12 +162,37 @@ fun NutritionScreen(
 
     LaunchedEffect(foodLoggerOpenRequest) {
         val request = foodLoggerOpenRequest ?: return@LaunchedEffect
+        // WP-U11: editar abre una comida ya registrada, buscada por id; si ya no existe (se eliminó) no hay nada que abrir.
+        val editTarget = request.editLogId?.let { id -> viewModel.nutritionLogs.value.firstOrNull { it.id == id } }
+        if (request.editLogId != null && editTarget == null) {
+            viewModel.consumeFoodLoggerOpenRequest()
+            return@LaunchedEffect
+        }
+        editingLog = editTarget
         foodLoggerInitialDescription = request.description
         foodLoggerInitialTab = request.tab
         // C12: widget, share y deep link no eligen comida: heredan la de la hora.
-        selectedMealForLogger = request.mealType ?: defaultMealTypeNow()
+        selectedMealForLogger = editTarget?.mealType ?: request.mealType ?: defaultMealTypeNow()
         showFoodLogger = true
         viewModel.consumeFoodLoggerOpenRequest()
+    }
+
+    // WP-U11 (C9): «Comida eliminada» con «Deshacer». El plazo es el del propio aviso: si termina o se cierra, la
+    // eliminación queda firme; una eliminación nueva reinicia el efecto y ocupa su lugar.
+    LaunchedEffect(pendingUndo) {
+        if (pendingUndo == null) return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = "Comida eliminada",
+            actionLabel = "Deshacer",
+            duration = SnackbarDuration.Short,
+        )
+        if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete() else viewModel.dismissUndo()
+    }
+
+    LaunchedEffect(uiMessage) {
+        val message = uiMessage ?: return@LaunchedEffect
+        snackbarHostState.showKpknSnackbar(message, SnackbarType.DANGER)
+        viewModel.consumeUiMessage()
     }
 
     LaunchedEffect(activePlan?.id, activePlan?.calorieTarget, activePlan?.proteinGoal, activePlan?.carbGoal, activePlan?.fatGoal) {
@@ -271,6 +306,7 @@ fun NutritionScreen(
                         mealType = mealType,
                         group = group,
                         onDelete = { viewModel.deleteLog(it) },
+                        onEdit = { viewModel.requestFoodLoggerOpen(tab = 0, editLogId = it) },
                         onAddFood = {
                             selectedMealForLogger = mealType
                             foodLoggerInitialDescription = null
@@ -356,6 +392,15 @@ fun NutritionScreen(
                 )
             }
         }
+
+        // WP-U11: el aviso de «Deshacer» vive sobre el botón de registrar, nunca debajo de él.
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 160.dp),
+        ) { data -> KpknSnackbar(data) }
     }
 
     // ── Food Logger Drawer ───────────────────────────────────────────────────
@@ -367,13 +412,18 @@ fun NutritionScreen(
             viewModel.consumeSharedDescription()
             foodLoggerInitialDescription = null
             foodLoggerInitialTab = 0
+            editingLog = null
         },
-        onSave = { log, confirmations -> viewModel.saveLog(log, confirmations) },
+        // WP-U11: editar guarda sobre la misma comida y no enseña ningún hábito (el logger tampoco manda confirmaciones).
+        onSave = { log, confirmations ->
+            if (editingLog != null) viewModel.updateLog(log) else viewModel.saveLog(log, confirmations)
+        },
         foodDatabase = foodDatabase,
         initialDate = selectedDate,
         initialMealType = selectedMealForLogger,
         initialDescription = foodLoggerInitialDescription,
         initialTab = foodLoggerInitialTab,
+        initialLog = editingLog,
     )
 
     CreatineSaturationOverlay(
@@ -1048,6 +1098,7 @@ private fun MealGroupCard(
     mealType: MealType,
     group: MealGroup?,
     onDelete: (String) -> Unit,
+    onEdit: (String) -> Unit,
     onAddFood: () -> Unit,
 ) {
     val label = MEAL_LABELS[mealType] ?: mealType.name
@@ -1132,7 +1183,7 @@ private fun MealGroupCard(
             AnimatedVisibility(visible = expanded && logs.isNotEmpty()) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     logs.forEach { log ->
-                        LogEntry(log = log, onDelete = onDelete)
+                        LogEntry(log = log, onDelete = onDelete, onEdit = onEdit)
                         if (log != logs.last()) Spacer(Modifier.height(4.dp))
                     }
                 }
@@ -1146,14 +1197,18 @@ private fun MealGroupCard(
 // ═══════════════════════════════════════════════════════════════════════
 
 @Composable
-private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
+private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit, onEdit: (String) -> Unit) {
     val foodNames = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
     val pro = log.foods.sumOf { it.protein }
     val car = log.foods.sumOf { it.carbs }
     val fat = log.foods.sumOf { it.fats }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            // WP-U11 (C9): tocar la fila abre la comida para editarla; el icono de eliminar sigue siendo su propio botón.
+            .clickable(onClickLabel = "Editar", role = Role.Button) { onEdit(log.id) },
         shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
@@ -1187,12 +1242,13 @@ private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
                     )
                 }
             }
-            IconButton(onClick = { onDelete(log.id) }, modifier = Modifier.size(28.dp)) {
+            // WP-U11 (C9): zona táctil de 40 dp (eran 28) y un nombre que dice qué comida se elimina.
+            IconButton(onClick = { onDelete(log.id) }, modifier = Modifier.size(40.dp)) {
                 Icon(
                     Icons.Default.Close,
-                    "Eliminar",
+                    "Eliminar comida: $foodNames",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }

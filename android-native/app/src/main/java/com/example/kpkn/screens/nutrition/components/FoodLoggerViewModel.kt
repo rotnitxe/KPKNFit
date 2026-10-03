@@ -14,9 +14,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.models.FoodCandidate
 import com.example.kpkn.data.models.MealType
+import com.example.kpkn.data.models.NutritionLog
 import com.example.kpkn.domain.nutrition.ContextDetector
 import com.example.kpkn.domain.nutrition.ResolvedTag
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine
+import com.example.kpkn.domain.nutrition.loggedFoodToEditableTag
 import java.time.LocalDate
 import java.util.UUID
 import kotlinx.coroutines.Job
@@ -27,6 +29,9 @@ internal const val FOOD_LOGGER_VIEW_MODEL_KEY = "food_logger"
 
 /** Tope de caracteres que se copian al SavedStateHandle: el Bundle de estado del proceso es pequeño (TransactionTooLarge). */
 private const val MAX_PERSISTED_TEXT = 4_000
+
+/** Largo del día (`yyyy-MM-dd`) dentro de `NutritionLog.date`; el resto es la hora con la que se guardó. */
+private const val DATE_LENGTH = 10
 
 /**
  * Guarda el tipo de comida por nombre para `rememberSaveable` en los anfitriones (Nutrición, Home): así la hoja del
@@ -59,6 +64,17 @@ internal data class FoodLoggerSeed(
 )
 
 /**
+ * Lo que había al abrir la edición de una comida registrada (WP-U11 / C9): la comida tal como se guardó y con qué
+ * tarjetas, comida y fecha se abrió. Sirve para conservar lo que el usuario no toca y para saber si algo cambió.
+ */
+internal class FoodLoggerEditBaseline(
+    val original: NutritionLog,
+    val tags: List<ResolvedTag>,
+    val mealType: MealType,
+    val logDate: String,
+)
+
+/**
  * Estado del borrador del logger de comidas (WP-U7 / C5). Cada propiedad es un `mutableStateOf`, así que el drawer lo
  * usa por delegación (`var tags by remember(draft) { draft::tags }`) y sus ~40 funciones locales no cambian. Vive en el
  * [FoodLoggerViewModel]: rotar, plegar el teléfono o recrear la composición conserva el texto, las tarjetas
@@ -85,6 +101,13 @@ internal class FoodLoggerDraft {
 
     /** Comida registrada que se está editando (WP-U11); null mientras se crea una nueva. */
     var editingLogId by mutableStateOf<String?>(null)
+
+    /**
+     * La edición tal como se abrió (WP-U11); null mientras se crea una comida nueva. No se observa: se lee al guardar
+     * (para conservar lo que no se tocó) y al cerrar. Tampoco se persiste: una edición no sobrevive a la muerte del proceso.
+     */
+    var editBaseline: FoodLoggerEditBaseline? = null
+
     var isAnalyzing by mutableStateOf(false)
     var analysisStage by mutableStateOf<ParseStage?>(null)
     var analysisStartedAtMs by mutableLongStateOf(0L)
@@ -103,6 +126,17 @@ internal class FoodLoggerDraft {
     /** Verdadero si el usuario ya escribió, buscó o interpretó algo: un borrador así nunca se vuelve a sembrar. */
     val hasContent: Boolean
         get() = description.isNotBlank() || tags.isNotEmpty() || searchQuery.isNotBlank()
+
+    /**
+     * Verdadero si se abrió una comida registrada para editarla y todavía nada cambió (ni la comida, ni la fecha, ni los
+     * alimentos, ni lo escrito): cerrar entonces no necesita confirmar un descarte. Expandir una tarjeta no es un cambio.
+     */
+    val isUnchangedEdit: Boolean
+        get() {
+            val base = editBaseline ?: return false
+            return description.isBlank() && searchQuery.isBlank() && mealType == base.mealType && logDate == base.logDate &&
+                tags.map { it.copy(isExpanded = false) } == base.tags.map { it.copy(isExpanded = false) }
+        }
 
     fun seed(): FoodLoggerSeed = FoodLoggerSeed(
         description = description,
@@ -128,6 +162,7 @@ internal class FoodLoggerDraft {
         activeTab = 0
         draftLogId = UUID.randomUUID().toString()
         editingLogId = null
+        editBaseline = null
         isAnalyzing = false
         analysisStage = null
         analysisStartedAtMs = 0L
@@ -199,6 +234,29 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
         }
 
     /**
+     * Siembra el borrador con una comida ya registrada para editarla (WP-U11 / C9): su id (guardar reemplaza la fila, no la
+     * duplica), su comida, su fecha y una tarjeta decidida por alimento ([loggedFoodToEditableTag]). Es de una sola vez,
+     * igual que [seedIfEmpty] y con la misma marca: recomponer o rotar nunca vuelve a cargar la comida encima de lo que el
+     * usuario ya cambió, y un borrador restaurado tras la muerte del proceso no se pisa. Devuelve si sembró; si no, el
+     * llamador cae a [seedIfEmpty].
+     */
+    fun seedFromLog(log: NutritionLog): Boolean = Snapshot.withoutReadObservation {
+        if (seeded || log.id.isBlank()) return@withoutReadObservation false
+        seeded = true
+        if (draft.hasContent) return@withoutReadObservation false
+        val tags = log.foods.map(::loggedFoodToEditableTag)
+        val day = log.date.take(DATE_LENGTH).ifBlank { LocalDate.now().toString() }
+        draft.draftLogId = log.id
+        draft.editingLogId = log.id
+        draft.logDate = day
+        draft.mealType = log.mealType
+        draft.activeTab = 0
+        draft.tags = tags
+        draft.editBaseline = FoodLoggerEditBaseline(original = log, tags = tags, mealType = log.mealType, logDate = day)
+        true
+    }
+
+    /**
      * Verdadero una sola vez y solo si el borrador viene de una semilla guardada: el drawer vuelve a interpretar el
      * último texto analizado (las tarjetas no sobreviven a la muerte del proceso). Una rotación posterior no repite
      * el análisis ni resucita tarjetas que el usuario quitó.
@@ -211,17 +269,25 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
 
     /**
      * Copia los siete primitivos del borrador al [SavedStateHandle] tras cada cambio (un `snapshotFlow` en
-     * [viewModelScope]). Idempotente: si ya está activo no hace nada. [clearDraft] lo detiene.
+     * [viewModelScope]). Idempotente: si ya está activo no hace nada. [clearDraft] lo detiene. Al editar una comida ya
+     * registrada no copia nada (ver [persistableSeed]).
      */
     fun persistSeed() {
         if (persistJob?.isActive == true) return
         persistJob = viewModelScope.launch {
-            snapshotFlow { draft.seed() }.collect { writeSeed(it) }
+            snapshotFlow { persistableSeed() }.collect { writeSeed(it) }
         }
     }
 
     /** Copia ahora los siete primitivos al [SavedStateHandle] (lo que [persistSeed] hace tras cada cambio). */
-    fun flushSeed() = writeSeed(draft.seed())
+    fun flushSeed() = writeSeed(persistableSeed())
+
+    /**
+     * La semilla que sobrevive a la muerte del proceso, o null mientras se edita una comida ya registrada (WP-U11): el id
+     * del borrador es el de esa comida, y un borrador restaurado con él guardaría una comida nueva encima de la original.
+     * Una edición no se restaura: se abre de nuevo desde la lista y lo ya guardado no se pierde.
+     */
+    private fun persistableSeed(): FoodLoggerSeed? = if (draft.editingLogId == null) draft.seed() else null
 
     /**
      * Cierra el borrador: detiene la persistencia y el trabajo en curso, deja el holder como nuevo y borra la semilla.
@@ -243,7 +309,11 @@ internal class FoodLoggerViewModel(private val handle: SavedStateHandle) : ViewM
         SEED_KEYS.forEach { handle.remove<Any?>(it) }
     }
 
-    private fun writeSeed(seed: FoodLoggerSeed) {
+    private fun writeSeed(seed: FoodLoggerSeed?) {
+        if (seed == null) {
+            SEED_KEYS.forEach { handle.remove<Any?>(it) }
+            return
+        }
         handle[KEY_DESCRIPTION] = seed.description.take(MAX_PERSISTED_TEXT)
         handle[KEY_LAST_ANALYZED] = seed.lastAnalyzedDescription.take(MAX_PERSISTED_TEXT)
         handle[KEY_MEAL_TYPE] = seed.mealType.name

@@ -131,6 +131,196 @@ class NutritionViewModelTest {
         awaitTodayLogs { logs -> logs.size >= 2 && logs.any { it.notes?.contains("duplicado") == true } }
     }
 
+    // ─── Deshacer y editar (WP-U11 / C9) ────────────────────────────────────
+
+    private companion object {
+        /** Los borrados y las restauraciones terminan en Dispatchers.IO; con la máquina ocupada 5 s no alcanzan. */
+        const val SLOW_MS = 30_000L
+    }
+
+    private fun todayLog(id: String, foodName: String = "Arroz") = NutritionLog(
+        id = id,
+        date = LocalDate.now().toString() + "T12:00:00.000Z",
+        mealType = MealType.LUNCH,
+        foods = listOf(LoggedFood(id = "food-$id", foodName = foodName, amount = 100.0, calories = 200.0, protein = 5.0, carbs = 40.0, fats = 1.0)),
+        notes = "Nota de $id",
+    )
+
+    /** La eliminación se espera en Dispatchers.IO; espera a que el VM publique la comida que se puede deshacer. */
+    private fun awaitPendingUndo(timeoutMs: Long = SLOW_MS, condition: (NutritionLog?) -> Boolean) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (condition(vm.pendingUndo.value)) return
+            Thread.sleep(10)
+        }
+        assertTrue("pendingUndo did not satisfy condition within ${timeoutMs}ms; value=${vm.pendingUndo.value}", condition(vm.pendingUndo.value))
+    }
+
+    /** Guarda la comida y espera a que el VM la muestre: así el borrado encuentra la fila y la lista publicada. */
+    private fun saveAndAwait(log: NutritionLog) {
+        kotlinx.coroutines.runBlocking { nutritionRepo.saveNutritionLog(log) }
+        awaitTodayLogs(SLOW_MS) { logs -> logs.any { it.id == log.id } }
+    }
+
+    private fun storedLogIds(): List<String> = kotlinx.coroutines.runBlocking {
+        nutritionRepo.databaseForTests().nutritionDao().getAllLogs().map { it.id }
+    }
+
+    @Test
+    fun `delete then undo restores the same log id`() {
+        val log = todayLog("undo-1")
+        saveAndAwait(log)
+
+        vm.deleteLog(log.id)
+        awaitTodayLogs(SLOW_MS) { it.isEmpty() }
+        awaitPendingUndo { it != null }
+        assertEquals("the log that can be undone is the one the user saw", log, vm.pendingUndo.value)
+        assertEquals(emptyList<String>(), storedLogIds())
+
+        vm.undoDelete()
+        awaitTodayLogs(SLOW_MS) { logs -> logs.any { it.id == log.id } }
+
+        assertNull("the undo is spent", vm.pendingUndo.value)
+        assertEquals(listOf(log), vm.todayLogs.value)
+        assertEquals("the row is back in Room under the same id", listOf(log.id), storedLogIds())
+        assertNull(vm.uiMessage.value)
+    }
+
+    @Test
+    fun `deleting a log that is not there leaves nothing to undo and no message`() {
+        val real = todayLog("real-1")
+        saveAndAwait(real)
+
+        vm.deleteLog("ghost")
+        vm.deleteLog(real.id)
+        awaitPendingUndo { it?.id == real.id }
+
+        assertNull(vm.uiMessage.value)
+        awaitTodayLogs(SLOW_MS) { it.isEmpty() }
+    }
+
+    @Test
+    fun `dismissing the undo makes the delete final`() {
+        val log = todayLog("final-1")
+        saveAndAwait(log)
+        vm.deleteLog(log.id)
+        awaitPendingUndo { it != null }
+
+        vm.dismissUndo()
+        vm.undoDelete()
+
+        assertNull(vm.pendingUndo.value)
+        assertTrue(vm.todayLogs.value.isEmpty())
+        assertEquals(emptyList<String>(), storedLogIds())
+    }
+
+    @Test
+    fun `an undo nobody uses expires on its own and the delete stays final`() {
+        val log = todayLog("expire-1")
+        saveAndAwait(log)
+        vm.deleteLog(log.id)
+        awaitPendingUndo { it != null }
+
+        testDispatcher.scheduler.advanceTimeBy(UNDO_WINDOW_MS - 1)
+        testDispatcher.scheduler.runCurrent()
+        assertNotNull("still undoable inside the window", vm.pendingUndo.value)
+
+        testDispatcher.scheduler.advanceTimeBy(1)
+        testDispatcher.scheduler.runCurrent()
+        assertNull("a stale undo is not offered again later", vm.pendingUndo.value)
+        assertTrue(vm.todayLogs.value.isEmpty())
+    }
+
+    @Test
+    fun `a new delete opens its own undo window instead of inheriting the old one`() {
+        val first = todayLog("window-1", "Pan")
+        val second = todayLog("window-2", "Palta")
+        saveAndAwait(first)
+        saveAndAwait(second)
+        vm.deleteLog(first.id)
+        awaitPendingUndo { it?.id == first.id }
+        testDispatcher.scheduler.advanceTimeBy(UNDO_WINDOW_MS - 1_000)
+        testDispatcher.scheduler.runCurrent()
+
+        vm.deleteLog(second.id)
+        awaitPendingUndo { it?.id == second.id }
+        // The first window would end here: the second delete is not cut short by it.
+        testDispatcher.scheduler.advanceTimeBy(2_000)
+        testDispatcher.scheduler.runCurrent()
+        assertEquals(second.id, vm.pendingUndo.value?.id)
+
+        testDispatcher.scheduler.advanceTimeBy(UNDO_WINDOW_MS)
+        testDispatcher.scheduler.runCurrent()
+        assertNull(vm.pendingUndo.value)
+    }
+
+    @Test
+    fun `a second delete takes the place of the pending undo`() {
+        val first = todayLog("first-1", "Pan")
+        val second = todayLog("second-1", "Palta")
+        saveAndAwait(first)
+        saveAndAwait(second)
+
+        vm.deleteLog(first.id)
+        awaitPendingUndo { it?.id == first.id }
+        vm.deleteLog(second.id)
+        awaitPendingUndo { it?.id == second.id }
+        vm.undoDelete()
+        awaitTodayLogs(SLOW_MS) { logs -> logs.map { it.id } == listOf(second.id) }
+
+        assertNull(vm.pendingUndo.value)
+        assertEquals("only the latest delete can be undone", listOf(second.id), storedLogIds())
+    }
+
+    @Test
+    fun `updateLog replaces the log under its own id and keeps the day totals right`() {
+        val log = todayLog("edit-1")
+        saveAndAwait(log)
+        val edited = log.copy(
+            foods = listOf(LoggedFood(id = "food-edit-1", foodName = "Arroz", amount = 150.0, calories = 300.0, protein = 7.5, carbs = 60.0, fats = 1.5)),
+        )
+
+        kotlinx.coroutines.runBlocking { vm.updateLog(edited) }
+        awaitTodayLogs(SLOW_MS) { logs -> logs.singleOrNull()?.foods?.singleOrNull()?.amount == 150.0 }
+
+        assertEquals(listOf(edited), vm.todayLogs.value)
+        assertEquals("the row is replaced, never duplicated", listOf(log.id), storedLogIds())
+        assertEquals(300.0, vm.dailyTotals.value.calories, 0.01)
+    }
+
+    @Test
+    fun `updateLog does not swallow a failed write`() {
+        val log = todayLog("edit-2")
+        saveAndAwait(log)
+
+        val failure = runCatching { kotlinx.coroutines.runBlocking { vm.updateLog(log.copy(foods = emptyList())) } }.exceptionOrNull()
+
+        assertTrue("an invalid meal reaches the caller instead of looking saved: $failure", failure is IllegalArgumentException)
+        assertEquals(listOf(log), vm.todayLogs.value)
+        assertEquals(listOf(log.id), storedLogIds())
+    }
+
+    @Test
+    fun `a failed restore keeps the undo pending and tells the user`() {
+        // A row that no longer passes the save validation (no foods): deleting it works, restoring it cannot.
+        val invalid = todayLog("invalid-1").copy(foods = emptyList())
+        nutritionRepo.addNutritionLog(invalid)
+        val deadline = System.currentTimeMillis() + SLOW_MS
+        while (invalid.id !in storedLogIds() && System.currentTimeMillis() < deadline) Thread.sleep(10)
+        assertTrue(invalid.id in storedLogIds())
+
+        vm.deleteLog(invalid.id)
+        awaitPendingUndo { it?.id == invalid.id }
+        vm.undoDelete()
+        val messageDeadline = System.currentTimeMillis() + SLOW_MS
+        while (vm.uiMessage.value == null && System.currentTimeMillis() < messageDeadline) Thread.sleep(10)
+
+        assertEquals("No se pudo restaurar la comida. Inténtalo de nuevo.", vm.uiMessage.value)
+        assertEquals("the user can try again", invalid, vm.pendingUndo.value)
+        vm.consumeUiMessage()
+        assertNull(vm.uiMessage.value)
+    }
+
     // ─── Daily Totals ──────────────────────────────────────────────────────
 
     @Test

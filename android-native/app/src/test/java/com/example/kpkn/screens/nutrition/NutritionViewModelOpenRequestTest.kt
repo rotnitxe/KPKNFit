@@ -83,6 +83,21 @@ class NutritionViewModelOpenRequestTest {
     }
 
     @Test
+    fun `a request to edit carries the log id and a blank id is not an edit`() {
+        vm.requestFoodLoggerOpen(tab = 0, editLogId = "log-7")
+        val request = vm.foodLoggerOpenRequest.value
+        assertEquals("log-7", request?.editLogId)
+        assertEquals(0, request?.tab)
+        assertNull(request?.description)
+        assertNull(request?.mealType)
+
+        vm.requestFoodLoggerOpen(tab = 0, editLogId = "   ")
+        assertNull(vm.foodLoggerOpenRequest.value?.editLogId)
+        vm.requestFoodLoggerOpen(tab = 1)
+        assertEquals(NutritionViewModel.FoodLoggerOpenRequest(tab = 1), vm.foodLoggerOpenRequest.value)
+    }
+
+    @Test
     fun `consuming the request clears it and a later one starts fresh`() {
         vm.requestFoodLoggerOpen(tab = 0, mealType = MealType.BREAKFAST)
         vm.consumeFoodLoggerOpenRequest()

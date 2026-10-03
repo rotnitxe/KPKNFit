@@ -76,7 +76,8 @@ import com.example.kpkn.domain.nutrition.canFinalize
 import com.example.kpkn.domain.nutrition.toLoggedFood
 import com.example.kpkn.domain.nutrition.confirmedLearning
 import com.example.kpkn.domain.nutrition.rescaleEstimatedFood
-import com.example.kpkn.domain.nutrition.rebaseManualNutrients
+import com.example.kpkn.domain.nutrition.refreshAfterEdit
+import com.example.kpkn.domain.nutrition.applyEdit
 import com.example.kpkn.domain.nutrition.mergeReanalyzedTags
 import com.example.kpkn.domain.nutrition.absolutePortionOptions
 import com.example.kpkn.domain.nutrition.hasMaterialQuestion
@@ -170,6 +171,8 @@ fun FoodLoggerDrawer(
     initialMealType: MealType,
     initialDescription: String? = null,
     initialTab: Int = 0,
+    /** WP-U11: a registered meal to edit; the sheet opens with its foods as decided cards and saves over the same id. */
+    initialLog: NutritionLog? = null,
 ) {
     val programRepo = ProgramRepository.getInstance()
     val settings by programRepo.settings.collectAsState()
@@ -182,7 +185,12 @@ fun FoodLoggerDrawer(
         FoodLoggerViewModel(createSavedStateHandle())
     }
     remember(vm) {
-        vm.seedIfEmpty(date = initialDate, meal = initialMealType, description = initialDescription.orEmpty(), tab = initialTab)
+        // WP-U11: a registered meal opened to edit seeds the draft with its cards (once, like any seed); otherwise the
+        // host's values seed a new meal.
+        val seededFromLog = initialLog != null && vm.seedFromLog(initialLog)
+        if (!seededFromLog) {
+            vm.seedIfEmpty(date = initialDate, meal = initialMealType, description = initialDescription.orEmpty(), tab = initialTab)
+        }
     }
     LaunchedEffect(vm) { vm.persistSeed() }
     val draft = vm.draft
@@ -214,6 +222,8 @@ fun FoodLoggerDrawer(
     var showDiscardConfirmation by remember { mutableStateOf(false) }
     var sheetRevision by remember { mutableIntStateOf(0) }
     var draftLogId by remember(draft) { draft::draftLogId }
+    // WP-U11: editing a registered meal (title, primary action, discard text) comes from the draft, so it survives rotation.
+    val isEditing = draft.editingLogId != null
     var showSuccess by remember(draft) { draft::showSuccess }
     var isAnalyzing by remember(draft) { draft::isAnalyzing }
     var compositionRequestToken by remember { mutableIntStateOf(0) }
@@ -253,7 +263,8 @@ fun FoodLoggerDrawer(
     val requestDismiss: () -> Unit = {
         // Prevent accidental dismiss when there's content (description typed or foods added)
         if (!isSaving) {
-            if (description.isBlank() && tags.isEmpty()) closeLogger()
+            // An edit that changed nothing closes at once: there is no draft to lose.
+            if ((description.isBlank() && tags.isEmpty()) || draft.isUnchangedEdit) closeLogger()
             else showDiscardConfirmation = true
         } else sheetRevision++
     }
@@ -712,14 +723,9 @@ fun FoodLoggerDrawer(
     // FIX NUT-04: deduplicate rapid double taps and fix rank 0 hardcode
 
     fun refreshTag(tagId: String, dimension: String? = null) {
-        tags = tags.map { tag ->
-            if (tag.id != tagId) tag else NutritionInterpretationBridge.refresh((if (dimension == null) tag.rebaseManualNutrients() else tag).copy(
-                confirmedDimensions = if (dimension == null) tag.confirmedDimensions else tag.confirmedDimensions + dimension,
-                explicitDecision = if (dimension == null) tag.explicitDecision else false,
-                // Rebuild intervals from the newly selected source/amount.
-                loggedFood = tag.loggedFood?.copy(caloriesMin = null, caloriesMax = null, proteinMin = null, proteinMax = null, carbsMin = null, carbsMax = null, fatsMin = null, fatsMax = null),
-            ))
-        }
+        // WP-U11: refreshAfterEdit is the body that used to live here for the foods of the text and of the search, and it
+        // keeps a reopened (EDIT) food decided: editing its amount never opens a question or confirms a dimension.
+        tags = tags.map { tag -> if (tag.id != tagId) tag else refreshAfterEdit(tag, dimension) }
         reviewRequired = tags.any { it.hasMaterialQuestion() }
     }
 
@@ -1215,14 +1221,21 @@ fun FoodLoggerDrawer(
             return
         }
         val foods = activeTags.map { tag -> tag.interpretationV2!!.toLoggedFood(tag.loggedFood!!) }
-        val log = NutritionLog(id = draftLogId, date = "${logDate}T12:00:00.000Z", mealType = mealType, foods = foods, status = NutritionStatus.CONSUMED)
-        val confirmations = activeTags.mapNotNull { it.confirmedLearning() }
+        // WP-U11: a registered meal being edited keeps its id, notes, status and the foods the user did not touch, and its
+        // save never teaches a habit: editing is not a confirmation.
+        val original = draft.editBaseline?.original
+        val log = if (original != null) {
+            applyEdit(original, foods, mealType, logDate)
+        } else {
+            NutritionLog(id = draftLogId, date = "${logDate}T12:00:00.000Z", mealType = mealType, foods = foods, status = NutritionStatus.CONSUMED)
+        }
+        val confirmations = if (original != null) emptyList() else activeTags.mapNotNull { it.confirmedLearning() }
         isSaving = true
         saveError = null
         scope.launch {
             try {
                 onSave(log, confirmations)
-                NutritionTelemetry.event("save_log", mapOf("foodCount" to foods.size, "tagCount" to activeTags.size))
+                NutritionTelemetry.event("save_log", mapOf("foodCount" to foods.size, "tagCount" to activeTags.size, "edited" to (original != null)))
                 showSuccess = true
                 reviewRequired = false
             } catch (cancelled: CancellationException) { throw cancelled }
@@ -1399,8 +1412,13 @@ fun FoodLoggerDrawer(
     if (showDiscardConfirmation) {
         AlertDialog(
             onDismissRequest = keepEditing,
-            title = { Text("¿Descartar esta comida?") },
-            text = { Text("El borrador y sus correcciones no se guardarán ni se usarán para aprender hábitos.") },
+            title = { Text(if (isEditing) "¿Descartar los cambios?" else "¿Descartar esta comida?") },
+            text = {
+                Text(
+                    if (isEditing) "La comida seguirá como estaba guardada."
+                    else "El borrador y sus correcciones no se guardarán ni se usarán para aprender hábitos.",
+                )
+            },
             confirmButton = { TextButton(onClick = { showDiscardConfirmation = false; closeLogger() }) { Text("Descartar") } },
             dismissButton = { TextButton(onClick = keepEditing) { Text("Seguir editando") } },
         )
@@ -1432,12 +1450,16 @@ fun FoodLoggerDrawer(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = "Registrar comida",
+                            text = if (isEditing) "Editar comida" else "Registrar comida",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Black,
                         )
                         Text(
-                            text = "Describe tu comida o agrega alimentos uno por uno.",
+                            text = if (isEditing) {
+                                "Ajusta los alimentos o la comida y guarda los cambios."
+                            } else {
+                                "Describe tu comida o agrega alimentos uno por uno."
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -1870,7 +1892,12 @@ fun FoodLoggerDrawer(
                             )
                             Icon(icon, null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (label == "REGISTRAR") "Interpretar comida" else if (label == "GUARDAR") "Guardar comida" else label, fontWeight = FontWeight.Black)
+                            Text(
+                                if (label == "REGISTRAR") "Interpretar comida"
+                                else if (label == "GUARDAR") (if (isEditing) "Guardar cambios" else "Guardar comida")
+                                else label,
+                                fontWeight = FontWeight.Black,
+                            )
                         }
                     }
 
@@ -1913,7 +1940,7 @@ fun FoodLoggerDrawer(
         }
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             KpknSnackbarBanner(
-                message = "¡Comida registrada!",
+                message = if (isEditing) "¡Cambios guardados!" else "¡Comida registrada!",
                 type = SnackbarType.SUCCESS,
             )
         }

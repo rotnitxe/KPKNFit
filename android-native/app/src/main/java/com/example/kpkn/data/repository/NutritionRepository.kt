@@ -257,10 +257,13 @@ class NutritionRepository private constructor(
         }
     }
 
-    fun updateNutritionLog(log: NutritionLog) {
-        scope.launch {
-            runCatching { saveNutritionLog(log) }
-        }
+    /**
+     * Guarda una comida ya registrada tal cual, esperando la escritura (WP-U11: editar una comida y deshacer un borrado).
+     * Es el mismo upsert por id de [saveNutritionLog] y sin confirmaciones que aprender: editar o restaurar nunca entrena
+     * un hábito. Un fallo se propaga al llamador, que se lo muestra al usuario.
+     */
+    suspend fun updateNutritionLog(log: NutritionLog) {
+        saveNutritionLog(log, emptyList())
     }
 
     fun deleteNutritionLog(logId: String) {
@@ -269,12 +272,20 @@ class NutritionRepository private constructor(
         }
     }
 
-    suspend fun deleteNutritionLogAndAwait(logId: String) = foodSaveMutex.withLock {
+    /**
+     * Borra una comida y devuelve la que se borró (null si ya no existía) para poder deshacerlo (WP-U11). Un fallo de la
+     * base se propaga: nunca se informa de un borrado que no ocurrió.
+     */
+    suspend fun deleteNutritionLogAndAwait(logId: String): NutritionLog? = foodSaveMutex.withLock {
         withContext(Dispatchers.IO) {
-            val existing = db.nutritionDao().getAllLogs().firstOrNull { it.id == logId }?.toNutritionLog()
+            // La fila que el usuario vio es la que vuelve al deshacer: primero la lista publicada, si no la guardada.
+            val existing = _nutritionLogs.value.firstOrNull { it.id == logId }
+                ?: db.nutritionDao().getAllLogs().firstOrNull { it.id == logId }
+                    ?.let { entity -> runCatching { entity.toNutritionLog() }.getOrNull() }
             db.withTransaction { db.nutritionDao().deleteLog(logId) }
             _nutritionLogs.update { list -> list.filter { it.id != logId } }
             existing?.date?.take(10)?.let { captureDailyGoalSnapshot(it) }
+            existing
         }
     }
 
