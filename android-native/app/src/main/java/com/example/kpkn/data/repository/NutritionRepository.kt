@@ -8,7 +8,7 @@ import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodByNormalized
-import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.data.food.staticFoodForAlias
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
 import com.example.kpkn.domain.nutrition.FoodState
@@ -378,10 +378,8 @@ class NutritionRepository private constructor(
         val normalizedQuery = TextKeys.normalize(query)
         if (normalizedQuery.isBlank()) return@withContext emptyList()
 
-        // The household default of the query is the ranker's anchor. findFoodExactByNormalized backs up
-        // householdStaticFood, which refuses curated rows whose source text says "USDA" (gen016 leche entera, gen026
-        // tomate...: B1/WP-S10) and would leave "leche" without its default.
-        val anchor = HouseholdPortions.householdStaticFood(query) ?: findFoodExactByNormalized(query)
+        // The ranker's anchor: the alias table (by id, WP-S6) first, then the household default of the query.
+        val anchor = staticFoodForAlias(query) ?: HouseholdPortions.householdStaticFood(query)
         val q = FoodSearchRanker.query(query, anchor?.id)
         if (q.tokens.isEmpty()) return@withContext emptyList()
 

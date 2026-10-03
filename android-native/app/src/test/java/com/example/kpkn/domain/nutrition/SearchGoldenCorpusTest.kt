@@ -1,7 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.food.buildFoodDatabase
-import com.example.kpkn.data.food.findFoodExactByNormalized
+import com.example.kpkn.data.food.staticFoodForAlias
 import com.example.kpkn.data.models.FoodCandidate
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.SearchSource
@@ -9,7 +9,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -29,8 +28,11 @@ class SearchGoldenCorpusTest {
         val pool: List<FoodItem> by lazy { buildFoodDatabase() + OffSearchFixture.foods() }
     }
 
+    /** The ranker's anchor, as `NutritionRepository.searchFoodCandidates` resolves it (WP-S6): the static row the query names. */
+    private fun anchorId(query: String): String? = (staticFoodForAlias(query) ?: HouseholdPortions.householdStaticFood(query))?.id
+
     private fun search(query: String, limit: Int = 15, loggerFilter: Boolean = true): List<FoodCandidate> {
-        val anchor = (HouseholdPortions.householdStaticFood(query) ?: findFoodExactByNormalized(query))?.id
+        val anchor = anchorId(query)
         val q = FoodSearchRanker.query(query, anchor)
         return FoodSearchRanker.rank(q, FoodSearchRanker.collapseDuplicates(pool, anchor), null, limit, loggerFilter)
     }
@@ -211,7 +213,6 @@ class SearchGoldenCorpusTest {
     @Test
     fun `31 platano finds the curated banana`() = assertTop("plátano", "gen002")
 
-    @Ignore("WP-S6: banana is a declared alias of plátano; the ranker only matches words the row carries, and the pick path needs the alias-aware identity")
     @Test
     fun `32 banana finds the curated banana`() = assertTop("banana", "gen002")
 
@@ -344,7 +345,7 @@ class SearchGoldenCorpusTest {
         // rank() skips, without running the identity rules, the rows that lack a word those rules require: numbers, states,
         // units and "sin" are not required. The result must be exactly the one the full rules give.
         (corpusQueries + listOf("leche 1 litro", "leche 200 ml", "2 huevos", "pollo 200 g", "arroz cocido", "leche sin lactosa")).forEach { query ->
-            val anchor = (HouseholdPortions.householdStaticFood(query) ?: findFoodExactByNormalized(query))?.id
+            val anchor = anchorId(query)
             val q = FoodSearchRanker.query(query, anchor)
             val collapsed = FoodSearchRanker.collapseDuplicates(pool, anchor)
             val everyRule = FoodSearchRanker.rank(q, collapsed, null, Int.MAX_VALUE, loggerFilter = false)

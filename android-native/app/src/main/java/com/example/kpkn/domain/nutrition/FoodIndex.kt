@@ -2,6 +2,8 @@ package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.db.GlobalFoodEntity
 import com.example.kpkn.data.db.toFoodItem
+import com.example.kpkn.data.food.FOOD_ALIAS_IDS
+import com.example.kpkn.data.food.foodAliasKey
 import com.example.kpkn.data.models.FoodItem
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -15,6 +17,10 @@ import java.util.concurrent.atomic.AtomicLong
  * side and publishes it with ONE volatile write, so a concurrent search sees the previous index or the new one, never
  * a half-built mix, and every holder of this instance (e.g. [SmartFoodResolver]) sees the new data without being
  * recreated. [generation] tells which catalog state the published index was built from.
+ *
+ * WP-S6 (B7): declared aliases are resolved BY FOOD ID ([aliasesByFoodId]), so "pechuga", "poyo" and "huevos" reach the rows
+ * the catalog resolves them to, and the token index holds every word together with its singular
+ * ([FoodSearchRanker.stem], the one plural rule of the search ranker), so "huevos" finds "Huevo Entero (cocido)".
  */
 class FoodIndex {
 
@@ -91,7 +97,8 @@ class FoodIndex {
     /**
      * Builds a complete index from the Room GlobalFoodEntity list + the static FoodItem lists and publishes it,
      * replacing the previous one. [generation] names the catalog state the caller built it from (the repository's
-     * `catalogGeneration`); a caller that does not care gets the next number.
+     * `catalogGeneration`); a caller that does not care gets the next number. [staticAliases] maps an alias to the food it
+     * names: a food id (FOOD_ALIAS_IDS) or the target text of a declared alias (FOOD_ALIASES), see [aliasesByFoodId].
      *
      * Unlike the old "build once" guard (an index built too early, e.g. before the static catalog was published or
      * before an import finished, stayed incomplete for the whole session) this ALWAYS rebuilds: deciding that the
@@ -112,11 +119,9 @@ class FoodIndex {
             val fresh = Shard(generation)
 
             // Index static foods (GENERIC_FOODS + CHILEAN_FOODS)
+            val aliasesById = aliasesByFoodId(staticAliases, staticFoods)
             for (food in staticFoods) {
-                val aliases = staticAliases
-                    .filterValues { normalizeSearch(it) == normalizeSearch(food.name) }
-                    .keys
-                val indexed = indexStaticFood(food, aliases)
+                val indexed = indexStaticFood(food, aliasesById[food.id].orEmpty())
                 addFood(fresh, indexed)
             }
 
@@ -162,7 +167,7 @@ class FoodIndex {
         val candidates = (exact + householdHits).toMutableSet()
 
         for (token in queryTokens) {
-            s.tokenIndex[token]?.let { candidates.addAll(it) }
+            candidates.addAll(wordHitsIn(s, token))
         }
 
         for (token in queryTokens) {
@@ -180,6 +185,24 @@ class FoodIndex {
         }
 
         return candidates
+    }
+
+    /**
+     * The foods that carry the word [word] in a name or an alias, singular or plural alike: the token index on its own, without
+     * the fuzzy trigram and phonetic expansion of [search] ("huevos" finds "Huevo Entero (cocido)", "papa" finds "Papas fritas").
+     * [word] is one word; a phrase finds nothing.
+     */
+    fun foodsWithWord(word: String): Set<String> = wordHitsIn(shard, normalizeSearch(word))
+
+    private fun wordHitsIn(s: Shard, token: String): Set<String> {
+        val plain = s.tokenIndex[token]
+        val singular = FoodSearchRanker.stem(token)
+        val folded = if (singular != token) s.tokenIndex[singular] else null
+        return when {
+            plain == null -> folded?.toSet().orEmpty()
+            folded == null -> plain.toSet()
+            else -> plain + folded
+        }
     }
 
     private fun localSubset(ids: Set<String>): Set<String> =
@@ -243,6 +266,30 @@ class FoodIndex {
 
     // ─── Internal ──────────────────────────────────────────────────────────
 
+    /**
+     * The declared aliases ([aliases]: alias -> target) grouped by the food of [foods] they name. A target is a food id (the
+     * form of FOOD_ALIAS_IDS) or the target text of a declared alias (the form of FOOD_ALIASES), which FOOD_ALIAS_IDS has
+     * already resolved to an id; a target text that is no declared alias still names the food it equals exactly. An alias that
+     * names no food of [foods] is ignored, so an index built from a few rows only gets the aliases of those rows.
+     */
+    private fun aliasesByFoodId(aliases: Map<String, String>, foods: List<FoodItem>): Map<String, Set<String>> {
+        if (aliases.isEmpty()) return emptyMap()
+        val ids = foods.mapTo(HashSet(foods.size * 2)) { it.id }
+        val idsByName = HashMap<String, MutableList<String>>()
+        for (food in foods) idsByName.getOrPut(normalizeSearch(food.name)) { ArrayList(1) }.add(food.id)
+        val grouped = HashMap<String, MutableSet<String>>()
+        for ((alias, target) in aliases) {
+            val declared = FOOD_ALIAS_IDS[foodAliasKey(alias)]?.takeIf { it in ids }
+            val named = when {
+                target in ids -> listOf(target)
+                declared != null -> listOf(declared)
+                else -> idsByName[normalizeSearch(target)].orEmpty()
+            }
+            for (id in named) grouped.getOrPut(id) { LinkedHashSet() }.add(alias)
+        }
+        return grouped
+    }
+
     private fun addFood(target: Shard, food: IndexedFood) {
         target.foods[food.foodId] = food
 
@@ -252,9 +299,11 @@ class FoodIndex {
             target.exactNameIndex.getOrPut(alias) { mutableSetOf() }.add(food.foodId)
         }
 
-        // Token index
+        // Token index: every word and its singular ("huevos" and "huevo" reach the same rows)
         for (token in food.tokens) {
             target.tokenIndex.getOrPut(token) { mutableSetOf() }.add(food.foodId)
+            val singular = FoodSearchRanker.stem(token)
+            if (singular != token) target.tokenIndex.getOrPut(singular) { mutableSetOf() }.add(food.foodId)
         }
 
         // Trigram index

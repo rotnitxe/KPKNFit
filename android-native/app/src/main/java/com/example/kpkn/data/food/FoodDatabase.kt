@@ -3,6 +3,10 @@ package com.example.kpkn.data.food
 import com.example.kpkn.data.models.CarbBreakdown
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.Micronutrient
+import com.example.kpkn.domain.nutrition.FoodIdentity
+import com.example.kpkn.domain.nutrition.FoodSearchRanker
+import com.example.kpkn.domain.nutrition.FoodStapleOntology
+import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.TextKeys
 
 /**
@@ -18,7 +22,7 @@ fun buildFoodDatabase(context: android.content.Context? = null): List<FoodItem> 
 
 val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen001", name = "Manzana", servingSize = 100.0, unit = "g", calories = 52.0, protein = 0.3, carbs = 14.0, fats = 0.2),
-    FoodItem(id = "gen002", name = "Plátano", servingSize = 100.0, unit = "g", calories = 89.0, protein = 1.1, carbs = 23.0, fats = 0.3),
+    FoodItem(id = "gen002", name = "Plátano", servingSize = 100.0, unit = "g", calories = 89.0, protein = 1.1, carbs = 23.0, fats = 0.3, searchAliases = listOf("banana", "cambur")),
     // Fichas de pechuga alineadas al asset USDA (food_nutrient.csv):
     // cruda = FDC 2646170 (22,5 P/1,9 G por 100 g crudos), cocida = FDC 331960
     // braised (166 kcal/32,1 P/3,2 G por 100 g cocidos). La gen003 anterior
@@ -63,7 +67,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen036", name = "Pimentón Rojo", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 31.0, protein = 1.0, carbs = 6.0, fats = 0.3),
     FoodItem(id = "gen037", name = "Pepino", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 15.0, protein = 0.7, carbs = 3.6, fats = 0.1),
     FoodItem(id = "gen038", name = "Champiñones (crudos)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 22.0, protein = 3.1, carbs = 3.3, fats = 0.3),
-    FoodItem(id = "gen039", name = "Nueces", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 654.0, protein = 15.0, carbs = 14.0, fats = 65.0),
+    FoodItem(id = "gen039", name = "Nueces", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 654.0, protein = 15.0, carbs = 14.0, fats = 65.0, searchAliases = listOf("nuez")),
     FoodItem(id = "gen040", name = "Pasta (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 131.0, protein = 5.0, carbs = 25.0, fats = 1.1),
     FoodItem(id = "gen041", name = "Tofu", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 76.0, protein = 8.1, carbs = 1.9, fats = 4.8),
     FoodItem(id = "gen042", name = "Hummus", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 166.0, protein = 7.9, carbs = 15.0, fats = 9.6),
@@ -77,7 +81,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen047", name = "Queso Cheddar", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 403.0, protein = 25.0, carbs = 1.3, fats = 33.0),
     FoodItem(id = "gen048", name = "Miel", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 304.0, protein = 0.0, carbs = 82.0, fats = 0.0),
     FoodItem(id = "gen049", name = "Mantequilla", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 717.0, protein = 0.9, carbs = 0.1, fats = 81.0),
-    FoodItem(id = "gen050", name = "Cacahuates", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 567.0, protein = 26.0, carbs = 16.0, fats = 49.0),
+    FoodItem(id = "gen050", name = "Cacahuates", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 567.0, protein = 26.0, carbs = 16.0, fats = 49.0, searchAliases = listOf("maní")),
     FoodItem(id = "gen051", name = "Castañas de cajú", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 553.0, protein = 18.0, carbs = 30.0, fats = 44.0),
     FoodItem(id = "gen052", name = "Semillas de Chía", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 486.0, protein = 17.0, carbs = 42.0, fats = 31.0,
         micronutrients = listOf(Micronutrient("Calcio", 631.0, "mg"), Micronutrient("Hierro", 7.7, "mg"))),
@@ -511,6 +515,45 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
         tags = listOf("zero_energy"),
         searchAliases = listOf("agua mineral con gas", "agua gasificada", "agua carbonatada"),
     ),
+    // ─── WP-S6: aliases that named nothing, now backed by a row of their own ─────────────────────────────────────────────
+    // Valores por 100 g (PER_100G_AS_SOLD); `servingSize` es la porción típica (un trozo de queque, un tamal). La procedencia es el
+    // registro FDC que sustenta los macros (data/usdaFoodsOffline.json); `source` no lleva el texto "USDA" para que
+    // HouseholdPortions.isGlobalSku no trate una ficha curada como un SKU de supermercado.
+    // Queque chileno ~ pound cake: FDC 172704 (353 kcal); los queques planos de OFF Chile van de 400 (Castaño) a 257-311 (con
+    // frutos o rellenos).
+    FoodItem(
+        id = "gen152",
+        name = "Queque",
+        brand = "Genérico",
+        servingSize = 70.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 172704, pound cake)",
+        sourceRecordId = "172704", // Cake, pound, commercially prepared, butter
+        calories = 353.0,
+        protein = 5.0,
+        carbs = 53.6,
+        fats = 14.0,
+        tags = listOf("preparacion", "chileno", "postre"),
+        searchAliases = listOf("queque", "queques", "queque casero", "queque del casino", "queque de vainilla", "panqué"),
+    ),
+    // Tamal con relleno de carne: FNDDS 2708570 (174 kcal; "Tamale, NFS"); los tamales de OFF van de 156 a 203 (mediana 183).
+    FoodItem(
+        id = "gen153",
+        name = "Tamal",
+        brand = "Genérico",
+        servingSize = 150.0,
+        unit = "u",
+        nutritionBasis = "PER_100G_AS_SOLD",
+        source = "KPKN Curated (FDC 2708570, tamale)",
+        sourceRecordId = "2708570", // Tamale, NFS
+        calories = 174.0,
+        protein = 7.4,
+        carbs = 15.8,
+        fats = 9.0,
+        tags = listOf("preparacion"),
+        searchAliases = listOf("tamal", "tamales"),
+    ),
 )
 
 // ─── Chilean Foods ───────────────────────────────────────────────────────────
@@ -540,6 +583,13 @@ val CHILEAN_FOODS: List<FoodItem> = listOf(
 
 // ─── Search Aliases ──────────────────────────────────────────────────────────
 
+/**
+ * Declared aliases: what a person writes -> the text of the catalog food it means. The target is only text; [FOOD_ALIAS_IDS]
+ * resolves it to the id of ONE food ([resolveAliasTarget]), and every lookup (exact lookups, the anchor of the search ranker,
+ * FoodIndex) answers from that id. A target must name a row of a catalog, by its name, its search alias or its name without
+ * the "(...)" state ("papa" is "Papa (cocida)"); an alias that names nothing is dead, and FoodAliasConsistencyTest fails.
+ * An alias that is NOT the same food as the word ("torta" -> pan blanco) belongs to [FOOD_ALIASES_APPROXIMATION].
+ */
 val FOOD_ALIASES: Map<String, String> = mapOf(
     // Sinónimos comunes
     "manzana" to "manzana",
@@ -567,8 +617,8 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "yogurt" to "yogurt griego natural",
     "tofu" to "tofu",
     "tuna" to "atún en lata",
-    "oatmeal" to "avena",
-    "avena" to "avena",
+    "oatmeal" to "avena en hojuelas",
+    "avena" to "avena en hojuelas",
     "maní" to "cacahuates", "cacahuate" to "cacahuates", "peanut" to "cacahuates",
     "porotos" to "porotos negros", "frijoles" to "porotos negros",
     "lentejas" to "lentejas",
@@ -611,7 +661,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "chorrillana" to "chorrillana",
     "completo" to "completo italiano", "completo italiano" to "completo italiano",
     "completo americano" to "completo americano",
-    "pichanga" to "pichanga",
     "sanguche" to "pan blanco", "sánduche" to "pan blanco", "sandwich" to "pan blanco",
     "lomito" to "filete de vacuno",
     "terremoto" to "terremoto",
@@ -644,7 +693,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "causa" to "papa",
     "anticucho" to "filete de vacuno",
     // Colombia / Venezuela
-    "arepa reina pepiada" to "arepa",
     "cachapa" to "choclo desgranado",
     "pabellón" to "arroz blanco", "pabellon" to "arroz blanco",
     "tequeños" to "queso cheddar",
@@ -653,16 +701,17 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     // Internacionales
     "burguer" to "hamburguesa", "burger" to "hamburguesa",
     "hotdog" to "salchicha tipo viena", "hot dog" to "salchicha tipo viena",
-    "nuggets" to "pechuga de pollo",
     "galleta de chocolate" to "galletas de chocolate",
     "galletas de chocolate" to "galletas de chocolate",
     "galleta salada" to "galletas saladas",
     "galletas saladas" to "galletas saladas",
     "galleta de avena" to "galletas de avena",
     "galletas de avena" to "galletas de avena",
-    "galleta" to "pan blanco",
-    "galletas" to "pan blanco",
-    "cereal" to "avena",
+    // "galleta(s)" is a category, not a food: the catalog has one row per kind of cookie and none for the word alone, so it
+    // stays an approximation (generic sweet, never bread) and the person is asked which cookie it was.
+    "galleta" to "dulce genérico",
+    "galletas" to "dulce genérico",
+    "cereal" to "avena en hojuelas",
     "batido" to "leche entera",
     "smoothie" to "leche entera",
     "ensalada" to "lechuga",
@@ -695,7 +744,6 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "huachalomo" to "huachalomo (crudo)",
     // Casino / contexto
     "queque del casino" to "queque",
-    "galletas del casino" to "galleta",
     "café de máquina" to "café (negro)",
     // Postres / dulces
     "arroz con leche" to "arroz con leche",
@@ -729,23 +777,20 @@ val FOOD_ALIASES_APPROXIMATION: Set<String> = setOf(
     // Perú
     "ceviche", "cebiche", "lomo saltado", "aji de gallina", "causa", "anticucho",
     // Colombia / Venezuela
-    "arepa", "arepa reina pepiada", "cachapa", "pabellon", "tequeños", "bandeja paisa",
+    "cachapa", "pabellon", "tequeños", "bandeja paisa",
     "empanada colombiana",
     // Internacionales / conceptos generales
     "cereal", "batido", "smoothie", "ensalada", "trigo",
-    "nuggets",
+    "galleta", "galletas",
 )
 
-/** Claves de aproximación normalizadas una sola vez (sin tildes, minúsculas). */
+/** Claves de aproximación una sola vez, con la misma clave que los alias ([foodAliasKey]: sin tildes, en singular). */
 private val FOOD_ALIASES_APPROXIMATION_NORMALIZED: Set<String> by lazy {
-    FOOD_ALIASES_APPROXIMATION.map { stripAccents(it.trim().lowercase()) }.toSet()
+    FOOD_ALIASES_APPROXIMATION.map(::foodAliasKey).toSet()
 }
 
-/** True si el texto es un alias de aproximación (identidad distinta a lo escrito). */
-fun isApproximationAlias(text: String): Boolean {
-    val normalized = stripAccents(text.trim().lowercase())
-    return normalized in FOOD_ALIASES_APPROXIMATION_NORMALIZED
-}
+/** True si el texto es un alias de aproximación (identidad distinta a lo escrito): "torta" y "tortas". */
+fun isApproximationAlias(text: String): Boolean = foodAliasKey(text) in FOOD_ALIASES_APPROXIMATION_NORMALIZED
 
 // ─── Portion References (grams per unit) ─────────────────────────────────────
 
@@ -804,23 +849,151 @@ private fun nameForMatching(name: String): String {
 }
 private val FILLER_WORDS = setOf("de", "con", "y", "e", "la", "el")
 
+// ─── Alias ids (WP-S6) ───────────────────────────────────────────────────────
+
+/**
+ * Key of an alias or of a query: [TextKeys.normalize] (accent-free, lower case, split on whatever is not a letter or a
+ * digit) with every word folded to its singular by [FoodSearchRanker.stem], the one plural rule of the search ranker and
+ * of FoodIndex. "Papas", "papa" and "PAPAS" share a key, and "huevos" finds the alias declared as "huevo".
+ */
+fun foodAliasKey(text: String): String {
+    val normalized = TextKeys.normalize(text)
+    if (' ' !in normalized) return FoodSearchRanker.stem(normalized)
+    return normalized.split(' ').joinToString(" ") { FoodSearchRanker.stem(it) }
+}
+
+/** The curated branded catalogs, programmatic part only: their names are known without a Context. */
+private val BRANDED_FOODS: List<FoodItem> by lazy { BrandedEnergyKcalCatalog.load(null) + BrandedSnackCatalog.load(null) }
+
+/** Trailing "(...)" qualifiers of a name: "Papa (cocida)" is the food "Papa" in one of its states. */
+private val TRAILING_QUALIFIERS = Regex("""(?:\s*\([^()]*\))+\s*$""")
+
+/** The words a "(...)" qualifier uses when it states nothing but the state of the food ("cocida", "hidratada/cocida"). */
+private val PLAIN_STATE_WORDS = setOf(
+    "cocido", "cocida", "cocidos", "cocidas", "crudo", "cruda", "crudos", "crudas",
+    "hidratado", "hidratada", "hidratados", "hidratadas", "seco", "seca", "secos", "secas",
+)
+
+/**
+ * The rows an alias target can name, indexed by the keys [resolveAliasTarget] compares: the static catalog (the only rows
+ * the household logic may default to) and the curated branded catalogs.
+ */
+private class AliasUniverse(foods: List<FoodItem>) {
+    val byId: Map<String, FoodItem> = foods.associateBy { it.id }
+
+    /** [TextKeys.normalize] of every name and search alias -> the rows that carry it. */
+    val exact: Map<String, List<FoodItem>>
+
+    /** Names that carry a trailing qualifier, without it ("Papa (cocida)" -> "papa") -> the rows. */
+    val bare: Map<String, List<FoodItem>>
+
+    init {
+        val exactKeys = HashMap<String, MutableList<FoodItem>>()
+        val bareKeys = HashMap<String, MutableList<FoodItem>>()
+        for (food in foods) {
+            (listOf(food.name) + food.searchAliases).map(TextKeys::normalize).filter { it.isNotEmpty() }.distinct()
+                .forEach { exactKeys.getOrPut(it) { ArrayList(2) }.add(food) }
+            if (TRAILING_QUALIFIERS.containsMatchIn(food.name)) {
+                val bareName = TextKeys.normalize(TRAILING_QUALIFIERS.replace(food.name, ""))
+                if (bareName.isNotEmpty()) bareKeys.getOrPut(bareName) { ArrayList(2) }.add(food)
+            }
+        }
+        exact = exactKeys
+        bare = bareKeys
+    }
+}
+
+private val ALIAS_UNIVERSE: AliasUniverse by lazy { AliasUniverse(ALL_FOODS + BRANDED_FOODS) }
+
+/** COOKED before HYDRATED before RAW before UNKNOWN: the state a person eats when the food is named without one. */
+private fun stateRank(food: FoodItem): Int = when (FoodIdentity.stateFor(food)) {
+    FoodState.COOKED -> 0
+    FoodState.HYDRATED -> 1
+    FoodState.RAW -> 2
+    FoodState.UNKNOWN -> 3
+}
+
+/** True when the "(...)" qualifier of the name only states the state of the food ("Papa (cocida)"), not a method ("Papa (frita)"). */
+private fun hasPlainStateQualifier(food: FoodItem): Boolean {
+    val qualifier = TRAILING_QUALIFIERS.find(food.name)?.value ?: return true
+    return TextKeys.normalize(qualifier).split(' ').all { it in PLAIN_STATE_WORDS }
+}
+
+/**
+ * Which of several rows an alias target names: the static catalog before the branded rows, then the state a person eats
+ * ([stateRank]), then a plain state qualifier before a method ("Papa (cocida)" before "Papa (frita)"), then the lowest id
+ * ("gen007" before "gen007f"). The choice never depends on the order the catalogs list their rows in.
+ */
+private val ALIAS_CANDIDATE_ORDER: Comparator<FoodItem> by lazy {
+    compareBy<FoodItem>(
+        { if (foodById.containsKey(it.id)) 0 else 1 },
+        ::stateRank,
+        { if (hasPlainStateQualifier(it)) 0 else 1 },
+        { it.id.length },
+        { it.id },
+    )
+}
+
+/**
+ * The id of the food a declared alias target names, or null when it names none. In order:
+ *  1. the household staple graph (FoodStapleOntology): "pechuga de pollo" is the cooked breast a person means, not the first
+ *     row whose name happens to contain those words. It is skipped when the target declares a state the graph's food does not
+ *     have: "arroz blanco (crudo)" is not the cooked rice the "arroz blanco" node answers;
+ *  2. a row with exactly that name or search alias, accent-insensitive ("plátano", "red bull original");
+ *  3. a row whose name is the target once its trailing qualifiers are dropped ("huevo entero" is "Huevo Entero (cocido)"),
+ *     the state a person eats first ([ALIAS_CANDIDATE_ORDER]).
+ * Never by `contains`: that is how "pechuga" and "nuggets" ended up on raw chicken breast and a dozen aliases on nothing.
+ */
+fun resolveAliasTarget(value: String): String? {
+    val key = TextKeys.normalize(value)
+    if (key.isEmpty()) return null
+    val universe = ALIAS_UNIVERSE
+    FoodStapleOntology.resolveFoodId(value)?.let { id ->
+        val declared = FoodIdentity.stateFor(value)
+        val food = universe.byId[id]
+        if (food != null && (declared == FoodState.UNKNOWN || FoodIdentity.stateFor(food) == declared)) return id
+    }
+    universe.exact[key]?.let { rows -> return rows.minWithOrNull(ALIAS_CANDIDATE_ORDER)?.id }
+    universe.bare[key]?.let { rows -> return rows.minWithOrNull(ALIAS_CANDIDATE_ORDER)?.id }
+    return null
+}
+
+/**
+ * Every alias of [FOOD_ALIASES] resolved to the id of the food it names, keyed by [foodAliasKey] (accent-free, singular).
+ * The target text is resolved by [resolveAliasTarget]; an alias whose target names nothing is absent, and
+ * FoodAliasConsistencyTest keeps the table free of them. When two aliases share a key the first of the table wins.
+ */
+val FOOD_ALIAS_IDS: Map<String, String> by lazy {
+    buildMap {
+        FOOD_ALIASES.forEach { (alias, target) ->
+            val key = foodAliasKey(alias)
+            if (key.isEmpty()) return@forEach
+            resolveAliasTarget(target)?.let { id -> putIfAbsent(key, id) }
+        }
+    }
+}
+
+/**
+ * The row of the static catalog (GENERIC_FOODS + CHILEAN_FOODS) that [query] names, whatever its `source` text says: the
+ * household staple graph first ("pollo", "pechuga cruda"), then a declared alias ("banana", "huevos"), then the name or
+ * search alias of a row. It is the anchor of the search ranker and the household default of a query: unlike the catalog
+ * lookup of HouseholdPortions it never drops a curated row because its source reads "USDA" (leche entera, tomate, agua).
+ */
+fun staticFoodForAlias(query: String): FoodItem? {
+    if (query.isBlank()) return null
+    FoodStapleOntology.resolveFoodId(query)?.let(::findStaticFoodById)?.let { return it }
+    return findFoodExactByNormalized(query)
+}
+
 // ─── Lookup Helpers ──────────────────────────────────────────────────────────
 
-// O(1) HashMap para búsqueda rápida por nombre exacto
+// O(1) HashMap para búsqueda rápida por nombre exacto: nombre y alias de cada ficha. Los alias declarados en FOOD_ALIASES
+// se resuelven por id (FOOD_ALIAS_IDS), nunca por coincidencia parcial de nombre.
 private val foodByExactName: Map<String, FoodItem> by lazy {
-    val allFoods = ALL_FOODS
     buildMap {
-        allFoods.sortedBy { it.id }.forEach { food ->
+        ALL_FOODS.sortedBy { it.id }.forEach { food ->
             putIfAbsent(food.name.lowercase(), food)
             food.searchAliases.forEach { alias -> putIfAbsent(alias.lowercase(), food) }
-        }
-        // Pre-resolver todos los aliases del mapa FOOD_ALIASES
-        FOOD_ALIASES.forEach { (key, value) ->
-            if (!containsKey(key.lowercase())) {
-                val target = allFoods.find { it.name.lowercase() == value.lowercase() }
-                    ?: allFoods.find { it.name.lowercase().contains(value.lowercase()) }
-                if (target != null) put(key.lowercase(), target)
-            }
         }
         // G7: claves sin tildes → "salmon" y "salmón" resuelven igual
         val existingKeys = keys.toList()
@@ -830,9 +1003,25 @@ private val foodByExactName: Map<String, FoodItem> by lazy {
     }
 }
 
+/** The same keys with every word folded to its singular: "papa fritas" meets "Papas fritas" in one lookup, not a scan. */
+private val foodByAgreementKey: Map<String, FoodItem> by lazy {
+    buildMap { foodByExactName.forEach { (key, food) -> putIfAbsent(agreementKey(key), food) } }
+}
+
+private fun agreementKey(text: String): String =
+    stripAccents(text).split(' ').joinToString(" ") { FoodSearchRanker.stem(it) }
+
 private fun stripAccents(text: String): String =
     java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)
         .replace(TextKeys.MARKS, "")
+
+/** O(1) exact lookup: a declared alias (by id), then the name or search alias of a row, with and without accents. */
+private fun exactLookup(normalized: String, stripped: String): FoodItem? {
+    FOOD_ALIAS_IDS[foodAliasKey(normalized)]?.let(::findStaticFoodById)?.let { return it }
+    foodByExactName[normalized]?.let { return it }
+    if (stripped != normalized) foodByExactName[stripped]?.let { return it }
+    return null
+}
 
 /**
  * Lookup SOLO por coincidencia exacta/alias O(1) (sin fallbacks difusos por palabras).
@@ -840,31 +1029,21 @@ private fun stripAccents(text: String): String =
  */
 fun findFoodExactByNormalized(text: String): FoodItem? {
     val normalized = text.trim().lowercase()
-    if (stripAccents(normalized) in AMBIGUOUS_STATE_ALIASES) return null
-    val alias = FOOD_ALIASES[normalized] ?: normalized
-    foodByExactName[alias]?.let { return it }
-    foodByExactName[normalized]?.let { return it }
     val stripped = stripAccents(normalized)
-    if (stripped != normalized) foodByExactName[stripped]?.let { return it }
-    val strippedAlias = stripAccents(alias)
-    if (strippedAlias != stripped) foodByExactName[strippedAlias]?.let { return it }
+    if (stripped in AMBIGUOUS_STATE_ALIASES) return null
+    exactLookup(normalized, stripped)?.let { return it }
     // Agreement errors ("papa fritas") retain the same exact lexical identity.
-    val agreementKey = stripped.split(' ').joinToString(" ") { it.removeSuffix("s") }
-    return foodByExactName.entries.firstOrNull { (key, _) ->
-        stripAccents(key).split(' ').joinToString(" ") { it.removeSuffix("s") } == agreementKey
-    }?.value
+    return foodByAgreementKey[agreementKey(stripped)]
 }
 
 fun findFoodByNormalized(text: String): FoodItem? {
     val normalized = text.trim().lowercase()
-    if (stripAccents(normalized) in AMBIGUOUS_STATE_ALIASES) return null
+    val stripped = stripAccents(normalized)
+    if (stripped in AMBIGUOUS_STATE_ALIASES) return null
     val alias = FOOD_ALIASES[normalized] ?: normalized
 
     // O(1) exact lookup
-    foodByExactName[alias]?.let { return it }
-    foodByExactName[normalized]?.let { return it }
-    val stripped = stripAccents(normalized)
-    if (stripped != normalized) foodByExactName[stripped]?.let { return it }
+    exactLookup(normalized, stripped)?.let { return it }
 
     val allFoods = ALL_FOODS
     val aliasWords = alias.split(NAME_WORD_SPLIT).filter { it.length > 1 }
