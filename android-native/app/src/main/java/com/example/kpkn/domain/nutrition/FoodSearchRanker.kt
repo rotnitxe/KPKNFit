@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.food.CHILEAN_FOODS
+import com.example.kpkn.data.food.GENERIC_FOODS
 import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.models.FoodCandidate
 import com.example.kpkn.data.models.FoodItem
@@ -30,6 +32,10 @@ import kotlin.math.ln
  *    the same food the person typed ("galletas" resolving to Pan Blanco is an approximation and gets nothing).
  *  - brand +0.15 when the query names the row's brand; OFF row and no brand named -0.05; pack-sized name -0.10; the query
  *    declares a state (raw/cooked...) and the row has another -0.20.
+ *  - a brand the query names AND the pool carries (every word of it is a query word, and it is not just a food word like
+ *    "Whey" or "Fresco") is what the person asked for: a row of any other brand, or of none, -0.25, and a row with no brand
+ *    that only claims it through an alias keeps no match tier. So the generic "Bebida gaseosa" (alias "coca cola") stays
+ *    below the Coca-Cola rows, and answers "sprite" when the pool holds no Sprite.
  *  - usage ln(uses+1)/ln(10)*0.08 and the learned selection for this query +0.22.
  * Ties break by shorter normalized name, then foodId, so the order is total and stable across runs and devices.
  */
@@ -38,7 +44,9 @@ object FoodSearchRanker {
     /**
      * A parsed search request. [tokens] are the distinct content tokens (no stop words) of the normalized text and
      * [stems] their [stem], same order. [state] is the cooking/hydration state the person declared, if any.
-     * [anchorId] is the household default food for the query, or null.
+     * [anchorId] is the household default food for the query, or null. [namedBrands] are the brands of the pool the query
+     * names, each one as its words (see [namedBrandsIn]); [rank] fills it from its pool, so it is empty for a Query that
+     * was never ranked and when the query names no brand.
      */
     data class Query(
         val raw: String,
@@ -47,6 +55,7 @@ object FoodSearchRanker {
         val stems: List<String>,
         val state: FoodState,
         val anchorId: String?,
+        val namedBrands: List<List<String>> = emptyList(),
     ) {
         /** Each token with only its trailing "s" dropped (see [dropS]); same order as [tokens]. */
         internal val withoutS: List<String> = tokens.map(::dropS)
@@ -90,14 +99,13 @@ object FoodSearchRanker {
      */
     fun score(food: FoodItem, q: Query, learnedFoodId: String?): FoodCandidate? = scoreRow(food, q, learnedFoodId)?.candidate
 
-    private fun scoreRow(food: FoodItem, q: Query, learnedFoodId: String?): Scored? {
+    private fun scoreRow(food: FoodItem, q: Query, learnedFoodId: String?, brandPhrases: List<List<String>> = brandPhrases(food)): Scored? {
         if (q.tokens.isEmpty()) return null
         val nameKey = key(food.normalizedName ?: food.name)
         val nameWords = contentTokens(nameKey)
         val aliasWordLists = food.searchAliases
             .map { contentTokens(key(it)) }
             .filter { it.isNotEmpty() && it != nameWords }
-        val brandPhrases = brandPhrases(food)
 
         // 1) Which query tokens hit some word of the name, an alias or the brand.
         val hit = BooleanArray(q.tokens.size)
@@ -115,6 +123,7 @@ object FoodSearchRanker {
             }
         }
         markHits(nameWords)
+        val hitByName = hit.copyOf()
         aliasWordLists.forEach(::markHits)
         brandPhrases.forEach(::markHits)
         if (q.tokens.indices.none { hit[it] && q.identifying[it] }) return null
@@ -129,7 +138,20 @@ object FoodSearchRanker {
         val isOff = isOffRow(food)
         val exact = sequenceMatches(q, nameWords, wholeName = true) || aliasWordLists.any { sequenceMatches(q, it, wholeName = true) }
         val starts = exact || sequenceMatches(q, nameWords, wholeName = false) || aliasWordLists.any { sequenceMatches(q, it, wholeName = false) }
+        // The brands the query names (WP-S2b): does this row carry one (its brand holds it, or its name spells it), or
+        // does a row with no brand only CLAIM it through an alias ("Bebida gaseosa" answers "coca cola")?
+        var carriesNamedBrand = false
+        var claimsBrandByAlias = false
+        for (brand in q.namedBrands) {
+            val spelled = q.tokens.indices.filter { i -> brand.any { word -> sameWord(q, i, word, stem(word), dropS(word)) } }
+            if (brandPhrases.any { phrase -> brand.all { it in phrase } } || (spelled.isNotEmpty() && spelled.all { hitByName[it] })) {
+                carriesNamedBrand = true
+            } else if (brandPhrases.isEmpty() && spelled.isNotEmpty() && spelled.all { hit[it] }) {
+                claimsBrandByAlias = true
+            }
+        }
         val (matchBoost, matchTrace) = when {
+            claimsBrandByAlias && !carriesNamedBrand -> 0.0 to "alias-claim"
             exact && !(isOff && !brandNamed) -> EXACT_BOOST to "exact"
             starts -> PHRASE_START_BOOST to "prefix"
             hits == q.tokens.size && precision >= 1.0 -> PLAIN_FOOD_BOOST to "plain"
@@ -151,6 +173,10 @@ object FoodSearchRanker {
             trace.add("brand")
         } else if (isOff) {
             score += OFF_UNBRANDED_QUERY_PENALTY
+        }
+        if (q.namedBrands.isNotEmpty() && !carriesNamedBrand) {
+            score += OTHER_BRAND_PENALTY
+            trace.add("other-brand")
         }
         if (!q.namesPack && mightBePack(nameKey) && HouseholdPortions.looksLikePackName(nameKey)) {
             score += PACK_PENALTY
@@ -201,8 +227,11 @@ object FoodSearchRanker {
         loggerFilter: Boolean,
     ): List<FoodCandidate> {
         if (limit <= 0 || q.tokens.isEmpty()) return emptyList()
+        val rows = pool as? List<FoodItem> ?: pool.toList()
+        val brands = rows.map(::brandPhrases)
+        val ranked = if (q.namedBrands.isEmpty()) q.copy(namedBrands = namedBrandsIn(q, brands)) else q
         val scored = ArrayList<Scored>()
-        for (food in pool) scoreRow(food, q, learnedFoodId)?.let { scored.add(it) }
+        for (i in rows.indices) scoreRow(rows[i], ranked, learnedFoodId, brands[i])?.let { scored.add(it) }
         scored.sortWith(ORDER)
         val result = ArrayList<FoodCandidate>(minOf(limit, scored.size))
         val seen = HashSet<String>()
@@ -258,6 +287,30 @@ object FoodSearchRanker {
             token.endsWith("s") && !token.endsWith("ss") && token.length - 1 >= 4 -> token.dropLast(1)
             else -> token
         }
+    }
+
+    /**
+     * The brands among the rows' brand phrases [brandsOfRows] that [q] names: a brand all of whose words are query words, at least one of them
+     * not food vocabulary (a word of a curated food's name like "whey", "fresco", "natural", or a staple like "leche").
+     * A brand that merely shares a word with the query is not named ("Lonco Leche" for "leche"), nor is a brand that is
+     * only a food word (OFF has brands "Whey", "Avena", "Fresco", "Casero").
+     */
+    private fun namedBrandsIn(q: Query, brandsOfRows: List<List<List<String>>>): List<List<String>> {
+        val named = LinkedHashSet<List<String>>()
+        for (phrases in brandsOfRows) {
+            for (phrase in phrases) {
+                if (phrase !in named && phrase.all { word -> namesWord(q, word) }) named.add(phrase)
+            }
+        }
+        return named.filter { phrase -> phrase.any { word -> !isFoodWord(word) } }
+    }
+
+    private fun isFoodWord(word: String): Boolean =
+        word in FOOD_VOCABULARY || stem(word) in FOOD_VOCABULARY || dropS(word) in FOOD_VOCABULARY || FoodIdentity.familyFor(word) != null
+
+    /** The words of the curated catalog's food names. */
+    private val FOOD_VOCABULARY: Set<String> by lazy {
+        (GENERIC_FOODS + CHILEAN_FOODS).flatMapTo(HashSet()) { contentTokens(key(it.name)) }
     }
 
     // ─── Words ──────────────────────────────────────────────────────────────
@@ -417,6 +470,7 @@ object FoodSearchRanker {
     private const val PRIOR_OFF = 0.06
     private const val BRAND_NAMED_BOOST = 0.15
     private const val OFF_UNBRANDED_QUERY_PENALTY = -0.05
+    private const val OTHER_BRAND_PENALTY = -0.25
     private const val PACK_PENALTY = -0.10
     private const val STATE_PENALTY = -0.20
     private const val USAGE_WEIGHT = 0.08

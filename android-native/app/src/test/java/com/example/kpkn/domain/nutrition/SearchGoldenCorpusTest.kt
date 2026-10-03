@@ -285,6 +285,20 @@ class SearchGoldenCorpusTest {
         assertTrue(search("xyzq", 15, loggerFilter = false).isEmpty())
     }
 
+    // Bebidas gaseosas (WP-S2b): una marca que la consulta nombra y el pool tiene va antes que la ficha genérica
+
+    @Test
+    fun `bebida, gaseosa and sprite answer with the generic soda, the pool holds no brand they name`() {
+        listOf("bebida", "gaseosa", "sprite").forEach { assertTop(it, "gen146") }
+    }
+
+    @Test
+    fun `coca cola zero finds the generic zero soda while the pool holds no Zero row`() {
+        // The fixture only has the regular Coca-Cola: the generic zero soda is the one that answers "zero"; the day the
+        // pool holds a Coca-Cola Zero row it goes first (FoodSearchRankerTest).
+        assertTop("coca cola zero", "gen147")
+    }
+
     // Todo el corpus
 
     private val corpusQueries = listOf(
@@ -292,7 +306,7 @@ class SearchGoldenCorpusTest {
         "pan", "marraqueta", "hallulla", "pan integral", "pollo", "pechuga de pollo cruda", "pechuga de pollo",
         "nuggets", "nuggets de pollo", "arroz", "papas fritas", "papas", "tomate", "tomates", "palta", "aguacate",
         "plátano", "lentejas", "yogurt", "galletas", "coca cola", "red bull", "completo", "empanada", "empanadas",
-        "sopaipilla", "cazuela", "whey", "xyzq",
+        "sopaipilla", "cazuela", "whey", "xyzq", "coca cola zero", "bebida", "gaseosa", "sprite",
     )
 
     @Test
