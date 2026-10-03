@@ -1,6 +1,6 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 18.** Recoge hallazgos
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 20.** Recoge hallazgos
 > por lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0
 > bajo Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de
 > los 55 hallazgos con id: **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de
@@ -150,6 +150,23 @@ cierre. Ver «Plan de remediación».
     italiano sin mayo" da 220 g/352 kcal (antes 200 g/320 kcal) y sigue como ítem estimado con pregunta (control).
   - **#59**: cambia solo un campo interno (el intent del yogur griego estimado, de INFERRED_CONTEXT a
     RESOLVED_SUBJECTIVE); gramos y kcal no varían.
+- **Delta de la sonda tras WP-N10** (`blind-probe.json` de build tras el gate 20, no versionada): 37 de las 60 entradas
+  difieren de la línea base oficial en algún campo: 34 en la línea de resultado (las 29 que ya diferían tras WP-N6/N8
+  más #4, #29, #30, #32 y #33) y 3 solo en campos internos (#12, #40 y #59). Frente al estado tras WP-N6/N8, el gate 19
+  (WP-D1/S11) no cambia ninguna línea y WP-N10 cambia exactamente esas cinco. Ninguna entrada pierde una ficha ni gana
+  un fantasma, y las cinco alcanzan su valor esperado en la sonda. La línea base oficial sigue siendo la del gate 1.
+  Ejemplos:
+  - **Una sola vía de cocción** (#4, #30, #33): "150 g salmón a la parrilla" da `gen009` 150 g/400 kcal (150/0,78 g de
+    crudo x 2,08 kcal/g), sin el x1,05 de antes (420 kcal) y sin aceite añadido; "150 g de pechuga cruda frita" baja de
+    314 a 293 kcal (rendimiento una vez más 9 g de aceite); "100 g champiñones salteados" sube de 96 a 101 kcal (el
+    rendimiento se busca por tokens normalizados: 0,75 en lugar de 1,0).
+  - **Variante preparada y "sin aceite"** (#29, #32): "pechuga de pollo frita sin aceite 150 g" pasa de `gen003f`
+    150 g/334 kcal a `gen003` (cruda) con rendimiento 0,75 y 0 g de aceite aplicado: 212 kcal (150/0,75 g de crudo x
+    1,06 kcal/g); "huevos revueltos" pasa de `gen007f` (frito, 50 g/90 kcal) a `gen007r` (revuelto, 50 g/95 kcal).
+  - **Solo campos internos** (#12, #40): "asado" mantiene `gen093c` 100 g/250 kcal, pero su estado pasa de RAW a COOKED
+    y el nombre registrado de "Asado de Tira (crudo)" a "de Tira (cocido, estimado)" (pierde la palabra Asado; a
+    revisar); "porotos con riendas" suma el candidato `gen173` ("Porotos verdes (cocidos)", ficha nueva de WP-D1) sin
+    cambiar la línea: sigue `gen135` más el fantasma "riendas (estimado)".
 
 ### Qué se verificó y cómo
 
@@ -270,6 +287,13 @@ reproducible; el resultado por término está en [`coverage-probe.json`](coverag
 - **Fichas multilínea.** `gen137`-`gen142` no tienen `FoodItem(` en la misma línea que su nombre, así que un grep por
   líneas no las ve; se comprobó aparte que no cambian ninguna marca (solo suman coincidencias a términos ya cubiertos:
   galleta, chocolate, papa, avena, papas fritas, pap).
+- **Tras WP-D1 (gate 19).** `StaticCatalogCoverageTest` repite la sonda como test con un criterio más estricto: un
+  término tiene ficha si `staticFoodForAlias` o `findFoodByNormalized` lo resuelven en el catálogo estático, o si una
+  fila de los dos catálogos de marcas lo lleva como frase completa (no como subcadena). Resultado: **169/174** con ficha
+  (antes 118/174 con el grep de subcadena). De los 10 términos `"trusted": false`, 8 tienen ya ficha propia (`agua`:
+  `gen143`; `coca` y `bebida`: `gen146`; `ron`: `gen197`; `cereal`: `gen179`; `helado`: `gen193`; `tostada`: `gen178`;
+  `quesillo`: `gen158`) y `mate` y `pap` siguen sin ella. Quedan **5** sin ficha: mate, tallarines, negrita, pre entreno
+  y pap; el test falla si un término con ficha la pierde o si la cobertura baja de 150/174.
 
 Reproducción (desde `android-native/app/src/main/java/com/example/kpkn/data/food`, con la lista de términos del JSON):
 
@@ -775,7 +799,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP. Avance tras los gates 1 a 18: 34 de 45 paquetes cerrados, 33 del plan más S2b
+divide el WP. Avance tras los gates 1 a 20: 37 de 45 paquetes cerrados, 36 del plan más S2b
 (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
@@ -1046,6 +1070,8 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 | 2026-10-03, 06:08-06:19 | Gate 16 | FALLÓ en `CountsForAllFoodsTest` "drinks count their serving" (480 frente a 350): interacción de N8 con los stems de S6. Resto verde, incluido `FoodLoggerViewModelTest` 17/17. Paquete cerrado: U7, commiteado por separado porque sus suites estaban verdes | `7adcfb407` "feat(nutrition): WP-U7 — FoodLoggerViewModel: el borrador del logger sobrevive a rotación, plegado y muerte del proceso" |
 | 2026-10-03, 06:32-06:42 | Gate 17 | BUILD SUCCESSFUL en 9 min 54 s; 0 fallos (corrección: plural corto con conteo). Paquetes cerrados: N6 y N8 | `9d9d784a2` "fix(nutrition): WP-N6/N8 — una sola escala de tamaño y conteos para todo alimento con peso unitario" |
 | 2026-10-03, 06:47-06:58 | Gate 18 | BUILD SUCCESSFUL en 11 min 01 s; 0 fallos; `FoodImporterParseTest` 26, `FoodImporterUsageTest` 12. Paquete cerrado: S8 | `fe527a807` "feat(nutrition): WP-S8 — importación robusta: parseo sin bloquear Room, commit corto que conserva el uso y FTS reconstruido" |
+| 2026-10-03, 08:46-08:55 | Gate 19 | BUILD SUCCESSFUL en 8 min 37 s; 98 suites, 1.107 tests, 0 fallos (filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`); suites nuevas `AssetInventoryTest` 3, `StaticCatalogCoverageTest` 5 (sonda de cobertura 169/174, antes 118/174) y `StaticCatalogContentTest` 15; `FoodAliasConsistencyTest` 20; `SearchGoldenCorpusTest` 51/51. La sonda no cambia ninguna línea frente al estado tras WP-N6/N8 (las mismas 29 diferencias frente a la línea base; #59 solo de intent); #40 gana un candidato interno. Paquetes cerrados: D1 y S11 (28 archivos: 45 fichas nuevas `gen154`-`gen198` con procedencia, `gen136` eliminada con redirección a `gen006`, `gen084` corregida, gouda/gauda a `gen157` y 20 CSV/XLSX de FDC sin uso movidos con `git mv` a `android-native/datasets/usda_fdc_raw/`, 14 MB fuera de `assets/food_data`) | `2309492d8` "feat(nutrition): WP-D1/S11 — catálogo estático con procedencia, 45 fichas cotidianas nuevas y CSV FDC no usados fuera del APK" |
+| 2026-10-03, 09:06-09:14 | Gate 20 | BUILD SUCCESSFUL en 7 min 36 s; 91 suites, 1.096 tests, 0 fallos (filtros `domain.nutrition.*` y `data.food.*`); `CookingSingleApplicationTest` 25 (invariante: ningún tag lleva a la vez `stateConversion` y un factor no identidad), `CookingFactorsTest` 22, `CookingPortionPrecisionTest` 15, `MacroCalculatorTest` 42, `NutritionHeuristicEstimatorTest` 13. Frente al estado tras WP-D1/S11, la sonda cambia en cinco líneas (#4, #29, #30, #32 y #33) y en los campos internos de #12; 34 de las 60 difieren de la línea base oficial en la línea de resultado (ver «Línea base»). Paquete cerrado: N10 | `f83458b29` "fix(nutrition): WP-N10 — la cocción se aplica una sola vez (rendimiento o factor o variante preparada, nunca dos)" |
 
 Detalle del gate 1:
 
@@ -1058,15 +1084,19 @@ Detalle del gate 1:
 - Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
   (WP-S10/S11); ver «Límites».
 
-Avance acumulado (gates 1 a 18):
+Avance acumulado (gates 1 a 20):
 
-- Paquetes cerrados: 34 de 45 (33 del plan y S2b, que se añadió en la ejecución; N 8/14, S 9/12 más S2b, U 15/17, D 0/1,
-  WP-0 1/1): WP-0; N0 a N6 y N8; S1 a S9 y S2b; U1 a U10 y U12 a U16.
-- Pendientes del plan (12): N7 y N9 a N13; S10, S11 y S12 (S12 diferido); U11 y U17; D1. Nuevos, fuera del plan: S9b y
+- Paquetes cerrados: 37 de 45 (36 del plan y S2b, añadido en la ejecución): WP-0; N0 a N6, N8 y N10; S1 a S9, S11 y S2b;
+  U1 a U10 y U12 a U16; D1. Por bloque: WP-0 1/1, N 9/14, S 10/12 más S2b, U 15/17, D 1/1.
+- Pendientes del plan (9): N7, N9, N11, N12 y N13; S10 y S12 (S12 diferido); U11 y U17. Nuevos, fuera del plan: S9b y
   N8b (ver «Límites»).
 - Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y el gate 11 repite
-  esa salida; tras el gate 14 difiere de la línea base en 27 casos y, con WP-N6/N8, en 30. Ninguno pierde una ficha ni
-  gana un fantasma (ver «Línea base»).
+  esa salida; tras el gate 14 difiere de la línea base en 27 casos, con WP-N6/N8 en 30 y con WP-N10 en 37 (34 en la
+  línea de resultado y 3 solo en campos internos); el gate 19 no cambia ninguna línea. Ninguno pierde una ficha ni gana
+  un fantasma (ver «Línea base»).
+- Cobertura del catálogo estático: de 118/174 términos con ficha en WP-0 a 169/174 tras WP-D1 (gate 19; criterio de
+  frase completa, más estricto que el grep de WP-0); quedan sin ficha mate, tallarines, negrita, pre entreno y pap (ver
+  «Sonda de cobertura de términos cotidianos»).
 - Precisión@1 de identidad: 45/47 en la línea base y en el gate 11; 48/50 en los gates 12 y 14.
 - Gate 4: el fallo fue de infraestructura (`classes.jar` bloqueado por un arnés externo); el gate 4b es la repetición
   verde del mismo paquete (S5).
@@ -1092,7 +1122,8 @@ Avance acumulado (gates 1 a 18):
   (`compileBaseDebugAndroidTestKotlin`), pero no hay ejecución en dispositivo registrada. Los hallazgos REPORTADO
   esperan confirmación en los tests de su paquete.
 - **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
-  master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`); queda pendiente para WP-S10/WP-S11.
+  master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`); queda pendiente para WP-S10.
+  El commit de WP-S11 (gate 19) no toca el bin, y los gates 19 y 20 no ejecutaron esa tarea.
 - **WP-S9b, nuevo y pendiente.** Tras WP-S9 (gate 13), 60 alimentos foundation no tienen fila de energía (8 de ellos
   aceites) y 10 tienen carbohidrato negativo: quedan fuera del import (436 - 60 - 10 = 366, la cifra importada). La
   energía por Atwater sigue pendiente.
@@ -1109,11 +1140,13 @@ Avance acumulado (gates 1 a 18):
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 18 de «Registro de ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 20 de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
   fichas multilínea `gen137`-`gen142`; se comprobó aparte que no cambian ningún resultado.
+  Tras WP-D1, `StaticCatalogCoverageTest` la repite con coincidencia por frase completa y da 169/174 (ver «Sonda de
+  cobertura de términos cotidianos»).
 - **Referencias `archivo:línea`.** Se copiaron del plan sin re-verificarlas una por una; se desplazarán conforme se
   apliquen los WP.
 - **Sin corpus de fallos reales.** La telemetría nutricional sanitiza el texto de las comidas, no hay JSONL exportados
