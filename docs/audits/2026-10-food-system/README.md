@@ -1,9 +1,10 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: WP-0, primera entrega, antes de tocar código.** Este documento recoge hallazgos por lectura de código, la
-> corrida JVM existente, una sonda estática del catálogo y una línea base informal del harness WP-N0 (corrida fuera de
-> Gradle). No se ejecutó QA en dispositivo ni el harness bajo Gradle. Cada hallazgo lleva su etiqueta de evidencia:
-> **VERIFICADO**, **REPORTADO** o **INFERIDO** (ver «Qué se verificó y cómo»).
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado con el gate 1.** Recoge hallazgos por
+> lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0 bajo
+> Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de los 55
+> hallazgos con id: **16 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **32 REPORTADO**; la divergencia de `\b`
+> (sin id) es **INFERIDO** (ver «Qué se verificó y cómo»).
 
 | Campo | Valor |
 |---|---|
@@ -13,9 +14,11 @@
 | Plan aprobado | `C:\Users\valen\.claude\plans\te-encargo-una-auditor-a-enumerated-nautilus.md` (diseños completos de cada WP; aquí solo se indexan) |
 | Contrato de comportamiento | [nutrition_interpretation_v2](../../contracts/nutrition_interpretation_v2.md) |
 | Auditorías previas | [2026-08 precisión](../2026-08-nutrition-precision/README.md), [2026-09 fiabilidad](../2026-09-nutrition-reliability/README.md) |
-| Artefactos de esta carpeta | `coverage-probe.json` (sonda de cobertura del catálogo). La línea base de WP-N0 bajo Gradle se añade como `blind-probe-baseline.json` (`blind-corpus-baseline.json` en el plan) |
-| `blind-probe-baseline.informal.json` | Salida de `BlindMealCorpusProbeTest` en JSON, ejecutada fuera de Gradle (JUnitCore, JDK 21 —solo en esta corrida; el JDK de desarrollo es 24—, clases compiladas antes de cualquier cambio de esta auditoría); línea base informal, se sustituirá por `blind-probe-baseline.json` cuando corra bajo Gradle |
-| `blind-probe-baseline.informal.txt` | La misma salida en texto (tabla de ancho fijo): fuera de Gradle, JUnitCore, JDK 21, clases compiladas antes de cualquier cambio de esta auditoría; línea base informal, se sustituirá por `blind-probe-baseline.json` cuando corra bajo Gradle |
+| Artefactos de esta carpeta | `coverage-probe.json` (sonda de cobertura del catálogo) y la línea base de la sonda WP-N0 (filas siguientes; `blind-corpus-baseline.json` en el plan) |
+| `blind-probe-baseline.json` | Línea base oficial: salida JSON de `BlindMealCorpusProbeTest` ejecutada bajo Gradle en el gate 1 (2026-10-03, 2/2 tests), idéntica a la informal previa salvo los tiempos |
+| `blind-probe-baseline.txt` | La misma línea base como tabla de stdout extraída del XML de resultados de Gradle |
+| `blind-probe-baseline.informal.json` | Previo, conservado como traza: salida de `BlindMealCorpusProbeTest` ejecutada fuera de Gradle (JUnitCore, JDK 21, clases compiladas antes de cualquier cambio de esta auditoría); sustituido por `blind-probe-baseline.json` |
+| `blind-probe-baseline.informal.txt` | Previo, conservado como traza: la misma salida informal en texto (tabla de ancho fijo); sustituido por `blind-probe-baseline.txt` |
 
 ## Alcance pedido por el usuario
 
@@ -43,22 +46,27 @@ Decisiones del usuario (2026-10-02):
 resultado, golden que fija bugs) y nada mide descripciones reales. Tres exploraciones de código (pipeline,
 búsqueda/datos, UI/servicios) encontraron ~70 hallazgos; los 12 que más afectan al usuario:
 
-1. Cantidades ignoradas en alimentos no contables: "2 yogures" = 1 yogur, "2 paltas" = "media palta" (A-Q1, VERIFICADO).
-2. Plurales en "-es" rompen la identidad: "3 tomates" -> plato fantasma de ~560 kcal con pregunta (A-Q2, VERIFICADO).
-3. No existe ruta de 0 kcal: "un vaso de agua" ≈ 400 kcal (A-Q10).
-4. Doble factor de cocción (rendimiento + factor; FRITO + aceite que sobrevive a "sin aceite") (A-C1).
-5. Platos protegidos no coinciden por el mapa de typos: "porotos con riendas" nunca da la ficha `cl029` (A-P3).
-6. Punto/dos puntos no separan, "al menos" excluye, "a"/"no" activan modo inglés (A-P1, P2, P4).
+1. Cantidades ignoradas en alimentos no contables: "2 yogures" = 1 yogur, "2 paltas" = "media palta" (A-Q1, CONFIRMADO
+   POR SONDA).
+2. Plurales en "-es" rompen la identidad: "3 tomates" -> plato fantasma de ~560 kcal con pregunta (A-Q2, CONFIRMADO POR
+   SONDA).
+3. No existe ruta de 0 kcal: "un vaso de agua" ≈ 400 kcal (A-Q10, CONFIRMADO POR SONDA).
+4. Doble factor de cocción (rendimiento + factor; FRITO + aceite que sobrevive a "sin aceite") (A-C1, CONFIRMADO POR SONDA).
+5. Platos protegidos no coinciden por el mapa de typos: "porotos con riendas" nunca da la ficha `cl029` (A-P3,
+   CONFIRMADO POR SONDA).
+6. Punto/dos puntos no separan, "al menos" excluye, "a"/"no" activan modo inglés (A-P1, P2, P4, CONFIRMADOS POR SONDA).
 7. Tocar un resultado de búsqueda registra OTRO alimento o nada, y se aprende como confirmado (B1, VERIFICADO).
 8. El ranking entierra los genéricos curados bajo marcas OFF y filtra después del límite (B2, VERIFICADO).
 9. ~72 MB de CSV se hashean en cada arranque antes de publicar las comidas del usuario (B3, VERIFICADO).
 10. La fecha seleccionada no avanza tras medianoche: lo registrado cae en ayer (C1, VERIFICADO).
 11. Si falla o tarda la importación del catálogo, Nutrición y Home quedan vacíos toda la sesión (C2, VERIFICADO).
-12. AUGE descarta todas las comidas del drawer por el formato de fecha; el widget abre Home sin logger (C4, C3, VERIFICADOS).
+12. AUGE descarta todas las comidas del drawer por el formato de fecha; el widget abre Home sin logger (C4, C3,
+    VERIFICADOS).
 
-**Riesgo transversal.** Los tests corren en JDK 24, donde `\b` es ASCII, y Android usa ICU, donde `\b` es Unicode: el
-parser puede comportarse distinto en el teléfono ("huevo poché" desaparece) con tests verdes (INFERIDO). Primer paso
-obligatorio del plan: harness de sonda con 60 descripciones reales (WP-N0) para medir antes de corregir.
+**Riesgo transversal.** Los tests JVM corren en Java 21 (daemon de Gradle; el desarrollo usa JDK 24), donde `\b` es
+ASCII, y Android usa ICU, donde `\b` es Unicode: el parser puede comportarse distinto en el teléfono ("huevo poché"
+desaparece) con tests verdes (INFERIDO). Primer paso obligatorio del plan, ya ejecutado: harness de sonda con 60
+descripciones reales (WP-N0); su línea base bajo Gradle confirma varios hallazgos A (ver «Línea base»).
 
 **Plan.** 5 fases (0 a 4) más cierre, ~45 paquetes (bloques N pipeline, S búsqueda/datos, U página/servicios, D
 catálogo), sin migración Room (v29 solo si WP-S12 se activa) y corpus ciego con umbrales por dimensión como criterio de
@@ -76,22 +84,28 @@ cierre. Ver «Plan de remediación».
 - **Corpus "independiente" de sep-2026: 23 casos**, casi todos de un alimento con unidad explícita. No existe corpus
   narrativo real.
 - No hay tests instrumentados de la pantalla Nutrición ni del `FoodLoggerDrawer`.
-- **Línea base informal de la sonda WP-N0** (`blind-probe-baseline.informal.json` y `.txt`: JUnitCore fuera de Gradle,
-  JDK 21.0.8 en esa corrida, mientras que el JDK de desarrollo del proyecto es 24; clases compiladas antes de cualquier
-  corrección). 60 entradas x 2 pasadas (con y sin el snapshot de `dataset_knowledge.bin`), sin errores ni diferencias
-  entre pasadas. Estas salidas no cambian las etiquetas de evidencia de los hallazgos hasta que la sonda corra bajo
-  Gradle. Resultados observados:
-  - **#1** "almorcé un plato de porotos con riendas y un pan con palta, después un café con leche" (A-P3, A-P4, A-P5,
-    A-Q10): "porotos con riendas" no da `cl029` sino `gen135` "Porotos (cocidos)" 212,5 g/298 kcal más el fantasma
-    "riendas (estimado)" 40 g/64 kcal (NEEDS_REVIEW); "después 1 café con leche" queda como ítem heurístico de
-    40 g/24,8 kcal (NEEDS_REVIEW). El pan con palta sí resuelve (`cl025`, 120 g/280 kcal).
-  - **#2 y #6** (A-Q1, A-Q2, A-P2): "2 yogures y 3 tomates" da el ítem heurístico "tomat (estimado)" 100 g/160 kcal
-    (NEEDS_REVIEW) y los 2 yogures quedan en 200 g (`gen087`, 118 kcal); "al menos 2 huevos" da el fantasma
-    "al (estimado)" 350 g/560 kcal (NEEDS_REVIEW) y deja los huevos excluidos.
-  - **#3 y #18** (A-Q10, A-Q5, A-Q4): "un vaso de agua" da "agua (estimado)" 250 g/400 kcal y "una botella de agua"
-    750 g/1.200 kcal, ambos NEEDS_REVIEW; no hay ruta de 0 kcal.
-  - **#4** (A-C1): "150 g salmón a la parrilla" da `gen009` 150 g/420 kcal (AUTO) con conversión RAW->COOKED (yield 0,78);
-    A-C1 describe ≈ 420 kcal frente a ~300.
+- **Línea base de la sonda WP-N0 bajo Gradle** (`blind-probe-baseline.json` y `.txt`, gate 1 del 2026-10-03,
+  `BlindMealCorpusProbeTest` 2/2; tests JVM en Java 21 (daemon de Gradle, Eclipse Adoptium 21.0.8) y desarrollo con
+  JDK 24). 60 entradas x 2 pasadas (con y sin el snapshot de `dataset_knowledge.bin`), sin errores ni diferencias entre
+  pasadas; pasada A: p50 19 ms, p95 55 ms, máximo 63 ms. Es idéntica, salvo los tiempos, a la salida informal previa
+  (`blind-probe-baseline.informal.*`, JUnitCore fuera de Gradle, conservada como traza). Resultados observados:
+  - **#1 y #40** (A-P3, A-P4, A-P5, A-Q10): en "almorcé un plato de porotos con riendas y un pan con palta, después un
+    café con leche", "porotos con riendas" no da `cl029` sino `gen135` "Porotos (cocidos)" 212,5 g/298 kcal más el
+    fantasma "riendas (estimado)" 40 g/64 kcal (NEEDS_REVIEW); "después 1 café con leche" queda como ítem heurístico de
+    40 g/24,8 kcal (NEEDS_REVIEW); el pan con palta sí resuelve (`cl025`, 120 g/280 kcal). Con "porotos con riendas"
+    solo (#40) pasa lo mismo: `gen135` 99 g/139 kcal y "riendas (estimado)" 99 g/158,4 kcal.
+  - **#2, #37 y #6** (A-Q1, A-Q2, A-P2): "2 yogures y 3 tomates" da el ítem heurístico "tomat (estimado)" 100 g/160 kcal
+    (NEEDS_REVIEW) y los 2 yogures quedan en 200 g (`gen087`, 118 kcal); "tres tomates" da "tomat (estimado)"
+    350 g/560 kcal; "al menos 2 huevos" da el fantasma "al (estimado)" 350 g/560 kcal (NEEDS_REVIEW) y deja los huevos
+    excluidos.
+  - **#3, #18 y #45** (A-Q10, A-Q4): "un vaso de agua" da "agua (estimado)" 250 g/400 kcal, "una botella de agua"
+    750 g/1.200 kcal y "2 litros de agua" también 1.200 kcal (750 g), todos NEEDS_REVIEW; no hay ruta de 0 kcal.
+  - **#4** (A-C1): "150 g salmón a la parrilla" da `gen009` 150 g/420 kcal (AUTO) con conversión RAW->COOKED (yield 0,78)
+    y factor de cocción; una sola conversión (150/0,78 x 2,08) daría ≈ 400 kcal.
+  - **#7 y #8** (A-P1, A-P4): "Desayuno: 2 huevos. Almuerzo: arroz con pollo." se parte en dos tags ("desayuno: 2 huevos.
+    almuerzo: arroz" y "pollo."): el primero queda como ítem heurístico de 198 g/306,9 kcal (NEEDS_REVIEW) y solo el
+    pollo resuelve (`gen004`, 126 g/209 kcal, NEEDS_CONFIRMATION); "pollo a la plancha y papas a lo pobre" se normaliza a
+    "pollo 1 la plancha y papa 1 lo pobre" y "papa 1 lo pobre" queda como fantasma de 242 g/205,7 kcal (NEEDS_REVIEW).
   - **#28** (A-Q11): "un sandwich de jamón y queso y una coca cola" se resuelve en `gen019` pan blanco 100 g, `gen094`
     jamón cocido 100 g y `gen047` queso cheddar 30 g (AUTO) y pierde la coca cola.
   - **#42**: "una taza de té sin azúcar" da "té sin azúcar (estimado)" 192 g/729,6 kcal (NEEDS_REVIEW).
@@ -100,9 +114,13 @@ cierre. Ver «Plan de remediación».
 
 | Etiqueta | Criterio | Hallazgos |
 |---|---|---|
-| **VERIFICADO** | El plan lo marca como verificado: lectura directa del código ("Verificación directa"), confirmación explícita de la exploración o grep con 0 referencias | A-P1, A-Q1, A-Q2 y las aserciones `tomat`/`huevo poché`; B1, B2, B3; C1, C2, C3, C4; módulos muertos con 0 referencias |
-| **REPORTADO** | Hallado por revisión de código de los agentes de exploración; se confirma o refuta en las pruebas de cada paquete (WP-N0, WP-S*, WP-U*) | El resto. A-P3, A-Q10 y A-C1 quedan explícitamente "confirmar con sonda" |
+| **CONFIRMADO POR SONDA (Gradle)** | La sonda WP-N0 (`BlindMealCorpusProbeTest`, bajo Gradle, `blind-probe-baseline.json`) reproduce el síntoma sobre el código de partida | A-P1..P5, A-Q1..Q4, A-Q6, A-Q9..Q11, A-C1..C3 (16 de los 20 A) |
+| **VERIFICADO** | El plan lo marca como verificado: lectura directa del código ("Verificación directa"), confirmación explícita de la exploración o grep con 0 referencias | Las aserciones `tomat`/`huevo poché`; B1, B2, B3; C1, C2, C3, C4; módulos muertos con 0 referencias |
+| **REPORTADO** | Hallado por revisión de código de los agentes de exploración; se confirma o refuta en las pruebas de cada paquete (WP-N*, WP-S*, WP-U*) | El resto: A-P6, A-Q5, A-Q7 y A-Q8 (la sonda no los reproduce o no es concluyente), B4..B13 y C5..C22 |
 | **INFERIDO** | Deducción por diferencias de plataforma o lectura sin ejecución | Divergencia de `\b` JVM vs Android (ALTA prioridad de verificación) |
+
+A-P1, A-Q1 y A-Q2 pasaron de VERIFICADO a CONFIRMADO POR SONDA (Gradle); A-P2..A-P5, A-Q3, A-Q4, A-Q6, A-Q9..A-Q11 y
+A-C1..A-C3, de REPORTADO. Las demás etiquetas no cambian.
 
 El diseño del bloque N re-leyó todos los hallazgos A-* y los reprodujo por lectura; esa re-lectura no cambia su
 etiqueta. Los diseños de los bloques S y U añadieron confirmaciones puntuales: se anotan en cada hallazgo como
@@ -236,17 +254,18 @@ b=$(cat BrandedSnackCatalog.kt BrandedEnergyKcalCatalog.kt | grep -ciF -- "$term
 
 ## Hallazgos
 
-Cada hallazgo conserva su id del plan, sus referencias `archivo:línea` y una etiqueta de evidencia (VERIFICADO,
-REPORTADO o INFERIDO). Las rutas son relativas a `android-native/app/src/main/java/com/example/kpkn/`; las referencias
-`:NNN` sin archivo se copian tal cual del plan y se leen contra el último archivo citado. Dentro de cada informe el orden
-es el del plan (de mayor a menor severidad). Los hallazgos sin id del plan (módulos muertos, bullets de cocción, umbrales,
-Room, repositorio, severidad baja) llevan solo la etiqueta.
+Cada hallazgo conserva su id del plan, sus referencias `archivo:línea` y una etiqueta de evidencia (CONFIRMADO POR SONDA
+(Gradle), VERIFICADO, REPORTADO o INFERIDO). Describen el estado de partida (2026-10-02); lo que corrige cada gate está
+en «Registro de ejecución». Las rutas son relativas a `android-native/app/src/main/java/com/example/kpkn/`; las
+referencias `:NNN` sin archivo se copian tal cual del plan y se leen contra el último archivo citado. Dentro de cada
+informe el orden es el del plan (de mayor a menor severidad). Los hallazgos sin id del plan (módulos muertos, bullets de
+cocción, umbrales, Room, repositorio, severidad baja) llevan solo la etiqueta.
 
-| Informe | Hallazgos con id | VERIFICADO | REPORTADO | INFERIDO |
-|---|---|---|---|---|
-| A. Descripciones | 20 (A-P1..P6, A-Q1..Q11, A-C1..C3) | A-P1, A-Q1, A-Q2 | 17 | divergencia de `\b` (sin id) |
-| B. Búsqueda y datos | 13 (B1..B13) | B1, B2, B3 | 10 | — |
-| C. Página, ViewModel y servicios | 22 (C1..C22) | C1, C2, C3, C4 | 18 | — |
+| Informe | Hallazgos con id | CONFIRMADO POR SONDA (Gradle) | VERIFICADO | REPORTADO | INFERIDO |
+|---|---|---|---|---|---|
+| A. Descripciones | 20 (A-P1..P6, A-Q1..Q11, A-C1..C3) | 16: A-P1..P5, A-Q1..Q4, A-Q6, A-Q9..Q11, A-C1..C3 | — | 4: A-P6, A-Q5, A-Q7, A-Q8 | divergencia de `\b` (sin id) |
+| B. Búsqueda y datos | 13 (B1..B13) | — | B1, B2, B3 | 10 | — |
+| C. Página, ViewModel y servicios | 22 (C1..C22) | — | C1, C2, C3, C4 | 18 | — |
 
 ### Descripciones (informe A)
 
@@ -258,8 +277,10 @@ Main) -> `SemanticPortionRetriever.retrieve` (solo telemetría/rango no renderiz
 `NutritionRepository.saveNutritionLog`. `NutritionViewModel` NO participa en el parseo. Home guarda directo al
 repositorio (`HomeScreen.kt:502-513`).
 
-Los hallazgos A-P3, A-Q10 y A-C1 y la divergencia de `\b` no se asumen: quedan como "confirmar con sonda" en el primer
-paso del plan (WP-N0). Donde el plan indica la entrada de la sonda que lo cubre, se anota como "Sonda #n".
+La sonda WP-N0 bajo Gradle (línea base oficial, ver «Línea base») confirmó 16 de los 20 hallazgos A; A-P6, A-Q5, A-Q7 y
+A-Q8 siguen REPORTADO porque la sonda no los reproduce o no es concluyente. La divergencia de `\b` sigue sin poder
+medirse en la JVM (entrada #34). Cada hallazgo anota la entrada de la sonda que lo cubre como "Sonda #n (Gradle)" y,
+cuando la confirmación no abarca todos sus ejemplos, dice cuáles no se probaron.
 
 #### Módulos muertos o parcialmente muertos (candidatos a retirar)
 
@@ -267,8 +288,9 @@ paso del plan (WP-N0). Donde el plan indica la entrada de la sonda que lo cubre,
   `CookingMethodParser` (440 patrones, "NOT wired"), `DatasetKnowledgeSource`, `FoodTemplateMatcher` (solo
   `findMealTemplateMatch` sin llamadores), mini-pipeline
   `FoodInterpretationV2.interpret/answerClarification/finalize/recordCorrection` (`:363-528`, solo tests; el bloque N lo
-  nombra `FoodInterpretationV2Engine`), rutas de gramos del dataset (`SubjectivePortionEngine` rama dataset-prior `:472-491`; `SemanticPortionRetriever.getGramsForFood` siempre
-  null), `shouldUseAiLoggedFood`, `CookingFactors.applyCooking/applyCookingToMacros`, `FoodParser.extractGlobalPortion`,
+  nombra `FoodInterpretationV2Engine`), rutas de gramos del dataset (`SubjectivePortionEngine` rama dataset-prior
+  `:472-491`; `SemanticPortionRetriever.getGramsForFood` siempre null), `shouldUseAiLoggedFood`,
+  `CookingFactors.applyCooking/applyCookingToMacros`, `FoodParser.extractGlobalPortion`,
   `ContextDetector.adjustPortion`.
 - **REPORTADO** (informe A; el plan no los lista entre los verificados por grep): `MealLanguageGrammar.classifyDe/Con/Y`,
   `SubjectivePortionEngine.detectIntensifier`, `CookingFactors.isLikelyLiquid`, `InferredMealContext.portionAdjustment`
@@ -277,72 +299,114 @@ paso del plan (WP-N0). Donde el plan indica la entrada de la sonda que lo cubre,
 
 #### Bugs de parseo y segmentación
 
-- **A-P1 · VERIFICADO** — Punto y dos puntos no separan (`FoodParser.kt:21` `COMMA_OR_PLUS`; verbos solo al inicio o tras
-  `, ; \n` `TextNormalizer.kt:396-398`). "Desayuné 2 huevos. Almorcé arroz con pollo." => un ítem heurístico y el arroz
-  se pierde. Sonda #7.
-- **A-P2 · REPORTADO** — `menos` es negación (`:147`, `:527-537`): "al menos 2 huevos" excluye los huevos y crea fantasma
-  `al` (MIXED_DISH 160 kcal/100 g x 350 g ≈ 560 kcal). Sonda #6.
-- **A-P3 · REPORTADO (confirmar con sonda)** — TYPO_MAP singulariza antes del enmascarado de entidades protegidas
+- **A-P1 · CONFIRMADO POR SONDA (Gradle)** — Punto y dos puntos no separan (`FoodParser.kt:21` `COMMA_OR_PLUS`; verbos
+  solo al inicio o tras `, ; \n` `TextNormalizer.kt:396-398`). "Desayuné 2 huevos. Almorcé arroz con pollo." => un ítem
+  heurístico y el arroz se pierde. Sonda #7 (Gradle): "Desayuno: 2 huevos. Almuerzo: arroz con pollo." se parte en dos
+  tags ("desayuno: 2 huevos. almuerzo: arroz" y "pollo."); el primero queda como ítem heurístico de 198 g/306,9 kcal
+  (NEEDS_REVIEW) que absorbe los huevos y el arroz, y solo el pollo resuelve.
+- **A-P2 · CONFIRMADO POR SONDA (Gradle)** — `menos` es negación (`:147`, `:527-537`): "al menos 2 huevos" excluye los
+  huevos y crea fantasma `al` (MIXED_DISH 160 kcal/100 g x 350 g ≈ 560 kcal). Sonda #6 (Gradle): "al (estimado)"
+  350 g/560 kcal (NEEDS_REVIEW) y los huevos excluidos.
+- **A-P3 · CONFIRMADO POR SONDA (Gradle)** — TYPO_MAP singulariza antes del enmascarado de entidades protegidas
   (`TextNormalizer.kt:101,113`): "porotos con riendas" (`FoodParser.kt:30`) nunca coincide con `cl029`; igual "papas con
   mayo"; `maíz->choclo` rompe "tortilla/aceite/harina de maíz" (la puerta de identidad exige el token "choclo").
-  Precisión del diseño N: solo las claves TYPO multi-palabra se protegen con placeholder (`:561-569`) y el enmascarado de
-  `PROTECTED_ENTITIES` ocurre después (`FoodParser.splitMentionFragments :466-472`). Sonda #1, #40.
-- **A-P4 · REPORTADO** — Falso modo inglés: `a` y `no` cuentan como señales (`TextNormalizer.kt:310-333`); dos hits
-  reescriben `a->1`, `no->sin`: "pasta a la bolognesa" => `pasta 1 la bolognesa`; "pollo a la plancha, no frito" =>
-  `pollo 1 la`. Precisión del diseño N: `EN_SIGNAL_WORDS :310-321` incluye `a, no, an, of, can`. Sonda #1, #8.
-- **A-P5 · REPORTADO** — `y`/`con` parten nombres compuestos: "helado de vainilla y chocolate" añade barra de chocolate;
-  "agua con gas" crea ítem `gas`; "200g de arroz con pollo" liga 200 g solo al arroz. Sonda #1, #9, #10, #11.
+  Precisión del diseño N: solo las claves TYPO multi-palabra se protegen con placeholder (`:561-569`) y el enmascarado
+  de `PROTECTED_ENTITIES` ocurre después (`FoodParser.splitMentionFragments :466-472`). Sonda #1, #40 (Gradle): "porotos
+  con riendas" da `gen135` "Porotos (cocidos)" más el fantasma "riendas (estimado)" (#40: 99 g/139 kcal y 99 g/158,4
+  kcal), nunca `cl029`.
+- **A-P4 · CONFIRMADO POR SONDA (Gradle)** — Falso modo inglés: `a` y `no` cuentan como señales
+  (`TextNormalizer.kt:310-333`); dos hits reescriben `a->1`, `no->sin`: "pasta a la bolognesa" =>
+  `pasta 1 la bolognesa`; "pollo a la plancha, no frito" => `pollo 1 la`. Precisión del diseño N:
+  `EN_SIGNAL_WORDS :310-321` incluye `a, no, an, of, can`. Sonda #1, #8 (Gradle): "pollo a la plancha y papas a lo
+  pobre" se normaliza a "pollo 1 la plancha y papa 1 lo pobre" y "papa 1 lo pobre" queda como fantasma de 242 g/205,7
+  kcal (NEEDS_REVIEW).
+- **A-P5 · CONFIRMADO POR SONDA (Gradle)** — `y`/`con` parten nombres compuestos: "helado de vainilla y chocolate" añade
+  barra de chocolate; "agua con gas" crea ítem `gas`; "200g de arroz con pollo" liga 200 g solo al arroz. Sonda #1, #9,
+  #10, #11 (Gradle): "agua con gas" da los fantasmas "agua (estimado)" y "gas (estimado)" (220 g/352 kcal cada uno);
+  "helado de vainilla y chocolate" da "helado de vainilla (estimado)" 100 g/160 kcal más `gen141` "Chocolate de mesa"
+  25 g/136 kcal; en "200 g de arroz con pollo" los 200 g quedan solo en el arroz (EXPLICIT_MASS) y el pollo resuelve
+  aparte (`gen004`, 154 g).
 - **A-P6 · REPORTADO** — Nombres que son solo palabras de cocción desaparecen (`FoodParser.kt:359-361,383`): "un guiso",
   "un estofado", "sofrito"; en comidas múltiples el ítem se descarta en silencio. Precisión del diseño N:
-  "asado/guiso/estofado" se consumen enteros por `COOKING_PATTERNS` (`:383`). Sonda #12.
+  "asado/guiso/estofado" se consumen enteros por `COOKING_PATTERNS` (`:383`). Sonda #12 (Gradle, no reproduce): "asado"
+  queda como 1 tag (cocción ASADO_PARRILLA) y resuelve `gen093c` "Asado de Tira (crudo)" (100 g/250 kcal); "un guiso",
+  "un estofado" y "sofrito" no se probaron.
 
 #### Bugs de cantidad e identidad
 
-- **A-Q1 · VERIFICADO** — Cantidades ignoradas en no contables (`HouseholdPortions.kt:218-228`; contables solo pan,
-  huevo, empanada, wrap y lista corta `:22-32`): "2 yogures" = 1 yogur (200 g); "3 cervezas" = 1; "2 pechugas" = 150 g;
-  "una/2/media palta" = 80 g; "una manzana grande" = manzana. Precisión del diseño N: "media palta" también da 80 g
-  (fracción perdida). Sonda #2, #22.
-- **A-Q2 · VERIFICADO** — Singularización "-es" corrompe identidad (`FoodParser.kt:916-923`): "3 tomates" => `tomat` =>
-  MIXED_DISH 350 g ≈ 560 kcal con pregunta; igual filetes/chocolates/aguacates/cafés. `GoldenCorpusTest.kt:551` ASUME
-  `"tomat"` como esperado. Precisión del diseño N: `canonicalTagKey :870-879` y
-  `SmartFoodResolver.singularizeQuery :272-289` también truncan a ciegas. Sonda #2, #37.
-- **A-Q3 · REPORTADO** — Unidades ausentes: `lt`, `lts`, `cc`, `cm3`, `kilogramo(s)`, "un cuarto de kilo" => tags
-  basura/heurísticos. Sonda #14, #15, #16.
-- **A-Q4 · REPORTADO** — Contenedores: "una lata/cartón" => `1 lata` no casa con `CONTAINER_PATTERNS` (exigen artículo,
-  `SubjectivePortionEngine.kt:293-304`) => referencia `can` 200 g para una lata de 350 ml. Sonda #5, #18.
+- **A-Q1 · CONFIRMADO POR SONDA (Gradle)** — Cantidades ignoradas en no contables (`HouseholdPortions.kt:218-228`;
+  contables solo pan, huevo, empanada, wrap y lista corta `:22-32`): "2 yogures" = 1 yogur (200 g); "3 cervezas" = 1; "2
+  pechugas" = 150 g; "una/2/media palta" = 80 g; "una manzana grande" = manzana. Precisión del diseño N: "media palta"
+  también da 80 g (fracción perdida). Sonda #2 (Gradle): "2 yogures" trae qty=2 pero resuelve `gen087` a 200 g/118 kcal,
+  el default de un yogur en el desayuno asumido (`HouseholdPortions.inferredItemGrams`, rama BREAKFAST_BOWL), sin
+  multiplicar por la cantidad; contraste: "dos vasos de leche descremada" (#56) sí escala (515 g). #22 y #59 no aplican
+  (quedan como ítems heurísticos). No se probaron "3 cervezas", "2 pechugas" ni "palta".
+- **A-Q2 · CONFIRMADO POR SONDA (Gradle)** — Singularización "-es" corrompe identidad (`FoodParser.kt:916-923`): "3
+  tomates" => `tomat` => MIXED_DISH 350 g ≈ 560 kcal con pregunta; igual filetes/chocolates/aguacates/cafés.
+  `GoldenCorpusTest.kt:551` ASUME `"tomat"` como esperado. Precisión del diseño N: `canonicalTagKey :870-879` y
+  `SmartFoodResolver.singularizeQuery :272-289` también truncan a ciegas. Sonda #2, #37 (Gradle): "tres tomates" da
+  "tomat (estimado)" 350 g/560 kcal (NEEDS_REVIEW).
+- **A-Q3 · CONFIRMADO POR SONDA (Gradle)** — Unidades ausentes: `lt`, `lts`, `cc`, `cm3`, `kilogramo(s)`, "un cuarto de
+  kilo" => tags basura/heurísticos. Sonda #14, #15, #16, #17 (Gradle): "500 cc de leche" queda como tag "cc de leche"
+  (qty 500, estimado de 220 g/136,4 kcal); "cuarto de kilo de carne molida" como "kilo de carne molida" (qty 0,25,
+  350 g/770 kcal); "1 lt de agua" como "lt de agua" (220 g/352 kcal); "medio litro de jugo de naranja" como "litro de
+  jugo de naranja" (qty 0,5, 50 g). No se probaron `lts`, `cm3` ni `kilogramo(s)`.
+- **A-Q4 · CONFIRMADO POR SONDA (Gradle)** — Contenedores: "una lata/cartón" => `1 lata` no casa con
+  `CONTAINER_PATTERNS` (exigen artículo, `SubjectivePortionEngine.kt:293-304`) => referencia `can` 200 g para una lata
+  de 350 ml. Sonda #5, #18 (Gradle): "una lata de coca cola" se normaliza a "1 lata", usa la referencia `can` de 200 g
+  (en vez de 350) y resuelve OFF Coca-Cola 350 ml en 200 g/84 kcal; "una botella de agua" usa la referencia `botella` de
+  750 g (en vez de 500). No se probó "cartón".
 - **A-Q5 · REPORTADO** — Densidad de líquidos: `detectDensityCategory` prueba FRUIT/VEG antes que LIQUID (`:547-559`):
-  "un vaso de jugo de naranja" => 150 g (x0,6). Sonda #3, #15, #19.
-- **A-Q6 · REPORTADO** — Defaults implausibles: "un poco de arroz" = 15 g; "un plato de cazuela/porotos" ≈ 200 g;
-  "grande" = x2,0 en parser, x1,5 en chip, x1,25 en opción V2. Sonda #20, #22.
+  "un vaso de jugo de naranja" => 150 g (x0,6). Sonda #3, #15, #19 (Gradle, no concluyente): "un jugo de naranja" da
+  100 g y "medio litro de jugo de naranja" queda como tag "litro de jugo de naranja" de 50 g; ninguna entrada trae "vaso
+  de jugo" ni se observa el factor 0,6 (150 g = 250 ml x 0,6).
+- **A-Q6 · CONFIRMADO POR SONDA (Gradle)** — Defaults implausibles: "un poco de arroz" = 15 g; "un plato de
+  cazuela/porotos" ≈ 200 g; "grande" = x2,0 en parser, x1,5 en chip, x1,25 en opción V2. Sonda #20, #21, #55 (Gradle):
+  "plato grande de arroz" (preset LARGE) da 180 g y "un plato de arroz" 212,5 g, es decir 0,85x en vez de 1,25x; "jugo
+  natural de naranja grande" se parsea como EXTRA y da 440 g. #22 no aplica (queda como ítem heurístico). No se probaron
+  "un poco de arroz", los chips ni la opción V2.
 - **A-Q7 · REPORTADO** — Pregunta de corte de pollo mezcla trutro CRUDO (`gen003t`) con opciones cocidas
   (`FoodStapleOntology.kt:81,113-116`). Precisión del diseño N: `ambiguousFamilies :114` = gen004 (cocido), gen003t
-  (CRUDO), gen003e. Sonda #23.
+  (CRUDO), gen003e. Sonda #23 (Gradle, no concluyente): "pollo" resuelve `gen004` 150 g con pregunta de corte (`cut`),
+  pero la sonda no exporta las opciones de la pregunta y no se ve la mezcla con trutro crudo (`gen003t`).
 - **A-Q8 · REPORTADO** — `PhoneticEs` colapsa todas las vocales a `A` (`:102-107`): pasta/pesto/posta, mote/mate,
   lima/lomo cuentan como evidencia de identidad para tokens >= 4 (`FoodIdentity.kt:381-384`). Precisión del diseño N:
-  huevo ≡ uva ≡ ave ≡ haba (`ABA`). Sonda #24.
-- **A-Q9 · REPORTADO** — Heurístico por substring: repollo contiene pollo => proteína magra; fresa/fresco contienen res
-  => carne grasa; papaya => vegetal almidonado; pasta de maní => pasta cocida (`NutritionHeuristicEstimator.kt:69-208,255`).
-  Sonda #26, #27.
-- **A-Q10 · REPORTADO (confirmar con sonda)** — Sin ruta de 0 kcal (`FoodIdentity.kt:395-397`,
-  `SmartFoodResolver.kt:692`, `FoodImporter.kt:309-313`, sin ficha de agua): "un vaso de agua" ≈ 400 kcal pendiente de
-  revisión; "2 litros de agua" tope 1.200 kcal (`TagResolution.kt:718-732`). Precisión del diseño N: sin ficha de agua +
-  `hasPlausibleMacros` rechaza filas todo-cero => MIXED_DISH 160 kcal/100 g x 250 g ≈ 400 kcal. Sonda #1, #3, #5, #9.
-- **A-Q11 · REPORTADO** — Expansión de sándwich traga otros alimentos: `SANDWICH_DE_Y` termina en `(.+)$` greedy
-  (`FoodCombinationParser.kt:16-19`) + `resolvedTags.clear()` (`TagResolution.kt:783-788`): "sandwich de jamón y queso y un
-  jugo" pierde el jugo. Precisión del diseño N: `SANDWICH_DE_Y` se aplica a TODA la descripción cruda
-  (`TagResolution :780-784`). Sonda #28.
+  huevo ≡ uva ≡ ave ≡ haba (`ABA`). Sonda #24 (Gradle, no reproduce): "uva" resuelve `gen053` Uva (120 g/83 kcal, AUTO),
+  no huevo; no se observa la confusión (existe ficha exacta).
+- **A-Q9 · CONFIRMADO POR SONDA (Gradle)** — Heurístico por substring: repollo contiene pollo => proteína magra;
+  fresa/fresco contienen res => carne grasa; papaya => vegetal almidonado; pasta de maní => pasta cocida
+  (`NutritionHeuristicEstimator.kt:69-208,255`). Sonda #26, #27 (Gradle): "ensalada de repollo" da un ítem heurístico de
+  350 g/577,5 kcal (165 kcal/100 g, el perfil de proteína magra `LEAN_PROTEIN` y no el vegetal de 28 kcal/100 g) con
+  "Asumí ensalada de repollo cocido"; #27 no reproduce el síntoma ("tres leches" resuelve `sn_cr_tresleches`, 350 g/980
+  kcal, NEEDS_REVIEW). No se probaron fresa/fresco, papaya ni pasta de maní.
+- **A-Q10 · CONFIRMADO POR SONDA (Gradle)** — Sin ruta de 0 kcal (`FoodIdentity.kt:395-397`, `SmartFoodResolver.kt:692`,
+  `FoodImporter.kt:309-313`, sin ficha de agua): "un vaso de agua" ≈ 400 kcal pendiente de revisión; "2 litros de agua"
+  tope 1.200 kcal (`TagResolution.kt:718-732`). Precisión del diseño N: sin ficha de agua + `hasPlausibleMacros` rechaza
+  filas todo-cero => MIXED_DISH 160 kcal/100 g x 250 g ≈ 400 kcal. Sonda #1, #3, #5, #9, #18, #45 (Gradle): "un vaso de
+  agua" da "agua (estimado)" 250 g/400 kcal, "una botella de agua" 750 g/1.200 kcal y "2 litros de agua" también
+  1.200 kcal (todos NEEDS_REVIEW).
+- **A-Q11 · CONFIRMADO POR SONDA (Gradle)** — Expansión de sándwich traga otros alimentos: `SANDWICH_DE_Y` termina en
+  `(.+)$` greedy (`FoodCombinationParser.kt:16-19`) + `resolvedTags.clear()` (`TagResolution.kt:783-788`): "sandwich de
+  jamón y queso y un jugo" pierde el jugo. Precisión del diseño N: `SANDWICH_DE_Y` se aplica a TODA la descripción cruda
+  (`TagResolution :780-784`). Sonda #28 (Gradle): "un sandwich de jamón y queso y una coca cola" resuelve pan blanco,
+  jamón cocido y queso cheddar y pierde la coca cola.
 
 #### Cocción y macros
 
-- **A-C1 · REPORTADO (confirmar con sonda)** — Doble aplicación: fila cruda + método => rendimiento (`grams/yield`) Y
+- **A-C1 · CONFIRMADO POR SONDA (Gradle)** — Doble aplicación: fila cruda + método => rendimiento (`grams/yield`) Y
   factor por gramo (`MacroCalculator.kt:112-157`): "150 g salmón a la parrilla" ≈ 420 kcal vs ~300. FRITO: factor kcal
   x1,10/1,20 + aceite explícito (`TagResolution.kt:582-599`); el factor sobrevive a "sin aceite"
   (`FoodLoggerDrawer.kt:946-954`). Precisión del diseño N: doble cocción confirmada (`scaleFoodByPortion :112-120` +
-  `:148-157`, aceite en `TagResolution :364-373,582-599`). Sonda #4, #29, #30.
-- **A-C2 · REPORTADO** — "huevos revueltos" resuelve a `Huevo Entero (frito)` por orden de sufijos
-  (`CookingStateResolver.kt:83-85`). Sonda #32.
-- **A-C3 · REPORTADO** — `cookingWeightYield` por substring (`MacroCalculator.kt:70-76`): "repollo" 0,75; "poroto
-  verde"/"pasta de maní" 2,2. Precisión del diseño N: `cookingWeightYield` nunca casa "champiñones". Sonda #33.
+  `:148-157`, aceite en `TagResolution :364-373,582-599`). Sonda #4, #29, #30 (Gradle): #4 da `gen009` 150 g/420 kcal
+  con conversión RAW->COOKED (yield 0,78) y factor de cocción; una sola conversión daría ≈ 400 kcal (150/0,78 x 2,08).
+- **A-C2 · CONFIRMADO POR SONDA (Gradle)** — "huevos revueltos" resuelve a `Huevo Entero (frito)` por orden de sufijos
+  (`CookingStateResolver.kt:83-85`). Sonda #32 (Gradle): "huevos revueltos" se parsea con cocción FRITO y resuelve
+  `gen007f` "Huevo Entero (frito)" (50 g/90 kcal, AUTO).
+- **A-C3 · CONFIRMADO POR SONDA (Gradle)** — `cookingWeightYield` por substring (`MacroCalculator.kt:70-76`): "repollo"
+  0,75; "poroto verde"/"pasta de maní" 2,2. Precisión del diseño N: `cookingWeightYield` nunca casa "champiñones". Sonda
+  #33 (Gradle): "100 g champiñones salteados" resuelve `gen038` (ficha cruda) con conversión RAW->COOKED de yield=1,0,
+  el valor por defecto de `cookingWeightYield` (sin rendimiento propio para champiñones), 96 kcal y NEEDS_CONFIRMATION
+  por la pregunta de aceite. No se probaron "repollo", "poroto verde" ni "pasta de maní".
 - **REPORTADO** — Factores de cocción cambian kcal sin macros coherentes (GUISADO kcal x1,30 / grasa x1,20; COCIDO kcal
   x0,90) (`CookingFactors.kt:21-33`); modificadores `sin piel` grasa x0,6 kcal igual; empanizado +15 g carbs, grasa x2,
   kcal x1,2 (`NutritionHeuristicEstimator.kt:296-337`). `MacroValidator` solo avisa si gap > 30 %.
@@ -383,14 +447,16 @@ paso del plan (WP-N0). Donde el plan indica la entrada de la sonda que lo cubre,
 
 #### Divergencia JVM vs Android (ALTA prioridad de verificación)
 
-- **INFERIDO** — Tests JVM corren en JDK 24 (verificado; el informe A estimó 21) donde `\b` es ASCII-only (JDK >= 19);
-  Android/ICU trata `é/á/í` como letras.
+- **INFERIDO** — Tests JVM corren en Java 21 (daemon de Gradle, `gradle-daemon-jvm.properties`; el lanzador es Java 17 y
+  el desarrollo usa JDK 24), donde `\b` es ASCII-only (JDK >= 19), igual que en JDK 24; Android/ICU trata `é/á/í` como
+  letras.
   `\b(?:...|huevo\s+poch[eé])\b` (`FoodParser.kt:106`) en dispositivo consumiría "huevo poché" entero y el ítem se
   descarta; `GoldenCorpusTest.kt:461` codifica el resultado JVM. Afecta también `tacita de caf[ée]\b`
   (`SubjectivePortionEngine.kt:96`), fillers `aj[aá]`/`no\s+s[eé]` (`TextNormalizer.kt:71`), `\btentempié\b`
   (`ContextDetector.kt:79`). El equipo ya chocó con esto (comentario `jam` `TextNormalizer.kt:162-163`). => Necesita
   test instrumentado del parser (como `CookingFactorsAndroidTest`) o `UNICODE_CHARACTER_CLASS` uniforme (el diseño N
-  descarta esta última, ver WP-N4). Sonda #34.
+  descarta esta última, ver WP-N4). Sonda #34 (Gradle): en la JVM "huevo poché" queda como ítem heurístico de 350 g/542,5
+  kcal (NEEDS_REVIEW); el comportamiento en dispositivo no se puede medir desde la JVM.
 
 #### Tests del pipeline: por qué están verdes
 
@@ -787,9 +853,10 @@ cereales y panes, platos, dulces. Cada ficha nueva trae `searchAliases` y unidad
 
 #### WP-0: documento de auditoría (S)
 
-Este documento, `coverage-probe.json`, la línea base informal `blind-probe-baseline.informal.json`/`.txt` y, cuando
-WP-N0 corra bajo Gradle, `blind-probe-baseline.json` (`blind-corpus-baseline.json` en el plan: salida del harness antes
-de las correcciones, para medir el delta al cierre). Pendiente de WP-0: actualizar `.opencode/memory/MEMORY.md` (ledger de bugs)
+Este documento, `coverage-probe.json` y la línea base de la sonda WP-N0: `blind-probe-baseline.json`/`.txt` (oficial,
+bajo Gradle; `blind-corpus-baseline.json` en el plan: salida del harness antes de las correcciones, para medir el delta
+al cierre) y su traza informal previa `blind-probe-baseline.informal.*`. Pendiente de WP-0: actualizar
+`.opencode/memory/MEMORY.md` (ledger de bugs)
 y `docs/ANDROID_ARCHITECTURE_MAP.md` solo si cambian rutas o pipelines (retiro de módulos muertos, asset de conocimiento);
 no se tocaron en esta entrega.
 
@@ -800,7 +867,8 @@ no se tocaron en esta entrega.
   Coca-Cola 350 ml, Coca-Cola Zero, Agua con gas Cachantun, Leche descremada Colun, Yogurt natural Colun, Pan integral
   Bauducco) más adversarias ya usadas. Cadena: `parseMealDescription` -> `TagResolver(port).resolveAll` (ya
   enriquecido). Salida: tabla de ancho fijo en stdout y `app/build/reports/nutrition-reliability/blind-probe.json`.
-  Verde hoy por diseño (aserciones solo diagnósticas).
+  Verde por diseño (aserciones solo diagnósticas); corrió bajo Gradle en el gate 1 (2/2 tests) y produjo
+  `blind-probe-baseline.json`.
 - **`BlindMealCorpusTest` (promoción en WP-N12).** Referencias independientes de los priors del motor (USDA SR
   Legacy/FDC y la Tabla de Composición de Alimentos Chilenos, INTA). Cinco dimensiones contadas por separado:
   identidad, adiciones/omisiones, gramos ±25 %, kcal ±20 % (±0,5 kcal si masa y perfil están declarados) y pregunta
@@ -847,7 +915,8 @@ comandos se lanzan por el wrapper con candado descrito más abajo.
   `*CookingPortionPrecisionTest *CookingStateRegressionTest *MacroCalculatorTest *CookingFactorsTest`; identidad
   `*NutritionMetricsContractTest *FluencyGoldenCorpusTest *ResolutionGoldenCorpusTest *PhoneticEsTest`. Gate de
   paquete: `domain.nutrition.*` y `data.food.*`.
-- **Entorno:** JDK de desarrollo 24 (verificado; `\b` es ASCII en JDK >= 19); el flavor Health no se valida.
+- **Entorno:** tests JVM en Java 21 (daemon de Gradle, `gradle-daemon-jvm.properties`; el lanzador de Gradle es Java
+  17); desarrollo con JDK 24; `\b` es ASCII en Java 21 y en JDK 24 (JDK >= 19); el flavor Health no se valida.
 - **QA en emulador:** máximo 10 comprobaciones por fase (listas en cada bloque). Instalar siempre con
   `adb install --no-incremental -r` (incidente de sep-2026) y respaldar el perfil antes de reemplazar el APK. Para el
   bloque N las 10 descripciones son: la #1 de la sonda, "un vaso de agua" (0 kcal, guardable), "una lata de coca cola",
@@ -882,18 +951,19 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
   cambios fuera de sus rutas, sin expectativas relajadas salvo las de WP-N12). (3) Gate bajo candado: compilación +
   filtros del WP + gate de paquete. (4) Si falla, corrección por el mismo escritor; máximo 2 pasadas por WP, a la
   tercera se divide el WP o se escala al usuario con el diff y el log. (5) Verde -> commit del WP con rutas explícitas.
-- **Candado de Gradle/emulador entre sesiones.** Hay tres sesiones vecinas (dos activas y una inactiva) que comparten
-  el repositorio y lanzan Gradle. `.opencode/scripts/run-gradle.ps1` evita el hang (`--no-daemon --console=plain`) pero no
-  excluye ejecuciones concurrentes. El wrapper `.opencode/scripts/run-gradle-locked.ps1 -Tasks "..." [-Owner "<sesión>"]`
-  existe en el árbol de trabajo (aún sin commit) y aplica esta regla: adquiere el candado creando de forma atómica el
-  directorio `android-native/.gradle-session.lock/` (si falla, está ocupado) y escribe `owner.json` (sesión, tareas,
-  `startedAt`, pid); espera sondeando cada 30 s hasta 15 min (`-WaitSec 900`); el candado es obsoleto, y se retira con
-  aviso, si el PID dueño ya no está vivo o si lleva más de 60 min (un candado sin `owner.json` legible se considera
-  obsoleto pasados 120 s); si se agota la espera con un candado ajeno vivo, sale con código 125 sin retirarlo; delega en
-  `run-gradle.ps1` y libera el candado en `finally`. El mismo candado cubre `installBaseDebug`,
-  `connectedBaseDebugAndroidTest` y la QA de emulador. Nunca `gradlew --stop` mientras otro tenga el candado; si un gate
-  espera más de 15 min, se informa al usuario en lugar de forzar. Un mensaje inicial a las tres sesiones comunica
-  alcance, rutas y wrapper; sus respuestas se tratan como datos y el silencio no es acuerdo.
+- **Candado de Gradle/emulador entre sesiones.** Hay tres sesiones vecinas (dos activas y una inactiva) que comparten el
+  repositorio y lanzan Gradle. `.opencode/scripts/run-gradle.ps1` evita el hang (`--no-daemon --console=plain`) pero no
+  excluye ejecuciones concurrentes. El wrapper
+  `.opencode/scripts/run-gradle-locked.ps1 -Tasks "..." [-Owner "<sesión>"]` quedó versionado en el commit de la fase 1A
+  (`97c464ad0`) y aplica esta regla: adquiere el candado creando de forma atómica el directorio
+  `android-native/.gradle-session.lock/` (si falla, está ocupado) y escribe `owner.json` (sesión, tareas, `startedAt`,
+  pid); espera sondeando cada 30 s hasta 15 min (`-WaitSec 900`); el candado es obsoleto, y se retira con aviso, si el
+  PID dueño ya no está vivo o si lleva más de 60 min (un candado sin `owner.json` legible se considera obsoleto pasados
+  120 s); si se agota la espera con un candado ajeno vivo, sale con código 125 sin retirarlo; delega en `run-gradle.ps1`
+  y libera el candado en `finally`. El mismo candado cubre `installBaseDebug`, `connectedBaseDebugAndroidTest` y la QA
+  de emulador. Nunca `gradlew --stop` mientras otro tenga el candado; si un gate espera más de 15 min, se informa al
+  usuario en lugar de forzar. Un mensaje inicial a las tres sesiones comunica alcance, rutas y wrapper; sus respuestas
+  se tratan como datos y el silencio no es acuerdo.
 - **Disciplina de git en árbol compartido** (542 archivos modificados de otras tareas, p. ej. `WorkoutVoice*`). Commits
   por WP solo con `git add <rutas propias>` (nunca `-A`, `-a`, `stash`, `checkout --` ni `reset` sobre el árbol
   compartido); mensaje `feat(nutrition)`/`fix(nutrition)` + línea `Co-Authored-By`; sin push; rama
@@ -908,20 +978,40 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
   WP-N0 (escritor "probe") en paralelo -> gate de sonda (JSON baseline) -> fase 1 con tres escritores en paralelo: U
   (U1, U3-U6), S (S3 incl. U2; luego S1 + U16 cuando U libere el drawer) y N (N1 incl. S7; luego N2-N4).
 
+## Registro de ejecución
+
+| Fecha | Gate | Resultado | Commit |
+|---|---|---|---|
+| 2026-10-03, 01:07-01:20 (hora local) | Gate 1 (fase 1A) | BUILD SUCCESSFUL en 13 min 26 s; 778 tests, 0 fallos; `BlindMealCorpusProbeTest` 2/2 bajo Gradle (línea base oficial de la sonda WP-N0). Paquetes cerrados: WP-0, WP-N0, WP-U1, U3, U4, U5, U6 y WP-S3 (con U2) | `97c464ad0` "feat(nutrition): fase 1A del sistema de alimentos — fecha sigue a hoy, arranque sin bloquear datos, ruta de widget, AUGE y sonda ciega", rama `consolidation/2026-10-02-wizard-session-repair` |
+
+Detalle del gate 1:
+
+- Suites nuevas o ampliadas (tests por suite): `NutritionViewModelTest` 18, `NutritionDayBoundaryTest` 6,
+  `NutritionActionRoutingTest` 7, `NutritionRecoveryEngineTest` 7, `NutritionRepositoryStartupTest` 6,
+  `FoodImporterGateTest` 11, `SettingsJsonBackupTest` 5, `SetupWizardFullJourneyTest` 2,
+  `SetupExecutableAvailabilityMatrixTest` 17, `T006PersistenceAndUseIntegrationTest` 7 y `BlindMealCorpusProbeTest` 2.
+- Hallazgos que cubren esos paquetes según el plan: C1 (WP-U1), C3 (WP-U3), C4 (WP-U4), C14 (WP-U5), C13 (WP-U6) y B3 y
+  C2 (WP-S3 con U2).
+- Pendiente de la fase 1A: `bumpCatalogGeneration` (WP-S4) y `verifyDatasetKnowledge` (WP-S10/S11); ver «Límites».
+
 ## Límites
 
-- **Sin QA en dispositivo ni en emulador.** Esta entrega no ejecutó la app. Los criterios de cierre en dispositivo
-  (arranque en caliente, búsqueda < 150 ms, medianoche, widget, AUGE) son metas, no mediciones.
-- **La sonda WP-N0 solo se ha corrido de forma informal.** Hay una línea base fuera de Gradle (JUnitCore, JDK 21; ver
-  «Línea base»), pero aún no existe la línea base bajo Gradle (`blind-probe-baseline.json`). Los `expect` de las 60
-  descripciones son objetivos posteriores a la remediación y la sonda no los afirma. La divergencia de `\b` no se puede
-  medir en la JVM (entrada #34), y A-P3, A-Q10 y A-C1 siguen etiquetados como "confirmar con sonda" hasta esa corrida;
-  todos los hallazgos REPORTADO esperan confirmación en los tests de su paquete.
+- **Sin QA en dispositivo ni en emulador.** Los gates registrados son pruebas JVM bajo Gradle; no hay QA de dispositivo
+  o emulador registrado. Los criterios de cierre en dispositivo (arranque en caliente, búsqueda < 150 ms, medianoche,
+  widget, AUGE) son metas, no mediciones.
+- **Sonda WP-N0.** Corrió bajo Gradle (`BlindMealCorpusProbeTest` 2/2, gate 1) y su salida es la línea base oficial. Los
+  `expect` de las 60 descripciones son objetivos posteriores a la remediación y la sonda no los afirma. La divergencia
+  de `\b` no se puede medir en la JVM (entrada #34): sigue pendiente de un test instrumentado en dispositivo
+  (`FoodParserAndroidTest`, WP-N4). Los hallazgos REPORTADO esperan confirmación en los tests de su paquete.
+- **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
+  master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`); queda pendiente para WP-S10/WP-S11.
+- **WP-S3 deja pendiente `bumpCatalogGeneration`.** Se completa con WP-S4 (generaciones e invalidación de `FoodIndex`).
 - **Cifras de lectura estática.** Los conteos de regex y los tiempos de rendimiento en dispositivo salen de leer el
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
-  fantasmas citados en «Línea base» vienen de la ejecución informal del harness (JVM). Las mediciones reales en que se
-  apoya el documento son la corrida JVM de 719 tests del 2026-10-02 (hecha antes de esta entrega), la sonda de cobertura
-  y el recuento de fichas de `FoodDatabase.kt` (ambos de WP-0) y la línea base informal de WP-N0.
+  fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
+  en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y el gate 1 (778 tests) de «Registro de
+  ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
@@ -933,9 +1023,10 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 - **Hook `PreToolUse:Write` roto.** Según el plan, el script `check_backend_component.py` del plugin backend-design no
   existe en disco y bloquea Write/Edit; es un prerrequisito bloqueante de la fase de implementación. Este documento y
   `coverage-probe.json` se escribieron con Bash, sin pasar por Write/Edit.
-- **Árbol compartido.** Hay 542 archivos modificados sin commitear de otras tareas (p. ej. `WorkoutVoice*`) en la rama
-  `consolidation/2026-10-02-wizard-session-repair`; ninguno forma parte de esta auditoría y cada WP debe aislar su diff
-  por rutas. El wrapper `.opencode/scripts/run-gradle-locked.ps1` existe en el árbol de trabajo, aún sin commit; se leyó
-  solo para documentar su regla (ver «Verificación») y no se ejecutó.
-- **Solo flavor Base.** El flavor Health no se valida (decisión del usuario). Esta entrega no ejecutó Gradle ni comandos
-  git de escritura, y no tocó `.opencode/memory/MEMORY.md` ni `docs/ANDROID_ARCHITECTURE_MAP.md`.
+- **Árbol compartido.** Al iniciar la auditoría había 542 archivos modificados sin commitear de otras tareas (p. ej.
+  `WorkoutVoice*`) en la rama `consolidation/2026-10-02-wizard-session-repair`; ninguno forma parte de esta auditoría y
+  cada WP debe aislar su diff por rutas. El wrapper `.opencode/scripts/run-gradle-locked.ps1` quedó versionado en el
+  commit de la fase 1A (`97c464ad0`).
+- **Solo flavor Base.** El flavor Health no se valida (decisión del usuario). La redacción de este documento (WP-0) no
+  ejecutó Gradle ni comandos git de escritura y no tocó `.opencode/memory/MEMORY.md` ni
+  `docs/ANDROID_ARCHITECTURE_MAP.md`; los gates posteriores están en «Registro de ejecución».
