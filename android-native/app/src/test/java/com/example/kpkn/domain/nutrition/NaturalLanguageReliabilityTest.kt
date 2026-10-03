@@ -256,7 +256,8 @@ class NaturalLanguageReliabilityTest {
 
     @Test fun aLocalSizeDoesNotResizeTheOtherFood() {
         val items = parseMealDescription("ensalada grande y arroz").items
-        assertEquals(PortionPreset.EXTRA, items[0].portion)
+        // WP-N6: "grande" is LARGE (x1,25), the same size as the chip and the V2 option; it was EXTRA (x2,0).
+        assertEquals(PortionPreset.LARGE, items[0].portion)
         assertEquals(PortionPreset.MEDIUM, items[1].portion)
         val largePlate = parseMealDescription("un plato grande de arroz").items.single()
         assertEquals(PortionPreset.LARGE, largePlate.portion)

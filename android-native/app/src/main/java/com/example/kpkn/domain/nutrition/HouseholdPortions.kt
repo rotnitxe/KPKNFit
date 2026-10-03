@@ -28,6 +28,9 @@ object HouseholdPortions {
     /** One counted drink with no vessel named ("un jugo de naranja", "2 jugos") is one standard glass, 250 ml. */
     private const val GLASS_GRAMS = 250.0
 
+    /** The cup of a drink that declares no serving of its own: a lone drink in a meal context and one of "2 cafés" weigh this. */
+    private const val DRINK_CUP_GRAMS = 220.0
+
     /** A "jugo en caja" is the 200 ml carton sold for one person. */
     private const val JUICE_BOX_GRAMS = 200.0
 
@@ -44,6 +47,48 @@ object HouseholdPortions {
         "manzana", "platano", "naranja", "pera", "kiwi",
         "taco", "burrito", "sushi", "wrap", "hamburguesa",
         "galleta", "galletas",
+    )
+
+    /** Unit id of an amount that is a count of pieces of a food that is not countable by default ("2 yogures", "media palta"). */
+    const val COUNT_UNIT_ID = "unidad"
+
+    /**
+     * Typical weight of ONE piece by the head noun of the food, accent-free, singular and plural (WP-N8). The default portion
+     * of these foods is a serving or a topping ("tomate" and "palta" 80 g), not a piece, so a count cannot scale it: "3 tomates"
+     * are 3 x 120 g. Rounded household weights (USDA household measures of a medium tomato, orange, peach, banana and kiwi:
+     * 123, 131, 150, 118 and 69 g) and the usual 125 g cup of yogurt. [unitGrams] applies the pieces of the countable
+     * markers; the sopaipilla, the cookie and the breads keep their dedicated rows there. A food that is not here keeps its
+     * portion default, and a custom food keeps the serving its owner typed.
+     */
+    private val UNIT_GRAMS_BY_TOKEN: Map<String, Double> = buildMap {
+        fun weight(grams: Double, vararg tokens: String) = tokens.forEach { put(it, grams) }
+        weight(120.0, "tomate", "tomates", "jitomate", "jitomates")
+        weight(150.0, "palta", "paltas", "aguacate", "aguacates")
+        weight(130.0, "naranja", "naranjas")
+        weight(150.0, "manzana", "manzanas")
+        weight(120.0, "platano", "platanos")
+        weight(150.0, "pera", "peras")
+        weight(75.0, "kiwi", "kiwis")
+        weight(150.0, "durazno", "duraznos", "melocoton", "melocotones")
+        weight(125.0, "yogurt", "yogurts", "yogur", "yogures")
+        weight(220.0, "completo", "completos")
+    }
+
+    // Qualifiers that make the food something other than a whole piece of the usual size: "tomate cherry" is 17 g, not 120 g, and
+    // "durazno seco" or "tomate en conserva" are not a fruit.
+    private val NOT_A_WHOLE_PIECE = setOf(
+        "cherry", "cocktail", "coctel", "mini", "seco", "seca", "secos", "secas", "deshidratado", "deshidratada", "deshidratados",
+        "deshidratadas", "enlatado", "enlatada", "enlatados", "enlatadas", "conserva", "congelado", "congelada", "congelados",
+        "congeladas", "triturado", "triturada", "triturados", "trituradas", "rallado", "rallada", "picado", "picada",
+    )
+
+    // A cut of poultry, beef, turkey or fish has a household piece ("pechuga" 150 g, "trutro" 120 g): "2 pechugas" are two of
+    // them. Rice, pasta and corn have anchors too, but those are plates and cobs of kernels, not pieces.
+    private val PIECE_FAMILIES = setOf(
+        FoodStapleOntology.Family.POLLO,
+        FoodStapleOntology.Family.VACUNO,
+        FoodStapleOntology.Family.PAVO,
+        FoodStapleOntology.Family.PESCADO,
     )
 
     private val CHEESE_MARKERS = listOf("queso", "gouda", "gauda", "cheddar", "mantecoso")
@@ -131,6 +176,8 @@ object HouseholdPortions {
         if (FoodIdentity.familyFor(q) == "huevo" || q.contains("huevo")) {
             return food?.servingSize?.takeIf { it in 40.0..70.0 } ?: 50.0
         }
+        // One piece of a fruit or a completo: the 100 g of a per-100 g row is a denominator, not a piece (WP-N8).
+        if (isCountable(food, query)) unitWeightByToken(q, food)?.let { return it }
         // A per-100 g row with no declared portion has no serving of its own: its 100 g is the
         // nutrient denominator, so the unit mass comes from the family defaults below.
         if (food != null && !isDenominatorOnlyServing(food)) {
@@ -150,6 +197,61 @@ object HouseholdPortions {
             "huevo" -> 50.0
             else -> 100.0
         }
+    }
+
+    /**
+     * Typical weight of one piece of [query] from [UNIT_GRAMS_BY_TOKEN], by the first content word: "manzana verde" and
+     * "yogurt griego" qualify, "pan con palta", "ensalada de tomate" and "tomate cherry" do not. Null for any other food and for a
+     * [food] that is custom (its serving is what its owner typed).
+     */
+    fun unitWeightByToken(query: String?, food: FoodItem? = null): Double? {
+        if (food?.isCustom == true) return null
+        val tokens = FoodIdentity.contentTokens(query.orEmpty())
+        val head = tokens.firstOrNull { token -> token.any(Char::isLetter) } ?: return null
+        if (tokens.any { it in NOT_A_WHOLE_PIECE }) return null
+        return UNIT_GRAMS_BY_TOKEN[head]
+    }
+
+    /**
+     * Mass of ONE unit when the person counted a food that is not countable by default ("2 yogures", "3 tomates", "media palta",
+     * "2 cervezas", "2 pechugas"), or null when the food has no unit weight of its own (WP-N8). The sources, in order: the piece of
+     * [UNIT_GRAMS_BY_TOKEN]; the serving of a drink (the catalog row declares its glass, can or copa, a branded row its own can
+     * or bottle); the household piece of a poultry, beef, turkey or fish cut. Nuts, berries, dishes and every other food have none:
+     * their default is a portion, and multiplying it by "20 almendras" would log 600 g.
+     */
+    fun countedUnitGrams(food: FoodItem?, query: String? = null): Double? {
+        if (isCountable(food, query)) return unitGrams(food, query)
+        return unitWeightByToken(query, food) ?: drinkServingGrams(food, query) ?: anchoredPieceGrams(food, query)
+    }
+
+    /**
+     * True when a count typed before [query] must scale a unit weight. A bare "un"/"una" does so only for a food with a piece of
+     * its own ("una palta" is 150 g, "un café" stays the 220 g cup it already was).
+     */
+    fun countAppliesTo(food: FoodItem?, query: String?, quantity: Double): Boolean {
+        if (countedUnitGrams(food, query) == null) return false
+        return quantity != 1.0 || unitWeightByToken(query, food) != null
+    }
+
+    // The serving of a drink: the catalog row of a drink declares its glass, can or copa (also when the person's pick is a
+    // branded row of the same drink); a branded row its own can or bottle; any other drink is the usual cup, the same one a
+    // lone drink gets in a meal context.
+    private fun drinkServingGrams(food: FoodItem?, query: String?): Double? {
+        if (food == null) return null
+        if (isBeverageRow(food)) return NutrientBasis.massForServingUnits(food, food.servingSize)
+        val q = FoodIdentity.normalize(query.orEmpty())
+        val isDrink = q.isNotBlank() &&
+            SubjectivePortionEngine.detectDensityCategory(q) == SubjectivePortionEngine.FoodDensityCategory.LIQUID
+        if (!isDrink) return null
+        findFoodExactByNormalized(q)?.takeIf(::isBeverageRow)?.let { return NutrientBasis.massForServingUnits(it, it.servingSize) }
+        val branded = if (isGlobalSku(food)) food.portionGrams.positiveOrNull() else null
+        return branded?.takeIf { isHouseholdHint(it, food, query) } ?: DRINK_CUP_GRAMS
+    }
+
+    private fun anchoredPieceGrams(food: FoodItem?, query: String?): Double? {
+        val q = query.orEmpty()
+        if (FoodStapleOntology.detectFamily(q) !in PIECE_FAMILIES) return null
+        return FoodStapleOntology.householdDefaultGrams(q, food)
     }
 
     fun defaultGrams(food: FoodItem?, query: String? = null): Double {
@@ -218,6 +320,10 @@ object HouseholdPortions {
     /**
      * Locked eaten grams. Dataset / pack sizes only apply as a last hint inside
      * household range, and never after an explicit mass, utensil, or count.
+     *
+     * [countExpressed] (WP-N8): the amount is a count typed before a food that is not countable by default ("2 yogures",
+     * "media palta", "3 cervezas"). With no mass or utensil it is [quantity] units of the food: one unit is the confirmed
+     * personal portion in [datasetHint], else [countedUnitGrams], else the portion default.
      */
     fun resolveEatenGrams(
         intent: AmountIntent,
@@ -228,6 +334,7 @@ object HouseholdPortions {
         query: String? = null,
         explicitKilogram: Boolean = false,
         unitId: String? = null,
+        countExpressed: Boolean = false,
     ): Double {
         val qty = quantity.coerceAtLeast(0.01)
         val parsed = parsedGrams?.takeIf { it.isFinite() && it > 0.0 }
@@ -256,6 +363,12 @@ object HouseholdPortions {
                 if (parsed != null) return parsed
             }
             AmountIntent.UNSPECIFIED -> Unit
+        }
+        if (countExpressed && intent == AmountIntent.UNSPECIFIED) {
+            val unit = datasetHint?.takeIf { it.isFinite() && it > 0.0 && isHouseholdHint(it, food, query) }
+                ?: countedUnitGrams(food, query)
+                ?: defaultGrams(food, query)
+            return unit * qty
         }
         if (isCountable(food, query) || (qty != 1.0 && isCountable(null, query))) {
             return unitGrams(food, query) * qty
@@ -304,7 +417,7 @@ object HouseholdPortions {
                 blob.contains("palta") -> 60.0
                 else -> 40.0
             }
-            InferredMealContext.Shape.BEVERAGE -> 220.0
+            InferredMealContext.Shape.BEVERAGE -> loneDrinkGrams(food, query)
             InferredMealContext.Shape.WRAP -> when {
                 blob.contains("quesadilla") ||
                     CHEESE_MARKERS.any { blob.contains(it) } ||
@@ -318,6 +431,11 @@ object HouseholdPortions {
         return capEnergyDenseGuess(food, query, grams, role).coerceIn(8.0, MAX_ITEM_GRAMS_WITHOUT_KG)
     }
 
+    // A lone drink of a meal context is the usual cup, a juice the glass it is counted in: "jugo natural de naranja" weighs what
+    // "un jugo de naranja" does, so its size ("grande") enlarges the same glass.
+    private fun loneDrinkGrams(food: FoodItem?, query: String?): Double =
+        if (JUICE_HEAD_PATTERN.containsMatchIn(FoodIdentity.normalize(query.orEmpty()))) unitGrams(food, query) else DRINK_CUP_GRAMS
+
     fun isWholeDish(query: String): Boolean = WHOLE_DISH_PATTERN
         .containsMatchIn(FoodIdentity.normalize(query))
 
@@ -328,7 +446,7 @@ object HouseholdPortions {
         if (isNoodleDish(blob)) return 320.0
         val raw = when (context?.shape) {
             InferredMealContext.Shape.WRAP -> 120.0
-            InferredMealContext.Shape.BEVERAGE -> 220.0
+            InferredMealContext.Shape.BEVERAGE -> loneDrinkGrams(null, query)
             InferredMealContext.Shape.BREAKFAST_BOWL -> inferredItemGrams(null, query, context)
             InferredMealContext.Shape.SNACK_ITEM -> defaultGrams(null, query)
             else -> HEURISTIC_DISH_GRAMS

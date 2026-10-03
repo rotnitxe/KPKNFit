@@ -453,7 +453,7 @@ class GoldenCorpusTest {
         GoldenCase("un chorrito de vinagre", listOf(Expectation("vinagre", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("un poco de azúcar", listOf(Expectation("azúcar", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
         GoldenCase("un montón de arroz", listOf(Expectation("arroz", gramsPositive = true, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
-        GoldenCase("un plato generoso de ensalada", listOf(Expectation("ensalada", gramsPositive = true, portion = PortionPreset.EXTRA, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
+        GoldenCase("un plato generoso de ensalada", listOf(Expectation("ensalada", gramsPositive = true, portion = PortionPreset.LARGE, intent = AmountIntent.RESOLVED_SUBJECTIVE))),
 
         // ─── E15 · Cocción y estados ────────────────────────────────────────
         GoldenCase("huevo duro", listOf(Expectation("huevo", cooking = CookingMethod.COCIDO))),
@@ -705,7 +705,8 @@ class GoldenCorpusTest {
             val result = parseMealDescription("media manzana", dummy)
             assertEquals(1, result.items.size)
             assertEquals(0.5, result.items[0].quantity, 0.01)
-            assertEquals(50.0, result.items[0].amountGrams!!, 0.01)
+            // WP-N8: one apple is 150 g (it was 100 g), so half an apple is 75 g; the dataset prior of 120 g still loses to the household unit.
+            assertEquals(75.0, result.items[0].amountGrams!!, 0.01)
         } finally {
             DatasetTestHarness.restore(original)
         }

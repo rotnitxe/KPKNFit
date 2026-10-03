@@ -26,9 +26,9 @@ class MacroCalculatorTest {
             calories = 130.0, protein = 2.7, carbs = 28.0, fats = 0.3,
         )
         val logged = scaleFoodByPortion(food, quantity = 1.0, portion = PortionPreset.LARGE)
-        // large = 1.5x
-        assertEquals(195.0, logged.calories, 0.5)
-        assertEquals(4.1, logged.protein, 0.1)
+        // large = 1.25x (WP-N6: one size scale; it was 1.5x)
+        assertEquals(162.5, logged.calories, 0.5)
+        assertEquals(3.4, logged.protein, 0.1)
     }
 
     @Test

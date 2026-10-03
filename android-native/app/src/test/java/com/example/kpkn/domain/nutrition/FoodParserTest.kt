@@ -101,16 +101,17 @@ class FoodParserTest {
 
     @Test
     fun `parse plato grande portion es LARGE no EXTRA`() {
-        // B9: "plato grande" es LARGE; EXTRA queda solo para el adjetivo suelto.
+        // B9: "plato grande" es LARGE. WP-N6: el adjetivo suelto "grande" también (una sola escala: LARGE = x1,25).
         val result = parseMealDescription("plato grande de arroz")
         assertEquals(1, result.items.size)
         assertEquals(PortionPreset.LARGE, result.items[0].portion)
     }
 
     @Test
-    fun `parse adjetivo grande suelto es EXTRA`() {
+    fun `parse adjetivo grande suelto es LARGE`() {
+        // WP-N6: era EXTRA (x2,0 en el parser); "grande" vale lo mismo que el chip "Grande" y la opción V2 (x1,25).
         val result = parseMealDescription("porción grande de ensalada")
-        assertEquals(PortionPreset.EXTRA, result.items[0].portion)
+        assertEquals(PortionPreset.LARGE, result.items[0].portion)
     }
 
     @Test

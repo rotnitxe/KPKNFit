@@ -71,9 +71,11 @@ private val PORTION_PATTERNS = listOf(
     Triple(Regex("""\bplato\s+grande\b""", RegexOption.IGNORE_CASE), PortionPreset.LARGE, "large"),
     Triple(Regex("""\bplato\s+mediano\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
     Triple(Regex("""\bplato\s+(?:chico|pequeño|pequeña)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
-    Triple(Regex("""\b(grande|generoso|generosa)\b""", RegexOption.IGNORE_CASE), PortionPreset.EXTRA, "extra"),
-    Triple(Regex("""\b(mediano|mediana)\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
-    Triple(Regex("""\b(pequeño|pequeña|chico|chica)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
+    // One size scale (WP-N6): "grande" and "generoso" are the LARGE size (x1.25 in PORTION_MULTIPLIERS), and the adjective
+    // agrees in number with its food ("2 manzanas grandes").
+    Triple(Regex("""\b(grandes?|generos[oa]s?)\b""", RegexOption.IGNORE_CASE), PortionPreset.LARGE, "large"),
+    Triple(Regex("""\b(median[oa]s?)\b""", RegexOption.IGNORE_CASE), PortionPreset.MEDIUM, "medium"),
+    Triple(Regex("""\b(pequeñ[oa]s?|chic[oa]s?)\b""", RegexOption.IGNORE_CASE), PortionPreset.SMALL, "small"),
 )
 
 private val COOKING_PATTERNS = listOf(
@@ -155,6 +157,8 @@ private val REFERENCE_PATTERNS = listOf(
 // Precompiled Regex patterns for optimization
 private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
+// "doble palta" doubles a portion; it does not count two pieces.
+private val PORTION_MULTIPLIER_WORD_PATTERN = Regex("""^(?:doble|triple)\s""", RegexOption.IGNORE_CASE)
 private val NEGATION_PATTERN = Regex("""\b(?:sin|no|ni)\b""", RegexOption.IGNORE_CASE)
 private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*($GRAM_UNITS)\b""", RegexOption.IGNORE_CASE)
 private val KG_LITER_PATTERN = Regex("kg|kilogramos?|kilos?|l$|lts?|litros?")
@@ -452,12 +456,16 @@ private fun parseFragment(
     val expressedCount = quantity != 1.0 ||
         HouseholdPortions.looksLikeCountExpression(frag) ||
         HouseholdPortions.looksLikeCountExpression(working.trim())
+    // The size of the mention ("grande", "chica"). A counted piece takes it here, once: "2 manzanas grandes" are 2 x 150 g x 1.25,
+    // and the resolver reads a declared size back as part of the amount (its base is the same count without the size).
+    val itemSize = if (catalogPhrase) PortionPreset.MEDIUM else
+        portionResult.first.takeUnless { it == PortionPreset.MEDIUM } ?: declaredPortion
     val householdCountGrams = if (
         amountIntent == AmountIntent.UNSPECIFIED &&
         countable &&
         (expressedCount || isCookieOrCrackerName(canonical))
     ) {
-        HouseholdPortions.unitGrams(catalogFood, canonical) * quantity
+        HouseholdPortions.unitGrams(catalogFood, canonical) * quantity * (PORTION_MULTIPLIERS[itemSize] ?: 1.0)
     } else {
         null
     }
@@ -472,6 +480,11 @@ private fun parseFragment(
             AmountIntent.RESOLVED_SUBJECTIVE
         else -> amountIntent
     }
+    // A count before a food that is not countable by default ("2 yogures", "una palta", "media palta"): the resolver scales
+    // the weight of one unit by it (WP-N8). A food with no unit weight keeps its portion default.
+    val countExpressed = lockedIntent == AmountIntent.UNSPECIFIED && !countable && expressedCount &&
+        !PORTION_MULTIPLIER_WORD_PATTERN.containsMatchIn(frag.trim()) &&
+        HouseholdPortions.countAppliesTo(catalogFood, canonical, quantity)
     val resolvedGrams = HouseholdPortions.resolveEatenGrams(
         intent = lockedIntent,
         quantity = quantity,
@@ -488,8 +501,7 @@ private fun parseFragment(
         quantity = quantity,
         amountGrams = if (lockedIntent == AmountIntent.UNSPECIFIED) null else resolvedGrams,
         cookingMethod = cookingMethod.first,
-        portion = if (catalogPhrase) PortionPreset.MEDIUM else
-            portionResult.first.takeUnless { it == PortionPreset.MEDIUM } ?: declaredPortion,
+        portion = itemSize,
         isFuzzyMatch = false,
         appliedCookingFactor = COOKING_FACTORS[cookingMethod.first]?.kcal ?: 1.0,
         modifierScale = modifierMacros?.let {
@@ -500,6 +512,7 @@ private fun parseFragment(
         unitId = unitId,
         excludedIngredients = excludedIngredients,
         amountIsTrailing = gramsResult.amountIsTrailing,
+        countExpressed = countExpressed,
     )
 }
 
@@ -983,9 +996,21 @@ private fun normalizeFoodName(name: String, singularize: Boolean = false): Strin
     // Diminutivos con validación de raíz: "huevito"→"huevo" pero "mantequilla" NO se rompe
     normalized = TextNormalizer.canonicalizeDiminutives(normalized)
 
-    if (singularize) normalized = SpanishSingularizer.singularize(normalized, SINGULARIZER_LEXICON)
+    if (singularize) normalized = singularOfShortPlural(SpanishSingularizer.singularize(normalized, SINGULARIZER_LEXICON))
 
     return normalized
+}
+
+/**
+ * A count of a one-word plural of three letters ("2 tés"). The singularizer never changes a word of three letters or fewer, and
+ * the plural rule of the catalog lookup ([FoodSearchRanker.stem], used by [findFoodExactByNormalized] since WP-S6) leaves a word
+ * of fewer than four letters alone too, so "tés" named no food while "té" did: the count became a 350 g dish estimate. When such
+ * a plural names nothing in the catalog and its singular names a food, the count is of the singular, as it is for "3 tomates".
+ */
+private fun singularOfShortPlural(name: String): String {
+    if (name.length != 3 || !name.endsWith('s')) return name
+    val singular = name.dropLast(1)
+    return if (findFoodExactByNormalized(name) == null && findFoodExactByNormalized(singular) != null) singular else name
 }
 
 // ─── Anatomical / Preparation Modifiers ────────────────────────────────
@@ -1062,11 +1087,11 @@ private fun extractModifiers(
         val matchText = match.value.lowercase()
         if (matchText.contains("colmad") || matchText.contains("generos")) {
             if (amountIntent != AmountIntent.EXPLICIT_MASS && gramsOverride != null) {
-                gramsOverride = gramsOverride * 1.25
+                gramsOverride = gramsOverride * (PORTION_MULTIPLIERS[PortionPreset.LARGE] ?: 1.0)
             }
         } else if (matchText.contains("rasa") || matchText.contains("fina") || matchText.contains("pequeñ")) {
             if (amountIntent != AmountIntent.EXPLICIT_MASS && gramsOverride != null) {
-                gramsOverride = gramsOverride * 0.75
+                gramsOverride = gramsOverride * (PORTION_MULTIPLIERS[PortionPreset.SMALL] ?: 1.0)
             }
         } else {
             // It's a macro modifier - combine scales

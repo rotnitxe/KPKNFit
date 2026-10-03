@@ -15,11 +15,16 @@ enum class PortionReference {
     PALM, FIST, TABLESPOON, CUP, HANDFUL, PINCH, TEASPOON, GLASS, SLICE, CAN, PORTION, SCOOP
 }
 
+/**
+ * The one size scale of the nutrition flow (WP-N6). The size words of the parser ("grande", "chica"), the portion chips
+ * (Pequeña / Habitual / Grande) and the V2 portion options multiply a portion by these same factors, so a size means the same
+ * mass wherever it is read. Every consumer multiplies the immutable base mass once, which keeps Grande -> Habitual -> Grande exact.
+ */
 val PORTION_MULTIPLIERS = mapOf(
-    PortionPreset.SMALL to 0.6,
+    PortionPreset.SMALL to 0.75,
     PortionPreset.MEDIUM to 1.0,
-    PortionPreset.LARGE to 1.5,
-    PortionPreset.EXTRA to 2.0,
+    PortionPreset.LARGE to 1.25,
+    PortionPreset.EXTRA to 1.5,
 )
 
 // ─── FoodItem ────────────────────────────────────────────────────────────────
@@ -382,6 +387,12 @@ data class ParsedMealItem(
     val amountIsTrailing: Boolean = false,
     /** Lexicon unit id when a subjective unit bound to this item. */
     val unitId: String? = null,
+    /**
+     * True when the person counted a food that is not countable by default ("2 yogures", "una palta", "media palta"): the resolver
+     * scales the weight of ONE unit by [quantity] instead of ignoring the count (WP-N8). Countable foods (egg, bread, fruit
+     * by the piece) and utensils resolve their amount in the parser and never set it.
+     */
+    val countExpressed: Boolean = false,
 )
 
 @Serializable

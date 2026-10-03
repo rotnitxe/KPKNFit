@@ -452,9 +452,14 @@ class TagResolver(
                 .let { candidates ->
                     if (candidates.size < 2) 1.0 else (candidates[0].score - candidates[1].score).coerceAtLeast(0.0)
                 }
+            // WP-N8: a count typed before a food with a unit weight ("2 yogures", "media palta") is a declared amount: one unit
+            // scaled by the count, like the eggs and the breads. No meal context or learned portion replaces it.
+            val countApplied = item.countExpressed && item.amountIntent == AmountIntent.UNSPECIFIED &&
+                ambiguousPackageGrams == null &&
+                HouseholdPortions.countAppliesTo(effectiveFood, identityQuery, item.quantity)
             val rawItemIntent = if (ambiguousPackageGrams != null) {
                 AmountIntent.UNSPECIFIED
-            } else if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED) {
+            } else if (inferPortions && item.amountIntent == AmountIntent.UNSPECIFIED && !countApplied) {
                 AmountIntent.INFERRED_CONTEXT
             } else {
                 item.amountIntent
@@ -490,10 +495,11 @@ class TagResolver(
                 intent = itemIntent,
                 quantity = item.quantity,
                 food = effectiveFood,
-                parsedGrams = inferredGrams ?: consumedGrams,
+                parsedGrams = if (countApplied) null else (inferredGrams ?: consumedGrams),
                 query = identityQuery,
                 explicitKilogram = explicitKilogramPreview,
                 unitId = item.unitId,
+                countExpressed = countApplied,
             )
             val resolutionStatus = HouseholdPortions.operationalAutoStatus(
                 food = effectiveFood,
@@ -560,13 +566,15 @@ class TagResolver(
                     intent = itemIntent,
                     quantity = item.quantity,
                     food = effectiveFood,
-                    parsedGrams = inferredGrams ?: consumedGrams ?: stapleGrams,
-                    datasetHint = calibratedGrams ?: learnedGrams ?: datasetHint,
+                    parsedGrams = if (countApplied) null else (inferredGrams ?: consumedGrams ?: stapleGrams),
+                    // A confirmed personal portion is the weight of ONE unit of a counted food; a learned one is a whole log.
+                    datasetHint = calibratedGrams ?: (if (countApplied) null else (learnedGrams ?: datasetHint)),
                     query = identityQuery,
                     explicitKilogram = explicitKilogram,
                     unitId = item.unitId,
+                    countExpressed = countApplied,
                 )
-                if (item.amountIntent == AmountIntent.UNSPECIFIED || ambiguousPackageGrams != null) {
+                if (!countApplied && (item.amountIntent == AmountIntent.UNSPECIFIED || ambiguousPackageGrams != null)) {
                     effectiveGrams = calibratedGrams ?: learnedGrams ?: effectiveGrams
                 }
                 val baseGramsBeforeSize = if (item.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE && item.portion != PortionPreset.MEDIUM) {
@@ -655,8 +663,8 @@ class TagResolver(
                     quantity = item.quantity,
                     amountGrams = effectiveGrams,
                     baseAmountGrams = baseGramsBeforeSize,
-                    portionMinGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED) effectiveGrams * 0.75 else effectiveGrams,
-                    portionMaxGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED) effectiveGrams * 1.25 else effectiveGrams,
+                    portionMinGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED && !countApplied) effectiveGrams * 0.75 else effectiveGrams,
+                    portionMaxGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED && !countApplied) effectiveGrams * 1.25 else effectiveGrams,
                     cookingMethod = item.cookingMethod,
                     foodItem = effectiveFood,
                     loggedFood = oiled,
@@ -666,7 +674,7 @@ class TagResolver(
                     statusText = warningText,
                     oilLevel = effectiveOilLevel,
                     isExcluded = item.isExcluded,
-                    amountIntent = effectiveAmountIntent,
+                    amountIntent = if (countApplied) AmountIntent.RESOLVED_SUBJECTIVE else effectiveAmountIntent,
                     calibrationUsed = calibratedGrams != null,
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
@@ -695,12 +703,15 @@ class TagResolver(
                     appliedOilGrams = if (applyOil) (oiled.fats - finalLogged.fats).coerceAtLeast(0.0) else 0.0,
                     learnedFoodId = learnedFoodId,
                     foodQuery = identityQuery,
-                    unitId = item.unitId,
+                    unitId = if (countApplied) item.unitId ?: HouseholdPortions.COUNT_UNIT_ID else item.unitId,
                     excludedIngredients = item.excludedIngredients,
                     ambiguousPackageGrams = ambiguousPackageGrams,
                 )
             } else {
                 val dishGramsRaw = when {
+                    countApplied -> HouseholdPortions.resolveEatenGrams(
+                        AmountIntent.UNSPECIFIED, item.quantity, null, null, query = identityQuery, countExpressed = true,
+                    )
                     ambiguousPackageGrams != null -> HouseholdPortions.defaultGrams(smartFood, identityQuery)
                     itemIntent == AmountIntent.INFERRED_CONTEXT && inferredGrams != null -> inferredGrams
                     item.amountIntent == AmountIntent.EXPLICIT_MASS ||
@@ -715,7 +726,7 @@ class TagResolver(
                     if (FoodIdentity.normalize(identityQuery) == "ensalada") listOfNotNull(port.getFoodById("gen066"), port.getFoodById("gen026"))
                         .filter { FoodIdentity.matchesExclusions(it, item.excludedIngredients) } else emptyList())
                 val profile = estimate.profile
-                var dishGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED &&
+                var dishGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED && !countApplied &&
                     HouseholdPortions.isWholeDish(identityQuery)) {
                     HouseholdPortions.heuristicDishGrams(identityQuery, contextResult)
                 } else dishGramsRaw
@@ -774,8 +785,8 @@ class TagResolver(
                     quantity = item.quantity,
                     amountGrams = dishGrams,
                     baseAmountGrams = baseGramsBeforeSize,
-                    portionMinGrams = if (item.amountIntent == AmountIntent.EXPLICIT_MASS) dishGrams else dishGrams * 0.65,
-                    portionMaxGrams = if (item.amountIntent == AmountIntent.EXPLICIT_MASS) dishGrams else dishGrams * 1.35,
+                    portionMinGrams = if (item.amountIntent == AmountIntent.EXPLICIT_MASS || countApplied) dishGrams else dishGrams * 0.65,
+                    portionMaxGrams = if (item.amountIntent == AmountIntent.EXPLICIT_MASS || countApplied) dishGrams else dishGrams * 1.35,
                     cookingMethod = item.cookingMethod,
                     foodItem = null,
                     loggedFood = logged.copy(analysisSource = AnalysisSource.LOCAL_HEURISTIC),
@@ -785,7 +796,7 @@ class TagResolver(
                     statusText = fallbackStatus,
                     oilLevel = effectiveOilLevel,
                     isExcluded = item.isExcluded,
-                    amountIntent = itemIntent,
+                    amountIntent = if (countApplied) AmountIntent.RESOLVED_SUBJECTIVE else itemIntent,
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                     interpretation = interpretation,
@@ -798,7 +809,7 @@ class TagResolver(
                     resolutionConfidence = resolutionConfidence,
                     resolutionMargin = resolutionMargin,
                     foodQuery = identityQuery,
-                    unitId = item.unitId,
+                    unitId = if (countApplied) item.unitId ?: HouseholdPortions.COUNT_UNIT_ID else item.unitId,
                     excludedIngredients = item.excludedIngredients,
                     ambiguousPackageGrams = ambiguousPackageGrams,
                 )
@@ -1083,11 +1094,14 @@ fun scalingForIntent(
 fun absolutePortionOptions(baseAmountGrams: Double?): List<Pair<String, Double>> {
     val base = baseAmountGrams?.takeIf { it.isFinite() && it > 0.0 } ?: return emptyList()
     return listOf(
-        "Pequeña" to roundPortionGrams(base * 0.75),
-        "Habitual" to roundPortionGrams(base),
-        "Grande" to roundPortionGrams(base * 1.25),
+        "Pequeña" to roundPortionGrams(base * portionMultiplier(PortionPreset.SMALL)),
+        "Habitual" to roundPortionGrams(base * portionMultiplier(PortionPreset.MEDIUM)),
+        "Grande" to roundPortionGrams(base * portionMultiplier(PortionPreset.LARGE)),
     )
 }
+
+/** One size scale for the parser, the chips and these options: [PORTION_MULTIPLIERS] (WP-N6). */
+private fun portionMultiplier(size: PortionPreset): Double = PORTION_MULTIPLIERS[size] ?: 1.0
 
 private fun roundPortionGrams(value: Double): Double =
     kotlin.math.round(value.coerceAtLeast(1.0) * 10.0) / 10.0

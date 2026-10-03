@@ -1,5 +1,8 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.models.PORTION_MULTIPLIERS
+import com.example.kpkn.data.models.PortionPreset
+
 /**
  * SubjectivePortionEngine — Traduce 310+ expresiones subjetivas a gramos reales.
  *
@@ -66,6 +69,9 @@ object SubjectivePortionEngine {
         "copa" to 150.0,
     )
 
+    /** A "plato grande" is a plate of the LARGE size of the shared scale ([PORTION_MULTIPLIERS]): 250 ml x 1.25 = 312.5 ml (WP-N6). */
+    private val PLATO_GRANDE_ML = (UTENSIL_DEFAULTS["plato"] ?: 250.0) * sizeFactor(PortionPreset.LARGE)
+
     private val UTENSIL_PATTERNS = listOf(
         // Cucharadas
         Triple(Regex("""\b(un|una|1)\s+cucharaditas?\b""", RegexOption.IGNORE_CASE), 5.0, "cucharadita"),
@@ -107,7 +113,7 @@ object SubjectivePortionEngine {
         Triple(Regex("""\b(un|una|1)\s+pocillos?\b""", RegexOption.IGNORE_CASE), 60.0, "pocillo"),
         Triple(Regex("""\b(un|una|1)\s+(?:bols?|bowls?)\b""", RegexOption.IGNORE_CASE), 300.0, "bol"),
         Triple(Regex("""\b(un|una|1)\s+platos?\s+hondos?\b""", RegexOption.IGNORE_CASE), 400.0, "plato_hondo"),
-        Triple(Regex("""\b(un|una|1)\s+platos?\s+grandes?\b""", RegexOption.IGNORE_CASE), 350.0, "plato_grande"),
+        Triple(Regex("""\b(un|una|1)\s+platos?\s+grandes?\b""", RegexOption.IGNORE_CASE), PLATO_GRANDE_ML, "plato_grande"),
         Triple(Regex("""\b(un|una|1)\s+platos?\b""", RegexOption.IGNORE_CASE), 250.0, "plato"),
         Triple(Regex("""\b(un|una|1)\s+tazones?\b""", RegexOption.IGNORE_CASE), 300.0, "tazon"),
         Triple(Regex("""\b(un|una|1)\s+fuente\s+de\b""", RegexOption.IGNORE_CASE), 500.0, "fuente"),
@@ -396,18 +402,22 @@ object SubjectivePortionEngine {
 
     // ─── Intensificadores ───────────────────────────────────────────────────
 
+    /** The factor of a size of the shared scale ([PORTION_MULTIPLIERS]): small x0.75, large x1.25, extra x1.5 (WP-N6). */
+    private fun sizeFactor(size: PortionPreset): Double = PORTION_MULTIPLIERS[size] ?: 1.0
+
+    // Every size word reads the same scale; the first keyword contained in the expression wins, as before.
     private val INTENSIFIER_FACTORS = mapOf(
-        "gigante" to 1.8,
-        "generoso" to 1.4,
-        "colmado" to 1.5,
-        "rebosante" to 1.6,
-        "grande" to 1.3,
-        "pequeño" to 0.7,
-        "chico" to 0.7,
-        "fino" to 0.6,
-        "delgado" to 0.6,
-        "grueso" to 1.4,
-        "gordo" to 1.5,
+        "gigante" to sizeFactor(PortionPreset.EXTRA),
+        "generoso" to sizeFactor(PortionPreset.LARGE),
+        "colmado" to sizeFactor(PortionPreset.LARGE),
+        "rebosante" to sizeFactor(PortionPreset.EXTRA),
+        "grande" to sizeFactor(PortionPreset.LARGE),
+        "pequeño" to sizeFactor(PortionPreset.SMALL),
+        "chico" to sizeFactor(PortionPreset.SMALL),
+        "fino" to sizeFactor(PortionPreset.SMALL),
+        "delgado" to sizeFactor(PortionPreset.SMALL),
+        "grueso" to sizeFactor(PortionPreset.LARGE),
+        "gordo" to sizeFactor(PortionPreset.EXTRA),
     )
 
     // ─── Raciones estándar por categoría de alimento ────────────────────────
