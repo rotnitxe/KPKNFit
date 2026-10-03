@@ -617,9 +617,14 @@ object HouseholdPortions {
             ?.takeUnless { isGlobalSku(it) }
     }
 
+    /**
+     * True for a row imported from OpenFoodFacts or USDA: a supermarket SKU or a laboratory record. The id says so ("off_<barcode>",
+     * "usda_<fdcId>"); the free text of `source` does not, because a curated row cites its reference there ("USDA SR Legacy
+     * (rounded)" is still a catalog row). Only a row with no id falls back to the text of `source`.
+     */
     fun isGlobalSku(food: FoodItem): Boolean {
+        if (food.id.isNotBlank()) return food.id.startsWith("off_", ignoreCase = true) || food.id.startsWith("usda_", ignoreCase = true)
         val src = food.source.orEmpty().uppercase()
-        if (food.id.startsWith("off_", ignoreCase = true)) return true
         return src.contains("OFF") || src.contains("USDA")
     }
 
