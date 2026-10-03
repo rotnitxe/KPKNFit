@@ -259,6 +259,11 @@ private val MODIFIER_KEYWORDS_FAST = listOf(
 
 // ─── Main Parser ─────────────────────────────────────────────────────────────
 
+/**
+ * Parses a meal description into mentions. [retrievalResult] is not read (WP-N7): the dataset retrieval never decides grams, so no step of
+ * the parse consults it; the parameter stays so that the callers that still pass one need no change.
+ */
+@Suppress("UNUSED_PARAMETER")
 fun parseMealDescription(
     description: String,
     retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
@@ -272,12 +277,7 @@ fun parseMealDescription(
     val items = mutableListOf<ParsedMealItem>()
 
     for (frag in fragments) {
-        // D1: retrieval POR FRAGMENTO con confianza por ítem. El retrieval de la
-        // descripción completa diluye la confianza entre varios alimentos y bloquea
-        // priors buenos por el gate global; cada fragmento recibe el suyo.
-        // Si el snapshot no está instalado (tests), se cae al retrieval provisto.
-        val fragRetrieval = retrievalResult
-        val parsed = parseFragment(frag.text, fragRetrieval, frag.excludedIngredients, frag.containerScope) ?: continue
+        val parsed = parseFragment(frag.text, frag.excludedIngredients, frag.containerScope) ?: continue
         // Only add amounts whose meaning is already known. Separate mentions with
         // omitted amounts must reach context inference separately; cooking and
         // exclusions belong to the mention, not merely its food name.
@@ -294,7 +294,7 @@ fun parseMealDescription(
     }
 
     if (items.isEmpty() && trimmed.isNotEmpty()) {
-        parseFragment(trimmed, retrievalResult)?.let { items.add(it) }
+        parseFragment(trimmed)?.let { items.add(it) }
     }
 
     return MealLanguageMerge.apply(
@@ -338,7 +338,6 @@ private fun isKnownNegationModifier(text: String, negMatch: MatchResult): Boolea
 
 private fun parseFragment(
     frag: String,
-    retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
     excludedIngredients: Set<String> = emptySet(),
     containerScope: String? = null,
 ): ParsedMealItem? {
@@ -360,7 +359,7 @@ private fun parseFragment(
         val groupName = groupMatch.groupValues[1].trim()
         val content = groupMatch.groupValues[2].trim()
         val subFragments = splitMentionFragments(content)
-        val subItems = subFragments.mapNotNull { parseFragment(it.text, retrievalResult, it.excludedIngredients, it.containerScope) }
+        val subItems = subFragments.mapNotNull { parseFragment(it.text, it.excludedIngredients, it.containerScope) }
         if (subItems.isNotEmpty()) {
             return ParsedMealItem(tag = groupName, isGroup = true, subItems = subItems)
         }
@@ -381,7 +380,7 @@ private fun parseFragment(
 
     // If no grams, try reference (e.g., "1 cucharada de aceite")
     if (grams == null) {
-        val refResult = extractReferenceFromFragment(working, retrievalResult)
+        val refResult = extractReferenceFromFragment(working)
         if (refResult.grams != null) {
             grams = refResult.grams
             working = refResult.foodPart
@@ -457,11 +456,6 @@ private fun parseFragment(
     } else {
         dishServingGrams
     }
-    val datasetHint = retrievalResult
-        ?.takeIf { it.confidence >= DATASET_PORTION_MIN_CONFIDENCE }
-        ?.takeIf { !FoodStapleOntology.hasAnchoredPortion(canonical) }
-        ?.let { SemanticPortionRetriever.getGramsForFood(canonical, it) }
-        ?.takeIf { HouseholdPortions.isHouseholdHint(it, catalogFood, canonical) }
     val lockedIntent = when {
         amountIntent == AmountIntent.EXPLICIT_MASS -> AmountIntent.EXPLICIT_MASS
         householdCountGrams != null || amountIntent == AmountIntent.RESOLVED_SUBJECTIVE ->
@@ -478,7 +472,6 @@ private fun parseFragment(
         quantity = quantity,
         food = catalogFood,
         parsedGrams = householdCountGrams ?: grams,
-        datasetHint = datasetHint,
         query = canonical,
         explicitKilogram = HouseholdPortions.isExplicitKilogram(frag),
         unitId = unitId,
@@ -765,13 +758,10 @@ private data class ReferenceResult(
     val unitId: String? = null,
 )
 
-private fun extractReferenceFromFragment(
-    text: String,
-    retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
-): ReferenceResult {
+private fun extractReferenceFromFragment(text: String): ReferenceResult {
     val lower = text.lowercase()
     if (REFERENCE_KEYWORDS_FAST.none { lower.contains(it) }) {
-        return resolveViaSubjectiveEngine(text, retrievalResult)
+        return resolveViaSubjectiveEngine(text)
     }
     for ((pattern, refType) in REFERENCE_PATTERNS) {
         val match = pattern.find(text) ?: continue
@@ -791,7 +781,6 @@ private fun extractReferenceFromFragment(
             expression = match.value,
             foodCategory = densityCategory,
             standardPortion = food?.servingSize,
-            retrievalResult = retrievalResult,
         )
 
         val grams = if (subjectiveResult != null) {
@@ -806,7 +795,7 @@ private fun extractReferenceFromFragment(
         // fragment (e.g. "una taza de avena") cleaned becomes "" → foodName.length < 2 → null item.
         return ReferenceResult(grams, qty, foodPart, refType)
     }
-    return resolveViaSubjectiveEngine(text, retrievalResult)
+    return resolveViaSubjectiveEngine(text)
 }
 
 /**
@@ -862,10 +851,7 @@ private fun servingOfDish(text: String): ReferenceResult? {
     return ReferenceResult(kotlin.math.round(grams * 10) / 10.0, count, dish, "plato")
 }
 
-private fun resolveViaSubjectiveEngine(
-    text: String,
-    retrievalResult: SemanticPortionRetriever.RetrievalResult?,
-): ReferenceResult {
+private fun resolveViaSubjectiveEngine(text: String): ReferenceResult {
     val drinkInVessel = DRINK_IN_VESSEL.find(text)?.groupValues?.get(1)?.trim()?.takeIf { DRINK_HEAD.containsMatchIn(it) }
     // Entidades protegidas ("empanada de pino", "café con leche"…) se resuelven
     // como plato completo: el motor las fragmentaría mal ("una empanada de pino"
@@ -880,9 +866,6 @@ private fun resolveViaSubjectiveEngine(
         expression = text,
         foodCategory = densityCategory,
         standardPortion = food?.servingSize,
-        retrievalResult = retrievalResult.takeUnless {
-            HouseholdPortions.looksLikeCountExpression(text)
-        },
     ) ?: return ReferenceResult(null, 1.0, text)
 
     // Quitar la frase subjetiva ("un montón de") conservando el alimento. Si no hay
@@ -907,12 +890,10 @@ private fun resolveViaSubjectiveEngine(
                 result.source.startsWith("bread:") || result.source.startsWith("container:"))
         } ?: 1.0,
         foodPart = foodPart,
-        unitId = result.source.takeUnless { it == "dataset-prior" || it.startsWith("subjective:") }
+        unitId = result.source.takeUnless { it.startsWith("subjective:") }
             ?.substringAfter(':')?.substringBefore(':'),
     )
 }
-
-private const val DATASET_PORTION_MIN_CONFIDENCE = 0.35
 
 // ─── Extract Cooking Method ──────────────────────────────────────────────────
 
@@ -1025,13 +1006,6 @@ private fun stripAccents(text: String): String =
  */
 private fun canonicalTagKey(tag: String): String =
     SpanishSingularizer.singularize(stripAccents(tag.lowercase()), SINGULARIZER_LEXICON)
-
-private fun extractGlobalPortion(description: String): PortionPreset {
-    for ((pattern, preset, _) in PORTION_PATTERNS) {
-        if (pattern.containsMatchIn(description)) return preset
-    }
-    return PortionPreset.MEDIUM
-}
 
 private fun isCookieOrCrackerName(name: String): Boolean {
     val n = FoodIdentity.normalize(name)

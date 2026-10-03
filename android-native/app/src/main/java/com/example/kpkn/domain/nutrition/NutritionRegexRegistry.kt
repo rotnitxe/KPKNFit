@@ -65,7 +65,6 @@ object NutritionRegexRegistry {
             CookingStateResolver.methodSearchSuffixes(CookingMethod.FRITO)
         },
         Holder("NutritionHeuristicEstimator") { estimateNutritionByKeyword("pollo frito empanizado") },
-        Holder("CookingFactors") { isLikelyLiquid("jugo de naranja") },
         Holder("SemanticPortionRetriever") { SemanticPortionRetriever.repairQuery("polllo con arros") },
         Holder("FoodIndex") {
             FoodIndex.normalizeSearch("Pechuga de Pollo")

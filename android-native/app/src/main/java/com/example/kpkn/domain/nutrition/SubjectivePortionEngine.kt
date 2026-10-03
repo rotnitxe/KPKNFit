@@ -350,25 +350,10 @@ object SubjectivePortionEngine {
         Triple(Regex("""\bcomo\s+una\s+moneda\b""", RegexOption.IGNORE_CASE), 12.0, "como_moneda"),
     )
 
-    // ─── Intensificadores ───────────────────────────────────────────────────
+    // ─── Tamaños ────────────────────────────────────────────────────────────
 
     /** The factor of a size of the shared scale ([PORTION_MULTIPLIERS]): small x0.75, large x1.25, extra x1.5 (WP-N6). */
     private fun sizeFactor(size: PortionPreset): Double = PORTION_MULTIPLIERS[size] ?: 1.0
-
-    // Every size word reads the same scale; the first keyword contained in the expression wins, as before.
-    private val INTENSIFIER_FACTORS = mapOf(
-        "gigante" to sizeFactor(PortionPreset.EXTRA),
-        "generoso" to sizeFactor(PortionPreset.LARGE),
-        "colmado" to sizeFactor(PortionPreset.LARGE),
-        "rebosante" to sizeFactor(PortionPreset.EXTRA),
-        "grande" to sizeFactor(PortionPreset.LARGE),
-        "pequeño" to sizeFactor(PortionPreset.SMALL),
-        "chico" to sizeFactor(PortionPreset.SMALL),
-        "fino" to sizeFactor(PortionPreset.SMALL),
-        "delgado" to sizeFactor(PortionPreset.SMALL),
-        "grueso" to sizeFactor(PortionPreset.LARGE),
-        "gordo" to sizeFactor(PortionPreset.EXTRA),
-    )
 
     // ─── Raciones estándar por categoría de alimento ────────────────────────
 
@@ -391,13 +376,11 @@ object SubjectivePortionEngine {
      * @param expression The user's subjective expression (e.g., "un puñado", "una cucharada colmada")
      * @param foodCategory The density category of the food (auto-detected if null)
      * @param standardPortion Override for the standard portion in grams
-     * @param retrievalResult Optional retrieval result from SemanticPortionRetriever for priors
      */
     fun resolve(
         expression: String,
         foodCategory: FoodDensityCategory? = null,
         standardPortion: Double? = null,
-        retrievalResult: SemanticPortionRetriever.RetrievalResult? = null,
     ): PortionResult? {
         val lower = expression.lowercase().trim()
 
@@ -423,7 +406,7 @@ object SubjectivePortionEngine {
             "una " + lower.substring(quantityPrefix.range.last + 1)
         } else lower
 
-        // Utensils first — never let dataset priors override a cup/spoon match.
+        // Utensils first.
         for ((pattern, baseMl, source) in UTENSIL_PATTERNS) {
             val match = pattern.find(utensilExpression) ?: continue
             val qty = utensilCount ?: match.groupValues.getOrNull(1)?.replace(",", ".")?.toDoubleOrNull() ?: 1.0
@@ -507,27 +490,6 @@ object SubjectivePortionEngine {
             )
         }
 
-        // Dataset priors never override a countable N×unidad or utensil match.
-        if (
-            retrievalResult != null &&
-            retrievalResult.portionPriors.isNotEmpty() &&
-            !HouseholdPortions.looksLikeCountExpression(expression)
-        ) {
-            val foodName = extractFoodName(expression)
-            if (foodName != null) {
-                val priorGrams = SemanticPortionRetriever.getGramsForFood(foodName, retrievalResult)
-                if (priorGrams != null && priorGrams > 0) {
-                    return PortionResult(
-                        grams = priorGrams,
-                        confidence = 0.85,
-                        source = "dataset-prior",
-                        expression = expression,
-                        relativeFactor = 1.0,
-                    )
-                }
-            }
-        }
-
         // Relative colloquial factors ("un poco", "un montón")
         for ((pattern, factor, source) in SUBJECTIVE_PATTERNS) {
             val match = pattern.find(lower) ?: continue
@@ -559,19 +521,6 @@ object SubjectivePortionEngine {
         }
 
         return null
-    }
-
-    /**
-     * Detect intensifiers in the expression and return a multiplier.
-     */
-    fun detectIntensifier(expression: String): Double {
-        val lower = expression.lowercase()
-        for ((keyword, factor) in INTENSIFIER_FACTORS) {
-            if (lower.contains(keyword)) {
-                return factor
-            }
-        }
-        return 1.0
     }
 
     /**

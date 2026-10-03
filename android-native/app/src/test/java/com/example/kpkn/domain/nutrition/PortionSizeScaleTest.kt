@@ -102,15 +102,7 @@ class PortionSizeScaleTest {
     }
 
     @Test
-    fun `the intensifiers of the engine read the scale`() {
-        assertEquals(factor(PortionPreset.LARGE), SubjectivePortionEngine.detectIntensifier("una porción grande"), 0.0)
-        assertEquals(factor(PortionPreset.LARGE), SubjectivePortionEngine.detectIntensifier("un plato colmado"), 0.0)
-        assertEquals(factor(PortionPreset.LARGE), SubjectivePortionEngine.detectIntensifier("un plato generoso"), 0.0)
-        assertEquals(factor(PortionPreset.EXTRA), SubjectivePortionEngine.detectIntensifier("una porción gigante"), 0.0)
-        assertEquals(factor(PortionPreset.EXTRA), SubjectivePortionEngine.detectIntensifier("una taza rebosante"), 0.0)
-        assertEquals(factor(PortionPreset.SMALL), SubjectivePortionEngine.detectIntensifier("un plato chico"), 0.0)
-        assertEquals(factor(PortionPreset.SMALL), SubjectivePortionEngine.detectIntensifier("un corte fino"), 0.0)
-        assertEquals(1.0, SubjectivePortionEngine.detectIntensifier("una rebanada"), 0.0)
+    fun `the engine sizes a plate on the scale`() {
         val plate = SubjectivePortionEngine.resolve("un plato de arroz")?.grams ?: Double.NaN
         val large = SubjectivePortionEngine.resolve("un plato grande de arroz")?.grams ?: Double.NaN
         assertEquals("a plato grande is a plate x1,25", 1.25 * plate, large, 0.01)

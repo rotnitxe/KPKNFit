@@ -98,12 +98,6 @@ class StapleOntologyTest {
     }
 
     @Test
-    fun `dataset no pisa gramos anclados de staple`() {
-        val hint = SemanticPortionRetriever.getGramsForFood("arroz", null)
-        assertNull(hint)
-    }
-
-    @Test
     fun `bridge aplica corte elegido`() {
         val tag = ResolvedTag(
             tag = "pollo",

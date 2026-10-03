@@ -9,7 +9,6 @@ import com.example.kpkn.data.models.FoodItem
 
 /**
  * Helpers for raw/dry vs cooked/hydrated state and prepared DB variants.
- * Keeps cooking factors moderate — does not use CookingMethodParser multipliers.
  */
 object CookingStateResolver {
 

@@ -1,89 +1,102 @@
 package com.example.kpkn.domain.nutrition
 
-import com.example.kpkn.data.food.findFoodByNormalized
+import com.example.kpkn.data.db.NutritionDao
+import com.example.kpkn.data.food.FOOD_ALIASES
+import com.example.kpkn.data.food.buildFoodDatabase
+import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.food.findStaticFoodById
 import com.example.kpkn.data.models.CookingMethod
 import com.example.kpkn.data.models.FoodItem
 import com.example.kpkn.data.models.LoggedFood
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * The V2 interpretation of a resolved mention. WP-N7 retired the mini-pipeline of the engine that parsed a text, asked its own
+ * questions and answered them (only these tests used it): the logger resolves the mentions and
+ * [FoodInterpretationV2Engine.interpretResolved] describes each one, so the tests start from a resolved tag.
+ */
 class FoodInterpretationV2Test {
-    private val engine = FoodInterpretationV2Engine(::findFoodByNormalized)
+    private val engine = FoodInterpretationV2Engine()
+
+    private val staticFoods = buildFoodDatabase()
+    private val port: FoodResolutionPort by lazy {
+        val dao = java.lang.reflect.Proxy.newProxyInstance(
+            NutritionDao::class.java.classLoader,
+            arrayOf(NutritionDao::class.java),
+        ) { _, _, _ -> null } as NutritionDao
+        val index = FoodIndex().apply { build(emptyList(), staticFoods, FOOD_ALIASES) }
+        val resolver = SmartFoodResolver(dao, index, null)
+        object : FoodResolutionPort {
+            override suspend fun resolveSmart(tag: String, brandHint: String?, contextHint: String?, stateHint: FoodState?) =
+                resolver.resolve(tag, brandHint, contextHint, stateHint)
+            override suspend fun getFoodById(id: String): FoodItem? = staticFoods.firstOrNull { it.id == id }
+            override suspend fun staticFood(tag: String): FoodItem? = HouseholdPortions.householdStaticFood(tag)
+            override fun staticIsExact(tag: String): Boolean = findFoodExactByNormalized(tag) != null
+            override fun recordLearned(query: String, brandHint: String?, foodId: String, portionGrams: Double?, cookingMethod: String?) = Unit
+        }
+    }
+
+    /** The mentions of [text], resolved over the static catalog as the logger resolves them. */
+    private fun resolve(text: String): List<ResolvedTag> =
+        runBlocking { TagResolver(port).resolveAll(parseMealDescription(text)).first }
 
     @Test
-    fun `explicit cooked chicken uses cooked row without double conversion`() {
-        val result = engine.interpret("200 g pechuga de pollo cocida")
+    fun `explicit cooked chicken keeps its cooked row and is not converted again`() {
+        val result = engine.interpretResolved(resolve("200 g pechuga de pollo cocida").single())
 
         assertEquals("gen004", result.selectedCandidateId)
         assertEquals(WeightBasis.COOKED, result.weightBasis)
+        assertEquals(200.0, result.observedGrams ?: Double.NaN, 0.0)
         assertEquals(64.2, result.proteinGrams, 0.01)
         assertEquals(64.2, result.proteinMinGrams, 0.01)
         assertTrue(result.transformations.any { it.startsWith("preparation") })
-        assertTrue(result.pendingQuestions.isEmpty())
+        assertTrue(result.transformations.none { it.startsWith("weight_basis:") })
+        assertTrue(result.canFinalize())
     }
 
     @Test
-    fun `context does not mutate authoritative density`() {
-        val plain = engine.interpret("200 g pechuga de pollo cocida")
-        val postWorkout = engine.interpret(
-            "200 g pechuga de pollo cocida",
-            InterpretationContext(freeContext = "post-entreno"),
-        )
+    fun `a vague portion keeps a range around the central value and stays an estimate`() {
+        val result = engine.interpretResolved(resolve("arroz cocido").single())
+        val grams = result.observedGrams ?: Double.NaN
 
-        assertEquals(plain.proteinGrams, postWorkout.proteinGrams, 0.0)
-        assertEquals(plain.calories, postWorkout.calories, 0.0)
+        assertTrue(result.isUncertain)
+        assertFalse(result.isConfirmedEstimate)
+        assertEquals(0.55, result.portionConfidence, 0.0)
+        assertTrue((result.portionMinGrams ?: Double.NaN) < grams)
+        assertTrue(grams < (result.portionMaxGrams ?: Double.NaN))
+        assertTrue(result.caloriesMin < result.calories)
+        assertTrue(result.calories < result.caloriesMax)
+        assertEquals("habitual_estimate", result.stageEvidence.single { it.stage == InterpretationStage.PORTION }.status)
     }
 
     @Test
-    fun `vague portion exposes three absolute options and unsure keeps range`() {
-        val draft = engine.interpret("porción de arroz cocido")
-        val request = draft.pendingQuestions.filterIsInstance<ClarificationRequest.Portion>().single()
+    fun `an explicit mass has no range and the same tag always gives the same result`() {
+        val tag = resolve("180 g pechuga de pollo cocida").single()
+        val first = engine.interpretResolved(tag)
 
-        assertEquals(listOf("Pequeña", "Habitual", "Grande"), request.options.map { it.label })
-        assertTrue(request.options.zipWithNext().all { it.first.grams < it.second.grams })
-
-        val unsure = engine.answerClarification(
-            draft.draftId,
-            request.requestId,
-            ClarificationAnswer.Unsure(request.requestId),
-        )
-        assertNotNull(unsure)
-        assertTrue(unsure!!.isUncertain)
-        assertTrue(unsure.caloriesMax > unsure.caloriesMin)
-        assertFalse(unsure.isConfirmedEstimate)
-        assertNotNull(engine.finalize(draft.draftId))
+        assertEquals(first, engine.interpretResolved(tag))
+        assertEquals(180.0, first.observedGrams ?: Double.NaN, 0.0)
+        assertEquals(180.0, first.portionMinGrams ?: Double.NaN, 0.0)
+        assertEquals(180.0, first.portionMaxGrams ?: Double.NaN, 0.0)
+        assertEquals(1.0, first.portionConfidence, 0.0)
+        assertEquals("declared", first.stageEvidence.single { it.stage == InterpretationStage.PORTION }.status)
     }
 
     @Test
-    fun `explicit grams answer is idempotent and removes portion question`() {
-        val draft = engine.interpret("pollo cocido")
-        val request = draft.pendingQuestions.filterIsInstance<ClarificationRequest.Portion>().singleOrNull()
-        assertNotNull(request)
-        val answer = engine.answerClarification(
-            draft.draftId,
-            request!!.requestId,
-            ClarificationAnswer.Grams(request.requestId, 180.0),
-        )!!
-        val repeated = engine.answerClarification(
-            draft.draftId,
-            request.requestId,
-            ClarificationAnswer.Grams(request.requestId, 180.0),
-        )!!
-        assertEquals(180.0, answer.observedGrams!!, 0.0)
-        assertEquals(answer.proteinGrams, repeated.proteinGrams, 0.0)
-        assertTrue(repeated.pendingQuestions.none { it.requestId == request.requestId })
-    }
+    fun `the questions of a mention are carried and keep its result from finalizing`() {
+        val tag = resolve("200 g arroz").single()
+        val question = ClarificationRequest.WeightState("weight_state")
 
-    @Test
-    fun `sensitive foods without state ask for weight basis`() {
-        val result = engine.interpret("200 g arroz")
-        assertTrue(result.pendingQuestions.any { it is ClarificationRequest.WeightState })
-        assertEquals(WeightBasis.UNKNOWN, result.weightBasis)
+        val asked = engine.interpretResolved(tag, listOf(question))
+
+        assertEquals(listOf<ClarificationRequest>(question), asked.pendingQuestions)
+        assertTrue(asked.isUncertain)
+        assertFalse(asked.canFinalize())
+        assertTrue(engine.interpretResolved(tag).canFinalize())
     }
 
     // ─── WP-N10b: the name of a converted row keeps its dish ────────────────────────────────────────

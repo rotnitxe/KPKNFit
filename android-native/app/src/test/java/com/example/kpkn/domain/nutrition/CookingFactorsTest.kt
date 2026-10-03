@@ -79,22 +79,6 @@ class CookingFactorsTest {
     }
 
     @Test
-    fun `applyCookingToMacros adjusts correctly`() {
-        val result = applyCookingToMacros(165.0, 31.0, 0.0, 3.6, CookingMethod.FRITO)
-        assertEquals(181.5, result.calories, 0.1)
-        assertEquals(34.1, result.protein, 0.1)
-        assertEquals(3.6, result.fats, 0.1)
-    }
-
-    @Test
-    fun `applyCookingToMacros with null returns original`() {
-        val result = applyCookingToMacros(100.0, 20.0, 50.0, 3.0, null)
-        assertEquals(100.0, result.calories, 0.01)
-        assertEquals(20.0, result.protein, 0.01)
-        assertEquals(50.0, result.carbs, 0.01)
-    }
-
-    @Test
     fun `all 11 methods have factors`() {
         assertEquals(11, COOKING_FACTORS.size)
         for (method in CookingMethod.entries) {
@@ -114,37 +98,6 @@ class CookingFactorsTest {
         assert(COOKING_FACTORS[CookingMethod.COCIDO]!!.waterChange > 0)
         assert(COOKING_FACTORS[CookingMethod.VAPOR]!!.waterChange > 0)
         assert(COOKING_FACTORS[CookingMethod.OLLA]!!.waterChange > 0)
-    }
-
-    @Test
-    fun `isLikelyLiquid detects liquids`() {
-        assert(isLikelyLiquid("agua"))
-        assert(isLikelyLiquid("leche entera"))
-        assert(isLikelyLiquid("bebida energética"))
-        assert(isLikelyLiquid("jugo de naranja"))
-        assert(isLikelyLiquid("café con leche"))
-        assert(isLikelyLiquid("aceite de oliva"))
-        assert(isLikelyLiquid("refresco"))
-        assert(!isLikelyLiquid("pollo"))
-        assert(!isLikelyLiquid("arroz"))
-        assert(!isLikelyLiquid("manzana"))
-    }
-
-    @Test
-    fun `B10 isLikelyLiquid no false positives por substring te`() {
-        assert(!isLikelyLiquid("tomate"))
-        assert(!isLikelyLiquid("lentejas"))
-        assert(!isLikelyLiquid("filete de pollo"))
-        assert(!isLikelyLiquid("mantequilla"))
-        assert(!isLikelyLiquid("palta"))
-        assert(isLikelyLiquid("te"))
-        assert(isLikelyLiquid("té"))
-        assert(isLikelyLiquid("leche descremada"))
-    }
-
-    @Test
-    fun `B10 regression porcion grande papas fritas no lanza ni es liquido`() {
-        assert(!isLikelyLiquid("porción grande papas fritas"))
     }
 
     // ─── IT3: absorción de aceite y factor de cocción por categoría ─────────

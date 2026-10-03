@@ -323,12 +323,6 @@ object SemanticPortionRetriever {
         return result.matches.isNotEmpty() && result.confidence >= 0.10
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun getGramsForFood(foodName: String, retrievalResult: RetrievalResult?): Double? {
-        // Dataset 19K is vocabulary/ranking only — never the eaten-grams authority.
-        return null
-    }
-
     /** Food vocabulary of one dataset snapshot, derived once per snapshot instance. */
     private class VocabCache(val snapshot: DatasetKnowledgeSnapshot, val tokens: Set<String>)
 

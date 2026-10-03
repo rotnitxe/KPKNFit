@@ -56,9 +56,7 @@ import com.example.kpkn.domain.nutrition.CookingStateResolver
 import com.example.kpkn.domain.nutrition.scaleFoodByPortion
 import com.example.kpkn.domain.nutrition.createLoggedFood
 import com.example.kpkn.domain.nutrition.parseMealDescription
-import com.example.kpkn.domain.nutrition.reconcileParsedFoodItems
 import com.example.kpkn.domain.nutrition.FoodCombinationParser
-import com.example.kpkn.domain.nutrition.round1
 import com.example.kpkn.domain.nutrition.ContextDetector
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
@@ -568,8 +566,6 @@ fun FoodLoggerDrawer(
                         "items" to parsed.items.size,
                         "tags" to tags.size,
                         "resolved" to tags.count { it.isResolved },
-                        "engine" to parsed.analysisEngine,
-                        "aiInferred" to parsed.aiInferredFoods.size,
                         "kcalRangeKnown" to (analysisKcalRange != null),
                     ),
                 )

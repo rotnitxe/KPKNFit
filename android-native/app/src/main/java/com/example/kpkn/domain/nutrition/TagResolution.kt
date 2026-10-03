@@ -46,8 +46,6 @@ data class ResolvedTag(
     val oilApplied: Boolean = false,
     /** R1: candidatos alternativos para revisión (top-4 del resolver). */
     val reviewCandidates: List<FoodItem> = emptyList(),
-    /** D2 legacy: no se expone texto libre del dataset como identidad interpretada. */
-    val interpretation: String? = null,
     val canonicalFamily: String? = null,
     val foodState: FoodState = FoodState.UNKNOWN,
     val resolutionStatus: FoodResolutionStatus = FoodResolutionStatus.NO_RESOLVED,
@@ -311,17 +309,6 @@ class TagResolver(
             }
             val consumedGrams = item.amountGrams.takeIf { ambiguousPackageGrams == null }
 
-            val retrievalResult = smartResult.semanticRetrieval
-                ?: SemanticPortionRetriever.RetrievalResult(
-                    query = identityQuery,
-                    matches = emptyList(),
-                    contextDetected = emptyList(),
-                    portionPriors = emptyMap(),
-                    macroRange = null,
-                    confidence = 0.0,
-                    elapsedMs = 0,
-                )
-
             // Fallback: lookup estático + búsqueda
             val staticFood = port.staticFood(identityQuery)
             val exactFood = findFoodExactByNormalized(identityQuery)
@@ -455,11 +442,6 @@ class TagResolver(
                 (mappedFood != null || learnedStaple != null || staticIsExact ||
                     smartResult.decision == SmartFoodResolver.Decision.AUTO_SELECT) &&
                 NutrientBasis.source(effectiveFood) !in setOf(NutritionSourceKind.EXTERNAL_ESTIMATE, NutritionSourceKind.HEURISTIC_ESTIMATE, NutritionSourceKind.DATASET_ESTIMATE)
-            // Los rangos semánticos describen ejemplos del dataset, no la fila local
-            // ya seleccionada. La evidencia todavía puede aportar una porción por defecto,
-            // pero nunca debe invalidar ni reinterpretar los macros autoritativos.
-            val retrievalForMacroValidation: SemanticPortionRetriever.RetrievalResult? = null
-            val preferAiLoggedFood = effectiveFood == null && shouldUseAiLoggedFood(item)
             val canonicalFamily = FoodIdentity.familyFor(effectiveFood?.name ?: identityQuery)
             // A prepared row states what its method says even when its name has no state word ("Huevo Entero (revuelto)").
             val foodState = convertedTarget ?: preparedVariant?.let { CookingStateResolver.stateForMethod(item.cookingMethod) }
@@ -562,18 +544,13 @@ class TagResolver(
                     traceId = analysisTraceId
                 )
             }
-            // D2: las instrucciones del dataset son evidencia de recuperación, no una
-            // interpretación fiable de la identidad. Un vecino como "Completo con
-            // champiñones salteados" puede ser una comida distinta aunque comparta un
-            // token; no debe llegar al usuario como si la app hubiera entendido eso.
-            val interpretation: String? = null
             val reviewFoods = smartResult.candidates.mapNotNull { cand ->
                 port.getFoodById(cand.foodId)?.takeIf { NutrientBasis.isVerified(it) &&
                     FoodIdentity.matchesExclusions(it, item.excludedIngredients) &&
                     FoodIdentity.matchesDeclaredIdentity(identityQuery, it, effectiveBrandHint) }
             }.distinctBy { it.id }.take(4)
 
-            val resolved = if (effectiveFood != null && !preferAiLoggedFood) {
+            val resolved = if (effectiveFood != null) {
                 val calibratedGrams = if (item.amountIntent == AmountIntent.UNSPECIFIED || ambiguousPackageGrams != null) {
                     // A confirmed portion belongs to this exact variant, never a family.
                     listOf(effectiveFood.id).firstNotNullOfOrNull { key ->
@@ -583,7 +560,6 @@ class TagResolver(
                 } else null
                 val learnedGrams = smartResult.learnedPortionGrams
                     ?.takeIf { it.isFinite() && it > 0.0 && HouseholdPortions.isHouseholdHint(it, effectiveFood, identityQuery) }
-                val datasetHint: Double? = null
                 val stapleGrams = FoodStapleOntology.householdDefaultGrams(identityQuery, effectiveFood)
                     ?.takeIf { item.amountIntent == AmountIntent.UNSPECIFIED }
                 val explicitKilogram = HouseholdPortions.isExplicitKilogram(parsed.rawDescription) ||
@@ -594,7 +570,7 @@ class TagResolver(
                     food = effectiveFood,
                     parsedGrams = if (countApplied) null else (inferredGrams ?: consumedGrams ?: stapleGrams),
                     // A confirmed personal portion is the weight of ONE unit of a counted food; a learned one is a whole log.
-                    datasetHint = calibratedGrams ?: (if (countApplied) null else (learnedGrams ?: datasetHint)),
+                    datasetHint = calibratedGrams ?: (if (countApplied) null else learnedGrams),
                     query = identityQuery,
                     explicitKilogram = explicitKilogram,
                     unitId = item.unitId,
@@ -629,7 +605,9 @@ class TagResolver(
                         carbs = logged.carbs,
                         fats = logged.fats
                     ),
-                    retrievalResult = retrievalForMacroValidation,
+                    // Los rangos semánticos describen ejemplos del dataset, no la fila local ya seleccionada: nunca
+                    // deben invalidar ni reinterpretar los macros autoritativos.
+                    retrievalResult = null,
                     portionGrams = logged.amount
                 )
 
@@ -707,7 +685,6 @@ class TagResolver(
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
                     oilApplied = applyOil,
                     reviewCandidates = reviewFoods,
-                    interpretation = interpretation,
                     canonicalFamily = canonicalFamily,
                     foodState = foodState,
                     resolutionStatus = finalStatus,
@@ -833,7 +810,6 @@ class TagResolver(
                     amountIntent = if (countApplied) AmountIntent.RESOLVED_SUBJECTIVE else itemIntent,
                     needsCookingClarification = false,
                     clarificationKind = CookingStateResolver.ClarificationKind.NONE,
-                    interpretation = interpretation,
                     reviewCandidates = reviewFoods,
                     canonicalFamily = canonicalFamily,
                     foodState = foodState,
@@ -1219,13 +1195,6 @@ fun applyModifierScale(logged: LoggedFood, scale: MacroOverrides?): LoggedFood {
         carbs = kotlin.math.round(logged.carbs * carb * 10) / 10.0,
         fats = kotlin.math.round(logged.fats * fat * 10) / 10.0,
     )
-}
-
-fun shouldUseAiLoggedFood(item: ParsedMealItem): Boolean {
-    return item.macroOverrides != null && (
-        item.analysisSource == AnalysisSource.LOCAL_AI_ESTIMATE ||
-            item.analysisSource == AnalysisSource.EXTERNAL_API_ESTIMATE
-        )
 }
 
 fun isOilTag(tag: String): Boolean {

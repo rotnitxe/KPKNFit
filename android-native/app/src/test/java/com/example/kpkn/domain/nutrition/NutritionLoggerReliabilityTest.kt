@@ -135,8 +135,8 @@ class NutritionLoggerReliabilityTest {
         assertEquals(tag, NutritionInterpretationBridge.applyCutOption(tag, food.id))
     }
 
-    @Test fun `interpreting resolved mentions never reparses and drops subsequent foods`() {
-        val engine = FoodInterpretationV2Engine(lookup = { error("resolved interpretation must not query or parse again") })
+    @Test fun `interpreting resolved mentions keeps one result per mention and drops no subsequent food`() {
+        val engine = FoodInterpretationV2Engine()
         val tags = listOf(rice().copy(id = "rice"), rice().copy(id = "second", tag = "another resolved mention"))
         val results = tags.map { engine.interpretResolved(it) }
         assertEquals(listOf("rice", "second"), results.map { it.draftId })
@@ -266,21 +266,5 @@ class NutritionLoggerReliabilityTest {
         val unsure = NutritionInterpretationBridge.refresh(pending.copy(explicitDecision = true, confirmedDimensions = emptySet()))
         assertEquals(pending.interpretationV2!!.caloriesMax, unsure.interpretationV2!!.caloriesMax, 0.0)
         assertNull(unsure.confirmedLearning())
-    }
-
-    private val breakfast = MealTemplate(
-        id = "breakfast", name = "Avena leche huevo", description = "avena 100g leche 250g huevo 60g",
-        foods = listOf(
-            LoggedFood(foodName = "avena", amount = 100.0),
-            LoggedFood(foodName = "leche", amount = 250.0),
-            LoggedFood(foodName = "huevo", amount = 60.0),
-        ),
-    )
-
-    @Test fun `templates never introduce omitted or negated foods or override declared mass`() {
-        for (query in listOf("avena", "avena sin leche ni huevo", "150 g avena con leche y huevo")) {
-            val score = FoodTemplateMatcher.score(breakfast, FoodTemplateMatcher.normalizeSearchText(query))
-            assertTrue("$query incorrectly recovered a whole meal: $score", score < FoodTemplateMatcher.THRESHOLD)
-        }
     }
 }

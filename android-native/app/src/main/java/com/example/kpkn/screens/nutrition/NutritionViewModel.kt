@@ -402,14 +402,6 @@ class NutritionViewModel(
         nutritionRepo.addNutritionLog(log)
     }
 
-    fun recordFoodSelection(query: String, food: FoodItem) {
-        nutritionRepo.recordFoodSelection(query, food)
-    }
-
-    fun saveAiInferredFoods(foods: List<FoodItem>) {
-        nutritionRepo.saveAiInferredFoods(foods)
-    }
-
     // ─── Deshacer, editar y avisos (WP-U11 / C9) ──────────────────────────────
 
     private val _pendingUndo = MutableStateFlow<NutritionLog?>(null)
@@ -533,24 +525,6 @@ class NutritionViewModel(
 
     fun syncActivePlanGoalsToSettings() {
         activePlan.value?.let { applyPlanToSettings(it) }
-    }
-
-    fun deletePlan(planId: String) {
-        val wasActive = nutritionRepo.activeNutritionPlanId.value == planId
-        nutritionRepo.deleteNutritionPlan(planId)
-        if (wasActive) {
-            viewModelScope.launch {
-                programRepo.updateSettings { current ->
-                    current.copy(
-                        dailyCalorieGoal = null,
-                        dailyProteinGoal = null,
-                        dailyCarbGoal = null,
-                        dailyFatGoal = null,
-                        calorieGoalObjective = CalorieGoalObjective.MAINTENANCE,
-                    )
-                }
-            }
-        }
     }
 
     // ─── Progress Calculation ───────────────────────────────────────────────

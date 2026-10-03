@@ -366,10 +366,8 @@ data class ParsedMealItem(
     val isFuzzyMatch: Boolean = false,
     val brandHint: String? = null,
     val macroOverrides: MacroOverrides? = null,
-    val basePer100g: MacroOverrides? = null,
     val analysisSource: AnalysisSource = AnalysisSource.RULES,
     val analysisConfidence: Double? = null,
-    val reviewRequired: Boolean = false,
     val subItems: List<ParsedMealItem> = emptyList(),
     val isGroup: Boolean = false,
     val resolvedFoodId: String? = null,
@@ -418,14 +416,7 @@ data class ParsedMealDescription(
     val overallConfidence: Double? = null,
     val containsEstimatedItems: Boolean = false,
     val requiresReview: Boolean = false,
-    val analysisEngine: String = "deterministic",
     val modelVersion: String? = null,
-    /**
-     * Foods inferred by the AI this call that don't exist in the local database.
-     * The ViewModel/caller should persist these via NutritionRepository.saveAiInferredFood()
-     * so future lookups skip the AI entirely (cache hit in custom foods table).
-     */
-    val aiInferredFoods: List<FoodItem> = emptyList(),
 )
 
 // ─── Daily Stats ─────────────────────────────────────────────────────────────

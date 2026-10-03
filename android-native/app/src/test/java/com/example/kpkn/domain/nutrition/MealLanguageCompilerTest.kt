@@ -16,10 +16,6 @@ class MealLanguageCompilerTest {
         assertEquals("queso gouda", mention.foodSpan)
         assertEquals("thin_slice", mention.unitId)
         assertTrue(mention.grams != null && mention.grams in 35.0..50.0)
-        assertEquals(
-            MealLanguageGrammar.DeKind.UNIT_OF,
-            MealLanguageGrammar.classifyDe("láminas", "queso gouda"),
-        )
     }
 
     @Test
@@ -28,10 +24,6 @@ class MealLanguageCompilerTest {
         assertEquals(1, compiled.mentions.size)
         assertEquals("galletas de chocolate", compiled.mentions.single().foodSpan)
         assertEquals(null, compiled.mentions.single().unitId)
-        assertEquals(
-            MealLanguageGrammar.DeKind.ATTRIBUTE,
-            MealLanguageGrammar.classifyDe("galletas", "chocolate"),
-        )
     }
 
     @Test

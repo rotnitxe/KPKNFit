@@ -166,13 +166,6 @@ object ContextDetector {
         )
     }
 
-    /**
-     * Adjust portion grams based on detected context.
-     */
-    fun adjustPortion(grams: Double, context: MealContext): Double {
-        return grams * context.portionFactor
-    }
-
     // Nota (plan 2026-08-16, Fase 1): el ajuste de proteína por contexto fue
     // eliminado — el contexto describe porciones probables, nunca muta la
     // densidad por 100 g de una ficha. No re agregar helpers equivalentes.

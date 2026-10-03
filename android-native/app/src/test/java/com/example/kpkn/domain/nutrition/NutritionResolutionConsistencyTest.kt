@@ -93,32 +93,6 @@ class NutritionResolutionConsistencyTest {
     }
 
     @Test
-    fun `api salsa and tomate mentions reconcile to local sauce and discard api macros`() {
-        val items = listOf(
-            ParsedMealItem(
-                tag = "Salsa",
-                amountGrams = 50.0,
-                analysisSource = AnalysisSource.EXTERNAL_API_ESTIMATE,
-                macroOverrides = MacroOverrides(calories = 900.0, protein = 0.0, carbs = 0.0, fats = 100.0),
-            ),
-            ParsedMealItem(
-                tag = "Tomate",
-                amountGrams = 20.0,
-                analysisSource = AnalysisSource.EXTERNAL_API_ESTIMATE,
-                macroOverrides = MacroOverrides(calories = 500.0, protein = 0.0, carbs = 0.0, fats = 50.0),
-            ),
-        )
-
-        val reconciled = reconcileParsedFoodItems(items)
-
-        assertEquals(1, reconciled.size)
-        assertEquals("salsa de tomate", reconciled.single().tag)
-        assertEquals(70.0, reconciled.single().amountGrams)
-        assertNull(reconciled.single().macroOverrides)
-        assertEquals(AnalysisSource.EXTERNAL_API_ESTIMATE, reconciled.single().analysisSource)
-    }
-
-    @Test
     fun `automatic local resolution does not write learning`() = runBlocking {
         val sauce = findFoodExactByNormalized("salsa de tomate")!!
         val port = RecordingPort(staticFood = sauce, staticExact = true)
@@ -222,7 +196,6 @@ class NutritionResolutionConsistencyTest {
         assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
         assertTrue(tag.isResolved)
         assertEquals(22.0, tag.loggedFood?.calories ?: -1.0, 0.01)
-        assertNull(tag.interpretation)
         assertTrue(tag.statusText.isBlank())
         assertFalse(tag.statusText.contains("Entendí", ignoreCase = true))
         assertFalse(tag.statusText.contains("Completo", ignoreCase = true))

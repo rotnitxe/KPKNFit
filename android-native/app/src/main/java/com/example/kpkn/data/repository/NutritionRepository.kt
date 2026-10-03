@@ -16,7 +16,6 @@ import com.example.kpkn.domain.nutrition.FoodKnowledge
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodSearchRanker
-import com.example.kpkn.domain.nutrition.FoodTemplateMatcher
 import com.example.kpkn.domain.nutrition.HouseholdPortions
 import com.example.kpkn.domain.nutrition.NutritionGoalResolver
 import com.example.kpkn.domain.nutrition.NutritionGoalSource
@@ -349,32 +348,6 @@ class NutritionRepository private constructor(
         foodIndex.addStaticFood(normalized)
         scope.launch { db.nutritionDao().upsertCustomFood(normalized.toEntity()) }
     }
-
-    /**
-     * Persists a food inferred by the local AI so future parses find it in the database
-     * and skip the model inference entirely.
-     *
-     * Call this after receiving ParsedMealDescription.aiInferredFoods from parseFreeFormNutrition().
-     * Only saves foods not already present (by normalized name) to avoid duplicates.
-     */
-    fun saveAiInferredFood(food: FoodItem) {
-        val normalizedFood = normalizeFoodItem(food)
-        // If the inferred name maps to an existing static food, prefer the curated DB entry.
-        // This avoids storing noisy duplicates (e.g., "arroz") that can carry unstable macros.
-        if (findFoodByNormalized(normalizedFood.name) != null) return
-        val alreadyKnown = _foodDatabase.value.any {
-            val knownName = it.normalizedName ?: TextKeys.normalize(it.name)
-            knownName == (normalizedFood.normalizedName ?: "") || it.id == normalizedFood.id
-        }
-        if (alreadyKnown) return
-        _foodDatabase.update { it + normalizedFood }
-        // E16/IT2: los alimentos inferidos también entran al índice del resolver.
-        foodIndex.addStaticFood(normalizedFood)
-        scope.launch { db.nutritionDao().upsertCustomFood(normalizedFood.toEntity()) }
-    }
-
-    /** Convenience: saves all AI-inferred foods from a parse result. */
-    fun saveAiInferredFoods(foods: List<FoodItem>) = foods.forEach { saveAiInferredFood(it) }
 
     /**
      * Search foods across all sources (static, custom and global USDA/OFF), best first. Same ranking as
@@ -896,22 +869,6 @@ class NutritionRepository private constructor(
         return template
     }
 
-    fun findMealTemplateMatch(query: String): MealTemplate? {
-        val normalizedQuery = FoodTemplateMatcher.normalizeSearchText(query)
-        if (normalizedQuery.isBlank()) return null
-
-        // CRI-AUDIT: saltar templates sin alimentos — un match de template vacío hacía
-        // que el pipeline hiciera short-circuit con tags=[] sin ningún aviso (dead-end).
-        return _mealTemplates.value
-            .filter { it.foods.isNotEmpty() }
-            .mapNotNull { template ->
-                val score = FoodTemplateMatcher.score(template, normalizedQuery)
-                if (score >= FoodTemplateMatcher.THRESHOLD) template to score else null
-            }
-            .maxByOrNull { it.second }
-            ?.first
-    }
-
     // ─── SmartFoodResolver Integration (Phase B) ────────────────────────────────
 
     /** Serializa las reconstrucciones del índice: una llamada que espera encuentra la generación ya vigente. */
@@ -1302,12 +1259,6 @@ class NutritionRepository private constructor(
                 }
         }
     }
-
-    private fun scoreMealTemplate(template: MealTemplate, normalizedQuery: String): Double =
-        FoodTemplateMatcher.score(template, normalizedQuery)
-
-    private fun queryQuantitiesMismatch(template: MealTemplate, normalizedQuery: String): Boolean =
-        FoodTemplateMatcher.quantitiesMismatch(template, normalizedQuery)
 
     private fun normalizeMeasurementSchedule(schedule: MeasurementSchedule): MeasurementSchedule {
         val today = LocalDate.now()

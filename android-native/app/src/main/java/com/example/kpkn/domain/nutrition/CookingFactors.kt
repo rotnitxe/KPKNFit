@@ -1,11 +1,9 @@
 package com.example.kpkn.domain.nutrition
 
 import com.example.kpkn.data.models.CookingMethod
-import com.example.kpkn.data.models.FoodItem
 
 /**
  * CookingFactors — Multipliers for adjusting food macros by cooking method.
- * Values sourced from CookingMethodParser.kt (440+ pattern system).
  *
  * Multipliers are per gram of the food's macros, but the pipeline does NOT apply the whole table (WP-N10): a row is
  * transformed by exactly one of a state conversion by yield, one of these factors, or nothing (see [CookingTransform]).
@@ -35,90 +33,6 @@ val COOKING_FACTORS: Map<CookingMethod, CookingFactor> = mapOf(
     CookingMethod.FRITO to CookingFactor(kcal = 1.10, fats = 1.00, carbs = 1.00, protein = 1.10, waterChange = -0.20),
     CookingMethod.EMPANIZADO_FRITO to CookingFactor(kcal = 1.20, fats = 1.00, carbs = 1.20, protein = 1.10, waterChange = -0.15),
 )
-
-/**
- * Apply cooking method factors to a FoodItem, returning adjusted per-100g macros.
- */
-fun applyCooking(item: FoodItem, method: CookingMethod?): FoodItem {
-    if (method == null) return item
-
-    val factor = COOKING_FACTORS[method] ?: return item
-
-    return item.copy(
-        calories = round1(item.calories * factor.kcal),
-        protein = round1(item.protein * factor.protein),
-        carbs = round1(item.carbs * factor.carbs),
-        fats = round1(item.fats * factor.fats),
-    )
-}
-
-/**
- * Apply cooking factors to raw macro values, returning per-gram adjusted macros.
- */
-fun applyCookingToMacros(
-    calories: Double,
-    protein: Double,
-    carbs: Double,
-    fats: Double,
-    method: CookingMethod?,
-): Quadruple {
-    if (method == null) return Quadruple(calories, protein, carbs, fats)
-    val factor = COOKING_FACTORS[method] ?: return Quadruple(calories, protein, carbs, fats)
-    return Quadruple(
-        round1(calories * factor.kcal),
-        round1(protein * factor.protein),
-        round1(carbs * factor.carbs),
-        round1(fats * factor.fats),
-    )
-}
-
-/**
- * Detect if a food name is a liquid (for unit display as ml instead of g).
- * B10: matching por palabra completa con límites de palabra; antes "te" hacía
- * match por substring y "tomate"/"lenteja"/"filete"/"mantequilla" mostraban ml.
- */
-fun isLikelyLiquid(foodName: String, category: String? = null): Boolean {
-    val lower = foodName.lowercase().trim()
-    if (LIQUID_TERMS.any { lower.containsWholePhrase(it) }) return true
-    if (category != null) {
-        val liquidCategories = listOf("beverage", "bebida", "drink", "dairy drink", "juice")
-        if (liquidCategories.any { category.lowercase().contains(it) }) return true
-    }
-    return false
-}
-
-private val LIQUID_TERMS = listOf(
-    "agua", "jugo", "zumo", "leche", "bebida", "refresco", "gaseosa",
-    "café", "cafe", "té", "te", "cerveza", "vino", "licor", "ron", "whisky",
-    "aceite", "vinagre", "salsa de soya", "salsa de soja", "caldo", "sopa",
-    "batido", "smoothie", "malteada", "horchata", "ponche", "néctar", "nectar",
-    "energética", "energetica", "isotónica", "isotonica", "cóctel", "coctel",
-    "champán", "champagne", "sidra", "cava", "prosecco",
-    "yogurt", "yogur", "kéfir", "kefir",
-)
-
-private fun String.containsWholePhrase(phrase: String): Boolean {
-    var startIndex = indexOf(phrase)
-    while (startIndex >= 0) {
-        val endIndex = startIndex + phrase.length
-        val startsAtBoundary = startIndex == 0 || !isWordCharacter(this[startIndex - 1])
-        val endsAtBoundary = endIndex == length || !isWordCharacter(this[endIndex])
-        if (startsAtBoundary && endsAtBoundary) return true
-        startIndex = indexOf(phrase, startIndex + 1)
-    }
-    return false
-}
-
-private fun isWordCharacter(value: Char): Boolean = value.isLetterOrDigit() || value == '_'
-
-data class Quadruple(
-    val calories: Double,
-    val protein: Double,
-    val carbs: Double,
-    val fats: Double,
-)
-
-fun round1(v: Double): Double = kotlin.math.round(v * 10.0) / 10.0
 
 // ─── Absorción de aceite por categoría culinaria (IT3) ───────────────────────
 

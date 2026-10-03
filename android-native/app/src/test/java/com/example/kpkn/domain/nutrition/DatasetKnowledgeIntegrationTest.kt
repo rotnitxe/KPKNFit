@@ -102,7 +102,7 @@ class DatasetKnowledgeIntegrationTest {
     }
 
     @Test
-    fun `parser can consume dataset priors for subjective portions`() {
+    fun `a subjective portion resolves to grams with a retrieval at hand`() {
         val query = "un puñado de almendras"
         val retrieval = SemanticPortionRetriever.retrieve(query)
         val parsed = parseMealDescription(query, retrieval)
@@ -169,8 +169,9 @@ class DatasetKnowledgeIntegrationTest {
     fun `portion priors do not override anchored staple household grams`() {
         val query = "200g de pechuga de pollo a la plancha"
         val retrieval = SemanticPortionRetriever.retrieve(query)
-        val grams = SemanticPortionRetriever.getGramsForFood("pechuga de pollo", retrieval)
-        assertNull("staple ontology owns pechuga grams, not the 19K prior", grams)
+        val parsed = parseMealDescription(query, retrieval)
+        assertEquals("the 19K retrieval never changes the grams the person declared", parseMealDescription(query), parsed)
+        assertEquals(200.0, parsed.items.single().amountGrams ?: Double.NaN, 0.0)
     }
 
     @Test
@@ -179,8 +180,6 @@ class DatasetKnowledgeIntegrationTest {
         assertEquals("pechuga de pollo", SemanticPortionRetriever.repairQuery("pechga de pollo"))
         assertEquals("pollo", SemanticPortionRetriever.repairQuery("pollo"))
         assertTrue(SemanticPortionRetriever.rankingTokens("pollo").isEmpty())
-        val retrieval = SemanticPortionRetriever.retrieve("pechga de pollo")
-        assertNull(SemanticPortionRetriever.getGramsForFood("pechuga", retrieval))
         assertTrue(SemanticPortionRetriever.phraseExists("completo con palta tomate y mayo"))
     }
 
@@ -188,9 +187,10 @@ class DatasetKnowledgeIntegrationTest {
     fun `dataset still returns priors for non-staple dishes`() {
         val retrieval = SemanticPortionRetriever.retrieve("un puñado de almendras")
         assertTrue(retrieval.matches.isNotEmpty())
-        assertNull(
+        assertEquals(
             "19K never supplies final eaten grams",
-            SemanticPortionRetriever.getGramsForFood("almendras", retrieval),
+            parseMealDescription("un puñado de almendras"),
+            parseMealDescription("un puñado de almendras", retrieval),
         )
     }
 }

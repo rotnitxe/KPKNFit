@@ -36,9 +36,8 @@ class DatasetVocabularyTest {
     }
 
     @Test
-    fun `pechga repairs to pechuga without becoming grams`() {
+    fun `pechga repairs to pechuga`() {
         assertEquals("pechuga", SemanticPortionRetriever.repairToken("pechga"))
-        assertNull(SemanticPortionRetriever.getGramsForFood("pechuga", null))
         assertEquals("pechuga de pollo", SemanticPortionRetriever.repairQuery("pechga de pollo"))
     }
 
@@ -58,7 +57,6 @@ class DatasetVocabularyTest {
         assertTrue(tokens.contains("completo"))
         assertTrue(tokens.contains("palta"))
         assertFalse(tokens.any { it.toDoubleOrNull() != null })
-        assertNull(SemanticPortionRetriever.getGramsForFood("completo", retrieval))
     }
 
     @Test
