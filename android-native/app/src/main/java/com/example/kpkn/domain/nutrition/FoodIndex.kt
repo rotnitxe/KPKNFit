@@ -8,7 +8,13 @@ import java.util.concurrent.atomic.AtomicLong
 
 /**
  * FoodIndex — In-memory inverted index over all food sources (USDA, OFF Chile, static).
- * Built once on first access, cached. Supports token, trigram, and phonetic lookups.
+ * Supports token, trigram, and phonetic lookups.
+ *
+ * WP-S4 (B5): the index is no longer "built once, then frozen". [build] can run again whenever the catalog behind it
+ * changes (static catalog published late, import finished, backup restored). It assembles a complete [Shard] on the
+ * side and publishes it with ONE volatile write, so a concurrent search sees the previous index or the new one, never
+ * a half-built mix, and every holder of this instance (e.g. [SmartFoodResolver]) sees the new data without being
+ * recreated. [generation] tells which catalog state the published index was built from.
  */
 class FoodIndex {
 
@@ -34,67 +40,97 @@ class FoodIndex {
         val isCuratedCatalog: Boolean = false,
     )
 
-    // Main food storage
-    private val foods = ConcurrentHashMap<String, IndexedFood>()
-
-    // FIX NUT-03: exact lookup map to avoid O(N) scan in exactMatches (5766 rows × tags).
-    private val exactNameIndex = ConcurrentHashMap<String, MutableSet<String>>() // normalizedName/alias → foodIds
-
-    // Inverted indices
-    private val tokenIndex = ConcurrentHashMap<String, MutableSet<String>>() // token → foodIds
-    private val trigramIndex = ConcurrentHashMap<String, MutableSet<String>>() // trigram → foodIds
-    private val phoneticIndex = ConcurrentHashMap<String, MutableSet<String>>() // phonetic code → foodIds
-
-    @Volatile
-    private var built = false
-
     /** One brand candidate: the original brand plus its padded normalized key (computed once). */
     private class BrandKey(val brand: String, val paddedKey: String)
 
-    /** Brand candidates valid for one state of [foods] ([version] = [foodsVersion] when computed). */
+    /** Brand candidates valid for one state of a shard's foods ([version] = [Shard.foodsVersion] when computed). */
     private class BrandSnapshot(val version: Long, val keys: List<BrandKey>)
 
-    /** Bumped after every mutation of [foods] so [brandSnapshot] can never outlive its data. */
-    private val foodsVersion = AtomicLong()
+    /**
+     * Every structure of ONE index generation. [build] fills a private shard to completion and only then makes it the
+     * current one, so no reader ever sees it half-filled; afterwards only [addStaticFood] adds to it.
+     */
+    private class Shard(val generation: Int) {
+        // Main food storage
+        val foods = ConcurrentHashMap<String, IndexedFood>()
 
+        // FIX NUT-03: exact lookup map to avoid O(N) scan in exactMatches (5766 rows × tags).
+        val exactNameIndex = ConcurrentHashMap<String, MutableSet<String>>() // normalizedName/alias → foodIds
+
+        // Inverted indices
+        val tokenIndex = ConcurrentHashMap<String, MutableSet<String>>() // token → foodIds
+        val trigramIndex = ConcurrentHashMap<String, MutableSet<String>>() // trigram → foodIds
+        val phoneticIndex = ConcurrentHashMap<String, MutableSet<String>>() // phonetic code → foodIds
+
+        /** Bumped after every mutation of [foods] so [brandSnapshot] can never outlive its data. */
+        val foodsVersion = AtomicLong()
+
+        @Volatile
+        var brandSnapshot: BrandSnapshot? = null
+    }
+
+    /** The index every public operation reads: replaced as a whole by [build] and read ONCE per operation. */
     @Volatile
-    private var brandSnapshot: BrandSnapshot? = null
+    private var shard = Shard(NEVER_BUILT)
 
-    fun isBuilt(): Boolean = built
+    /** Serializes the swap in [build] with the hot additions of [addStaticFood]. */
+    private val publishLock = Any()
 
-    fun size(): Int = foods.size
+    /** One list per [build] in flight: the hot additions it has to replay onto its shard before swapping it in. */
+    private val buildsInFlight = ArrayList<MutableList<IndexedFood>>()
+
+    /** Catalog generation the published index was built from; -1 until the first [build]. */
+    val generation: Int get() = shard.generation
+
+    fun isBuilt(): Boolean = shard.generation != NEVER_BUILT
+
+    fun size(): Int = shard.foods.size
 
     /**
-     * Build index from Room GlobalFoodEntity list + static FoodItem lists.
-     * CRI-AUDIT: si el índice quedó construido VACÍO (p. ej. un toque de analizar
-     * durante la primera importación del catálogo, cuando la base aún no estaba
-     * poblada), se permite reconstruirlo la próxima vez que la data esté lista.
-     * Un índice vacío significaba resolución degradada (solo heurísticas) para toda
-     * la sesión sin modo de repararlo.
+     * Builds a complete index from the Room GlobalFoodEntity list + the static FoodItem lists and publishes it,
+     * replacing the previous one. [generation] names the catalog state the caller built it from (the repository's
+     * `catalogGeneration`); a caller that does not care gets the next number.
+     *
+     * Unlike the old "build once" guard (an index built too early, e.g. before the static catalog was published or
+     * before an import finished, stayed incomplete for the whole session) this ALWAYS rebuilds: deciding that the
+     * catalog changed is the caller's job. The previous index keeps serving searches until the very swap. Foods added
+     * with [addStaticFood] while this runs land on that previous index, so they are replayed onto the new one first.
+     * Builds are expected not to overlap (the repository serializes them): the last swap wins.
      */
     fun build(
         globalFoods: List<GlobalFoodEntity>,
         staticFoods: List<FoodItem>,
         staticAliases: Map<String, String> = emptyMap(),
+        generation: Int = this.generation + 1,
     ) {
-        if (built && foods.size > 0) return
+        require(generation >= 0) { "generation must be >= 0 (-1 means never built)" }
+        val hotAdditions = ArrayList<IndexedFood>()
+        synchronized(publishLock) { buildsInFlight.add(hotAdditions) }
+        try {
+            val fresh = Shard(generation)
 
-        // Index static foods (GENERIC_FOODS + CHILEAN_FOODS)
-        for (food in staticFoods) {
-            val aliases = staticAliases
-                .filterValues { normalizeSearch(it) == normalizeSearch(food.name) }
-                .keys
-            val indexed = indexStaticFood(food, aliases)
-            addFood(indexed)
+            // Index static foods (GENERIC_FOODS + CHILEAN_FOODS)
+            for (food in staticFoods) {
+                val aliases = staticAliases
+                    .filterValues { normalizeSearch(it) == normalizeSearch(food.name) }
+                    .keys
+                val indexed = indexStaticFood(food, aliases)
+                addFood(fresh, indexed)
+            }
+
+            // Index global foods (USDA + OFF)
+            for (food in globalFoods) {
+                val indexed = indexGlobalFood(food)
+                addFood(fresh, indexed)
+            }
+
+            synchronized(publishLock) {
+                hotAdditions.forEach { addFood(fresh, it) }
+                shard = fresh
+            }
+        } finally {
+            synchronized(publishLock) { buildsInFlight.removeAll { it === hotAdditions } }
         }
-
-        // Index global foods (USDA + OFF)
-        for (food in globalFoods) {
-            val indexed = indexGlobalFood(food)
-            addFood(indexed)
-        }
-
-        built = true
     }
 
     /**
@@ -102,41 +138,42 @@ class FoodIndex {
      * Exact LOCAL names skip fuzzy expansion so "tomate" does not pull pizza/salsa.
      */
     fun search(query: String): Set<String> {
+        val s = shard // one consistent index for the whole call, even if build() swaps in the middle
         val normalizedQuery = normalizeSearch(query)
         val queryTokens = tokenize(normalizedQuery)
         if (queryTokens.isEmpty()) return emptySet()
 
-        val exact = exactMatches(normalizedQuery).mapTo(mutableSetOf()) { it.foodId }
+        val exact = exactMatchesIn(s, normalizedQuery).mapTo(mutableSetOf()) { it.foodId }
 
         val family = FoodIdentity.familyFor(query)
         val familyLocal = if (family != null) {
-            foods.values.filter { it.isCuratedCatalog && it.canonicalFamily == family }
+            s.foods.values.filter { it.isCuratedCatalog && it.canonicalFamily == family }
                 .map { it.foodId }
                 .toSet()
         } else {
             emptySet()
         }
         val aliasLocal = FoodIdentity.queryAliases(query).flatMap { alias ->
-            exactMatches(alias).filter { it.isCuratedCatalog }.map { it.foodId }
+            exactMatchesIn(s, alias).filter { it.isCuratedCatalog }.map { it.foodId }
         }.toSet()
         val householdHits = familyLocal + aliasLocal
         val candidates = (exact + householdHits).toMutableSet()
 
         for (token in queryTokens) {
-            tokenIndex[token]?.let { candidates.addAll(it) }
+            s.tokenIndex[token]?.let { candidates.addAll(it) }
         }
 
         for (token in queryTokens) {
             val trigrams = generateTrigrams(token)
             for (trigram in trigrams) {
-                trigramIndex[trigram]?.let { candidates.addAll(it) }
+                s.trigramIndex[trigram]?.let { candidates.addAll(it) }
             }
         }
 
         for (token in queryTokens) {
             val phonetic = PhoneticEs.encode(token)
             if (phonetic.isNotEmpty()) {
-                phoneticIndex[phonetic]?.let { candidates.addAll(it) }
+                s.phoneticIndex[phonetic]?.let { candidates.addAll(it) }
             }
         }
 
@@ -144,48 +181,55 @@ class FoodIndex {
     }
 
     private fun localSubset(ids: Set<String>): Set<String> =
-        ids.mapNotNull { foods[it] }.filter { it.isCuratedCatalog }.map { it.foodId }.toSet()
+        ids.mapNotNull { shard.foods[it] }.filter { it.isCuratedCatalog }.map { it.foodId }.toSet()
 
-    fun getFood(foodId: String): IndexedFood? = foods[foodId]
+    fun getFood(foodId: String): IndexedFood? = shard.foods[foodId]
 
     /**
      * Brand candidates with their normalized keys. The filtering and normalization used to run
-     * over every brand of the index on each call; they are computed once per state of [foods]
+     * over every brand of the index on each call; they are computed once per state of a shard's foods
      * and iterate in the same order, so [maxByOrNull] breaks ties exactly as before.
      */
-    private fun brandKeys(): List<BrandKey> {
-        val version = foodsVersion.get()
-        brandSnapshot?.takeIf { it.version == version }?.let { return it.keys }
-        val keys = foods.values.mapNotNull { it.brand }.distinct()
+    private fun brandKeys(s: Shard): List<BrandKey> {
+        val version = s.foodsVersion.get()
+        s.brandSnapshot?.takeIf { it.version == version }?.let { return it.keys }
+        val keys = s.foods.values.mapNotNull { it.brand }.distinct()
             .filter { normalizeSearch(it) !in GENERIC_BRANDS }
             // A source may mistakenly put a food class in its brand column (OFF: brand=Avena).
             .filterNot { FoodIdentity.contentTokens(it).size == 1 && FoodIdentity.familyFor(it) != null }
             .map { BrandKey(it, " ${normalizeSearch(it)} ") }
-        brandSnapshot = BrandSnapshot(version, keys)
+        s.brandSnapshot = BrandSnapshot(version, keys)
         return keys
     }
 
     fun brandHintFor(query: String): String? {
         val padded = " ${normalizeSearch(query)} "
-        return brandKeys().filter { it.paddedKey in padded }.maxByOrNull { it.brand.length }?.brand
+        return brandKeys(shard).filter { it.paddedKey in padded }.maxByOrNull { it.brand.length }?.brand
     }
 
     /** E16/IT2: indexa un alimento custom/estático añadido en runtime sin
      *  reconstruir el índice (idempotente por foodId). El resolver debe ver
      *  los alimentos del usuario, no solo el buscador. */
     fun addStaticFood(food: FoodItem) {
-        addFood(indexStaticFood(food))
+        val indexed = indexStaticFood(food)
+        synchronized(publishLock) {
+            addFood(shard, indexed)
+            // A build in flight started from an earlier snapshot: it must not lose this food when it swaps in.
+            buildsInFlight.forEach { it.add(indexed) }
+        }
     }
 
-    fun getAllFoods(): Collection<IndexedFood> = foods.values
+    fun getAllFoods(): Collection<IndexedFood> = shard.foods.values
 
     /** Exact phrase lookup used to give curated names priority over fuzzy rows. */
-    fun exactMatches(query: String): List<IndexedFood> {
+    fun exactMatches(query: String): List<IndexedFood> = exactMatchesIn(shard, query)
+
+    private fun exactMatchesIn(s: Shard, query: String): List<IndexedFood> {
         val normalized = normalizeSearch(query)
         if (normalized.isBlank()) return emptyList()
         // FIX NUT-03: use exact index O(1) instead of O(N) scan
-        val ids = exactNameIndex[normalized] ?: return emptyList()
-        return ids.mapNotNull { foods[it] }
+        val ids = s.exactNameIndex[normalized] ?: return emptyList()
+        return ids.mapNotNull { s.foods[it] }
             .sortedWith(
                 // C12: desempate determinista — el orden de iteración de un
                 // ConcurrentHashMap no es estable entre procesos/dispositivos.
@@ -197,34 +241,34 @@ class FoodIndex {
 
     // ─── Internal ──────────────────────────────────────────────────────────
 
-    private fun addFood(food: IndexedFood) {
-        foods[food.foodId] = food
+    private fun addFood(target: Shard, food: IndexedFood) {
+        target.foods[food.foodId] = food
 
         // FIX NUT-03: populate exact index
-        exactNameIndex.getOrPut(food.normalizedName) { mutableSetOf() }.add(food.foodId)
+        target.exactNameIndex.getOrPut(food.normalizedName) { mutableSetOf() }.add(food.foodId)
         for (alias in food.normalizedAliases) {
-            exactNameIndex.getOrPut(alias) { mutableSetOf() }.add(food.foodId)
+            target.exactNameIndex.getOrPut(alias) { mutableSetOf() }.add(food.foodId)
         }
 
         // Token index
         for (token in food.tokens) {
-            tokenIndex.getOrPut(token) { mutableSetOf() }.add(food.foodId)
+            target.tokenIndex.getOrPut(token) { mutableSetOf() }.add(food.foodId)
         }
 
         // Trigram index
         for (trigram in food.trigrams) {
-            trigramIndex.getOrPut(trigram) { mutableSetOf() }.add(food.foodId)
+            target.trigramIndex.getOrPut(trigram) { mutableSetOf() }.add(food.foodId)
         }
 
         // Phonetic index
         for ((_, phoneticCode) in food.phoneticTokens) {
             if (phoneticCode.isNotEmpty()) {
-                phoneticIndex.getOrPut(phoneticCode) { mutableSetOf() }.add(food.foodId)
+                target.phoneticIndex.getOrPut(phoneticCode) { mutableSetOf() }.add(food.foodId)
             }
         }
 
-        // The cached brand list describes a previous state of [foods].
-        foodsVersion.incrementAndGet()
+        // The cached brand list describes a previous state of the shard's foods.
+        target.foodsVersion.incrementAndGet()
     }
 
     private fun indexStaticFood(food: FoodItem, catalogAliases: Set<String> = emptySet()): IndexedFood {
@@ -306,6 +350,9 @@ class FoodIndex {
     }
 
     companion object {
+        /** [generation] of an index that has not been built yet. */
+        private const val NEVER_BUILT = -1
+
         private val SPANISH_STOPWORDS = setOf(
             "de", "la", "el", "con", "sin", "a", "al", "en", "por", "y", "o",
             "un", "una", "unos", "unas", "del", "las", "los", "lo",

@@ -22,11 +22,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -331,6 +336,130 @@ class NutritionRepositoryStartupTest {
         withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
         assertEquals("a legacy checksum at the current version must not trigger a re-import", 0, spy.assetAccesses.get())
         assertEquals(legacy, repo.getFoodCatalogMetaForBackup())
+    }
+
+    // ─── WP-S4: el índice del resolvedor sigue al catálogo ────────────────
+
+    @Test
+    fun `initFoodIndex before phase 1 is a no-op and the publish rebuilds the index with the static catalog`() = runBlocking {
+        // B5: filas globales ya en la base (instalación previa) pero el catálogo estático aún sin publicar. Antes, un
+        // initFoodIndex() temprano (prewarm del drawer, share intent) construía y CONGELABA un índice con solo esta fila.
+        db.nutritionDao().insertGlobalFoods(listOf(GlobalFoodEntity(foodId = "off_1", name = "Yogur natural")))
+        val repo = repository(importer { _, _, _ -> false })
+        val index = repo.foodIndexForTests()
+
+        repo.initFoodIndex()
+        assertFalse("nothing reliable to index before the static catalog is published", index.isBuilt())
+        assertEquals(0, index.size())
+        assertEquals(-1, index.generation)
+
+        repo.refreshData(context)
+        // La fase 3 llama a initFoodIndex() con el catálogo ya publicado.
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertTrue(index.isBuilt())
+        assertEquals("the index carries the published generation", repo.catalogGenerationForTests(), index.generation)
+        assertEquals("static catalog + the global row", repo.foodDatabase.value.size + 1, index.size())
+        assertNotNull("static rows are in the index", index.getFood("gen005"))
+        assertNotNull(index.getFood("off_1"))
+        // Misma instancia que lee el resolvedor: "arroz" solo existe en el catálogo estático.
+        val resolved = repo.resolveFoodWithSmartResolver("arroz")
+        assertTrue("the resolver sees the rebuilt index", resolved.candidates.isNotEmpty())
+    }
+
+    @Test
+    fun `after the importer completes the index generation advances and contains the imported rows`() = runBlocking {
+        val importerEntered = CompletableDeferred<Unit>()
+        val releaseImport = CompletableDeferred<Unit>()
+        val repo = repository(
+            importer { _, _, _ ->
+                importerEntered.complete(Unit)
+                releaseImport.await()
+                // El importador real confirma sus filas en la base y responde true.
+                db.nutritionDao().insertGlobalFoods(listOf(GlobalFoodEntity(foodId = "off_imported", name = "Yogur importado")))
+                true
+            },
+        )
+        val index = repo.foodIndexForTests()
+
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { importerEntered.await() }
+
+        // Un análisis durante la importación construye el índice con el catálogo estático y sin las filas por llegar.
+        repo.initFoodIndex()
+        val duringImport = index.generation
+        assertEquals(repo.catalogGenerationForTests(), duringImport)
+        assertNull(index.getFood("off_imported"))
+        assertNotNull(index.getFood("gen005"))
+
+        releaseImport.complete(Unit)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertTrue("an effective import advances the generation", index.generation > duringImport)
+        assertEquals(repo.catalogGenerationForTests(), index.generation)
+        assertNotNull("the imported row is in the resolver index", index.getFood("off_imported"))
+        assertTrue(index.search("importado").contains("off_imported"))
+    }
+
+    @Test
+    fun `a refresh after a restore rebuilds the index from the restored rows`() = runBlocking {
+        val repo = repository(importer { _, _, _ -> false })
+        val index = repo.foodIndexForTests()
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+        val before = index.generation
+        assertNull(index.getFood("off_restored"))
+
+        // Una restauración reemplaza las filas bajo el repositorio y termina siempre con refreshData (SettingsViewModel).
+        db.nutritionDao().insertGlobalFoods(listOf(GlobalFoodEntity(foodId = "off_restored", name = "Queso restaurado")))
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+
+        assertTrue("the refresh advances the generation", index.generation > before)
+        assertEquals(repo.catalogGenerationForTests(), index.generation)
+        assertNotNull(index.getFood("off_restored"))
+    }
+
+    @Test
+    fun `initFoodIndex does not rebuild while the catalog generation is unchanged`() = runBlocking {
+        val repo = repository(importer { _, _, _ -> false })
+        val index = repo.foodIndexForTests()
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+        val built = index.getFood("gen005")
+        assertNotNull(built)
+
+        repo.initFoodIndex()
+        repo.initFoodIndex()
+        // Cada build crea fichas nuevas: la misma instancia prueba que no hubo reconstrucción.
+        assertSame("same generation: no rebuild", built, index.getFood("gen005"))
+
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+        assertNotSame("a refresh bumps the generation and the next init rebuilds", built, index.getFood("gen005"))
+    }
+
+    @Test
+    fun `refreshData stales the index at once and the publish bumps the generation again`() = runBlocking {
+        val repo = repository(importer { _, _, _ -> false })
+        repo.refreshData(context)
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+        val before = repo.catalogGenerationForTests()
+        assertEquals(before, repo.foodIndexForTests().generation)
+
+        // Con el candado de guardado tomado, la fase 1 de la recarga no puede publicar: solo cuenta el aviso síncrono.
+        val saveMutex = NutritionRepository::class.java.getDeclaredField("foodSaveMutex").apply { isAccessible = true }.get(repo) as Mutex
+        val whileHeld = saveMutex.withLock {
+            repo.refreshData(context)
+            val bumped = repo.catalogGenerationForTests()
+            assertTrue("refreshData bumps before reloading anything", bumped > before)
+            assertTrue("the index is stale until it is rebuilt", repo.foodIndexForTests().generation < bumped)
+            bumped
+        }
+
+        withTimeout(TIMEOUT_MS) { repo.awaitStartupLoadForTests() }
+        assertTrue("publishing the reloaded state bumps again", repo.catalogGenerationForTests() > whileHeld)
+        assertEquals("the index catches up with the last generation", repo.catalogGenerationForTests(), repo.foodIndexForTests().generation)
     }
 
     private companion object {

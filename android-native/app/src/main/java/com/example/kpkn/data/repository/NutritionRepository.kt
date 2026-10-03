@@ -54,6 +54,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Seam de arranque del catálogo global (WP-S3/U2): misma forma que [FoodImporter.importIfNeeded]. En producción es
@@ -270,22 +271,35 @@ class NutritionRepository private constructor(
     private val _foodDatabase = MutableStateFlow<List<FoodItem>>(emptyList())
     val foodDatabase: StateFlow<List<FoodItem>> = _foodDatabase.asStateFlow()
 
-    // Phase B: SmartFoodResolver lazy-init
-    private var _foodIndex: FoodIndex? = null
-    private val foodIndex: FoodIndex
-        get() = _foodIndex ?: FoodIndex().also { idx ->
-            _foodIndex = idx
-        }
+    // Phase B: SmartFoodResolver lazy-init. `by lazy` is synchronized: two threads can never end up with two FoodIndex
+    // instances (the one the resolver reads and another one `initFoodIndex` fills). The instance never changes for the
+    // life of the repository; what changes is its content, through FoodIndex.build (WP-S4).
+    private val foodIndex: FoodIndex by lazy { FoodIndex() }
 
-    private var _smartResolver: SmartFoodResolver? = null
-    private val smartResolver: SmartFoodResolver
-        get() = _smartResolver ?: SmartFoodResolver(db.nutritionDao(), foodIndex, db.learnedResolutionDao()).also { resolver ->
-            _smartResolver = resolver
+    private val smartResolver: SmartFoodResolver by lazy {
+        SmartFoodResolver(db.nutritionDao(), foodIndex, db.learnedResolutionDao()).also { resolver ->
             // Preload learned resolutions from DB
             scope.launch {
                 resolver.preloadLearned()
             }
         }
+    }
+
+    /**
+     * Estado del catálogo del que se alimenta [foodIndex] (WP-S4): sube cada vez que cambia lo que el índice debe
+     * contener (estado publicado, catálogo importado, recarga desde disco). [initFoodIndex] reconstruye mientras la
+     * generación del índice difiera de esta.
+     */
+    private val catalogGeneration = AtomicInteger()
+
+    private fun bumpCatalogGeneration() {
+        catalogGeneration.incrementAndGet()
+    }
+
+    /** Solo para pruebas JVM: el índice del resolvedor y la generación del catálogo contra la que se compara. */
+    internal fun foodIndexForTests(): FoodIndex = foodIndex
+
+    internal fun catalogGenerationForTests(): Int = catalogGeneration.get()
 
     private val _foodQueryLearning = MutableStateFlow<Map<String, FoodQueryLearningEntry>>(emptyMap())
 
@@ -858,7 +872,8 @@ class NutritionRepository private constructor(
 
     // ─── SmartFoodResolver Integration (Phase B) ────────────────────────────────
 
-    private val foodIndexLock = Any()
+    /** Serializa las reconstrucciones del índice: una llamada que espera encuentra la generación ya vigente. */
+    private val foodIndexMutex = Mutex()
     private val datasetKnowledgeMutex = Mutex()
     @Volatile
     private var datasetKnowledgeReady = false
@@ -901,23 +916,37 @@ class NutritionRepository private constructor(
     /** D7: estado del dataset de conocimiento (diagnóstico / aviso no-silencioso). */
     fun datasetStatus(): SemanticPortionRetriever.DatasetStatus = SemanticPortionRetriever.status()
 
-    suspend fun initFoodIndex() = withContext(Dispatchers.Default) {
-        synchronized(foodIndexLock) {
-            // CRI-AUDIT: no salir si el índice está vacío — un build prematuro (toque de
-            // analizar durante la primera importación) dejaba un índice vacío congelado
-            // para toda la sesión. Ahora se reconstruye apenas la data esté poblada.
-            if (_foodIndex?.isBuilt() == true && _foodIndex?.size() ?: 0 > 0) return@withContext
+    /**
+     * Deja el índice del resolvedor al día con el catálogo (WP-S4). Sin el catálogo estático publicado (fase 1 del
+     * arranque) no hay nada fiable que indexar: construir ahora dejaba un índice con solo las filas globales (B5), así
+     * que no hace nada; la publicación sube [catalogGeneration] y el arranque vuelve a llamar aquí al terminar. Si no,
+     * reconstruye solo cuando la generación del índice difiere de la vigente. La generación se lee ANTES que los
+     * datos: un cambio durante la construcción deja el índice con una generación vieja y la próxima llamada lo
+     * reconstruye.
+     */
+    suspend fun initFoodIndex() {
+        withContext(Dispatchers.Default) {
+            if (_foodDatabase.value.isEmpty()) return@withContext
+            foodIndexMutex.withLock {
+                val generation = catalogGeneration.get()
+                if (foodIndex.generation == generation) return@withLock
+                rebuildFoodIndex(generation)
+            }
         }
+    }
+
+    private suspend fun rebuildFoodIndex(generation: Int) {
         try {
             val globalFoods = withContext(Dispatchers.IO) {
                 db.nutritionDao().getAllGlobalFoods()
             }
-            android.util.Log.i("NutritionRepository", "Building FoodIndex with ${globalFoods.size} global + ${_foodDatabase.value.size} static foods")
-            synchronized(foodIndexLock) {
-                foodIndex.build(globalFoods, _foodDatabase.value, FOOD_ALIASES)
-            }
+            val staticFoods = _foodDatabase.value
+            android.util.Log.i("NutritionRepository", "Building FoodIndex g$generation with ${globalFoods.size} global + ${staticFoods.size} static foods")
+            foodIndex.build(globalFoods, staticFoods, FOOD_ALIASES, generation)
             android.util.Log.i("NutritionRepository", "FoodIndex built: ${foodIndex.size()} foods indexed")
-        } catch (e: Throwable) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             android.util.Log.w("NutritionRepository", "initFoodIndex failed", e)
         }
     }
@@ -993,9 +1022,10 @@ class NutritionRepository private constructor(
      *    una importación lenta o fallida jamás oculta logs, planes ni metas.
      * 2. [importCatalog]: importa el catálogo global. Un fallo solo se registra: nunca limpia estado ni cancela el
      *    recordatorio de medición.
-     * 3. Calienta el conocimiento semántico y el índice de alimentos, ya con el catálogo importado. Pendiente de
-     *    WP-S4 (generaciones del índice): un `initFoodIndex()` previo, p. ej. un análisis durante la importación, deja
-     *    el índice sin las filas recién importadas hasta el próximo arranque.
+     * 3. Calienta el conocimiento semántico y el índice de alimentos, ya con el catálogo importado. El índice recuerda
+     *    con qué generación del catálogo se construyó (WP-S4): la fase 1, una importación efectiva y [refreshData] la
+     *    suben, así que un `initFoodIndex()` previo, p. ej. un análisis durante la importación, queda obsoleto y esta
+     *    fase lo reconstruye con las filas recién importadas.
      *
      * @return se completa al terminar la fase 1 (estado publicado), aunque la importación siga en curso.
      */
@@ -1059,6 +1089,9 @@ class NutritionRepository private constructor(
                 _nutritionPlans.value = plans
                 _activeNutritionPlanId.value = activeId
                 _foodDatabase.value = foodCatalog
+                // El índice del resolvedor se arma desde `_foodDatabase`: lo construido antes de este punto ya no
+                // es fiable (B5). Se sube después de publicar, así quien lea la generación nueva ve ya los datos.
+                bumpCatalogGeneration()
             }
 
             // Los utensilios guardados vuelven al motor de porciones en cada arranque (WP-U2/U12): sin esto se
@@ -1074,6 +1107,7 @@ class NutritionRepository private constructor(
             if (t is CancellationException) throw t
             android.util.Log.e("NutritionRepository", "loadFromDb failed (OOM?): ${t.javaClass.simpleName}", t)
             _foodDatabase.value = runCatching { buildFoodDatabase(appContext) }.getOrDefault(emptyList())
+            bumpCatalogGeneration()
             _mealTemplates.value = emptyList()
             _foodQueryLearning.value = emptyMap()
         }
@@ -1149,6 +1183,8 @@ class NutritionRepository private constructor(
             runCatching { NutritionTelemetry.catalogImportFailed(failure.javaClass.simpleName) }
         } else if (outcome.getOrDefault(false)) {
             android.util.Log.i("NutritionRepository", "Food catalog importado/actualizado")
+            // Filas nuevas en global_foods: el índice construido antes de esta importación no las tiene (B5).
+            bumpCatalogGeneration()
         }
     }
 
@@ -1418,6 +1454,10 @@ class NutritionRepository private constructor(
     }
 
     fun refreshData(context: Context) {
+        // El estado en disco pudo cambiar por completo (restauración de respaldo o de snapshot, borrado de datos,
+        // catálogo importado por fuera): el índice ya construido no es fiable. La fase 1 de la carga lo vuelve a
+        // marcar al publicar el estado nuevo.
+        bumpCatalogGeneration()
         loadFromDb(context)
     }
 
