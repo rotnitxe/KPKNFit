@@ -15,6 +15,8 @@ import org.junit.Test
  * WP-S1 / B1: tapping a search result keeps the TAPPED row as the eaten identity. A pack-sized or
  * per-100 g row only changes the portion (household grams), never the food, and the tap is never a
  * silent no-op. Pure JVM: the drawer composes exactly these calls.
+ *
+ * WP-S10: the static rows whose macros are per 100 g are PER_100G_AS_SOLD, so their tap eats a household portion too (the last tests).
  */
 class SearchPickContractTest {
 
@@ -156,5 +158,90 @@ class SearchPickContractTest {
             calories = 180.0, protein = 8.0, carbs = 16.0, fats = 9.0,
         )
         assertEquals(40.0, pick(custom, "mi barrita").second, 0.0)
+    }
+    // ─── WP-S10: the per-100 g rows of the static catalog tap to a household portion ──────────────────
+
+    /** One representative row: its id, a word its name must hold, what the person typed, the unit it is measured in and the grams eaten. */
+    private data class Tap(val id: String, val nameHas: String, val query: String, val unit: String, val grams: Double)
+
+    private val perHundredTaps = listOf(
+        Tap("gen004", "pechuga", "pechuga", "g", 150.0),
+        Tap("gen005", "arroz", "arroz", "g", 120.0),
+        Tap("gen085", "semidescremada", "leche", "ml", 200.0),
+        Tap("gen049", "mantequilla", "mantequilla", "g", 10.0),
+        Tap("gen099", "aceite", "aceite", "ml", 10.0),
+        Tap("gen047", "queso", "queso", "g", 30.0),
+        Tap("gen040", "pasta", "pasta", "g", 160.0),
+        Tap("gen012", "lentejas", "lentejas", "g", 120.0),
+    )
+
+    @Test
+    fun `tapping a per 100 g catalog row eats a household portion and never the 100 g basis`() {
+        // WP-S10 declares these rows PER_100G_AS_SOLD (their macros are per 100 g and 100 g is all the serving they had), so by the rule
+        // of WP-S1 their 100 g is a denominator: the tap eats what a person eats of that food. Before, every one of them logged 100 g.
+        perHundredTaps.forEach { tap ->
+            val row = checkNotNull(findStaticFoodById(tap.id)) { tap.id }
+            val label = "${tap.id} ${row.name} (typed \"${tap.query}\")"
+            assertTrue("$label: not a ${tap.nameHas}", FoodIdentity.normalize(row.name).contains(tap.nameHas))
+            assertEquals("$label: unit", tap.unit, row.unit)
+            assertEquals("$label: basis", "PER_100G_AS_SOLD", row.nutritionBasis)
+
+            val (identity, grams) = pick(row, tap.query)
+
+            assertSame("$label keeps the tapped row", row, identity)
+            assertEquals("$label: grams", tap.grams, grams, 0.0)
+            assertNotEquals("$label: the 100 g basis is not a portion", 100.0, grams, 0.0)
+        }
+    }
+
+    @Test
+    fun `a catalog row measured in units taps to the weight of one unit`() {
+        // The per-100 g rule only reaches a serving of exactly 100 g or 100 ml: a row that declares ONE unit keeps that weight, whether it
+        // stays PER_SERVING (a slice of sliced bread) or is explicitly per 100 g (a mandarin).
+        listOf(Triple("gen089", "pan de molde", 25.0), Triple("gen166", "mandarina", 90.0)).forEach { (id, nameHas, grams) ->
+            val row = checkNotNull(findStaticFoodById(id)) { id }
+            assertTrue("$id: not a $nameHas", FoodIdentity.normalize(row.name).contains(nameHas))
+            assertEquals("$id: unit", "u", row.unit)
+            assertEquals("$id: grams", grams, pick(row, nameHas).second, 0.0)
+        }
+    }
+
+    @Test
+    fun `an explicit kilogram or litre keeps the pack mass while the same food typed plainly eats the household portion`() {
+        // The new defaults belong to the portion of a plain tap; a query that names a bulk unit still keeps the declared pack mass.
+        val ricePack = off("off_arroz_1kg", "Arroz grado 1 Tucapel 1 kg", "Tucapel", 350.0, 7.0, 78.0, 0.6, portionGrams = 1000.0)
+        val milkPack = off("off_leche_semi_1l", "Leche semidescremada Colun 1 litro", "Colun", 46.0, 3.2, 4.8, 1.5, portionGrams = 1000.0)
+        val oilPack = off("off_aceite_1l", "Aceite vegetal Chef 1 litro", "Chef", 884.0, 0.0, 0.0, 100.0, portionGrams = 1000.0)
+        val packs = listOf(
+            Triple(ricePack, "arroz 1 kg", "gen005" to "arroz"),
+            Triple(milkPack, "leche semidescremada 1 litro", "gen085" to "leche"),
+            Triple(oilPack, "aceite 1 litro", "gen099" to "aceite"),
+        )
+        packs.forEach { (pack, bulkQuery, catalog) ->
+            val (id, plainQuery) = catalog
+            assertEquals("$bulkQuery keeps the pack", 1000.0, pick(pack, bulkQuery).second, 0.0)
+            // Typed plainly, the pack and the catalog row of the same food eat the same household portion (never the 1000 g).
+            val household = pick(checkNotNull(findStaticFoodById(id)) { id }, plainQuery).second
+            assertEquals("$plainQuery on the pack", household, pick(pack, plainQuery).second, 0.0)
+            assertTrue("$plainQuery household grams $household", household in 10.0..200.0)
+        }
+    }
+
+    @Test
+    fun `an ml row of the catalog is per 100 g so its denominator is 100 g and not the mass of 100 ml`() {
+        val milk = checkNotNull(findStaticFoodById("gen085"))
+        assertTrue(FoodIdentity.normalize(milk.name).contains("semidescremada"))
+        assertEquals("ml", milk.unit)
+        assertEquals("PER_100G_AS_SOLD", milk.nutritionBasis)
+        // As PER_SERVING its 100 ml weighed 103 g and a glass came out 3 % short; its numbers are per 100 g.
+        assertEquals(100.0, NutrientBasis.grams(milk), 0.0)
+        val glass = HouseholdPortions.eatenGramsForSearchPick(milk, "leche")
+        assertEquals(200.0, glass, 0.0)
+        assertEquals(2.0 * milk.calories, scaleFoodByPortion(milk, amountGrams = glass).calories, 1.0)
+        // Oil went the other way: 100 ml weighed 90 g, so every spoon was overstated by a tenth.
+        val oil = checkNotNull(findStaticFoodById("gen099"))
+        assertEquals("ml", oil.unit)
+        assertEquals(100.0, NutrientBasis.grams(oil), 0.0)
+        assertEquals(0.1 * oil.calories, scaleFoodByPortion(oil, amountGrams = 10.0).calories, 1.0)
     }
 }
