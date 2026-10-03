@@ -1,0 +1,301 @@
+{
+  "definitions": {
+    "seal_row": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión del hombro",
+              "Abducción horizontal"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "ekstrom2003"
+            ],
+            "why": "El hombro pasa de colgar bajo el torso a extenderse llevando el codo hacia atrás y arriba, con una pequeña separación del tronco por el agarre ancho. Esa extensión con abducción horizontal es el movimiento que genera la tracción."
+          },
+          {
+            "actions": [
+              "Retracción escapular"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Las escápulas se acercan a la columna al subir y se separan al bajar. Con el torso fijo en el banco ese deslizamiento es completo y no lo tapa ningún balanceo del tronco, de modo que la retracción es parte central del gesto y no un detalle final."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_biceps"
+            ],
+            "why": "El codo se flexiona para acercar la carga, pero la tracción nace en el hombro y la escápula y los flexores del codo siguen el movimiento; por eso la articulación es secundaria y no la que limita la serie."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments",
+              "statpearls_biceps"
+            ],
+            "why": "La muñeca se mantiene neutra mientras los flexores de los dedos sostienen la barra o las mancuernas durante toda la serie, sin mover la carga por sí misma."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "fenwick2009",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Es el principal extensor y aductor del hombro: lleva el codo hacia atrás y arriba. Con el torso fijo en el banco, esa tracción recae en él y en los retractores de la escápula, sin que la cadera ni el tronco repartan el trabajo."
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_rhomboids"
+            ],
+            "why": "Acercan la escápula a la columna durante la subida. En la comparación de Lehman et al. (2004), el remo sentado produjo la mayor actividad del grupo romboides–trapecio medio frente a los jalones, y el torso apoyado permite que esa retracción sea completa."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "ekstrom2003",
+              "lehman2004"
+            ],
+            "why": "Sus fibras medias e inferiores retraen y estabilizan la escápula mientras el codo sube. Entre diez ejercicios escapulares, la mayor activación del trapecio medio apareció en la extensión horizontal del hombro tumbado boca abajo (con rotación externa), el mismo plano de trabajo del remo seal. Las fibras superiores no deben encogerse."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid",
+              "ekstrom2003"
+            ],
+            "why": "Su porción posterior extiende y abduce horizontalmente el hombro y acompaña al dorsal cuando el codo se separa algo del tronco, como ocurre con el agarre prono algo más ancho que los hombros."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "statpearls_biceps"
+            ],
+            "why": "Flexiona el codo para acercar la carga. En el estudio de Lehman et al. (2004) su actividad no varió entre jalones y remos sentados, por eso se trata como ayuda constante y no como el músculo que decide la serie."
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments",
+              "statpearls_biceps"
+            ],
+            "why": "Los flexores de los dedos y de la muñeca sostienen la barra o las mancuernas de forma isométrica durante toda la serie, además de que el braquiorradial ayuda a flexionar el codo."
+          }
+        ],
+        "overrides": {
+          "seal_row__dumbbells": {
+            "joints": [
+              {
+                "actions": [
+                  "Extensión del hombro",
+                  "Aducción del hombro"
+                ],
+                "id": "glenohumeral",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_extrinsic_back",
+                  "ekstrom2003"
+                ],
+                "why": "Sin barra que tope bajo el banco, cada hombro recorre su propio camino y el codo puede pasar la línea del tronco; con agarre neutro los codos suelen quedar más cerca del costado, así que el hombro trabaja más en extensión y aducción que en abducción horizontal."
+              },
+              {
+                "actions": [
+                  "Sostén del agarre"
+                ],
+                "id": "muñeca",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_forearm_compartments",
+                  "statpearls_biceps"
+                ],
+                "why": "Cada mancuerna se sostiene con una muñeca independiente que puede quedar neutra con las palmas enfrentadas, una posición que reduce el giro del antebrazo y la tensión sobre el codo frente al agarre prono de la barra."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "seal_row__barbell": {
+            "description": "La barra cuelga bajo el banco y sube hasta tocar su parte inferior, un tope fijo que hace comparables todas las repeticiones. El agarre prono, algo más ancho que los hombros, deja los codos algo separados del tronco y suma trabajo de la espalda alta.",
+            "executionCues": [
+              "Junta las escápulas y sube los codos hacia atrás y arriba, sin despegar el pecho del banco.",
+              "Toca con la barra la parte inferior del banco y aguanta un segundo.",
+              "Baja despacio hasta estirar los brazos y deja que las escápulas se separen abajo."
+            ],
+            "setupCues": [
+              "Eleva el banco hasta que los discos queden separados del suelo con los brazos totalmente extendidos.",
+              "Túmbate boca abajo con el pecho y el abdomen sobre el banco, el cuello alineado y las piernas estiradas hacia atrás.",
+              "Agarra la barra en prono, algo más ancho que los hombros."
+            ]
+          },
+          "seal_row__dumbbells": {
+            "description": "Cada mancuerna sube por su lado del banco sin un tope bajo el pecho, así que el codo puede llegar algo más atrás de la línea del tronco. Las manos admiten agarre neutro, más cómodo para muchos hombros, y cada brazo mueve su propia carga.",
+            "executionCues": [
+              "Sube ambos codos a la vez hacia el techo, pasando la línea del tronco, sin levantar el pecho.",
+              "Aprieta las escápulas arriba un instante.",
+              "Baja las mancuernas despacio hasta extender los brazos del todo."
+            ],
+            "setupCues": [
+              "Coloca las mancuernas junto al banco elevado, a una altura que permita extender los brazos sin apoyarlas en el suelo.",
+              "Túmbate boca abajo con el pecho apoyado y agarra cada mancuerna en neutro, o en prono si tu hombro lo tolera mejor."
+            ]
+          }
+        },
+        "description": "El Remo Seal (seal row) es un remo horizontal con el torso tumbado boca abajo sobre un banco elevado: la carga cuelga bajo el banco y los brazos tiran desde el vacío. Trabaja sobre todo el dorsal ancho: romboides y trapecio cierran las escápulas, el deltoides posterior ayuda a llevar el codo atrás y el bíceps lo flexiona. Con el pecho apoyado, ni la cadera ni el balanceo del tronco ayudan a subir la carga. Al quedar el tronco fijo, la zona lumbar y las piernas no aportan impulso y todo el peso lo mueven la espalda alta y los brazos."
+      },
+      "sources": [
+        {
+          "claim": "Entre los remos comparados, el remo invertido (torso soportado) dio la mayor activación del dorsal ancho con la menor de los erectores lumbares y la menor carga espinal; el remo con tronco inclinado sin apoyo dio la mayor carga lumbar.",
+          "id": "fenwick2009",
+          "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19620925/"
+        },
+        {
+          "claim": "Los remos dieron la mayor actividad de romboides y trapecio medio frente a los jalones, y la actividad del bíceps no cambió entre los ejercicios comparados.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "La extensión horizontal del hombro con el cuerpo tumbado boca abajo produjo la mayor activación del trapecio medio entre diez ejercicios escapulares.",
+          "id": "ekstrom2003",
+          "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12774999/"
+        },
+        {
+          "claim": "Describe la acción del dorsal ancho (extensión, aducción y rotación interna del hombro) y de los músculos extrínsecos de la espalda sobre la escápula.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe a los romboides como retractores y rotadores inferiores de la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides; la posterior extiende y abduce horizontalmente el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Remo horizontal boca abajo sobre un banco elevado: el torso queda totalmente apoyado, los brazos cuelgan perpendiculares al suelo y los codos suben hacia atrás y arriba hasta que la barra toca la base del banco o las mancuernas pasan la línea del tronco.",
+        "keyPositions": [
+          "Inicio: codos extendidos, escápulas separadas y carga suspendida sin tocar el suelo.",
+          "Punto más alto: escápulas juntas, codos por encima de la línea del tronco y barra en contacto con la base del banco."
+        ],
+        "mistakes": [
+          "Despegar el pecho del banco para ganar impulso.",
+          "Encoger los hombros hacia las orejas en lugar de juntar las escápulas.",
+          "Rebotar la barra contra el banco o soltar la bajada.",
+          "Acortar el recorrido sin tocar el banco ni extender del todo los codos."
+        ],
+        "phases": [
+          {
+            "description": "Las escápulas se juntan antes de que los codos empiecen a doblarse: el tirón nace en la espalda y no en los antebrazos.",
+            "name": "Salida"
+          },
+          {
+            "description": "Los codos suben hacia atrás y arriba describiendo un arco corto, con los antebrazos casi verticales y el pecho pegado al banco.",
+            "name": "Subida"
+          },
+          {
+            "description": "La barra roza la base del banco, o las mancuernas llegan a la altura de las costillas, y se sostiene un segundo con las escápulas juntas.",
+            "name": "Contacto"
+          },
+          {
+            "description": "Los codos se extienden en unos dos segundos hasta separar de nuevo las escápulas, sin dejar caer la carga.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Banco elevado con altura suficiente para que la carga cuelgue libre con los codos extendidos.",
+          "Pecho y abdomen apoyados en el banco, cuello neutro y piernas extendidas hacia atrás sin usarlas para impulsar.",
+          "Barra: agarre prono algo más ancho que los hombros, bajo el banco. Mancuernas: una a cada lado, en agarre neutro o prono."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura del banco, con encuadre completo de cabeza a pies y la carga visible debajo del banco.",
+          "contacts": "Pecho, abdomen y caderas apoyados en el banco; piernas estiradas hacia atrás sin empujar contra el suelo; las manos son el único contacto con la carga.",
+          "load": "Carga suspendida bajo el banco, sin apoyarse en el suelo, con los brazos tirando desde el vacío.",
+          "orientation": "Atleta tumbado boca abajo con la cabeza hacia la izquierda del encuadre y el cuello neutro, mirando hacia el suelo.",
+          "phase": "Punto más alto de la tracción: codos por encima de la línea del tronco y escápulas juntas, con la carga en su posición más alta.",
+          "posture": "Columna neutra, cuello alineado con el tronco, hombros lejos de las orejas, codos algo separados del tronco y antebrazos casi verticales."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco plano elevado sobre bloques; barra olímpica transversal bajo el banco, centrada bajo el pecho, con discos a ambos lados por debajo del nivel del banco; agarre prono algo más ancho que los hombros y la barra tocando la base del banco en el punto alto."
+          },
+          "dumbbells": {
+            "geometry": "Banco plano elevado sobre bloques; una mancuerna a cada lado del banco en agarre neutro con las palmas enfrentadas; en el punto alto el codo supera la línea del tronco y la mancuerna queda a la altura de las costillas, sin tocar el banco."
+          }
+        },
+        "forbidden": [
+          "Atleta de pie e inclinado hacia delante: eso es un remo con barra, no un remo seal.",
+          "Pecho despegado del banco o espalda arqueada como en una cobra.",
+          "Pies empujando contra el suelo o rodillas dobladas para impulsarse.",
+          "Discos apoyados en el suelo o banco bajo que no deje colgar la carga.",
+          "Barra apoyada sobre el banco o sostenida por encima del torso."
+        ],
+        "promptCore": {
+          "barbell": "Side view of a muscular athlete lying face down on a flat bench raised on tall blocks, frozen at the TOP of a barbell seal row. Both hands grip the barbell with an overhand grip and hold it pressed against the underside of the bench pad. Elbows are bent past 90 degrees and lifted above the line of the back, shoulder blades squeezed together. Chest and belly flat on the bench, legs straight behind, neck neutral, eyes down. The plates hang below the bench, clear of the floor.",
+          "dumbbells": "Side view of a muscular athlete lying face down on a flat bench raised on tall blocks, frozen at the TOP of a dumbbell seal row. Each hand grips one dumbbell with palms facing each other, one dumbbell on each side of the bench, held at rib height. Elbows are bent past 90 degrees and lifted above the line of the back, shoulder blades squeezed together. Chest and belly flat on the bench, legs straight behind, neck neutral, eyes down. The dumbbells hang beside the bench, clear of the floor."
+        },
+        "qa": [
+          "¿El atleta está tumbado boca abajo con el pecho y el abdomen sobre el banco?",
+          "¿Las manos del atleta agarran la barra o las mancuernas, y la carga no flota suelta?",
+          "¿La carga queda por debajo del banco o a los lados de este, sin tocar el suelo?",
+          "¿Los codos quedan por detrás del tronco y las escápulas juntas en el punto alto?",
+          "¿El cuello está neutro, sin mirar hacia delante ni hacia atrás?"
+        ]
+      }
+    }
+  },
+  "familyId": "back_seal_row",
+  "schemaVersion": 1
+}

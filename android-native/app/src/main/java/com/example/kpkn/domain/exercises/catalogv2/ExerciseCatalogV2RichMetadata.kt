@@ -27,12 +27,10 @@ data class ExerciseAnatomyMetadataV2(
     val primaryMuscles: List<String>,
     val secondaryMuscles: List<String> = emptyList(),
     val stabilizerMuscles: List<String> = emptyList(),
-    val targetRegions: List<String> = emptyList(),
+    /** Derived: every action of [jointInvolvement], de-duplicated, in joint order. */
     val jointActions: List<String> = emptyList(),
     val jointInvolvement: List<JointInvolvementV2> = emptyList(),
-    val muscleLengthBias: String? = null,
     val volumeContribution: String? = null,
-    val stabilizationDemand: String? = null,
 )
 
 @Serializable
@@ -44,7 +42,6 @@ data class ExerciseBiomechanicsMetadataV2(
     val equipmentId: String,
     val loadMode: String,
     val resistanceProfile: String,
-    val rangeOfMotion: String? = null,
     val stability: String? = null,
     val relevantJoints: List<String> = emptyList(),
 )
@@ -52,14 +49,9 @@ data class ExerciseBiomechanicsMetadataV2(
 @Serializable
 data class ExerciseProgrammingMetadataV2(
     val role: String? = null,
-    val objectives: List<String> = emptyList(),
-    val suitableRepRanges: List<String> = emptyList(),
     val indicativeRestSeconds: IntRangeV2? = null,
     val fatigueCost: String? = null,
-    val recoveryCost: String? = null,
     val requiredEquipment: List<String> = emptyList(),
-    val setupTransitionCost: String? = null,
-    val splitSuitability: List<String> = emptyList(),
 )
 
 @Serializable
@@ -79,25 +71,11 @@ data class ExerciseReplacementMetadataV2(
     val replacementGroup: String? = null,
     val replacementPriority: Int? = null,
     val compatibleEquipmentIds: List<String> = emptyList(),
+    /**
+     * Derived machine tokens `<movementPatternId>:<primaryMuscleId>`: two
+     * exercises preserve the same intent when they share at least one token.
+     */
     val preservesIntent: List<String> = emptyList(),
-)
-
-@Serializable
-data class ExerciseCoachingMetadataV2(
-    val setup: List<String>,
-    val execution: List<String>,
-    val cues: List<String> = emptyList(),
-    val commonMistakes: List<String>,
-    val progressions: List<String> = emptyList(),
-    val regressions: List<String> = emptyList(),
-    val relevantMobility: List<String> = emptyList(),
-)
-
-@Serializable
-data class ExerciseSafetyMetadataV2(
-    val risks: List<String> = emptyList(),
-    val precautions: List<String> = emptyList(),
-    val medicalDisclaimerRequired: Boolean = false,
 )
 
 @Serializable
@@ -105,14 +83,6 @@ data class ExerciseDisplayMetadataV2(
     val displayName: String,
     val displaySummary: String,
     val selectedOptions: Map<String, String> = emptyMap(),
-)
-
-@Serializable
-data class ExerciseEditorialMetadataV2(
-    val description: String = "",
-    val benefits: List<String> = emptyList(),
-    val technique: String = "",
-    val variantRationale: String = "",
 )
 
 @Serializable
@@ -134,10 +104,7 @@ data class ResolvedExerciseMetadataV2(
     val programming: ExerciseProgrammingMetadataV2,
     val fatigue: ExerciseFatigueMetadataV2,
     val replacement: ExerciseReplacementMetadataV2,
-    val coaching: ExerciseCoachingMetadataV2,
-    val safety: ExerciseSafetyMetadataV2,
     val display: ExerciseDisplayMetadataV2,
-    val editorial: ExerciseEditorialMetadataV2 = ExerciseEditorialMetadataV2(),
     val evidenceConfidence: CatalogConfidenceV2,
 )
 
@@ -162,6 +129,7 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
         primaryMuscles = primaryMuscles,
         secondaryMuscles = secondaryMuscles,
         stabilizerMuscles = stabilizerMuscles,
+        jointActions = jointInvolvement.flatMap { it.actions }.distinct(),
         jointInvolvement = jointInvolvement,
     ),
     biomechanics = ExerciseBiomechanicsMetadataV2(
@@ -185,23 +153,12 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
     replacement = ExerciseReplacementMetadataV2(
         replacementGroup = replacementGroup,
         replacementPriority = replacementPriority,
+        preservesIntent = primaryMuscles.map { "$movementPatternId:$it" },
     ),
-    coaching = ExerciseCoachingMetadataV2(
-        setup = setupCues,
-        execution = executionCues,
-        commonMistakes = commonMistakes,
-    ),
-    safety = ExerciseSafetyMetadataV2(),
     display = ExerciseDisplayMetadataV2(
         displayName = definition.canonicalName,
         displaySummary = configuration.displaySummary,
         selectedOptions = configuration.selectedOptions,
-    ),
-    editorial = ExerciseEditorialMetadataV2(
-        description = description,
-        benefits = benefits,
-        technique = techniqueSummary,
-        variantRationale = variantRationale,
     ),
     evidenceConfidence = configuration.evidence.confidence,
 )

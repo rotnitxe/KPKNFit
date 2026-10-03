@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "https://pubmed.ncbi.nlm.nih.gov/10327003/": {
+      "foundTitle": "Variation of rotation moment arms with hip flexion.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Variation of rotation moment arms with hip flexion",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/12774999/": {
+      "foundTitle": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Surface electromyographic analysis of exercises for the trapezius and serratus anterior muscles",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/15228624/": {
+      "foundTitle": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/15705025/": {
+      "foundTitle": "Dynamic and electromyographical analysis in variants of push-up exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Dynamic and electromyographical analysis in variants of push-up exercise",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/15903389/": {
+      "foundTitle": "Electromyographic activity of the pectoralis major and anterior deltoid muscles during three upper-body lifts.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic activity of the pectoralis major and anterior deltoid muscles during three upper-body lifts",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/16095413/": {
+      "foundTitle": "Comparison of muscle activation using various hand positions during the push-up exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of muscle activation using various hand positions during the push-up exercise",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/18438254/": {
+      "foundTitle": "The validity and reliability of the 1RM bench press using chain-loaded resistance.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The validity and reliability of the 1RM bench press using chain-loaded resistance",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/19574661/": {
+      "foundTitle": "Gluteal muscle activation during common therapeutic exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Gluteal muscle activation during common therapeutic exercises",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/19620925/": {
+      "foundTitle": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of different rowing exercises: trunk muscle activation and lumbar spine motion, load, and stiffness",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/19704380/": {
+      "foundTitle": "Effect of kinetically altering a repetition via the use of chain resistance on velocity during the bench press.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of kinetically altering a repetition via the use of chain resistance on velocity during the bench press",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/2020276/": {
+      "foundTitle": "The effect on performance of imposing a delay during a stretch-shorten cycle movement.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effect on performance of imposing a delay during a stretch-shorten cycle movement",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/20512064/": {
+      "foundTitle": "An electromyography analysis of 3 muscles surrounding the shoulder joint during the performance of a chest press exercise at several angles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "An electromyography analysis of 3 muscles surrounding the shoulder joint during the performance of a chest press exercise at several angles",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/20543740/": {
+      "foundTitle": "Grip width and forearm orientation effects on muscle activity during the lat pull-down.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/20664364/": {
+      "foundTitle": "Comparison of muscle-activation patterns during the conventional push-up and perfect· pushup™ exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison of muscle-activation patterns during the conventional push-up and perfect pushup exercises",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/21068680/": {
+      "foundTitle": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Surface electromyographic activation patterns and elbow joint motion during a pull-up, chin-up, or perfect-pullup™ rotational exercise",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/21873902/": {
+      "foundTitle": "Kinetic analysis of several variations of push-ups.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Kinetic analysis of several variations of push-ups",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22034614/": {
+      "foundTitle": "Electromyographic analysis of gluteus medius and gluteus maximus during rehabilitation exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic analysis of gluteus medius and gluteus maximus during rehabilitation exercises",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22109658/": {
+      "foundTitle": "A review of the anatomy of the hip abductor muscles, gluteus medius, gluteus minimus, and tensor fascia lata.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A review of the anatomy of the hip abductor muscles, gluteus medius, gluteus minimus, and tensor fascia lata",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22304656/": {
+      "foundTitle": "Is the occurrence of the sticking region the result of diminishing potentiation in bench press?",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Is the occurrence of the sticking region the result of diminishing potentiation in bench press?",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/22488226/": {
+      "foundTitle": "Hip muscle activity during 3 side-lying hip-strengthening exercises in distance runners.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Hip muscle activity during 3 side-lying hip-strengthening exercises in distance runners",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/23160432/": {
+      "foundTitle": "Which exercises target the gluteal muscles while minimizing activation of the tensor fascia lata? Electromyographic assessment using fine-wire electrodes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Which exercises target the gluteal muscles while minimizing activation of the tensor fascia lata? Electromyographic assessment using fine-wire electrodes",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/23302754/": {
+      "foundTitle": "Effect of hand position on EMG activity of the posterior shoulder musculature during a horizontal abduction exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of hand position on EMG activity of the posterior shoulder musculature during a horizontal abduction exercise",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/23485733/": {
+      "foundTitle": "The influence of varying hip angle and pelvis position on muscle recruitment patterns of the hip abductor muscles during the clam exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The influence of varying hip angle and pelvis position on muscle recruitment patterns of the hip abductor muscles during the clam exercise",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/23959791/": {
+      "foundTitle": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy and biomechanics of gluteus maximus and the thoracolumbar fascia at the sacroiliac joint",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/24662157/": {
+      "foundTitle": "Effects of grip width on muscle strength and activation in the lat pull-down.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effects of grip width on muscle strength and activation in the lat pull-down",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/24983847/": {
+      "foundTitle": "Bench press and push-up at comparable levels of muscle activity results in similar strength gains.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Bench press and push-up at comparable levels of muscle activity results in similar strength gains",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25419894/": {
+      "foundTitle": "Muscle activity levels in upper-body push exercises with different loads and stability conditions.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Muscle activity levels in upper-body push exercises with different loads and stability conditions",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/25799093/": {
+      "foundTitle": "Influence of bench angle on upper extremity muscular activation during bench press exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Influence of bench angle on upper extremity muscular activation during bench press exercise",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/26383875/": {
+      "foundTitle": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/28011412/": {
+      "foundTitle": "Electromyographic analysis of muscle activation during pull-up variations.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic analysis of muscle activation during pull-up variations",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/29763193/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb, Knee.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30137823/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Biceps Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30140560/": {
+      "foundTitle": "Electromyographic Analysis of Gluteus Maximus, Gluteus Medius, and Tensor Fascia Latae During Therapeutic Exercises With and Without Elastic Resistance.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic Analysis of Gluteus Maximus, Gluteus Medius, and Tensor Fascia Latae During Therapeutic Exercises With and Without Elastic Resistance",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30252247/": {
+      "foundTitle": "Anatomy, Thorax, Pectoralis Major Major.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Thorax, Pectoralis Major",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30521226/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30521277/": {
+      "foundTitle": "Anatomy, Back, Rhomboid Muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Back, Rhomboid Muscles",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30725681/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Triceps Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30725741/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30725901/": {
+      "foundTitle": "Anatomy, Back, Extrinsic Muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Back, Extrinsic Muscles",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/30969606/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Forearm Compartments.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+      "verifiedAt": "2026-10-01"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31397215/": {
+      "foundTitle": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/31424825/": {
+      "foundTitle": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34279126/": {
+      "foundTitle": "Rehabilitation Exercises for Dysfunction of the Scapula: Exploration of Muscle Activity Using Fine-Wire EMG.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Rehabilitation Exercises for Dysfunction of the Scapula: Exploration of Muscle Activity Using Fine-Wire EMG",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34644424/": {
+      "foundTitle": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/35202059/": {
+      "foundTitle": "Chest Exercises: Movement and Loading of Shoulder, Elbow and Wrist Joints.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Chest Exercises: Movement and Loading of Shoulder, Elbow and Wrist Joints",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/35599468/": {
+      "foundTitle": "Activation of upper limb muscles in subjects with scapular dyskinesis during bench-press and dumbbell fly on stable and unstable surfaces.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Activation of upper limb muscles in subjects with scapular dyskinesis during bench-press and dumbbell fly on stable and unstable surfaces",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/36026487/": {
+      "foundTitle": "Analysis of the Activation of Upper-Extremity Muscles During Various Chest Press Modalities.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Analysis of the Activation of Upper-Extremity Muscles During Various Chest Press Modalities",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/36334406/": {
+      "foundTitle": "Non-uniform excitation of pectoralis major induced by changes in bench press inclination leads to uneven variations in the cross-sectional area measured by panoramic ultrasonography.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Non-uniform excitation of pectoralis major induced by changes in bench press inclination leads to uneven variations in the cross-sectional area measured by panoramic ultrasonography",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/36361276/": {
+      "foundTitle": "Fatigue Increases Muscle Activations but Does Not Change Maximal Joint Angles during the Bar Dip.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Fatigue Increases Muscle Activations but Does Not Change Maximal Joint Angles during the Bar Dip",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/39084328/": {
+      "foundTitle": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/39686276/": {
+      "foundTitle": "Electromyographic Comparison of Traditional Fitness Machines, Outdoor Fitness Equipment Without Load Selectors, and Outdoor Fitness Equipment with Load Selectors in a Seated Chest Press Exercise in Trained Young Men.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic Comparison of Traditional Fitness Machines, Outdoor Fitness Equipment Without Load Selectors, and Outdoor Fitness Equipment with Load Selectors in a Seated Chest Press Exercise in Trained Young Men",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/40269203/": {
+      "foundTitle": "Acute muscle excitation response across various bench press ranges of motion.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Acute muscle excitation response across various bench press ranges of motion.",
+      "verifiedAt": "2026-10-02"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/40977436/": {
+      "foundTitle": "Superficial and Deep Gluteal Muscle Activation During Common Therapeutic Exercises: A Muscle Functional Magnetic Resonance Imaging Analysis.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Superficial and Deep Gluteal Muscle Activation During Common Therapeutic Exercises: A Muscle Functional Magnetic Resonance Imaging Analysis",
+      "verifiedAt": "2026-10-01"
+    }
+  }
+}

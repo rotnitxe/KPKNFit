@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Core · abdominals · anti extension trunk",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#core_rueda_abdominal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_rueda_abdominal__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
-                "Uno de los constructores de pared abdominal más exigentes que caben en una mochila."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Arquear la espalda, girar con la carga o perder la tensión al final."
-              ],
               "description": "Con rueda, la rueda se aleja de las rodillas estirando el cuerpo entero y regresa con el abdomen bajo tensión. Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
               "efc": 2.0,
               "equipmentId": "ab_wheel",
@@ -45,7 +37,6 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La zona lumbar resiste la extensión que provoca la rueda al alejarse de las rodillas, con costillas y pelvis organizadas bajo el peso corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis se organiza sobre las rodillas mientras la rueda avanza, sin que el peso corporal la arrastre hacia la extensión del tronco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La caja torácica acompaña el alargamiento del tronco sobre la rueda sin abrirse en exceso, y regresa organizada cuando el cuerpo vuelve a las rodillas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,20 +58,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "anti_extension_trunk",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El abdomen se opone a la extensión mientras la rueda se aleja de las rodillas estirando el cuerpo, y frena el regreso con las costillas cerca de la pelvis."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core sostiene la alineación de costillas y pelvis mientras la rueda avanza desde las rodillas, sin que la zona lumbar se hunda bajo el peso corporal."
-                },
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: El dorsal ancho transmite la tensión de los brazos al tronco sobre la rueda y frena la apertura del ángulo entre brazos y torso al alejarse de las rodillas."
-                }
-              ],
               "performanceProfileId": "core_rueda_abdominal__ab_wheel__rueda_abdominal",
               "primaryMuscles": [
                 "abdominals"
@@ -103,7 +78,6 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La zona lumbar resiste la extensión que provoca la rueda al alejarse de las rodillas, con costillas y pelvis organizadas bajo el peso corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,7 +85,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis se organiza sobre las rodillas mientras la rueda avanza, sin que el peso corporal la arrastre hacia la extensión del tronco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -119,11 +92,9 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La caja torácica acompaña el alargamiento del tronco sobre la rueda sin abrirse en exceso, y regresa organizada cuando el cuerpo vuelve a las rodillas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "abdominals"
                   ],
@@ -131,11 +102,7 @@
                     "core",
                     "latissimus_dorsi"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "abdominals"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -145,7 +112,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "anti_extension_trunk",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "sacroiliaca",
@@ -154,43 +120,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la espalda, girar con la carga o perder la tensión al final."
-                  ],
-                  "cues": [
-                    "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. El cuerpo se alarga sin dejar que la zona lumbar se hunda; la resistencia se combate con costillas y pelvis organizadas."
-                  ],
-                  "execution": [
-                    "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. El cuerpo se alarga sin dejar que la zona lumbar se hunda; la resistencia se combate con costillas y pelvis organizadas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado."
-                  ]
-                },
                 "display": {
                   "displayName": "Rueda Abdominal",
                   "displaySummary": "Rueda Abdominal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
-                    "Uno de los constructores de pared abdominal más exigentes que caben en una mochila."
-                  ],
-                  "description": "Con rueda, la rueda se aleja de las rodillas estirando el cuerpo entero y regresa con el abdomen bajo tensión. Con la rueda, el tronco no perdona ni un centímetro de descontrol.",
-                  "technique": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. El cuerpo se alarga sin dejar que la zona lumbar se hunda; la resistencia se combate con costillas y pelvis organizadas.",
-                  "variantRationale": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. Un movimiento pequeño con un resultado enorme para la zona media."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -203,7 +136,7 @@
                 },
                 "identity": {
                   "canonicalName": "Rueda Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_rueda_abdominal__default",
                   "definitionId": "core_rueda_abdominal",
                   "familyId": "core_anti_extension_trunk",
@@ -220,42 +153,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el recto abdominal mediante Rueda Abdominal en la variante Rueda Abdominal.",
-                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "ab_wheel"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "ab_wheel"
                   ],
                   "preservesIntent": [
-                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el recto abdominal.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
+                    "anti_extension_trunk:abdominals"
                   ],
                   "replacementGroup": "core_ab_wheel",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -269,9 +180,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. El cuerpo se alarga sin dejar que la zona lumbar se hunda; la resistencia se combate con costillas y pelvis organizadas.",
-              "ttc": 1.5,
-              "variantRationale": "Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado. Un movimiento pequeño con un resultado enorme para la zona media."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -283,7 +192,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_anti_extension_trunk",
@@ -296,13 +204,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón anti_extension_trunk; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_anti_extension_trunk",

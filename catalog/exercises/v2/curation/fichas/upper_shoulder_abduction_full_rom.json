@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "deltoides_lu_raises": {
+      "public": {
+        "configurations": {
+          "deltoides_lu_raises__default": {
+            "description": "Con mancuernas, los brazos suben formando primero una L y luego una U, con rotación externa del hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+            "executionCues": [
+              "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento."
+            ]
+          }
+        },
+        "description": "Los LU-Raises combinan una elevación lateral con una rotación externa del hombro: las mancuernas suben formando primero una L y luego una U. Se ejecutan con los codos en el aire y la rotación controlada en cada fase del gesto. El deltoide posterior y los rotadores externos comparten el trabajo. Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_shoulder_abduction_full_rom",
+  "schemaVersion": 1
+}

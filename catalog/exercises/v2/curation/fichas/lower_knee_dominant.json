@@ -1,0 +1,386 @@
+{
+  "definitions": {
+    "front_squat": {
+      "public": {
+        "configurations": {
+          "front_squat__barbell": {
+            "description": "Con barra, con la carga al frente sobre los hombros, el torso queda erguido y los cuádriceps mandan en la bajada y la subida. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra al frente sobre los hombros: el torso erguido y los cuádriceps a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Barra al frente sobre los hombros: el torso erguido y los cuádriceps a fondo."
+            ]
+          },
+          "front_squat__cable": {
+            "description": "Con polea, con la carga al frente sobre los hombros, el torso queda erguido y los cuádriceps mandan en la bajada y la subida. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea baja con la barra al frente: la tensión constante acompaña toda la sentadilla. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja con la barra al frente: la tensión constante acompaña toda la sentadilla."
+            ]
+          },
+          "front_squat__dumbbells": {
+            "description": "Con mancuernas, con la carga al frente sobre los hombros, el torso queda erguido y los cuádriceps mandan en la bajada y la subida. El cuádriceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas sobre los hombros: la versión accesible de Esta sentadilla. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas sobre los hombros: la versión accesible de Esta sentadilla."
+            ]
+          },
+          "front_squat__kettlebell": {
+            "description": "Con kettlebell, con la carga al frente sobre los hombros, el torso queda erguido y los cuádriceps mandan en la bajada y la subida. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+            "executionCues": [
+              "Kettlebells en los hombros: el rack con campanas exige estabilidad y trabajan los cuádriceps igual de profundo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells en los hombros: el rack con campanas exige estabilidad y trabajan los cuádriceps igual de profundo."
+            ]
+          },
+          "front_squat__smith_machine": {
+            "description": "Con máquina Smith, con la carga al frente sobre los hombros, el torso queda erguido y los cuádriceps mandan en la bajada y la subida. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith con la barra al frente: el guiado te permite enfocarte en los cuádriceps sin preocuparte por el equilibrio. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Smith con la barra al frente: el guiado te permite enfocarte en los cuádriceps sin preocuparte por el equilibrio."
+            ]
+          }
+        },
+        "description": "La Sentadilla Frontal pone la carga delante de los hombros y el torso no tiene más remedio que quedarse erguido: los cuádriceps se llevan el protagonismo y el core sostiene la barra en el estante. Se ejecuta con los codos altos, bajando entre las caderas hasta la profundidad completa y subiendo sin que los codos caigan. Con mancuernas o kettlebell al pecho se ensaya la posición sin la intimidación de la barra. La sentadilla de los que buscan cuádriceps con la espalda tranquila."
+      },
+      "status": "LEGACY"
+    },
+    "high_bar_back_squat": {
+      "public": {
+        "configurations": {
+          "high_bar_back_squat__barbell": {
+            "description": "Con barra, con la carga alta sobre los trapecios, el cuerpo baja entre las caderas con el torso erguido. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra sobre los trapecios: la sentadilla referencia, bajando profundo con el torso erguido. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Barra sobre los trapecios: la sentadilla referencia, bajando profundo con el torso erguido."
+            ]
+          },
+          "high_bar_back_squat__safety_bar": {
+            "description": "Con barra de seguridad, con la carga alta sobre los trapecios, el cuerpo baja entre las caderas con el torso erguido. El cuádriceps trabaja con la barra de seguridad, que asienta la carga con comodidad.",
+            "executionCues": [
+              "Barra de estabilidad con barra alta: los agarres frontales hacen la posición más cómoda y estable. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Barra de estabilidad con barra alta: los agarres frontales hacen la posición más cómoda y estable."
+            ]
+          },
+          "high_bar_back_squat__smith_machine": {
+            "description": "Con máquina Smith, con la carga alta sobre los trapecios, el cuerpo baja entre las caderas con el torso erguido. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "executionCues": [
+              "Smith con barra alta: el guiado te deja bajar profundo con estabilidad. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Smith con barra alta: el guiado te deja bajar profundo con estabilidad."
+            ]
+          }
+        },
+        "description": "La Sentadilla Trasera con Barra Alta es el movimiento de pierna contra el que se miden todos los demás: cuádriceps y glúteos levantan la carga desde el punto más profundo. Se ejecuta con la barra alta sobre los trapecios, bajando entre las caderas con el torso erguido hasta romper el paralelo y subiendo sin que las rodillas colapsen. El estándar de la fuerza de piernas, simple y brutal."
+      },
+      "status": "LEGACY"
+    },
+    "low_bar_back_squat": {
+      "public": {
+        "configurations": {
+          "low_bar_back_squat__barbell": {
+            "description": "Con barra, con la carga más abajo en la espalda, la cadera viaja atrás y empuja la subida. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+            "executionCues": [
+              "Barra baja en la espalda: la cadera empuja atrás y puedes cargar más peso. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Barra baja en la espalda: la cadera empuja atrás y puedes cargar más peso."
+            ]
+          },
+          "low_bar_back_squat__smith_machine": {
+            "description": "Con máquina Smith, con la carga más abajo en la espalda, la cadera viaja atrás y empuja la subida. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "executionCues": [
+              "Smith con barra baja: el guiado sostiene la barra y tú empujas con la cadera. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Smith con barra baja: el guiado sostiene la barra y tú empujas con la cadera."
+            ]
+          }
+        },
+        "description": "La Sentadilla Trasera con Barra Baja corre la barra unos centímetros hacia abajo y cambia la mecánica: la cadera viaja más atrás, el torso se inclina un poco más y los glúteos entran con más fuerza en la subida. Se ejecuta con la barra sobre el deltoide posterior, sacando el pecho y rompiendo el paralelo con la cadera mandando. Es la posición que eligen los levantadores cuando el objetivo es mover el máximo hierro posible. La sentadilla de los números grandes y del ego bien puesto."
+      },
+      "status": "LEGACY"
+    },
+    "quads_prensa_piernas": {
+      "public": {
+        "configurations": {
+          "quads_prensa_piernas__bilateral": {
+            "description": "Con a dos lados, sentado contra el respaldo, las plantas empujan la plataforma con la espalda protegida. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del cuádriceps admite más carga total.",
+            "executionCues": [
+              "Prensa con ambos pies: empujas la plataforma con toda la planta. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Prensa con ambos pies: empujas la plataforma con toda la planta."
+            ]
+          },
+          "quads_prensa_piernas__unilateral": {
+            "description": "Con a un lado, sentado contra el respaldo, las plantas empujan la plataforma con la espalda protegida. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Prensa con una pierna: un lado trabaja sin ayuda del otro lado y corriges desequilibrios. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Prensa con una pierna: un lado trabaja sin ayuda del otro lado y corriges desequilibrios."
+            ]
+          }
+        },
+        "description": "La Prensa de Piernas es la carga pesada de pierna con la espalda en vacaciones: sentado en la máquina, los pies empujan la plataforma y cuádriceps y glúteos reciben todo el estímulo sin que la columna cargue un gramo. Se ejecuta bajando la plataforma hasta que las rodillas se acercan al pecho y empujando sin despegar la cadera del asiento. A una pierna descubre asimetrías al momento. El acumulador de volumen de piernas más cómodo del gimnasio."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_anderson": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_anderson__default": {
+            "description": "Con barra, cada repetición nace desde abajo, sin rebote, con la salida desde la posición más profunda. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Desde sentado en el suelo sin rebote, te levantas con la barra. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Desde sentado en el suelo sin rebote, te levantas con la barra."
+            ]
+          }
+        },
+        "description": "La Sentadilla Anderson empieza donde nadie quiere empezar: desde abajo, sin rebote ni inercia, con la barra saliendo de los soportes desde la posición más profunda. Se ejecuta arrancando desde parado, con los cuádriceps y los glúteos produciendo fuerza pura sin ayuda elástica. El core y la espalda trabajan para que nada se desarme al salir. La escuela de la fuerza desde cero, humilde y demoledora."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_anderson_frontal_barra_recta": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_anderson_frontal_barra_recta__default": {
+            "description": "Con barra, con el peso en los hombros delanteros, cada salida nace desde el suelo sin impulso. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Barra al frente y salida desde el suelo sin rebote: los cuádriceps y el core exigen fuerza desde cero. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Barra al frente y salida desde el suelo sin rebote: los cuádriceps y el core exigen fuerza desde cero."
+            ]
+          }
+        },
+        "description": "La Sentadilla Anderson Frontal combina dos castigos: la salida desde parado de la Anderson y la carga al frente de la frontal. Los cuádriceps arrancan el peso desde el suelo con el torso vertical y el core abrazando la barra en los hombros delanteros. No existe rebote ni lugar donde esconderse. Una de las sentadillas más exigentes que se pueden cargar en una barra."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_bazuca": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_bazuca__default": {
+            "description": "Con barra, con los pies juntos y las puntas al frente, el cuádriceps externo recibe la mayor parte del trabajo. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Pies juntos y puntas al frente: el foco va al cuádriceps externo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Pies juntos y puntas al frente: el foco va al cuádriceps externo."
+            ]
+          }
+        },
+        "description": "La Sentadilla Bazuca junta los pies y apunta las puntas al frente: el reparto del esfuerzo cambia y el cuádriceps externo recibe la mayor parte del trabajo. Se baja con la barra en la espalda y las piernas cerradas, regresando con las rodillas siempre separadas. La base estrecha pide equilibrio fino y premia con un estímulo distinto en el costado del muslo. La herramienta de detalle para dar forma exterior al cuádriceps."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_copa": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_copa__default": {
+            "description": "Con mancuernas, con el peso pegado al torso, el cuerpo baja con naturalidad y el core sostiene el tronco. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuerna o kettlebell al pecho como una copa: la sentadilla útil para aprender, con el core trabajando de extra. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna o kettlebell al pecho como una copa: la sentadilla útil para aprender, con el core trabajando de extra."
+            ]
+          }
+        },
+        "description": "La Sentadilla Copa abraza una mancuerna contra el pecho y convierte la sentadilla en algo que cualquiera puede aprender hoy. Se ejecuta con el peso pegado al torso, bajando entre las caderas con los codos mirando al suelo y subiendo con el pecho alto. El core sostiene la carga al frente mientras los cuádriceps hacen el resto. La puerta de entrada perfecta al mundo de las sentadillas."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_hack": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_hack__barbell": {
+            "description": "Con barra detrás del cuerpo y sin máquina que la guíe, el cuádriceps extiende la rodilla en cada repetición mientras la persona equilibra y sostiene ese peso. Con la barra detrás del cuerpo, el cuádriceps trabaja sin guía y el torso equilibra por su cuenta.",
+            "executionCues": [
+              "Hack con barra por detrás: sin máquina, el equilibrio suma trabajo al cuádriceps. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Hack con barra por detrás: sin máquina, el equilibrio suma trabajo al cuádriceps."
+            ]
+          },
+          "quads_sentadilla_hack__machine": {
+            "description": "Con máquina, con la espalda apoyada y el recorrido guiado, el cuádriceps se concentra en cada repetición. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina hack: espalda apoyada y recorrido guiado, el cuádriceps concentrado. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Máquina hack: espalda apoyada y recorrido guiado, el cuádriceps concentrado."
+            ]
+          },
+          "quads_sentadilla_hack__smith_machine": {
+            "description": "Con máquina Smith, la guía fija la trayectoria de la barra pero no sostiene el torso, así que el cuádriceps extiende la rodilla en cada repetición con el peso que lleva el cuerpo encima. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith en posición hack: el guiado sostiene la barra y las piernas empujan. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Smith en posición hack: el guiado sostiene la barra y las piernas empujan."
+            ]
+          }
+        },
+        "description": "La Sentadilla Hack es la sentadilla guiada por excelencia: la espalda apoyada en el respaldo y el recorrido por raíles dejan al cuádriceps solo ante la carga. Se ejecuta bajando hasta donde la movilidad de tobillo permita y empujando la plataforma sin arquear la lumbar. La máquina quita el equilibrio de la ecuación y permite acercarse al fallo con total tranquilidad. La fábrica de cuádriceps que nunca pasa de moda."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_hack_invertida_maquina": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_hack_invertida_maquina__default": {
+            "description": "Con máquina, de cara al aparato, la carga queda al frente y el cuádriceps bajo trabaja a fondo. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "De espaldas a la hack: la carga queda al frente y el cuádriceps bajo trabaja a fondo. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: De espaldas a la hack: la carga queda al frente y el cuádriceps bajo trabaja a fondo."
+            ]
+          }
+        },
+        "description": "La Sentadilla Invertida en Máquina Hack gira la posición dentro del aparato: de cara al respaldo, la carga queda delante de las piernas y el estímulo se desplaza hacia la parte baja del cuádriceps. Se baja profundo con el pecho contra el acolchado y se sube sin perder el contacto. La zona inferior del muslo recibe un trabajo que la hack normal no alcanza. Una vuelta de tuerca para romper la monotonía del raíl."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_sin_carga": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_sin_carga__default": {
+            "description": "Con los pies en el suelo y sin nada que sostener, las rodillas se flexionan mientras la cadera baja en bloque y el torso se mantiene firme de la cadera a la cabeza. Los pies a la anchura de los hombros o algo más abiertos dan una base estable; la profundidad llega hasta donde la cadera y el tobillo lo permiten, y más allá la pelvis se echa hacia atrás. El trabajo de los músculos del tronco no desaparece por no haber carga: acompaña cada bajada y cada subida.",
+            "executionCues": [
+              "Pies en el suelo a la anchura de los hombros, rodillas y caderas flexionadas a la vez y el tronco firme: se baja hasta donde la cadera y el tobillo lo permiten, con las plantas apoyadas, y la subida devuelve el torso a la vertical."
+            ],
+            "setupCues": [
+              "Preparación: Pies en el suelo a la anchura de los hombros, manos al frente o en la cintura, tronco firme de la cadera a la cabeza."
+            ]
+          }
+        },
+        "description": "La Sentadilla Sin Carga (bodyweight squat) es la sentadilla bilateral que se hace con el propio peso corporal, sin barra, mancuernas ni máquina: la misma flexión y extensión de rodilla y cadera que sostiene el patrón, con los pies en el suelo y el tronco firme. El tronco trabaja con la misma exigencia durante todo el recorrido, porque sus músculos estabilizan la columna y el torso mientras la carga del propio peso recorre la pierna. Es la versión de la sentadilla para empezar a trabajar las piernas sin nada que preparar, y por eso se practica con muchas repeticiones y sin carga externa."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_somersault": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_somersault__default": {
+            "description": "Con barra, con los brazos cruzados sujetando la carga al frente, la bajada se hace profunda. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+            "executionCues": [
+              "La barra cruza los brazos por delante y bajas profundo: una variante rara que carga el torso y exige movilidad. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: La barra cruza los brazos por delante y bajas profundo: una variante rara que carga el torso y exige movilidad."
+            ]
+          }
+        },
+        "description": "La Sentadilla Somersault cruza los brazos sobre la barra por delante del pecho y elimina la necesidad de movilidad de hombros para sujetarla. Se ejecuta bajando profundo con el torso firme y la carga abrazada en el estante de los brazos cruzados. Los cuádriceps y los glúteos trabajan con una distribución distinta a la frontal clásica. Una rareza útil para quien no encuentra cómodo el rack frontal."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_v_squat": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_v_squat__default": {
+            "description": "Con máquina, con el cuerpo en ángulo fijo sobre el aparato, las piernas empujan la carga guiada. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina V-Squat: el cuerpo en ángulo fijo y la carga guiada detrás. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Máquina V-Squat: el cuerpo en ángulo fijo y la carga guiada detrás."
+            ]
+          }
+        },
+        "description": "La Sentadilla en \"V-Squat\" reclina el cuerpo en un ángulo fijo y deja las piernas empujar la carga guiada detrás: los cuádriceps trabajan a fondo con la espalda descansando sobre el soporte. Se ejecuta bajando hasta el tope cómodo y empujando con todo el pie sin que las rodillas tiemblen. La profundidad que da esta máquina es difícil de igualar con peso libre. Una de las máquinas de pierna más duras y más queridas."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_v_squat_invertida_maquina": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_v_squat_invertida_maquina__default": {
+            "description": "Con máquina, en la posición invertida del aparato, el estímulo cae sobre el cuádriceps inferior. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "V-Squat invertida: la posición cambia el ángulo y el estímulo cae en el cuádriceps inferior. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: V-Squat invertida: la posición cambia el ángulo y el estímulo cae en el cuádriceps inferior."
+            ]
+          }
+        },
+        "description": "La Sentadilla Invertida en Máquina V-Squat cambia la orientación dentro del aparato y el estímulo cae sobre el cuádriceps inferior y el glúteo. Se ejecuta con la carga guiada por el raíl en la posición contraria, bajando con control y subiendo sin bloquear brusco. El ángulo nuevo despierta fibras que la posición estándar pasa por alto. La variante que refresca la máquina de siempre."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_zercher_barra_recta": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_zercher_barra_recta__default": {
+            "description": "Con barra, con la carga abrazada al pecho entre los brazos, el core y los cuádriceps comparten el trabajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+            "executionCues": [
+              "Barra en los codos y sentadilla profunda: el core y los brazos aguantan mientras los cuádriceps trabajan. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Barra en los codos y sentadilla profunda: el core y los brazos aguantan mientras los cuádriceps trabajan."
+            ]
+          }
+        },
+        "description": "La Sentadilla Zercher con Barra Recta sostiene la carga abrazada a la altura del pecho y convierte cada repetición en un doble trabajo: los cuádriceps bajan y suben mientras el core la mantiene pegada al torso. Se ejecuta bajando profundo con los codos entre las rodillas y el torso orgulloso. La incomodidad del antebrazo es el precio de una tensión total única. La sentadilla que fortalece piernas y carácter al mismo tiempo."
+      },
+      "status": "LEGACY"
+    },
+    "sumo_squat": {
+      "public": {
+        "configurations": {
+          "sumo_squat__barbell": {
+            "description": "Con barra, con la base muy abierta y las puntas hacia afuera, la cadera baja entre las rodillas. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+            "executionCues": [
+              "Barra con pies amplios: Esta sentadilla amplia tradicional con la carga en la espalda. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra con pies amplios: Esta sentadilla amplia tradicional con la carga en la espalda."
+            ]
+          },
+          "sumo_squat__dumbbells": {
+            "description": "Con mancuernas, con la base muy abierta y las puntas hacia afuera, la cadera baja entre las rodillas. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas delante del cuerpo y pies abiertos: la sentadilla baja entre las piernas y la cadera recibe más participación. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas delante del cuerpo y pies abiertos: la sentadilla baja entre las piernas y la cadera recibe más participación."
+            ]
+          },
+          "sumo_squat__kettlebell": {
+            "description": "Con kettlebell, con la base muy abierta y las puntas hacia afuera, la cadera baja entre las rodillas. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+            "executionCues": [
+              "Kettlebell en postura sumo: la campana al frente o en copa con pies amplios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell en postura sumo: la campana al frente o en copa con pies amplios."
+            ]
+          }
+        },
+        "description": "La Sentadilla Sumo abre la base y gira las puntas hacia afuera: aductores y glúteos entran en el reparto junto a los cuádriceps desde la primera repetición. Se ejecuta con los pies muy separados, bajando la cadera entre las rodillas abiertas y subiendo sin que estas colapsen hacia dentro. Con una kettlebell sostenida al pecho se ensaya la base sin barra. La postura ancha que da protagonismo al interior del muslo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_knee_dominant",
+  "schemaVersion": 1
+}

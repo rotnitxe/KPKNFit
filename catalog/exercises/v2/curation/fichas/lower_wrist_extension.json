@@ -1,0 +1,50 @@
+{
+  "definitions": {
+    "forearms_curl_muneca_inverso_sentado": {
+      "public": {
+        "configurations": {
+          "forearms_curl_muneca_inverso_sentado__barbell": {
+            "description": "Con barra, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
+            "executionCues": [
+              "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
+            ],
+            "setupCues": [
+              "Preparación: Barra con las palmas abajo: las dos muñecas suben juntas contra la barra."
+            ]
+          },
+          "forearms_curl_muneca_inverso_sentado__cable": {
+            "description": "Con polea, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
+            ],
+            "setupCues": [
+              "Preparación: Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido."
+            ]
+          },
+          "forearms_curl_muneca_inverso_sentado__dumbbells": {
+            "description": "Con mancuernas, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
+            "executionCues": [
+              "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar."
+            ]
+          },
+          "forearms_curl_muneca_inverso_sentado__ez_bar": {
+            "description": "Con barra EZ, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
+            "executionCues": [
+              "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo."
+            ]
+          }
+        },
+        "description": "La Extensión de Muñeca trabaja el dorso del antebrazo, el lado que los curls normales olvidan: con las palmas hacia abajo, el dorso de la mano sube contra la carga. Se ejecuta con el antebrazo apoyado en el muslo y una mancuerna ligera, extendiendo la muñeca despacio. Con polea o barra EZ el mismo gesto con otro tacto. El equilibrante que previene el codo de tenista."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_wrist_extension",
+  "schemaVersion": 1
+}

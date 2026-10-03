@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction stability",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#glutes_monster_walk_banda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_monster_walk_banda__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
-                "El activador favorito antes de sentadillas y pesos muertos."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
-              ],
               "description": "Con banda elástica, con la banda tensa en las piernas, cada paso lateral obliga al glúteo a empujar sin pausa. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
               "efc": 2.8,
               "equipmentId": "band",
@@ -45,7 +37,6 @@
                     "Abducción"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera abduce el muslo con cada paso lateral contra la banda de tobillos, y la resistencia elástica empuja las piernas hacia dentro sin pausas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Estabilidad Pélvica"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica durante los pasos laterales con banda, con la pelvis de frente y el tronco sin inclinarse de lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación Del Miembro Inferior"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla alinea el miembro inferior en cada paso lateral contra la banda de tobillos y resiste la goma que intenta cerrar las piernas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction_stability",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: Con la banda en los tobillos y los pasos laterales, el glúteo mayor empuja cada pierna hacia fuera y sostiene la tensión de la goma entre pasos."
-                }
-              ],
               "performanceProfileId": "glutes_monster_walk_banda__band__caminata_del_monstruo_monster_walk_con_banda",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -95,7 +78,6 @@
                         "Abducción"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera abduce el muslo con cada paso lateral contra la banda de tobillos, y la resistencia elástica empuja las piernas hacia dentro sin pausas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Estabilidad Pélvica"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica durante los pasos laterales con banda, con la pelvis de frente y el tronco sin inclinarse de lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Alineación Del Miembro Inferior"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla alinea el miembro inferior en cada paso lateral contra la banda de tobillos y resiste la goma que intenta cerrar las piernas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "gluteus_maximus"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "hip_abduction_stability",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "sacroiliaca",
@@ -143,43 +117,10 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
-                  ],
-                  "cues": [
-                    "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas."
-                  ]
-                },
                 "display": {
                   "displayName": "Caminata del Monstruo (Monster Walk) con Banda",
                   "displaySummary": "Banda Elástica",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
-                    "El activador favorito antes de sentadillas y pesos muertos."
-                  ],
-                  "description": "Con banda elástica, con la banda tensa en las piernas, cada paso lateral obliga al glúteo a empujar sin pausa. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
-                  "technique": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -192,7 +133,7 @@
                 },
                 "identity": {
                   "canonicalName": "Caminata del Monstruo (Monster Walk) con Banda",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "glutes_monster_walk_banda__default",
                   "definitionId": "glutes_monster_walk_banda",
                   "familyId": "lower_hip_abduction_stability",
@@ -208,42 +149,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Caminata del Monstruo (Monster Walk) con Banda en la variante Banda Elástica.",
-                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
+                    "hip_abduction_stability:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -254,9 +173,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. El calentamiento que acumula fatiga local en los glúteos."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -268,7 +185,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_abduction_stability",
@@ -280,13 +196,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón hip_abduction_stability; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_abduction_stability",

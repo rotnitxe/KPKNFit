@@ -1,0 +1,41 @@
+{
+  "definitions": {
+    "california_press": {
+      "public": {
+        "configurations": {
+          "california_press__barbell": {
+            "description": "Con barra, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos."
+            ]
+          },
+          "california_press__dumbbells": {
+            "description": "Con mancuernas, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine."
+            ]
+          },
+          "california_press__ez_bar": {
+            "description": "Con barra EZ, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
+            "executionCues": [
+              "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps."
+            ]
+          }
+        },
+        "description": "El Press California es la fusión de press de banca cerrado y extensión sobre la cabeza: la barra baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. Se ejecuta tumbado, dejando que el tríceps frene la bajada y empuje la subida con ayuda del pectoral al final. La barra EZ alivia las muñecas en este gesto exigente. Un híbrido con mucha historia que llena el brazo como pocos."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "triceps_california_press",
+  "schemaVersion": 1
+}

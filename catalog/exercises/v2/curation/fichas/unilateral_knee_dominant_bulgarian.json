@@ -1,0 +1,85 @@
+{
+  "definitions": {
+    "bulgarian_split_squat": {
+      "public": {
+        "configurations": {
+          "bulgarian_split_squat__barbell": {
+            "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Barra y pie trasero en el banco: la búlgara tradicional con carga."
+            ]
+          },
+          "bulgarian_split_squat__cable": {
+            "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Polea y pie trasero en el banco: la tensión constante se suma a la búlgara."
+            ]
+          },
+          "bulgarian_split_squat__dumbbells": {
+            "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada."
+            ]
+          },
+          "bulgarian_split_squat__kettlebell": {
+            "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+            "executionCues": [
+              "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio."
+            ]
+          },
+          "bulgarian_split_squat__machine": {
+            "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable."
+            ]
+          },
+          "bulgarian_split_squat__smith_machine": {
+            "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "executionCues": [
+              "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Smith y pie trasero en el banco: el guiado da estabilidad en la bajada."
+            ]
+          }
+        },
+        "description": "La Sentadilla Búlgara eleva el pie trasero al banco y convierte la zancada en estática y feroz: la pierna delantera baja y sube con todo el peso mientras la otra solo acompaña. Se ejecuta con mancuernas a los lados, descendiendo vertical sobre la pierna fija y subiendo sin empujar con la de atrás. Con barra a la espalda entra en otra categoría de sufrimiento. El ejercicio unilateral más temido y más efectivo para las piernas."
+      },
+      "status": "LEGACY"
+    },
+    "bulgarian_zercher": {
+      "public": {
+        "configurations": {
+          "bulgarian_zercher__barbell__zercher": {
+            "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra."
+            ]
+          }
+        },
+        "description": "La Sentadilla Búlgara Zercher sube la apuesta de la búlgara: la pierna trasera apoyada en el banco y la carga abrazada contra el torso. El cuádriceps de la pierna delantera trabaja mientras el abdomen sostiene el peso sin dejarlo caer. La bajada es vertical y la subida pide el pecho orgulloso y los codos firmes. La búlgara más incómoda y una de las más completas que existen."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "unilateral_knee_dominant_bulgarian",
+  "schemaVersion": 1
+}

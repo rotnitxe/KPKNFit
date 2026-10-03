@@ -7,10 +7,14 @@ from pathlib import Path
 
 from backend.exercises_catalog_v2 import (
     CatalogV2Error,
+    DEFAULT_RUNTIME_ASSET,
+    RETIRED_FIELD_PATHS,
     ExerciseSelectionV2,
     catalog_hash,
+    find_retired_fields,
     load_catalog,
     resolve_selection,
+    validate_runtime_catalog,
     verify_shared_catalog_artifacts,
 )
 
@@ -54,19 +58,82 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
 
     def test_runtime_loader_accepts_only_the_approved_catalog_and_preserves_rich_metadata(self) -> None:
         runtime = load_catalog(SOURCE)
-        self.assertEqual(runtime["catalogRevision"], "v2-approved-2026-08-12-a")
+        self.assertEqual(runtime["catalogRevision"], "v2-approved-2026-09-29-a")
         definition = runtime["families"][0]["definitions"][0]
         configuration = definition["configurations"][0]
         self.assertTrue(configuration["profile"]["automationEligible"])
+        rich = configuration["profile"]["richMetadata"]
         self.assertEqual(
-            configuration["profile"]["setupCues"],
-            configuration["profile"]["richMetadata"]["coaching"]["setup"],
+            rich["replacement"]["preservesIntent"],
+            [
+                f"{configuration['profile']['movementPatternId']}:{muscle_id}"
+                for muscle_id in configuration["profile"]["primaryMuscles"]
+            ],
         )
+
+    def test_runtime_payload_has_no_retired_fields_and_rejects_their_return(self) -> None:
+        compiled = json.loads(DEFAULT_RUNTIME_ASSET.read_text(encoding="utf-8"))
+        self.assertEqual(find_retired_fields(compiled), [])
+        validate_runtime_catalog(compiled)
+
+        def first_configuration(payload: dict) -> dict:
+            return payload["families"][0]["definitions"][0]["configurations"][0]
+
+        injections = {
+            "family.description": lambda p: p["families"][0].__setitem__("description", "x"),
+            "family.evidence.rationale": lambda p: p["families"][0]["evidence"].__setitem__("rationale", "x"),
+            "definition.evidence.rationale": lambda p: p["families"][0]["definitions"][0]["evidence"].__setitem__("rationale", "x"),
+            "configuration.evidence.rationale": lambda p: first_configuration(p)["evidence"].__setitem__("rationale", "x"),
+            "profile.benefits": lambda p: first_configuration(p)["profile"].__setitem__("benefits", []),
+            "profile.techniqueSummary": lambda p: first_configuration(p)["profile"].__setitem__("techniqueSummary", "x"),
+            "profile.variantRationale": lambda p: first_configuration(p)["profile"].__setitem__("variantRationale", "x"),
+            "profile.commonMistakes": lambda p: first_configuration(p)["profile"].__setitem__("commonMistakes", []),
+            "profile.muscleNotes": lambda p: first_configuration(p)["profile"].__setitem__("muscleNotes", []),
+            "profile.jointInvolvement[].note": lambda p: first_configuration(p)["profile"]["jointInvolvement"][0].__setitem__("note", "x"),
+            "richMetadata.editorial": lambda p: first_configuration(p)["profile"]["richMetadata"].__setitem__("editorial", {}),
+            "richMetadata.coaching": lambda p: first_configuration(p)["profile"]["richMetadata"].__setitem__("coaching", {}),
+            "richMetadata.safety": lambda p: first_configuration(p)["profile"]["richMetadata"].__setitem__("safety", {}),
+            "richMetadata.anatomy.targetRegions": lambda p: first_configuration(p)["profile"]["richMetadata"]["anatomy"].__setitem__("targetRegions", []),
+            "richMetadata.anatomy.muscleLengthBias": lambda p: first_configuration(p)["profile"]["richMetadata"]["anatomy"].__setitem__("muscleLengthBias", "x"),
+            "richMetadata.anatomy.stabilizationDemand": lambda p: first_configuration(p)["profile"]["richMetadata"]["anatomy"].__setitem__("stabilizationDemand", "x"),
+            "richMetadata.anatomy.jointInvolvement[].note": lambda p: first_configuration(p)["profile"]["richMetadata"]["anatomy"]["jointInvolvement"][0].__setitem__("note", "x"),
+            "richMetadata.biomechanics.rangeOfMotion": lambda p: first_configuration(p)["profile"]["richMetadata"]["biomechanics"].__setitem__("rangeOfMotion", "x"),
+            "richMetadata.biomechanics.relevantTendons": lambda p: first_configuration(p)["profile"]["richMetadata"]["biomechanics"].__setitem__("relevantTendons", []),
+            "richMetadata.programming.objectives": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("objectives", []),
+            "richMetadata.programming.suitableRepRanges": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("suitableRepRanges", []),
+            "richMetadata.programming.recoveryCost": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("recoveryCost", "x"),
+            "richMetadata.programming.setupTransitionCost": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("setupTransitionCost", "x"),
+            "richMetadata.programming.splitSuitability": lambda p: first_configuration(p)["profile"]["richMetadata"]["programming"].__setitem__("splitSuitability", []),
+        }
+        # Every retired path must be exercised: adding one without a test is a gap.
+        self.assertEqual(set(injections), set(RETIRED_FIELD_PATHS))
+        for path, inject in injections.items():
+            with self.subTest(path=path):
+                tampered = json.loads(json.dumps(compiled))
+                inject(tampered)
+                self.assertEqual(len(find_retired_fields(tampered)), 1)
+                with self.assertRaisesRegex(CatalogV2Error, "retired_field_present:"):
+                    validate_runtime_catalog(tampered)
+
+    def test_derived_anatomy_mirrors_cannot_drift(self) -> None:
+        compiled = json.loads(DEFAULT_RUNTIME_ASSET.read_text(encoding="utf-8"))
+
+        stale_intent = json.loads(json.dumps(compiled))
+        first = stale_intent["families"][0]["definitions"][0]["configurations"][0]["profile"]
+        first["richMetadata"]["replacement"]["preservesIntent"] = ["Conserva el patrón y el objetivo equivocado."]
+        with self.assertRaisesRegex(CatalogV2Error, "rich_replacement_intent_not_derived"):
+            validate_runtime_catalog(stale_intent)
+
+        stale_actions = json.loads(json.dumps(compiled))
+        first = stale_actions["families"][0]["definitions"][0]["configurations"][0]["profile"]
+        first["richMetadata"]["anatomy"]["jointActions"] = ["Acción que ninguna articulación declara"]
+        with self.assertRaisesRegex(CatalogV2Error, "rich_anatomy_joint_actions_not_derived"):
+            validate_runtime_catalog(stale_actions)
 
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "d229f99ad5779d881cbf2f22d1d307d10d489a8b3bd747e0342b9d182dd95d6e",
+            "6bdb9e599685132d226a9e6bccad96230874ad4e1717e55008c4e22cf33d9ae0",
         )
 
     def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:

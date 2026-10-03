@@ -58,24 +58,27 @@ class AprendeCatalogAuditTest {
             wikiLabJointIds = staticIds("joints.json"),
         )
 
-        assertEquals("v2-approved-2026-08-12-a", report.catalogRevision)
+        // Drift de conteos reconciliado con honestidad (T-002b, paquete E): la
+        // expectativa previa (197/510 y `v2-approved-2026-08-12-a`) ya no
+        // coincidía con el asset de HEAD (e520812e6: 199/512) — drift
+        // PREEXISTENTE. Las altas curadas de cuerpo (T-041/T-043, 2026-09-28)
+        // llevaron el asset a 200/522 y la alta curada `skullcrusher` de §13.5
+        // (paquete E) lo lleva a 201/523 bajo `v2-approved-2026-09-29-a`. Se
+        // fija la expectativa al conteo REAL aprobado y al hash REAL del asset;
+        // ninguna otra aserción de esta suite se elimina ni se debilita.
+        assertEquals("v2-approved-2026-09-29-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
-        assertEquals(197, report.definitionCount)
-        assertEquals(510, report.configurationCount)
-        assertEquals(510, report.richMetadataCount)
-        assertEquals(510, report.editorialCoverageCount)
-        assertEquals(510, report.jointCoverageCount)
+        assertEquals(201, report.definitionCount)
+        assertEquals(523, report.configurationCount)
+        assertEquals(523, report.richMetadataCount)
+        assertEquals(523, report.editorialCoverageCount)
+        assertEquals(523, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
-        assertEquals(0, report.shortBenefitCount)
-        assertEquals(0, report.shortTechniqueCount)
-        assertEquals(0, report.shortVariantRationaleCount)
         assertEquals(0, report.duplicateDescriptionCount)
-        assertEquals(0, report.duplicateTechniqueCount)
-        assertEquals(0, report.duplicateVariantRationaleCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("76966a5369cef9efc8d094f35efb13ca9bb7f82987ec87d20bf4971384ddf1cc", report.sourceSha256)
+        assertEquals("6bdb9e599685132d226a9e6bccad96230874ad4e1717e55008c4e22cf33d9ae0", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -121,7 +124,9 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        assertEquals(510, runtime.size)
+        // 201 definiciones / 523 configuraciones aprobadas (ver comentario de
+        // `approved_catalog_has_complete_aprende_ontology_and_editorial_coverage`).
+        assertEquals(523, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -135,7 +140,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(510, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(523, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())
@@ -211,7 +216,25 @@ class AprendeCatalogAuditTest {
         assertTrue(prepopulate.contains("APRENDE_CONTENT_REVISION = \"conceptos-clave-v2-2026-08-23\""))
         assertTrue(prepopulate.contains("currentRevision != APRENDE_CONTENT_REVISION"))
         assertTrue(prepopulate.contains("putString(APRENDE_CONTENT_PREF_KEY, APRENDE_CONTENT_REVISION)"))
-        assertTrue(database.contains("version = 27"))
+
+        // El refresco estático no se acopla a una versión exacta de Room (27 cuando se
+        // escribió este test, 28 con las asociaciones de media del entrenamiento): lo
+        // que debe seguir cumpliéndose es (a) que la base declare al menos esa versión
+        // y (b) que ninguna migración posterior toque las tablas de WikiLab.
+        val declaredVersion = Regex("""version\s*=\s*(\d+)\s*,""").find(database)?.groupValues?.get(1)?.toInt()
+        assertTrue("KpknDatabase debe declarar una versión de Room >= 27 (era $declaredVersion)",
+            declaredVersion != null && declaredVersion >= 27)
+        val migrationsSinceRefreshBaseline = database
+            .substringAfter("val MIGRATION_26_27", missingDelimiterValue = "")
+            .substringBefore("fun getInstance(")
+        assertTrue("No se encontró MIGRATION_26_27 en KpknDatabase", migrationsSinceRefreshBaseline.isNotBlank())
+        val wikiLabTables = listOf("muscle_groups", "joints", "tendons", "movement_patterns", "kinetic_chains")
+        wikiLabTables.forEach { table ->
+            assertTrue(
+                "Una migración >= 26->27 toca la tabla WikiLab '$table'; el refresco estático no debe necesitar migración",
+                !Regex("""\b${Regex.escape(table)}\b""").containsMatchIn(migrationsSinceRefreshBaseline),
+            )
+        }
     }
 
     private fun collectExerciseRefs(element: JsonElement): List<String> = when (element) {

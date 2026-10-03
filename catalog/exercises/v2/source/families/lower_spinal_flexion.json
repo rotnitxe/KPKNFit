@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · erector spinae · spinal flexion",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#back_jefferson_curl",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_jefferson_curl__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "La barra es la referencia para cargar los erectores con peso de verdad.",
-                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con barra, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. La barra es la referencia para cargar los erectores con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra descendiendo por delante de las piernas y recupera su alineación al subir.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras la barra baja por delante del cuerpo y devuelve el segmento a su posición inicial.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera sostiene la posición pélvica que permite el redondeo segmentado, con la barra en las manos y las piernas extendidas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,20 +58,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Con la barra en las manos, los erectores espinales frenan de forma excéntrica el redondeo progresivo del tronco y se acortan al desenrollar la espalda."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales se alargan mientras la barra desciende por delante de las piernas y frenan el retorno de la cadera a la postura de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica durante todo el descenso, con la barra pegada a las piernas y sin oscilaciones laterales."
-                }
-              ],
               "performanceProfileId": "back_jefferson_curl__barbell",
               "primaryMuscles": [
                 "erector_spinae"
@@ -103,7 +78,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra descendiendo por delante de las piernas y recupera su alineación al subir.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,7 +85,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras la barra baja por delante del cuerpo y devuelve el segmento a su posición inicial.",
                       "role": "SECONDARY"
                     },
                     {
@@ -119,23 +92,17 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera sostiene la posición pélvica que permite el redondeo segmentado, con la barra en las manos y las piernas extendidas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "erector_spinae"
                   ],
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "erector_spinae"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -146,7 +113,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "spinal_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -155,45 +121,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso."
-                  ]
-                },
                 "display": {
                   "displayName": "Jefferson Curl",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los erectores con peso de verdad.",
-                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-                  ],
-                  "description": "Con barra, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. La barra es la referencia para cargar los erectores con peso de verdad.",
-                  "technique": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -206,7 +139,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_jefferson_curl__barbell",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -223,24 +156,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los erectores espinales mediante Jefferson Curl en la variante Barra.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -250,20 +169,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de los erectores espinales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "spinal_flexion:erector_spinae"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -278,9 +187,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Barra en las manos y espalda que se redondea de forma progresiva: la carga acompaña cada segmento durante el descenso. La versión bilateral permite comparar el recorrido vértebra a vértebra con una resistencia estable."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -294,7 +201,6 @@
                 "legacy:exercise_database.json#back_jefferson_curl",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_jefferson_curl__dumbbells",
@@ -302,16 +208,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con mancuernas, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -325,7 +224,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar se redondea segmento a segmento con una mancuerna en cada mano, y cada lado corrige su propia trayectoria durante el descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -333,7 +231,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras las mancuernas descienden sin guía, dejando que cada brazo trace su propio recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -341,7 +238,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera fija la posición pélvica durante el redondeo, con una mancuerna colgando de cada brazo y las piernas extendidas en todo el arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -349,20 +245,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Con una mancuerna en cada mano, los erectores espinales frenan el descenso del tronco de forma excéntrica y se acortan al desenrollar la espalda."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales acompañan el alargamiento de la cadera mientras las mancuernas bajan por delante de las piernas y frenan el retorno hacia arriba."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica mientras las dos mancuernas descienden libres, sin la barra que una ambos lados del recorrido."
-                }
-              ],
               "performanceProfileId": "back_jefferson_curl__dumbbells",
               "primaryMuscles": [
                 "erector_spinae"
@@ -383,7 +265,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar se redondea segmento a segmento con una mancuerna en cada mano, y cada lado corrige su propia trayectoria durante el descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -391,7 +272,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco mientras las mancuernas descienden sin guía, dejando que cada brazo trace su propio recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -399,23 +279,17 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera fija la posición pélvica durante el redondeo, con una mancuerna colgando de cada brazo y las piernas extendidas en todo el arco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "erector_spinae"
                   ],
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "erector_spinae"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -426,7 +300,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "spinal_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -435,45 +308,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados."
-                  ]
-                },
                 "display": {
                   "displayName": "Jefferson Curl",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-                  ],
-                  "description": "Con mancuernas, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -486,7 +326,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_jefferson_curl__dumbbells",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -503,24 +343,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los erectores espinales mediante Jefferson Curl en la variante Mancuernas.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -530,20 +356,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de los erectores espinales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "spinal_flexion:erector_spinae"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -558,9 +374,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Mancuernas en las manos: cada brazo acompaña la curvatura sin depender de una barra que una ambos lados. La carga libre ofrece una entrada más accesible al trabajo segmentado de la espalda."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -574,7 +388,6 @@
                 "legacy:exercise_database.json#back_jefferson_curl",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_jefferson_curl__smith_machine",
@@ -582,16 +395,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
-                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con máquina Smith, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
@@ -605,7 +411,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra guiada por el carril, que fija la trayectoria del descenso y del regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -613,7 +418,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco con la máquina Smith, cuya barra no admite desplazamientos laterales durante el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -621,7 +425,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera sostiene la posición pélvica bajo la barra guiada, con las piernas extendidas y sin la oscilación propia de la carga libre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -629,20 +432,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "spinal_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Con la barra guiada de la máquina Smith, los erectores espinales frenan el descenso del tronco sobre una trayectoria fija y se acortan al subir."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales se alargan mientras la barra de la Smith desciende por el carril y frenan el retorno de la cadera con la carga guiada de lado a lado."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica mientras la barra guiada desciende, con la guía del carril reduciendo la demanda de equilibrio lateral."
-                }
-              ],
               "performanceProfileId": "back_jefferson_curl__smith_machine",
               "primaryMuscles": [
                 "erector_spinae"
@@ -663,7 +452,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar se redondea de forma progresiva con la barra guiada por el carril, que fija la trayectoria del descenso y del regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -671,7 +459,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco con la máquina Smith, cuya barra no admite desplazamientos laterales durante el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -679,23 +466,17 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera sostiene la posición pélvica bajo la barra guiada, con las piernas extendidas y sin la oscilación propia de la carga libre.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "erector_spinae"
                   ],
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "erector_spinae"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -706,7 +487,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "spinal_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -715,45 +495,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith: la barra guiada desciende con la espalda redondeada con estabilidad."
-                  ]
-                },
                 "display": {
                   "displayName": "Jefferson Curl",
                   "displaySummary": "smith_machine",
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
-                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-                  ],
-                  "description": "Con máquina Smith, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan en la Smith, con la trayectoria guiada y estabilidad extra.",
-                  "technique": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. Una forma controlada de explorar el movimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -766,7 +513,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_jefferson_curl__smith_machine",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -783,24 +530,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los erectores espinales mediante Jefferson Curl en la variante Máquina Smith.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -810,20 +543,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de los erectores espinales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "spinal_flexion:erector_spinae"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -838,9 +561,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Smith: la barra guiada desciende con la espalda redondeada con estabilidad. Una forma controlada de explorar el movimiento."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -854,7 +575,6 @@
                 "legacy:exercise_database.json#back_jefferson_curl",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_jefferson_curl__cable",
@@ -862,16 +582,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
-                "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con polea, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -885,7 +598,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La columna lumbar se redondea de forma progresiva mientras el cable de la polea baja tira en todo el recorrido, con tensión también al final del regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -893,7 +605,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La columna torácica acompaña la flexión del tronco bajo la tracción de la polea baja, que mantiene la resistencia cuando cambia el ángulo de la espalda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -901,7 +612,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La cadera sostiene la posición pélvica con el cable tirando hacia abajo desde la polea baja y las piernas extendidas durante todo el arco del descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -909,20 +619,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "spinal_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Principal: Desde la polea baja, los erectores espinales frenan el redondeo del tronco contra una tracción constante del cable y se acortan de nuevo en el regreso."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales acompañan el descenso del tronco con la polea baja tirando en todo el arco y frenan el retorno de la cadera sin holguras en el cable."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de forma isométrica frente a la tracción constante del cable, que permanece activa cuando la espalda cambia de ángulo."
-                }
-              ],
               "performanceProfileId": "back_jefferson_curl__cable",
               "primaryMuscles": [
                 "erector_spinae"
@@ -943,7 +639,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La columna lumbar se redondea de forma progresiva mientras el cable de la polea baja tira en todo el recorrido, con tensión también al final del regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -951,7 +646,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La columna torácica acompaña la flexión del tronco bajo la tracción de la polea baja, que mantiene la resistencia cuando cambia el ángulo de la espalda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -959,23 +653,17 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La cadera sostiene la posición pélvica con el cable tirando hacia abajo desde la polea baja y las piernas extendidas durante todo el arco del descenso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "erector_spinae"
                   ],
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "erector_spinae"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -986,7 +674,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "spinal_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -995,45 +682,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo."
-                  ]
-                },
                 "display": {
                   "displayName": "Jefferson Curl",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
-                    "La lección de movilidad de la columna que pocos practican y muchos necesitan."
-                  ],
-                  "description": "Con polea, el tronco se redondea vértebra a vértebra hasta que las manos rozan el suelo y regresa enrollándose. Los erectores trabajan con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La resistencia continua permite usar menos carga y prestar más atención al control del recorrido."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1046,7 +700,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jefferson Curl",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_jefferson_curl__cable",
                   "definitionId": "back_jefferson_curl",
                   "familyId": "lower_spinal_flexion",
@@ -1063,24 +717,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los erectores espinales mediante Jefferson Curl en la variante Polea.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1090,20 +730,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de los erectores espinales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "spinal_flexion:erector_spinae"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón spinal_flexion."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -1118,9 +748,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Polea baja durante el redondeo: el cable conserva tensión cuando la espalda cambia de ángulo. La resistencia continua permite usar menos carga y prestar más atención al control del recorrido."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1134,7 +762,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_spinal_flexion",
@@ -1149,13 +776,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón spinal_flexion; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_spinal_flexion",

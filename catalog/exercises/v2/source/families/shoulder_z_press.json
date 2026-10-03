@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Press Z",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_press_z_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "z_press__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                "La escuela de la fuerza de hombro pura y la postura impecable."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con barra, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión o abducción del hombro sube la barra por encima de la cabeza y, al no haber respaldo, trabaja el arco completo sin apoyo externo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña a la barra en su recorrido superior y da amplitud al empuje con el torso libre de apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión del codo remata cada repetición y la barra larga obliga a las dos manos a subir a la misma altura en todo el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen al sentarse en el suelo con las piernas extendidas y sin respaldo que reparta el esfuerzo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la barra y las piernas extendidas sobre el suelo, el deltoide eleva el brazo en flexión o abducción sin respaldo que sostenga el torso."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El abdomen sostiene el torso sin respaldo mientras la barra viaja sobre la cabeza, y la carga bilateral hace visible cualquier pérdida de postura."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El codo extiende el brazo bajo la barra larga, que obliga a ambas manos a compartir un mismo eje y la misma altura durante todo el empuje."
-                }
-              ],
               "performanceProfileId": "z_press__barbell__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -112,7 +86,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión o abducción del hombro sube la barra por encima de la cabeza y, al no haber respaldo, trabaja el arco completo sin apoyo externo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña a la barra en su recorrido superior y da amplitud al empuje con el torso libre de apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión del codo remata cada repetición y la barra larga obliga a las dos manos a subir a la misma altura en todo el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen al sentarse en el suelo con las piernas extendidas y sin respaldo que reparta el esfuerzo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -148,11 +117,7 @@
                     "core",
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -172,45 +136,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Z",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                    "La escuela de la fuerza de hombro pura y la postura impecable."
-                  ],
-                  "description": "Con barra, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                  "technique": "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. La carga bilateral hace visible cualquier pérdida de postura."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -223,7 +154,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "z_press__barbell",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -243,42 +174,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Z en la variante Barra.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -292,9 +201,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. La carga bilateral hace visible cualquier pérdida de postura."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -308,7 +215,6 @@
                 "legacy:exercise_database.json#deltoides_press_z_barra_ez",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "z_press__ez_bar",
@@ -316,16 +222,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del deltoide.",
-                "La escuela de la fuerza de hombro pura y la postura impecable."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con barra EZ, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del deltoide.",
               "efc": 2.5,
               "equipmentId": "ez_bar",
@@ -339,7 +238,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión o abducción del hombro sube la barra EZ por encima de la cabeza con las piernas extendidas y el torso libre de apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -347,7 +245,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido de la barra EZ y sostiene la amplitud del empuje con el tronco sentado en el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -355,7 +252,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión del codo completa el empuje y el perfil girado de la barra EZ hace la muñeca más tolerante sin alterar la altura final del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -363,7 +259,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La estabilidad lumbopélvica recae sobre el abdomen mientras la barra EZ sube, con las piernas extendidas y el torso sin respaldo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -371,20 +266,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la barra EZ y el agarre girado, el deltoide eleva cada brazo en flexión o abducción sin que el torso pierda exigencia por el respaldo ausente."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El abdomen sostiene el tronco sentado en el suelo mientras la barra EZ traslada la carga con las piernas extendidas y ninguna base de apoyo."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El codo extiende el brazo con el agarre girado de la barra EZ, que reparte la carga entre las manos sin cambiar el empuje final hacia arriba."
-                }
-              ],
               "performanceProfileId": "z_press__ez_bar__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -406,7 +287,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión o abducción del hombro sube la barra EZ por encima de la cabeza con las piernas extendidas y el torso libre de apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -414,7 +294,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido de la barra EZ y sostiene la amplitud del empuje con el tronco sentado en el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -422,7 +301,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión del codo completa el empuje y el perfil girado de la barra EZ hace la muñeca más tolerante sin alterar la altura final del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -430,11 +308,9 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La estabilidad lumbopélvica recae sobre el abdomen mientras la barra EZ sube, con las piernas extendidas y el torso sin respaldo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -442,11 +318,7 @@
                     "core",
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -456,7 +328,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -466,45 +337,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Z",
                   "displaySummary": "ez_bar",
                   "selectedOptions": {
                     "implement": "ez_bar"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del deltoide.",
-                    "La escuela de la fuerza de hombro pura y la postura impecable."
-                  ],
-                  "description": "Con barra EZ, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del deltoide.",
-                  "technique": "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. Es una opción estable para practicar el empuje vertical sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -517,7 +355,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "z_press__ez_bar",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -537,42 +375,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Z en la variante Barra EZ.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "ez_bar"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "ez_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -586,9 +402,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. Es una opción estable para practicar el empuje vertical sentado."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -602,7 +416,6 @@
                 "legacy:exercise_database.json#deltoides_press_z_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "z_press__dumbbells",
@@ -610,16 +423,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "La escuela de la fuerza de hombro pura y la postura impecable."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con mancuernas, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -633,7 +439,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión o abducción del hombro eleva cada mancuerna de forma independiente, con las piernas extendidas y el torso sin respaldo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -641,7 +446,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña a cada brazo por separado y corrige asimetrías que una barra larga dejaría ocultas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -649,7 +453,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión del codo remata cada brazo con su propia mancuerna, sin que ambas manos compartan la altura ni el eje del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -657,7 +460,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La estabilidad lumbopélvica depende del abdomen con las piernas extendidas, y las mancuernas independientes añaden desequilibrio lateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -665,20 +467,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con una mancuerna en cada mano y sentado en el suelo, el deltoide eleva el brazo por separado y ajusta la trayectoria a cada hombro."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El abdomen sostiene el torso sin respaldo mientras las dos mancuernas suben, y la carga independiente de cada lado exige equilibrar el empuje."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El codo extiende cada brazo con su propia mancuerna, de modo que ningún lado puede empujar por el otro ni compartir un eje común."
-                }
-              ],
               "performanceProfileId": "z_press__dumbbells__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -700,7 +488,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión o abducción del hombro eleva cada mancuerna de forma independiente, con las piernas extendidas y el torso sin respaldo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -708,7 +495,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña a cada brazo por separado y corrige asimetrías que una barra larga dejaría ocultas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -716,7 +502,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión del codo remata cada brazo con su propia mancuerna, sin que ambas manos compartan la altura ni el eje del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -724,11 +509,9 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La estabilidad lumbopélvica depende del abdomen con las piernas extendidas, y las mancuernas independientes añaden desequilibrio lateral.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -736,11 +519,7 @@
                     "core",
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -750,7 +529,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -760,45 +538,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Z",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "La escuela de la fuerza de hombro pura y la postura impecable."
-                  ],
-                  "description": "Con mancuernas, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. La variante combina independencia de carga con una demanda alta de estabilidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -811,7 +556,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "z_press__dumbbells",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -831,42 +576,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Z en la variante Mancuernas.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -880,9 +603,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. La variante combina independencia de carga con una demanda alta de estabilidad."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -896,7 +617,6 @@
                 "legacy:exercise_database.json#deltoides_press_z_kettlebell",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "z_press__kettlebell",
@@ -904,16 +624,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                "La escuela de la fuerza de hombro pura y la postura impecable."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con kettlebell, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -927,7 +640,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión o abducción del hombro sube la kettlebell con el centro de masa desplazado sobre la mano y el torso sentado sin respaldo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -935,7 +647,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido irregular de la kettlebell y sostiene la amplitud del empuje vertical.",
                   "role": "SECONDARY"
                 },
                 {
@@ -943,7 +654,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión del codo completa el empuje con la campana desplazada, un detalle que obliga a cuidar la alineación final del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -951,7 +661,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen con la kettlebell inestable y las piernas extendidas sin respaldo detrás.",
                   "role": "STABILIZER"
                 }
               ],
@@ -959,20 +668,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con kettlebells y las piernas extendidas sobre el suelo, el deltoide eleva el brazo mientras la campana desplazada exige afinar la trayectoria."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El abdomen sostiene el torso sin respaldo mientras el centro de masa de cada kettlebell se desplaza sobre la mano y desestabiliza la postura sentada."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El codo extiende el brazo con la campana colgando del agarre, lo que exige un empuje final más preciso que con barra larga o mancuernas."
-                }
-              ],
               "performanceProfileId": "z_press__kettlebell__press_z",
               "primaryMuscles": [
                 "deltoid"
@@ -994,7 +689,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión o abducción del hombro sube la kettlebell con el centro de masa desplazado sobre la mano y el torso sentado sin respaldo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1002,7 +696,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido irregular de la kettlebell y sostiene la amplitud del empuje vertical.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1010,7 +703,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión del codo completa el empuje con la campana desplazada, un detalle que obliga a cuidar la alineación final del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1018,11 +710,9 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La estabilidad lumbopélvica carga sobre el abdomen con la kettlebell inestable y las piernas extendidas sin respaldo detrás.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -1030,11 +720,7 @@
                     "core",
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1044,7 +730,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1054,45 +739,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Z",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                    "La escuela de la fuerza de hombro pura y la postura impecable."
-                  ],
-                  "description": "Con kettlebell, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                  "technique": "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. Es la opción más irregular y exigente de esta familia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1105,7 +757,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Z",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "z_press__kettlebell",
                   "definitionId": "z_press",
                   "familyId": "shoulder_z_press",
@@ -1125,42 +777,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Z en la variante Kettlebell.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1174,9 +804,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. Es la opción más irregular y exigente de esta familia."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1190,7 +818,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "shoulder_z_press",
@@ -1208,13 +835,11 @@
         ]
       }
     ],
-    "description": "Familia de empuje vertical sentado en el suelo; cada implemento se conserva como configuración explícita.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "shoulder_z_press",

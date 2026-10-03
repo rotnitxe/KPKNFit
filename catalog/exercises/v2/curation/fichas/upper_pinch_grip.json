@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "forearms_pinza_de_discos": {
+      "public": {
+        "configurations": {
+          "forearms_pinza_de_discos__default": {
+            "description": "Con disco, el disco se sostiene en vertical apretado entre los dedos y el pulgar el mayor tiempo posible. Con el disco, el lastre es simple y directo sobre el antebrazo.",
+            "executionCues": [
+              "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible."
+            ]
+          }
+        },
+        "description": "La Pinza de Discos sostiene uno o dos discos lisos solo con los dedos y el pulgar: el antebrazo entero trabaja para que nada se caiga. Se ejecuta aguantando la pinza el mayor tiempo posible, de pie, con el brazo colgando. La fricción decide la dificultad, no el peso marcado. El agarre de pinza que separa las manos normales de las manos de acero."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_pinch_grip",
+  "schemaVersion": 1
+}

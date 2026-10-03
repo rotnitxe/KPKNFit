@@ -1,0 +1,228 @@
+{
+  "definitions": {
+    "glutes_clamshells_banda": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Rotación externa de la cadera",
+              "Abducción de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "willcox2013",
+              "delp1999",
+              "flack2012",
+              "kim2026",
+              "selkowitz2013",
+              "mcbeth2012"
+            ],
+            "why": "Aquí ocurre el movimiento: con los pies como bisagra, el muslo de arriba gira hacia fuera y se abre respecto al de abajo. Con la cadera flexionada varios músculos pierden brazo de rotación externa (Delp et al.), de modo que la rotación la reparten los glúteos y los rotadores profundos (Kim et al.), y el glúteo medio fue más activo a 60° de flexión (Willcox y Burden). El tensor de la fascia lata abduce pero rota la cadera hacia dentro: quedó por debajo de los glúteos en Selkowitz et al. y se mantuvo bajo en Willcox y Burden, aunque igualó al glúteo medio con carga en McBeth et al.; con ese balance no se le asigna rol."
+          },
+          {
+            "actions": [
+              "Sostén de la flexión de rodilla"
+            ],
+            "id": "rodilla",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_knee"
+            ],
+            "why": "Conserva unos 90° de flexión durante toda la repetición y transmite al pie el giro del fémur. La banda carga el muslo, por encima de la rodilla, así que la articulación no se mueve en su plano principal de flexión y extensión (es sobre todo una bisagra) y solo sostiene el ángulo."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_medius",
+            "role": "PRIMARY",
+            "sources": [
+              "distefano2009",
+              "willcox2013",
+              "selkowitz2013",
+              "bishop2018",
+              "mcbeth2012",
+              "boren2011",
+              "flack2012"
+            ],
+            "why": "Abductor principal de la cadera, con acción también sobre su rotación (Flack et al.). En la almeja su activación es moderada: 38–40 % de la contracción máxima en DiStefano et al., casi la mitad que en la abducción lateral tumbado (81 %); fue máxima con la cadera a 60° de flexión y mayor con la pelvis neutra que reclinada (Willcox y Burden), y una progresión avanzada llegó a 77 % en su progresión más exigente (Boren et al.). Junto con el glúteo mayor supera al tensor de la fascia lata, también con resistencia elástica (Selkowitz et al.; Bishop et al.). McBeth et al. midieron solo 33 % con carga, igual que el tensor (34 %) y por debajo de los flexores anteriores de cadera (54 %): el rol de principal se apoya en su función abductora y en que la almeja está pensada para cargarlo, no en un dominio claro del EMG."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "SECONDARY",
+            "sources": [
+              "distefano2009",
+              "mcbeth2012",
+              "willcox2013",
+              "delp1999",
+              "kim2026"
+            ],
+            "why": "Asiste con una contribución real pero igual o algo menor que la del glúteo medio: 34 % de la contracción máxima en DiStefano et al. y también 34 % en McBeth et al., y menos aún con la pelvis reclinada (Willcox y Burden). Al flexionar la cadera disminuye el brazo de rotación externa de varios músculos, pero el glúteo mayor destaca por su gran capacidad de rotarla hacia fuera (Delp et al.). Esa rotación la comparte con rotadores profundos que la ontología no recoge (piriforme, obturador interno y gemelo superior), cuyos cambios de T2 tras 40 almejas (14,5, 24,2 y 18,7 %) superaron al 4,5 % del glúteo medio en la RM funcional de Kim et al. Por eso es secundario: asiste, pero ni lidera las mediciones ni es el músculo al que apunta el ejercicio."
+          },
+          {
+            "id": "hip_flexors",
+            "role": "SECONDARY",
+            "sources": [
+              "mcbeth2012"
+            ],
+            "why": "En la almeja con carga, McBeth et al. midieron los flexores de la cadera al 54 % de la contracción máxima, por encima del glúteo medio (33 %) y del glúteo mayor (34 %). No abren la rodilla: la cadera se queda flexionada unos 60° y ellos sostienen ese ángulo mientras el muslo gira. Por eso asisten, y no son el motor del gesto."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "glutes_clamshells_banda__default": {
+            "description": "La banda rodea ambos muslos justo por encima de las rodillas y parte con poca carga: cuanto más se abre la rodilla de arriba, más se estira y más resistencia opone. Esa resistencia creciente se suma al peso del muslo y obliga a frenar la bajada.",
+            "executionCues": [
+              "Abre la rodilla de arriba girando el muslo hacia fuera, sin separar los talones.",
+              "Detén la apertura justo antes de que la pelvis ruede hacia atrás y sostén un segundo con la banda estirada.",
+              "Baja la rodilla despacio, frenando la banda, hasta rozar la otra rodilla sin que se junten de golpe."
+            ],
+            "setupCues": [
+              "Túmbate de lado con la cabeza sobre el brazo de abajo, las caderas flexionadas unos 60° y las rodillas dobladas a unos 90°, con los pies juntos.",
+              "Pasa la banda alrededor de ambos muslos, justo por encima de las rodillas, y apila la cadera de arriba sobre la de abajo.",
+              "Apoya la mano de arriba en la cadera de arriba para notar si la pelvis rueda hacia atrás."
+            ]
+          }
+        },
+        "description": "Los clamshells con banda, o almejas, abren la cadera en rotación externa tumbado de lado: con los pies juntos, la rodilla de arriba se separa como la tapa de una almeja contra la banda que rodea los muslos. El glúteo medio trabaja a un nivel moderado, parejo al glúteo mayor, y no por encima de él. Con carga, los flexores de la cadera superaron a los dos glúteos, y tras una serie larga la resonancia mostró más cambio en los rotadores profundos que en el glúteo medio. Si la pelvis rueda hacia atrás, el glúteo medio y el glúteo mayor se activan menos. Frente a la abducción lateral tumbado, la almeja le pide al glúteo medio claramente menos."
+      },
+      "sources": [
+        {
+          "claim": "En la almeja el glúteo medio llegó al 38–40 % (dos variantes) y el glúteo mayor al 34 % de la contracción máxima voluntaria isométrica; la abducción lateral tumbado dio 81 % en el glúteo medio.",
+          "id": "distefano2009",
+          "title": "Gluteal muscle activation during common therapeutic exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/19574661/"
+        },
+        {
+          "claim": "En 17 voluntarios y 6 variantes de la almeja, el glúteo medio y el mayor se activaron más con la pelvis neutra que reclinada; el glúteo medio fue máximo con la cadera a 60° de flexión y el tensor de la fascia lata se mantuvo bajo, sin cambios por la pelvis ni el ángulo.",
+          "id": "willcox2013",
+          "title": "The influence of varying hip angle and pelvis position on muscle recruitment patterns of the hip abductor muscles during the clam exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23485733/"
+        },
+        {
+          "claim": "Con electrodos de aguja en 20 personas, el glúteo medio y el glúteo mayor superior fueron más activos que el tensor de la fascia lata en la almeja, que tuvo el índice glúteo/tensor más alto de 11 ejercicios (115).",
+          "id": "selkowitz2013",
+          "title": "Which exercises target the gluteal muscles while minimizing activation of the tensor fascia lata? Electromyographic assessment using fine-wire electrodes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23160432/"
+        },
+        {
+          "claim": "En la almeja con carga de 20 corredores, los flexores anteriores de cadera (54 %) superaron al glúteo medio (33 %) y al tensor (34 %) y no difirieron del glúteo mayor (34 %); los autores la consideran menos adecuada si el objetivo es el glúteo medio.",
+          "id": "mcbeth2012",
+          "title": "Hip muscle activity during 3 side-lying hip-strengthening exercises in distance runners",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22488226/"
+        },
+        {
+          "claim": "Entre 13 ejercicios con 11 voluntarios, las almejas con y sin resistencia elástica dieron los índices glúteo/tensor más altos, y la activación del tensor difirió significativamente entre ambas.",
+          "id": "bishop2018",
+          "title": "Electromyographic Analysis of Gluteus Maximus, Gluteus Medius, and Tensor Fascia Latae During Therapeutic Exercises With and Without Elastic Resistance",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30140560/"
+        },
+        {
+          "claim": "Entre 18 ejercicios, la progresión 4 de la almeja produjo 77 % de la contracción máxima en el glúteo medio, el cuarto valor más alto.",
+          "id": "boren2011",
+          "title": "Electromyographic analysis of gluteus medius and gluteus maximus during rehabilitation exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22034614/"
+        },
+        {
+          "claim": "Tras 40 almejas, la resonancia funcional mostró cambios de T2 del 24,2 % en el obturador interno, 18,7 % en el gemelo superior y 14,5 % en el piriforme, frente al 4,5 % del glúteo medio.",
+          "id": "kim2026",
+          "title": "Superficial and Deep Gluteal Muscle Activation During Common Therapeutic Exercises: A Muscle Functional Magnetic Resonance Imaging Analysis",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40977436/"
+        },
+        {
+          "claim": "Al flexionar la cadera, el brazo de rotación externa de varios músculos disminuye (en algunos pasa a rotación interna) y el glúteo mayor muestra una gran capacidad de rotación externa.",
+          "id": "delp1999",
+          "title": "Variation of rotation moment arms with hip flexion",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10327003/"
+        },
+        {
+          "claim": "Los abductores de la cadera (glúteo medio, glúteo menor y tensor de la fascia lata) contribuyen a la abducción y la rotación de la cadera y a la estabilización pélvica.",
+          "id": "flack2012",
+          "title": "A review of the anatomy of the hip abductor muscles, gluteus medius, gluteus minimus, and tensor fascia lata",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22109658/"
+        },
+        {
+          "claim": "Describe la rodilla como una articulación principalmente en bisagra que permite flexión y extensión, con otros movimientos muy limitados y una estabilidad que depende sobre todo del soporte muscular.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Rotación externa de cadera en decúbito lateral: con las caderas flexionadas unos 60°, las rodillas dobladas a unos 90° y los pies juntos, la rodilla de arriba se abre contra una banda que rodea los muslos mientras la pelvis permanece apilada y los talones siguen en contacto.",
+        "keyPositions": [
+          "Inicio: muslos y rodillas juntos, pies juntos, banda con poca carga y pelvis apilada en vertical.",
+          "Punto más alto: rodilla de arriba separada unos 25–35 cm de la de abajo, talones aún en contacto, banda estirada entre los muslos y pelvis sin rodar hacia atrás."
+        ],
+        "mistakes": [
+          "Rodar la pelvis hacia atrás para que la rodilla suba más: con la pelvis reclinada el glúteo medio y el glúteo mayor se activan menos.",
+          "Separar los talones para ayudarse a abrir: sin el apoyo entre los pies la rodilla deja de girar y el movimiento se convierte en una elevación de la pierna.",
+          "Soltar la bajada y dejar que la banda cierre las rodillas de golpe, sin frenar su regreso.",
+          "Elegir una banda tan dura que la rodilla solo se abre si el tronco se tuerce o la pelvis rueda."
+        ],
+        "phases": [
+          {
+            "description": "Tumbado de lado con muslos y rodillas apilados, pies juntos, banda con poca carga y pelvis en vertical; la mano de arriba sobre la cadera de arriba.",
+            "name": "Posición inicial"
+          },
+          {
+            "description": "La rodilla de arriba sube girando el muslo hacia fuera, como la tapa de una almeja, mientras los talones siguen en contacto y la banda se estira.",
+            "name": "Apertura"
+          },
+          {
+            "description": "Se sostiene un segundo con la rodilla separada unos 25–35 cm de la de abajo, la banda estirada entre los muslos y la pelvis aún sin rodar hacia atrás.",
+            "name": "Punto alto"
+          },
+          {
+            "description": "La rodilla baja despacio frenando el regreso de la banda hasta rozar la otra rodilla, sin dejar que se junten de golpe.",
+            "name": "Cierre"
+          }
+        ],
+        "setup": [
+          "Tumbado de lado sobre una colchoneta, con la cabeza apoyada en el brazo de abajo y la mano de arriba sobre la cadera de arriba.",
+          "Caderas flexionadas unos 60° (el ángulo con mayor activación del glúteo medio en el estudio de Willcox y Burden) y rodillas dobladas a unos 90°, con los pies juntos y los talones a la altura de los glúteos.",
+          "Banda cerrada alrededor de ambos muslos, justo por encima de las rodillas, con poca carga cuando las rodillas están juntas.",
+          "Pelvis apilada en vertical: la cadera de arriba justo sobre la de abajo y el tronco sin girar hacia atrás."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos desde el frente del atleta y algo por encima, con encuadre completo de cabeza a pies; se ven ambas rodillas, la banda y los pies juntos.",
+          "contacts": "Costado, cadera y pierna de abajo sobre la colchoneta; cabeza apoyada en el brazo de abajo; mano de arriba sobre la cadera de arriba; talones o bordes internos de los pies en contacto durante toda la repetición.",
+          "load": "Banda elástica cerrada alrededor de ambos muslos, justo por encima de las rodillas; sin ningún otro peso.",
+          "orientation": "Atleta tumbado sobre el costado derecho con la cabeza hacia la izquierda del encuadre y el frente del cuerpo hacia la cámara; la pierna izquierda es la de arriba.",
+          "phase": "Punto más alto de la apertura: la rodilla de arriba separada unos 25–35 cm de la de abajo con los pies aún juntos, la banda estirada entre los muslos y la pelvis apilada.",
+          "posture": "Caderas flexionadas unos 60° con los muslos adelantados respecto al tronco, rodillas a unos 90°, pelvis y hombros apilados en vertical, columna y cuello neutros, pierna de arriba abierta como la tapa de una almeja."
+        },
+        "byImplement": {
+          "band": {
+            "geometry": "Banda plana cerrada (mini band) que rodea ambos muslos justo por encima de las rodillas, no sobre las rodillas ni los tobillos; con las rodillas juntas queda con poca carga y en el punto alto se estira en un óvalo entre los muslos separados."
+          }
+        },
+        "forbidden": [
+          "Atleta boca arriba con las rodillas dobladas y la banda en los muslos: eso es un puente de glúteo o una abducción en supino, no una almeja.",
+          "Pierna de arriba estirada y elevada hacia el costado: eso es una abducción de cadera tumbado de lado, no una almeja con las rodillas dobladas.",
+          "Posición a cuatro apoyos con una rodilla levantada hacia el costado (fire hydrant) o atleta de pie con la banda en los tobillos.",
+          "Pies separados, con el pie de arriba despegado del de abajo: en la almeja los pies se mantienen juntos y la rodilla se abre girando.",
+          "Pelvis o torso rodados hacia atrás, con la cadera de arriba caída hacia la espalda, para abrir más la rodilla.",
+          "Banda en los tobillos, en los pies o en las pantorrillas en lugar de rodear los muslos justo por encima de las rodillas.",
+          "Mancuerna, disco o lastre sobre la rodilla de arriba: la única resistencia es la banda."
+        ],
+        "promptCore": {
+          "band": "Three-quarter front view from slightly above of an athlete lying on the right side on a mat, head resting on the lower arm, top hand on the top hip, hips flexed about 60 degrees and knees bent about 90 degrees, heels touching, a flat loop resistance band stretched around both thighs just above the knees, the top knee lifted away from the bottom knee like an opened clamshell, pelvis stacked and not rolled backward, straight torso, no text, no logos."
+        },
+        "qa": [
+          "¿El atleta está tumbado de lado, con las caderas y las rodillas flexionadas y los muslos por delante del tronco?",
+          "¿La banda rodea ambos muslos justo por encima de las rodillas y se ve estirada entre ellos?",
+          "¿Los pies siguen juntos, talón con talón, mientras la rodilla de arriba se separa de la de abajo?",
+          "¿La cadera de arriba está justo encima de la de abajo, sin que la pelvis ni el torso rueden hacia atrás?",
+          "¿La rodilla de arriba está elevada formando una V abierta con la de abajo, como la tapa de una almeja?"
+        ]
+      }
+    }
+  },
+  "familyId": "lower_hip_abduction_external_rotation",
+  "schemaVersion": 1
+}

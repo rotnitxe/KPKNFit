@@ -180,7 +180,6 @@ private func legacyExerciseInfo(
     } + profile.stabilizerMuscles.map {
         InvolvedMuscle(muscle: muscleLabel($0), role: .STABILIZER)
     }
-    let coaching = rich.coaching
     return ExerciseMuscleInfo(
         id: id ?? definition.id,
         name: rich.display.displayName,
@@ -202,19 +201,12 @@ private func legacyExerciseInfo(
         technicalDifficulty: profile.technicalDifficulty,
         resistanceProfile: ResistanceProfile(
             curve: profile.resistanceProfile,
-            peakTensionPoint: rich.biomechanics.rangeOfMotion,
             description: rich.biomechanics.stability
         ),
-        commonMistakes: profile.commonMistakes.map {
-            CommonMistake(mistake: $0, correction: "Reduce la carga y repite el cue técnico.")
-        },
         setupCues: profile.setupCues,
         executionCues: profile.executionCues,
-        progressions: coaching.progressions.map { Progression(name: "Progresión", description: $0) },
-        regressions: coaching.regressions.map { Progression(name: "Regresión", description: $0) },
-        recommendedMobility: coaching.relevantMobility,
-        functionalTransfer: rich.programming.objectives.joined(separator: " ").nilIfBlank,
-        sportsRelevance: rich.programming.splitSuitability,
+        // `functionalTransfer`/`sportsRelevance` stay nil on purpose: the catalog no longer
+        // ships template objectives, so `inferTransferLabel` falls back to the region sentence.
         setupTime: rich.programming.indicativeRestSeconds.min,
         averageRestSeconds: rich.programming.indicativeRestSeconds.max,
         executionOptions: definition.optionAxes,

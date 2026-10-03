@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "ontologyRevision": "wikilab-v3-2026-08-08",
+  "description": "Reglas anatómicas que VALIDAN el involucramiento muscular/articular; nunca lo generan. Cada selector presente debe cumplirse (AND); dentro de una lista basta una coincidencia (OR). Roles: PRIMARY > SECONDARY > STABILIZER > ninguno. Una excepción exige definitionIds o configurationIds y un why verificable. scripts/catalog_v2_quality_audit.py evalúa este archivo y valida que todo lo que referencia exista.",
+  "rules": [
+    {
+      "id": "rows.scapular-retraction-and-rear-delt",
+      "title": "Todo remo recluta retractores escapulares, deltoides posterior, dorsal y flexores del codo",
+      "evidence": "La retracción escapular (romboides, trapecio medio), la extensión y abducción horizontal del hombro (deltoides posterior, dorsal) y la flexión del codo (bíceps) forman parte del gesto de cualquier remo; ninguno es solo postural.",
+      "applies": {
+        "definitionIds": [
+          "chest_supported_row", "conventional_row", "gironda_row", "pendlay_row", "seal_row", "t_bar_row",
+          "back_remo_banda", "back_remo_gorilla_mancuernas", "back_remo_invertido", "back_remo_renegado_mancuernas"
+        ]
+      },
+      "require": [
+        {"muscle": "rhomboids", "atLeast": "SECONDARY"},
+        {"muscle": "deltoid", "atLeast": "SECONDARY"},
+        {"muscle": "trapezius", "atLeast": "SECONDARY"},
+        {"muscle": "latissimus_dorsi", "atLeast": "SECONDARY"},
+        {"muscle": "biceps", "atLeast": "SECONDARY"}
+      ]
+    },
+    {
+      "id": "rows.chest-supported-spine",
+      "title": "Con el pecho apoyado los erectores no son motores del ejercicio",
+      "evidence": "El apoyo del torso sostiene la columna: los extensores espinales no mueven ni contrarrestan carga significativa, así que no pueden ser principal ni secundario.",
+      "applies": {"definitionIds": ["chest_supported_row", "seal_row"]},
+      "forbid": [{"muscle": "erector_spinae", "roles": ["PRIMARY", "SECONDARY"]}]
+    },
+    {
+      "id": "grip.hanging-forearm",
+      "title": "Si el agarre sostiene el peso del cuerpo, el antebrazo trabaja",
+      "evidence": "Colgarse o tirar del propio peso exige a los flexores de dedos y muñeca sostener la carga de forma isométrica durante toda la serie.",
+      "applies": {
+        "definitionIds": ["pull_up", "rack_chin", "back_dominadas_escapulares", "core_elevacion_piernas", "back_remo_invertido"]
+      },
+      "require": [{"muscle": "forearm", "atLeast": "STABILIZER"}]
+    },
+    {
+      "id": "vertical-pull.elbow-flexors",
+      "title": "En toda tracción vertical el bíceps flexiona el codo contra carga (con cualquier agarre)",
+      "evidence": "La electromiografía de dominadas y jalones registra activación alta del bíceps braquial con agarre prono, neutro y supino (Youdas et al. 2010, J Strength Cond Res; Dickie et al. 2017, J Electromyogr Kinesiol); flexionar el codo es parte del recorrido, así que nunca es solo estabilizador. Sustituye a la regla L11 de la guía.",
+      "applies": {"definitionIds": ["pull_up", "rack_chin", "lat_pulldown"]},
+      "require": [{"muscle": "biceps", "atLeast": "SECONDARY"}],
+      "exact": [{"muscle": "latissimus_dorsi", "role": "PRIMARY"}]
+    },
+    {
+      "id": "hip.abductors-gluteus-medius",
+      "title": "En abducción o rotación externa de cadera el glúteo medio es el principal",
+      "evidence": "El glúteo medio es el abductor principal de la cadera y el que más se activa en abducción lateral, clamshell y marcha lateral con banda (Distefano et al. 2009, JOSPT; Selkowitz et al. 2013, JOSPT); el glúteo mayor acompaña, no lidera.",
+      "applies": {
+        "definitionIds": ["hip_abduction", "glutes_patada_gluteo_lateral", "glutes_clamshells_banda", "glutes_monster_walk_banda"]
+      },
+      "exact": [{"muscle": "gluteus_medius", "role": "PRIMARY"}]
+    },
+    {
+      "id": "elbow.static-no-flexors-extensors",
+      "title": "Con el codo inmóvil, bíceps y tríceps no son principal ni secundario",
+      "evidence": "Si el ángulo del codo no cambia durante el recorrido, bíceps y tríceps solo trabajan isométricamente y no aportan al movimiento: su rol, si existe, es de estabilizador.",
+      "applies": {
+        "movementPatterns": [
+          "scapular_elevation", "scapular_depression", "shoulder_abduction_full_rom", "shoulder_abduction_diagonal",
+          "shoulder_flexion", "horizontal_abduction"
+        ]
+      },
+      "forbid": [
+        {"muscle": "biceps", "roles": ["PRIMARY", "SECONDARY"]},
+        {"muscle": "triceps", "roles": ["PRIMARY", "SECONDARY"]}
+      ]
+    },
+    {
+      "id": "fly.static-elbow",
+      "title": "En aperturas el pectoral es el principal y el tríceps no empuja",
+      "evidence": "La apertura es aducción horizontal con el codo en ángulo fijo; la extensión del codo no forma parte del gesto.",
+      "applies": {
+        "definitionIds": ["flat_chest_fly", "incline_chest_fly", "decline_chest_fly", "tren_superior_cruce_poleas"]
+      },
+      "exact": [{"muscle": "pectoralis", "role": "PRIMARY"}],
+      "forbid": [{"muscle": "triceps", "roles": ["PRIMARY", "SECONDARY"]}]
+    },
+    {
+      "id": "raise.lats-not-movers",
+      "title": "En elevaciones de hombro el dorsal ancho no es principal ni secundario",
+      "evidence": "El dorsal ancho extiende y aduce el hombro: en elevaciones frontales, laterales y diagonales está alargado y actúa como antagonista.",
+      "applies": {
+        "movementPatterns": [
+          "shoulder_abduction_full_rom", "shoulder_abduction_diagonal", "shoulder_flexion", "horizontal_abduction"
+        ]
+      },
+      "forbid": [{"muscle": "latissimus_dorsi", "roles": ["PRIMARY", "SECONDARY"]}]
+    },
+    {
+      "id": "y-raise.pattern-and-lats",
+      "title": "Y-Raises: elevar el brazo por encima de la cabeza no es un encogimiento y el dorsal no lo mueve",
+      "evidence": "El Y-Raise lleva el brazo hacia arriba y afuera con rotación escapular superior (trapecio inferior y medio, deltoides); no es elevación de la escápula y el dorsal ancho se opone al gesto.",
+      "applies": {"definitionIds": ["back_y_raises"]},
+      "forbidPatterns": ["scapular_elevation"],
+      "forbid": [{"muscle": "latissimus_dorsi", "roles": ["PRIMARY", "SECONDARY"]}]
+    },
+    {
+      "id": "face-pull.rear-delt-and-scapular-retractors",
+      "title": "Face Pull: deltoides posterior y retractores escapulares, sin dorsal",
+      "evidence": "El Face Pull combina abducción horizontal y rotación externa del hombro con retracción escapular (deltoides posterior, trapecio medio e inferior, romboides); el dorsal ancho queda alargado y no colabora.",
+      "applies": {"definitionIds": ["deltoides_face_pull"]},
+      "require": [
+        {"muscle": "deltoid", "atLeast": "SECONDARY"},
+        {"muscle": "trapezius", "atLeast": "SECONDARY"},
+        {"muscle": "rhomboids", "atLeast": "SECONDARY"}
+      ],
+      "forbid": [{"muscle": "latissimus_dorsi", "roles": ["PRIMARY", "SECONDARY"]}]
+    },
+    {
+      "id": "kelso.pattern",
+      "title": "Kelso Shrugs: es retracción escapular, no elevación",
+      "evidence": "El Kelso Shrug se hace con el pecho apoyado o el tronco inclinado y lleva las escápulas hacia la columna (trapecio medio e inferior, romboides); no eleva los hombros hacia las orejas.",
+      "applies": {"definitionIds": ["back_encogimientos_kelso"]},
+      "forbidPatterns": ["scapular_elevation"],
+      "require": [
+        {"muscle": "trapezius", "atLeast": "SECONDARY"},
+        {"muscle": "rhomboids", "atLeast": "SECONDARY"}
+      ]
+    },
+    {
+      "id": "hinge.posterior-chain",
+      "title": "Toda bisagra de cadera usa glúteo mayor e isquiosurales y exige erectores como estabilizadores",
+      "evidence": "En peso muerto, buenos días, rumano y swing el glúteo mayor y los isquiosurales extienden la cadera y los erectores espinales sostienen la columna neutra bajo carga; ninguno puede faltar.",
+      "applies": {
+        "movementPatterns": [
+          "deadlift", "hip_hinge", "hip_hinge_deficit", "hip_hinge_explosive", "hip_hinge_lengthened",
+          "romanian_deadlift", "romanian_deadlift_deficit"
+        ]
+      },
+      "require": [
+        {"muscle": "erector_spinae", "atLeast": "STABILIZER"},
+        {"muscle": "gluteus_maximus", "atLeast": "SECONDARY"},
+        {"muscle": "hamstrings", "atLeast": "SECONDARY"}
+      ]
+    },
+    {
+      "id": "joint.knee-in-knee-patterns",
+      "title": "Si el patrón flexiona o extiende la rodilla, la rodilla es articulación principal",
+      "evidence": "Curls de isquiosurales, extensiones de cuádriceps y sus variantes mueven la rodilla contra carga; no puede faltar entre las articulaciones ni ser secundaria.",
+      "applies": {
+        "movementPatterns": [
+          "knee_flexion", "knee_extension", "eccentric_knee_flexion", "knee_hip_flexion", "knee_hip_extension"
+        ]
+      },
+      "requireJoints": [{"joint": "rodilla", "atLeast": "PRIMARY"}]
+    },
+    {
+      "id": "joint.grip-wrist",
+      "title": "En agarres isométricos la articulación solicitada es la muñeca, no la columna lumbar",
+      "evidence": "Sostener una barra, una mancuerna o un disco exige a los flexores de dedos y muñeca; la columna solo estabiliza el tronco y no es la articulación principal.",
+      "applies": {"movementPatterns": ["isometric_grip", "pinch_grip"]},
+      "requireJoints": [{"joint": "muñeca", "atLeast": "SECONDARY"}],
+      "forbidJoints": [{"joint": "columna-lumbar", "roles": ["PRIMARY"]}]
+    },
+    {
+      "id": "forearm-rotation.joint-and-pattern",
+      "title": "Supinaciones y pronaciones rotan el antebrazo (articulación radiocubital), no flexionan la muñeca",
+      "evidence": "La pronosupinación ocurre en las articulaciones radiocubitales; la muñeca solo transmite el giro. El patrón wrist_flexion describe otro gesto.",
+      "applies": {"definitionIds": ["supination", "pronation"]},
+      "forbidPatterns": ["wrist_flexion"],
+      "requireJoints": [{"joint": "radiocubital-proximal", "atLeast": "PRIMARY"}]
+    },
+    {
+      "id": "press.chest-synergists",
+      "title": "En presses y flexiones de pecho, el pectoral lidera y tríceps y deltoides anterior empujan",
+      "evidence": "Todo empuje horizontal con extensión de codo recluta pectoral mayor, tríceps braquial y deltoides anterior como sinergistas.",
+      "applies": {
+        "definitionIds": [
+          "bench_press", "decline_bench_press", "incline_bench_press", "floor_press", "paused_bench_press", "push_up",
+          "knee_push_up", "tren_superior_fondos", "tren_superior_press_banca_cadenas",
+          "tren_superior_press_banda_resistencia", "tren_superior_press_pecho_maquina_convergente",
+          "tren_superior_press_spoto_barra", "tren_superior_press_unilateral_polea",
+          "tren_superior_squeeze_press_mancuernas", "tren_superior_press_inclinado_maquina_convergente"
+        ]
+      },
+      "require": [
+        {"muscle": "pectoralis", "atLeast": "PRIMARY"},
+        {"muscle": "triceps", "atLeast": "SECONDARY"},
+        {"muscle": "deltoid", "atLeast": "SECONDARY"}
+      ]
+    },
+    {
+      "id": "press.overhead-synergists",
+      "title": "En presses por encima de la cabeza el deltoides lidera y el tríceps extiende el codo",
+      "evidence": "El empuje vertical combina flexión y abducción del hombro (deltoides) con extensión de codo (tríceps).",
+      "applies": {"movementPatterns": ["vertical_push", "diagonal_push"]},
+      "require": [
+        {"muscle": "deltoid", "atLeast": "PRIMARY"},
+        {"muscle": "triceps", "atLeast": "SECONDARY"}
+      ]
+    }
+  ],
+  "inheritance": [
+    {"id": "inherit.deficit-conventional", "child": "hams_peso_muerto_convencional_deficit", "parent": "conventional_deadlift", "allowedDifferences": []},
+    {"id": "inherit.deficit-stiff-leg", "child": "hams_peso_muerto_piernas_rigidas_deficit", "parent": "stiff_leg_deadlift", "allowedDifferences": []},
+    {"id": "inherit.deficit-sumo", "child": "hams_peso_muerto_sumo_deficit", "parent": "sumo_deadlift", "allowedDifferences": []},
+    {"id": "inherit.deficit-romanian", "child": "hams_peso_muerto_rumano_deficit", "parent": "romanian_deadlift", "allowedDifferences": []},
+    {"id": "inherit.deficit-romanian-sumo", "child": "hams_peso_muerto_rumano_sumo_deficit", "parent": "romanian_sumo_deadlift", "allowedDifferences": []},
+    {
+      "id": "inherit.romanian-sumo",
+      "child": "romanian_sumo_deadlift",
+      "parent": "romanian_deadlift",
+      "allowedDifferences": [
+        {"muscle": "adductors", "why": "La postura ancha pone a los aductores a ayudar en la extensión de cadera; el rumano convencional no los recluta de forma relevante."}
+      ]
+    },
+    {"id": "inherit.good-morning-zercher", "child": "good_morning_zercher", "parent": "good_morning", "allowedDifferences": []},
+    {"id": "inherit.paused-bench", "child": "paused_bench_press", "parent": "bench_press", "allowedDifferences": []},
+    {"id": "inherit.spoto-bench", "child": "tren_superior_press_spoto_barra", "parent": "bench_press", "allowedDifferences": []},
+    {"id": "inherit.chains-bench", "child": "tren_superior_press_banca_cadenas", "parent": "bench_press", "allowedDifferences": []},
+    {"id": "inherit.zercher-forward-lunge", "child": "quads_zancada_frontal_zercher", "parent": "forward_lunge", "allowedDifferences": []},
+    {"id": "inherit.zercher-reverse-lunge", "child": "quads_zancada_inversa_zercher", "parent": "reverse_lunge", "allowedDifferences": []},
+    {"id": "inherit.front-reverse-lunge", "child": "quads_zancada_inversa_frontal", "parent": "reverse_lunge", "allowedDifferences": []},
+    {"id": "inherit.zercher-walking-lunge", "child": "quads_zancada_caminando_zercher_barra_recta", "parent": "walking_lunge", "allowedDifferences": []},
+    {"id": "inherit.front-walking-lunge", "child": "quads_zancada_caminando_frontal_barra_recta", "parent": "walking_lunge", "allowedDifferences": []},
+    {"id": "inherit.zercher-step-up", "child": "quads_step_up_cajon_zercher", "parent": "step_up", "allowedDifferences": []},
+    {"id": "inherit.front-step-up", "child": "quads_step_up_cajon_frontal", "parent": "step_up", "allowedDifferences": []},
+    {"id": "inherit.zercher-bulgarian", "child": "bulgarian_zercher", "parent": "bulgarian_split_squat", "allowedDifferences": []},
+    {"id": "inherit.somersault-bulgarian", "child": "quads_sentadilla_bulgara_somersault", "parent": "bulgarian_split_squat", "allowedDifferences": []},
+    {"id": "inherit.jefferson-bulgarian", "child": "quads_sentadilla_bulgara_jefferson", "parent": "bulgarian_split_squat", "allowedDifferences": []},
+    {"id": "inherit.hack-inverted", "child": "quads_sentadilla_hack_invertida_maquina", "parent": "quads_sentadilla_hack", "allowedDifferences": []},
+    {"id": "inherit.v-squat-inverted", "child": "quads_sentadilla_v_squat_invertida_maquina", "parent": "quads_sentadilla_v_squat", "allowedDifferences": []},
+    {"id": "inherit.anderson-front", "child": "quads_sentadilla_anderson_frontal_barra_recta", "parent": "quads_sentadilla_anderson", "allowedDifferences": []},
+    {"id": "inherit.sumo-squat-front", "child": "quads_sentadilla_sumo_frontal", "parent": "sumo_squat", "allowedDifferences": []},
+    {"id": "inherit.sumo-squat-zercher", "child": "quads_sentadilla_sumo_zercher", "parent": "sumo_squat", "allowedDifferences": []},
+    {"id": "inherit.copenhagen-dynamic", "child": "copenhagen_plank_dynamic", "parent": "copenhagen_plank", "allowedDifferences": []},
+    {"id": "inherit.hyperextension-zercher", "child": "glutes_hiperextension_45_zercher", "parent": "glutes_hiperextension_45", "allowedDifferences": []},
+    {"id": "inherit.swing-unilateral", "child": "hams_swing_kettlebell_unilateral", "parent": "hams_swing_kettlebell_dos_manos", "allowedDifferences": []},
+    {"id": "inherit.pistol-assisted", "child": "quads_sentadilla_pistola_asistida_trx", "parent": "quads_sentadilla_pistola", "allowedDifferences": []}
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "core_inclinacion_lateral": {
+      "public": {
+        "configurations": {
+          "core_inclinacion_lateral__default": {
+            "description": "Con mancuernas, el tronco se inclina de lado con la carga en una mano y regresa a la vertical sin girar. El abdomen trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "De pie o sentado, te inclinas hacia el lado cargando el oblicuo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: De pie o sentado, te inclinas hacia el lado cargando el oblicuo."
+            ]
+          }
+        },
+        "description": "La Inclinación Lateral concentra el esfuerzo en los oblicuos con un gesto mínimo: el tronco se dobla de lado cargando una mancuerna y regresa a la vertical. Se ejecuta de pie con el peso en una sola mano, inclinándose sin girar el torso y volviendo despacio. El abdomen trabaja en su versión más lateral. Un detalle de cintura que solo funciona con cargas pacientes y técnica limpia."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_lateral_trunk_flexion",
+  "schemaVersion": 1
+}

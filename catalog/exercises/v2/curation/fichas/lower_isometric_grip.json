@@ -1,0 +1,67 @@
+{
+  "definitions": {
+    "forearms_paseo_del_granjero": {
+      "public": {
+        "configurations": {
+          "forearms_paseo_del_granjero__dumbbells": {
+            "description": "Con mancuernas, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas pesadas en cada mano y a caminar: aguanta el paseo sin soltar."
+            ]
+          },
+          "forearms_paseo_del_granjero__hex_bar": {
+            "description": "Con barra hexagonal, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. El antebrazo trabaja con la barra hexagonal, que centra la carga y alivia la espalda.",
+            "executionCues": [
+              "Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal cargada y a caminar: la barra en el centro reparte el peso."
+            ]
+          },
+          "forearms_paseo_del_granjero__kettlebell": {
+            "description": "Con kettlebell, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
+            "executionCues": [
+              "Kettlebells en cada mano y a caminar: el agarre sufre un poco más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells en cada mano y a caminar: el agarre sufre un poco más."
+            ]
+          },
+          "forearms_paseo_del_granjero__plate": {
+            "description": "Con disco, se camina en línea recta con una carga pesada en cada mano hasta que el agarre diga basta. Con el disco, el lastre es simple y directo sobre el antebrazo.",
+            "executionCues": [
+              "Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Discos en cada mano y a caminar: los discos lisos ponen el agarre a prueba."
+            ]
+          }
+        },
+        "description": "El Paseo del Granjero es caminar con peso pesado en cada mano hasta que el agarre diga basta: el antebrazo y el trapecio trabajan mientras el core mantiene el tronco digno. Se ejecuta con mancuernas o kettlebells pesadas, pasos cortos y la espalda alta durante todo el recorrido. La barra hexagonal o los discos sirven si es lo que hay. La prueba de agarre más honesta y más simple del mundo."
+      },
+      "status": "LEGACY"
+    },
+    "forearms_suspension_isometrica_barra_fija": {
+      "public": {
+        "configurations": {
+          "forearms_suspension_isometrica_barra_fija__default": {
+            "description": "Con peso corporal, colgado con los brazos extendidos, cada segundo suma trabajo de agarre. Sin más carga que el propio cuerpo, la exigencia del antebrazo es la justa.",
+            "executionCues": [
+              "Cuélgate de la barra y aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Cuélgate de la barra y aguanta el mayor tiempo posible."
+            ]
+          }
+        },
+        "description": "La Suspensión Isométrica en Barra Fija, el dead hang, es el ejercicio de agarre más simple que existe: colgarse y aguantar. Se practica con los brazos rectos y los hombros lejos de las orejas, resistiendo el reloj con el peso corporal. El antebrazo se funde mientras el dorsal estira. La base de todo agarre fuerte y una descompresión de columna de regalo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_isometric_grip",
+  "schemaVersion": 1
+}

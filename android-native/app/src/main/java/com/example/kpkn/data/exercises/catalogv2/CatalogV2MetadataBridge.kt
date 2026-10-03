@@ -7,8 +7,12 @@ import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseProfileV2
 import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseSnapshotV2
 import kotlinx.serialization.json.Json
 
+// Lenient on purpose: rich metadata persisted by older builds still carries the
+// fields retired in the F1 catalog cleanup (coaching, safety, editorial, ...).
+// A strict decoder would silently turn those rows into `null` and drop the
+// completed-history snapshot instead of simply ignoring the obsolete keys.
 private val catalogRichMetadataDecoder = Json {
-    ignoreUnknownKeys = false
+    ignoreUnknownKeys = true
 }
 
 /** Decode typed v2 metadata without reconstructing it from a display name. */
@@ -45,9 +49,8 @@ fun ExerciseMuscleInfo.toResolvedExerciseProfileV2(): ResolvedExerciseProfileV2?
         axialLoadFactor = metadata.fatigue.axialLoadFactor,
         technicalDifficulty = metadata.fatigue.technicalDifficulty,
         resistanceProfile = metadata.biomechanics.resistanceProfile,
-        setupCues = metadata.coaching.setup,
-        executionCues = metadata.coaching.execution,
-        commonMistakes = metadata.coaching.commonMistakes,
+        setupCues = setupCues.orEmpty(),
+        executionCues = executionCues.orEmpty(),
         performanceProfileId = metadata.identity.performanceProfileId,
         richMetadata = metadata,
         replacementGroup = metadata.replacement.replacementGroup,

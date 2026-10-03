@@ -63,7 +63,6 @@ class ExercisePickerV2ControllerTest {
     private fun family(familyId: String, definitionId: String) = ExerciseFamilyV2(
         id = familyId,
         canonicalName = definitionId,
-        description = "Familia de prueba para validar drafts independientes en el picker.",
         definitions = listOf(
             ExerciseDefinitionV2(
                 id = definitionId,
@@ -107,7 +106,6 @@ class ExercisePickerV2ControllerTest {
             resistanceProfile = "test",
             setupCues = listOf("setup"),
             executionCues = listOf("execute"),
-            commonMistakes = listOf("mistake"),
             performanceProfileId = "${definitionId}__${setup}__${implement}",
         ),
         evidence = evidence(),

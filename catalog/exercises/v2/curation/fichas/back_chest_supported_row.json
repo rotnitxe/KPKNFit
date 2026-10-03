@@ -1,0 +1,176 @@
+{
+  "definitions": {
+    "chest_supported_row": {
+      "public": {
+        "configurations": {
+          "chest_supported_row__cable__high__close": {
+            "description": "Con agarre cerrado y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con la polea alta, la línea de tracción cae desde arriba sobre el dorsal ancho.",
+            "executionCues": [
+              "Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta y agarre cerrado con el pecho apoyado: la línea descendente lleva los codos cerca del costado y favorece la tracción del dorsal."
+            ]
+          },
+          "chest_supported_row__cable__high__medium": {
+            "description": "Con agarre medio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+            "executionCues": [
+              "Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta y agarre medio con el pecho apoyado: los codos bajan con una apertura moderada y combinan dorsal con espalda media."
+            ]
+          },
+          "chest_supported_row__cable__high__wide": {
+            "description": "Con agarre amplio y polea alta, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea alta, la tracción entra por arriba y alarga el recorrido del dorsal ancho.",
+            "executionCues": [
+              "Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta y agarre amplio con el pecho apoyado: los codos se abren y la línea de tirón alcanza con mayor claridad la espalda alta."
+            ]
+          },
+          "chest_supported_row__cable__low__close": {
+            "description": "Con agarre cerrado y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+            "executionCues": [
+              "Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja y agarre cerrado con el pecho apoyado: las manos suben hacia la parte baja del torso mientras los codos permanecen próximos."
+            ]
+          },
+          "chest_supported_row__cable__low__medium": {
+            "description": "Con agarre medio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+            "executionCues": [
+              "Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja y agarre medio con el pecho apoyado: la tracción asciende hacia el torso y los codos recorren una diagonal intermedia."
+            ]
+          },
+          "chest_supported_row__cable__low__wide": {
+            "description": "Con agarre amplio y polea baja, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Desde polea baja, la tracción entra por abajo y cambia el ángulo del dorsal ancho.",
+            "executionCues": [
+              "Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja y agarre amplio con el pecho apoyado: los codos se separan y la carga sube hacia la zona media del pecho."
+            ]
+          },
+          "chest_supported_row__cable__mid__close": {
+            "description": "Con agarre cerrado y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Desde polea media, la línea horizontal pide control y mantiene el foco del dorsal ancho.",
+            "executionCues": [
+              "Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea media y agarre cerrado con el pecho apoyado: la empuñadura llega hacia la cintura con los codos recogidos."
+            ]
+          },
+          "chest_supported_row__cable__mid__medium": {
+            "description": "Con agarre medio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+            "executionCues": [
+              "Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea media y agarre medio con el pecho apoyado: los codos siguen una diagonal equilibrada entre el costado y la espalda alta."
+            ]
+          },
+          "chest_supported_row__cable__mid__wide": {
+            "description": "Con agarre amplio y polea media, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con la polea a media altura, la línea horizontal pide control del dorsal ancho.",
+            "executionCues": [
+              "Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Polea media y agarre amplio con el pecho apoyado: la apertura de los codos desplaza el foco hacia romboides y trapecio medio."
+            ]
+          },
+          "chest_supported_row__dumbbells__close": {
+            "description": "Con mancuernas y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+            "executionCues": [
+              "Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y agarre cerrado con el pecho apoyado: los codos descienden junto al cuerpo y cada brazo conserva su propia trayectoria."
+            ]
+          },
+          "chest_supported_row__dumbbells__medium": {
+            "description": "Con mancuernas y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+            "executionCues": [
+              "Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y agarre medio con el pecho apoyado: la apertura moderada de los codos reparte la demanda entre dorsal y espalda media."
+            ]
+          },
+          "chest_supported_row__dumbbells__wide": {
+            "description": "Con mancuernas y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "executionCues": [
+              "Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y agarre amplio con el pecho apoyado: los codos se separan para acercar las cargas a la parte alta del torso."
+            ]
+          },
+          "chest_supported_row__kettlebell__close": {
+            "description": "Con kettlebell y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra.",
+            "executionCues": [
+              "Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells y agarre cerrado con el pecho apoyado: el peso cuelga bajo la mano y los codos permanecen cerca del costado."
+            ]
+          },
+          "chest_supported_row__kettlebell__medium": {
+            "description": "Con kettlebell y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+            "executionCues": [
+              "Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells y agarre medio con el pecho apoyado: la carga desplazada obliga a organizar la muñeca cuando los codos retroceden."
+            ]
+          },
+          "chest_supported_row__kettlebell__wide": {
+            "description": "Con kettlebell y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "executionCues": [
+              "Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells y agarre amplio con el pecho apoyado: los codos se abren mientras el peso bajo el agarre exige estabilidad en cada mano."
+            ]
+          },
+          "chest_supported_row__machine__close": {
+            "description": "Con máquina y agarre cerrado, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+            "executionCues": [
+              "Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Máquina y agarre cerrado con el pecho apoyado: el recorrido guiado mantiene los codos junto al cuerpo y reduce la variación entre repeticiones."
+            ]
+          },
+          "chest_supported_row__machine__medium": {
+            "description": "Con máquina y agarre medio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+            "executionCues": [
+              "Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Máquina y agarre medio con el pecho apoyado: la guía fija una apertura moderada para repartir el tirón entre dorsal y espalda media."
+            ]
+          },
+          "chest_supported_row__machine__wide": {
+            "description": "Con máquina y agarre amplio, el pecho apoyado deja la espalda trabajar sin ayuda del tronco y los codos viajan hacia atrás en cada tirón. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "executionCues": [
+              "Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta. El pecho permanece en contacto con el banco; los codos viajan según el agarre y la carga vuelve sin despegar el torso."
+            ],
+            "setupCues": [
+              "Preparación: Máquina y agarre amplio con el pecho apoyado: los codos se separan siguiendo un recorrido predeterminado hacia la espalda alta."
+            ]
+          }
+        },
+        "description": "El Remo con Pecho Apoyado es la tracción horizontal sin trampas: con el torso pegado al banco, el dorsal ancho tira sin que la zona lumbar pueda robar ni un ápice del trabajo. Se ejecuta con el pecho sobre el banco inclinado y las mancuernas colgando, llevando los codos hacia atrás hasta juntar los omóplatos y bajando con el mismo control. En polea la tensión no se apaga en ningún punto del recorrido, una variante que conviene tener en el arsenal. La vía más honesta para construir una espalda alta sin pagarla con la espalda baja."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "back_chest_supported_row",
+  "schemaVersion": 1
+}

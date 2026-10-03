@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip extension abduction",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#glutes_patada_gluteo_polea_diagonal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_patada_gluteo_polea_diagonal__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El glúteo mayor trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El toque final para redondear el trabajo de glúteo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con polea, la pierna sale atrás y hacia afuera en un arco diagonal que mezcla extensión y apertura. El glúteo mayor trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera combina extensión y abducción mientras la pierna describe el arco diagonal, con el cable de la polea baja tirando en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla sostiene la estabilidad de la pierna que describe el arco diagonal, con el cable de la polea baja cruzando el cuerpo de lado a lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene la alineación del tronco mientras el cable cruza el cuerpo y la cadera proyecta la pierna en diagonal.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras la pierna viaja en diagonal y el cable de la polea baja mantiene su tracción constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,12 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "hip_extension_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: Con la polea baja y el cable cruzando el cuerpo, el glúteo mayor proyecta la pierna atrás y hacia afuera y frena el regreso con tensión constante."
-                }
-              ],
               "performanceProfileId": "glutes_patada_gluteo_polea_diagonal__cable__patada_de_gluteos_diagonal_en_polea",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -104,7 +86,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera combina extensión y abducción mientras la pierna describe el arco diagonal, con el cable de la polea baja tirando en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -112,7 +93,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla sostiene la estabilidad de la pierna que describe el arco diagonal, con el cable de la polea baja cruzando el cuerpo de lado a lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -120,7 +100,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene la alineación del tronco mientras el cable cruza el cuerpo y la cadera proyecta la pierna en diagonal.",
                       "role": "STABILIZER"
                     },
                     {
@@ -128,20 +107,14 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca sostiene el control pélvico mientras la pierna viaja en diagonal y el cable de la polea baja mantiene su tracción constante.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "gluteus_maximus"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -151,7 +124,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "hip_extension_abduction",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -161,43 +133,10 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante."
-                  ]
-                },
                 "display": {
                   "displayName": "Patada de Glúteos Diagonal en Polea",
                   "displaySummary": "Polea",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El toque final para redondear el trabajo de glúteo."
-                  ],
-                  "description": "Con polea, la pierna sale atrás y hacia afuera en un arco diagonal que mezcla extensión y apertura. El glúteo mayor trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. Un ángulo que cambia la línea de resistencia al glúteo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -210,7 +149,7 @@
                 },
                 "identity": {
                   "canonicalName": "Patada de Glúteos Diagonal en Polea",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "glutes_patada_gluteo_polea_diagonal__default",
                   "definitionId": "glutes_patada_gluteo_polea_diagonal",
                   "familyId": "lower_hip_extension_abduction",
@@ -226,42 +165,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Patada de Glúteos Diagonal en Polea en la variante Polea.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension_abduction:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_kickback",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -272,9 +189,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. Un ángulo que cambia la línea de resistencia al glúteo."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -286,7 +201,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_extension_abduction",
@@ -298,13 +212,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón hip_extension_abduction; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_extension_abduction",

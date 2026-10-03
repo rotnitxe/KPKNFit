@@ -1,0 +1,32 @@
+{
+  "definitions": {
+    "crossbody_triceps_extension": {
+      "public": {
+        "configurations": {
+          "crossbody_triceps__cable__bilateral": {
+            "description": "Con a dos lados, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+            "executionCues": [
+              "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario."
+            ]
+          },
+          "crossbody_triceps__cable__unilateral": {
+            "description": "Con a un lado, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante."
+            ]
+          }
+        },
+        "description": "La Extensión de Tríceps Cruzada en Polea Alta cruza el brazo por delante del cuerpo: con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. Se practica un brazo cada vez, con el codo pegado a la cabeza y la trayectoria cruzada. La cabeza larga se estira desde un ángulo poco común. Un matiz de polea que el tríceps nota desde la primera serie."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_elbow_extension_crossbody",
+  "schemaVersion": 1
+}

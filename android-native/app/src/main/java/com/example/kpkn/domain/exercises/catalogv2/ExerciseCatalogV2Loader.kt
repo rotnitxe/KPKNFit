@@ -18,8 +18,9 @@ object ExerciseCatalogV2Loader {
     }
     fun decodeApproved(payload: String): ExerciseCatalogV2 {
         val decoded = json.decodeFromString(ExerciseCatalogV2.serializer(), payload)
-        // Retired explanatory fields are optional compatibility keys. The
-        // canonical runtime asset omits them and no hydration recreates them.
+        // Fields retired in F1 are unknown keys here (ignored when an older asset
+        // still carries them). The canonical runtime asset never emits them: the
+        // compiler, the gate and the backend reject them, and a test scans the asset.
         val catalog = decoded
         require(catalog.schemaVersion == 2) { "Unsupported catalog schema: ${catalog.schemaVersion}" }
         requireNonBlank(catalog.catalogRevision, "catalogRevision")
@@ -50,7 +51,6 @@ object ExerciseCatalogV2Loader {
             require(familyIds.add(family.id)) { "Duplicate family id: ${family.id}" }
             require(family.id.isNotBlank()) { "Family id must not be blank" }
             requireNonBlank(family.canonicalName, "family.canonicalName:${family.id}")
-            require(family.description.length >= 40) { "family.description is too short: ${family.id}" }
             family.definitions.forEach { definition ->
                 require(definitionIds.add(definition.id)) {
                     "Duplicate definition id: ${definition.id}"
@@ -137,21 +137,10 @@ object ExerciseCatalogV2Loader {
                     require(profile.description.trim().length >= 40) {
                         "Configuration description is too short: ${configuration.id}"
                     }
-                    requireNonBlankList(profile.benefits, "profile.benefits")
-                    require(profile.benefits.all { it.trim().length >= 40 }) {
-                        "profile benefit is too short: ${configuration.id}"
-                    }
-                    require(profile.techniqueSummary.trim().length >= 40) {
-                        "profile.techniqueSummary is too short: ${configuration.id}"
-                    }
-                    require(profile.variantRationale.trim().length >= 40) {
-                        "profile.variantRationale is too short: ${configuration.id}"
-                    }
                     requireNonBlank(profile.performanceProfileId, "profile.performanceProfileId")
                     requireNonBlankList(profile.primaryMuscles, "profile.primaryMuscles")
                     requireNonBlankList(profile.setupCues, "profile.setupCues")
                     requireNonBlankList(profile.executionCues, "profile.executionCues")
-                    requireNonBlankList(profile.commonMistakes, "profile.commonMistakes")
                     val listedMuscles = profile.primaryMuscles + profile.secondaryMuscles + profile.stabilizerMuscles
                     require(listedMuscles.size == listedMuscles.toSet().size) {
                         "Muscle listed in more than one role: ${configuration.id}"
@@ -209,48 +198,31 @@ object ExerciseCatalogV2Loader {
                     require(rich.fatigue.technicalDifficulty == profile.technicalDifficulty)
                     require(rich.replacement.replacementGroup == profile.replacementGroup)
                     require(rich.replacement.replacementPriority == profile.replacementPriority)
-                    require(rich.coaching.setup == profile.setupCues)
-                    require(rich.coaching.execution == profile.executionCues)
-                    require(rich.coaching.commonMistakes == profile.commonMistakes)
                     require(rich.display.displayName == definition.canonicalName)
                     require(rich.display.displaySummary == configuration.displaySummary)
                     require(rich.display.selectedOptions == configuration.selectedOptions)
                     require(rich.evidenceConfidence == configuration.evidence.confidence)
-                    requireNonBlankList(rich.anatomy.targetRegions, "rich.anatomy.targetRegions")
                     requireNonBlankList(rich.anatomy.jointActions, "rich.anatomy.jointActions")
-                    requireNonBlank(rich.anatomy.muscleLengthBias ?: "", "rich.anatomy.muscleLengthBias")
+                    // jointActions is derived from jointInvolvement (same rule as the compiler and the backend).
+                    require(rich.anatomy.jointActions == profile.jointInvolvement.flatMap { it.actions }.distinct()) {
+                        "jointActions must be derived from jointInvolvement: ${configuration.id}"
+                    }
                     requireNonBlank(rich.anatomy.volumeContribution ?: "", "rich.anatomy.volumeContribution")
-                    requireNonBlank(rich.anatomy.stabilizationDemand ?: "", "rich.anatomy.stabilizationDemand")
-                    requireNonBlank(rich.biomechanics.rangeOfMotion ?: "", "rich.biomechanics.rangeOfMotion")
                     requireNonBlank(rich.biomechanics.stability ?: "", "rich.biomechanics.stability")
                     requireNonBlankList(rich.biomechanics.relevantJoints, "rich.biomechanics.relevantJoints")
                     require(rich.biomechanics.relevantJoints.toSet() == jointIds.toSet()) {
                         "relevantJoints must cover jointInvolvement exactly: ${configuration.id}"
                     }
                     requireNonBlank(rich.programming.role ?: "", "rich.programming.role")
-                    requireNonBlankList(rich.programming.objectives, "rich.programming.objectives")
-                    requireNonBlankList(rich.programming.suitableRepRanges, "rich.programming.suitableRepRanges")
                     require(rich.programming.indicativeRestSeconds != null)
                     requireNonBlank(rich.programming.fatigueCost ?: "", "rich.programming.fatigueCost")
-                    requireNonBlank(rich.programming.recoveryCost ?: "", "rich.programming.recoveryCost")
                     requireNonBlankList(rich.programming.requiredEquipment, "rich.programming.requiredEquipment")
-                    requireNonBlank(rich.programming.setupTransitionCost ?: "", "rich.programming.setupTransitionCost")
-                    requireNonBlankList(rich.programming.splitSuitability, "rich.programming.splitSuitability")
                     requireNonBlankList(rich.replacement.compatibleEquipmentIds, "rich.replacement.compatibleEquipmentIds", allowEmpty = true)
                     requireNonBlankList(rich.replacement.preservesIntent, "rich.replacement.preservesIntent")
-                    requireNonBlankList(rich.coaching.cues, "rich.coaching.cues")
-                    requireNonBlankList(rich.coaching.progressions, "rich.coaching.progressions")
-                    requireNonBlankList(rich.coaching.regressions, "rich.coaching.regressions")
-                    requireNonBlankList(rich.coaching.relevantMobility, "rich.coaching.relevantMobility", allowEmpty = true)
-                    requireNonBlankList(rich.safety.risks, "rich.safety.risks", allowEmpty = true)
-                    requireNonBlankList(rich.safety.precautions, "rich.safety.precautions", allowEmpty = true)
-                    require(rich.editorial.description == profile.description)
-                    require(rich.editorial.benefits == profile.benefits)
-                    require(rich.editorial.technique == profile.techniqueSummary)
-                    require(rich.editorial.variantRationale == profile.variantRationale)
-                    requireNonBlankList(rich.editorial.benefits, "rich.editorial.benefits")
-                    requireNonBlank(rich.editorial.technique, "rich.editorial.technique")
-                    requireNonBlank(rich.editorial.variantRationale, "rich.editorial.variantRationale")
+                    // preservesIntent is derived: same movement pattern and same primary target muscle.
+                    require(rich.replacement.preservesIntent == profile.primaryMuscles.map { "${profile.movementPatternId}:$it" }) {
+                        "preservesIntent must be derived from pattern + primary muscles: ${configuration.id}"
+                    }
                     require(rich.evidenceConfidence != CatalogConfidenceV2.LOW)
                 }
             }

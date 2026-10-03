@@ -1,0 +1,40 @@
+{
+  "definitions": {
+    "hams_swing_kettlebell_dos_manos": {
+      "public": {
+        "configurations": {
+          "hams_swing_kettlebell_dos_manos__default": {
+            "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
+            "executionCues": [
+              "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Impulsas la campana entre las piernas y la lanzas al pecho con la cadera."
+            ]
+          }
+        },
+        "description": "El Swing con Kettlebell a Dos Manos convierte la bisagra en un gesto balístico: la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Se ejecuta dejando que la kettlebell caiga y empujando el suelo con glúteos e isquiosurales, sin usar los brazos para subirla. Los erectores mantienen la espalda en cada vaivén. El movimiento que enseña potencia de cadera y quema energía a partes iguales."
+      },
+      "status": "LEGACY"
+    },
+    "hams_swing_kettlebell_unilateral": {
+      "public": {
+        "configurations": {
+          "hams_swing_kettlebell_unilateral__default": {
+            "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: La campana viaja con una sola mano y el torso aguanta el giro."
+            ]
+          }
+        },
+        "description": "El Swing con Kettlebell a Una Mano añade el giro al vaivén: con una sola mano en la campana, el core debe impedir que el torso rote en cada balanceo. Se ejecuta igual que el swing a dos manos, pero el brazo libre busca equilibrio y la cadera trabaja con un extra de control. Los isquiosurales y el glúteo siguen siendo el motor. La progresión natural cuando el swing básico ya se domina."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_hinge_explosive",
+  "schemaVersion": 1
+}

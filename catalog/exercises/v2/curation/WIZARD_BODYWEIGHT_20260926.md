@@ -112,6 +112,12 @@ python scripts/curaduria_v6_catalogo_editorial.py --only-definitions knee_push_u
 python scripts/merge_catalog_v2_families.py
 ```
 
+> Registro histórico: `curaduria_v6_catalogo_editorial.py` y los briefs que aplicaba
+> fueron retirados (hoy el script vive en `scripts/legacy/` y no corre sin
+> confirmación). El equivalente vigente es
+> `python scripts/catalog_v2_apply_fichas.py --only-definitions knee_push_up,quads_sentadilla_sin_carga`,
+> que copia la ficha de la familia (`curation/fichas/`).
+
 El modo acotado no reescribe la revisión, no reintroduce la atribución humana
 histórica y no toca las otras 94 familias. La transformación completa se validó
 primero sobre una copia temporal de las 96 familias antes de escribir nada en el

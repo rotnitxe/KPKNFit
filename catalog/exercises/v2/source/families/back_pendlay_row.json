@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Remo Pendlay",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendlay_row__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "El remo de los que entrenan fuerza explosiva, sin concesiones."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con barra, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -46,7 +38,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro extiende y aduce el brazo para subir la barra desde el suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -54,7 +45,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde el suelo y vuelven a abrirse cuando la barra se apoya entre repeticiones.",
                   "role": "PRIMARY"
                 },
                 {
@@ -62,7 +52,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo flexiona para traer la barra al torso desde el suelo y se extiende al devolver la carga al apoyo sin rebote.",
                   "role": "SECONDARY"
                 },
                 {
@@ -70,7 +59,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de la barra al despegarla del suelo y resiste el peso en cada reinicio con el torso casi horizontal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -78,36 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho arranca la barra desde el suelo con el torso casi horizontal y concentra cada tirón hasta el abdomen sin rebote."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la retracción escapular en cada tirón desde el suelo y devuelve la barra al apoyo entre repetición y repetición."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para traer la barra al torso desde el apoyo en el suelo y frena la bajada hasta la posición inicial."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque desde el suelo y frenan la apertura cuando la barra vuelve a apoyarse."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides posterior extiende el hombro al subir la barra desde el suelo con el torso casi paralelo y modera el descenso."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso casi paralelo al suelo en cada arranque de la barra desde cero."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija de forma isométrica el tronco horizontal antes de cada tirón y vuelve a organizarse con la barra apoyada."
-                }
-              ],
               "performanceProfileId": "pendlay_row__barbell__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -132,7 +90,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro extiende y aduce el brazo para subir la barra desde el suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -140,7 +97,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde el suelo y vuelven a abrirse cuando la barra se apoya entre repeticiones.",
                       "role": "PRIMARY"
                     },
                     {
@@ -148,7 +104,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo flexiona para traer la barra al torso desde el suelo y se extiende al devolver la carga al apoyo sin rebote.",
                       "role": "SECONDARY"
                     },
                     {
@@ -156,11 +111,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de la barra al despegarla del suelo y resiste el peso en cada reinicio con el torso casi horizontal.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -170,13 +123,9 @@
                     "rhomboids",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -187,7 +136,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -197,45 +145,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "execution": [
-                    "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Pendlay",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
-                  ],
-                  "description": "Con barra, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-                  "variantRationale": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -248,7 +163,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pendlay_row__barbell",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -266,44 +181,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Pendlay en la variante Barra.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -321,9 +213,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-              "ttc": 1.8,
-              "variantRationale": "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. El reinicio elimina el rebote y permite valorar la fuerza de la espalda alta con una posición inicial repetible."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -337,7 +227,6 @@
                 "legacy:exercise_database.json#back_remo_mancuerna",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendlay_row__dumbbells",
@@ -345,16 +234,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "El remo de los que entrenan fuerza explosiva, sin concesiones."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con mancuernas, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -369,7 +251,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro extiende y aduce el brazo al subir cada mancuerna desde el suelo con la espalda paralela a la plataforma.",
                   "role": "PRIMARY"
                 },
                 {
@@ -377,7 +258,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón de mancuernas desde el suelo y frenan la apertura al volver a apoyar la carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -385,7 +265,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo flexiona para elevar la mancuerna desde el suelo hasta el costado y se extiende al apoyarla otra vez en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -393,7 +272,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca estabiliza el agarre de cada mancuerna al despegarla del suelo y resiste el peso de cada lado por separado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -401,36 +279,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho sube cada mancuerna desde el suelo con la espalda paralela a la plataforma y cierra el tirón sin ayuda del otro lado."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la retracción escapular en cada tirón de mancuernas desde el suelo y devuelve la carga al apoyo inicial."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para elevar la mancuerna desde el suelo hasta el costado y frena el descenso hasta apoyarla de nuevo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides aproximan las escápulas al tirar de cada mancuerna desde el suelo y frenan su separación al volver a apoyar la carga."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides posterior extiende el hombro en cada tirón de mancuerna independiente desde el suelo y modera la bajada."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores sostienen de forma isométrica la espalda paralela a la plataforma mientras las mancuernas parten del suelo."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core organiza de forma isométrica el tronco antes de cada arranque de las mancuernas y se reorganiza al apoyar la carga."
-                }
-              ],
               "performanceProfileId": "pendlay_row__dumbbells__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -455,7 +303,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro extiende y aduce el brazo al subir cada mancuerna desde el suelo con la espalda paralela a la plataforma.",
                       "role": "PRIMARY"
                     },
                     {
@@ -463,7 +310,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón de mancuernas desde el suelo y frenan la apertura al volver a apoyar la carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -471,7 +317,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo flexiona para elevar la mancuerna desde el suelo hasta el costado y se extiende al apoyarla otra vez en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -479,11 +324,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca estabiliza el agarre de cada mancuerna al despegarla del suelo y resiste el peso de cada lado por separado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -493,13 +336,9 @@
                     "rhomboids",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -510,7 +349,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -520,45 +358,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "execution": [
-                    "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Pendlay",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
-                  ],
-                  "description": "Con mancuernas, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-                  "variantRationale": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -571,7 +376,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pendlay_row__dumbbells",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -589,42 +394,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Pendlay en la variante Mancuernas.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_dumbbell",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -642,9 +426,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-              "ttc": 1.8,
-              "variantRationale": "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada lado debe producir su propio tirón y volver a apoyar la carga, lo que reduce la ayuda del lado dominante entre repeticiones."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -658,7 +440,6 @@
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendlay_row__machine",
@@ -666,16 +447,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
-                "El remo de los que entrenan fuerza explosiva, sin concesiones."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con máquina, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -690,7 +464,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro extiende y aduce el brazo para arrancar las asas desde la parada con el tronco casi horizontal y acercarlas al torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -698,7 +471,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde las asas detenidas y vuelven a abrirse con el tronco sostenido por la máquina.",
                   "role": "PRIMARY"
                 },
                 {
@@ -706,7 +478,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo flexiona para traer las asas al torso desde la parada inicial y se extiende hasta detenerlas otra vez en la máquina.",
                   "role": "SECONDARY"
                 },
                 {
@@ -714,7 +485,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca estabiliza el agarre de las asas al salir de la posición detenida y resiste la carga durante todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -722,36 +492,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho arranca cada tirón desde las asas detenidas con el tronco casi horizontal y las acerca al torso sin impulso previo."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la retracción escapular al cerrar cada tirón desde la posición detenida de la máquina y frena la vuelta al inicio."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para traer las asas al torso desde la parada inicial y frena su regreso hasta detenerlas de nuevo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque desde las asas detenidas y frenan la apertura al volver al inicio."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides posterior extiende el hombro desde el arranque detenido de la máquina con el tronco casi horizontal y modera la vuelta."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el tronco casi horizontal ante cada arranque desde las asas detenidas de la máquina."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija de forma isométrica el tronco antes de cada tirón desde la parada de la máquina y se reorganiza entre repeticiones."
-                }
-              ],
               "performanceProfileId": "pendlay_row__machine__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -776,7 +516,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro extiende y aduce el brazo para arrancar las asas desde la parada con el tronco casi horizontal y acercarlas al torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -784,7 +523,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde las asas detenidas y vuelven a abrirse con el tronco sostenido por la máquina.",
                       "role": "PRIMARY"
                     },
                     {
@@ -792,7 +530,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo flexiona para traer las asas al torso desde la parada inicial y se extiende hasta detenerlas otra vez en la máquina.",
                       "role": "SECONDARY"
                     },
                     {
@@ -800,11 +537,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca estabiliza el agarre de las asas al salir de la posición detenida y resiste la carga durante todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -814,13 +549,9 @@
                     "rhomboids",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -831,7 +562,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -841,45 +571,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "execution": [
-                    "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Pendlay",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
-                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
-                  ],
-                  "description": "Con máquina, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
-                  "technique": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-                  "variantRationale": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -892,7 +589,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pendlay_row__machine",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -910,44 +607,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Pendlay en la variante Máquina.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -965,9 +639,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-              "ttc": 1.8,
-              "variantRationale": "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. La estación permite practicar el arranque desde una referencia estable y concentrar la fuerza en la espalda alta."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "machine"
@@ -981,7 +653,6 @@
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendlay_row__smith_machine",
@@ -989,16 +660,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                "El remo de los que entrenan fuerza explosiva, sin concesiones."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con máquina Smith, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
@@ -1013,7 +677,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro extiende y aduce el brazo para subir la barra Smith desde la posición baja y devuelve la carga hasta detenerla.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1021,7 +684,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: Las escápulas se retraen al subir la barra desde su parada baja y frenan la apertura cuando la Smith regresa al inicio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1029,7 +691,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo flexiona para elevar la barra desde la parada baja de la Smith y se extiende hasta detenerla de nuevo entre repeticiones.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1037,7 +698,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de la barra Smith en cada arranque desde la posición baja y resiste el peso sobre la guía.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1045,36 +705,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho arranca la Smith desde la posición baja con la barra detenida y sube cada repetición por la línea guiada sin rebote."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la retracción escapular al subir la barra desde su parada baja y devuelve la Smith al punto de partida."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para elevar la barra Smith desde la parada y frena el descenso hasta detenerla de nuevo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque desde la barra detenida y frenan la apertura al volver la Smith a la posición baja."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides posterior extiende el hombro para subir la barra desde la parada baja de la Smith y modera su descenso hasta el reinicio."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso casi horizontal en cada arranque de la barra Smith desde la posición baja."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene de forma isométrica el tronco horizontal en cada repetición que parte desde la barra detenida en la Smith."
-                }
-              ],
               "performanceProfileId": "pendlay_row__smith_machine__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1099,7 +729,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro extiende y aduce el brazo para subir la barra Smith desde la posición baja y devuelve la carga hasta detenerla.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1107,7 +736,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: Las escápulas se retraen al subir la barra desde su parada baja y frenan la apertura cuando la Smith regresa al inicio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1115,7 +743,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo flexiona para elevar la barra desde la parada baja de la Smith y se extiende hasta detenerla de nuevo entre repeticiones.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1123,11 +750,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de la barra Smith en cada arranque desde la posición baja y resiste el peso sobre la guía.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -1137,13 +762,9 @@
                     "rhomboids",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1154,7 +775,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1164,45 +784,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "execution": [
-                    "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Pendlay",
                   "displaySummary": "smith_machine",
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
-                  ],
-                  "description": "Con máquina Smith, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                  "technique": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-                  "variantRationale": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1215,7 +802,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pendlay_row__smith_machine",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1233,44 +820,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Pendlay en la variante Máquina Smith.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -1288,9 +852,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-              "ttc": 1.8,
-              "variantRationale": "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. El recorrido fijo simplifica el equilibrio, pero mantiene la exigencia de colocar el torso y producir cada tirón sin rebote."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -1304,7 +866,6 @@
                 "legacy:exercise_database.json#back_remo_pendlay_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendlay_row__kettlebell",
@@ -1312,16 +873,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
-                "El remo de los que entrenan fuerza explosiva, sin concesiones."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con kettlebell, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -1336,7 +890,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro extiende y aduce el brazo al despegar la kettlebell del suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1344,7 +897,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: Las escápulas se retraen al cerrar el tirón con la kettlebell elevada y frenan la apertura cuando la carga vuelve al suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1352,7 +904,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo flexiona para subir la kettlebell desde el suelo hasta el costado y se extiende al apoyarla otra vez delante de los pies.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1360,7 +911,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca estabiliza el agarre bajo de la kettlebell al despegarla del suelo y soporta la masa colgando por debajo de la mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1368,36 +918,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho despega las kettlebells del suelo delante de los pies y cierra cada tirón con el torso casi paralelo a la plataforma."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la retracción escapular al elevar las kettlebells desde el suelo y devuelve la carga al apoyo inicial."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para subir la kettlebell desde el suelo hasta el costado y frena la bajada hasta apoyarla otra vez."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides aproximan las escápulas en el arranque de cada kettlebell desde el suelo y frenan la apertura al apoyar la carga."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides posterior extiende el hombro al despegar la kettlebell del suelo con el torso casi horizontal y modera el descenso."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso casi horizontal antes de despegar las kettlebells del suelo."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija de forma isométrica el tronco antes de cada despegue de las kettlebells y vuelve a organizarse con la carga en el suelo."
-                }
-              ],
               "performanceProfileId": "pendlay_row__kettlebell__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1422,7 +942,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro extiende y aduce el brazo al despegar la kettlebell del suelo con el torso casi horizontal y devuelve la carga al apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1430,7 +949,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: Las escápulas se retraen al cerrar el tirón con la kettlebell elevada y frenan la apertura cuando la carga vuelve al suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1438,7 +956,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo flexiona para subir la kettlebell desde el suelo hasta el costado y se extiende al apoyarla otra vez delante de los pies.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1446,11 +963,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca estabiliza el agarre bajo de la kettlebell al despegarla del suelo y soporta la masa colgando por debajo de la mano.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -1460,13 +975,9 @@
                     "rhomboids",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1477,7 +988,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1487,45 +997,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "execution": [
-                    "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Pendlay",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
-                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
-                  ],
-                  "description": "Con kettlebell, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
-                  "technique": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-                  "variantRationale": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1538,7 +1015,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pendlay_row__kettlebell",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1556,44 +1033,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Pendlay en la variante Kettlebell.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -1611,9 +1065,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-              "ttc": 1.8,
-              "variantRationale": "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. La carga independiente conserva el reinicio, pero añade una estabilización más cambiante que la barra."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1627,7 +1079,6 @@
                 "legacy:exercise_database.json#back_remo_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pendlay_row__cable",
@@ -1635,16 +1086,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El remo de los que entrenan fuerza explosiva, sin concesiones."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con polea, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -1659,7 +1103,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro extiende y aduce el brazo para arrancar la empuñadura de la polea baja desde la parada con el torso casi horizontal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1667,7 +1110,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde la empuñadura detenida y frenan la apertura con tensión continua del cable.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1675,7 +1117,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo flexiona para traer la empuñadura de la polea baja al torso y se extiende hasta la parada inicial sin perder tensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1683,7 +1124,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca estabiliza el agarre de la empuñadura al salir de la parada y resiste la tensión continua del cable en todo el arco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1691,36 +1131,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho inicia cada tirón con la empuñadura de la polea baja detenida y el torso horizontal, sin impulso entre repeticiones."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la retracción escapular en cada tirón desde la empuñadura detenida y frena la apertura con el cable tenso."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para traer la empuñadura de la polea baja al torso y frena su vuelta hasta la parada inicial."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides aproximan las escápulas en cada arranque detenido de la polea baja y frenan la apertura con tensión continua del cable."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides posterior extiende el hombro desde la parada de la polea baja con el torso horizontal y modera el regreso de la empuñadura."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores sostienen de forma isométrica el torso horizontal frente a la polea baja durante el arranque de cada tirón."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija de forma isométrica el tronco horizontal ante la polea baja y vuelve a organizarse con la empuñadura detenida."
-                }
-              ],
               "performanceProfileId": "pendlay_row__cable__remo_pendlay",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1745,7 +1155,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro extiende y aduce el brazo para arrancar la empuñadura de la polea baja desde la parada con el torso casi horizontal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1753,7 +1162,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: Las escápulas se retraen al cerrar cada tirón desde la empuñadura detenida y frenan la apertura con tensión continua del cable.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1761,7 +1169,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo flexiona para traer la empuñadura de la polea baja al torso y se extiende hasta la parada inicial sin perder tensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1769,11 +1176,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca estabiliza el agarre de la empuñadura al salir de la parada y resiste la tensión continua del cable en todo el arco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -1783,13 +1188,9 @@
                     "rhomboids",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1800,7 +1201,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1810,45 +1210,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "execution": [
-                    "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Pendlay",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El remo de los que entrenan fuerza explosiva, sin concesiones."
-                  ],
-                  "description": "Con polea, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-                  "variantRationale": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1861,7 +1228,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Pendlay",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pendlay_row__cable",
                   "definitionId": "pendlay_row",
                   "familyId": "back_pendlay_row",
@@ -1879,42 +1246,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Pendlay en la variante Polea.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi",
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": "back_row_cable_low",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1932,9 +1278,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones.",
-              "ttc": 1.8,
-              "variantRationale": "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. La variante combina el reinicio propio del Pendlay con una resistencia continua que hace visible cualquier pérdida de postura."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1948,7 +1292,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "back_pendlay_row",
@@ -1964,13 +1307,11 @@
         ]
       }
     ],
-    "description": "Familia de tirón horizontal desde el suelo con tronco casi paralelo y sin impulso; el implemento define cada configuración materializada.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "back_pendlay_row",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · vertical push",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_push_press",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_push_press__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con barra, una flexión rápida de rodillas lanza la carga y los brazos terminan el bloqueo arriba. El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro lleva la barra por encima de la cabeza con ambos brazos, y la carga libre obliga al hombro a guiar el bloqueo sin apoyo externo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el brazo hasta el bloqueo, con la barra libre sobre la cabeza y sin soporte que guíe el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión del codo cierra el empuje bajo la barra, con los brazos bloqueando arriba la carga que el impulso de las piernas puso en movimiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad lumbopélvica bajo la barra, con el tronco erguido durante el impulso de las rodillas y el bloqueo final.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide termina el empuje vertical tras el impulso de las piernas, llevando la barra desde los hombros hasta el bloqueo con ambos brazos a la vez."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende las rodillas en la flexión rápida que lanza la barra desde los hombros, aportando el impulso inicial con las dos piernas a la vez."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende los codos para cerrar el bloqueo arriba, completando el empuje que las piernas empezaron con la barra sobre los hombros."
-                }
-              ],
               "performanceProfileId": "deltoides_push_press__barbell__push_press",
               "primaryMuscles": [
                 "deltoid"
@@ -112,7 +86,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro lleva la barra por encima de la cabeza con ambos brazos, y la carga libre obliga al hombro a guiar el bloqueo sin apoyo externo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el brazo hasta el bloqueo, con la barra libre sobre la cabeza y sin soporte que guíe el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión del codo cierra el empuje bajo la barra, con los brazos bloqueando arriba la carga que el impulso de las piernas puso en movimiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad lumbopélvica bajo la barra, con el tronco erguido durante el impulso de las rodillas y el bloqueo final.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -148,11 +117,7 @@
                     "quadriceps",
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Impulso de piernas y empuje de hombros: la barra vuela hasta arriba."
-                  ]
-                },
                 "display": {
                   "displayName": "Push Press",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
-                  ],
-                  "description": "Con barra, una flexión rápida de rodillas lanza la carga y los brazos terminan el bloqueo arriba. El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. Potencia de todo el cuerpo en un movimiento explosivo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Push Press",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_push_press__default",
                   "definitionId": "deltoides_push_press",
                   "familyId": "upper_vertical_push",
@@ -238,42 +169,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Push Press en la variante Barra.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -287,9 +196,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. Potencia de todo el cuerpo en un movimiento explosivo."
+              "ttc": 1.6
             },
             "selectedOptions": {}
           }
@@ -301,7 +208,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_push",
@@ -314,13 +220,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón vertical_push; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_push",

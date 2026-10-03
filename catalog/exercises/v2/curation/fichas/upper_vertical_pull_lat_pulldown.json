@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "lat_pulldown": {
+      "public": {
+        "configurations": {
+          "lat_pulldown__bilateral__band": {
+            "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+            "executionCues": [
+              "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho."
+            ]
+          },
+          "lat_pulldown__bilateral__cable": {
+            "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
+            "executionCues": [
+              "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta con ambas manos: tiras de la barra hacia el pecho."
+            ]
+          },
+          "lat_pulldown__bilateral__machine": {
+            "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
+            "executionCues": [
+              "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de jalón con ambas manos: el guiado hace el recorrido más estable."
+            ]
+          },
+          "lat_pulldown__unilateral__band": {
+            "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Banda con una mano: tensión progresiva en un dorsal a la vez."
+            ]
+          },
+          "lat_pulldown__unilateral__cable": {
+            "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta con una mano: cada dorsal trabaja por separado con tensión constante."
+            ]
+          },
+          "lat_pulldown__unilateral__machine": {
+            "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón."
+            ]
+          }
+        },
+        "description": "El Jalón al Pecho es la tracción vertical con carga ajustable: el agarre desciende hasta la parte alta del pecho con el dorsal ancho y el trapecio tirando y el bíceps cerrando el gesto. Se ejecuta sentado con los muslos fijos, llevando los codos hacia el torso y regresando sin soltar la tensión. Con banda se monta en casa; la máquina permite progresar al kilo. La fábrica de espalda ancha para quien aún no domina la barra fija."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_vertical_pull_lat_pulldown",
+  "schemaVersion": 1
+}

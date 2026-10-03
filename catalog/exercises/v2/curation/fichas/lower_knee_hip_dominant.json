@@ -1,0 +1,57 @@
+{
+  "definitions": {
+    "quads_sentadilla_cajon": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_cajon__default": {
+            "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps."
+            ]
+          }
+        },
+        "description": "La Sentadilla a Cajón usa el cajón como referencia honesta de profundidad: se baja hasta tocarlo y se sube sin rebote, sin hacerse trampas con el rango. Se trabaja con la barra cargada en la espalda, sentando los glúteos en la superficie y levantándose desde esa pausa muerta. Los cuádriceps y los glúteos aprenden a producir fuerza desde el punto exacto de giro. El maestro silencioso que enseña a bajar de verdad."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_sumo_frontal": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_sumo_frontal__default": {
+            "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
+            ]
+          }
+        },
+        "description": "La Sentadilla Sumo Frontal junta la postura ancha del sumo con la carga al frente: el torso se queda muy erguido y cuádriceps, aductores y glúteos trabajan sin que la espalda cargue el peso detrás. Se ejecuta con la barra en el estante delantero y los pies abiertos, descendiendo entre las caderas con el pecho orgulloso. El core se suma al esfuerzo sosteniendo la barra. Una combinación que junta lo mejor de dos mundos exigentes."
+      },
+      "status": "LEGACY"
+    },
+    "quads_sentadilla_sumo_zercher": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_sumo_zercher__default": {
+            "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
+            "executionCues": [
+              "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
+            ]
+          }
+        },
+        "description": "La Sentadilla Sumo Zercher mezcla la base ancha con la carga sujeta al pecho entre los brazos: el core trabaja a destajo mientras cuádriceps y aductores bajan y suben el peso. Se ejecuta sosteniendo la barra en el doblez de los brazos y las puntas hacia afuera, descendiendo con el torso firme. La suma de ambas exigencias la hace más dura que cualquiera de sus partes. Para quien ya domina las versiones por separado y busca un reto serio."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_knee_hip_dominant",
+  "schemaVersion": 1
+}

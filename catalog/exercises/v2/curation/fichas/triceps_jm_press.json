@@ -1,0 +1,59 @@
+{
+  "definitions": {
+    "jm_press": {
+      "public": {
+        "configurations": {
+          "jm_press__barbell": {
+            "description": "Con barra, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. La barra es la referencia para cargar el tríceps con peso de verdad.",
+            "executionCues": [
+              "Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra hacia el mentón con los codos cerca: el tríceps inicia el empuje desde una posición intermedia entre press y extensión."
+            ]
+          },
+          "jm_press__cable": {
+            "description": "Con polea, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea hacia el mentón: la tensión acompaña el descenso y el ascenso sin depender de un punto muerto."
+            ]
+          },
+          "jm_press__dumbbells": {
+            "description": "Con mancuernas, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas hacia el mentón: cada brazo encuentra su propia línea y el codo puede permanecer más cómodo."
+            ]
+          },
+          "jm_press__ez_bar": {
+            "description": "Con barra EZ, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del tríceps.",
+            "executionCues": [
+              "Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ hacia el mentón: el ángulo de las manos reduce la rotación exigida a la muñeca mientras el tríceps continúa guiando el gesto."
+            ]
+          },
+          "jm_press__smith_machine": {
+            "description": "Con máquina Smith, la carga baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto. El tríceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Smith bajando al mentón: la barra guiada te permite cargar peso con estabilidad."
+            ]
+          }
+        },
+        "description": "El JM Press vive entre el press cerrado y el francés: la barra baja hacia la zona entre mentón y pecho y el tríceps empuja en un recorrido corto y brutal. Se ejecuta tumbado con los codos a medio camino, sin abrirlos del todo ni pegarlos. Inventado por JM Blakley para cargar el tríceps con peso serio. El secreto de los grandes preseros para unos tríceps que empujen de verdad."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "triceps_jm_press",
+  "schemaVersion": 1
+}

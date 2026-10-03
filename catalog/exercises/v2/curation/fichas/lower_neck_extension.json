@@ -1,0 +1,32 @@
+{
+  "definitions": {
+    "neck_extension_cuello": {
+      "public": {
+        "configurations": {
+          "neck_extension_cuello__cable": {
+            "description": "Con polea, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con la polea, la tensión sobre el cuello se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Arnés o polea en la cabeza: llevas la cabeza atrás contra la tensión."
+            ]
+          },
+          "neck_extension_cuello__plate": {
+            "description": "Con disco, la cabeza viaja hacia atrás contra la resistencia apoyada en la nuca. Con el disco, el lastre es simple y directo sobre el cuello.",
+            "executionCues": [
+              "Disco en la nuca: subes la cabeza contra el peso del disco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Disco en la nuca: subes la cabeza contra el peso del disco."
+            ]
+          }
+        },
+        "description": "Las Extensiones de Cuello trabajan la musculatura posterior de la nuca, la que sostiene la cabeza frente a las pantallas. Se ejecutan con la resistencia de la polea o un disco apoyada en la nuca, llevando la cabeza hacia atrás con calma y regresando sin rebote. El movimiento es pequeño y la carga debe ser modesta. Un seguro barato para el cuello de cualquiera que entrene o trabaje sentado."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_neck_extension",
+  "schemaVersion": 1
+}

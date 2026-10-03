@@ -1,0 +1,50 @@
+{
+  "definitions": {
+    "z_press": {
+      "public": {
+        "configurations": {
+          "z_press__barbell": {
+            "description": "Con barra, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+            "executionCues": [
+              "Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Barra sentado en el suelo: sin respaldo, el abdomen debe sostener el torso mientras los hombros empujan por encima de la cabeza."
+            ]
+          },
+          "z_press__dumbbells": {
+            "description": "Con mancuernas, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas sentado en el suelo: cada brazo empuja sin que el torso pueda apoyarse y el recorrido se adapta a cada hombro."
+            ]
+          },
+          "z_press__ez_bar": {
+            "description": "Con barra EZ, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del deltoide.",
+            "executionCues": [
+              "Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ sentado en el suelo: el agarre girado ofrece una posición más tolerante para las manos sin quitar la exigencia del torso libre."
+            ]
+          },
+          "z_press__kettlebell": {
+            "description": "Con kettlebell, sentado en el suelo con las piernas extendidas, el empuje vertical sube sin apoyo ni impulso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+            "executionCues": [
+              "Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell sentado en el suelo: la carga desplazada sobre la mano aumenta el trabajo de estabilización mientras el abdomen mantiene la postura."
+            ]
+          }
+        },
+        "description": "El Press Z es el press de hombros sentado en el suelo con las piernas extendidas: sin respaldo ni apoyo, el deltoide empuja la barra mientras el core impide que el cuerpo se incline. Se ejecuta con la espalda vertical, empujando hasta el bloqueo completo sin rebote de piernas. La dificultad convierte cargas modestas en pesadas de verdad. La escuela de la fuerza de hombro pura y la postura impecable."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "shoulder_z_press",
+  "schemaVersion": 1
+}

@@ -1,0 +1,59 @@
+{
+  "definitions": {
+    "walking_lunge": {
+      "public": {
+        "configurations": {
+          "walking_lunge__barbell": {
+            "description": "Con barra, cada paso es una zancada completa que avanza sin pausa por la sala. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la espalda y pasos al frente: cada zancada exige frenar, estabilizar y volver a empujar sin perder la línea."
+            ]
+          },
+          "walking_lunge__cable": {
+            "description": "Con polea, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea y pasos al frente: la tensión constante hace cada zancada más exigente. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Polea y pasos al frente: la tensión constante hace cada zancada más exigente."
+            ]
+          },
+          "walking_lunge__dumbbells": {
+            "description": "Con mancuernas, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y pasos al frente: la versión más equilibrada para caminar con zancadas."
+            ]
+          },
+          "walking_lunge__kettlebell": {
+            "description": "Con kettlebell, cada paso es una zancada completa que avanza sin pausa por la sala. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
+            "executionCues": [
+              "Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells y pasos al frente: el agarre trabaja mientras las piernas avanzan."
+            ]
+          },
+          "walking_lunge__smith_machine": {
+            "description": "Con máquina Smith, cada paso es una zancada completa que avanza sin pausa por la sala. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith y pasos al frente: el guiado da estabilidad mientras avanzas. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Smith y pasos al frente: el guiado da estabilidad mientras avanzas."
+            ]
+          }
+        },
+        "description": "La Zancada Caminando encadena pasos largos sin pausa: cada zancada alimenta la siguiente y las piernas acumulan trabajo mientras el cuerpo avanza por la sala. Se ejecuta alternando piernas con el torso erguido, sin detenerse entre pasos y con la zancada completa en cada apoyo. Glúteos y cuádriceps arden a los veinte metros. Con barra o mancuernas el desplazamiento se vuelve una prueba de resistencia seria. El quemador de piernas que también entrena el corazón."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_walking_lunge",
+  "schemaVersion": 1
+}

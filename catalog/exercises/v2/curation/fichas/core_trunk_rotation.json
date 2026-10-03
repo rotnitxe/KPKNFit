@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "core_lenador_polea": {
+      "public": {
+        "configurations": {
+          "core_lenador_polea__default": {
+            "description": "Con polea, la cuerda viaja en diagonal de arriba abajo cruzando el cuerpo con los oblicuos dirigiendo el giro. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo. El torso rota alrededor de la pelvis con la carga cerca; la dirección diagonal decide qué lado inicia y cuál frena el gesto."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta y movimiento de leñador: tiras en diagonal cruzando el cuerpo de arriba abajo."
+            ]
+          }
+        },
+        "description": "El Leñador en Polea es el abdomen en rotación: la cuerda viaja en diagonal de arriba abajo cruzando el cuerpo como quien corta leña. Se ejecuta de pie de lado a la torre, girando el tronco con los brazos extendidos y regresando con pausa, con los oblicuos dirigiendo el giro. La polea dosifica la resistencia en todo el arco del corte. Potencia rotacional que traslada directamente a cualquier deporte con giros."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_trunk_rotation",
+  "schemaVersion": 1
+}

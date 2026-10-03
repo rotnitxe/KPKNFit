@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "tate_press": {
+      "public": {
+        "configurations": {
+          "tate_press__dumbbells": {
+            "description": "Con mancuernas, con las palmas al frente y los codos en abanico, la carga empuja desde el pecho mezclando press y extensión. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas acostado juntando los codos: bajas y subes apretando las pesas. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas acostado juntando los codos: bajas y subes apretando las pesas."
+            ]
+          }
+        },
+        "description": "El Tate Press pone las mancuernas sobre el pecho con las palmas al frente y los codos en abanico: el tríceps empuja desde una posición que mezcla press y extensión. Se ejecuta tumbado, separando los codos al bajar y juntando todo al empujar. El gesto estira la cabeza larga del tríceps de forma particular. El favorito de Dave Tate para llenar la parte trasera del brazo desde otro ángulo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "triceps_tate_press",
+  "schemaVersion": 1
+}

@@ -1,0 +1,93 @@
+{
+  "definitions": {
+    "lying_pullover": {
+      "public": {
+        "configurations": {
+          "lying_pullover__barbell": {
+            "description": "Con barra, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra acostado detrás de la cabeza: el arco largo con carga completa. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Barra acostado detrás de la cabeza: el arco largo con carga completa."
+            ]
+          },
+          "lying_pullover__cable": {
+            "description": "Con polea, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con la polea, la tensión sobre el pectoral se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea acostado: la tensión constante estira el dorsal en todo el recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Polea acostado: la tensión constante estira el dorsal en todo el recorrido."
+            ]
+          },
+          "lying_pullover__dumbbells": {
+            "description": "Con mancuernas, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+            "executionCues": [
+              "Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna acostado llevándola detrás de la cabeza: el dorsal se estira a fondo."
+            ]
+          },
+          "lying_pullover__kettlebell": {
+            "description": "Con kettlebell, tumbado en la banca, la carga viaja con los brazos extendidos por detrás de la cabeza y regresa sobre el pecho. El pectoral trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell acostado detrás de la cabeza: la campana se perciben distinta en el arco."
+            ]
+          }
+        },
+        "description": "El Pull Over en Banca estira el pectoral y el dorsal en un arco por encima de la cabeza: tumbado, la carga viaja desde el pecho hasta atrás de la nuca y regresa. Se ejecuta con una mancuerna a dos manos, bajando hasta sentir el estiramiento en las costillas y subiendo sin doblar los codos de más. El tríceps y el dorsal asisten el retorno. El expansor de la caja torácica con más historia del fisicoculturismo."
+      },
+      "status": "LEGACY"
+    },
+    "pullover": {
+      "public": {
+        "configurations": {
+          "pullover__bilateral__cable": {
+            "description": "De pie frente a una polea alta, la barra recorre un arco desde sobre la cabeza hasta los muslos con los brazos casi extendidos. La tensión continua permite aislar el dorsal sin convertirlo en un jalón de codos flexionados.",
+            "executionCues": [
+              "Agarre prono a la anchura de los hombros, brazos casi rectos; la barra describe un arco continuo hasta los muslos sin balanceo del tronco."
+            ],
+            "setupCues": [
+              "Preparación: La barra recta cuelga de una polea alta y el cuerpo queda un paso detrás de la vertical del cable."
+            ]
+          },
+          "pullover__unilateral__cable": {
+            "description": "Con una empuñadura y de pie frente a la polea alta, un brazo dibuja el arco hacia el costado de la cadera mientras el torso permanece estable. La tensión constante deja visible cualquier diferencia entre dorsales.",
+            "executionCues": [
+              "Brazo casi recto y hombro bajo; la empuñadura recorre un arco continuo hasta la cadera sin girar el pecho hacia el cable."
+            ],
+            "setupCues": [
+              "Preparación: La empuñadura queda en una polea alta y el cuerpo se sitúa un paso detrás de la vertical del cable."
+            ]
+          }
+        },
+        "description": "El Pull Over de Pie en Polea lleva los brazos casi extendidos desde arriba hasta los muslos para aislar la extensión de hombro del dorsal bajo tensión continua."
+      },
+      "status": "LEGACY"
+    },
+    "seated_machine_pullover": {
+      "public": {
+        "configurations": {
+          "seated_machine_pullover__machine": {
+            "description": "Sentado contra el respaldo, los apoyos de codo recorren un arco guiado desde arriba hasta los costados de la cintura. La máquina descarga el equilibrio y permite que el dorsal ancho conduzca la extensión de hombro completa.",
+            "executionCues": [
+              "La espalda permanece apoyada; los codos impulsan las almohadillas hacia abajo y adelante hasta la línea de las costillas, sin tirar solo de las manos."
+            ],
+            "setupCues": [
+              "Preparación: El asiento se ajusta para que el hombro coincida con el eje de giro y los codos lleguen cómodos a sus apoyos."
+            ]
+          }
+        },
+        "description": "El Pull Over Sentado en Máquina fija el torso contra un respaldo y lleva los codos desde arriba hasta la cintura en un arco guiado que concentra la extensión de hombro en el dorsal ancho."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_vertical_pull_pullover",
+  "schemaVersion": 1
+}

@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "calves_tibial_anterior": {
+      "public": {
+        "configurations": {
+          "calves_tibial_anterior__default": {
+            "description": "Con peso corporal, la punta del pie se eleva hacia la espinilla contra la resistencia. Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
+            "executionCues": [
+              "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia."
+            ]
+          }
+        },
+        "description": "El Tibial Anterior trabaja la cara frontal de la espinilla, ese músculo olvidado que levanta la punta del pie en cada paso. Se ejecuta elevando la punta hacia la espinilla contra la gravedad, de pie o sentado, con repeticiones pausadas y el peso corporal como única resistencia. Simple de montar en cualquier sitio. El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_ankle_dorsiflexion",
+  "schemaVersion": 1
+}

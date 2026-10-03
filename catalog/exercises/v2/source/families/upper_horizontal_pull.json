@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · trapezius · horizontal pull",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#back_band_pull_apart",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_band_pull_apart__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
-                "El antídoto portátil contra los hombros adelantados por el teclado."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con banda elástica, los brazos se abren al frente hasta que los omóplatos se juntan atrás. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
               "efc": 2.5,
               "equipmentId": "band",
@@ -46,7 +38,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro dirigen la apertura de los brazos con la banda, cuya tensión crece al separar las manos al frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -54,7 +45,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta los omóplatos al separar la banda, y la vuelta libera esa retracción con control bajo tensión elástica.",
                   "role": "PRIMARY"
                 },
                 {
@@ -62,7 +52,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo mantiene los brazos levemente doblados mientras la banda se separa, y su tensión variable modula el recorrido del antebrazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -70,7 +59,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene la banda con las muñecas alineadas, y la resistencia elástica exige firmeza en las manos durante la apertura.",
                   "role": "STABILIZER"
                 }
               ],
@@ -78,16 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concentra la contracción concéntrica al separar la banda al frente, junta los omóplatos y frena la vuelta con tensión elástica."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide asiste la apertura de los brazos con la banda y controla el frenado excéntrico cuando el elástico recupera longitud hacia el frente."
-                }
-              ],
               "performanceProfileId": "back_band_pull_apart__band__band_pull_apart",
               "primaryMuscles": [
                 "trapezius"
@@ -111,7 +89,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro dirigen la apertura de los brazos con la banda, cuya tensión crece al separar las manos al frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -119,7 +96,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta los omóplatos al separar la banda, y la vuelta libera esa retracción con control bajo tensión elástica.",
                       "role": "PRIMARY"
                     },
                     {
@@ -127,7 +103,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo mantiene los brazos levemente doblados mientras la banda se separa, y su tensión variable modula el recorrido del antebrazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -135,22 +110,16 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene la banda con las muñecas alineadas, y la resistencia elástica exige firmeza en las manos durante la apertura.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "trapezius"
                   ],
                   "secondaryMuscles": [
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "trapezius"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -160,7 +129,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -170,43 +138,10 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda al frente y separación hacia el pecho: la espalda alta se activa al instante."
-                  ]
-                },
                 "display": {
                   "displayName": "Band Pull-Apart",
                   "displaySummary": "Banda Elástica",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
-                    "El antídoto portátil contra los hombros adelantados por el teclado."
-                  ],
-                  "description": "Con banda elástica, los brazos se abren al frente hasta que los omóplatos se juntan atrás. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
-                  "technique": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. El calentamiento útil de espalda y hombros."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -219,7 +154,7 @@
                 },
                 "identity": {
                   "canonicalName": "Band Pull-Apart",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_band_pull_apart__default",
                   "definitionId": "back_band_pull_apart",
                   "familyId": "upper_horizontal_pull",
@@ -235,42 +170,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el trapecio mediante Band Pull-Apart en la variante Banda Elástica.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el trapecio.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -283,9 +196,7 @@
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. El calentamiento útil de espalda y hombros."
+              "ttc": 1.8
             },
             "selectedOptions": {}
           }
@@ -297,7 +208,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_horizontal_pull",
@@ -319,7 +229,6 @@
                 "legacy:exercise_database.json#back_remo_banda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_banda__default",
@@ -327,16 +236,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
-                "El remo que viaja en la mochila y se monta en cualquier hotel."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con banda elástica, sentado con las piernas extendidas, la banda anclada a los pies se recoge hacia la cintura. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
               "efc": 2.5,
               "equipmentId": "band",
@@ -351,7 +253,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro llevan la banda desde los pies hasta la cintura, con tensión elástica que aumenta al recoger las manos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -359,7 +260,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta los omóplatos al recoger la banda hacia la cintura, y se libera con control cuando los brazos vuelven hacia los pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -367,7 +267,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca las manos a la cintura en cada tirón de la banda, y la extensión controlada devuelve los brazos hacia el anclaje en los pies.",
                   "role": "SECONDARY"
                 },
                 {
@@ -375,7 +274,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre mantiene la banda sujeta con las muñecas alineadas, y la tensión elástica constante exige firmeza en las manos al recogerla.",
                   "role": "STABILIZER"
                 }
               ],
@@ -383,28 +281,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio concéntrico junta los omóplatos al recoger la banda anclada a los pies, y frena la vuelta de los brazos con tensión elástica creciente."
-                },
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira de las manos hacia la cintura con la banda anclada a los pies, y modera el frenado excéntrico al volver a extender los brazos."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide asiste la extensión del hombro en el recogido de la banda hacia la cintura y controla el frenado excéntrico cuando las manos regresan."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo al recoger la banda hacia la cintura y frena la extensión del brazo en la vuelta, con las piernas extendidas y el tronco sentado."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Secundario: Los erectores espinales sostienen el tronco sentado con las piernas extendidas mientras la banda tira al frente, y ceden con control en el regreso."
-                }
-              ],
               "performanceProfileId": "back_remo_banda__band__remo_en_banda_elastica",
               "primaryMuscles": [
                 "trapezius",
@@ -429,7 +305,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro llevan la banda desde los pies hasta la cintura, con tensión elástica que aumenta al recoger las manos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -437,7 +312,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta los omóplatos al recoger la banda hacia la cintura, y se libera con control cuando los brazos vuelven hacia los pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -445,7 +319,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca las manos a la cintura en cada tirón de la banda, y la extensión controlada devuelve los brazos hacia el anclaje en los pies.",
                       "role": "SECONDARY"
                     },
                     {
@@ -453,11 +326,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre mantiene la banda sujeta con las muñecas alineadas, y la tensión elástica constante exige firmeza en las manos al recogerla.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "trapezius",
                     "latissimus_dorsi"
@@ -467,11 +338,7 @@
                     "biceps",
                     "erector_spinae"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "trapezius"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -481,7 +348,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -491,43 +357,10 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo en Banda Elástica",
                   "displaySummary": "Banda Elástica",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
-                    "El remo que viaja en la mochila y se monta en cualquier hotel."
-                  ],
-                  "description": "Con banda elástica, sentado con las piernas extendidas, la banda anclada a los pies se recoge hacia la cintura. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
-                  "technique": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. Espalda trabajando en casa o en el parque."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -540,7 +373,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo en Banda Elástica",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_banda__default",
                   "definitionId": "back_remo_banda",
                   "familyId": "upper_horizontal_pull",
@@ -556,42 +389,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el trapecio mediante Remo en Banda Elástica en la variante Banda Elástica.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el trapecio.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:trapezius",
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -606,9 +418,7 @@
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. Espalda trabajando en casa o en el parque."
+              "ttc": 1.8
             },
             "selectedOptions": {}
           }
@@ -620,7 +430,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_horizontal_pull",
@@ -642,7 +451,6 @@
                 "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_gorilla_mancuernas__dumbbells",
@@ -650,16 +458,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
-                "Potencia de espalda con un punto de picardía en cada brazada."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con mancuernas, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -674,7 +475,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro elevan cada mancuerna colgante hacia el torso inclinado, en un recorrido alterno que reparte el tirón lado a lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -682,7 +482,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta el omóplato de cada lado al subir la mancuerna desde parado, y se libera al bajar el brazo con el tronco inclinado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -690,7 +489,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca cada mancuerna al torso inclinado, y la extensión progresiva devuelve el brazo a colgar entre un tirón alterno y el siguiente.",
                   "role": "SECONDARY"
                 },
                 {
@@ -698,7 +496,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene cada mancuerna colgante con la muñeca alineada, y el peso libre exige firmeza en las manos en cada tirón alterno.",
                   "role": "STABILIZER"
                 }
               ],
@@ -706,20 +503,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra el tirón de cada mancuerna colgante hacia el torso inclinado, y frena su descenso en la vuelta de los brazos alternados."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo en cada tirón alterno de la mancuerna y controla el frenado excéntrico cuando el brazo vuelve a colgar del tronco inclinado."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular de cada tirón alterno con mancuernas y frenan la vuelta del omóplato con el tronco inclinado."
-                }
-              ],
               "performanceProfileId": "back_remo_gorilla__dumbbells",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -743,7 +526,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro elevan cada mancuerna colgante hacia el torso inclinado, en un recorrido alterno que reparte el tirón lado a lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -751,7 +533,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta el omóplato de cada lado al subir la mancuerna desde parado, y se libera al bajar el brazo con el tronco inclinado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -759,7 +540,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca cada mancuerna al torso inclinado, y la extensión progresiva devuelve el brazo a colgar entre un tirón alterno y el siguiente.",
                       "role": "SECONDARY"
                     },
                     {
@@ -767,11 +547,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene cada mancuerna colgante con la muñeca alineada, y el peso libre exige firmeza en las manos en cada tirón alterno.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -779,11 +557,7 @@
                     "biceps",
                     "rhomboids"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "latissimus_dorsi"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -793,7 +567,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -803,45 +576,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Gorilla",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
-                    "Potencia de espalda con un punto de picardía en cada brazada."
-                  ],
-                  "description": "Con mancuernas, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
-                  "technique": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. Fuerza de tracción de espalda con mancuernas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -854,7 +594,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_gorilla_mancuernas__dumbbells",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -872,24 +612,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Gorilla en la variante Mancuernas.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -898,20 +624,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -925,9 +641,7 @@
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. Fuerza de tracción de espalda con mancuernas."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -941,7 +655,6 @@
                 "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_gorilla_mancuernas__kettlebell",
@@ -949,16 +662,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                "Potencia de espalda con un punto de picardía en cada brazada."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con kettlebell, con el tronco inclinado, cada tirón sube desde parado alternando brazos. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -973,7 +679,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro elevan cada kettlebell colgante hacia el torso inclinado, y su peso descentrado exige un recorrido alterno firme.",
                   "role": "PRIMARY"
                 },
                 {
@@ -981,7 +686,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta el omóplato al subir cada kettlebell desde parado, y la campana inestable hace que la vuelta demande más control escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -989,7 +693,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca la kettlebell al torso inclinado, y la extensión controlada devuelve la campana a colgar entre un tirón alterno y el siguiente.",
                   "role": "SECONDARY"
                 },
                 {
@@ -997,7 +700,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene la kettlebell con la muñeca firme, pues el asa de la campana y su peso descentrado exigen más antebrazo en cada tirón.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1005,20 +707,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra el tirón de cada kettlebell colgante hacia el torso inclinado, y frena el descenso de la campana en la vuelta alternada."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo en cada tirón alterno de la kettlebell y controla el frenado excéntrico cuando la campana vuelve a colgar del brazo extendido."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular en cada tirón con kettlebell y frenan la vuelta del omóplato bajo la inestabilidad de la campana."
-                }
-              ],
               "performanceProfileId": "back_remo_gorilla__kettlebell",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1042,7 +730,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro elevan cada kettlebell colgante hacia el torso inclinado, y su peso descentrado exige un recorrido alterno firme.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1050,7 +737,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta el omóplato al subir cada kettlebell desde parado, y la campana inestable hace que la vuelta demande más control escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1058,7 +744,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca la kettlebell al torso inclinado, y la extensión controlada devuelve la campana a colgar entre un tirón alterno y el siguiente.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1066,11 +751,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene la kettlebell con la muñeca firme, pues el asa de la campana y su peso descentrado exigen más antebrazo en cada tirón.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -1078,11 +761,7 @@
                     "biceps",
                     "rhomboids"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "latissimus_dorsi"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1092,7 +771,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1102,45 +780,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Gorilla",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                    "Potencia de espalda con un punto de picardía en cada brazada."
-                  ],
-                  "description": "Con kettlebell, con el tronco inclinado, cada tirón sube desde parado alternando brazos. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                  "technique": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. Variante completa para espalda y antebrazos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1153,7 +798,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_gorilla_mancuernas__kettlebell",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -1171,24 +816,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Gorilla en la variante Kettlebell.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1197,20 +828,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -1224,9 +845,7 @@
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. Variante completa para espalda y antebrazos."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1240,7 +859,6 @@
                 "legacy:exercise_database.json#back_remo_gorilla_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_gorilla_mancuernas__cable",
@@ -1248,16 +866,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.2,
-              "benefits": [
-                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
-                "Potencia de espalda con un punto de picardía en cada brazada."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con polea, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -1272,7 +883,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro llevan el cable hacia el torso inclinado, y la polea mantiene tensión constante en el recorrido alterno.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1280,7 +890,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta el omóplato al tirar del cable desde parado, y la tensión constante de la polea hace que la vuelta escape controlada.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1288,7 +897,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca el cable al torso inclinado, y la extensión progresiva libera el recorrido alterno con tensión constante en ambos brazos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1296,7 +904,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre mantiene la muñeca alineada con el cable, cuya tensión constante exige un agarre firme durante el tirón alterno completo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1304,20 +911,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra el tirón de la polea hacia el torso inclinado, con tensión constante que también carga el frenado excéntrico del recorrido alterno."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo en cada tirón alterno de la polea y controla el frenado excéntrico, que la tensión constante mantiene cargado todo el tiempo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular de cada tirón alterno a la polea y frenan la vuelta del omóplato sin puntos muertos de tensión."
-                }
-              ],
               "performanceProfileId": "back_remo_gorilla__cable",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1341,7 +934,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro llevan el cable hacia el torso inclinado, y la polea mantiene tensión constante en el recorrido alterno.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1349,7 +941,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta el omóplato al tirar del cable desde parado, y la tensión constante de la polea hace que la vuelta escape controlada.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1357,7 +948,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca el cable al torso inclinado, y la extensión progresiva libera el recorrido alterno con tensión constante en ambos brazos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1365,11 +955,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre mantiene la muñeca alineada con el cable, cuya tensión constante exige un agarre firme durante el tirón alterno completo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -1377,11 +965,7 @@
                     "biceps",
                     "rhomboids"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "latissimus_dorsi"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1391,7 +975,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1401,45 +984,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea y tirón con balanceo: la tensión constante cambia el remo gorila."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Gorilla",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
-                    "Potencia de espalda con un punto de picardía en cada brazada."
-                  ],
-                  "description": "Con polea, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
-                  "technique": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La versión precisa del remo de la fuerza de tracción."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1452,7 +1002,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gorilla",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_gorilla_mancuernas__cable",
                   "definitionId": "back_remo_gorilla_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -1470,24 +1020,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Gorilla en la variante Polea.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1496,20 +1032,10 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -1523,9 +1049,7 @@
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La versión precisa del remo de la fuerza de tracción."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1539,7 +1063,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_horizontal_pull",
@@ -1565,7 +1088,6 @@
                 "legacy:exercise_database.json#back_remo_invertido",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_invertido__default",
@@ -1573,16 +1095,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
-                "La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con peso corporal, colgado bajo una barra fija, el cuerpo rígido sube el pecho hasta tocarla. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
@@ -1597,7 +1112,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro acercan el pecho a la barra fija, con el peso corporal como carga y el cuerpo rígido como palanca horizontal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1605,7 +1119,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta los omóplatos cuando el pecho toca la barra, y se libera con control al descender el cuerpo rígido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1613,7 +1126,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca el pecho a la barra fija, y la extensión controlada devuelve el cuerpo rígido hasta los brazos extendidos bajo ella.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1621,7 +1133,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene el peso corporal colgado de la barra fija, con las muñecas alineadas durante toda la elevación horizontal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1629,28 +1140,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra la elevación del pecho hacia la barra fija con el cuerpo rígido, y frena el descenso del peso corporal en la vuelta."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio asiste la retracción escapular al acercar el pecho a la barra y controla el frenado excéntrico cuando el cuerpo rígido vuelve a colgar."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide asiste la extensión del hombro en la elevación horizontal del cuerpo y modera el descenso del peso corporal bajo la barra fija."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo para acercar el pecho a la barra y frena la extensión del brazo al descender el cuerpo rígido con el propio peso."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Secundario: Los erectores espinales mantienen el cuerpo rígido y alineado bajo la barra, tanto en la elevación del pecho como en el descenso controlado."
-                }
-              ],
               "performanceProfileId": "back_remo_invertido__bodyweight__remo_invertido",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1674,7 +1163,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro acercan el pecho a la barra fija, con el peso corporal como carga y el cuerpo rígido como palanca horizontal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1682,7 +1170,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta los omóplatos cuando el pecho toca la barra, y se libera con control al descender el cuerpo rígido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1690,7 +1177,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca el pecho a la barra fija, y la extensión controlada devuelve el cuerpo rígido hasta los brazos extendidos bajo ella.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1698,11 +1184,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene el peso corporal colgado de la barra fija, con las muñecas alineadas durante toda la elevación horizontal.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -1712,11 +1196,7 @@
                     "biceps",
                     "erector_spinae"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "latissimus_dorsi"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1726,7 +1206,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1736,43 +1215,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Invertido",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
-                    "La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace."
-                  ],
-                  "description": "Con peso corporal, colgado bajo una barra fija, el cuerpo rígido sube el pecho hasta tocarla. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
-                  "technique": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La dominada horizontal: espalda con tu propio peso y con progresión gradual."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1785,7 +1231,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Invertido",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_invertido__default",
                   "definitionId": "back_remo_invertido",
                   "familyId": "upper_horizontal_pull",
@@ -1801,42 +1247,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Invertido en la variante Peso Corporal.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_inverted",
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1852,9 +1276,7 @@
               "ssc": 0.4,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La dominada horizontal: espalda con tu propio peso y con progresión gradual."
+              "ttc": 1.8
             },
             "selectedOptions": {}
           }
@@ -1866,7 +1288,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_horizontal_pull",
@@ -1888,7 +1309,6 @@
                 "legacy:exercise_database.json#back_remo_renegado_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_renegado_mancuernas__dumbbells",
@@ -1896,16 +1316,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "Espalda y abdomen en un solo gesto, eficiencia pura."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con mancuernas, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -1920,7 +1333,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro elevan la mancuerna hacia el costado en la plancha, con un brazo remando y el otro apoyado sobre su mancuerna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1928,7 +1340,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la mancuerna, y la vuelta ocurre con el tronco negándose a rotar en la plancha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1936,7 +1347,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca la mancuerna al costado en la plancha, y la extensión progresiva la devuelve al suelo sin dejar girar al torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1944,7 +1354,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene la mancuerna que apoya el peso en plancha y la que se tira, con las muñecas firmes frente a la rotación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1952,24 +1361,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra el tirón de una mancuerna hacia el costado en la plancha, y frena su descenso mientras el cuerpo se niega a rotar."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo en el tirón unilateral de la mancuerna y controla el frenado excéntrico al devolverla al suelo desde la posición de plancha."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular del lado que tira de la mancuerna y frenan la vuelta del omóplato con el tronco sostenido en plancha."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene la plancha de forma isométrica y se opone al giro del torso cuando un brazo rema con la mancuerna y el otro apoya el peso corporal."
-                }
-              ],
               "performanceProfileId": "back_remo_renegado__dumbbells",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1993,7 +1384,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro elevan la mancuerna hacia el costado en la plancha, con un brazo remando y el otro apoyado sobre su mancuerna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2001,7 +1391,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la mancuerna, y la vuelta ocurre con el tronco negándose a rotar en la plancha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2009,7 +1398,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca la mancuerna al costado en la plancha, y la extensión progresiva la devuelve al suelo sin dejar girar al torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2017,11 +1405,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene la mancuerna que apoya el peso en plancha y la que se tira, con las muñecas firmes frente a la rotación.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -2029,12 +1415,8 @@
                     "biceps",
                     "rhomboids"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2045,7 +1427,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2055,45 +1436,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas en plancha y remo de un brazo: el core combate el giro."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Renegado",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "Espalda y abdomen en un solo gesto, eficiencia pura."
-                  ],
-                  "description": "Con mancuernas, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas en plancha y remo de un brazo: el core combate el giro. Espalda y abdomen en un mismo ejercicio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2106,7 +1454,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Renegado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_renegado_mancuernas__dumbbells",
                   "definitionId": "back_remo_renegado_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -2124,24 +1472,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Renegado en la variante Mancuernas.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2149,20 +1483,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -2178,9 +1502,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Mancuernas en plancha y remo de un brazo: el core combate el giro. Espalda y abdomen en un mismo ejercicio."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -2194,7 +1516,6 @@
                 "legacy:exercise_database.json#back_remo_renegado_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "back_remo_renegado_mancuernas__kettlebell",
@@ -2202,16 +1523,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                "Espalda y abdomen en un solo gesto, eficiencia pura."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con kettlebell, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -2226,7 +1540,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro elevan la kettlebell hacia el costado en la plancha, con la campana desplazada exigiendo un tirón unilateral preciso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2234,7 +1547,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la kettlebell, y la campana inestable hace que la vuelta demande más control escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2242,7 +1554,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca la kettlebell al costado en la plancha, y la extensión controlada devuelve la campana al suelo sin dejar girar al torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2250,7 +1561,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene las kettlebells que apoyan el peso en plancha y la que se tira, con la muñeca firme frente a la campana.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2258,24 +1568,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra el tirón de una kettlebell hacia el costado en la plancha, y frena el descenso de la campana mientras el torso resiste el giro."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo en el tirón unilateral de la kettlebell y controla el frenado excéntrico al devolver la campana al suelo desde la plancha."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular del lado que tira de la kettlebell y frenan la vuelta del omóplato con la campana bajo el tronco."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene la plancha de forma isométrica sobre las kettlebells, cuya campana baja el centro de gravedad y aumenta la demanda de estabilidad."
-                }
-              ],
               "performanceProfileId": "back_remo_renegado__kettlebell",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2299,7 +1591,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro elevan la kettlebell hacia el costado en la plancha, con la campana desplazada exigiendo un tirón unilateral preciso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2307,7 +1598,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta el omóplato del lado que tira de la kettlebell, y la campana inestable hace que la vuelta demande más control escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2315,7 +1605,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca la kettlebell al costado en la plancha, y la extensión controlada devuelve la campana al suelo sin dejar girar al torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2323,11 +1612,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene las kettlebells que apoyan el peso en plancha y la que se tira, con la muñeca firme frente a la campana.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -2335,12 +1622,8 @@
                     "biceps",
                     "rhomboids"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2351,7 +1634,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2361,45 +1643,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Renegado",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                    "Espalda y abdomen en un solo gesto, eficiencia pura."
-                  ],
-                  "description": "Con kettlebell, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                  "technique": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La variante avanzada del renegado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2412,7 +1661,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Renegado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "back_remo_renegado_mancuernas__kettlebell",
                   "definitionId": "back_remo_renegado_mancuernas",
                   "familyId": "upper_horizontal_pull",
@@ -2430,24 +1679,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Renegado en la variante Kettlebell.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2455,20 +1690,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_pull."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -2484,9 +1709,7 @@
                 "core"
               ],
               "technicalDifficulty": 5.0,
-              "techniqueSummary": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.8,
-              "variantRationale": "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La variante avanzada del renegado."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -2500,7 +1723,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_horizontal_pull",
@@ -2526,7 +1748,6 @@
                 "legacy:exercise_database.json#deltoides_face_pull",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_face_pull__default",
@@ -2534,16 +1755,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                "La vitamina diaria de la salud del hombro, cortesía de la polea."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con polea, la cuerda viaja hacia la cara abriendo los codos hasta que las manos quedan a la altura de las orejas. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -2558,7 +1772,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro llevan la cuerda hacia la cara abriendo los codos, con la polea manteniendo tensión constante en el regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2566,7 +1779,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta los omóplatos cuando las manos alcanzan la altura de las orejas, y la polea exige control al devolver la cuerda.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2574,7 +1786,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acerca la cuerda a la cara con los codos abiertos hacia los lados, y la extensión progresiva regresa el cable con tensión constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2582,7 +1793,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre mantiene la cuerda con las muñecas neutras al tirar hacia la cara, y la polea exige firmeza hasta las manos junto a las orejas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2590,20 +1800,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide concentra el tirón de la cuerda hacia la cara abriendo los codos, y frena el regreso con la tensión constante que entrega la polea."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio asiste la retracción escapular cuando las manos llegan a la altura de las orejas, y controla el frenado excéntrico hacia la polea."
-                },
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Secundario: El dorsal ancho asiste la extensión del hombro en el tirón de la cuerda hacia la cara y modera el regreso del cable con los codos abiertos."
-                }
-              ],
               "performanceProfileId": "deltoides_face_pull__cable__face_pull",
               "primaryMuscles": [
                 "deltoid"
@@ -2627,7 +1823,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro llevan la cuerda hacia la cara abriendo los codos, con la polea manteniendo tensión constante en el regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2635,7 +1830,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta los omóplatos cuando las manos alcanzan la altura de las orejas, y la polea exige control al devolver la cuerda.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2643,7 +1837,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acerca la cuerda a la cara con los codos abiertos hacia los lados, y la extensión progresiva regresa el cable con tensión constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2651,11 +1844,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre mantiene la cuerda con las muñecas neutras al tirar hacia la cara, y la polea exige firmeza hasta las manos junto a las orejas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -2663,11 +1854,7 @@
                     "trapezius",
                     "latissimus_dorsi"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2677,7 +1864,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2687,43 +1873,10 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados."
-                  ]
-                },
                 "display": {
                   "displayName": "Face Pull",
                   "displaySummary": "Polea",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                    "La vitamina diaria de la salud del hombro, cortesía de la polea."
-                  ],
-                  "description": "Con polea, la cuerda viaja hacia la cara abriendo los codos hasta que las manos quedan a la altura de las orejas. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                  "technique": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. El ejercicio que cuida tus hombros mientras fortalece la espalda alta."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2736,7 +1889,7 @@
                 },
                 "identity": {
                   "canonicalName": "Face Pull",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_face_pull__default",
                   "definitionId": "deltoides_face_pull",
                   "familyId": "upper_horizontal_pull",
@@ -2752,42 +1905,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Face Pull en la variante Polea.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2801,9 +1932,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. El ejercicio que cuida tus hombros mientras fortalece la espalda alta."
+              "ttc": 1.6
             },
             "selectedOptions": {}
           }
@@ -2815,7 +1944,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_horizontal_pull",
@@ -2827,13 +1955,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón horizontal_pull; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_horizontal_pull",

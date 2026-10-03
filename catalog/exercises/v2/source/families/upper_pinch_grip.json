@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · forearm · pinch grip",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#forearms_pinza_de_discos",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_pinza_de_discos__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con el disco, el lastre es simple y directo sobre el antebrazo.",
-                "El agarre de pinza que separa las manos normales de las manos de acero."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Arquear la espalda, girar con la carga o perder la tensión al final."
-              ],
               "description": "Con disco, el disco se sostiene en vertical apretado entre los dedos y el pulgar el mayor tiempo posible. Con el disco, el lastre es simple y directo sobre el antebrazo.",
               "efc": 2.0,
               "equipmentId": "plate",
@@ -45,7 +37,6 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La zona lumbar resiste la extensión y la rotación mientras el peso de los discos lisos tira hacia abajo desde la presión de los dedos y el pulgar.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La sacroilíaca aporta control de pelvis mientras los discos lisos cuelgan de la presión de los dedos y el pulgar en el agarre bilateral sostenido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de los discos lisos, sujetos solo por la presión de los dedos y el pulgar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "pinch_grip",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo aprieta los discos lisos entre los dedos y el pulgar en isometría bilateral, sin asa ni superficie que ayude a la presión del agarre."
-                }
-              ],
               "performanceProfileId": "forearms_pinza_de_discos__plate__pinza_de_discos",
               "primaryMuscles": [
                 "forearm"
@@ -95,7 +78,6 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La zona lumbar resiste la extensión y la rotación mientras el peso de los discos lisos tira hacia abajo desde la presión de los dedos y el pulgar.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La sacroilíaca aporta control de pelvis mientras los discos lisos cuelgan de la presión de los dedos y el pulgar en el agarre bilateral sostenido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La columna torácica conserva su posición erguida contra el tirón de los discos lisos, sujetos solo por la presión de los dedos y el pulgar.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "forearm"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "pinch_grip",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "sacroiliaca",
@@ -143,43 +117,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la espalda, girar con la carga o perder la tensión al final."
-                  ],
-                  "cues": [
-                    "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible."
-                  ]
-                },
                 "display": {
                   "displayName": "Pinza de Discos",
                   "displaySummary": "Disco",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con el disco, el lastre es simple y directo sobre el antebrazo.",
-                    "El agarre de pinza que separa las manos normales de las manos de acero."
-                  ],
-                  "description": "Con disco, el disco se sostiene en vertical apretado entre los dedos y el pulgar el mayor tiempo posible. Con el disco, el lastre es simple y directo sobre el antebrazo.",
-                  "technique": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La fuerza de agarre más pura que existe."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -192,7 +133,7 @@
                 },
                 "identity": {
                   "canonicalName": "Pinza de Discos",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forearms_pinza_de_discos__default",
                   "definitionId": "forearms_pinza_de_discos",
                   "familyId": "upper_pinch_grip",
@@ -209,42 +150,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Pinza de Discos en la variante Disco.",
-                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "plate"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
+                    "pinch_grip:forearm"
                   ],
                   "replacementGroup": "forearm_grip_isometric",
                   "replacementPriority": 3
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -255,9 +174,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Dos discos lisos entre los dedos y el pulgar: aguanta el mayor tiempo posible. La fuerza de agarre más pura que existe."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -269,7 +186,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_pinch_grip",
@@ -282,13 +198,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón pinch_grip; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_pinch_grip",

@@ -17,7 +17,6 @@ class ExerciseCatalogV2LoaderTest {
                     ExerciseFamilyV2(
                         id = "test_family",
                         canonicalName = "Familia de prueba",
-                        description = "Familia de prueba para verificar el gate de aprobación.",
                         definitions = emptyList(),
                         evidence = CatalogEvidenceV2(
                             reviewStatus = CatalogReviewStatusV2.DRAFT,

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Press Militar",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "La barra es la referencia para cargar el deltoide con peso de verdad.",
-                "La medida clásica de la fuerza de hombros, dura y honesta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con barra, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. La barra es la referencia para cargar el deltoide con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva la barra desde los hombros hacia arriba con los dos brazos a la vez, en recorrido libre y con el cuerpo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la barra por encima de la cabeza, con el tronco de pie y la carga repartida entre ambas manos.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión de los codos termina el empuje de la barra, que obliga a ambos brazos a bloquear a la vez con el cuerpo de pie bajo la carga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar ofrece una base estable al empuje de pie con barra, con el tronco firme cuando la carga pasa por encima de la cabeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la barra sobre los hombros y el cuerpo de pie, el deltoide eleva la carga bilateral hasta el bloqueo con el tronco firme y sin inclinar el torso atrás."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende los codos para cerrar el empuje de la barra, con los dos brazos subiendo a la vez y el cuerpo de pie bajo la carga."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de pie mientras la barra asciende, con la espalda baja ofreciendo una base que no se arquea para ganar altura."
-                }
-              ],
               "performanceProfileId": "military_press__barbell__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -112,7 +86,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva la barra desde los hombros hacia arriba con los dos brazos a la vez, en recorrido libre y con el cuerpo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la barra por encima de la cabeza, con el tronco de pie y la carga repartida entre ambas manos.",
                       "role": "SECONDARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión de los codos termina el empuje de la barra, que obliga a ambos brazos a bloquear a la vez con el cuerpo de pie bajo la carga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,23 +107,17 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar ofrece una base estable al empuje de pie con barra, con el tronco firme cuando la carga pasa por encima de la cabeza.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -163,7 +128,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -173,45 +137,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Militar",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar el deltoide con peso de verdad.",
-                    "La medida clásica de la fuerza de hombros, dura y honesta."
-                  ],
-                  "description": "Con barra, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. La barra es la referencia para cargar el deltoide con peso de verdad.",
-                  "technique": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -224,7 +155,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "military_press__barbell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -243,42 +174,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Militar en la variante Barra.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -293,9 +202,7 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. La carga bilateral ofrece una referencia clara para progresar en el empuje vertical."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -309,7 +216,6 @@
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__dumbbells",
@@ -317,16 +223,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "La medida clásica de la fuerza de hombros, dura y honesta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con mancuernas, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -340,7 +239,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva cada mancuerna desde su hombro con recorrido libre, dejando que el brazo elija su línea natural con el cuerpo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -348,7 +246,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de cada mancuerna, con el tronco de pie y cada brazo llevando su propia carga por separado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -356,7 +253,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión de los codos termina el empuje de las mancuernas, que llegan al bloqueo sin la guía de trayectoria que sí ofrece una barra.",
                   "role": "SECONDARY"
                 },
                 {
@@ -364,7 +260,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie ante dos cargas independientes, que pueden desplazarse de forma distinta a cada lado del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -372,20 +267,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con mancuernas y el cuerpo de pie, el deltoide eleva cada carga por separado y ajusta su trayectoria sin la rigidez que impone una barra sobre los hombros."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende cada codo para cerrar el empuje de las mancuernas, con los dos brazos trabajando a la vez sin prestarse equilibrio el uno al otro."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de pie mientras las mancuernas ascienden de forma independiente y absorben las diferencias que aparecen entre un lado y otro."
-                }
-              ],
               "performanceProfileId": "military_press__dumbbells__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -407,7 +288,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva cada mancuerna desde su hombro con recorrido libre, dejando que el brazo elija su línea natural con el cuerpo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -415,7 +295,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de cada mancuerna, con el tronco de pie y cada brazo llevando su propia carga por separado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -423,7 +302,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión de los codos termina el empuje de las mancuernas, que llegan al bloqueo sin la guía de trayectoria que sí ofrece una barra.",
                       "role": "SECONDARY"
                     },
                     {
@@ -431,23 +309,17 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie ante dos cargas independientes, que pueden desplazarse de forma distinta a cada lado del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -458,7 +330,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -468,45 +339,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Militar",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "La medida clásica de la fuerza de hombros, dura y honesta."
-                  ],
-                  "description": "Con mancuernas, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -519,7 +357,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "military_press__dumbbells",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -538,42 +376,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Militar en la variante Mancuernas.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -588,9 +404,7 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. La variante descubre diferencias que la barra puede ocultar."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -604,7 +418,6 @@
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__smith_machine",
@@ -612,16 +425,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                "La medida clásica de la fuerza de hombros, dura y honesta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con máquina Smith, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.5,
               "equipmentId": "smith_machine",
@@ -635,7 +441,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva la barra de la Smith por su guía fija, con ambos brazos a la vez y el cuerpo de pie sin equilibrar la carga a mano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -643,7 +448,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la barra guiada de la Smith, cuya trayectoria vertical ya viene decidida por el propio carril.",
                   "role": "SECONDARY"
                 },
                 {
@@ -651,7 +455,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión de los codos cierra el empuje sobre el carril de la Smith, que obliga a los dos brazos a bloquear juntos con el cuerpo de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -659,7 +462,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie sobre la Smith, donde la guía de la barra reduce los ajustes del tronco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -667,20 +469,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: En la Smith de pie, el deltoide empuja la barra guiada desde los hombros y concentra el esfuerzo sin gastarlo en equilibrar la trayectoria de la carga."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende los codos sobre el recorrido fijo de la Smith, con la barra subiendo por el carril y el cuerpo de pie bajo la carga guiada."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de pie mientras la Smith guía la barra, con una demanda de equilibrio menor que la barra libre sobre los hombros."
-                }
-              ],
               "performanceProfileId": "military_press__smith_machine__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -702,7 +490,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva la barra de la Smith por su guía fija, con ambos brazos a la vez y el cuerpo de pie sin equilibrar la carga a mano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -710,7 +497,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la barra guiada de la Smith, cuya trayectoria vertical ya viene decidida por el propio carril.",
                       "role": "SECONDARY"
                     },
                     {
@@ -718,7 +504,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión de los codos cierra el empuje sobre el carril de la Smith, que obliga a los dos brazos a bloquear juntos con el cuerpo de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -726,23 +511,17 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie sobre la Smith, donde la guía de la barra reduce los ajustes del tronco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -753,7 +532,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -763,45 +541,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Militar",
                   "displaySummary": "smith_machine",
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                    "La medida clásica de la fuerza de hombros, dura y honesta."
-                  ],
-                  "description": "Con máquina Smith, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                  "technique": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -814,7 +559,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "military_press__smith_machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -833,42 +578,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Militar en la variante Máquina Smith.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -883,9 +606,7 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. Estable para cargar peso de pie."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -899,7 +620,6 @@
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__machine",
@@ -907,16 +627,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-                "La medida clásica de la fuerza de hombros, dura y honesta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con máquina, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -930,7 +643,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva las asas de la máquina por su trayectoria fija, con el cuerpo de pie y la carga llegando al bloqueo sobre la cabeza.",
                   "role": "PRIMARY"
                 },
                 {
@@ -938,7 +650,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido guiado de la máquina, con el tronco de pie apoyado en el respaldo de la estación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -946,7 +657,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión de los codos termina el empuje sobre la guía de la máquina, que marca una línea común para los dos brazos con el cuerpo de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -954,7 +664,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar se apoya en el respaldo de la máquina y ofrece una base estable al empuje de pie sobre la trayectoria guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -962,20 +671,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: En la máquina de empuje vertical, el deltoide recibe una carga guiada y directa con el cuerpo de pie, sin repartir atención en equilibrar la estación."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende los codos sobre el recorrido de la máquina, con la guía marcando la línea del empuje y el cuerpo de pie dentro de la estación."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de pie dentro de la máquina, donde el respaldo y la guía ya reducen la demanda de equilibrio de la estación."
-                }
-              ],
               "performanceProfileId": "military_press__machine__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -997,7 +692,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva las asas de la máquina por su trayectoria fija, con el cuerpo de pie y la carga llegando al bloqueo sobre la cabeza.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1005,7 +699,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido guiado de la máquina, con el tronco de pie apoyado en el respaldo de la estación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1013,7 +706,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión de los codos termina el empuje sobre la guía de la máquina, que marca una línea común para los dos brazos con el cuerpo de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1021,23 +713,17 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar se apoya en el respaldo de la máquina y ofrece una base estable al empuje de pie sobre la trayectoria guiada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1048,7 +734,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1058,45 +743,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Militar",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-                    "La medida clásica de la fuerza de hombros, dura y honesta."
-                  ],
-                  "description": "Con máquina, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-                  "technique": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1109,7 +761,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "military_press__machine",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1128,42 +780,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Militar en la variante Máquina.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1178,9 +808,7 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. Es una opción práctica para acumular volumen sin gastar energía en estabilizar la estación."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "machine"
@@ -1194,7 +822,6 @@
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__cable",
@@ -1202,16 +829,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "La medida clásica de la fuerza de hombros, dura y honesta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con polea, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -1225,7 +845,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva los brazos contra la línea del cable, con tensión constante desde la altura de los hombros hasta el bloqueo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1233,7 +852,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el empuje contra el cable, donde la polea todavía tira con los brazos ya extendidos y el tronco de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1241,7 +859,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión de los codos cierra el empuje contra la polea, con la tensión del cable activa también en la parte alta del recorrido de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1249,7 +866,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie frente a la tracción del cable, que exige ajuste constante sin el apoyo de ningún respaldo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1257,20 +873,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la polea y el cuerpo de pie, el deltoide empuja desde los hombros con tensión activa en todo el arco, también cuando la carga queda por encima de la cabeza."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende los codos contra la tracción constante del cable, que no ofrece descanso ni en la parte alta ni en el regreso del empuje de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco de pie ante la tracción constante del cable, que tira del cuerpo en cada punto del recorrido hacia arriba."
-                }
-              ],
               "performanceProfileId": "military_press__cable__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -1292,7 +894,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva los brazos contra la línea del cable, con tensión constante desde la altura de los hombros hasta el bloqueo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1300,7 +901,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el empuje contra el cable, donde la polea todavía tira con los brazos ya extendidos y el tronco de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1308,7 +908,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión de los codos cierra el empuje contra la polea, con la tensión del cable activa también en la parte alta del recorrido de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1316,23 +915,17 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene el tronco de pie frente a la tracción del cable, que exige ajuste constante sin el apoyo de ningún respaldo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1343,7 +936,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1353,45 +945,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea desde los hombros: la tensión constante acompaña todo el empuje."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Militar",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "La medida clásica de la fuerza de hombros, dura y honesta."
-                  ],
-                  "description": "Con polea, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1404,7 +963,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "military_press__cable",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1423,42 +982,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Militar en la variante Polea.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1473,9 +1010,7 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Polea desde los hombros: la tensión constante acompaña todo el empuje. Variante precisa que mantiene el hombro cargado."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1489,7 +1024,6 @@
                 "legacy:exercise_database.json#deltoides_press_militar_de_pie",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "military_press__kettlebell",
@@ -1497,16 +1031,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                "La medida clásica de la fuerza de hombros, dura y honesta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con kettlebell, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -1520,7 +1047,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva la kettlebell con recorrido libre, y la carga descentrada obliga al brazo a ajustar su trayectoria con el cuerpo de pie.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1528,7 +1054,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la kettlebell, con el peso colgando de la mano y el tronco de pie sin apoyo externo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1536,7 +1061,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión de los codos termina el empuje de la kettlebell, que carece de superficie de guía y deja el bloqueo al trabajo propio del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1544,7 +1068,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie con kettlebell, cuyo peso descentrado intenta inclinar el tronco a cada paso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1552,20 +1075,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con kettlebell y el cuerpo de pie, el deltoide empuja una carga cuyo centro de masa queda desplazado respecto a la mano y corrige su línea al subir."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende los codos con la kettlebell, cuyo peso cuelga descentrado respecto al antebrazo y exige cerrar el empuje con precisión."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core trabaja de pie con la kettlebell, cuyo centro de masa descentrado tira del tronco en cada punto del empuje hacia arriba."
-                }
-              ],
               "performanceProfileId": "military_press__kettlebell__press_militar",
               "primaryMuscles": [
                 "deltoid"
@@ -1587,7 +1096,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva la kettlebell con recorrido libre, y la carga descentrada obliga al brazo a ajustar su trayectoria con el cuerpo de pie.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1595,7 +1103,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la subida de la kettlebell, con el peso colgando de la mano y el tronco de pie sin apoyo externo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1603,7 +1110,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión de los codos termina el empuje de la kettlebell, que carece de superficie de guía y deja el bloqueo al trabajo propio del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1611,23 +1117,17 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar ofrece una base firme al empuje de pie con kettlebell, cuyo peso descentrado intenta inclinar el tronco a cada paso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "deltoid"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1638,7 +1138,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1648,45 +1147,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "execution": [
-                    "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Militar",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                    "La medida clásica de la fuerza de hombros, dura y honesta."
-                  ],
-                  "description": "Con kettlebell, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                  "technique": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-                  "variantRationale": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1699,7 +1165,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Militar",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "military_press__kettlebell",
                   "definitionId": "military_press",
                   "familyId": "upper_vertical_push_military_press",
@@ -1718,42 +1184,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Militar en la variante Kettlebell.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_push:deltoid"
                   ],
                   "replacementGroup": "shoulder_press_standing",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1768,9 +1212,7 @@
                 "core"
               ],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura.",
-              "ttc": 1.6,
-              "variantRationale": "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. Variante exigente para hombros y estabilidad."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1784,7 +1226,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_push_military_press",
@@ -1801,13 +1242,11 @@
         ]
       }
     ],
-    "description": "Familia de empuje vertical de pie con el tronco erguido; el implemento es la única decisión visible.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_push_military_press",

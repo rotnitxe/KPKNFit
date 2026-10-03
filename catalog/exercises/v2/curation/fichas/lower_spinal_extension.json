@@ -1,0 +1,57 @@
+{
+  "definitions": {
+    "back_extension_lumbar": {
+      "public": {
+        "configurations": {
+          "back_extension_lumbar__default": {
+            "description": "Con máquina, con las piernas fijas en el soporte, el torso baja y sube extendiendo la columna. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los erectores.",
+            "executionCues": [
+              "En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: En el banco de hiperextensiones: bajas el torso y subes con la espalda trabajando."
+            ]
+          }
+        },
+        "description": "Las Hiperextensiones de Espalda Baja usan el banco romano para extender la columna contra la gravedad: los erectores suben y bajan el torso con las piernas fijas en el soporte. Se ejecutan bajando el tronco con la espalda neutra y regresando hasta la línea del cuerpo, sin pasarse de altura. La máquina o el banco dedicado es todo lo que hace falta. La base de una zona lumbar fuerte y resistente al día a día."
+      },
+      "status": "LEGACY"
+    },
+    "back_hiperextension_45_zercher_espalda_baja": {
+      "public": {
+        "configurations": {
+          "back_hiperextension_45_zercher_espalda_baja__default": {
+            "description": "Con barra, sobre el banco de 45 grados con la carga sujeta entre los brazos, el torso pivota sobre las caderas. La barra es la referencia para cargar los erectores con peso de verdad.",
+            "executionCues": [
+              "Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Carga en los codos en el banco a 45: subes el torso con la espalda baja haciendo el trabajo."
+            ]
+          }
+        },
+        "description": "La Hiperextensión a 45 Zercher para Espalda Baja añade la barra abrazada al torso en el banco inclinado: los erectores extienden la cadera y la columna con la carga pegada al pecho. Se ejecuta bajando el tronco y subiendo con la espalda firme y los brazos sujetando sin ayudar. La posición zercher añade trabajo de core al del lumbar. Una carga distinta para el banco de 45 grados, con el tronco entero comprometido."
+      },
+      "status": "LEGACY"
+    },
+    "back_superman_suelo": {
+      "public": {
+        "configurations": {
+          "back_superman_suelo__default": {
+            "description": "Con peso corporal, boca abajo, brazos y piernas se elevan a la vez y se sostienen unos segundos. Los erectores trabajan con el peso corporal como única carga.",
+            "executionCues": [
+              "Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Boca abajo en el suelo: levantas brazos y piernas a la vez y aguantas un momento."
+            ]
+          }
+        },
+        "description": "El Superman en Suelo eleva brazos y piernas a la vez estando boca abajo: los erectores sostienen el arco unos segundos y regresan al suelo. Se ejecuta sin material, con pausas arriba y sin golpear el suelo al bajar. La espalda baja trabaja con el propio peso del cuerpo como carga. El punto de partida perfecto para cuidar la espalda antes de atreverse con el banco romano."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_spinal_extension",
+  "schemaVersion": 1
+}

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Extensión Katana",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#triceps_katana_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "katana_extension__cable__bilateral",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
-                "Elegante y distinto, con una congestión final sorprendente."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con polea y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
               "efc": 2.2,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre en el arco de desenvaine con ambas manos sobre el cable lateral; la polea sostiene la tensión durante la extensión completa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene el brazo superior en la diagonal mientras ambas manos tiran del cable lateral, sin robar recorrido a la extensión del codo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral durante el tirón diagonal a dos manos, donde la tensión constante exige un apoyo firme.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con polea lateral y ambas manos, el tríceps extiende el codo en diagonal llevando la mano hacia atrás y arriba; el descenso frena la tensión constante del cable."
-                }
-              ],
               "performanceProfileId": "katana_extension__cable__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -95,7 +78,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre en el arco de desenvaine con ambas manos sobre el cable lateral; la polea sostiene la tensión durante la extensión completa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene el brazo superior en la diagonal mientras ambas manos tiran del cable lateral, sin robar recorrido a la extensión del codo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral durante el tirón diagonal a dos manos, donde la tensión constante exige un apoyo firme.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -143,45 +117,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión Katana",
                   "displaySummary": "cable · bilateral",
                   "selectedOptions": {
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
-                    "Elegante y distinto, con una congestión final sorprendente."
-                  ],
-                  "description": "Con polea y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
-                  "technique": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El tríceps aumenta su tensión desde un ángulo moderno."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -194,7 +135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "katana_extension__cable__bilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -212,42 +153,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión Katana en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -258,9 +177,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El tríceps aumenta su tensión desde un ángulo moderno."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -274,7 +191,6 @@
                 "legacy:exercise_database.json#triceps_katana_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "katana_extension__cable__unilateral",
@@ -282,16 +198,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-                "Elegante y distinto, con una congestión final sorprendente."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con polea y a un lado, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.2,
               "equipmentId": "cable",
@@ -305,7 +214,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre en el arco de desenvaine con una sola mano sobre el cable lateral; la polea sostiene la tensión durante toda la extensión del brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -313,7 +221,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro fija el brazo superior en la diagonal mientras una mano tira del cable lateral; el trabajo unilateral expone las diferencias entre lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -321,7 +228,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral en el tirón diagonal a una mano, donde la tensión constante pide un apoyo firme y estable.",
                   "role": "STABILIZER"
                 }
               ],
@@ -329,12 +235,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con polea lateral a una mano, el tríceps extiende el codo en diagonal llevando la mano hacia atrás y arriba; el descenso frena la tensión constante del cable."
-                }
-              ],
               "performanceProfileId": "katana_extension__cable__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -355,7 +255,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre en el arco de desenvaine con una sola mano sobre el cable lateral; la polea sostiene la tensión durante toda la extensión del brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -363,7 +262,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro fija el brazo superior en la diagonal mientras una mano tira del cable lateral; el trabajo unilateral expone las diferencias entre lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -371,20 +269,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca alinea la mano con el cable lateral en el tirón diagonal a una mano, donde la tensión constante pide un apoyo firme y estable.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -394,7 +286,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -403,45 +294,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea con una mano en diagonal: cada tríceps trabaja por separado."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión Katana",
                   "displaySummary": "cable · unilateral",
                   "selectedOptions": {
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-                    "Elegante y distinto, con una congestión final sorprendente."
-                  ],
-                  "description": "Con polea y a un lado, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Útil para centrarse en un brazo a la vez."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -454,7 +312,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión Katana",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "katana_extension__cable__unilateral",
                   "definitionId": "katana_extension",
                   "familyId": "triceps_katana_extension",
@@ -472,42 +330,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión Katana en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": "triceps_niche",
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -518,9 +354,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Polea con una mano en diagonal: cada tríceps trabaja por separado. Útil para centrarse en un brazo a la vez."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -534,7 +368,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "triceps_katana_extension",
@@ -550,13 +383,11 @@
         ]
       }
     ],
-    "description": "Familia de extensión de codo en posición Katana; implemento y lateralidad solo aparecen cuando cambian la configuración real.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "triceps_katana_extension",

@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "conventional_row": {
+      "public": {
+        "configurations": {
+          "conventional_row__barbell": {
+            "description": "Con barra, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la barra, la carga sube al máximo y la progresión del dorsal ancho se mide sin trampa.",
+            "executionCues": [
+              "Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+            ],
+            "setupCues": [
+              "Preparación: Barra frente a los muslos, tronco inclinado y codos hacia la cintura: la carga permite progresar con una referencia estable para toda la espalda."
+            ]
+          },
+          "conventional_row__cable": {
+            "description": "Con polea, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja frente al cuerpo: el cable mantiene tensión mientras el torso conserva una inclinación fija."
+            ]
+          },
+          "conventional_row__dumbbells": {
+            "description": "Con mancuernas, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+            "executionCues": [
+              "Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas suspendidas bajo los hombros: cada brazo puede elegir una línea ligeramente distinta mientras el tronco permanece inclinado."
+            ]
+          },
+          "conventional_row__kettlebell": {
+            "description": "Con kettlebell, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
+            "executionCues": [
+              "Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells colgando entre las piernas: el centro de masa bajo el agarre añade trabajo de muñeca y exige que el torso no se desorganice."
+            ]
+          },
+          "conventional_row__machine": {
+            "description": "Con máquina, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
+            "executionCues": [
+              "Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de remo con el pecho libre: el recorrido guiado reduce la necesidad de equilibrar la carga y deja más energía para la tracción."
+            ]
+          },
+          "conventional_row__smith_machine": {
+            "description": "Con máquina Smith, el torso inclinado se mantiene firme mientras la carga sube hacia el abdomen y los codos cierran el tirón. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada. La cadera fija la inclinación del torso y los codos llevan la carga hacia la cintura sin convertir el remo en un balanceo."
+            ],
+            "setupCues": [
+              "Preparación: Smith con la barra en una trayectoria fija: el guiado reduce el componente de equilibrio mientras el tronco sostiene la posición inclinada."
+            ]
+          }
+        },
+        "description": "El Remo Convencional es el tirón horizontal con más historia del gimnasio: dorsal ancho y trapecio moviendo la barra mientras la cadera sostiene la postura inclinada. Se ejecuta con el torso casi paralelo al suelo y la espalda neutra, llevando la barra hacia el abdomen con los codos pegados y bajándola sin que el tronco baile. Para corregir un lado rezagado, el remo con mancuerna a una mano es casi otro ejercicio y un corrector magnífico. Un constructor de espalda completa que exige respeto por la postura."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "back_conventional_row",
+  "schemaVersion": 1
+}

@@ -1,0 +1,32 @@
+{
+  "definitions": {
+    "belt_squat": {
+      "public": {
+        "configurations": {
+          "belt_squat__bilateral": {
+            "description": "Con a dos lados, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
+            "executionCues": [
+              "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
+            ],
+            "setupCues": [
+              "Preparación: Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa."
+            ]
+          },
+          "belt_squat__unilateral": {
+            "description": "Con a un lado, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga."
+            ]
+          }
+        },
+        "description": "La Sentadilla \"Belt Squat\" cuelga la carga de un cinturón a la cintura y libera por completo la espalda y los hombros: las piernas empujan sin que nada pese sobre la columna. Se ejecuta subiendo a la plataforma de la máquina y bajando profundo con las manos libres o agarradas al soporte. Cuádriceps y glúteos trabajan sin peaje lumbar. La máquina soñada por quien entrena pierna con la espalda sensible."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_knee_dominant_belt_squat",
+  "schemaVersion": 1
+}

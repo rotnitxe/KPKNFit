@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "hams_peso_muerto_rumano_deficit": {
+      "public": {
+        "configurations": {
+          "hams_peso_muerto_rumano_deficit__default": {
+            "description": "Con barra, desde la plataforma, la carga baja por los muslos con un recorrido extra. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
+            "executionCues": [
+              "Desde la plataforma, la barra baja por los muslos con más recorrido. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Desde la plataforma, la barra baja por los muslos con más recorrido."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Rumano en Déficit añade altura bajo los pies y deja que la barra baje más allá de las puntas. Los isquiosurales alcanzan un estiramiento que el rumano estándar no puede dar, con los erectores custodiando la espalda. Se ejecuta bajando la carga por los muslos hasta el nuevo tope y regresando con la cadera. El siguiente nivel del RDL para quien ya agota su rango en el suelo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_romanian_deadlift",
+  "schemaVersion": 1
+}

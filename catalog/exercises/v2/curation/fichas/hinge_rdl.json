@@ -1,0 +1,166 @@
+{
+  "definitions": {
+    "romanian_deadlift": {
+      "public": {
+        "configurations": {
+          "romanian_deadlift__bilateral__barbell": {
+            "description": "Con barra y apoyo a dos piernas, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. La barra es la referencia para cargar los isquiosurales con peso de verdad. A dos piernas, la carga se reparte y el trabajo de los isquiosurales permite ir más pesado.",
+            "executionCues": [
+              "Barra con ambas piernas: el rumano tradicional deslizando la barra por los muslos. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra con ambas piernas: el rumano tradicional deslizando la barra por los muslos."
+            ]
+          },
+          "romanian_deadlift__bilateral__dumbbells": {
+            "description": "Con mancuernas y apoyo a dos piernas, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Con las dos piernas, la base reparte la carga y da estabilidad al trabajo de los isquiosurales.",
+            "executionCues": [
+              "Mancuernas con ambas piernas: la carga viaja por delante de los muslos con recorrido libre. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con ambas piernas: la carga viaja por delante de los muslos con recorrido libre."
+            ]
+          },
+          "romanian_deadlift__bilateral__hex_bar": {
+            "description": "Con barra hexagonal y apoyo a dos piernas, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A dos piernas, la carga se reparte y el trabajo de los isquiosurales permite ir más pesado.",
+            "executionCues": [
+              "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo de isquios. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal con ambas piernas: carga estable y estiramiento profundo de isquios."
+            ]
+          },
+          "romanian_deadlift__bilateral__smith_machine": {
+            "description": "Con máquina Smith y apoyo a dos piernas, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales. Con las dos piernas, la base reparte la carga y da estabilidad al trabajo de los isquiosurales.",
+            "executionCues": [
+              "Smith con ambas piernas: el guiado te deja estirar los isquios con total estabilidad. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Smith con ambas piernas: el guiado te deja estirar los isquios con total estabilidad."
+            ]
+          },
+          "romanian_deadlift__unilateral__barbell": {
+            "description": "Con barra y apoyo a una pierna, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con una pierna, el esfuerzo de los isquiosurales se concentra y el equilibrio trabaja extra.",
+            "executionCues": [
+              "Barra en una pierna: el rumano con equilibrio, el isquio estirado a fondo y el glúteo trabajando en cada repetición. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra en una pierna: el rumano con equilibrio, el isquio estirado a fondo y el glúteo trabajando en cada repetición."
+            ]
+          },
+          "romanian_deadlift__unilateral__dumbbells": {
+            "description": "Con mancuernas y apoyo a una pierna, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A una pierna, el trabajo de los isquiosurales se hace en solitario y el equilibrio se suma.",
+            "executionCues": [
+              "Una mancuerna acompaña la pierna de trabajo mientras la otra se extiende hacia atrás para equilibrar. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Una mancuerna acompaña la pierna de trabajo mientras la otra se extiende hacia atrás para equilibrar."
+            ]
+          },
+          "romanian_deadlift__unilateral__hex_bar": {
+            "description": "Con barra hexagonal y apoyo a una pierna, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. Con una pierna, el esfuerzo de los isquiosurales se concentra y el equilibrio trabaja extra.",
+            "executionCues": [
+              "Barra hexagonal en una pierna: la estabilidad de la carga más el trabajo de equilibrio. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal en una pierna: la estabilidad de la carga más el trabajo de equilibrio."
+            ]
+          },
+          "romanian_deadlift__unilateral__smith_machine": {
+            "description": "Con máquina Smith y apoyo a una pierna, desde la posición erguida, la carga se desliza por los muslos mientras la cadera viaja hacia atrás. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales. Con una pierna, el esfuerzo de los isquiosurales se concentra y el equilibrio trabaja extra.",
+            "executionCues": [
+              "Smith en una pierna: estabilidad del guiado más el reto del apoyo único. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Smith en una pierna: estabilidad del guiado más el reto del apoyo único."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Rumano, o RDL, es la bisagra que empieza de pie: la barra se desliza por los muslos mientras la cadera viaja hacia atrás y los isquiosurales se estiran bajo carga como en ningún otro gesto. Se ejecuta con las rodillas semirrígidas, bajando hasta donde la espalda neutra lo permita y regresando con la cadera al frente. Con mancuernas cada lado aprende su parte, y la barra hexagonal acerca la carga al eje del cuerpo. La referencia mundial para construir unos isquiosurales de acero."
+      },
+      "status": "LEGACY"
+    },
+    "romanian_sumo_deadlift": {
+      "public": {
+        "configurations": {
+          "romanian_sumo_deadlift__bilateral__barbell": {
+            "description": "Con barra y apoyo a dos piernas, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. La barra es la referencia para cargar los isquiosurales con peso de verdad. A dos piernas, la carga se reparte y el trabajo de los isquiosurales permite ir más pesado.",
+            "executionCues": [
+              "Barra en postura sumo con ambas piernas: el estiramiento de isquios con la base amplia cambia el foco hacia los glúteos. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra en postura sumo con ambas piernas: el estiramiento de isquios con la base amplia cambia el foco hacia los glúteos."
+            ]
+          },
+          "romanian_sumo_deadlift__bilateral__dumbbells": {
+            "description": "Con mancuernas y apoyo a dos piernas, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Con las dos piernas, la base reparte la carga y da estabilidad al trabajo de los isquiosurales.",
+            "executionCues": [
+              "Mancuernas en postura sumo: la base amplia y la carga a los costados. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas en postura sumo: la base amplia y la carga a los costados."
+            ]
+          },
+          "romanian_sumo_deadlift__bilateral__hex_bar": {
+            "description": "Con barra hexagonal y apoyo a dos piernas, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A dos piernas, la carga se reparte y el trabajo de los isquiosurales permite ir más pesado.",
+            "executionCues": [
+              "Barra hexagonal sumo: la carga estable con la base amplia de pies. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal sumo: la carga estable con la base amplia de pies."
+            ]
+          },
+          "romanian_sumo_deadlift__bilateral__smith_machine": {
+            "description": "Con máquina Smith y apoyo a dos piernas, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos piernas, la carga se reparte y el trabajo de los isquiosurales permite ir más pesado.",
+            "executionCues": [
+              "Smith sumo con ambas piernas: el guiado cuida la postura amplia y el estiramiento de isquios. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Smith sumo con ambas piernas: el guiado cuida la postura amplia y el estiramiento de isquios."
+            ]
+          },
+          "romanian_sumo_deadlift__unilateral__barbell": {
+            "description": "Con barra y apoyo a una pierna, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. La barra es la referencia para cargar los isquiosurales con peso de verdad. A una pierna, el trabajo de los isquiosurales se hace en solitario y el equilibrio se suma.",
+            "executionCues": [
+              "Barra sumo en una pierna: la base amplia y el apoyo único exigen estabilidad y cargan el glúteo. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra sumo en una pierna: la base amplia y el apoyo único exigen estabilidad y cargan el glúteo."
+            ]
+          },
+          "romanian_sumo_deadlift__unilateral__dumbbells": {
+            "description": "Con mancuernas y apoyo a una pierna, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Con una pierna, el esfuerzo de los isquiosurales se concentra y el equilibrio trabaja extra.",
+            "executionCues": [
+              "Mancuerna sumo en una pierna: equilibrio, glúteo y estiramiento profundo. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna sumo en una pierna: equilibrio, glúteo y estiramiento profundo."
+            ]
+          },
+          "romanian_sumo_deadlift__unilateral__hex_bar": {
+            "description": "Con barra hexagonal y apoyo a una pierna, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A una pierna, el trabajo de los isquiosurales se hace en solitario y el equilibrio se suma.",
+            "executionCues": [
+              "Barra hexagonal sumo en una pierna: estabilidad de la carga y reto de equilibrio a la vez. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal sumo en una pierna: estabilidad de la carga y reto de equilibrio a la vez."
+            ]
+          },
+          "romanian_sumo_deadlift__unilateral__smith_machine": {
+            "description": "Con máquina Smith y apoyo a una pierna, con la postura amplia, la carga baja por el centro del cuerpo sin tocar el suelo. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales. A una pierna, el trabajo de los isquiosurales se hace en solitario y el equilibrio se suma.",
+            "executionCues": [
+              "Smith sumo en una pierna: estabilidad y trabajo profundo del glúteo lado a lado. La cadera viaja atrás con las rodillas poco flexionadas y la carga roza las piernas; la subida termina al recuperar la línea del tronco."
+            ],
+            "setupCues": [
+              "Preparación: Smith sumo en una pierna: estabilidad y trabajo profundo del glúteo lado a lado."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Rumano Sumo cruza dos ideas: la bisagra desde arriba del rumano con la postura abierta del sumo. El resultado reparte el estiramiento entre isquiosurales y glúteos desde una base ancha y cómoda para la espalda. La ejecución desliza la carga por dentro de las piernas, con la base ancha y la cadera empujando atrás. Una combinación refrescante cuando el rumano tradicional pide aire nuevo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "hinge_rdl",
+  "schemaVersion": 1
+}

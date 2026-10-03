@@ -1,0 +1,41 @@
+{
+  "definitions": {
+    "rear_delt_raise": {
+      "public": {
+        "configurations": {
+          "rear_delt_raise__cable": {
+            "description": "Con polea, con el torso inclinado, los brazos se abren hacia atrás trabajando la cara posterior del hombro. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea para abrir los brazos hacia atrás: la tensión permanece activa cuando el deltoides posterior se acerca a su contracción. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea para abrir los brazos hacia atrás: la tensión permanece activa cuando el deltoides posterior se acerca a su contracción."
+            ]
+          },
+          "rear_delt_raise__dumbbells": {
+            "description": "Con mancuernas, con el torso inclinado, los brazos se abren hacia atrás trabajando la cara posterior del hombro. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas inclinado: abres los brazos hacia los lados con el torso paralelo al suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas inclinado: abres los brazos hacia los lados con el torso paralelo al suelo."
+            ]
+          },
+          "rear_delt_raise__machine": {
+            "description": "Con máquina, con el torso inclinado, los brazos se abren hacia atrás trabajando la cara posterior del hombro. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+            "executionCues": [
+              "Máquina de deltoides posterior: el guiado concentra la espalda alta del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de deltoides posterior: el guiado concentra la espalda alta del hombro."
+            ]
+          }
+        },
+        "description": "Las Elevaciones Posteriores abren los brazos hacia atrás con el torso inclinado: el deltoides posterior y la espalda alta trabajan en la cara olvidada del hombro. Se ejecutan con mancuernas, el pecho casi paralelo al suelo y los codos abriendo en arco hasta la línea del torso. Con polea o en máquina la misma idea con tensión distinta. El equilibrante postural que todo trabajador de escritorio necesita."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "shoulder_rear_delt_raise",
+  "schemaVersion": 1
+}

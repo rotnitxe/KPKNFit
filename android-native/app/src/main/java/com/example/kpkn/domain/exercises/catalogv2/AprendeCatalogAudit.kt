@@ -13,12 +13,7 @@ data class AprendeCatalogAuditReport(
     val editorialCoverageCount: Int,
     val jointCoverageCount: Int,
     val shortDescriptionCount: Int,
-    val shortBenefitCount: Int,
-    val shortTechniqueCount: Int,
-    val shortVariantRationaleCount: Int,
     val duplicateDescriptionCount: Int,
-    val duplicateTechniqueCount: Int,
-    val duplicateVariantRationaleCount: Int,
     val desynchronizedMetadataCount: Int,
     val reverseLinkConsistencyIssueCount: Int,
     val unmappedMuscleIds: Set<String>,
@@ -35,12 +30,7 @@ data class AprendeCatalogAuditReport(
             editorialCoverageCount == configurationCount &&
             jointCoverageCount == configurationCount &&
             shortDescriptionCount == 0 &&
-            shortBenefitCount == 0 &&
-            shortTechniqueCount == 0 &&
-            shortVariantRationaleCount == 0 &&
             duplicateDescriptionCount == 0 &&
-            duplicateTechniqueCount == 0 &&
-            duplicateVariantRationaleCount == 0 &&
             desynchronizedMetadataCount == 0 &&
             reverseLinkConsistencyIssueCount == 0 &&
             unmappedMuscleIds.isEmpty() &&
@@ -129,8 +119,9 @@ fun auditAprendeCatalog(
         definitionCount = definitions.size,
         configurationCount = configurations.size,
         richMetadataCount = profiles.count { it.richMetadata != null },
+        // Visible copy coverage: description plus the setup/execution cues the app shows and reads aloud.
         editorialCoverageCount = profiles.count {
-            it.description.isNotBlank() && it.benefits.isNotEmpty() && it.techniqueSummary.isNotBlank()
+            it.description.isNotBlank() && it.setupCues.isNotEmpty() && it.executionCues.isNotEmpty()
         },
         jointCoverageCount = profiles.count {
             it.jointInvolvement.isNotEmpty() &&
@@ -138,17 +129,7 @@ fun auditAprendeCatalog(
                     it.richMetadata?.biomechanics?.relevantJoints.orEmpty().toSet()
         },
         shortDescriptionCount = profiles.count { it.description.trim().length < MIN_DESCRIPTION_CHARS },
-        shortBenefitCount = profiles.count {
-            it.benefits.size < MIN_BENEFIT_COUNT ||
-                it.benefits.any { benefit -> benefit.trim().length < MIN_BENEFIT_CHARS }
-        },
-        shortTechniqueCount = profiles.count { it.techniqueSummary.trim().length < MIN_TECHNIQUE_CHARS },
-        shortVariantRationaleCount = profiles.count {
-            it.variantRationale.trim().length < MIN_VARIANT_RATIONALE_CHARS
-        },
         duplicateDescriptionCount = duplicateValueCount(profiles.map { it.description }),
-        duplicateTechniqueCount = duplicateValueCount(profiles.map { it.techniqueSummary }),
-        duplicateVariantRationaleCount = duplicateValueCount(profiles.map { it.variantRationale }),
         desynchronizedMetadataCount = contexts.count { context ->
             context.hasDesynchronizedMirrors(catalog.catalogRevision)
         },
@@ -190,8 +171,6 @@ private data class ConfigurationAuditContext(
         val identity = rich.identity
         val anatomy = rich.anatomy
         val biomechanics = rich.biomechanics
-        val editorial = rich.editorial
-        val coaching = rich.coaching
         val replacement = rich.replacement
         val display = rich.display
         val fatigue = rich.fatigue
@@ -215,18 +194,14 @@ private data class ConfigurationAuditContext(
             biomechanics.loadMode != profile.loadMode ||
             biomechanics.resistanceProfile != profile.resistanceProfile ||
             biomechanics.relevantJoints != profile.jointInvolvement.map { it.jointId } ||
-            coaching.setup != profile.setupCues ||
-            coaching.execution != profile.executionCues ||
-            coaching.commonMistakes != profile.commonMistakes ||
+            // Derived mirrors: they follow the anatomy and can never be authored on their own.
+            anatomy.jointActions != profile.jointInvolvement.flatMap { it.actions }.distinct() ||
+            replacement.preservesIntent != profile.primaryMuscles.map { "${profile.movementPatternId}:$it" } ||
             replacement.replacementGroup != profile.replacementGroup ||
             replacement.replacementPriority != profile.replacementPriority ||
             display.displayName != definition.canonicalName ||
             display.displaySummary != configuration.displaySummary ||
             display.selectedOptions != configuration.selectedOptions ||
-            editorial.description != profile.description ||
-            editorial.benefits != profile.benefits ||
-            editorial.technique != profile.techniqueSummary ||
-            editorial.variantRationale != profile.variantRationale ||
             fatigue.efc != profile.efc ||
             fatigue.cnc != profile.cnc ||
             fatigue.ssc != profile.ssc ||
@@ -237,10 +212,6 @@ private data class ConfigurationAuditContext(
 }
 
 private const val MIN_DESCRIPTION_CHARS = 80
-private const val MIN_BENEFIT_COUNT = 2
-private const val MIN_BENEFIT_CHARS = 30
-private const val MIN_TECHNIQUE_CHARS = 80
-private const val MIN_VARIANT_RATIONALE_CHARS = 60
 
 private fun duplicateValueCount(values: List<String>): Int = values
     .map { it.trim().lowercase(Locale.ROOT) }

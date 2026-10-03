@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "back_dominadas_escapulares": {
+      "public": {
+        "configurations": {
+          "back_dominadas_escapulares__default": {
+            "description": "Con peso corporal, colgado con los brazos extendidos, los omóplatos se hunden y se elevan sin flexionar los codos. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+            "executionCues": [
+              "Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Colgado de la barra moviendo solo los omóplatos: la espalda se activa sin doblarte."
+            ]
+          }
+        },
+        "description": "Las Dominadas Escapulares son el primer escalón de la tracción: colgado de la barra fija, los omóplatos se hunden y se elevan sin flexionar los codos. Se ejecutan con los brazos rectos, bajando los hombros de las orejas y subiendo el pecho unos centímetros con solo la espalda. El dorsal ancho aprende a encenderse aquí. La activación que enseña de qué va de verdad colgarse."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_scapular_depression",
+  "schemaVersion": 1
+}

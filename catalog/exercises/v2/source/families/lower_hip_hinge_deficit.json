@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge deficit",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional_deficit",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_peso_muerto_convencional_deficit__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "El déficit que convierte un buen arranque en uno imparable."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma, cuyo déficit añade profundidad y alarga el estiramiento del descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad al tirón de la barra desde la plataforma, con la carga partiendo de más abajo y la trayectoria sin cambios.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico durante el descenso profundo desde la plataforma, con el tronco inclinado y firme bajo la barra.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco mientras la barra baja desde la plataforma, con la cadera atrás y el recorrido alargado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales extienden la cadera al subir la barra desde la plataforma y frenan el descenso alargado que el déficit provoca, con la carga partiendo de más abajo."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera en la subida de la barra desde la plataforma y modera el descenso, más profundo por el déficit bajo los pies."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Secundario: Los erectores espinales ayudan a extender el tronco en la subida de la barra y frenan la flexión del descenso profundo que la plataforma provoca en cada repetición."
-                }
-              ],
               "performanceProfileId": "hams_peso_muerto_convencional_deficit__barbell__peso_muerto_convencional_en_deficit",
               "primaryMuscles": [
                 "hamstrings"
@@ -112,7 +86,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma, cuyo déficit añade profundidad y alarga el estiramiento del descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad al tirón de la barra desde la plataforma, con la carga partiendo de más abajo y la trayectoria sin cambios.",
                       "role": "SECONDARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico durante el descenso profundo desde la plataforma, con el tronco inclinado y firme bajo la barra.",
                       "role": "STABILIZER"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco mientras la barra baja desde la plataforma, con la cadera atrás y el recorrido alargado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -148,11 +117,7 @@
                     "gluteus_maximus",
                     "erector_spinae"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge_deficit",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Desde la plataforma, la barra parte más abajo y el recorrido crece."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional en Déficit",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "El déficit que convierte un buen arranque en uno imparable."
-                  ],
-                  "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Desde la plataforma, la barra parte más abajo y el recorrido crece. Isquios y glúteos con un estiramiento extra desde el primer tirón."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hams_peso_muerto_convencional_deficit__default",
                   "definitionId": "hams_peso_muerto_convencional_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -238,42 +169,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Peso Muerto Convencional en Déficit en la variante Barra.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge_deficit:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -287,9 +196,7 @@
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Desde la plataforma, la barra parte más abajo y el recorrido crece. Isquios y glúteos con un estiramiento extra desde el primer tirón."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -301,7 +208,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge_deficit",
@@ -324,7 +230,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_piernas_rigidas_deficit",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_peso_muerto_piernas_rigidas_deficit__default",
@@ -332,16 +237,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                "Solo para quien ya tiene movilidad y control de sobra."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -355,7 +253,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La flexión y la extensión de la cadera gobiernan el recorrido con la barra desde la plataforma y las piernas casi rectas, hasta el estiramiento máximo de los isquios.",
                   "role": "PRIMARY"
                 },
                 {
@@ -363,7 +260,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La flexión ligera de la rodilla da estabilidad al tirón con la barra sobre la plataforma, con las piernas casi rectas y el recorrido más largo de lo habitual.",
                   "role": "SECONDARY"
                 },
                 {
@@ -371,7 +267,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico mientras la barra baja por debajo del nivel de los pies, con las piernas casi rectas y el tronco firme.",
                   "role": "STABILIZER"
                 },
                 {
@@ -379,7 +274,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en el descenso profundo con las piernas casi rectas, con la cadera desplazada atrás.",
                   "role": "STABILIZER"
                 }
               ],
@@ -387,20 +281,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales extienden la cadera al subir la barra desde la plataforma con las piernas casi rectas y frenan un descenso que lleva el estiramiento al límite."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al subir la barra desde la plataforma y modera el descenso con las piernas casi rectas hasta el estiramiento máximo."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Secundario: Los erectores espinales ayudan a extender el tronco al subir la barra y frenan la flexión de la columna en el descenso profundo con las piernas casi rectas."
-                }
-              ],
               "performanceProfileId": "hams_peso_muerto_piernas_rigidas_deficit__barbell__peso_muerto_piernas_rigidas_en_deficit",
               "primaryMuscles": [
                 "hamstrings"
@@ -422,7 +302,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La flexión y la extensión de la cadera gobiernan el recorrido con la barra desde la plataforma y las piernas casi rectas, hasta el estiramiento máximo de los isquios.",
                       "role": "PRIMARY"
                     },
                     {
@@ -430,7 +309,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La flexión ligera de la rodilla da estabilidad al tirón con la barra sobre la plataforma, con las piernas casi rectas y el recorrido más largo de lo habitual.",
                       "role": "SECONDARY"
                     },
                     {
@@ -438,7 +316,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico mientras la barra baja por debajo del nivel de los pies, con las piernas casi rectas y el tronco firme.",
                       "role": "STABILIZER"
                     },
                     {
@@ -446,11 +323,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en el descenso profundo con las piernas casi rectas, con la cadera desplazada atrás.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -458,11 +333,7 @@
                     "gluteus_maximus",
                     "erector_spinae"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -472,7 +343,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge_deficit",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -482,43 +352,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Piernas Rígidas en Déficit",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                    "Solo para quien ya tiene movilidad y control de sobra."
-                  ],
-                  "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                  "technique": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. El peso muerto más profundo que existe."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -531,7 +368,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Piernas Rígidas en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hams_peso_muerto_piernas_rigidas_deficit__default",
                   "definitionId": "hams_peso_muerto_piernas_rigidas_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -548,42 +385,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Peso Muerto Piernas Rígidas en Déficit en la variante Barra.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge_deficit:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -597,9 +412,7 @@
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. El peso muerto más profundo que existe."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -611,7 +424,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge_deficit",
@@ -634,7 +446,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_sumo_deficit",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_peso_muerto_sumo_deficit__default",
@@ -642,16 +453,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                "Una prueba avanzada para los que ya dominan el sumo convencional."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -665,7 +469,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma en postura amplia, con el déficit alargando el estiramiento del descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -673,7 +476,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad en la postura amplia mientras la barra sube y baja sobre la plataforma, con la carga partiendo de más abajo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -681,7 +483,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico en el descenso profundo con la postura amplia sobre la plataforma, con el tronco inclinado y firme.",
                   "role": "STABILIZER"
                 },
                 {
@@ -689,7 +490,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en la postura amplia sobre la plataforma, con la cadera atrás y el recorrido alargado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -697,20 +497,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales extienden la cadera al subir la barra desde la plataforma con la postura amplia y frenan el descenso largo que el déficit añade al recorrido."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al subir la barra con la postura amplia y modera el descenso, alargado por el déficit bajo los pies."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores asisten la extensión de la cadera desde la postura amplia con la barra sobre la plataforma y frenan el descenso alargado por el déficit."
-                }
-              ],
               "performanceProfileId": "hams_peso_muerto_sumo_deficit__barbell__peso_muerto_sumo_en_deficit",
               "primaryMuscles": [
                 "hamstrings"
@@ -732,7 +518,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La flexión y la extensión de la cadera dirigen el recorrido con la barra desde la plataforma en postura amplia, con el déficit alargando el estiramiento del descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -740,7 +525,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La flexión ligera de la rodilla aporta estabilidad en la postura amplia mientras la barra sube y baja sobre la plataforma, con la carga partiendo de más abajo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -748,7 +532,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión en isométrico en el descenso profundo con la postura amplia sobre la plataforma, con el tronco inclinado y firme.",
                       "role": "STABILIZER"
                     },
                     {
@@ -756,11 +539,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca transfiere el esfuerzo entre pelvis y tronco en la postura amplia sobre la plataforma, con la cadera atrás y el recorrido alargado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -768,11 +549,7 @@
                     "gluteus_maximus",
                     "adductors"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -782,7 +559,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge_deficit",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -792,43 +568,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Sumo en Déficit",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                    "Una prueba avanzada para los que ya dominan el sumo convencional."
-                  ],
-                  "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                  "technique": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -841,7 +584,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo en Déficit",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hams_peso_muerto_sumo_deficit__default",
                   "definitionId": "hams_peso_muerto_sumo_deficit",
                   "familyId": "lower_hip_hinge_deficit",
@@ -858,42 +601,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Peso Muerto Sumo en Déficit en la variante Barra.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge_deficit:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -907,9 +628,7 @@
               "ssc": 1.0,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -921,7 +640,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge_deficit",
@@ -934,13 +652,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón hip_hinge_deficit; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_hinge_deficit",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · tibialis anterior · ankle dorsiflexion",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#calves_tibial_anterior",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "calves_tibial_anterior__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
-                "El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
-              ],
               "description": "Con peso corporal, la punta del pie se eleva hacia la espinilla contra la resistencia. Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
@@ -45,7 +37,6 @@
                     "Flexión Plantar O Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Principal: El tobillo alterna dorsiflexión al subir la punta y flexión plantar al bajar, con el peso del cuerpo y la resistencia de la banda sobre los pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Ajuste Del Apoyo"
                   ],
                   "jointId": "subtalar",
-                  "note": "Secundaria: La subtalar ajusta el reparto del apoyo mientras la punta de ambos pies sube y baja, con el peso del cuerpo como única carga del trabajo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Transmisión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla transmite la carga del peso corporal al tobillo sin ser el motor del movimiento, con los dos pies compartiendo el esfuerzo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "ankle_dorsiflexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "tibialis_anterior",
-                  "note": "Principal: La cara anterior de la espinilla acorta en concéntrico al elevar la punta del pie y frena el descenso en excéntrico con el peso del cuerpo por carga."
-                }
-              ],
               "performanceProfileId": "calves_tibial_anterior__bodyweight__tibial_anterior",
               "primaryMuscles": [
                 "tibialis_anterior"
@@ -95,7 +78,6 @@
                         "Flexión Plantar O Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Principal: El tobillo alterna dorsiflexión al subir la punta y flexión plantar al bajar, con el peso del cuerpo y la resistencia de la banda sobre los pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Ajuste Del Apoyo"
                       ],
                       "jointId": "subtalar",
-                      "note": "Secundaria: La subtalar ajusta el reparto del apoyo mientras la punta de ambos pies sube y baja, con el peso del cuerpo como única carga del trabajo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Transmisión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla transmite la carga del peso corporal al tobillo sin ser el motor del movimiento, con los dos pies compartiendo el esfuerzo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "tibialis_anterior"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "tibialis_anterior"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight",
                   "movementPatternId": "ankle_dorsiflexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "tobillo",
                     "subtalar",
@@ -143,43 +117,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Rebotar, girar los pies o mover la rodilla en vez del tobillo."
-                  ],
-                  "cues": [
-                    "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la fuerza del tobillo y la transferencia hacia la pierna siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento del pie desde el tobillo y control del apoyo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de tobillo según tolerancia y rango disponible.",
-                    "Movilidad de articulación subastragalina según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia."
-                  ]
-                },
                 "display": {
                   "displayName": "Tibial Anterior",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
-                    "El guardián contra las molestias de la espinilla y el complemento de unos gemelos completos."
-                  ],
-                  "description": "Con peso corporal, la punta del pie se eleva hacia la espinilla contra la resistencia. Sin más carga que el propio cuerpo, la exigencia de la cara anterior de la espinilla es la justa.",
-                  "technique": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La espinilla trabaja a fondo para tobillos fuertes."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -192,7 +133,7 @@
                 },
                 "identity": {
                   "canonicalName": "Tibial Anterior",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "calves_tibial_anterior__default",
                   "definitionId": "calves_tibial_anterior",
                   "familyId": "lower_ankle_dorsiflexion",
@@ -209,42 +150,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tibial anterior mediante Tibial Anterior en la variante Peso Corporal.",
-                    "Priorizar mejorar la fuerza del tobillo y la transferencia hacia la pierna con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento del pie desde el tobillo y control del apoyo y el objetivo de el tibial anterior.",
-                    "La sustitución debe respetar las articulaciones relevantes: tobillo, articulación subastragalina, rodilla."
+                    "ankle_dorsiflexion:tibialis_anterior"
                   ],
                   "replacementGroup": "tibialis_raise",
                   "replacementPriority": 3
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -255,9 +174,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Con banda o disco sobre los pies: llevas la punta hacia arriba contra resistencia. La espinilla trabaja a fondo para tobillos fuertes."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -269,7 +186,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_ankle_dorsiflexion",
@@ -282,13 +198,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón ankle_dorsiflexion; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_ankle_dorsiflexion",

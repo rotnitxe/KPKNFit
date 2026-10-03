@@ -1,0 +1,59 @@
+{
+  "definitions": {
+    "sissy_squat": {
+      "public": {
+        "configurations": {
+          "sissy_squat__barbell": {
+            "description": "Con barra, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra en el pecho o la espalda con rodillas al frente: el cuádriceps concentrado con carga."
+            ]
+          },
+          "sissy_squat__dumbbells": {
+            "description": "Con mancuernas, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuerna en el pecho: el sissy con carga ligera y mucho control. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna en el pecho: el sissy con carga ligera y mucho control."
+            ]
+          },
+          "sissy_squat__machine": {
+            "description": "Con máquina, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
+            "executionCues": [
+              "Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sissy: los tobillos sujetos y el guiado te dejan bajar profundo."
+            ]
+          },
+          "sissy_squat__plate": {
+            "description": "Con disco, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. El cuádriceps trabaja con el disco, que añade lastre directo y simple.",
+            "executionCues": [
+              "Disco en el pecho: carga ligera para dominar la inclinación del sissy. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Disco en el pecho: carga ligera para dominar la inclinación del sissy."
+            ]
+          },
+          "sissy_squat__smith_machine": {
+            "description": "Con máquina Smith, las rodillas viajan al frente y el torso se inclina atrás con el cuádriceps aislado al máximo. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "executionCues": [
+              "Smith sissy: el guiado de la barra acompaña la inclinación del torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Smith sissy: el guiado de la barra acompaña la inclinación del torso."
+            ]
+          }
+        },
+        "description": "La Sentadilla Sissy congela la cadera y deja las rodillas viajando al frente: el cuádriceps se estira y se carga como en ningún otro ejercicio, con el torso inclinándose hacia atrás. Se ejecuta en la máquina sissy o sujeto de un soporte, bajando el cuerpo en línea recta y subiendo con el muslo frontal ardiendo. Los isquiosurales apenas hablan aquí; todo es cuádriceps. El aislador de cuádriceps más intenso que se puede hacer sin peso."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_sissy_squat",
+  "schemaVersion": 1
+}

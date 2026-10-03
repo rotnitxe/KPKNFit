@@ -1,0 +1,50 @@
+{
+  "definitions": {
+    "deltoides_elevaciones_frontales": {
+      "public": {
+        "configurations": {
+          "deltoides_elevaciones_frontales__barbell": {
+            "description": "Con barra, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+            "executionCues": [
+              "Barra al frente: subes la barra hasta la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra al frente: subes la barra hasta la altura del hombro."
+            ]
+          },
+          "deltoides_elevaciones_frontales__cable": {
+            "description": "Con polea, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea al frente: subes los brazos contra la tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea al frente: subes los brazos contra la tensión constante."
+            ]
+          },
+          "deltoides_elevaciones_frontales__dumbbells": {
+            "description": "Con mancuernas, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas al frente: subes cada brazo o ambos a la altura del hombro."
+            ]
+          },
+          "deltoides_elevaciones_frontales__kettlebell": {
+            "description": "Con kettlebell, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+            "executionCues": [
+              "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell al frente: el agarre suma trabajo y el hombro empuja."
+            ]
+          }
+        },
+        "description": "Las Elevaciones Frontales levantan el brazo al frente hasta la altura del hombro: el deltoide anterior trabaja en soledad contra la gravedad. Se ejecutan con mancuernas, barra o polea, subiendo sin balancear el torso y bajando con calma. El agarre prono, neutro o supino cambia el matiz del estímulo. El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_shoulder_flexion",
+  "schemaVersion": 1
+}

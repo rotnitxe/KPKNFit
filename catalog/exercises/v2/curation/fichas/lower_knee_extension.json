@@ -1,0 +1,58 @@
+{
+  "definitions": {
+    "quads_extension_cuadriceps": {
+      "public": {
+        "configurations": {
+          "quads_extension_cuadriceps__machine__bilateral": {
+            "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+            "executionCues": [
+              "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con ambas piernas: estiras las rodillas contra la resistencia."
+            ]
+          },
+          "quads_extension_cuadriceps__machine__unilateral": {
+            "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios."
+            ]
+          }
+        },
+        "description": "La Extensión de Cuádriceps en Máquina aísla el muslo frontal sin distracciones: sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. Se ejecuta con la espalda contra el respaldo, subiendo con pausa arriba y bajando sin soltar la tensión. A una pierna iguala fuerzas entre lados. El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
+      },
+      "status": "LEGACY"
+    },
+    "quads_extension_cuadriceps_pie_polea": {
+      "public": {
+        "configurations": {
+          "quads_extension_cuadriceps_pie_polea__bilateral": {
+            "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+            "executionCues": [
+              "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión."
+            ]
+          },
+          "quads_extension_cuadriceps_pie_polea__unilateral": {
+            "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea con una pierna: extensión unilateral con tensión continua."
+            ]
+          }
+        },
+        "description": "La Extensión de Cuádriceps de Pie en Polea lleva el aislamiento a una posición vertical: con el tobillo enganchado al cable, la rodilla se extiende hacia atrás contra la tensión constante. Se ejecuta de pie, sujeto al soporte, extendiendo una pierna cada vez con el muslo quieto. La polea mantiene la resistencia viva en todo el recorrido. Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_knee_extension",
+  "schemaVersion": 1
+}

@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "deltoides_y_raises_sentado_banco_inclinado": {
+      "public": {
+        "configurations": {
+          "deltoides_y_raises_sentado_banco_inclinado__default": {
+            "description": "Con mancuernas, con el pecho apoyado en el banco inclinado, los brazos suben formando una Y. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+            "executionCues": [
+              "Boca abajo en el banco inclinado, subes los brazos en forma de Y. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Boca abajo en el banco inclinado, subes los brazos en forma de Y."
+            ]
+          }
+        },
+        "description": "Los Y-Raises Sentado en Banco Inclinado elevan los brazos en forma de Y con el pecho apoyado: el deltoide posterior y la porción baja del trapecio trabajan sin que la espalda baja pueda ayudar. Se practican con mancuernas ligeras, subiendo en diagonal hasta formar la Y y bajando con pausa. El banco elimina cualquier impulso. Un ejercicio de precisión para la salud escapular y la parte trasera del hombro."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_shoulder_abduction_diagonal",
+  "schemaVersion": 1
+}

@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "deltoides_push_press": {
+      "public": {
+        "configurations": {
+          "deltoides_push_press__default": {
+            "description": "Con barra, una flexión rápida de rodillas lanza la carga y los brazos terminan el bloqueo arriba. El deltoide trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Impulso de piernas y empuje de hombros: la barra vuela hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Impulso de piernas y empuje de hombros: la barra vuela hasta arriba."
+            ]
+          }
+        },
+        "description": "El Push Press roba impulso de las piernas para el press de hombros: una flexión rápida de rodillas lanza la barra y el deltoide y el tríceps terminan el bloqueo arriba. La barra parte de los hombros: se hunden ligeramente las caderas y todo el cuerpo se extiende en cadena. Permite mover más peso que el press estricto. El puente explosivo entre la fuerza de piernas y la potencia del tren superior."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_vertical_push",
+  "schemaVersion": 1
+}

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · vertical pull abduction",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_remo_menton",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_remo_menton__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "La barra es la referencia para cargar el deltoide con peso de verdad.",
-                "Un tirón vertical que ensancha el hombro, siempre con un rango cómodo para la articulación."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con barra, la carga sube pegada al cuerpo hasta la barbilla con los codos liderando el camino. La barra es la referencia para cargar el deltoide con peso de verdad.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Abducción Y Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La abducción del húmero lleva los codos hacia fuera y arriba mientras la barra sube pegada al cuerpo; la carga libre deja la guía del recorrido en el hombro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula rota y acompaña la subida de la barra hasta la barbilla, con el agarre medio marcando un recorrido de ida y vuelta sin apoyos externos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo lleva la barra hacia la barbilla con los codos por encima de las manos, y la bajada los devuelve a la extensión de forma gradual.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre medio de la barra durante toda la subida, alineada con el antebrazo mientras la carga libre pide un agarre firme.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_pull_abduction",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide eleva el brazo hacia fuera mientras la barra sube pegada al cuerpo hasta la barbilla, con el agarre medio y ambos brazos trabajando a la vez."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota y eleva la escápula cuando los codos suben por encima de las manos, asistiendo al deltoide con la barra de agarre medio."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona los codos para llevar la barra hacia la barbilla, asistiendo al tirón bilateral con el agarre medio y la barra pegada al cuerpo."
-                }
-              ],
               "performanceProfileId": "deltoides_remo_menton__barbell__remo_al_menton",
               "primaryMuscles": [
                 "deltoid"
@@ -101,8 +75,8 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
+                    "Abducción Y Flexión",
+                    "Rotación Superior",
                     "Flexión",
                     "Estabilidad Del Agarre"
                   ],
@@ -112,7 +86,6 @@
                         "Abducción Y Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La abducción del húmero lleva los codos hacia fuera y arriba mientras la barra sube pegada al cuerpo; la carga libre deja la guía del recorrido en el hombro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula rota y acompaña la subida de la barra hasta la barbilla, con el agarre medio marcando un recorrido de ida y vuelta sin apoyos externos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo lleva la barra hacia la barbilla con los codos por encima de las manos, y la bajada los devuelve a la extensión de forma gradual.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre medio de la barra durante toda la subida, alineada con el antebrazo mientras la carga libre pide un agarre firme.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
@@ -148,11 +117,7 @@
                     "trapezius",
                     "biceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "vertical_pull_abduction",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo al Mentón",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar el deltoide con peso de verdad.",
-                    "Un tirón vertical que ensancha el hombro, siempre con un rango cómodo para la articulación."
-                  ],
-                  "description": "Con barra, la carga sube pegada al cuerpo hasta la barbilla con los codos liderando el camino. La barra es la referencia para cargar el deltoide con peso de verdad.",
-                  "technique": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. Tradicional de los hombros, con el agarre medio para cuidar la articulación."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo al Mentón",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_remo_menton__default",
                   "definitionId": "deltoides_remo_menton",
                   "familyId": "upper_vertical_pull_abduction",
@@ -238,42 +169,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Remo al Mentón en la variante Barra.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull_abduction:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -287,9 +196,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Barra pegada al cuerpo hasta la barbilla: trapecios y hombros trabajando juntos. Tradicional de los hombros, con el agarre medio para cuidar la articulación."
+              "ttc": 1.6
             },
             "selectedOptions": {}
           }
@@ -301,7 +208,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_pull_abduction",
@@ -314,13 +220,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón vertical_pull_abduction; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_pull_abduction",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Extensión de tríceps overhead",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#triceps_overhead",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "overhead_triceps__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con barra, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.2,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre en extensión con la barra detrás de la cabeza y vuelve a doblarse frenando la carga en un descenso sin impulso del antebrazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene el brazo elevado con la barra larga detrás de la cabeza, y la carga bilateral exige la misma altura en los dos lados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca queda alineada bajo la barra durante todo el recorrido, sin doblarse cuando el peso desciende por detrás de la cabeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con la barra por detrás de la cabeza, el tríceps acorta el codo en la subida y frena con tensión la carga cuando desciende hacia la nuca."
-                }
-              ],
               "performanceProfileId": "overhead_triceps_extension__barbell__extension_de_triceps_overhead",
               "primaryMuscles": [
                 "triceps"
@@ -95,7 +78,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre en extensión con la barra detrás de la cabeza y vuelve a doblarse frenando la carga en un descenso sin impulso del antebrazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene el brazo elevado con la barra larga detrás de la cabeza, y la carga bilateral exige la misma altura en los dos lados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca queda alineada bajo la barra durante todo el recorrido, sin doblarse cuando el peso desciende por detrás de la cabeza.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -143,45 +117,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Tríceps Overhead",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-                  ],
-                  "description": "Con barra, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El press francés overhead tradicional con barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -194,7 +135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "overhead_triceps__barbell",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -212,42 +153,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión de Tríceps Overhead en la variante Barra.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -258,9 +177,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El press francés overhead tradicional con barra."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -274,7 +191,6 @@
                 "legacy:exercise_database.json#triceps_overhead_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "overhead_triceps__machine",
@@ -282,16 +198,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
-                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con máquina, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
               "efc": 2.2,
               "equipmentId": "machine",
@@ -305,7 +214,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre con la extensión que guía la máquina detrás de la cabeza y absorbe el retorno sin que el recorrido prefijado se desvíe.",
                   "role": "PRIMARY"
                 },
                 {
@@ -313,7 +221,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene la posición elevada que la máquina marca detrás de la cabeza, con el recorrido prefijado y sin correcciones laterales.",
                   "role": "SECONDARY"
                 },
                 {
@@ -321,7 +228,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca acompaña el agarre del guiado con una línea estable al abrir el codo, sin giros extra ni desvíos bajo la carga de la máquina.",
                   "role": "STABILIZER"
                 }
               ],
@@ -329,12 +235,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: El tríceps extiende el codo contra el guiado de la máquina overhead, que fija la trayectoria detrás de la cabeza y reduce el ajuste que pide la carga libre."
-                }
-              ],
               "performanceProfileId": "overhead_triceps_extension__machine__extension_de_triceps_overhead",
               "primaryMuscles": [
                 "triceps"
@@ -355,7 +255,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre con la extensión que guía la máquina detrás de la cabeza y absorbe el retorno sin que el recorrido prefijado se desvíe.",
                       "role": "PRIMARY"
                     },
                     {
@@ -363,7 +262,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene la posición elevada que la máquina marca detrás de la cabeza, con el recorrido prefijado y sin correcciones laterales.",
                       "role": "SECONDARY"
                     },
                     {
@@ -371,20 +269,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca acompaña el agarre del guiado con una línea estable al abrir el codo, sin giros extra ni desvíos bajo la carga de la máquina.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -394,7 +286,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -403,45 +294,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Tríceps Overhead",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
-                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-                  ],
-                  "description": "Con máquina, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
-                  "technique": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. La opción cómoda y estable del tríceps overhead."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -454,7 +312,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "overhead_triceps__machine",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -472,42 +330,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión de Tríceps Overhead en la variante Máquina.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -518,9 +354,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. La opción cómoda y estable del tríceps overhead."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "machine"
@@ -535,7 +369,6 @@
                 "editorial:configuration:overhead_triceps__dumbbells",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "overhead_triceps__dumbbells",
@@ -543,16 +376,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con mancuernas, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
@@ -566,7 +392,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre hasta la extensión completa con cada mancuerna detrás de la cabeza y frena el descenso al acercar la carga a la nuca.",
                   "role": "PRIMARY"
                 },
                 {
@@ -574,7 +399,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene la mancuerna elevada detrás de la cabeza y, al ser carga libre, la posición de cada brazo depende de su propio control.",
                   "role": "SECONDARY"
                 },
                 {
@@ -582,7 +406,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene cada mancuerna sobre el antebrazo alineado detrás de la cabeza, sin desviarse cuando el peso baja hacia la nuca.",
                   "role": "STABILIZER"
                 }
               ],
@@ -590,12 +413,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con mancuernas detrás de la cabeza, el tríceps trabaja desde un estiramiento muy amplio y cada brazo corrige su propia trayectoria al extender el codo."
-                }
-              ],
               "performanceProfileId": "overhead_triceps_extension__dumbbells__extension_de_triceps_overhead",
               "primaryMuscles": [
                 "triceps"
@@ -616,7 +433,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre hasta la extensión completa con cada mancuerna detrás de la cabeza y frena el descenso al acercar la carga a la nuca.",
                       "role": "PRIMARY"
                     },
                     {
@@ -624,7 +440,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene la mancuerna elevada detrás de la cabeza y, al ser carga libre, la posición de cada brazo depende de su propio control.",
                       "role": "SECONDARY"
                     },
                     {
@@ -632,20 +447,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene cada mancuerna sobre el antebrazo alineado detrás de la cabeza, sin desviarse cuando el peso baja hacia la nuca.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -655,7 +464,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -664,45 +472,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Tríceps Overhead",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-                  ],
-                  "description": "Con mancuernas, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. La versión habitual del overhead para la mayoría."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -715,7 +490,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "overhead_triceps__dumbbells",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -733,42 +508,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión de Tríceps Overhead en la variante Mancuernas.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -779,9 +532,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. La versión habitual del overhead para la mayoría."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -796,7 +547,6 @@
                 "editorial:configuration:overhead_triceps__cable",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "overhead_triceps__cable",
@@ -804,16 +554,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-                "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con polea, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
               "efc": 2.2,
               "equipmentId": "cable",
@@ -827,7 +570,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre contra la tensión constante de la polea detrás de la cabeza y conserva carga al doblarse de nuevo durante el descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -835,7 +577,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene el brazo elevado mientras la polea tira desde detrás de la cabeza, con tensión viva incluso en el punto más bajo del arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -843,7 +584,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene la tracción constante de la polea con el antebrazo alineado detrás de la cabeza, sin desviarse al cerrar el codo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -851,12 +591,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con la polea overhead, el tríceps recibe tensión constante mientras el codo se abre y se dobla, tanto en el estiramiento profundo como en el retorno."
-                }
-              ],
               "performanceProfileId": "overhead_triceps_extension__cable__extension_de_triceps_overhead",
               "primaryMuscles": [
                 "triceps"
@@ -877,7 +611,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre contra la tensión constante de la polea detrás de la cabeza y conserva carga al doblarse de nuevo durante el descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -885,7 +618,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene el brazo elevado mientras la polea tira desde detrás de la cabeza, con tensión viva incluso en el punto más bajo del arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -893,20 +625,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene la tracción constante de la polea con el antebrazo alineado detrás de la cabeza, sin desviarse al cerrar el codo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -916,7 +642,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -925,45 +650,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Tríceps Overhead",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-                    "El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
-                  ],
-                  "description": "Con polea, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
-                  "technique": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. La versión controlada del tríceps detrás de la cabeza."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -976,7 +668,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Overhead",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "overhead_triceps__cable",
                   "definitionId": "overhead_triceps_extension",
                   "familyId": "upper_elbow_extension_overhead",
@@ -994,42 +686,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión de Tríceps Overhead en la variante Polea.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1040,12 +710,187 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. La versión controlada del tríceps detrás de la cabeza."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "cable"
+            }
+          },
+          {
+            "displaySummary": "ez_bar",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:configuration:overhead_triceps__ez_bar",
+                "plan:planes-adaptativos-wizard-20260928#13.5"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "overhead_triceps__ez_bar",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.8,
+              "description": "Con barra EZ por encima de la cabeza, la carga baja detrás del cuello con las manos en ángulo y sube hasta la extensión completa. El agarre mixto descarga las muñecas mientras la cabeza larga del tríceps se estira.",
+              "efc": 2.2,
+              "equipmentId": "ez_bar",
+              "executionCues": [
+                "Barra EZ sobre la cabeza con las manos en pronación parcial: los codos apuntan al techo y la carga desciende por detrás de la nuca antes de volver a la extensión sin abrir los antebrazos."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión"
+                  ],
+                  "jointId": "codo",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición Del Hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Alineación"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_extension",
+              "performanceProfileId": "overhead_triceps_extension__ez_bar__extension_de_triceps_overhead",
+              "primaryMuscles": [
+                "triceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión",
+                    "Posición Del Hombro",
+                    "Alineación"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión"
+                      ],
+                      "jointId": "codo",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición Del Hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Alineación"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "triceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "ez_bar",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_extension",
+                  "relevantJoints": [
+                    "codo",
+                    "glenohumeral",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Extensión de Tríceps Overhead",
+                  "displaySummary": "ez_bar",
+                  "selectedOptions": {
+                    "implement": "ez_bar"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.8,
+                  "efc": 2.2,
+                  "ssc": 0.2,
+                  "technicalDifficulty": 3.8,
+                  "ttc": 1.6
+                },
+                "identity": {
+                  "canonicalName": "Extensión de Tríceps Overhead",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "overhead_triceps__ez_bar",
+                  "definitionId": "overhead_triceps_extension",
+                  "familyId": "upper_elbow_extension_overhead",
+                  "kind": "PARENT",
+                  "performanceProfileId": "overhead_triceps_extension__ez_bar__extension_de_triceps_overhead",
+                  "searchTerms": [
+                    "extension de triceps overhead",
+                    "overhead extension",
+                    "triceps overhead"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "ez_bar"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "ez_bar"
+                  ],
+                  "preservesIntent": [
+                    "elbow_extension:triceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Preparación: Barra EZ sobre la cabeza con las manos en pronación parcial: los codos apuntan al techo y la carga desciende por detrás de la nuca antes de volver a la extensión sin abrir los antebrazos."
+              ],
+              "setupTimeSeconds": 30,
+              "ssc": 0.2,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 3.8,
+              "ttc": 1.6
+            },
+            "selectedOptions": {
+              "implement": "ez_bar"
             }
           }
         ],
@@ -1056,7 +901,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_elbow_extension_overhead",
@@ -1072,13 +916,11 @@
         ]
       }
     ],
-    "description": "Familia de extensión de codo por encima de la cabeza con implementos explícitamente auditados.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_elbow_extension_overhead",

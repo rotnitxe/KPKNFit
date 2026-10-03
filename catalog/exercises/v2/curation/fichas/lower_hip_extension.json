@@ -1,0 +1,190 @@
+{
+  "definitions": {
+    "glutes_hiperextension_45": {
+      "public": {
+        "configurations": {
+          "glutes_hiperextension_45__barbell": {
+            "description": "Con barra, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la espalda en el banco a 45: el glúteo empuja el peso con la cadera."
+            ]
+          },
+          "glutes_hiperextension_45__dumbbells": {
+            "description": "Con mancuernas, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+            "executionCues": [
+              "Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna en el pecho en el banco a 45: subes con la cadera y el glúteo dirige el movimiento."
+            ]
+          },
+          "glutes_hiperextension_45__plate": {
+            "description": "Con disco, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. Con el disco, el lastre es simple y directo sobre el glúteo mayor.",
+            "executionCues": [
+              "Disco en el pecho en el banco a 45: carga ligera y control total del recorrido. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Disco en el pecho en el banco a 45: carga ligera y control total del recorrido."
+            ]
+          },
+          "glutes_hiperextension_45__smith_machine": {
+            "description": "Con máquina Smith, en el banco inclinado, el torso baja y sube pivotando sobre la cadera con el glúteo dirigiendo. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor.",
+            "executionCues": [
+              "Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Smith en el banco a 45: la barra guiada acompaña el movimiento y puedes cargar con control."
+            ]
+          }
+        },
+        "description": "Las Hiperextensiones a 45° para Glúteos usan el banco inclinado para aislar la cadera: el torso baja y sube pivotando sobre la cadera con el glúteo mayor empujando la subida. Se ejecutan con las caderas al borde del apoyo, bajando con la espalda redondeada hacia el suelo y extendiendo con intención de glúteo. Los isquiosurales acompañan y un disco o unas mancuernas añaden carga cuando el cuerpo ya no basta. El clásico del banco romano pensado para el trasero."
+      },
+      "status": "LEGACY"
+    },
+    "glutes_hiperextension_45_zercher": {
+      "public": {
+        "configurations": {
+          "glutes_hiperextension_45_zercher__default": {
+            "description": "Con barra, con la carga sujeta contra el pecho, el torso baja y sube en el banco inclinado con la cadera al mando. La barra es la referencia para cargar el glúteo mayor con peso de verdad.",
+            "executionCues": [
+              "Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Carga en los codos frente al pecho en el banco a 45: el peso queda cerca del cuerpo y el glúteo hace el trabajo."
+            ]
+          }
+        },
+        "description": "La Hiperextensión a 45 Zercher para Glúteos carga el banco inclinado de otra manera: la barra abrazada en los codos añade peso sin ocupar las manos ni tocar la espalda. Se ejecuta igual que la versión con lastre al pecho, bajando el torso y extendiendo con potencia de glúteo mayor e isquiosurales. La posición zercher exige core firme y brazos pacientes. Otra manera de cargar el banco romano, con el torso trabajando el doble."
+      },
+      "status": "LEGACY"
+    },
+    "glutes_patada_gluteo": {
+      "public": {
+        "configurations": {
+          "glutes_patada_gluteo__band": {
+            "description": "Con banda elástica, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+            "executionCues": [
+              "Banda en el tobillo: la resistencia elástica sube al estirar la pierna. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Banda en el tobillo: la resistencia elástica sube al estirar la pierna."
+            ]
+          },
+          "glutes_patada_gluteo__cable": {
+            "description": "Con polea, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con la polea, la tensión sobre el glúteo mayor se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Polea en el tobillo: empujas el talón atrás y arriba contra la tensión constante."
+            ]
+          },
+          "glutes_patada_gluteo__dumbbells": {
+            "description": "Con mancuernas, la pierna se extiende hacia atrás y arriba con el glúteo contrayéndose en lo alto del arco. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+            "executionCues": [
+              "Mancuerna detrás de la rodilla: la patada tradicional con carga libre. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna detrás de la rodilla: la patada tradicional con carga libre."
+            ]
+          }
+        },
+        "description": "La Patada de Glúteo es la extensión de cadera más directa que existe: la pierna empuja hacia atrás y arriba y el glúteo mayor se contrae sin que nada compita con él. Se ejecuta con la polea baja en el tobillo, inclinado hacia delante, extendiendo la pierna hasta apretar el glúteo y regresando sin balancear el tronco. La banda o una mancuerna tras la rodilla montan el mismo trabajo sin polea. El conector mente-glúteo por excelencia."
+      },
+      "status": "LEGACY"
+    },
+    "glutes_puente_gluteos": {
+      "public": {
+        "configurations": {
+          "glutes_puente_gluteos__bilateral__barbell": {
+            "description": "Con barra y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+            "executionCues": [
+              "Barra en la cadera con ambas piernas: el puente tradicional con carga. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la cadera con ambas piernas: el puente tradicional con carga."
+            ]
+          },
+          "glutes_puente_gluteos__bilateral__bodyweight": {
+            "description": "Sin carga sobre la cadera y boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor levanta solo el peso del torso y la pelvis se extiende sin apoyo externo alguno.",
+            "executionCues": [
+              "Boca arriba con las rodillas dobladas y los pies firmes: la cadera sube hasta formar una línea recta entre hombros, cadera y rodillas y baja sin apoyar la espalda baja."
+            ],
+            "setupCues": [
+              "Preparación: Boca arriba con las rodillas dobladas y los pies firmes: la cadera sube hasta formar una línea recta entre hombros, cadera y rodillas y baja sin apoyar la espalda baja."
+            ]
+          },
+          "glutes_puente_gluteos__bilateral__dumbbells": {
+            "description": "Con mancuernas y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+            "executionCues": [
+              "Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna en la cadera con ambas piernas: carga cómoda y recorrido libre."
+            ]
+          },
+          "glutes_puente_gluteos__bilateral__smith_machine": {
+            "description": "Con máquina Smith y a dos lados, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+            "executionCues": [
+              "Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Smith en la cadera con ambas piernas: la barra guiada sube en línea recta y el glúteo se concentra en empujar."
+            ]
+          },
+          "glutes_puente_gluteos__unilateral__barbell": {
+            "description": "Con barra y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la cadera con una pierna: el glúteo de un lado hace la mayor parte de la carga y el equilibrio suma reto."
+            ]
+          },
+          "glutes_puente_gluteos__unilateral__dumbbells": {
+            "description": "Con mancuernas y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con una pierna: el glúteo trabaja sin ayuda del otro lado y el equilibrio se entrena de regalo."
+            ]
+          },
+          "glutes_puente_gluteos__unilateral__smith_machine": {
+            "description": "Con máquina Smith y a un lado, boca arriba con los pies plantados, la cadera sube hasta alinear hombros y rodillas. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Smith con una pierna: el guiado sostiene la barra y el lado trabajado hace el esfuerzo."
+            ]
+          }
+        },
+        "description": "El Puente de Glúteos es la forma más accesible de extender la cadera: tumbado boca arriba, la cadera sube hasta alinear hombros y rodillas con el glúteo mayor apretando arriba. Se ejecuta con los pies plantados y la espalda baja en el suelo, subiendo en dos segundos y apretando un segundo arriba. Con barra sobre la cadera se convierte en un ejercicio de carga seria, y a una pierna detecta diferencias al instante. El primer escalón del desarrollo glúteo y un bálsamo lumbar."
+      },
+      "status": "LEGACY"
+    },
+    "reverse_hyper": {
+      "public": {
+        "configurations": {
+          "reverse_hyper__machine": {
+            "description": "Con máquina, boca abajo sobre el aparato, las piernas se elevan hacia atrás balanceándose sin comprimir la columna. El glúteo mayor trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado. La pelvis se extiende hasta quedar alineada con el tronco; el recorrido termina antes de sustituir el glúteo por una hiperextensión lumbar."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con la pelvis apoyada: las piernas se desplazan hacia atrás y la cadera produce la extensión mientras el tronco queda descargado."
+            ]
+          }
+        },
+        "description": "El Reverse Hyper trabaja la cadena posterior colgando las piernas: boca abajo sobre la máquina, las piernas se elevan hacia atrás balanceándose mientras la columna queda descomprimida. Se ejecuta agarrando el borde y dejando que el péndulo cargue glúteos, isquiosurales y erectores sin presión sobre los discos. Louie Simmons lo popularizó rehabilitando espaldas rotas. El secreto de los powerlifters para una lumbar que dura décadas."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_extension",
+  "schemaVersion": 1
+}

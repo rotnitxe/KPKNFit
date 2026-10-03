@@ -1,0 +1,59 @@
+{
+  "definitions": {
+    "overhead_triceps_extension": {
+      "public": {
+        "configurations": {
+          "overhead_triceps__barbell": {
+            "description": "Con barra, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra detrás de la cabeza: bajas y subes con los codos apuntando arriba."
+            ]
+          },
+          "overhead_triceps__cable": {
+            "description": "Con polea, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea overhead: la tensión constante estira y carga el tríceps en todo el recorrido."
+            ]
+          },
+          "overhead_triceps__dumbbells": {
+            "description": "Con mancuernas, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna o mancuernas detrás de la cabeza: el estiramiento del tríceps es enorme."
+            ]
+          },
+          "overhead_triceps__ez_bar": {
+            "description": "Con barra EZ por encima de la cabeza, la carga baja detrás del cuello con las manos en ángulo y sube hasta la extensión completa. El agarre mixto descarga las muñecas mientras la cabeza larga del tríceps se estira.",
+            "executionCues": [
+              "Barra EZ sobre la cabeza con las manos en pronación parcial: los codos apuntan al techo y la carga desciende por detrás de la nuca antes de volver a la extensión sin abrir los antebrazos."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ sobre la cabeza con las manos en pronación parcial: los codos apuntan al techo y la carga desciende por detrás de la nuca antes de volver a la extensión sin abrir los antebrazos."
+            ]
+          },
+          "overhead_triceps__machine": {
+            "description": "Con máquina, la carga por encima de la cabeza baja por detrás del cuello y sube hasta la extensión completa. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
+            "executionCues": [
+              "Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina overhead: el guiado acompaña el recorrido detrás de la cabeza."
+            ]
+          }
+        },
+        "description": "La Extensión de Tríceps Overhead sube la carga por encima de la cabeza y la baja por detrás de la nuca: la cabeza larga del tríceps trabaja desde su punto más estirado. Se ejecuta con barra, mancuerna o polea, con los codos mirando arriba y la extensión completa al final. De pie o sentado cambia la estabilidad, no el estímulo. El constructor de la parte larga del tríceps, la que da tamaño real al brazo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_elbow_extension_overhead",
+  "schemaVersion": 1
+}

@@ -1,0 +1,496 @@
+{
+  "definitions": {
+    "biceps_curl_bayesian": {
+      "public": {
+        "configurations": {
+          "biceps_curl_bayesian__cable__neutral": {
+            "description": "Con polea y agarre neutro, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
+            "executionCues": [
+              "Polea con agarre neutro: tensión constante repartida entre bíceps y antebrazo. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
+            ],
+            "setupCues": [
+              "Preparación: Polea con agarre neutro: tensión constante repartida entre bíceps y antebrazo."
+            ]
+          },
+          "biceps_curl_bayesian__cable__pronated": {
+            "description": "Con polea y agarre prono, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin. Las palmas al frente dejan el dorsal ancho al mando.",
+            "executionCues": [
+              "Polea con palma hacia abajo: el braquial y el antebrazo aguantan la tensión en el punto más estirado. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
+            ],
+            "setupCues": [
+              "Preparación: Polea con palma hacia abajo: el braquial y el antebrazo aguantan la tensión en el punto más estirado."
+            ]
+          },
+          "biceps_curl_bayesian__cable__supinated": {
+            "description": "Con polea y agarre supino, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Las palmas hacia ti dan más protagonismo al bíceps.",
+            "executionCues": [
+              "Polea con palma hacia arriba: la tensión no se suelta ni un instante y el bíceps queda cargado en todo el arco. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
+            ],
+            "setupCues": [
+              "Preparación: Polea con palma hacia arriba: la tensión no se suelta ni un instante y el bíceps queda cargado en todo el arco."
+            ]
+          },
+          "biceps_curl_bayesian__dumbbells__neutral": {
+            "description": "Con mancuernas y agarre neutro, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Las palmas enfrentadas cuidan muñeca y codo.",
+            "executionCues": [
+              "Mancuerna con agarre neutro: el braquial y el antebrazo se suman al bíceps en el estiramiento bayesian. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con agarre neutro: el braquial y el antebrazo se suman al bíceps en el estiramiento bayesian."
+            ]
+          },
+          "biceps_curl_bayesian__dumbbells__pronated": {
+            "description": "Con mancuernas y agarre prono, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo. Las palmas al frente dejan el dorsal ancho al mando.",
+            "executionCues": [
+              "Mancuerna con palma hacia abajo: el trabajo se corre al braquial y al antebrazo con el brazo colgando atrás. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con palma hacia abajo: el trabajo se corre al braquial y al antebrazo con el brazo colgando atrás."
+            ]
+          },
+          "biceps_curl_bayesian__dumbbells__supinated": {
+            "description": "Con mancuernas y agarre supino, con el brazo cayendo por detrás del tronco, la mano sube hacia el hombro desde el punto más estirado. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Las palmas hacia ti dan más protagonismo al bíceps.",
+            "executionCues": [
+              "Mancuerna con palma hacia arriba: el brazo cuelga detrás del tronco y el bíceps estirado hace la mayor parte de la carga. El brazo queda detrás del tronco y el codo permanece quieto mientras el antebrazo cierra el ángulo con tensión desde el inicio."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con palma hacia arriba: el brazo cuelga detrás del tronco y el bíceps estirado hace la mayor parte de la carga."
+            ]
+          }
+        },
+        "description": "El Curl Bayesian es el curl que estira de verdad: con el brazo cayendo por detrás del tronco, el bíceps arranca desde su posición más alargada, donde más cuesta. Se ejecuta desde la polea baja o con una mancuerna, el codo quieto atrás y la mano subiendo hacia el hombro en un arco cerrado. La tensión en estiramiento que sientes aquí no la da ningún curl convencional. La joya oculta del trabajo de bíceps para quien busca estímulo nuevo."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_crucifijo": {
+      "public": {
+        "configurations": {
+          "biceps_curl_crucifijo__default": {
+            "description": "Con polea, con los brazos en cruz entre las poleas, las manos se llevan hacia las sienes con los codos altos. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "En polea, el brazo cruza el pecho y sube flexionando: el estiramiento del bíceps es distinto y la tensión constante aumenta la fatiga local de. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: En polea, el brazo cruza el pecho y sube flexionando: el estiramiento del bíceps es distinto y la tensión constante aumenta la fatiga local de."
+            ]
+          }
+        },
+        "description": "El Curl Crucifijo coloca los brazos en cruz entre dos poleas y flexiona hacia la cabeza, como una pose de victoria con resistencia. Se ejecuta en el centro del crossover, llevando las manos hacia las sienes con los codos altos y quietos. El bíceps trabaja en su posición más acortada, con tensión de polea que no perdona el punto final. Un acabado de brazo tan estético como exigente."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_drag": {
+      "public": {
+        "configurations": {
+          "biceps_curl_drag__barbell__supinated": {
+            "description": "Con barra, la carga sube pegada al torso mientras los codos viajan hacia atrás y el hombro queda fuera del gesto. El bíceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra con palmas arriba arrastrada pegada al cuerpo: los codos van atrás y el bíceps trabaja con la contracción más localizada. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Barra con palmas arriba arrastrada pegada al cuerpo: los codos van atrás y el bíceps trabaja con la contracción más localizada."
+            ]
+          }
+        },
+        "description": "El Curl Drag arrastra la barra pegada al cuerpo llevando los codos hacia atrás, en vez de subirla en el arco de siempre. Ese desvío saca al hombro del movimiento y deja al bíceps solo ante la carga, con la barra rozando el torso de arriba abajo. La sensación de contracción es distinta desde la primera repetición. Un recurso fino para cargar el bíceps sin que nada más intervenga."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_sentado_banco_plano": {
+      "public": {
+        "configurations": {
+          "biceps_curl_sentado_banco_plano__cable": {
+            "description": "Con polea, sentado en el banco plano, los brazos suben sin impulso del tronco ni ayuda del otro lado. Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea sentado en banco plano: la tensión constante se suma al tronco fijo. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Polea sentado en banco plano: la tensión constante se suma al tronco fijo."
+            ]
+          },
+          "biceps_curl_sentado_banco_plano__dumbbells": {
+            "description": "Con mancuernas, sentado en el banco plano, los brazos suben sin impulso del tronco ni ayuda del otro lado. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas sentado en banco plano: tronco firme y cada brazo por su cuenta, sin impulso posible. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas sentado en banco plano: tronco firme y cada brazo por su cuenta, sin impulso posible."
+            ]
+          }
+        },
+        "description": "El Curl de Bíceps Sentado elimina la trampa más común del curl: el balanceo del tronco. Sentado en el banco con las mancuernas colgando a los lados, solo queda el bíceps para subir el peso, repetición tras repetición. La postura estricta hace que cargas modestas se sientan enormes. La versión limpia del curl, perfecta para aprender a apretar de verdad."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_superman": {
+      "public": {
+        "configurations": {
+          "biceps_curl_superman__default": {
+            "description": "Con polea, con la espalda hacia la polea baja, los brazos parten desde atrás del cuerpo y flexionan hacia delante. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "En polea con los brazos detrás del cuerpo: el estiramiento inicial del bíceps es enorme y la tensión acompaña toda la subida. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: En polea con los brazos detrás del cuerpo: el estiramiento inicial del bíceps es enorme y la tensión acompaña toda la subida."
+            ]
+          }
+        },
+        "description": "El Curl Superman tira desde atrás del cuerpo contra la polea baja, con el bíceps estirado al máximo antes de empezar. Se ejecuta de espaldas a la torre, flexionando los brazos hacia delante y arriba mientras el pecho se mantiene erguido. El punto de partida alargado convierte cada repetición en un estiramiento cargado. Un curl poco visto que deja el brazo lleno como pocos."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_trx": {
+      "public": {
+        "configurations": {
+          "biceps_curl_trx__supinated": {
+            "description": "Con TRX, inclinado bajo las asas, el codo flexiona para acercar la cabeza a las manos con el cuerpo como carga. El bíceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
+            "executionCues": [
+              "Colgado del TRX con palmas arriba: tu peso carga el bíceps y el core aguanta el cuerpo. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Colgado del TRX con palmas arriba: tu peso carga el bíceps y el core aguanta el cuerpo."
+            ]
+          }
+        },
+        "description": "El Curl de Bíceps en TRX usa tu propio cuerpo como pila de placas: inclinado bajo las asas, el bíceps flexiona el codo para acercar la cabeza a las manos. El core y el antebrazo trabajan de sostén mientras el cuerpo se mantiene en línea. La dificultad se regula con los pies, más cerca o más lejos del anclaje. Bíceps serio sin pesas, donde haya un TRX colgado."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_waiter": {
+      "public": {
+        "configurations": {
+          "biceps_curl_waiter__plate": {
+            "description": "Con disco, el disco se sostiene en copa con las palmas al techo y sube hacia el pecho con los codos quietos. El bíceps trabaja con el disco, que añade lastre directo y simple.",
+            "executionCues": [
+              "Con un disco en copa: la palma mira al techo y el bíceps sube el peso con el antebrazo firme. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Con un disco en copa: la palma mira al techo y el bíceps sube el peso con el antebrazo firme."
+            ]
+          }
+        },
+        "description": "El Curl Waiter sujeta un disco en copa con las palmas mirando al techo, como una bandeja de camarero cargada. Ese agarre cambia el apoyo y obliga al bíceps y al antebrazo a sostener y flexionar a la vez. Se ejecuta subiendo el disco hacia el pecho con los codos quietos y bajándolo sin dejar caer la bandeja. Un agarre distinto que refresca el curl y refuerza la muñeca."
+      },
+      "status": "LEGACY"
+    },
+    "biceps_curl_zottman": {
+      "public": {
+        "configurations": {
+          "biceps_curl_zottman__dumbbells": {
+            "description": "Con mancuernas, la subida se hace con las palmas arriba y la bajada con las palmas abajo, girando en el punto alto. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas con la doble fase: subes supinando y bajas pronando con resistencia. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con la doble fase: subes supinando y bajas pronando con resistencia."
+            ]
+          }
+        },
+        "description": "El Curl Zottman es dos curls en uno: se sube con las palmas arriba cargando el bíceps y se baja con las palmas abajo castigando el antebrazo. La rotación ocurre arriba, en el punto de máxima contracción, y la bajada lenta hace el resto. Con mancuernas y sin prisa, cada repetición cubre el brazo entero. La elección de los clásicos para un brazo completo con un solo movimiento."
+      },
+      "status": "LEGACY"
+    },
+    "concentration_curl": {
+      "public": {
+        "configurations": {
+          "concentration_curl__cable": {
+            "description": "Con polea, sentado con el codo clavado en el muslo, el brazo trabaja en soledad hasta la contracción total. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea con el codo apoyado: tensión constante en el porción acortada del bíceps con un aislamiento mayor. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Polea con el codo apoyado: tensión constante en el porción acortada del bíceps con un aislamiento mayor."
+            ]
+          },
+          "concentration_curl__dumbbells": {
+            "description": "Con mancuernas, sentado con el codo clavado en el muslo, el brazo trabaja en soledad hasta la contracción total. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuerna con el codo en el muslo: la contracción del bíceps queda claramente localizada y el impulso es imposible. El brazo superior se mantiene estable mientras el antebrazo se acerca al hombro; el agarre cambia qué músculos comparten la flexión."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con el codo en el muslo: la contracción del bíceps queda claramente localizada y el impulso es imposible."
+            ]
+          }
+        },
+        "description": "El Curl Concentrado es el curl de la conexión mente-músculo: sentado, con el codo clavado en la cara interna del muslo, nada más puede moverse. El bíceps sube la mancuerna en soledad hasta la contracción total y la baja con la misma atención. La polea ofrece la misma idea con tensión continua si el banco está ocupado. El favorito de Arnold para esculpir el pico, y se nota por qué."
+      },
+      "status": "LEGACY"
+    },
+    "hammer_curl": {
+      "public": {
+        "configurations": {
+          "hammer_curl__band": {
+            "description": "Con banda elástica, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la banda, la resistencia crece a medida que avanza el trabajo del bíceps.",
+            "executionCues": [
+              "Banda con agarre neutro: la resistencia crece al final del recorrido y hace que la parte alta del curl sea la más exigente. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
+            ],
+            "setupCues": [
+              "Preparación: Banda con agarre neutro: la resistencia crece al final del recorrido y hace que la parte alta del curl sea la más exigente."
+            ]
+          },
+          "hammer_curl__cable": {
+            "description": "Con polea, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la polea, la tensión sobre el bíceps se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea con agarre neutro: el cable conserva tensión cuando el codo se acerca a la flexión completa. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
+            ],
+            "setupCues": [
+              "Preparación: Polea con agarre neutro: el cable conserva tensión cuando el codo se acerca a la flexión completa."
+            ]
+          },
+          "hammer_curl__dumbbells": {
+            "description": "Con mancuernas, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas con agarre neutro: cada brazo encuentra su propia trayectoria y el pulgar permanece arriba durante todo el recorrido. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con agarre neutro: cada brazo encuentra su propia trayectoria y el pulgar permanece arriba durante todo el recorrido."
+            ]
+          },
+          "hammer_curl__h_bar": {
+            "description": "Con barra H, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la barra H, el agarre neutro deja la muñeca tranquila y el trabajo del bíceps intacto.",
+            "executionCues": [
+              "Barra H con las manos enfrentadas: la muñeca queda en una posición cómoda y los dos brazos comparten una referencia estable. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
+            ],
+            "setupCues": [
+              "Preparación: Barra H con las manos enfrentadas: la muñeca queda en una posición cómoda y los dos brazos comparten una referencia estable."
+            ]
+          },
+          "hammer_curl__kettlebell": {
+            "description": "Con kettlebell, con las palmas enfrentadas, la carga sube en vertical sin rotación de muñeca. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del bíceps.",
+            "executionCues": [
+              "Kettlebell con la mano en posición neutra: el peso cuelga por debajo del agarre y obliga a estabilizar la muñeca con cuidado. El pulgar apunta hacia arriba y el codo se mantiene cerca del costado; la mano sube sin convertir el gesto en un balanceo de hombro."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell con la mano en posición neutra: el peso cuelga por debajo del agarre y obliga a estabilizar la muñeca con cuidado."
+            ]
+          }
+        },
+        "description": "El Curl Martillo pone las palmas enfrentadas y reparte el trabajo entre bíceps, braquial y antebrazo en un solo gesto. Se ejecuta con mancuernas subiendo en vertical, sin rotación, con el pulgar arriba de principio a fin. La barra H mantiene ese agarre neutro con carga fija, y la banda o la polea lo resuelven igual de bien. El grosor del brazo se construye también aquí, no solo en los curls de palmas arriba."
+      },
+      "status": "LEGACY"
+    },
+    "preacher_curl": {
+      "public": {
+        "configurations": {
+          "preacher_curl__barbell": {
+            "description": "Con barra, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa.",
+            "executionCues": [
+              "Barra en banco predicador: el codo fijo y la palma arriba, sin espacio para el impulso. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
+            ],
+            "setupCues": [
+              "Preparación: Barra en banco predicador: el codo fijo y la palma arriba, sin espacio para el impulso."
+            ]
+          },
+          "preacher_curl__dumbbells": {
+            "description": "Con mancuernas, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas en el predicador: cada brazo por separado con el codo fijo en el banco. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas en el predicador: cada brazo por separado con el codo fijo en el banco."
+            ]
+          },
+          "preacher_curl__ez_bar": {
+            "description": "Con barra EZ, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del bíceps.",
+            "executionCues": [
+              "Barra EZ en el predicador: el agarre girado alivia las muñecas y la tensión permanece total. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ en el predicador: el agarre girado alivia las muñecas y la tensión permanece total."
+            ]
+          },
+          "preacher_curl__machine": {
+            "description": "Con máquina, con los brazos apoyados en el banco inclinado, la carga sube desde la extensión casi total sin impulso. El bíceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina predicador: el recorrido guiado te deja cargar el bíceps sin distraerte con el equilibrio. El apoyo del banco detiene el hombro y deja que el codo flexione desde una base estable, con una bajada que no se acelera."
+            ],
+            "setupCues": [
+              "Preparación: Máquina predicador: el recorrido guiado te deja cargar el bíceps sin distraerte con el equilibrio."
+            ]
+          }
+        },
+        "description": "El Curl Predicador encadena el brazo al banco inclinado y elimina cualquier ayuda: el bíceps trabaja desde la extensión completa, sin impulso ni descanso arriba. Se ejecuta con barra o barra EZ bajando hasta casi estirar del todo y apretando de vuelta. Con mancuernas o en la máquina de predicador la exigencia es la misma con otro agarre. El aislamiento de bíceps más honesto del gimnasio."
+      },
+      "status": "LEGACY"
+    },
+    "reverse_curl": {
+      "public": {
+        "configurations": {
+          "reverse_curl__band": {
+            "description": "Con banda elástica, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la banda, la resistencia crece a medida que avanza el trabajo del antebrazo.",
+            "executionCues": [
+              "Banda con las palmas hacia abajo: la resistencia es moderada al iniciar y sube cuando el codo se cierra. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
+            ],
+            "setupCues": [
+              "Preparación: Banda con las palmas hacia abajo: la resistencia es moderada al iniciar y sube cuando el codo se cierra."
+            ]
+          },
+          "reverse_curl__cable": {
+            "description": "Con polea, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea con las palmas hacia abajo: la tensión permanece presente mientras el codo se flexiona y el antebrazo sostiene la línea de la mano. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
+            ],
+            "setupCues": [
+              "Preparación: Polea con las palmas hacia abajo: la tensión permanece presente mientras el codo se flexiona y el antebrazo sostiene la línea de la mano."
+            ]
+          },
+          "reverse_curl__dumbbells": {
+            "description": "Con mancuernas, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas con las palmas hacia abajo: cada lado dirige su propia carga y el antebrazo trabaja sin esconder desequilibrios. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con las palmas hacia abajo: cada lado dirige su propia carga y el antebrazo trabaja sin esconder desequilibrios."
+            ]
+          },
+          "reverse_curl__kettlebell": {
+            "description": "Con kettlebell, con las palmas hacia abajo, el dorso de la mano lidera la subida y el antebrazo manda. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del antebrazo.",
+            "executionCues": [
+              "Kettlebell con las palmas hacia abajo: el centro de la carga queda bajo la mano y aumenta la exigencia de estabilización del antebrazo. Las palmas miran al suelo y la muñeca se mantiene firme; el codo flexiona mientras el antebrazo soporta la mayor parte de la limitación."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell con las palmas hacia abajo: el centro de la carga queda bajo la mano y aumenta la exigencia de estabilización del antebrazo."
+            ]
+          }
+        },
+        "description": "El Curl Invertido pone las palmas a mirar al suelo: el protagonista pasa a ser el antebrazo y el braquial, y el bíceps trabaja en desventaja mecánica. Se ejecuta como un curl normal pero con el dorso de la mano liderando la subida, con cargas más modestas de lo habitual. La banda o la polea permiten la misma idea con otro tacto. El equilibrador del brazo: antebrazos que combinan con unos buenos bíceps."
+      },
+      "status": "LEGACY"
+    },
+    "spider_curl": {
+      "public": {
+        "configurations": {
+          "spider_curl__barbell__neutral": {
+            "description": "Con barra y agarre neutro, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa. Las palmas enfrentadas cuidan muñeca y codo.",
+            "executionCues": [
+              "Barra con agarre neutro en el banco: el braquial reparte el trabajo y el estiramiento permanece profundo. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Barra con agarre neutro en el banco: el braquial reparte el trabajo y el estiramiento permanece profundo."
+            ]
+          },
+          "spider_curl__barbell__pronated": {
+            "description": "Con barra y agarre prono, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa. Las palmas al frente dejan el dorsal ancho al mando.",
+            "executionCues": [
+              "Barra con palmas abajo en el banco: el antebrazo y el braquial hacen el trabajo pesado con el brazo estirado. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Barra con palmas abajo en el banco: el antebrazo y el braquial hacen el trabajo pesado con el brazo estirado."
+            ]
+          },
+          "spider_curl__barbell__supinated": {
+            "description": "Con barra y agarre supino, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa. Las palmas hacia ti dan más protagonismo al bíceps.",
+            "executionCues": [
+              "Barra con palmas arriba en el banco: el bíceps estirado carga el peso de ambos brazos a la vez. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Barra con palmas arriba en el banco: el bíceps estirado carga el peso de ambos brazos a la vez."
+            ]
+          },
+          "spider_curl__cable__neutral": {
+            "description": "Con polea y agarre neutro, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
+            "executionCues": [
+              "Polea con agarre neutro en el banco: tensión continua repartida entre bíceps y antebrazo. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Polea con agarre neutro en el banco: tensión continua repartida entre bíceps y antebrazo."
+            ]
+          },
+          "spider_curl__cable__pronated": {
+            "description": "Con polea y agarre prono, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Las palmas al frente dejan el dorsal ancho al mando.",
+            "executionCues": [
+              "Polea con palmas abajo en el banco: el antebrazo y el braquial aguantan la tensión en el punto más estirado. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Polea con palmas abajo en el banco: el antebrazo y el braquial aguantan la tensión en el punto más estirado."
+            ]
+          },
+          "spider_curl__cable__supinated": {
+            "description": "Con polea y agarre supino, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con las palmas hacia ti, el bíceps gana protagonismo.",
+            "executionCues": [
+              "Polea boca abajo en el banco: la tensión constante se suma al estiramiento máximo del bíceps. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Polea boca abajo en el banco: la tensión constante se suma al estiramiento máximo del bíceps."
+            ]
+          },
+          "spider_curl__dumbbells__neutral": {
+            "description": "Con mancuernas y agarre neutro, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Las palmas enfrentadas cuidan muñeca y codo.",
+            "executionCues": [
+              "Mancuernas boca abajo con agarre neutro: el braquial se suma y el estiramiento se perciben igual de profundo. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas boca abajo con agarre neutro: el braquial se suma y el estiramiento se perciben igual de profundo."
+            ]
+          },
+          "spider_curl__dumbbells__pronated": {
+            "description": "Con mancuernas y agarre prono, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo. Las palmas al frente dejan el dorsal ancho al mando.",
+            "executionCues": [
+              "Mancuernas boca abajo con palmas abajo: el braquial y el antebrazo protagonizan con el brazo colgando. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas boca abajo con palmas abajo: el braquial y el antebrazo protagonizan con el brazo colgando."
+            ]
+          },
+          "spider_curl__dumbbells__supinated": {
+            "description": "Con mancuernas y agarre supino, boca abajo sobre el banco inclinado, los brazos cuelgan en vertical y suben sin ayuda del tronco. El bíceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con las palmas hacia ti, el bíceps gana protagonismo.",
+            "executionCues": [
+              "Mancuernas boca abajo en el banco con palmas arriba: el bíceps estirado hace todo el recorrido. El pecho apoyado elimina el impulso y deja el brazo colgando; el codo se mantiene bajo el hombro mientras el bíceps acorta."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas boca abajo en el banco con palmas arriba: el bíceps estirado hace todo el recorrido."
+            ]
+          }
+        },
+        "description": "El Curl Araña te pone boca abajo en el banco inclinado y deja los brazos colgando en vertical: el bíceps se estira a fondo y trabaja sin que el tronco pueda empujar. Se ejecuta subiendo las mancuernas o la barra hacia los hombros con los codos apuntando al suelo. En polea la tensión acompaña hasta el final del arco. Estricto, incómodo y terriblemente efectivo para la parte frontal del brazo."
+      },
+      "status": "LEGACY"
+    },
+    "standing_biceps_curl": {
+      "public": {
+        "configurations": {
+          "standing_biceps_curl__barbell": {
+            "description": "Con barra, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. Con la barra, la carga sube al máximo y la progresión del bíceps se mide sin trampa.",
+            "executionCues": [
+              "Barra recta de pie: el curl tradicional en el entrenamiento de fuerza, con la mayor cantidad de peso posible y la postura estable. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
+            ],
+            "setupCues": [
+              "Preparación: Barra recta de pie: el curl tradicional en el entrenamiento de fuerza, con la mayor cantidad de peso posible y la postura estable."
+            ]
+          },
+          "standing_biceps_curl__cable": {
+            "description": "Con polea, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. El bíceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea de pie: la tensión constante carga el bíceps en toda la subida y la bajada. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
+            ],
+            "setupCues": [
+              "Preparación: Polea de pie: la tensión constante carga el bíceps en toda la subida y la bajada."
+            ]
+          },
+          "standing_biceps_curl__dumbbells": {
+            "description": "Con mancuernas, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. Con mancuernas, cada lado ajusta su línea y el trabajo del bíceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas de pie: cada brazo trabaja por separado y puedes girar la palma al subir. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas de pie: cada brazo trabaja por separado y puedes girar la palma al subir."
+            ]
+          },
+          "standing_biceps_curl__ez_bar": {
+            "description": "Con barra EZ, de pie con los codos fijos a los costados, las palmas suben hacia los hombros en un arco firme. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del bíceps.",
+            "executionCues": [
+              "Barra EZ de pie: el agarre girado cuida las muñecas y la tensión permanece total. El tronco permanece vertical y el brazo acompaña el codo sin adelantarse; la muñeca conserva el agarre elegido."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ de pie: el agarre girado cuida las muñecas y la tensión permanece total."
+            ]
+          }
+        },
+        "description": "El Curl de Bíceps de Pie es el gesto de brazo por antonomasia: el bíceps flexiona el codo contra la carga con el cuerpo de pie y sin apoyos. Se ejecuta con la barra al frente de los muslos y los codos pegados al torso, subiendo en un arco completo hasta los hombros y bajando sin prisa. Si las muñecas protestan con la barra recta, la barra EZ cambia el ángulo del agarre lo justo para entrenar cómodo sin perder tensión. El constructor clásico de bíceps: simple de aprender, difícil de dominar con carga."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "elbow_flexion_biceps_curl",
+  "schemaVersion": 1
+}

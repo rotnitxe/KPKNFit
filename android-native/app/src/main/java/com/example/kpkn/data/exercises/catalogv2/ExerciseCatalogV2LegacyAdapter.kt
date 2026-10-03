@@ -89,7 +89,6 @@ internal fun ExerciseDefinitionV2.toLegacyInfo(
         ttc = profile.ttc,
         axialLoadFactor = profile.axialLoadFactor,
         technicalDifficulty = profile.technicalDifficulty,
-        commonMistakes = profile.commonMistakes.map { com.example.kpkn.data.models.CommonMistake(it, "Reduce la carga y repite el cue técnico.") },
         setupCues = profile.setupCues,
         executionCues = profile.executionCues,
         replacementGroup = profile.replacementGroup,

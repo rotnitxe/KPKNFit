@@ -1,0 +1,40 @@
+{
+  "definitions": {
+    "glutes_step_up_gluteo": {
+      "public": {
+        "configurations": {
+          "glutes_step_up_gluteo__default": {
+            "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Subes a un cajón empujando con una pierna, con el glúteo protagonizando."
+            ]
+          }
+        },
+        "description": "El Step-Up de Glúteo inclina el torso hacia delante sobre el cajón y convierte la subida en un asunto de cadera: el glúteo mayor empuja la extensión con el cuádriceps en segundo plano. Se ejecuta con una mancuerna ligera, subiendo con la pierna de arriba y bajando sin impulso del pie libre. La inclinación frontal es lo que cambia el protagonista respecto al step-up normal. El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
+      },
+      "status": "LEGACY"
+    },
+    "glutes_zancada_cruzada": {
+      "public": {
+        "configurations": {
+          "glutes_zancada_cruzada__default": {
+            "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+            "executionCues": [
+              "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: El paso cruza por detrás de la otra pierna y bajas en diagonal."
+            ]
+          }
+        },
+        "description": "La Zancada Cruzada lleva la pierna hacia atrás en diagonal, cruzando por detrás de la de apoyo: el glúteo de la pierna fija trabaja en un ángulo que las zancadas normales no visitan. Se ejecuta con mancuernas suaves, bajando con la cadera cuadrada y regresando sin que la rodilla de apoyo baile. El patrón curtsy despierta el lateral del glúteo y la cara externa del muslo. La zancada olvidada que redondea lo que las demás dejan."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_unilateral_hip_dominant",
+  "schemaVersion": 1
+}

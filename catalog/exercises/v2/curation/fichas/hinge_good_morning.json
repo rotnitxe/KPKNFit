@@ -1,0 +1,138 @@
+{
+  "definitions": {
+    "good_morning": {
+      "public": {
+        "configurations": {
+          "good_morning__bilateral__barbell": {
+            "description": "Con barra y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante."
+            ]
+          },
+          "good_morning__bilateral__machine": {
+            "description": "Con máquina y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado."
+            ]
+          },
+          "good_morning__bilateral__safety_bar": {
+            "description": "Con barra de seguridad y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos."
+            ]
+          },
+          "good_morning__bilateral__smith_machine": {
+            "description": "Con máquina Smith y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Smith con ambas piernas: la barra guiada te permite ir profundo con control."
+            ]
+          },
+          "good_morning__unilateral__barbell": {
+            "description": "Con barra y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja."
+            ]
+          },
+          "good_morning__unilateral__machine": {
+            "description": "Con máquina y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo."
+            ]
+          },
+          "good_morning__unilateral__safety_bar": {
+            "description": "Con barra de seguridad y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio."
+            ]
+          },
+          "good_morning__unilateral__smith_machine": {
+            "description": "Con máquina Smith y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
+            ],
+            "setupCues": [
+              "Preparación: Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo."
+            ]
+          }
+        },
+        "description": "El Buenos Días, o Good Morning, es una bisagra de cadera que pone a isquiosurales y glúteos a trabajar en un rango enorme, sometidos a mucha tensión mientras se estiran. Se ejecuta con la barra apoyada sobre los trapecios, igual que en una sentadilla: al flexionar la cadera el torso se inclina hacia delante y la parte trasera de las piernas empieza a estirarse, y la subida nace de empujar el suelo con la cadera. Quienes acumulan molestias en el hombro tienen en la barra de seguridad una aliada perfecta para seguir entrenándolo sin renunciar a la carga. Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
+      },
+      "status": "LEGACY"
+    },
+    "good_morning_seated": {
+      "public": {
+        "configurations": {
+          "good_morning_seated__barbell": {
+            "description": "Con barra, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "executionCues": [
+              "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra sentado en el banco: la cadera fija y la tensión directa en los isquios."
+            ]
+          },
+          "good_morning_seated__safety_bar": {
+            "description": "Con barra de seguridad, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
+            "executionCues": [
+              "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco."
+            ]
+          },
+          "good_morning_seated__smith_machine": {
+            "description": "Con máquina Smith, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
+            "executionCues": [
+              "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Smith sentado: la barra guiada y la postura fija del banco."
+            ]
+          }
+        },
+        "description": "El Buenos Días Sentado ata las piernas al banco y concentra toda la bisagra en la cadera: los isquiosurales se estiran con el torso inclinándose hacia delante y no hay impulso de piernas disponible. Se ejecuta sentado con la barra sobre los trapecios, bajando el pecho hacia las rodillas y regresando con la espalda neutra. La carga es menor que de pie, pero la sensación en la parte trasera es inconfundible. La versión acotada que enseña dónde debe vivir el esfuerzo."
+      },
+      "status": "LEGACY"
+    },
+    "good_morning_zercher": {
+      "public": {
+        "configurations": {
+          "good_morning_zercher__default": {
+            "description": "Con barra, con la carga abrazada en los codos, la inclinación frontal pone al core a trabajar el doble. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "executionCues": [
+              "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho."
+            ]
+          }
+        },
+        "description": "El Buenos Días/RDL Zercher une ambas identidades en un solo gesto: la barra vive en el hueco de los codos y la cadera hace la misma inclinación de siempre. Glúteos e isquiosurales siguen mandando, pero el torso trabaja el doble para no desarmarse. La posición incomoda los brazos y exige técnica depurada. Una especialidad dura para quien ya exprimió las variantes convencionales."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "hinge_good_morning",
+  "schemaVersion": 1
+}

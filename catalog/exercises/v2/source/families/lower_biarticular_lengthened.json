@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · biarticular lengthened",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_reverse_nordic_peso_corporal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_reverse_nordic_peso_corporal__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
-                "El estiramiento cargado del cuádriceps que nadie hace y todos deberían."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con peso corporal, desde las rodillas, el cuerpo se inclina hacia atrás con el cuádriceps frenando la caída. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona al inclinar el cuerpo hacia atrás desde las rodillas y se extiende al volver a la vertical, con el peso del cuerpo por carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla mantiene la flexión de apoyo sobre el suelo y aporta estabilidad a la base mientras el cuerpo se inclina hacia atrás y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión del tronco mientras el cuerpo se inclina hacia atrás desde las rodillas y vuelve con el peso del cuerpo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco mientras el cuerpo se inclina hacia atrás desde las rodillas con el peso del cuerpo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "biarticular_lengthened",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: De rodillas y con el peso del cuerpo, el cuádriceps frena en excéntrico la inclinación hacia atrás y vuelve a acortarse al regresar a la vertical."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core sostiene el tronco mientras el cuerpo se inclina hacia atrás desde las rodillas, con el peso del cuerpo como única carga del ejercicio."
-                }
-              ],
               "performanceProfileId": "quads_reverse_nordic_peso_corporal__bodyweight__curl_nordico_inverso_reverse_nordic_curl",
               "primaryMuscles": [
                 "quadriceps"
@@ -108,7 +86,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona al inclinar el cuerpo hacia atrás desde las rodillas y se extiende al volver a la vertical, con el peso del cuerpo por carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla mantiene la flexión de apoyo sobre el suelo y aporta estabilidad a la base mientras el cuerpo se inclina hacia atrás y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión del tronco mientras el cuerpo se inclina hacia atrás desde las rodillas y vuelve con el peso del cuerpo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco mientras el cuerpo se inclina hacia atrás desde las rodillas con el peso del cuerpo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight",
                   "movementPatternId": "biarticular_lengthened",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -167,43 +135,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves."
-                  ]
-                },
                 "display": {
                   "displayName": "Curl Nórdico Inverso (Reverse Nordic Curl)",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
-                    "El estiramiento cargado del cuádriceps que nadie hace y todos deberían."
-                  ],
-                  "description": "Con peso corporal, desde las rodillas, el cuerpo se inclina hacia atrás con el cuádriceps frenando la caída. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
-                  "technique": "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. El reverse nordic: intenso, poco habitual y útil para acumular trabajo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -216,7 +151,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl Nórdico Inverso (Reverse Nordic Curl)",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_reverse_nordic_peso_corporal__default",
                   "definitionId": "quads_reverse_nordic_peso_corporal",
                   "familyId": "lower_biarticular_lengthened",
@@ -232,44 +167,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Curl Nórdico Inverso (Reverse Nordic Curl) en la variante Peso Corporal.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "biarticular_lengthened:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón biarticular_lengthened."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -282,9 +193,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. El reverse nordic: intenso, poco habitual y útil para acumular trabajo."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -296,7 +205,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_biarticular_lengthened",
@@ -308,13 +216,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón biarticular_lengthened; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_biarticular_lengthened",

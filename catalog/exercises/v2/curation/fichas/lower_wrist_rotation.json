@@ -1,0 +1,58 @@
+{
+  "definitions": {
+    "pronation": {
+      "public": {
+        "configurations": {
+          "pronation__cable": {
+            "description": "Con polea, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja para girar la palma hacia abajo: la resistencia acompaña a la mano durante la rotación y se regula con mucha precisión."
+            ]
+          },
+          "pronation__dumbbells": {
+            "description": "Con mancuernas, la palma gira hacia abajo venciendo la resistencia con el codo fijo al costado. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
+            "executionCues": [
+              "Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna ligera para girar la palma hacia abajo: el codo actúa como ancla y el antebrazo organiza todo el movimiento."
+            ]
+          }
+        },
+        "description": "Las Pronaciones giran la palma hacia abajo contra resistencia: el pronador trabaja el sentido contrario al de las supinaciones. Se ejecutan con mancuerna o polea, el codo quieto y la rotación lenta de principio a fin. El antebrazo se equilibra trabajando ambos giros. El complemento que cierra el círculo de la salud del antebrazo."
+      },
+      "status": "LEGACY"
+    },
+    "supination": {
+      "public": {
+        "configurations": {
+          "supination__cable": {
+            "description": "Con polea, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja para girar la palma hacia arriba: la tensión acompaña el recorrido y impide que la mano quede sin resistencia al final."
+            ]
+          },
+          "supination__dumbbells": {
+            "description": "Con mancuernas, la palma gira hacia arriba contra la resistencia con el codo pegado al costado. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna ligera para girar la palma hacia arriba: el codo queda fijo y la mano recorre un arco corto y controlado."
+            ]
+          }
+        },
+        "description": "Las Supinaciones giran la palma hacia arriba contra resistencia: el supinador y el bíceps rotan el antebrazo en un gesto pequeño y específico. Se ejecutan con una mancuerna ligera o en polea, con el codo pegado al costado y la rotación completa en cada repetición. La muñeca aprende a girar fuerte. El detalle que protege el codo en curls y dominadas."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_wrist_rotation",
+  "schemaVersion": 1
+}

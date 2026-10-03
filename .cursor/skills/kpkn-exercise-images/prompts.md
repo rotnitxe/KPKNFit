@@ -18,6 +18,16 @@ Herramienta: `CallDynamicTool` namespace `cursor`, tool `GenerateImage`.
 
 **Nunca** adjuntar: gen con el mismo fallo, recorte de queja como “copia esto”, PNG actual si el pedido es cambiar estilo.
 
+## Plantilla desde la ficha (definición CURATED)
+
+El prompt **es** la salida `PROMPT` de `python scripts/catalog_v2_visual_brief.py <definitionId> --equipment <equipmentId>`: estilo de la casa + `visual.promptCore` (inglés ASCII, 60 a 700 caracteres, un fotograma exacto). Se pasa tal cual como `description`. Lo demás de la ficha no va al prompt, sirve para revisar la imagen:
+
+- `GEOMETRIA` y marco base (cámara, fase, orientación, contactos, postura, carga): contra qué se compara el resultado.
+- `RECHAZAR SI` (`visual.forbidden`): cualquiera de esos errores invalida la gen.
+- `QA` (`visual.qa`): las preguntas sí/no para el inspector limpio.
+
+Si la imagen sale mal por un dato que el prompt no fija, se corrige `promptCore` en la ficha (y se vuelve a validar con `catalog_v2_ficha_lint.py`), no el prompt suelto.
+
 ## Plantilla (técnica + una máquina)
 
 ```

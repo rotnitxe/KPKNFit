@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · hip abduction external rotation",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#glutes_clamshells_banda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_clamshells_banda__default",
@@ -22,46 +21,32 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
-                "El calentamiento que prepara la cadera antes de cargar en serio."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
-              ],
-              "description": "Con banda elástica, tumbado de lado con las rodillas dobladas, la rodilla superior se abre como una concha. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
+              "description": "La banda rodea ambos muslos justo por encima de las rodillas y parte con poca carga: cuanto más se abre la rodilla de arriba, más se estira y más resistencia opone. Esa resistencia creciente se suma al peso del muslo y obliga a frenar la bajada.",
               "efc": 2.8,
               "equipmentId": "band",
               "executionCues": [
-                "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Abre la rodilla de arriba girando el muslo hacia fuera, sin separar los talones.",
+                "Detén la apertura justo antes de que la pelvis ruede hacia atrás y sostén un segundo con la banda estirada.",
+                "Baja la rodilla despacio, frenando la banda, hasta rozar la otra rodilla sin que se junten de golpe."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Abducción"
+                    "Rotación externa de la cadera",
+                    "Abducción de la cadera"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera combina abducción y rotación externa al abrir la rodilla superior contra la banda, con el cuerpo tumbado de lado sobre el suelo.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Pélvica"
-                  ],
-                  "jointId": "sacroiliaca",
-                  "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica con el cuerpo tumbado de lado mientras la rodilla superior se abre y la resistencia elástica crece.",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Alineación Del Miembro Inferior"
+                    "Sostén de la flexión de rodilla"
                   ],
                   "jointId": "rodilla",
-                  "note": "Estabilizadora: La rodilla actúa como eje de la abducción con rotación externa contra la banda y alinea el miembro inferior con el cuerpo tumbado de lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,15 +54,9 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_abduction_external_rotation",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: Tumbado de lado con la banda en las rodillas, el glúteo mayor rota la rodilla superior hacia fuera y la abre contra la resistencia de la goma."
-                }
-              ],
               "performanceProfileId": "glutes_clamshells_banda__band__clamshells_almejas_con_banda_elastica",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_medius"
               ],
               "replacementGroup": "glute_med_abduction",
               "replacementPriority": 4,
@@ -85,46 +64,35 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Abducción",
-                    "Estabilidad Pélvica",
-                    "Alineación Del Miembro Inferior"
+                    "Rotación externa de la cadera",
+                    "Abducción de la cadera",
+                    "Sostén de la flexión de rodilla"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Abducción"
+                        "Rotación externa de la cadera",
+                        "Abducción de la cadera"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera combina abducción y rotación externa al abrir la rodilla superior contra la banda, con el cuerpo tumbado de lado sobre el suelo.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Pélvica"
-                      ],
-                      "jointId": "sacroiliaca",
-                      "note": "Secundaria: La sacroilíaca aporta estabilidad pélvica con el cuerpo tumbado de lado mientras la rodilla superior se abre y la resistencia elástica crece.",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Alineación Del Miembro Inferior"
+                        "Sostén de la flexión de rodilla"
                       ],
                       "jointId": "rodilla",
-                      "note": "Estabilizadora: La rodilla actúa como eje de la abducción con rotación externa contra la banda y alinea el miembro inferior con el cuerpo tumbado de lado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
-                    "gluteus_maximus"
+                    "gluteus_medius"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
+                  "secondaryMuscles": [
+                    "gluteus_maximus",
+                    "hip_flexors"
+                  ],
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "gluteus_maximus"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,52 +102,17 @@
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "hip_abduction_external_rotation",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
-                    "sacroiliaca",
                     "rodilla"
                   ],
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Inclinar el tronco, girar la pelvis o lanzar la pierna más allá del rango útil."
-                  ],
-                  "cues": [
-                    "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadera lateral y mejorar el control de la pelvis siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar separación de la pierna y estabilidad pélvica como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia."
-                  ]
-                },
                 "display": {
                   "displayName": "Clamshells (Almejas) con Banda Elástica",
                   "displaySummary": "Banda Elástica",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
-                    "El calentamiento que prepara la cadera antes de cargar en serio."
-                  ],
-                  "description": "Con banda elástica, tumbado de lado con las rodillas dobladas, la rodilla superior se abre como una concha. Con la banda, la resistencia crece a medida que avanza el trabajo del glúteo mayor.",
-                  "technique": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. El activador útil del glúteo medio antes de entrenar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -192,7 +125,7 @@
                 },
                 "identity": {
                   "canonicalName": "Clamshells (Almejas) con Banda Elástica",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "glutes_clamshells_banda__default",
                   "definitionId": "glutes_clamshells_banda",
                   "familyId": "lower_hip_abduction_external_rotation",
@@ -208,67 +141,47 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Clamshells (Almejas) con Banda Elástica en la variante Banda Elástica.",
-                    "Priorizar fortalecer la cadera lateral y mejorar el control de la pelvis con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva separación de la pierna y estabilidad pélvica y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, articulación sacroilíaca, rodilla."
+                    "hip_abduction_external_rotation:gluteus_medius"
                   ],
                   "replacementGroup": "glute_med_abduction",
                   "replacementPriority": 4
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "gluteus_maximus",
+                "hip_flexors"
+              ],
               "setupCues": [
-                "Preparación: Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia."
+                "Túmbate de lado con la cabeza sobre el brazo de abajo, las caderas flexionadas unos 60° y las rodillas dobladas a unos 90°, con los pies juntos.",
+                "Pasa la banda alrededor de ambos muslos, justo por encima de las rodillas, y apila la cadera de arriba sobre la de abajo.",
+                "Apoya la mano de arriba en la cadera de arriba para notar si la pelvis rueda hacia atrás."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Acostado de lado con la banda en las rodillas: abres la rodilla superior contra la resistencia. El activador útil del glúteo medio antes de entrenar."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
         ],
         "defaultConfigurationId": "glutes_clamshells_banda__default",
-        "description": "Los Clamshells con Banda, o almejas, son el despertador del glúteo medio: tumbado de lado con las rodillas dobladas, la rodilla superior se abre contra la banda como una concha. Se ejecutan sin prisa, con los pies juntos y la cadera apilada, sintiendo el costado del glúteo en cada apertura. Parecen poco y activan muchísimo. El calentamiento que prepara la cadera antes de cargar en serio.",
+        "description": "Los clamshells con banda, o almejas, abren la cadera en rotación externa tumbado de lado: con los pies juntos, la rodilla de arriba se separa como la tapa de una almeja contra la banda que rodea los muslos. El glúteo medio trabaja a un nivel moderado, parejo al glúteo mayor, y no por encima de él. Con carga, los flexores de la cadera superaron a los dos glúteos, y tras una serie larga la resonancia mostró más cambio en los rotadores profundos que en el glúteo medio. Si la pelvis rueda hacia atrás, el glúteo medio y el glúteo mayor se activan menos. Frente a la abducción lateral tumbado, la almeja le pide al glúteo medio claramente menos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_abduction_external_rotation",
@@ -280,13 +193,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón hip_abduction_external_rotation; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_abduction_external_rotation",

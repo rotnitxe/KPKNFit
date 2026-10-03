@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "t_bar_row": {
+      "public": {
+        "configurations": {
+          "t_bar_row__machine__close": {
+            "description": "Con máquina y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+            "executionCues": [
+              "Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina T con agarre cerrado: las asas acercan los codos al cuerpo y la guía mantiene la carga en una línea repetible."
+            ]
+          },
+          "t_bar_row__machine__medium": {
+            "description": "Con máquina y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
+            "executionCues": [
+              "Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina T con agarre medio: el recorrido guiado coloca los codos en una diagonal intermedia entre dorsal y espalda alta."
+            ]
+          },
+          "t_bar_row__machine__wide": {
+            "description": "Con máquina y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "executionCues": [
+              "Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina T con agarre amplio: las asas separan los codos y llevan el trabajo hacia romboides y trapecio medio."
+            ]
+          },
+          "t_bar_row__t_bar__close": {
+            "description": "Con barra T y agarre cerrado, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
+            "executionCues": [
+              "Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            ],
+            "setupCues": [
+              "Preparación: Barra T con agarre cerrado: el anclaje mantiene una trayectoria estable mientras los codos avanzan cerca del costado."
+            ]
+          },
+          "t_bar_row__t_bar__medium": {
+            "description": "Con barra T y agarre medio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. Con la barra T, el agarre cerrado y la carga en un extremo dan un tirón distinto para el dorsal ancho. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado.",
+            "executionCues": [
+              "Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            ],
+            "setupCues": [
+              "Preparación: Barra T con agarre medio: el anclaje ofrece una línea diagonal y el codo queda entre el costado y la apertura de la espalda alta."
+            ]
+          },
+          "t_bar_row__t_bar__wide": {
+            "description": "Con barra T y agarre amplio, la carga anclada en un extremo gira hacia el pecho con el torso firme y el agarre cerrado. El dorsal ancho trabaja con la barra T, que concentra la carga en un extremo. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
+            "executionCues": [
+              "Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta. La carga permanece anclada mientras el torso ofrece una base firme; los codos suben hacia atrás siguiendo el ancho elegido."
+            ],
+            "setupCues": [
+              "Preparación: Barra T con agarre amplio: las manos abiertas separan los codos y orientan el tirón hacia la espalda alta."
+            ]
+          }
+        },
+        "description": "El Remo en Barra T es la tracción con la carga anclada en un extremo: el dorsal tira en un arco que se cierra hacia el pecho con un agarre naturalmente cerrado. Se ejecuta con el pecho cerca del soporte y la espalda firme, subiendo las placas hasta el torso y bajándolas sin soltar la tensión. Las máquinas de barra T con apoyo pectoral ofrecen la misma esencia sin pedirle nada a la lumbar. Grosor de espalda media garantizado, con sabor a gimnasio de siempre."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "back_t_bar_row",
+  "schemaVersion": 1
+}

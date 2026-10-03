@@ -1,0 +1,32 @@
+{
+  "definitions": {
+    "katana_extension": {
+      "public": {
+        "configurations": {
+          "katana_extension__cable__bilateral": {
+            "description": "Con polea y a dos lados, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo del tríceps admite más carga total.",
+            "executionCues": [
+              "Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea a un lado con ambas manos: tiras en diagonal abriendo como una katana."
+            ]
+          },
+          "katana_extension__cable__unilateral": {
+            "description": "Con polea y a un lado, de pie, el codo se extiende llevando la mano hacia atrás y arriba en un arco de desenvaine. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Polea con una mano en diagonal: cada tríceps trabaja por separado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea con una mano en diagonal: cada tríceps trabaja por separado."
+            ]
+          }
+        },
+        "description": "La Extensión Katana desenfunda el brazo como una espada: de pie ante la polea, el codo se extiende llevando las manos arriba con los cables cruzados. Se ejecuta con dos poleas independientes a altura media, torso estable y trayectoria limpia de principio a fin. Elegante y distinto, con una congestión final sorprendente."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "triceps_katana_extension",
+  "schemaVersion": 1
+}

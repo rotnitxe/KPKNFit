@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "familyId": "chest_floor_press",
+  "definitions": {
+    "floor_press": {
+      "status": "CURATED",
+      "public": {
+        "description": "El press en el suelo, conocido como floor press, se hace tumbado boca arriba, con las rodillas flexionadas y los pies en el piso. Los codos bajan hasta apoyarse en el suelo, así que la carga no llega al pecho y el gesto se queda en la mitad alta de un press. En esa mitad alta el tríceps braquial alcanza su mayor excitación media, y el pectoral mayor y el deltoides anterior se excitan más que en el recorrido entero. Esos tres músculos son los que más responden en un empuje de pecho cuando el apoyo es estable. El suelo, y no un banco, es el que corta la bajada y obliga a empezar cada subida desde una pausa.",
+        "configurations": {
+          "floor_press__barbell": {
+            "description": "La barra ata los dos brazos y desciende en bloque hasta que los dos codos tocan el suelo a la vez. Una sola pieza en las manos deja subir más carga externa que un peso suelto en cada brazo.",
+            "setupCues": [
+              "Túmbate boca arriba, rodillas flexionadas y pies en el suelo, con la barra en las manos y los brazos estirados sobre el pecho.",
+              "Acerca los codos al tronco antes de empezar a bajar."
+            ],
+            "executionCues": [
+              "Baja hasta que los dos codos se apoyen en el suelo y quédate un instante.",
+              "Empuja la barra en vertical hasta estirar los codos, con la espalda en el suelo."
+            ]
+          },
+          "floor_press__dumbbells": {
+            "description": "Cada mancuerna desciende hasta su propio codo, y un brazo puede tocar el suelo antes que el otro. Las muñecas pueden rotar en la bajada porque ninguna barra les fija el agarre.",
+            "setupCues": [
+              "Túmbate boca arriba con una mancuerna en cada mano, brazos estirados sobre el pecho y pies en el suelo.",
+              "Deja las mancuernas enfrentadas, sin chocar, y los codos cerca del tronco."
+            ],
+            "executionCues": [
+              "Baja cada codo hasta el suelo y frena antes de empujar.",
+              "Empuja hasta estirar los codos sin que una mancuerna se adelante."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Press tumbado en el suelo, sin banco: los codos se detienen en el piso y la carga no llega al pecho. Se separa del press de banca, que baja hasta el torso apoyado en un banco.",
+        "setup": [
+          "Tumbado boca arriba, rodillas flexionadas, pies apoyados en el suelo y la carga sostenida con los brazos extendidos sobre el pecho.",
+          "Los omóplatos y la parte alta de la espalda quedan en contacto con el suelo durante todo el gesto."
+        ],
+        "keyPositions": [
+          "Inicio de la bajada: brazos extendidos, carga sobre el pecho, codos en el aire.",
+          "Punto bajo: ambos codos apoyados en el suelo junto al torso, carga separada del pecho y sostenida por las manos."
+        ],
+        "mistakes": [
+          "Dejar que la carga baje hasta el pecho, como en un press de banca, en vez de parar cuando los codos tocan el suelo.",
+          "Rebotar los codos contra el piso para salir del punto bajo.",
+          "Despegar la espalda del suelo para acortar el empuje."
+        ],
+        "phases": [
+          {
+            "name": "Bajada",
+            "description": "Los codos se flexionan y se dirigen al suelo mientras la carga desciende frente al pecho."
+          },
+          {
+            "name": "Pausa",
+            "description": "Los codos quedan apoyados en el suelo y la carga se queda quieta, sin rebotar."
+          },
+          {
+            "name": "Subida",
+            "description": "Los codos se extienden y la carga sube en vertical hasta quedar otra vez sobre el pecho."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "El pectoral mayor es el aductor horizontal del press. En la mitad alta del press de banca, que es el tramo que el suelo deja hacer, su excitación media supera a la del recorrido entero y el pico de la región esternocostal también es mayor (Fischer et al.).",
+            "sources": ["fischer2025", "calatayud2014"]
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "why": "El tríceps extiende el codo en la subida. Fischer et al. vieron que la mitad alta del press de banca es justo el tramo con más excitación media del tríceps, y con picos mayores en las cabezas larga y lateral.",
+            "sources": ["fischer2025"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "El deltoides anterior flexiona el hombro mientras la carga sube. En los dos recorridos parciales del press se excitó más que en el recorrido completo, y en el empuje estable Calatayud et al. lo encontraron muy activo junto al pectoral.",
+            "sources": ["fischer2025", "calatayud2014"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal del hombro", "Flexión del hombro"],
+            "why": "El húmero se acerca al torso en el plano horizontal y flexiona para llevar la carga hacia arriba. El suelo corta ese arco antes de la posición baja del press de banca, que es el recorrido que Fischer et al. llamaron mitad alta.",
+            "sources": ["fischer2025"]
+          },
+          {
+            "id": "codo",
+            "role": "SECONDARY",
+            "actions": ["Extensión del codo"],
+            "why": "El codo se flexiona hasta que el brazo toca el suelo y luego se extiende. Ese tramo alto es donde el tríceps muestra más excitación que en el press de recorrido entero (Fischer et al.).",
+            "sources": ["fischer2025"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad escapular"],
+            "why": "Las escápulas se quedan apoyadas en el suelo mientras el húmero se mueve. Calatayud et al. vieron más pectoral y deltoides anterior cuando el empuje es estable, que es la condición de este apoyo.",
+            "sources": ["calatayud2014"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Sostén del agarre"],
+            "why": "Fischer et al. midieron pectoral, tríceps y deltoides anterior, no un movimiento de la muñeca. Ella solo sostiene la carga, en bloque si hay una barra o libre para rotar si hay una mancuerna en cada mano.",
+            "sources": ["fischer2025"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Tres cuartos desde los pies, a la altura del torso, con el cuerpo entero y la carga en cuadro.",
+          "phase": "Fotograma congelado en el punto bajo, con los codos ya apoyados en el suelo.",
+          "orientation": "Boca arriba en el suelo, cabeza hacia un lado del cuadro y pies hacia el otro.",
+          "contacts": "Espalda alta, escápulas, codos, pelvis y pies tocan el suelo. Las manos sujetan la carga.",
+          "posture": "Rodillas flexionadas, pies planos, codos junto al torso y brazos sin quedar colgando.",
+          "load": "La carga está en las manos, separada del pecho y del suelo, justo encima de la parte baja del pecho."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Una barra recta cruza sobre la parte baja del pecho, agarrada con las dos manos en prono, y queda paralela al suelo."
+          },
+          "dumbbells": {
+            "geometry": "Una mancuerna en cada mano, sobre la parte baja del pecho, con los codos de cada lado apoyados en el suelo."
+          }
+        },
+        "byVariant": {
+          "floor_press__dumbbells": {
+            "difference": "Hay dos mancuernas separadas, no una barra, y cada muñeca puede quedar en un ángulo distinto."
+          }
+        },
+        "forbidden": [
+          "Tumbado en un banco: eso es un press de banca, no un press en el suelo.",
+          "Codos en el aire y la carga apoyada en el pecho.",
+          "De pie o sentado empujando por encima de la cabeza."
+        ],
+        "qa": [
+          "¿La persona está tumbada en el suelo y no sobre un banco?",
+          "¿Las dos manos agarran la carga y la carga no flota suelta?",
+          "¿Los dos codos están apoyados en el suelo en este fotograma?",
+          "¿Las rodillas están flexionadas y los pies pisan el suelo?"
+        ],
+        "promptCore": {
+          "barbell": "Frozen at the bottom of a barbell floor press. An adult lies supine on the floor, knees bent, feet flat. Both hands grip one barbell with an overhand grip. Both elbows are pressed against the floor beside the ribs. The barbell is held just above the lower chest, not touching the chest and not floating free of the hands. The upper back stays on the floor.",
+          "dumbbells": "Frozen at the bottom of a dumbbell floor press. An adult lies supine on the floor, knees bent, feet flat. Each hand grips one dumbbell. Both elbows are pressed against the floor beside the ribs. The dumbbells are held just above the lower chest, not touching the chest and not floating free of the hands. The upper back stays on the floor."
+        }
+      },
+      "sources": [
+        {
+          "id": "fischer2025",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40269203/",
+          "title": "Acute muscle excitation response across various bench press ranges of motion.",
+          "claim": "En el press de banca, la mitad alta del recorrido tuvo la mayor excitación media del tríceps y picos mayores en sus cabezas larga y lateral. El pectoral mayor y el deltoides anterior se excitaron más en los recorridos parciales que en el completo, y el pico de la región esternocostal del pectoral fue mayor en la mitad alta."
+        },
+        {
+          "id": "calatayud2014",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25419894/",
+          "title": "Muscle activity levels in upper-body push exercises with different loads and stability conditions",
+          "claim": "En empujes de tren superior, el pectoral mayor, el deltoides anterior y el serrato se activan más cuando el apoyo es estable. El tríceps, el deltoides posterior, el trapecio superior y el abdomen se comportan al revés y suben cuando el apoyo es inestable."
+        }
+      ]
+    }
+  }
+}

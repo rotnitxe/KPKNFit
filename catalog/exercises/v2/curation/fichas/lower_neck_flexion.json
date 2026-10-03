@@ -1,0 +1,32 @@
+{
+  "definitions": {
+    "neck_flexion_cuello": {
+      "public": {
+        "configurations": {
+          "neck_flexion_cuello__cable": {
+            "description": "Con polea, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Arnés o polea: llevas la cabeza hacia delante contra la tensión."
+            ]
+          },
+          "neck_flexion_cuello__plate": {
+            "description": "Con disco, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con el disco, que añade lastre directo y simple.",
+            "executionCues": [
+              "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Disco en la frente: flexionas la cabeza contra el peso."
+            ]
+          }
+        },
+        "description": "Las Flexiones de Cuello cargan la parte frontal de la nuca, el lado contrario de las extensiones: la barbilla baja hacia el pecho contra la polea baja o un disco apoyado en la frente. Se ejecutan tumbado o de pie, con el rango corto y la técnica suave, sin forzar ninguna posición. La musculatura anterior del cuello también merece su día. El equilibrio cervical que completa la salud de la zona."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_neck_flexion",
+  "schemaVersion": 1
+}

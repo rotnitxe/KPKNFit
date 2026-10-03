@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Extensión de tríceps cruzada",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#triceps_crossbody_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "crossbody_triceps__cable__bilateral",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-                "Un matiz de polea que el tríceps nota desde la primera serie."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con a dos lados, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
               "efc": 2.2,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre en la bajada diagonal desde la polea alta mientras las dos manos cruzan el cuerpo y el brazo superior guía la trayectoria.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro dirige el cruce del brazo hacia el lado contrario con la polea alta, que tira desde arriba mientras las manos viajan en diagonal.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca guía la tracción de la polea alta en diagonal con el antebrazo alineado, sin doblarse al cruzar el cuerpo con las dos manos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con la polea alta y las dos manos, el tríceps extiende los codos en diagonal hacia el lado contrario, con tensión constante en todo el arco del recorrido."
-                }
-              ],
               "performanceProfileId": "crossbody_triceps__cable__bilateral",
               "primaryMuscles": [
                 "triceps"
@@ -95,7 +78,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre en la bajada diagonal desde la polea alta mientras las dos manos cruzan el cuerpo y el brazo superior guía la trayectoria.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro dirige el cruce del brazo hacia el lado contrario con la polea alta, que tira desde arriba mientras las manos viajan en diagonal.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca guía la tracción de la polea alta en diagonal con el antebrazo alineado, sin doblarse al cruzar el cuerpo con las dos manos.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -143,45 +117,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Tríceps Cruzada en Polea Alta",
                   "displaySummary": "cable · bilateral",
                   "selectedOptions": {
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-                    "Un matiz de polea que el tríceps nota desde la primera serie."
-                  ],
-                  "description": "Con a dos lados, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
-                  "technique": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El tríceps trabaja con un ángulo distinto."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -194,7 +135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "crossbody_triceps__cable__bilateral",
                   "definitionId": "crossbody_triceps_extension",
                   "familyId": "upper_elbow_extension_crossbody",
@@ -213,42 +154,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión de Tríceps Cruzada en Polea Alta en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -259,9 +178,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Polea alta cruzando el cuerpo con ambas manos: tiras en diagonal hacia el lado contrario. El tríceps trabaja con un ángulo distinto."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -275,7 +192,6 @@
                 "legacy:exercise_database.json#triceps_crossbody_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "crossbody_triceps__cable__unilateral",
@@ -283,16 +199,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-                "Un matiz de polea que el tríceps nota desde la primera serie."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con a un lado, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.2,
               "equipmentId": "cable",
@@ -306,7 +215,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo se abre cruzando el cuerpo contra la polea alta con una sola mano, sin que el hombro comparta el trabajo de la extensión del brazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -314,7 +222,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro del brazo que trabaja acompaña el recorrido diagonal desde la polea alta mientras el otro brazo queda fuera del movimiento y no ayuda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -322,7 +229,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca alinea el antebrazo con la tracción de la polea alta al cruzar el cuerpo con una mano, sin desviarse al final del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -330,12 +236,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con la polea alta y una sola mano, el tríceps extiende el codo cruzando el cuerpo hacia el lado contrario, con el esfuerzo centrado en un único brazo."
-                }
-              ],
               "performanceProfileId": "crossbody_triceps__cable__unilateral",
               "primaryMuscles": [
                 "triceps"
@@ -356,7 +256,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo se abre cruzando el cuerpo contra la polea alta con una sola mano, sin que el hombro comparta el trabajo de la extensión del brazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -364,7 +263,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro del brazo que trabaja acompaña el recorrido diagonal desde la polea alta mientras el otro brazo queda fuera del movimiento y no ayuda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -372,20 +270,14 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca alinea el antebrazo con la tracción de la polea alta al cruzar el cuerpo con una mano, sin desviarse al final del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -395,7 +287,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -404,45 +295,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Tríceps Cruzada en Polea Alta",
                   "displaySummary": "cable · unilateral",
                   "selectedOptions": {
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-                    "Un matiz de polea que el tríceps nota desde la primera serie."
-                  ],
-                  "description": "Con a un lado, con la polea alta al lado contrario, la mano viaja en diagonal hasta la extensión completa. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. Útil para centrarse en un brazo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -455,7 +313,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Tríceps Cruzada en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "crossbody_triceps__cable__unilateral",
                   "definitionId": "crossbody_triceps_extension",
                   "familyId": "upper_elbow_extension_crossbody",
@@ -474,42 +332,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Extensión de Tríceps Cruzada en Polea Alta en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -520,9 +356,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Polea alta con una mano cruzando el cuerpo: un aislamiento mayor con tensión constante. Útil para centrarse en un brazo."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -536,7 +370,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_elbow_extension_crossbody",
@@ -553,13 +386,11 @@
         ]
       }
     ],
-    "description": "Familia de extensión de codo cruzada con implemento y lateralidad materializados.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_elbow_extension_crossbody",

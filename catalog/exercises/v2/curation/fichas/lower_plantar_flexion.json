@@ -1,0 +1,122 @@
+{
+  "definitions": {
+    "calf_raise": {
+      "public": {
+        "configurations": {
+          "calf_raise__bilateral__barbell": {
+            "description": "Con barra y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+            "executionCues": [
+              "Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la espalda con ambas piernas: subes a la punta de los pies con la carga."
+            ]
+          },
+          "calf_raise__bilateral__bodyweight": {
+            "description": "Sin aparato y de pie sobre el suelo, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. El peso corporal es la única carga y la altura del talón decide el recorrido de la pantorrilla.",
+            "executionCues": [
+              "De pie con las puntas apoyadas y el equilibrio cerca de una pared: el talón desciende por debajo de la horizontal y la planta vuelve a la punta con las rodillas extendidas."
+            ],
+            "setupCues": [
+              "Preparación: De pie con las puntas apoyadas y el equilibrio cerca de una pared: el talón desciende por debajo de la horizontal y la planta vuelve a la punta con las rodillas extendidas."
+            ]
+          },
+          "calf_raise__bilateral__cable": {
+            "description": "Con polea y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+            "executionCues": [
+              "Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Polea con ambas piernas: la tensión constante sube los talones con la pantorrilla cargada."
+            ]
+          },
+          "calf_raise__bilateral__donkey_machine": {
+            "description": "En la máquina de gemelo donkey el tronco queda inclinado hacia delante con la carga sobre la espalda y la cadera flexionada. El talón sube y baja sobre la plataforma mientras el gemelo se mantiene largo por la postura.",
+            "executionCues": [
+              "Máquina donkey con el pecho apoyado hacia delante y la carga en la espalda alta: la cadera flexionada estira el gemelo antes de subir a la punta y las rodillas permanecen extendidas."
+            ],
+            "setupCues": [
+              "Preparación: Máquina donkey con el pecho apoyado hacia delante y la carga en la espalda alta: la cadera flexionada estira el gemelo antes de subir a la punta y las rodillas permanecen extendidas."
+            ]
+          },
+          "calf_raise__bilateral__leg_press_machine": {
+            "description": "En la prensa de piernas la planta empuja la plataforma con las rodillas casi extendidas y el tobillo se abre y cierra sobre el mismo recorrido. El borde inferior de la plataforma deja bajar el talón más allá de la horizontal.",
+            "executionCues": [
+              "Prensa de piernas con las puntas en el borde inferior de la plataforma: el talón desciende por debajo de la barra y la planta empuja hasta cerrar el tobillo sin bloquear las rodillas."
+            ],
+            "setupCues": [
+              "Preparación: Prensa de piernas con las puntas en el borde inferior de la plataforma: el talón desciende por debajo de la barra y la planta empuja hasta cerrar el tobillo sin bloquear las rodillas."
+            ]
+          },
+          "calf_raise__bilateral__machine": {
+            "description": "Con máquina y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los gemelos. Con ambos lados a la vez, el trabajo de los gemelos se reparte.",
+            "executionCues": [
+              "Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de pantorrillas con ambas piernas: subes y bajas con la espalda apoyada."
+            ]
+          },
+          "calf_raise__bilateral__seated_machine": {
+            "description": "Con la máquina de gemelos sentado, la carga reposa sobre los muslos y la flexión de rodilla desplaza el trabajo al sóleo. El talón sube y baja sobre la plataforma con el torso vertical y la espalda apoyada.",
+            "executionCues": [
+              "Sentado en la máquina de gemelos con la almohadilla sobre los muslos y las rodillas a unos noventa grados: el talón baja hasta el tope y sube a la punta sin despegar la carga."
+            ],
+            "setupCues": [
+              "Preparación: Sentado en la máquina de gemelos con la almohadilla sobre los muslos y las rodillas a unos noventa grados: el talón baja hasta el tope y sube a la punta sin despegar la carga."
+            ]
+          },
+          "calf_raise__bilateral__smith_machine": {
+            "description": "Con máquina Smith y a dos lados, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los gemelos admite más carga total.",
+            "executionCues": [
+              "Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Smith con ambas piernas: la barra guiada sobre los hombros y subes a la punta de los pies."
+            ]
+          },
+          "calf_raise__unilateral__barbell": {
+            "description": "Con barra y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. La barra es la referencia para cargar los gemelos con peso de verdad. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Barra en una pierna: la pantorrilla de un lado hace la mayor parte de la carga."
+            ]
+          },
+          "calf_raise__unilateral__cable": {
+            "description": "Con polea y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Polea con una pierna: tensión continua en una pantorrilla a la vez. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Polea con una pierna: tensión continua en una pantorrilla a la vez."
+            ]
+          },
+          "calf_raise__unilateral__machine": {
+            "description": "Con máquina y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los gemelos se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con una pierna: cada pantorrilla eleva el cuerpo por separado y la plataforma elimina parte del problema de equilibrio."
+            ]
+          },
+          "calf_raise__unilateral__smith_machine": {
+            "description": "Con máquina Smith y a un lado, el cuerpo sube sobre las puntas de los pies y baja hasta el estiramiento completo. Los gemelos trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los gemelos se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable. El talón desciende para cargar la pantorrilla y luego sube hasta una flexión plantar completa, sin convertir el recorrido en un rebote."
+            ],
+            "setupCues": [
+              "Preparación: Smith con una pierna: un gemelo trabaja sin ayuda del otro lado con la barra estable."
+            ]
+          }
+        },
+        "description": "La Elevación de Talones es el trabajo directo de los gemelos: subir sobre las puntas de los pies contra carga y bajar hasta el estiramiento completo. Se ejecuta en la máquina de gemelos, con la barra sobre los hombros o en la Smith, con una pausa arriba y otra abajo en cada repetición. A una pierna revela quién tiene un lado más débil. El camino más corto a unas pantorrillas que se noten."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_plantar_flexion",
+  "schemaVersion": 1
+}

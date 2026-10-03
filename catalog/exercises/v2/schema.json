@@ -56,9 +56,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "rationale": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -75,7 +72,8 @@
         "primaryMuscles",
         "secondaryMuscles",
         "stabilizerMuscles",
-        "muscleNotes",
+        "jointInvolvement",
+        "description",
         "efc",
         "cnc",
         "ssc",
@@ -85,7 +83,6 @@
         "resistanceProfile",
         "setupCues",
         "executionCues",
-        "commonMistakes",
         "performanceProfileId"
       ],
       "properties": {
@@ -143,22 +140,39 @@
             "type": "string"
           }
         },
-        "muscleNotes": {
+        "description": {
+          "type": "string",
+          "minLength": 40
+        },
+        "jointInvolvement": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "object",
             "required": [
-              "muscleId",
-              "note"
+              "jointId",
+              "role",
+              "actions"
             ],
             "properties": {
-              "muscleId": {
+              "jointId": {
                 "type": "string",
                 "minLength": 1
               },
-              "note": {
-                "type": "string",
-                "minLength": 40
+              "role": {
+                "enum": [
+                  "PRIMARY",
+                  "SECONDARY",
+                  "STABILIZER"
+                ]
+              },
+              "actions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               }
             },
             "additionalProperties": false
@@ -202,14 +216,6 @@
           }
         },
         "executionCues": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "commonMistakes": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -271,8 +277,6 @@
         "programming",
         "fatigue",
         "replacement",
-        "coaching",
-        "safety",
         "display",
         "evidenceConfidence"
       ],
@@ -296,11 +300,8 @@
             "primaryMuscles",
             "secondaryMuscles",
             "stabilizerMuscles",
-            "targetRegions",
             "jointActions",
-            "muscleLengthBias",
-            "volumeContribution",
-            "stabilizationDemand"
+            "volumeContribution"
           ]
         },
         "biomechanics": {
@@ -313,24 +314,17 @@
             "equipmentId",
             "loadMode",
             "resistanceProfile",
-            "rangeOfMotion",
             "stability",
-            "relevantJoints",
-            "relevantTendons"
+            "relevantJoints"
           ]
         },
         "programming": {
           "type": "object",
           "required": [
             "role",
-            "objectives",
-            "suitableRepRanges",
             "indicativeRestSeconds",
             "fatigueCost",
-            "recoveryCost",
-            "requiredEquipment",
-            "setupTransitionCost",
-            "splitSuitability"
+            "requiredEquipment"
           ]
         },
         "fatigue": {
@@ -351,26 +345,6 @@
             "replacementPriority",
             "compatibleEquipmentIds",
             "preservesIntent"
-          ]
-        },
-        "coaching": {
-          "type": "object",
-          "required": [
-            "setup",
-            "execution",
-            "cues",
-            "commonMistakes",
-            "progressions",
-            "regressions",
-            "relevantMobility"
-          ]
-        },
-        "safety": {
-          "type": "object",
-          "required": [
-            "risks",
-            "precautions",
-            "medicalDisclaimerRequired"
           ]
         },
         "display": {
@@ -497,7 +471,6 @@
       "required": [
         "id",
         "canonicalName",
-        "description",
         "definitions",
         "evidence"
       ],
@@ -509,10 +482,6 @@
         "canonicalName": {
           "type": "string",
           "minLength": 1
-        },
-        "description": {
-          "type": "string",
-          "minLength": 40
         },
         "definitions": {
           "type": "array",
@@ -534,5 +503,6 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "$comment": "Fields retired in F1 (benefits, techniqueSummary, variantRationale, commonMistakes, muscleNotes, evidence.rationale, family.description, joint notes, richMetadata editorial/coaching/safety and the listed anatomy/biomechanics/programming members) are rejected by additionalProperties and by scripts/catalog_v2_retired_fields.py. Derived fields (jointActions, relevantJoints, preservesIntent) are produced by scripts/catalog_v2_derived.py."
 }

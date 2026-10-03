@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Core · core · anti extension isometric",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#core_plancha",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_plancha__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
-                "Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Arquear la espalda, girar con la carga o perder la tensión al final."
-              ],
               "description": "Con peso corporal, el cuerpo se mantiene en línea recta apoyado en antebrazos y puntas de los pies, sin que nada se mueva. Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
@@ -45,7 +37,6 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La zona lumbar resiste en isometría la extensión que el peso corporal impone al tronco, con el abdomen frenando el hundimiento entre antebrazos y pies.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis se organiza en posición neutra mientras el cuerpo se sostiene recto sobre los antebrazos, sin dejar que el peso corporal la hunda en extensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La caja torácica queda quieta sobre los antebrazos mientras el cuerpo se sostiene en línea recta, sin permitir que la espalda alta se redondee.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +58,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "anti_extension_isometric",
-              "muscleNotes": [
-                {
-                  "muscleId": "core",
-                  "note": "Principal: El core sostiene en isometría la línea recta del cuerpo entre antebrazos y puntas de los pies, oponiéndose a la extensión que la gravedad busca en el torso."
-                },
-                {
-                  "muscleId": "abdominals",
-                  "note": "Secundario: Los abdominales colaboran de forma isométrica sujetando las costillas sobre la pelvis en el apoyo de antebrazos y pies, sin acortamiento visible del tronco."
-                }
-              ],
               "performanceProfileId": "core_plancha__bodyweight__plancha",
               "primaryMuscles": [
                 "core"
@@ -99,7 +78,6 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La zona lumbar resiste en isometría la extensión que el peso corporal impone al tronco, con el abdomen frenando el hundimiento entre antebrazos y pies.",
                       "role": "PRIMARY"
                     },
                     {
@@ -107,7 +85,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis se organiza en posición neutra mientras el cuerpo se sostiene recto sobre los antebrazos, sin dejar que el peso corporal la hunda en extensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,22 +92,16 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La caja torácica queda quieta sobre los antebrazos mientras el cuerpo se sostiene en línea recta, sin permitir que la espalda alta se redondee.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "core"
                   ],
                   "secondaryMuscles": [
                     "abdominals"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "core"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -140,7 +111,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "anti_extension_isometric",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "sacroiliaca",
@@ -149,43 +119,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la espalda, girar con la carga o perder la tensión al final."
-                  ],
-                  "cues": [
-                    "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie."
-                  ]
-                },
                 "display": {
                   "displayName": "Plancha Abdominal",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
-                    "Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
-                  ],
-                  "description": "Con peso corporal, el cuerpo se mantiene en línea recta apoyado en antebrazos y puntas de los pies, sin que nada se mueva. Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
-                  "technique": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -198,7 +135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Plancha Abdominal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_plancha__default",
                   "definitionId": "core_plancha",
                   "familyId": "core_anti_extension_isometric",
@@ -216,42 +153,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el core mediante Plancha Abdominal en la variante Peso Corporal.",
-                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el core.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
+                    "anti_extension_isometric:core"
                   ],
                   "replacementGroup": "core_plank_front",
                   "replacementPriority": 3
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -264,9 +179,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. Simple de aprender, exigente para el core y útil para empezar."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -278,7 +191,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_anti_extension_isometric",
@@ -292,13 +204,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón anti_extension_isometric; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_anti_extension_isometric",

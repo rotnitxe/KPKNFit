@@ -1,26 +1,25 @@
 # Auditoría de información de Aprende
 
-Fecha de corte: 2026-08-22  
+Fecha de corte: 2026-10-01  
 Fuente única: `app/src/main/assets/exercise_catalog_v2.json`  
 Runtime: `ExerciseCatalogV2Loader` → adaptador de lectura compartido (sin clonar lógica del editor)
 
 ## Identidad y cobertura
 
-- Revisión del catálogo: `v2-approved-2026-08-12-a`.
+- Revisión del catálogo: `v2-approved-2026-09-29-a`.
 - Revisión de ontología declarada por la fuente: `wikilab-v3-2026-08-08`.
-- 96 familias, 196 definiciones y 521 configuraciones aprobadas.
-- La portada/listado visible mantiene las 196 definiciones; los enlaces de detalle aceptan además los 521 IDs de configuración.
+- 96 familias, 201 definiciones y 523 configuraciones aprobadas.
+- La portada/listado visible mantiene las 201 definiciones; los enlaces de detalle aceptan además los 523 IDs de configuración.
 - Una definición abre su configuración por defecto; un ID de configuración abre esa variante exacta y conserva sus opciones seleccionadas.
-- Las 521 configuraciones tienen `richMetadata`, descripción, beneficios, técnica, notas musculares y participación articular.
-- El loader normaliza assets aprobados anteriores que omitían `anatomy.muscleNotes` en el sobre enriquecido, copiando únicamente la lista editorial del mismo `profile`; cualquier conflicto no vacío se rechaza.
-- 0 descripciones, beneficios, técnicas o racionales por debajo del umbral editorial
-  (80/30/80/60 caracteres; dos beneficios por configuración).
-- 0 duplicados exactos en descripción, técnica o racional de variante.
+- Las 523 configuraciones tienen `richMetadata`, descripción, señales de preparación y ejecución, músculos por rol y participación articular.
+- El asset ya no trae los campos editoriales retirados (beneficios, técnica, racional de variante, errores comunes, notas musculares y articulares, y los bloques `editorial`, `coaching` y `safety`): `ExerciseCatalogRetiredKnowledgeTest` lo fija y la lista única vive en `scripts/catalog_v2_retired_fields.py`. Los datos guardados en el teléfono antes de ese cambio (historial e instantáneas de metadatos) se siguen leyendo porque sus decodificadores ignoran claves desconocidas (`ExerciseCatalogV2LegacyPersistedDataTest`).
+- 0 descripciones por debajo del umbral editorial (80 caracteres).
+- 0 duplicados exactos en descripción.
 - 0 desincronizaciones entre los campos planos y el sobre `richMetadata` de identidad,
-  anatomía, biomecánica, coaching, sustitución, display, editorial y métricas.
+  anatomía, biomecánica, sustitución, display y métricas.
 - 21 IDs musculares, 64 patrones de movimiento y 14 articulaciones aparecen en el runtime actual.
 - La ontología conserva las 13 entidades de patrón del atlas; 12 tienen configuraciones v2 enlazadas hoy y `jump` queda explícitamente sin ejercicios aprobados, no como enlace roto.
-- SHA-256 observado del asset actual: `bbdd6406425415a2f43cc2a382bb163acf5b278fea71420360c0ee2a7e7d789c`.
+- SHA-256 observado del asset actual: `d1fde47d67611e87223ec6f48951e8310fbb18d215852c555f991175f39b2847`.
 
 ## Decisiones de integración
 
@@ -30,7 +29,7 @@ Runtime: `ExerciseCatalogV2Loader` → adaptador de lectura compartido (sin clon
 - Las 66 referencias legacy con forma de ID de los assets anatómicos tienen una decisión explícita: 61 apuntan a un ID v2 existente y 5 quedan marcadas como retiradas por no existir una equivalencia segura.
 - También se auditaron 19 etiquetas antiguas en lenguaje natural: 14 apuntan explícitamente a un ID v2 y 5 quedan retiradas por ambigüedad. No se usa coincidencia automática por nombre.
 - Los artículos anatómicos agregados (`espalda`, `brazos`, `piernas`, `glúteos`, `abdomen`) tienen membresías inversas explícitas para sumar los músculos v2 correspondientes sin heurísticas de nombre.
-- Los índices inversos de músculo, articulación y patrón se derivan de cada configuración; la prueba de consistencia recorre las 521 configuraciones y no permite perder una relación.
+- Los índices inversos de músculo, articulación y patrón se derivan de cada configuración; la prueba de consistencia recorre las 523 configuraciones y no permite perder una relación.
 - `hip_flexors → recto-femoral` y `tensor_fasciae_latae → glúteo-medio` son aproximaciones documentadas por ausencia de entidades específicas en el atlas actual; no se ocultan como equivalencias exactas.
 
 ## Gate reproducible

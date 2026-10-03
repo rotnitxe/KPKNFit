@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · neck · neck flexion",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#neck_flexion_cuello_arnes_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "neck_flexion_cuello__cable",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El equilibrio cervical que completa la salud de la zona."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
-              ],
               "description": "Con polea, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Flexión, Extensión O Inclinación"
                   ],
                   "jointId": "columna-cervical",
-                  "note": "Principal: La columna cervical flexiona la cabeza hacia delante con la polea y el arnés en la frente, en un arco suave con resistencia presente en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Base Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras la polea empuja la cabeza hacia delante, sin arrastrar el pecho ni la espalda.",
                   "role": "STABILIZER"
                 }
               ],
@@ -61,12 +51,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "neck_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "neck",
-                  "note": "Principal: Los flexores del cuello llevan la barbilla hacia el pecho con la polea y el arnés en la frente, acortándose de forma concéntrica bajo tensión constante."
-                }
-              ],
               "performanceProfileId": "neck_flexion_cuello__cable",
               "primaryMuscles": [
                 "neck"
@@ -86,7 +70,6 @@
                         "Flexión, Extensión O Inclinación"
                       ],
                       "jointId": "columna-cervical",
-                      "note": "Principal: La columna cervical flexiona la cabeza hacia delante con la polea y el arnés en la frente, en un arco suave con resistencia presente en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -94,20 +77,14 @@
                         "Base Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras la polea empuja la cabeza hacia delante, sin arrastrar el pecho ni la espalda.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "neck"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "neck"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -117,7 +94,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "neck_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-cervical",
                     "columna-toracica"
@@ -125,45 +101,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
-                  ],
-                  "cues": [
-                    "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad de la musculatura cervical con una carga graduable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento o estabilización de la columna cervical como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna cervical según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Arnés o polea: llevas la cabeza hacia delante contra la tensión."
-                  ]
-                },
                 "display": {
                   "displayName": "Flexiones de Cuello",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El equilibrio cervical que completa la salud de la zona."
-                  ],
-                  "description": "Con polea, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. El trabajo frontal del cuello con resistencia constante."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -176,7 +119,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "neck_flexion_cuello__cable",
                   "definitionId": "neck_flexion_cuello",
                   "familyId": "lower_neck_flexion",
@@ -195,24 +138,10 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar la musculatura cervical mediante Flexiones de Cuello en la variante Polea.",
-                    "Priorizar mejorar la capacidad de la musculatura cervical con una carga graduable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -220,18 +149,10 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento o estabilización de la columna cervical y el objetivo de la musculatura cervical.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna cervical, columna torácica."
+                    "neck_flexion:neck"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -242,9 +163,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Arnés o polea: llevas la cabeza hacia delante contra la tensión. El trabajo frontal del cuello con resistencia constante."
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "cable"
@@ -258,7 +177,6 @@
                 "legacy:exercise_database.json#neck_flexion_cuello_arnes_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "neck_flexion_cuello__plate",
@@ -266,16 +184,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuello trabaja con el disco, que añade lastre directo y simple.",
-                "El equilibrio cervical que completa la salud de la zona."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
-              ],
               "description": "Con disco, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con el disco, que añade lastre directo y simple.",
               "efc": 2.0,
               "equipmentId": "plate",
@@ -289,7 +200,6 @@
                     "Flexión, Extensión O Inclinación"
                   ],
                   "jointId": "columna-cervical",
-                  "note": "Principal: La columna cervical flexiona la cabeza hacia el pecho contra el disco apoyado en la frente, trabajando un arco corto con el lastre justo al final.",
                   "role": "PRIMARY"
                 },
                 {
@@ -297,7 +207,6 @@
                     "Base Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La columna torácica actúa como base estable de forma isométrica mientras el disco pesa sobre la frente, con el tronco al margen del gesto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -305,12 +214,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "neck_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "neck",
-                  "note": "Principal: Los flexores del cuello bajan la barbilla contra el disco apoyado en la frente, acortándose de forma concéntrica con un lastre directo y sencillo."
-                }
-              ],
               "performanceProfileId": "neck_flexion_cuello__plate",
               "primaryMuscles": [
                 "neck"
@@ -330,7 +233,6 @@
                         "Flexión, Extensión O Inclinación"
                       ],
                       "jointId": "columna-cervical",
-                      "note": "Principal: La columna cervical flexiona la cabeza hacia el pecho contra el disco apoyado en la frente, trabajando un arco corto con el lastre justo al final.",
                       "role": "PRIMARY"
                     },
                     {
@@ -338,20 +240,14 @@
                         "Base Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La columna torácica actúa como base estable de forma isométrica mientras el disco pesa sobre la frente, con el tronco al margen del gesto.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "neck"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "neck"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -361,7 +257,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "neck_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-cervical",
                     "columna-toracica"
@@ -369,45 +264,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
-                  ],
-                  "cues": [
-                    "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad de la musculatura cervical con una carga graduable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento o estabilización de la columna cervical como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna cervical según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Disco en la frente: flexionas la cabeza contra el peso."
-                  ]
-                },
                 "display": {
                   "displayName": "Flexiones de Cuello",
                   "displaySummary": "plate",
                   "selectedOptions": {
                     "implement": "plate"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuello trabaja con el disco, que añade lastre directo y simple.",
-                    "El equilibrio cervical que completa la salud de la zona."
-                  ],
-                  "description": "Con disco, la barbilla baja hacia el pecho contra la carga sujeta en la frente. El cuello trabaja con el disco, que añade lastre directo y simple.",
-                  "technique": "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Disco en la frente: flexionas la cabeza contra el peso. La versión tradicional para la parte frontal del cuello."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -420,7 +282,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexiones de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "neck_flexion_cuello__plate",
                   "definitionId": "neck_flexion_cuello",
                   "familyId": "lower_neck_flexion",
@@ -439,24 +301,10 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar la musculatura cervical mediante Flexiones de Cuello en la variante Disco.",
-                    "Priorizar mejorar la capacidad de la musculatura cervical con una carga graduable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "plate"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -464,18 +312,10 @@
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento o estabilización de la columna cervical y el objetivo de la musculatura cervical.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna cervical, columna torácica."
+                    "neck_flexion:neck"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -486,9 +326,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Disco en la frente: flexionas la cabeza contra el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Disco en la frente: flexionas la cabeza contra el peso. La versión tradicional para la parte frontal del cuello."
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "plate"
@@ -502,7 +340,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_neck_flexion",
@@ -519,13 +356,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón neck_flexion; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_neck_flexion",

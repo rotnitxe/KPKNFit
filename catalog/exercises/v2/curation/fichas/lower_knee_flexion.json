@@ -1,0 +1,190 @@
+{
+  "definitions": {
+    "curl_isquios_con_balon": {
+      "public": {
+        "configurations": {
+          "curl_isquios_con_balon__default": {
+            "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+            "executionCues": [
+              "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas."
+            ]
+          }
+        },
+        "description": "El Curl de Isquiosurales con Balón traslada el curl tumbado a la pelota de fitness: boca arriba con las pantorrillas sobre el balón, los talones la acercan al glúteo mientras la cadera se mantiene en puente. Se ejecuta con la espalda en el suelo, flexionando las rodillas para traer la pelota y estirando con calma. Los isquiosurales frenan y tiran con el cuerpo como única resistencia. La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
+      },
+      "status": "LEGACY"
+    },
+    "curl_isquios_con_sliders": {
+      "public": {
+        "configurations": {
+          "curl_isquios_con_sliders__default": {
+            "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
+            "executionCues": [
+              "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti."
+            ]
+          }
+        },
+        "description": "El Curl de Isquiosurales con Sliders usa discos deslizantes bajo los talones para un curl tumbado sin aparatos: los pies resbalan hacia el glúteo y regresan mientras la cadera queda elevada. Se ejecuta con la espalda apoyada y el puente alto, deslizando con control en ambas direcciones. Los isquiosurales y el glúteo comparten un trabajo continuo y engañosamente duro. La alternativa de suelo más exigente para la cadena posterior."
+      },
+      "status": "LEGACY"
+    },
+    "lying_leg_curl": {
+      "public": {
+        "configurations": {
+          "lying_leg_curl__bilateral__cable": {
+            "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados."
+            ]
+          },
+          "lying_leg_curl__bilateral__dumbbells": {
+            "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona."
+            ]
+          },
+          "lying_leg_curl__bilateral__machine": {
+            "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia."
+            ]
+          },
+          "lying_leg_curl__unilateral__cable": {
+            "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Polea tumbado con una pierna: tensión continua en un isquio a la vez."
+            ]
+          },
+          "lying_leg_curl__unilateral__dumbbells": {
+            "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga."
+            ]
+          },
+          "lying_leg_curl__unilateral__machine": {
+            "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios."
+            ]
+          }
+        },
+        "description": "El Curl de Isquiosurales Tumbado es el aislamiento clásico de la parte trasera del muslo: boca abajo en la máquina, los talones suben hacia el glúteo contra la almohadilla. Se ejecuta con la cadera pegada al banco, flexionando las rodillas hasta el tope y bajando sin que la pelvis despegue. Con polea o una mancuerna entre los pies el mismo gesto se monta sin máquina. El constructor básico de isquiosurales, cómodo y medible."
+      },
+      "status": "LEGACY"
+    },
+    "seated_leg_curl": {
+      "public": {
+        "configurations": {
+          "seated_leg_curl__bilateral__cable": {
+            "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Polea sentado con ambas piernas: la tensión constante acompaña la flexión."
+            ]
+          },
+          "seated_leg_curl__bilateral__machine": {
+            "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda."
+            ]
+          },
+          "seated_leg_curl__unilateral__cable": {
+            "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Polea sentado con una pierna: tensión continua en un isquio a la vez."
+            ]
+          },
+          "seated_leg_curl__unilateral__machine": {
+            "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sentado con una pierna: cada isquio trabaja por separado."
+            ]
+          }
+        },
+        "description": "El Curl de Isquiosurales Sentado trabaja el isquio desde una cadera flexionada, una posición que alarga el músculo antes de empezar y cambia el estímulo respecto al tumbado. Se ejecuta en la máquina sentada, llevando los talones por debajo del asiento contra la almohadilla y regresando sin rebote. Con polea se monta una versión casera igual de válida. La postura cómoda para la espalda y dura para la parte trasera."
+      },
+      "status": "LEGACY"
+    },
+    "standing_leg_curl": {
+      "public": {
+        "configurations": {
+          "standing_leg_curl__bilateral__cable": {
+            "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión."
+            ]
+          },
+          "standing_leg_curl__bilateral__machine": {
+            "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie."
+            ]
+          },
+          "standing_leg_curl__unilateral__cable": {
+            "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Polea de pie con una pierna: tensión continua en un isquio a la vez."
+            ]
+          },
+          "standing_leg_curl__unilateral__machine": {
+            "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de pie con una pierna: un aislamiento mayor de un isquio."
+            ]
+          }
+        },
+        "description": "El Curl de Isquiosurales de Pie aísla una pierna cada vez: de pie en la máquina, la rodilla flexiona llevando el talón hacia atrás contra la resistencia. Se ejecuta con el muslo apoyado y el movimiento limpio, sin balancear la cadera. Trabajar a una pierna deja al descubierto diferencias entre lados que las máquinas bilaterales esconden. El detector y corrector de desequilibrios en los isquiosurales."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_knee_flexion",
+  "schemaVersion": 1
+}

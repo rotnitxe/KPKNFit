@@ -14,7 +14,6 @@ class ExerciseCatalogV2RepositoryTest {
             ExerciseFamilyV2(
                 id = "family",
                 canonicalName = "Familia",
-                description = "Familia de prueba con compatibilidades explícitas y sin combinaciones libres.",
                 definitions = listOf(
                     ExerciseDefinitionV2(
                         id = "parent",
@@ -60,7 +59,6 @@ class ExerciseCatalogV2RepositoryTest {
             resistanceProfile = "test",
             setupCues = listOf("Setup."),
             executionCues = listOf("Execute."),
-            commonMistakes = listOf("Error."),
             performanceProfileId = "parent__${setup}__${implement}",
         ),
         evidence = evidence(),

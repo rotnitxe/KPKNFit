@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · gluteus maximus · unilateral hip dominant",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#glutes_step_up_gluteo",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_step_up_gluteo__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma concéntrica para subir el cuerpo al cajón con una pierna, con mancuernas en las manos y el torso inclinado hacia delante.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna que empuja aporta estabilidad durante la subida al cajón con mancuernas y la flexión controlada del descenso, con el torso inclinado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva su alineación con el torso inclinado hacia delante mientras las mancuernas cuelgan de los brazos y una pierna sube al cajón.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna que sube al cajón, con mancuernas en las manos y el torso inclinado hacia delante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_hip_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de la pierna que empuja el cajón, con mancuernas en las manos y el torso inclinado hacia delante durante la subida."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera de la pierna que sube al cajón con mancuernas y frenan el descenso excéntrico del torso inclinado hacia delante."
-                }
-              ],
               "performanceProfileId": "glutes_step_up_gluteo__dumbbells__step_up_de_gluteo",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -108,7 +86,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma concéntrica para subir el cuerpo al cajón con una pierna, con mancuernas en las manos y el torso inclinado hacia delante.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna que empuja aporta estabilidad durante la subida al cajón con mancuernas y la flexión controlada del descenso, con el torso inclinado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva su alineación con el torso inclinado hacia delante mientras las mancuernas cuelgan de los brazos y una pierna sube al cajón.",
                       "role": "STABILIZER"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna que sube al cajón, con mancuernas en las manos y el torso inclinado hacia delante.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "gluteus_maximus"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_hip_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -167,43 +135,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Subes a un cajón empujando con una pierna, con el glúteo protagonizando."
-                  ]
-                },
                 "display": {
                   "displayName": "Step-Up de Glúteo",
                   "displaySummary": "Mancuerna",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "El ajuste fino para que el glúteo se lleve el trabajo que le corresponde."
-                  ],
-                  "description": "Con mancuernas, con el torso inclinado hacia delante, la subida al cajón se convierte en un empuje de cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. Unilateral, exigente y útil para corregir desequilibrios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -216,7 +151,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up de Glúteo",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "glutes_step_up_gluteo__default",
                   "definitionId": "glutes_step_up_gluteo",
                   "familyId": "lower_unilateral_hip_dominant",
@@ -233,42 +168,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Step-Up de Glúteo en la variante Mancuernas.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "unilateral_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -281,9 +194,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Subes a un cajón empujando con una pierna, con el glúteo protagonizando. Unilateral, exigente y útil para corregir desequilibrios."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -295,7 +206,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_hip_dominant",
@@ -318,7 +228,6 @@
                 "legacy:exercise_database.json#glutes_zancada_cruzada",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "glutes_zancada_cruzada__default",
@@ -326,16 +235,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-                "La zancada olvidada que redondea lo que las demás dejan."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -349,7 +251,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera delantera se extiende de forma concéntrica para elevar el cuerpo desde el paso cruzado por detrás, con mancuernas en las manos y el peso en esa pierna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -357,7 +258,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla delantera aporta estabilidad al descenso en diagonal con el paso cruzado por detrás y el peso repartido sobre esa pierna con mancuernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -365,7 +265,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva su alineación mientras el paso cruza en diagonal por detrás y las mancuernas cargan el torso que desciende y asciende.",
                   "role": "STABILIZER"
                 },
                 {
@@ -373,7 +272,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna delantera cuando el paso cruza por detrás en diagonal con mancuernas y el peso adelantado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -381,16 +279,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_hip_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de la pierna delantera que soporta el peso, con mancuernas en las manos y el paso cruzado por detrás en diagonal."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps asiste la extensión de la rodilla delantera que sostiene el peso con mancuernas y frena la flexión excéntrica del descenso en diagonal."
-                }
-              ],
               "performanceProfileId": "glutes_zancada_cruzada__dumbbells__zancada_cruzada",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -412,7 +300,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera delantera se extiende de forma concéntrica para elevar el cuerpo desde el paso cruzado por detrás, con mancuernas en las manos y el peso en esa pierna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -420,7 +307,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla delantera aporta estabilidad al descenso en diagonal con el paso cruzado por detrás y el peso repartido sobre esa pierna con mancuernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -428,7 +314,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva su alineación mientras el paso cruza en diagonal por detrás y las mancuernas cargan el torso que desciende y asciende.",
                       "role": "STABILIZER"
                     },
                     {
@@ -436,22 +321,16 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico de la pierna delantera cuando el paso cruza por detrás en diagonal con mancuernas y el peso adelantado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "gluteus_maximus"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -461,7 +340,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_hip_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -471,43 +349,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: El paso cruza por detrás de la otra pierna y bajas en diagonal."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Cruzada",
                   "displaySummary": "Mancuerna",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-                    "La zancada olvidada que redondea lo que las demás dejan."
-                  ],
-                  "description": "Con mancuernas, la pierna cruza por detrás en diagonal y la delantera aguanta todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-                  "technique": "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "El paso cruza por detrás de la otra pierna y bajas en diagonal. Glúteo y cadera trabajan con un ángulo que la zancada normal no toca."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -520,7 +365,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Cruzada",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "glutes_zancada_cruzada__default",
                   "definitionId": "glutes_zancada_cruzada",
                   "familyId": "lower_unilateral_hip_dominant",
@@ -537,42 +382,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Zancada Cruzada en la variante Mancuernas.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "unilateral_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -585,9 +408,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "El paso cruza por detrás de la otra pierna y bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "El paso cruza por detrás de la otra pierna y bajas en diagonal. Glúteo y cadera trabajan con un ángulo que la zancada normal no toca."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -599,7 +420,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_hip_dominant",
@@ -612,13 +432,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón unilateral_hip_dominant; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_unilateral_hip_dominant",

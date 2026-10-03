@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "core_plancha": {
+      "public": {
+        "configurations": {
+          "core_plancha__default": {
+            "description": "Con peso corporal, el cuerpo se mantiene en línea recta apoyado en antebrazos y puntas de los pies, sin que nada se mueva. Sin más carga que el propio cuerpo, la exigencia de la zona media es la justa.",
+            "executionCues": [
+              "Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Versión isométrica tradicional: el cuerpo recto como una tabla y el abdomen apretado durante toda la serie."
+            ]
+          }
+        },
+        "description": "La Plancha Abdominal es la prueba de estabilidad más desnuda que existe: el core sostiene el cuerpo en línea recta sin que nada se mueva, solo con el peso corporal. Se ejecuta apoyando antebrazos y puntas de los pies, con el abdomen firme y la cadera sin hundirse ni elevarse durante toda la serie. El abdomen trabaja en segundo plano aguantando la postura. Una medida honesta de la fortaleza de la zona media que cabe en cualquier rutina."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_anti_extension_isometric",
+  "schemaVersion": 1
+}

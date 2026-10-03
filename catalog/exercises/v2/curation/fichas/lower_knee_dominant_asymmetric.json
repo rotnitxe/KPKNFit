@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "quads_sentadilla_jefferson": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_jefferson__default": {
+            "description": "Con barra, a horcajadas sobre la barra con un extremo a cada lado, el descenso viaja en diagonal. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal."
+            ]
+          }
+        },
+        "description": "La Sentadilla Jefferson monta al atleta a horcajadas sobre la barra, con un extremo delante y otro detrás, y baja en una diagonal que no existe en ningún otro ejercicio. Se ejecuta agarrando la barra entre las piernas y descendiendo con el torso erguido mientras cuádriceps, aductores y glúteos comparten el esfuerzo. La posición asimétrica exige equilibrio y coordinación reales. Un ejercicio de otra época que todavía enseña cosas nuevas."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_knee_dominant_asymmetric",
+  "schemaVersion": 1
+}

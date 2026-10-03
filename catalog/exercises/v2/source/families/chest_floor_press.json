@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Floor press",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#tren_superior_floor_press_barra",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "floor_press__barbell",
@@ -22,55 +21,45 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
-                "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 3.2,
-              "commonMistakes": [
-                "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
-              ],
-              "description": "Con barra, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
+              "description": "La barra ata los dos brazos y desciende en bloque hasta que los dos codos tocan el suelo a la vez. Una sola pieza en las manos deja subir más carga externa que un peso suelto en cada brazo.",
               "efc": 3.5,
               "equipmentId": "barbell",
               "executionCues": [
-                "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
+                "Baja hasta que los dos codos se apoyen en el suelo y quédate un instante.",
+                "Empuja la barra en vertical hasta estirar los codos, con la espalda en el suelo."
               ],
               "fatigueTier": "ALTA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Horizontal",
-                    "Flexión Del Hombro"
+                    "Aducción horizontal del hombro",
+                    "Flexión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro combina aducción horizontal y flexión al empujar la barra, con el suelo cortando el descenso cuando los brazos llegan a la línea del torso.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión"
+                    "Extensión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se extiende al subir la barra y toca el suelo al bajar, donde la pausa cierra el recorrido corto y el empuje parte siempre de una base estable.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Retracción Y Estabilidad Escapular"
+                    "Estabilidad escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, dando un punto firme desde el que la barra vuelve a subir.",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad En Extensión"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene la barra en extensión de forma isométrica, con el antebrazo vertical sobre el suelo y el agarre a la misma distancia en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -78,20 +67,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral empuja la barra hacia arriba con aducción horizontal y flexión de hombro, y frena el descenso hasta que los codos tocan el suelo."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende el codo para completar el empuje de la barra, sobre todo en la parte final de la subida desde la pausa en el suelo."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides anterior ayuda a flexionar el hombro al empujar la barra, con el suelo limitando el descenso por debajo de la línea del torso."
-                }
-              ],
               "performanceProfileId": "floor_press__barbell__floor_press",
               "primaryMuscles": [
                 "pectoralis"
@@ -102,48 +77,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Horizontal",
-                    "Flexión Del Hombro",
-                    "Extensión",
-                    "Retracción Y Estabilidad Escapular",
-                    "Estabilidad En Extensión"
+                    "Aducción horizontal del hombro",
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Estabilidad escapular",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Horizontal",
-                        "Flexión Del Hombro"
+                        "Aducción horizontal del hombro",
+                        "Flexión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro combina aducción horizontal y flexión al empujar la barra, con el suelo cortando el descenso cuando los brazos llegan a la línea del torso.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión"
+                        "Extensión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se extiende al subir la barra y toca el suelo al bajar, donde la pausa cierra el recorrido corto y el empuje parte siempre de una base estable.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Retracción Y Estabilidad Escapular"
+                        "Estabilidad escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, dando un punto firme desde el que la barra vuelve a subir.",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad En Extensión"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene la barra en extensión de forma isométrica, con el antebrazo vertical sobre el suelo y el agarre a la misma distancia en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "pectoralis"
                   ],
@@ -151,11 +121,7 @@
                     "triceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "pectoralis"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -165,7 +131,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_push",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "glenohumeral",
                     "codo",
@@ -175,45 +140,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
-                  ],
-                  "cues": [
-                    "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
-                  ],
-                  "execution": [
-                    "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro."
-                  ]
-                },
                 "display": {
                   "displayName": "Floor Press",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
-                    "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
-                  ],
-                  "description": "Con barra, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con la barra, la carga sube al máximo y la progresión del pectoral se mide sin trampa.",
-                  "technique": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
-                  "variantRationale": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -226,7 +158,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "floor_press__barbell",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -243,44 +175,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el pectoral mediante Floor Press en la variante Barra.",
-                    "Priorizar trabajar pecho y tríceps con una referencia sencilla para progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "high",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo y extensión del codo y el objetivo de el pectoral.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, codo, articulación escapulotorácica."
+                    "horizontal_push:pectoralis"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón horizontal_push."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -288,15 +196,14 @@
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro."
+                "Túmbate boca arriba, rodillas flexionadas y pies en el suelo, con la barra en las manos y los brazos estirados sobre el pecho.",
+                "Acerca los codos al tronco antes de empezar a bajar."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
-              "ttc": 2.0,
-              "variantRationale": "Barra desde el suelo: los codos tocan piso, el recorrido se acorta y el pecho aguanta cargas pesadas sin cargar de más el hombro. Un press plano con recorrido limitado y estable."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -310,7 +217,6 @@
                 "legacy:exercise_database.json#tren_superior_floor_press_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "floor_press__dumbbells",
@@ -318,55 +224,45 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
-                "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.8,
-              "commonMistakes": [
-                "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
-              ],
-              "description": "Con mancuernas, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
+              "description": "Cada mancuerna desciende hasta su propio codo, y un brazo puede tocar el suelo antes que el otro. Las muñecas pueden rotar en la bajada porque ninguna barra les fija el agarre.",
               "efc": 3.2,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
+                "Baja cada codo hasta el suelo y frena antes de empujar.",
+                "Empuja hasta estirar los codos sin que una mancuerna se adelante."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Horizontal",
-                    "Flexión Del Hombro"
+                    "Aducción horizontal del hombro",
+                    "Flexión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro combina aducción horizontal y flexión al empujar cada mancuerna, con el suelo cortando el descenso a la altura de la línea del torso.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Extensión"
+                    "Extensión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo de cada brazo se extiende al subir su mancuerna y toca el suelo al bajar, donde la pausa reinicia un empuje corto y preciso en cada lado.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Retracción Y Estabilidad Escapular"
+                    "Estabilidad escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, con cada brazo empujando por separado y sin perder el apoyo del pecho.",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad En Extensión"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene cada mancuerna en extensión de forma isométrica, con el antebrazo vertical y libertad para alinear el agarre de cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -374,20 +270,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Principal: El pectoral empuja cada mancuerna por separado con aducción horizontal y flexión de hombro, frenando el descenso hasta que los codos tocan el suelo."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende cada codo para completar el empuje de su mancuerna, desde la pausa en el suelo y con cada brazo trabajando por su cuenta."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoides anterior ayuda a flexionar el hombro en cada brazo, con el suelo limitando el descenso y cada mancuerna marcando su propia línea de empuje."
-                }
-              ],
               "performanceProfileId": "floor_press__dumbbells__floor_press",
               "primaryMuscles": [
                 "pectoralis"
@@ -398,48 +280,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Horizontal",
-                    "Flexión Del Hombro",
-                    "Extensión",
-                    "Retracción Y Estabilidad Escapular",
-                    "Estabilidad En Extensión"
+                    "Aducción horizontal del hombro",
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Estabilidad escapular",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Horizontal",
-                        "Flexión Del Hombro"
+                        "Aducción horizontal del hombro",
+                        "Flexión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro combina aducción horizontal y flexión al empujar cada mancuerna, con el suelo cortando el descenso a la altura de la línea del torso.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Extensión"
+                        "Extensión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo de cada brazo se extiende al subir su mancuerna y toca el suelo al bajar, donde la pausa reinicia un empuje corto y preciso en cada lado.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Retracción Y Estabilidad Escapular"
+                        "Estabilidad escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Estabilizadora: La escápula se retrae y queda estable contra el suelo de forma isométrica, con cada brazo empujando por separado y sin perder el apoyo del pecho.",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad En Extensión"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene cada mancuerna en extensión de forma isométrica, con el antebrazo vertical y libertad para alinear el agarre de cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "pectoralis"
                   ],
@@ -447,11 +324,7 @@
                     "triceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "pectoralis"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -461,7 +334,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "horizontal_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "codo",
@@ -471,45 +343,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Abrir demasiado los codos, rebotar la carga o doblar la muñeca hacia atrás."
-                  ],
-                  "cues": [
-                    "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
-                  ],
-                  "execution": [
-                    "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar pecho y tríceps con una referencia sencilla para progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado."
-                  ]
-                },
                 "display": {
                   "displayName": "Floor Press",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
-                    "Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros."
-                  ],
-                  "description": "Con mancuernas, tumbado en el suelo, los codos tocan el piso en cada bajada y el recorrido se acorta protegiendo el hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del pectoral se equilibra solo.",
-                  "technique": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
-                  "variantRationale": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -522,7 +361,7 @@
                 },
                 "identity": {
                   "canonicalName": "Floor Press",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "floor_press__dumbbells",
                   "definitionId": "floor_press",
                   "familyId": "chest_floor_press",
@@ -539,42 +378,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el pectoral mediante Floor Press en la variante Mancuernas.",
-                    "Priorizar trabajar pecho y tríceps con una referencia sencilla para progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo y extensión del codo y el objetivo de el pectoral.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, codo, articulación escapulotorácica."
+                    "horizontal_push:pectoralis"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -582,15 +399,14 @@
                 "deltoid"
               ],
               "setupCues": [
-                "Preparación: Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado."
+                "Túmbate boca arriba con una mancuerna en cada mano, brazos estirados sobre el pecho y pies en el suelo.",
+                "Deja las mancuernas enfrentadas, sin chocar, y los codos cerca del tronco."
               ],
               "setupTimeSeconds": 30,
               "ssc": 0.35,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. El suelo limita el descenso cuando los brazos llegan a la línea del torso; la subida parte de una pausa estable.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuernas desde el suelo: mismo recorrido corto y protector, con cada brazo trabajando por separado. Útil para ganar fuerza de pecho cuidando el hombro."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -598,13 +414,12 @@
           }
         ],
         "defaultConfigurationId": "floor_press__barbell",
-        "description": "El Floor Press es el press de banca reducido a su mitad útil: desde el suelo, los codos tocan el piso y el recorrido muere justo donde el hombro empieza a sufrir. Se ejecuta tumbado con las rodillas flexionadas, bajando la barra hasta que los tríceps rozan el suelo y empujando sin rebote. Con mancuernas las muñecas pueden rotar a una posición más natural en la bajada. Fuerza de empuje segura para quien entrena sin banco o cuida sus hombros.",
+        "description": "El press en el suelo, conocido como floor press, se hace tumbado boca arriba, con las rodillas flexionadas y los pies en el piso. Los codos bajan hasta apoyarse en el suelo, así que la carga no llega al pecho y el gesto se queda en la mitad alta de un press. En esa mitad alta el tríceps braquial alcanza su mayor excitación media, y el pectoral mayor y el deltoides anterior se excitan más que en el recorrido entero. Esos tres músculos son los que más responden en un empuje de pecho cuando el apoyo es estable. El suelo, y no un banco, es el que corta la bajada y obliga a empezar cada subida desde una pausa.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "chest_floor_press",
@@ -619,13 +434,11 @@
         ]
       }
     ],
-    "description": "Familia de empuje horizontal con los brazos limitados por el suelo; se conserva el implemento como elección explícita.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "chest_floor_press",

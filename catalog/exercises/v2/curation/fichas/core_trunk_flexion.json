@@ -1,0 +1,74 @@
+{
+  "definitions": {
+    "core_crunch_banco_declinado_lastrado_disco": {
+      "public": {
+        "configurations": {
+          "core_crunch_banco_declinado_lastrado_disco__default": {
+            "description": "Con disco, en declive, el torso se encoge hacia arriba con el lastre sobre el pecho. Con el disco, el lastre es simple y directo sobre el abdomen.",
+            "executionCues": [
+              "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
+            ],
+            "setupCues": [
+              "Preparación: En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
+            ]
+          }
+        },
+        "description": "El Crunch Abdominal en Banco Declinado alarga el recorrido del encogimiento clásico: en declive, el abdomen trabaja desde una posición más estirada. Se ejecuta con las piernas sujetas en los rodillos y un disco sobre el pecho, encogiendo el tronco hasta arriba y bajando sin prisa. El disco permite progresar cuando la versión sin lastre ya no exige nada. El crunch que da frutos cuando el suelo se quedó corto."
+      },
+      "status": "LEGACY"
+    },
+    "core_crunch_en_polea_alta": {
+      "public": {
+        "configurations": {
+          "core_crunch_en_polea_alta__default": {
+            "description": "Con polea, de rodillas bajo la polea alta, el torso se encoge hacia las rodillas con tensión constante. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
+            ],
+            "setupCues": [
+              "Preparación: De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes."
+            ]
+          }
+        },
+        "description": "El Crunch Abdominal de Rodillas en Polea Alta trae la resistencia desde arriba: la cuerda acompaña el encogimiento con una tensión constante que no existe en el suelo. Se ejecuta arrodillado frente a la torre, llevando el pecho hacia las rodillas con la cuerda pegada a la cabeza y volviendo sin despegar la cadera. El abdomen recibe carga regulable en todo el arco. La forma más precisa de dosificar el trabajo abdominal semana a semana."
+      },
+      "status": "LEGACY"
+    },
+    "core_crunch_maquina": {
+      "public": {
+        "configurations": {
+          "core_crunch_maquina__default": {
+            "description": "Con máquina, sentado en el aparato, el torso se encoge contra la almohadilla con la carga ajustable. El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
+            ],
+            "setupCues": [
+              "Preparación: Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado."
+            ]
+          }
+        },
+        "description": "El Crunch Abdominal en Máquina hace el encogimiento medible: el asiento y el respaldo guían el gesto mientras el peso se ajusta en placas. Se ejecuta sentado con los brazos sobre las almohadillas, encogiendo el torso y soltando el aire arriba, y regresando sin que la pila golpee. El abdomen trabaja sin distracciones de equilibrio. La vía más cómoda para acumular series de abdomen con carga progresiva."
+      },
+      "status": "LEGACY"
+    },
+    "core_crunch_suelo_peso_corporal": {
+      "public": {
+        "configurations": {
+          "core_crunch_suelo_peso_corporal__default": {
+            "description": "Con peso corporal, tumbado con las rodillas dobladas, los hombros se despegan del suelo con el abdomen encogiéndose. El abdomen trabaja con el peso corporal como única carga.",
+            "executionCues": [
+              "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
+            ],
+            "setupCues": [
+              "Preparación: El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen."
+            ]
+          }
+        },
+        "description": "El Crunch Abdominal en Suelo es el primer ejercicio de abdomen de casi todo el mundo, y conserva su utilidad si se hace bien. Tumbado con las rodillas dobladas, la ejecución pide despegar solo hombros y parte alta de la espalda mientras el abdomen se encoge, sin tirar del cuello. Solo el peso corporal, sin aparatos ni excusas. La base donde se aprende a sentir el abdomen antes de pedirle cargas."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_trunk_flexion",
+  "schemaVersion": 1
+}

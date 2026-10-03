@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "pendlay_row": {
+      "public": {
+        "configurations": {
+          "pendlay_row__barbell": {
+            "description": "Con barra, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+            ],
+            "setupCues": [
+              "Preparación: Barra apoyada en el suelo y torso casi paralelo: cada repetición comienza desde cero y termina con la carga otra vez separada del cuerpo."
+            ]
+          },
+          "pendlay_row__cable": {
+            "description": "Con polea, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja con el torso horizontal: la empuñadura parte de una posición detenida antes de cada tirón y el cable conserva tensión al volver."
+            ]
+          },
+          "pendlay_row__dumbbells": {
+            "description": "Con mancuernas, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+            ],
+            "setupCues": [
+              "Preparación: Dos mancuernas parten del suelo y suben hacia el torso con la espalda paralela a la plataforma."
+            ]
+          },
+          "pendlay_row__kettlebell": {
+            "description": "Con kettlebell, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del dorsal ancho.",
+            "executionCues": [
+              "Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells apoyadas delante de los pies: el agarre queda bajo y obliga a organizar muñecas, escápulas y tronco antes de despegar."
+            ]
+          },
+          "pendlay_row__machine": {
+            "description": "Con máquina, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. En la máquina, la trayectoria guiada concentra todo el esfuerzo del dorsal ancho.",
+            "executionCues": [
+              "Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con el tronco casi horizontal y las asas detenidas al inicio: el apoyo del aparato limita la deriva de la trayectoria."
+            ]
+          },
+          "pendlay_row__smith_machine": {
+            "description": "Con máquina Smith, cada tirón nace desde parado con la carga apoyada en el suelo y el torso casi horizontal. El dorsal ancho trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada. Cada repetición empieza con la carga apoyada y el torso casi paralelo al suelo; el reinicio elimina el rebote entre repeticiones."
+            ],
+            "setupCues": [
+              "Preparación: Smith desde la posición baja: la barra se detiene entre repeticiones y vuelve a subir por una línea guiada."
+            ]
+          }
+        },
+        "description": "El Remo Pendlay convierte cada repetición en una prueba independiente: la barra descansa en el suelo entre tirones y no hay rebote ni inercia que valga. La ejecución pide el torso casi horizontal: explotar desde parado hasta el abdomen y depositar la carga en el suelo antes de la siguiente. Dorsal y trapecio producen fuerza pura de arranque en cada intento. El remo de los que entrenan fuerza explosiva, sin concesiones."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "back_pendlay_row",
+  "schemaVersion": 1
+}

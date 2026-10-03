@@ -26,10 +26,11 @@ Nombre: `exercise_<movimiento>_<variante>_<implemento>.png`, snake_case, sin til
 
 ## Flujo
 
+0. **Brief desde la ficha (definiciones CURATED).** `python scripts/catalog_v2_visual_brief.py <definitionId> --equipment <equipmentId>` imprime el `PROMPT` listo para `GenerateImage` (estilo de la casa + `visual.promptCore` de la ficha), la `GEOMETRIA` del implemento, el marco base, `RECHAZAR SI` (`visual.forbidden`) y las preguntas `QA` (`visual.qa`). El prompt no se redacta a mano: si el brief está mal, se corrige la ficha (`curation/fichas/<familyId>.json`, bloque `visual`) y no el prompt. Una definición LEGACY no tiene brief: la herramienta la rechaza.
 1. **Leer la petición literal.** Foto adjunta del usuario = técnica. Recorte de queja = qué está mal. No reinterpretar.
 2. **Cargar refs.** Estilo catálogo + foto de gym (si hay) + máquina vacía real (si hay). **No adjuntar** el PNG malo ni gens fallidas como estilo: copian el error.
 3. **Generar candidatos** con `GenerateImage` (namespace `cursor`), `aspect_ratio` `1:1`, prompt ASCII. Filename con sufijo `_a`, `_b`. Ver [prompts.md](prompts.md).
-4. **QA visual antes de recortar.** Recortar zona de contacto (pies, barra, pad). Un inspector **limpio** (subagente sin el historial del error). Ver [qa.md](qa.md). Si falla, regenerar; no “arreglar” en texto.
+4. **QA visual antes de recortar.** Recortar zona de contacto (pies, barra, pad). Un inspector **limpio** (subagente sin el historial del error). Ver [qa.md](qa.md). Con ficha, las preguntas del inspector son las `qa` de la ficha y el rechazo automático es cualquier ítem de `RECHAZAR SI`. Si falla, regenerar; no “arreglar” en texto.
 5. **Recorte:** `python .cursor/skills/kpkn-exercise-images/scripts/cutout.py <candidato.png> --out <drawable>`
 6. **Instalar** en el emulador `device` (`installBaseDebug` + force-stop + start). No en físico salvo pedido.
 

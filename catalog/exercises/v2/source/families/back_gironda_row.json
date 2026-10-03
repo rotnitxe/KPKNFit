@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Remo Gironda",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#back_remo_gironda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "gironda_row__wide",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
-                "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con agarre amplio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -46,7 +38,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro dirigen los codos abiertos hacia el pecho, y el cable sostiene la tensión durante el vaivén del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -54,7 +45,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular junta los omóplatos con el agarre amplio, y la inclinación del torso modula la tensión del cable sobre la espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -62,7 +52,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acompaña la tracción amplia con un ángulo abierto, y el cable exige ese ángulo constante mientras el torso se inclina y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -70,7 +59,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre fija las manos separadas sobre el accesorio de polea mientras el cable tira sin descanso durante todo el vaivén.",
                   "role": "STABILIZER"
                 }
               ],
@@ -78,28 +66,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra la extensión del hombro en la tracción de polea y frena la vuelta del cable mientras el torso recupera su inclinación."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio acompaña el tirón con el agarre amplio, que separa los codos y lleva el esfuerzo hacia la espalda alta durante el vaivén del torso."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide asiste la extensión del hombro con los codos abiertos y regula el frenado excéntrico cuando el cable devuelve el torso hacia atrás."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la retracción escapular con el agarre amplio mientras la inclinación del torso modula la tensión constante del cable."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps fija la flexión del codo en isometría para que las manos amplias transfieran la tensión constante del cable al torso."
-                }
-              ],
               "performanceProfileId": "gironda_row__wide__remo_gironda",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -123,7 +89,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro dirigen los codos abiertos hacia el pecho, y el cable sostiene la tensión durante el vaivén del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -131,7 +96,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular junta los omóplatos con el agarre amplio, y la inclinación del torso modula la tensión del cable sobre la espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -139,7 +103,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acompaña la tracción amplia con un ángulo abierto, y el cable exige ese ángulo constante mientras el torso se inclina y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -147,11 +110,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre fija las manos separadas sobre el accesorio de polea mientras el cable tira sin descanso durante todo el vaivén.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -159,13 +120,9 @@
                     "trapezius",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "rhomboids",
                     "biceps"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -176,7 +133,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -186,45 +142,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
-                  ],
-                  "execution": [
-                    "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Gironda",
                   "displaySummary": "wide",
                   "selectedOptions": {
                     "grip_width": "wide"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
-                    "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
-                  ],
-                  "description": "Con agarre amplio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta.",
-                  "technique": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
-                  "variantRationale": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -237,7 +160,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gironda",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "gironda_row__wide",
                   "definitionId": "gironda_row",
                   "familyId": "back_gironda_row",
@@ -255,42 +178,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Gironda en la variante Polea · Agarre Amplio.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -307,9 +208,7 @@
                 "biceps"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre amplio en el Gironda: los codos se separan y la espalda alta recibe más protagonismo durante el vaivén. La variante exige que la inclinación del tronco siga siendo amplia pero organizada para no sustituir la tracción por impulso."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_width": "wide"
@@ -323,7 +222,6 @@
                 "legacy:exercise_database.json#back_remo_gironda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "gironda_row__medium",
@@ -331,16 +229,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
-                "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con agarre medio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -355,7 +246,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro trazan una diagonal media de codos, y el cable la sostiene tensa durante el vaivén del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -363,7 +253,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular completa el tirón medio con los omóplatos juntos, y el torso regula esa tensión al inclinarse y volver.",
                   "role": "PRIMARY"
                 },
                 {
@@ -371,7 +260,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo marca un ángulo intermedio en la tracción, y el cable impone resistencia constante mientras el torso se inclina y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -379,7 +267,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sostiene las manos en la anchura media del accesorio de polea mientras la tensión del cable no cede.",
                   "role": "STABILIZER"
                 }
               ],
@@ -387,28 +274,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra la extensión del hombro en la diagonal media de la polea y frena el cable cuando el torso vuelve de su inclinación."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio reparte la tracción con el agarre medio, que sitúa los codos entre la cintura y la espalda alta durante el vaivén del torso."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular en la diagonal media y frenan la apertura de los omóplatos bajo la tensión constante del cable."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps colabora en la flexión del codo con el agarre medio y regula la extensión del brazo mientras el torso acompaña el recorrido."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Estabilizador: El deltoide fija el hombro en la diagonal media mientras el cable tira, sin asumir el papel de los dorsales en la tracción."
-                }
-              ],
               "performanceProfileId": "gironda_row__medium__remo_gironda",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -432,7 +297,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro trazan una diagonal media de codos, y el cable la sostiene tensa durante el vaivén del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -440,7 +304,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular completa el tirón medio con los omóplatos juntos, y el torso regula esa tensión al inclinarse y volver.",
                       "role": "PRIMARY"
                     },
                     {
@@ -448,7 +311,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo marca un ángulo intermedio en la tracción, y el cable impone resistencia constante mientras el torso se inclina y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -456,11 +318,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sostiene las manos en la anchura media del accesorio de polea mientras la tensión del cable no cede.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -469,12 +329,8 @@
                     "rhomboids",
                     "biceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "deltoid"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -485,7 +341,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -495,45 +350,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
-                  ],
-                  "execution": [
-                    "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Gironda",
                   "displaySummary": "medium",
                   "selectedOptions": {
                     "grip_width": "medium"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
-                    "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
-                  ],
-                  "description": "Con agarre medio, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. El dorsal ancho trabaja con la polea, que mantiene la tensión constante en todo el arco. El agarre medio equilibra el reparto del trabajo del dorsal ancho.",
-                  "technique": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
-                  "variantRationale": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -546,7 +368,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gironda",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "gironda_row__medium",
                   "definitionId": "gironda_row",
                   "familyId": "back_gironda_row",
@@ -564,42 +386,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Gironda en la variante Polea · Agarre Medio.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -616,9 +416,7 @@
                 "deltoid"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre medio en el Gironda: la trayectoria queda entre el tirón hacia la cintura y la apertura hacia la espalda alta. El torso se inclina y vuelve de forma coordinada, repartiendo el trabajo entre dorsal, romboides y trapecio medio."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_width": "medium"
@@ -632,7 +430,6 @@
                 "legacy:exercise_database.json#back_remo_gironda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "gironda_row__close",
@@ -640,16 +437,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-                "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-              ],
               "description": "Con agarre cerrado, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -664,7 +454,6 @@
                     "Aducción Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La extensión y la aducción del hombro arrastran los codos pegados al costado, la línea larga que el cable sostiene tensa de principio a fin.",
                   "role": "PRIMARY"
                 },
                 {
@@ -672,7 +461,6 @@
                     "Retracción Escapular"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La retracción escapular cierra los omóplatos con los codos al cuerpo, y el vaivén del torso modula la tensión del cable en ese cierre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -680,7 +468,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acompaña la tracción cerrada junto al costado, y el cable exige un ángulo firme mientras el torso se inclina y regresa.",
                   "role": "SECONDARY"
                 },
                 {
@@ -688,7 +475,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La estabilidad del agarre sujeta las manos juntas sobre el accesorio de polea mientras la tensión constante del cable tira sin descanso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -696,24 +482,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho concentra la extensión del hombro con los codos al costado en la polea y frena el cable en la vuelta del torso."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Secundario: Los romboides asisten la retracción escapular en la línea cerrada, mientras el cable y la inclinación del torso prolongan la tracción del dorsal."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps colabora en la flexión del codo con el agarre cerrado y regula la extensión del brazo frente a la tensión constante de la polea."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Estabilizador: El deltoide fija el hombro en la línea cerrada mientras el cable tira de los codos al costado durante el vaivén del torso."
-                }
-              ],
               "performanceProfileId": "gironda_row__close__remo_gironda",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -737,7 +505,6 @@
                         "Aducción Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La extensión y la aducción del hombro arrastran los codos pegados al costado, la línea larga que el cable sostiene tensa de principio a fin.",
                       "role": "PRIMARY"
                     },
                     {
@@ -745,7 +512,6 @@
                         "Retracción Escapular"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La retracción escapular cierra los omóplatos con los codos al cuerpo, y el vaivén del torso modula la tensión del cable en ese cierre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -753,7 +519,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acompaña la tracción cerrada junto al costado, y el cable exige un ángulo firme mientras el torso se inclina y regresa.",
                       "role": "SECONDARY"
                     },
                     {
@@ -761,11 +526,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La estabilidad del agarre sujeta las manos juntas sobre el accesorio de polea mientras la tensión constante del cable tira sin descanso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -773,12 +536,8 @@
                     "rhomboids",
                     "biceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "deltoid"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -789,7 +548,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "horizontal_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -799,45 +557,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar solo con las manos, encoger los hombros o balancear el cuerpo."
-                  ],
-                  "cues": [
-                    "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
-                  ],
-                  "execution": [
-                    "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dar grosor a la espalda y mantener un movimiento fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón del brazo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción."
-                  ]
-                },
                 "display": {
                   "displayName": "Remo Gironda",
                   "displaySummary": "close",
                   "selectedOptions": {
                     "grip_width": "close"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-                    "La elección de los puristas para sentir cada fibra de la espalda con una tensión que no da tregua."
-                  ],
-                  "description": "Con agarre cerrado, el torso acompaña el recorrido con una inclinación amplia y la espalda corta el tirón con un arco más largo. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso.",
-                  "technique": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
-                  "variantRationale": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -850,7 +575,7 @@
                 },
                 "identity": {
                   "canonicalName": "Remo Gironda",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "gironda_row__close",
                   "definitionId": "gironda_row",
                   "familyId": "back_gironda_row",
@@ -868,42 +593,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Remo Gironda en la variante Polea · Agarre Cerrado.",
-                    "Priorizar dar grosor a la espalda y mantener un movimiento fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón del brazo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -919,9 +622,7 @@
                 "deltoid"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El recorrido nace de una inclinación controlada del torso; la espalda acompaña el vaivén sin perder la tensión en los dorsales.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre cerrado en el Gironda: los codos viajan cerca del cuerpo y el dorsal recibe una línea larga de tracción. El torso acompaña el tirón con un vaivén deliberado; la amplitud procede de una inclinación controlada, no de un rebote."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_width": "close"
@@ -935,7 +636,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "back_gironda_row",
@@ -951,13 +651,11 @@
         ]
       }
     ],
-    "description": "Familia de tirón horizontal en la estación de polea Gironda; la amplitud del agarre es la única decisión y redistribuye el énfasis de la espalda.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "back_gironda_row",

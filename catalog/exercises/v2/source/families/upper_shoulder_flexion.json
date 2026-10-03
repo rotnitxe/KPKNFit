@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder flexion",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_elevaciones_frontales__cable",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con polea, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva el brazo al frente contra el cable de la polea, con tensión presente desde el inicio del recorrido hasta el regreso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la elevación del brazo y se adapta a la tracción constante que la polea aplica sobre el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña la elevación y el descenso del brazo con la polea, cuya tensión no desaparece en ningún punto del movimiento.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo sostiene una extensión relativa mientras el cable de la polea tira del brazo, sin cerrarse ni bloquearse del todo durante la elevación.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la polea al frente, el deltoide anterior eleva el brazo en flexión y frena el descenso bajo la tensión constante del cable, activa en todo el arco."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio acompaña la elevación del brazo con rotación superior de la escápula mientras la polea aplica tensión constante sin pausas ni descanso."
-                }
-              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -108,7 +86,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva el brazo al frente contra el cable de la polea, con tensión presente desde el inicio del recorrido hasta el regreso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la elevación del brazo y se adapta a la tracción constante que la polea aplica sobre el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña la elevación y el descenso del brazo con la polea, cuya tensión no desaparece en ningún punto del movimiento.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo sostiene una extensión relativa mientras el cable de la polea tira del brazo, sin cerrarse ni bloquearse del todo durante la elevación.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "shoulder_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -167,45 +135,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Polea al frente: subes los brazos contra la tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea al frente: subes los brazos contra la tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea al frente: subes los brazos contra la tensión constante."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Frontales",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-                  ],
-                  "description": "Con polea, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                  "technique": "Polea al frente: subes los brazos contra la tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea al frente: subes los brazos contra la tensión constante. El deltoides anterior cargado en todo el arco."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -218,7 +153,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_elevaciones_frontales__cable",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -237,24 +172,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Frontales en la variante Polea.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -264,18 +185,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_flexion:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -288,9 +201,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Polea al frente: subes los brazos contra la tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Polea al frente: subes los brazos contra la tensión constante. El deltoides anterior cargado en todo el arco."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -304,7 +215,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_elevaciones_frontales__barbell",
@@ -312,16 +222,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con barra, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -335,7 +238,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva la barra al frente con ambas manos, en un recorrido libre donde la gravedad carga el arco completo desde la posición baja.",
                   "role": "PRIMARY"
                 },
                 {
@@ -343,7 +245,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el ascenso de la barra con las dos manos y sostiene el hombro alto al final del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -351,7 +252,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña la barra al subir y al bajar, con la carga repartida entre ambos brazos y sin guía externa que imponga la trayectoria.",
                   "role": "SECONDARY"
                 },
                 {
@@ -359,7 +259,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras la barra sube entre las dos manos, sin doblarse ni quedar bloqueado de forma rígida.",
                   "role": "STABILIZER"
                 }
               ],
@@ -367,16 +266,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la barra al frente y ambas manos sobre ella, el deltoide anterior eleva la carga hasta la altura del hombro y frena su descenso sin balanceo del torso."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras la barra sube al frente, con las dos manos repartiendo la misma carga a la vez."
-                }
-              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__barbell",
               "primaryMuscles": [
                 "deltoid"
@@ -398,7 +287,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva la barra al frente con ambas manos, en un recorrido libre donde la gravedad carga el arco completo desde la posición baja.",
                       "role": "PRIMARY"
                     },
                     {
@@ -406,7 +294,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el ascenso de la barra con las dos manos y sostiene el hombro alto al final del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -414,7 +301,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña la barra al subir y al bajar, con la carga repartida entre ambos brazos y sin guía externa que imponga la trayectoria.",
                       "role": "SECONDARY"
                     },
                     {
@@ -422,22 +308,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras la barra sube entre las dos manos, sin doblarse ni quedar bloqueado de forma rígida.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -447,7 +327,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -457,45 +336,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Barra al frente: subes la barra hasta la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra al frente: subes la barra hasta la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra al frente: subes la barra hasta la altura del hombro."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Frontales",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-                  ],
-                  "description": "Con barra, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                  "technique": "Barra al frente: subes la barra hasta la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra al frente: subes la barra hasta la altura del hombro. La elevación frontal tradicional, con ambas manos a la vez."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -508,7 +354,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_elevaciones_frontales__barbell",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -527,24 +373,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Frontales en la variante Barra.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -554,18 +386,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_flexion:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -578,9 +402,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra al frente: subes la barra hasta la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Barra al frente: subes la barra hasta la altura del hombro. La elevación frontal tradicional, con ambas manos a la vez."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -594,7 +416,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_elevaciones_frontales__dumbbells",
@@ -602,16 +423,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con mancuernas, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -625,7 +439,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva cada mancuerna al frente de forma independiente, de modo que un brazo puede avanzar sin arrastrar al contrario.",
                   "role": "PRIMARY"
                 },
                 {
@@ -633,7 +446,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la elevación de cada brazo con su propia mancuerna y ajusta el recorrido de cada lado por separado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -641,7 +453,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña cada brazo durante la elevación con mancuernas, donde cada lado traza su propia línea sin imponerse al contrario.",
                   "role": "SECONDARY"
                 },
                 {
@@ -649,7 +460,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo sostiene una extensión relativa mientras la mancuerna sube al frente, con la carga libre exigiendo equilibrio en cada brazo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -657,16 +467,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con mancuernas, el deltoide anterior eleva cada brazo al frente hasta la altura del hombro y frena el descenso, con un peso independiente en cada mano."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio acompaña la elevación con rotación superior de la escápula, sea con un brazo por vez o con las dos mancuernas subiendo a la vez."
-                }
-              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -688,7 +488,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva cada mancuerna al frente de forma independiente, de modo que un brazo puede avanzar sin arrastrar al contrario.",
                       "role": "PRIMARY"
                     },
                     {
@@ -696,7 +495,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la elevación de cada brazo con su propia mancuerna y ajusta el recorrido de cada lado por separado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -704,7 +502,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña cada brazo durante la elevación con mancuernas, donde cada lado traza su propia línea sin imponerse al contrario.",
                       "role": "SECONDARY"
                     },
                     {
@@ -712,22 +509,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo sostiene una extensión relativa mientras la mancuerna sube al frente, con la carga libre exigiendo equilibrio en cada brazo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -737,7 +528,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -747,45 +537,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas al frente: subes cada brazo o ambos a la altura del hombro."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Frontales",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-                  ],
-                  "description": "Con mancuernas, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La versión más utilizada de la elevación frontal."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -798,7 +555,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_elevaciones_frontales__dumbbells",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -817,24 +574,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Frontales en la variante Mancuernas.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -844,18 +587,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_flexion:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -868,9 +603,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas al frente: subes cada brazo o ambos a la altura del hombro. La versión más utilizada de la elevación frontal."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -884,7 +617,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_frontales",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_elevaciones_frontales__kettlebell",
@@ -892,16 +624,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con kettlebell, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -915,7 +640,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La flexión del hombro eleva la kettlebell al frente, con un centro de masa descentrado que tira del brazo de forma distinta a una mancuerna.",
                   "role": "PRIMARY"
                 },
                 {
@@ -923,7 +647,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña la elevación con la kettlebell colgando del agarre, cuyo peso pide un ajuste fino del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -931,7 +654,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña la elevación con la kettlebell, cuyo agarre y peso colgante exigen más precisión escapular que un implemento equilibrado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -939,7 +661,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras la kettlebell cuelga del agarre, con el peso empujando el antebrazo hacia abajo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -947,16 +668,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la kettlebell al frente, el deltoide anterior eleva el brazo mientras el agarre y el centro de masa descentrado cambian el tacto de la carga."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio acompaña la elevación con rotación superior de la escápula mientras la kettlebell cuelga del agarre y exige más estabilidad en el brazo."
-                }
-              ],
               "performanceProfileId": "deltoides_elevaciones_frontales__kettlebell",
               "primaryMuscles": [
                 "deltoid"
@@ -978,7 +689,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La flexión del hombro eleva la kettlebell al frente, con un centro de masa descentrado que tira del brazo de forma distinta a una mancuerna.",
                       "role": "PRIMARY"
                     },
                     {
@@ -986,7 +696,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña la elevación con la kettlebell colgando del agarre, cuyo peso pide un ajuste fino del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -994,7 +703,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña la elevación con la kettlebell, cuyo agarre y peso colgante exigen más precisión escapular que un implemento equilibrado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1002,22 +710,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras la kettlebell cuelga del agarre, con el peso empujando el antebrazo hacia abajo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1027,7 +729,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1037,45 +738,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebell al frente: el agarre suma trabajo y el hombro empuja."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Frontales",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                    "El acabado frontal del hombro, útil con moderación porque ya trabaja mucho en los presses."
-                  ],
-                  "description": "Con kettlebell, el brazo se eleva al frente hasta la altura del hombro sin balancear el torso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
-                  "technique": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. Variante alternativa de la elevación frontal."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1088,7 +756,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Frontales",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_elevaciones_frontales__kettlebell",
                   "definitionId": "deltoides_elevaciones_frontales",
                   "familyId": "upper_shoulder_flexion",
@@ -1107,24 +775,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Frontales en la variante Kettlebell.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1134,18 +788,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_flexion:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1158,9 +804,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Kettlebell al frente: el agarre suma trabajo y el hombro empuja. Variante alternativa de la elevación frontal."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1174,7 +818,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_shoulder_flexion",
@@ -1191,13 +834,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón shoulder_flexion; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_shoulder_flexion",

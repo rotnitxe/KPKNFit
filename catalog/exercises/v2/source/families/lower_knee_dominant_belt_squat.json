@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Sentadilla Belt Squat",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_belt_squat_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "belt_squat__bilateral",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
-                "La máquina soñada por quien entrena pierna con la espalda sensible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con a dos lados, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y extensión de la rodilla se despliega a dos piernas en la máquina de correa, donde la carga pende de la cintura y la espalda queda libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera flexiona y extiende con la correa puesta en la cintura y ambas piernas repartiendo la carga, sin compresión sobre los hombros.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo completo en la máquina de correa, con ambas piernas compartiendo la base de apoyo.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco con la carga colgada de la cintura, que libera la espalda del peso sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la carga colgada de la cintura y ambas piernas apoyadas, el cuádriceps extiende la rodilla al subir y frena la flexión sin peso sobre los hombros."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al final de la subida con ambas piernas, y la correa de la cintura le deja empujar con la espalda descargada."
-                }
-              ],
               "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -107,7 +85,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y extensión de la rodilla se despliega a dos piernas en la máquina de correa, donde la carga pende de la cintura y la espalda queda libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -115,7 +92,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera flexiona y extiende con la correa puesta en la cintura y ambas piernas repartiendo la carga, sin compresión sobre los hombros.",
                       "role": "SECONDARY"
                     },
                     {
@@ -123,7 +99,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo sostiene la dorsiflexión y el control del apoyo completo en la máquina de correa, con ambas piernas compartiendo la base de apoyo.",
                       "role": "STABILIZER"
                     },
                     {
@@ -131,22 +106,16 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar conserva la estabilidad del tronco con la carga colgada de la cintura, que libera la espalda del peso sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -156,7 +125,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -166,45 +134,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
-                  ],
-                  "execution": [
-                    "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla \"Belt Squat\"",
                   "displaySummary": "bilateral",
                   "selectedOptions": {
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
-                    "La máquina soñada por quien entrena pierna con la espalda sensible."
-                  ],
-                  "description": "Con a dos lados, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A dos lados, el trabajo del cuádriceps admite más carga total.",
-                  "technique": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
-                  "variantRationale": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. Sentadillas profundas sin peso sobre los hombros."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -217,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla \"Belt Squat\"",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "belt_squat__bilateral",
                   "definitionId": "belt_squat",
                   "familyId": "lower_knee_dominant_belt_squat",
@@ -234,42 +169,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla \"Belt Squat\" en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_dominant:quadriceps"
                   ],
                   "replacementGroup": "quad_machine_squat",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -282,9 +195,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. El pie permanece completo en contacto con la base y la rodilla sigue la dirección de los dedos mientras el cuerpo baja y vuelve.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina Belt Squat con ambas piernas: la carga cuelga de la cintura y la espalda descansa. Sentadillas profundas sin peso sobre los hombros."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -298,7 +209,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_belt_squat_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "belt_squat__unilateral",
@@ -306,16 +216,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
-                "La máquina soñada por quien entrena pierna con la espalda sensible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con a un lado, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -329,7 +232,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y extensión unilateral de la rodilla absorbe la bajada y la subida completas con la correa en la cintura, sin peso sobre los hombros.",
                   "role": "PRIMARY"
                 },
                 {
@@ -337,7 +239,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera extiende al subir y aporta el control frontal de la pelvis con una pierna cargada por la correa, mientras el apoyo libre acompaña.",
                   "role": "PRIMARY"
                 },
                 {
@@ -345,7 +246,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión sobre la plataforma de la máquina, ya que la correa unilateral desplaza todo el peso a un solo apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -353,7 +253,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca transfiere la carga unilateral de la cintura entre pelvis y tronco, con la pelvis bajo control frente al descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -361,16 +260,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la correa en la cintura y una sola pierna de trabajo, el cuádriceps extiende la rodilla al subir y frena la flexión sin ayuda del lado contrario."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera de la pierna de trabajo y sostiene el control frontal de la pelvis con la carga colgada de la cintura."
-                }
-              ],
               "performanceProfileId": "belt_squat__machine__sentadilla_belt_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -392,7 +281,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y extensión unilateral de la rodilla absorbe la bajada y la subida completas con la correa en la cintura, sin peso sobre los hombros.",
                       "role": "PRIMARY"
                     },
                     {
@@ -400,7 +288,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera extiende al subir y aporta el control frontal de la pelvis con una pierna cargada por la correa, mientras el apoyo libre acompaña.",
                       "role": "PRIMARY"
                     },
                     {
@@ -408,7 +295,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo combina equilibrio y dorsiflexión sobre la plataforma de la máquina, ya que la correa unilateral desplaza todo el peso a un solo apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -416,22 +302,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca transfiere la carga unilateral de la cintura entre pelvis y tronco, con la pelvis bajo control frente al descenso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -441,7 +321,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -451,45 +330,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla \"Belt Squat\"",
                   "displaySummary": "unilateral",
                   "selectedOptions": {
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
-                    "La máquina soñada por quien entrena pierna con la espalda sensible."
-                  ],
-                  "description": "Con a un lado, la carga cuelga de la cintura y las piernas empujan sin peso sobre la espalda. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. Útil para corregir desequilibrios de pierna con estabilidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -502,7 +348,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla \"Belt Squat\"",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "belt_squat__unilateral",
                   "definitionId": "belt_squat",
                   "familyId": "lower_knee_dominant_belt_squat",
@@ -519,42 +365,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla \"Belt Squat\" en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": "quad_machine_squat",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -567,9 +391,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Belt Squat con una pierna: la carga cuelga de la cintura y un lado hace la mayor parte de la carga. Útil para corregir desequilibrios de pierna con estabilidad."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -583,7 +405,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_dominant_belt_squat",
@@ -598,13 +419,11 @@
         ]
       }
     ],
-    "description": "Familia de sentadilla con carga al cinturón; la lateralidad bilateral o unilateral es explícita.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_dominant_belt_squat",

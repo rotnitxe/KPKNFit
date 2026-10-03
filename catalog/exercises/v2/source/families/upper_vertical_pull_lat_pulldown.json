@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Jalón al Pecho",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#back_jalon_pecho_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lat_pulldown__bilateral__cable",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-                "La fábrica de espalda ancha para quien aún no domina la barra fija."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La aducción y la extensión del húmero llevan el agarre al pecho; la polea alta empuja con la misma fuerza en la bajada y en la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula deprime y rota con cada tirón de ambas manos, y la polea alta devuelve el brazo arriba sin perder esa guía escapular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo acompaña el tirón hacia el pecho; con la polea alta el codo vuelve a estirarse de forma gradual y sin tirones.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de la barra con ambas manos, alineada mientras la polea alta exige tensión constante en las dos extremidades.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,28 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho lleva ambos codos hacia el costado en la bajada con la polea alta, que conserva la tensión viva incluso al final del recorrido."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio baja y gira la escápula al tirar con ambas manos, coordinando el hombro con el recorrido constante que traza la polea alta."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona ambos codos para completar el tirón bilateral, asistiendo al dorsal sin robarle protagonismo con la polea alta."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide ayuda a extender el brazo al costado en cada repetición, con la polea alta repartiendo el esfuerzo por igual entre ambos lados."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: El erector espinal sostiene el tronco sentado con los muslos fijos mientras las dos manos tiran de la barra hacia la parte alta del pecho."
-                }
-              ],
               "performanceProfileId": "lat_pulldown__cable__jalon_pecho",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -121,7 +87,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La aducción y la extensión del húmero llevan el agarre al pecho; la polea alta empuja con la misma fuerza en la bajada y en la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -129,7 +94,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula deprime y rota con cada tirón de ambas manos, y la polea alta devuelve el brazo arriba sin perder esa guía escapular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -137,7 +101,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo acompaña el tirón hacia el pecho; con la polea alta el codo vuelve a estirarse de forma gradual y sin tirones.",
                       "role": "SECONDARY"
                     },
                     {
@@ -145,11 +108,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de la barra con ambas manos, alineada mientras la polea alta exige tensión constante en las dos extremidades.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -158,12 +119,8 @@
                     "biceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -174,7 +131,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -184,30 +140,6 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea alta con ambas manos: tiras de la barra hacia el pecho."
-                  ]
-                },
                 "display": {
                   "displayName": "Jalón al Pecho",
                   "displaySummary": "cable · bilateral",
@@ -215,15 +147,6 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
-                  ],
-                  "description": "Con polea y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-                  "technique": "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Polea alta con ambas manos: tiras de la barra hacia el pecho. El jalón tradicional que construye dorsales."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -236,7 +159,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lat_pulldown__bilateral__cable",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -255,42 +178,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Jalón al Pecho en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi",
+                    "vertical_pull:trapezius"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -306,9 +208,7 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Polea alta con ambas manos: tiras de la barra hacia el pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Polea alta con ambas manos: tiras de la barra hacia el pecho. El jalón tradicional que construye dorsales."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -323,7 +223,6 @@
                 "legacy:exercise_database.json#back_jalon_pecho_polea",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lat_pulldown__unilateral__cable",
@@ -331,16 +230,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
-                "La fábrica de espalda ancha para quien aún no domina la barra fija."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -354,7 +246,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La aducción y la extensión del húmero ocurren en un solo brazo; la polea alta aplica una carga lateral constante mientras el otro brazo descansa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -362,7 +253,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula deprime y rota del lado que tira con una mano, y la polea alta devuelve el recorrido con la misma tensión con la que lo inició.",
                   "role": "PRIMARY"
                 },
                 {
@@ -370,7 +260,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo mueve el agarre hacia el pecho en un solo brazo; la polea alta devuelve el codo a la extensión de manera gradual.",
                   "role": "SECONDARY"
                 },
                 {
@@ -378,7 +267,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de una sola mano mientras la polea alta tira del brazo, alineada y sin soporte del lado contrario.",
                   "role": "STABILIZER"
                 }
               ],
@@ -386,28 +274,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira de un solo codo hacia el costado con la polea alta, trabajando cada lado por separado con tensión constante de principio a fin."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio deprime y rota la escápula del lado que tira, mientras la polea alta acompaña el recorrido de una sola mano sin perder la trayectoria."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo del brazo que trabaja, asistiendo al tirón unilateral con la polea alta y dejando ver las diferencias de fuerza entre lados."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide extiende el brazo activo hacia el costado en cada repetición, con un lado cada vez y la tensión constante que aporta la polea alta."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: El erector espinal sostiene el tronco ante el tirón de un solo brazo con la polea alta, mientras los muslos permanecen fijos en la posición sentada."
-                }
-              ],
               "performanceProfileId": "lat_pulldown__cable__jalon_pecho",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -430,7 +296,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La aducción y la extensión del húmero ocurren en un solo brazo; la polea alta aplica una carga lateral constante mientras el otro brazo descansa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -438,7 +303,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula deprime y rota del lado que tira con una mano, y la polea alta devuelve el recorrido con la misma tensión con la que lo inició.",
                       "role": "PRIMARY"
                     },
                     {
@@ -446,7 +310,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo mueve el agarre hacia el pecho en un solo brazo; la polea alta devuelve el codo a la extensión de manera gradual.",
                       "role": "SECONDARY"
                     },
                     {
@@ -454,11 +317,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de una sola mano mientras la polea alta tira del brazo, alineada y sin soporte del lado contrario.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -467,12 +328,8 @@
                     "biceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -483,7 +340,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -493,30 +349,6 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea alta con una mano: cada dorsal trabaja por separado con tensión constante."
-                  ]
-                },
                 "display": {
                   "displayName": "Jalón al Pecho",
                   "displaySummary": "cable · unilateral",
@@ -524,15 +356,6 @@
                     "implement": "cable",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
-                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
-                  ],
-                  "description": "Con polea y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo del dorsal ancho se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -545,7 +368,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lat_pulldown__unilateral__cable",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -564,42 +387,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Jalón al Pecho en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi",
+                    "vertical_pull:trapezius"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -615,9 +417,7 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Polea alta con una mano: cada dorsal trabaja por separado con tensión constante. Útil para corregir desequilibrios."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "cable",
@@ -632,7 +432,6 @@
                 "legacy:exercise_database.json#back_jalon_pecho_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lat_pulldown__bilateral__machine",
@@ -640,16 +439,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
-                "La fábrica de espalda ancha para quien aún no domina la barra fija."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -663,7 +455,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La aducción y la extensión del húmero ocurren sobre la trayectoria fija de la máquina, que conduce ambos brazos y deja el hombro sin correcciones laterales.",
                   "role": "PRIMARY"
                 },
                 {
@@ -671,7 +462,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula deprime y rota bajo el guiado de la máquina, que conduce ambas manos por un recorrido constante de ida y vuelta para el hombro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -679,7 +469,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión de ambos codos acompaña el tirón de la máquina, y su guiado devuelve el codo a la extensión por la misma trayectoria de bajada.",
                   "role": "SECONDARY"
                 },
                 {
@@ -687,7 +476,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de la máquina con las dos manos, alineada sobre un recorrido fijo que no exige correcciones del implemento.",
                   "role": "STABILIZER"
                 }
               ],
@@ -695,28 +483,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho lleva ambos codos hacia el costado dentro del recorrido guiado de la máquina, que reparte el esfuerzo por igual entre los dos lados."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio deprime y rota la escápula mientras la máquina guía la bajada de ambas manos, con una trayectoria fija que ordena el movimiento del hombro."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona los dos codos para completar el tirón en la máquina, asistiendo al dorsal sobre un recorrido guiado que exige poco equilibrio."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide ayuda a extender cada brazo hacia el costado en la máquina, con el apoyo guiado repartiendo la carga de forma pareja entre ambos lados."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: El erector espinal sostiene el tronco sentado mientras la máquina guía el tirón de ambas manos, con los muslos fijos y la espalda alta libre de balanceos."
-                }
-              ],
               "performanceProfileId": "lat_pulldown__machine__jalon_pecho",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -739,7 +505,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La aducción y la extensión del húmero ocurren sobre la trayectoria fija de la máquina, que conduce ambos brazos y deja el hombro sin correcciones laterales.",
                       "role": "PRIMARY"
                     },
                     {
@@ -747,7 +512,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula deprime y rota bajo el guiado de la máquina, que conduce ambas manos por un recorrido constante de ida y vuelta para el hombro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -755,7 +519,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión de ambos codos acompaña el tirón de la máquina, y su guiado devuelve el codo a la extensión por la misma trayectoria de bajada.",
                       "role": "SECONDARY"
                     },
                     {
@@ -763,11 +526,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de la máquina con las dos manos, alineada sobre un recorrido fijo que no exige correcciones del implemento.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -776,12 +537,8 @@
                     "biceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -792,7 +549,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -802,30 +558,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de jalón con ambas manos: el guiado hace el recorrido más estable."
-                  ]
-                },
                 "display": {
                   "displayName": "Jalón al Pecho",
                   "displaySummary": "machine · bilateral",
@@ -833,15 +565,6 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
-                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
-                  ],
-                  "description": "Con máquina y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo del dorsal ancho admite más carga total.",
-                  "technique": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. La opción cómoda para cargar espalda."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -854,7 +577,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lat_pulldown__bilateral__machine",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -873,42 +596,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Jalón al Pecho en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi",
+                    "vertical_pull:trapezius"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -924,9 +626,7 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Máquina de jalón con ambas manos: el guiado hace el recorrido más estable. La opción cómoda para cargar espalda."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -941,7 +641,6 @@
                 "legacy:exercise_database.json#back_jalon_pecho_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lat_pulldown__unilateral__machine",
@@ -949,16 +648,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-                "La fábrica de espalda ancha para quien aún no domina la barra fija."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -972,7 +664,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La aducción y la extensión del húmero ocurren en un solo brazo sobre la guía de la máquina, que fija la trayectoria del lado que trabaja.",
                   "role": "PRIMARY"
                 },
                 {
@@ -980,7 +671,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula deprime y rota del lado que tira en la máquina, con la guía conduciendo una sola mano por una trayectoria ida y vuelta.",
                   "role": "PRIMARY"
                 },
                 {
@@ -988,7 +678,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo mueve el agarre de la máquina hacia el pecho en un solo brazo, y la guía devuelve la extensión por el mismo camino.",
                   "role": "SECONDARY"
                 },
                 {
@@ -996,7 +685,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de una mano sobre el recorrido guiado de la máquina, alineada y sin el apoyo del brazo que descansa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1004,28 +692,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira de un solo codo sobre el recorrido guiado de la máquina, con un brazo cada vez y sin el equilibrio que exige la polea."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio deprime y rota la escápula del lado activo mientras la máquina conduce una sola mano, con una trayectoria fija para comparar ambos lados."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo del brazo que trabaja dentro del guiado de la máquina, asistiendo al tirón unilateral de principio a fin del recorrido."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide extiende el brazo activo hacia el costado sobre la guía de la máquina, dejando a la vista las diferencias de recorrido entre ambos lados."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: El erector espinal sostiene el tronco cuando un solo brazo tira en la máquina, con el apoyo guiado dando estabilidad a la espalda sentada."
-                }
-              ],
               "performanceProfileId": "lat_pulldown__machine__jalon_pecho",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1048,7 +714,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La aducción y la extensión del húmero ocurren en un solo brazo sobre la guía de la máquina, que fija la trayectoria del lado que trabaja.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1056,7 +721,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula deprime y rota del lado que tira en la máquina, con la guía conduciendo una sola mano por una trayectoria ida y vuelta.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1064,7 +728,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo mueve el agarre de la máquina hacia el pecho en un solo brazo, y la guía devuelve la extensión por el mismo camino.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1072,11 +735,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de una mano sobre el recorrido guiado de la máquina, alineada y sin el apoyo del brazo que descansa.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -1085,12 +746,8 @@
                     "biceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1101,7 +758,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1111,30 +767,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón."
-                  ]
-                },
                 "display": {
                   "displayName": "Jalón al Pecho",
                   "displaySummary": "machine · unilateral",
@@ -1142,15 +774,6 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
-                  ],
-                  "description": "Con máquina y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. El dorsal ancho trabaja en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Útil para comparar fuerza y recorrido entre dorsales."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1163,7 +786,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lat_pulldown__unilateral__machine",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1182,42 +805,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Jalón al Pecho en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi",
+                    "vertical_pull:trapezius"
                   ],
                   "replacementGroup": "back_pulldown_pronated",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1233,9 +835,7 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Máquina con una mano y un dorsal a la vez: el apoyo guiado elimina parte del equilibrio mientras cada lado completa su propio tirón. Útil para comparar fuerza y recorrido entre dorsales."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1250,7 +850,6 @@
                 "legacy:exercise_database.json#back_jalon_banda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lat_pulldown__bilateral__band",
@@ -1258,16 +857,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-                "La fábrica de espalda ancha para quien aún no domina la barra fija."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
               "efc": 2.5,
               "equipmentId": "band",
@@ -1281,7 +873,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La aducción y la extensión del húmero llevan la banda hacia el pecho con ambas manos, y la elástica recibe más tensión cuanto más cerca está el agarre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1289,7 +880,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula deprime y rota con cada tirón doble de la banda, cuya carga creciente acompaña el recorrido de ida y de vuelta con tensión propia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1297,7 +887,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión de ambos codos avanza contra la banda, que aligera su tensión al volver arriba y permite estirar los codos de forma gradual.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1305,7 +894,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de la banda con ambas manos, alineada mientras la elástica gana tensión al acercar las manos al pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1313,28 +901,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho lleva ambos codos al costado contra la banda anclada arriba, cuya resistencia crece al acercar las manos al pecho."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio deprime y rota la escápula con las dos manos tirando de la banda, que ofrece menos tensión al inicio y más al final del recorrido."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona los dos codos en el tramo más resistente de la banda, asistiendo al tirón doble justo cuando la elástica carga más cerca del pecho."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide ayuda a extender ambos brazos al costado contra la banda, con la tensión creciente del elástico concentrada al final del recorrido."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: El erector espinal sostiene el tronco sentado mientras las dos manos tiran de la banda anclada arriba, con los muslos fijos y la carga en aumento."
-                }
-              ],
               "performanceProfileId": "lat_pulldown__band__jalon_pecho",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1357,7 +923,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La aducción y la extensión del húmero llevan la banda hacia el pecho con ambas manos, y la elástica recibe más tensión cuanto más cerca está el agarre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1365,7 +930,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula deprime y rota con cada tirón doble de la banda, cuya carga creciente acompaña el recorrido de ida y de vuelta con tensión propia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1373,7 +937,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión de ambos codos avanza contra la banda, que aligera su tensión al volver arriba y permite estirar los codos de forma gradual.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1381,11 +944,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de la banda con ambas manos, alineada mientras la elástica gana tensión al acercar las manos al pecho.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -1394,12 +955,8 @@
                     "biceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1410,7 +967,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1420,30 +976,6 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho."
-                  ]
-                },
                 "display": {
                   "displayName": "Jalón al Pecho",
                   "displaySummary": "band · bilateral",
@@ -1451,15 +983,6 @@
                     "implement": "band",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
-                  ],
-                  "description": "Con banda elástica y a dos lados, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. Con ambos lados a la vez, el trabajo del dorsal ancho se reparte.",
-                  "technique": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1472,7 +995,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lat_pulldown__bilateral__band",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1491,42 +1014,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Jalón al Pecho en la variante Banda Elástica · Trabajo Bilateral.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi",
+                    "vertical_pull:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1542,9 +1044,7 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Banda anclada arriba y tirón con ambos brazos: la carga aumenta al acercar las manos al pecho. El recorrido elástico ofrece una opción práctica para entrenar el dorsal sin una máquina."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "band",
@@ -1559,7 +1059,6 @@
                 "legacy:exercise_database.json#back_jalon_banda",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lat_pulldown__unilateral__band",
@@ -1567,16 +1066,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-                "La fábrica de espalda ancha para quien aún no domina la barra fija."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
               "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.5,
               "equipmentId": "band",
@@ -1590,7 +1082,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La aducción y la extensión del húmero ocurren en un solo brazo contra la banda, cuya tensión crece al acercar la mano al pecho y se aligera al subir.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1598,7 +1089,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula deprime y rota del lado que tira de la banda, con una tensión elástica distinta en cada tramo del recorrido unilateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1606,7 +1096,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La flexión del codo mueve la banda hacia el pecho en un solo brazo, y la elástica reduce su carga al devolver el codo a la extensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1614,7 +1103,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre de la banda con una sola mano, alineada mientras la tensión elástica cambia entre la bajada y la subida.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1622,28 +1110,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira de un solo codo contra la banda anclada arriba, con un brazo cada vez y una tensión que crece al acercar la mano al pecho."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Principal: El trapecio deprime y rota la escápula del lado que tira de la banda, dejando que cada hombro trabaje por separado con tensión progresiva."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps flexiona el codo del brazo activo contra la banda, asistiendo al tirón unilateral justo en el tramo donde la elástica carga más."
-                },
-                {
-                  "muscleId": "deltoid",
-                  "note": "Secundario: El deltoide extiende el brazo que trabaja hacia el costado contra la banda, con la tensión progresiva del elástico concentrándose al final del recorrido."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: El erector espinal sostiene el tronco ante el tirón lateral de un solo brazo con la banda, con los muslos fijos en la posición sentada."
-                }
-              ],
               "performanceProfileId": "lat_pulldown__band__jalon_pecho",
               "primaryMuscles": [
                 "latissimus_dorsi",
@@ -1666,7 +1132,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La aducción y la extensión del húmero ocurren en un solo brazo contra la banda, cuya tensión crece al acercar la mano al pecho y se aligera al subir.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1674,7 +1139,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula deprime y rota del lado que tira de la banda, con una tensión elástica distinta en cada tramo del recorrido unilateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1682,7 +1146,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La flexión del codo mueve la banda hacia el pecho en un solo brazo, y la elástica reduce su carga al devolver el codo a la extensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1690,11 +1153,9 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre de la banda con una sola mano, alineada mientras la tensión elástica cambia entre la bajada y la subida.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi",
                     "trapezius"
@@ -1703,12 +1164,8 @@
                     "biceps",
                     "deltoid"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1719,7 +1176,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1729,30 +1185,6 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda con una mano: tensión progresiva en un dorsal a la vez."
-                  ]
-                },
                 "display": {
                   "displayName": "Jalón al Pecho",
                   "displaySummary": "band · unilateral",
@@ -1760,15 +1192,6 @@
                     "implement": "band",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-                    "La fábrica de espalda ancha para quien aún no domina la barra fija."
-                  ],
-                  "description": "Con banda elástica y a un lado, sentado con los muslos fijos, el agarre desciende hacia la parte alta del pecho con los codos al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del dorsal ancho. A un lado, el trabajo del dorsal ancho se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Banda con una mano: tensión progresiva en un dorsal a la vez. Variante sencilla y útil para acumular trabajo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1781,7 +1204,7 @@
                 },
                 "identity": {
                   "canonicalName": "Jalón al Pecho",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lat_pulldown__unilateral__band",
                   "definitionId": "lat_pulldown",
                   "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1800,42 +1223,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Jalón al Pecho en la variante Banda Elástica · Trabajo Unilateral.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi",
+                    "vertical_pull:trapezius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1851,9 +1253,7 @@
                 "erector_spinae"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Banda con una mano: tensión progresiva en un dorsal a la vez. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Banda con una mano: tensión progresiva en un dorsal a la vez. Variante sencilla y útil para acumular trabajo."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "implement": "band",
@@ -1868,7 +1268,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_pull_lat_pulldown",
@@ -1886,13 +1285,11 @@
         ]
       }
     ],
-    "description": "Familia de tirón vertical hacia la clavícula; el implemento y la lateralidad son las decisiones visibles de cada variante.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_pull_lat_pulldown",

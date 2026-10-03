@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "quads_reverse_nordic_peso_corporal": {
+      "public": {
+        "configurations": {
+          "quads_reverse_nordic_peso_corporal__default": {
+            "description": "Con peso corporal, desde las rodillas, el cuerpo se inclina hacia atrás con el cuádriceps frenando la caída. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+            "executionCues": [
+              "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves."
+            ]
+          }
+        },
+        "description": "El Curl Nórdico Inverso, o Reverse Nordic Curl, inclina el cuerpo hacia atrás desde las rodillas: el cuádriceps frena la caída con el tronco rígido y los pies anclados. Se ejecuta bajando hacia el suelo sin doblar la cadera y regresando con la fuerza del muslo frontal. Solo el peso corporal y una superficie blanda bajo las rodillas. El estiramiento cargado del cuádriceps que nadie hace y todos deberían."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_biarticular_lengthened",
+  "schemaVersion": 1
+}

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Peso Muerto",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__bilateral__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra libre bilateral; es la articulación con mayor recorrido del movimiento.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla hace una flexión ligera al inicio y aporta estabilidad, extendiéndose junto a la cadera con la barra sin dominar el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra libre a dos lados, sosteniendo el tronco durante la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con barra, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,28 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar la barra del suelo con ambos pies y frena la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir la barra con las dos piernas y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue bilateral desde el suelo y sostiene la pierna mientras la barra sube pegada al cuerpo."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales mantienen el tronco en isométrico con la barra libre, resistiendo la flexión mientras la cadera se abre."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la carga libre a dos manos, coordinando cadera y columna en la subida."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -121,7 +87,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra libre bilateral; es la articulación con mayor recorrido del movimiento.",
                       "role": "PRIMARY"
                     },
                     {
@@ -129,7 +94,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla hace una flexión ligera al inicio y aporta estabilidad, extendiéndose junto a la cadera con la barra sin dominar el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -137,7 +101,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra libre a dos lados, sosteniendo el tronco durante la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -145,11 +108,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con barra, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -157,13 +118,9 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -174,7 +131,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -184,30 +140,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "barbell · bilateral",
@@ -215,15 +147,6 @@
                     "implement": "barbell",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                  "technique": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. El movimiento que más fuerza construye."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -236,7 +159,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__bilateral__barbell",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -255,42 +178,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Barra · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -306,9 +208,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. El movimiento que más fuerza construye."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -323,7 +223,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__unilateral__barbell",
@@ -331,16 +230,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -354,7 +246,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra unilateral, trabajando el recorrido con un equilibrio exigente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -362,7 +253,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -370,7 +260,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la carga unilateral de la barra provoca, sosteniendo el tronco en la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -378,7 +267,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra unilateral, con movilidad mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -386,32 +274,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera de forma concéntrica con la barra unilateral y controla la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la barra a una pierna y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con barra y mantiene la estabilidad de la pierna que soporta la carga."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el tronco en isométrico frente al giro que la barra unilateral crea, resistiendo la flexión del tronco."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para compensar el desequilibrio de la barra a una pierna durante toda la subida."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, ayudando al equilibrio con la barra unilateral."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -434,7 +296,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra unilateral, trabajando el recorrido con un equilibrio exigente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -442,7 +303,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -450,7 +310,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la carga unilateral de la barra provoca, sosteniendo el tronco en la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -458,11 +317,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra unilateral, con movilidad mínima.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -470,14 +327,10 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
                     "tensor_fasciae_latae"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -488,7 +341,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -498,30 +350,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "barbell · unilateral",
@@ -529,15 +357,6 @@
                     "implement": "barbell",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. Útil para corregir desequilibrios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -550,7 +369,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__unilateral__barbell",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -569,42 +388,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Barra · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -621,9 +419,7 @@
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. Útil para corregir desequilibrios."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -638,7 +434,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__bilateral__smith_machine",
@@ -646,16 +441,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -669,7 +457,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la máquina Smith bilateral, con la barra guiada que impone una trayectoria vertical fija.",
                   "role": "PRIMARY"
                 },
                 {
@@ -677,7 +464,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad con la Smith, extendiéndose junto a la cadera sobre la guía fija.",
                   "role": "SECONDARY"
                 },
                 {
@@ -685,7 +471,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra guiada a dos lados, con menor exigencia de equilibrio que la barra libre.",
                   "role": "STABILIZER"
                 },
                 {
@@ -693,7 +478,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la Smith, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -701,24 +485,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al subir la barra guiada con ambas piernas y frena la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera con la Smith bilateral y controlan el descenso de la carga guiada."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue con la máquina Smith y sostiene las piernas mientras la barra sube por su guía."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la barra guiada, aunque la guía reduce la necesidad de equilibrio lateral."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -741,7 +507,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la máquina Smith bilateral, con la barra guiada que impone una trayectoria vertical fija.",
                       "role": "PRIMARY"
                     },
                     {
@@ -749,7 +514,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad con la Smith, extendiéndose junto a la cadera sobre la guía fija.",
                       "role": "SECONDARY"
                     },
                     {
@@ -757,7 +521,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra guiada a dos lados, con menor exigencia de equilibrio que la barra libre.",
                       "role": "STABILIZER"
                     },
                     {
@@ -765,11 +528,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la Smith, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -777,12 +538,8 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -793,7 +550,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -803,30 +559,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "smith_machine · bilateral",
@@ -834,15 +566,6 @@
                     "implement": "smith_machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                  "technique": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. Estable para series pesadas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -855,7 +578,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__bilateral__smith_machine",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -874,42 +597,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Máquina Smith · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -924,9 +626,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. Estable para series pesadas."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -941,7 +641,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__unilateral__smith_machine",
@@ -949,16 +648,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -972,7 +664,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende sobre la guía de la Smith, con recorrido vertical fijo y sin oscilación lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -980,7 +671,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose sobre la guía mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -988,7 +678,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación del apoyo unipodal, aunque la guía de la Smith reduce el desequilibrio de la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -996,7 +685,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante el apoyo unilateral, con movilidad mínima en la subida con la Smith.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1004,28 +692,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera con la barra guiada unilateral y controla la bajada de la carga en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la Smith a una pierna y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con la guía de la Smith y mantiene estable la pierna que soporta la carga."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para centrar el cuerpo sobre la guía de la Smith con apoyo en una sola pierna."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, aportando equilibrio en la Smith unilateral."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1048,7 +714,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende sobre la guía de la Smith, con recorrido vertical fijo y sin oscilación lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1056,7 +721,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose sobre la guía mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1064,7 +728,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación del apoyo unipodal, aunque la guía de la Smith reduce el desequilibrio de la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1072,11 +735,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante el apoyo unilateral, con movilidad mínima en la subida con la Smith.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -1084,13 +745,9 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core",
                     "tensor_fasciae_latae"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1101,7 +758,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1111,30 +767,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "smith_machine · unilateral",
@@ -1142,15 +774,6 @@
                     "implement": "smith_machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. Útil para igualar piernas y cadera."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1163,7 +786,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__unilateral__smith_machine",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -1182,42 +805,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Máquina Smith · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1233,9 +835,7 @@
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. Útil para igualar piernas y cadera."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1250,7 +850,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__bilateral__dumbbells",
@@ -1258,16 +857,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -1281,7 +873,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con las mancuernas bilaterales, con recorrido libre y carga a cada lado del cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1289,7 +880,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera mientras las mancuernas viajan por fuera de la pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1297,7 +887,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas libres a dos lados, sosteniendo el tronco durante la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1305,7 +894,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con mancuernas, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1313,28 +901,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar las mancuernas del suelo con ambos pies y frena la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir las mancuernas con las dos piernas y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue bilateral con mancuernas y sostiene las piernas mientras las pesas suben por fuera."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales mantienen el tronco en isométrico con las mancuernas libres, que viajan por fuera de las rodillas en la subida."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con una mancuerna en cada mano, coordinando cadera y columna sin guía externa."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1357,7 +923,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con las mancuernas bilaterales, con recorrido libre y carga a cada lado del cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1365,7 +930,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera mientras las mancuernas viajan por fuera de la pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1373,7 +937,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas libres a dos lados, sosteniendo el tronco durante la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1381,11 +944,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con mancuernas, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -1393,13 +954,9 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1410,7 +967,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1420,30 +976,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "dumbbells · bilateral",
@@ -1451,15 +983,6 @@
                     "implement": "dumbbells",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                  "technique": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La versión tolerante del peso muerto."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1472,7 +995,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__bilateral__dumbbells",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -1491,42 +1014,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Mancuernas · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1542,9 +1044,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La versión tolerante del peso muerto."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1559,7 +1059,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__unilateral__dumbbells",
@@ -1567,16 +1066,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -1590,7 +1082,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la mancuerna unilateral, con recorrido libre y equilibrio exigente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1598,7 +1089,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la mancuerna mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1606,7 +1096,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la mancuerna unilateral provoca, sosteniendo el tronco durante la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1614,7 +1103,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la mancuerna, con movilidad mínima en el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1622,32 +1110,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera con la mancuerna unilateral y controla la bajada de la carga en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la mancuerna a una pierna y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con mancuerna y mantiene estable la pierna que soporta la carga."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el tronco en isométrico frente al giro que la mancuerna unilateral crea, resistiendo la flexión del tronco."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para compensar la carga asimétrica de la mancuerna con apoyo en una sola pierna."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, ayudando al equilibrio con la mancuerna unilateral."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1670,7 +1132,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la mancuerna unilateral, con recorrido libre y equilibrio exigente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1678,7 +1139,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la mancuerna mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1686,7 +1146,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la mancuerna unilateral provoca, sosteniendo el tronco durante la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1694,11 +1153,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la mancuerna, con movilidad mínima en el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -1706,14 +1163,10 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
                     "tensor_fasciae_latae"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1724,7 +1177,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1734,30 +1186,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "dumbbells · unilateral",
@@ -1765,15 +1193,6 @@
                     "implement": "dumbbells",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. El ejercicio de corrección de desequilibrios por excelencia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1786,7 +1205,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__unilateral__dumbbells",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -1805,42 +1224,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Mancuernas · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1857,9 +1255,7 @@
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. El ejercicio de corrección de desequilibrios por excelencia."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1874,7 +1270,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__bilateral__hex_bar",
@@ -1882,16 +1277,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
@@ -1905,7 +1293,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra hexagonal bilateral, con recorrido más vertical que la barra libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1913,7 +1300,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera con la carga centrada de la barra hexagonal.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1921,7 +1307,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra hexagonal centrada, con menor exigencia que la barra convencional.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1929,7 +1314,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la barra hexagonal, con movilidad mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1937,28 +1321,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar la barra hexagonal con ambos pies y frena la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir la barra hexagonal con las dos piernas y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue bilateral con la barra hexagonal, que centra la carga alrededor del cuerpo."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales mantienen el tronco en isométrico con la barra hexagonal, cuya posición centrada reduce el momento sobre la espalda."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la barra hexagonal entre las manos, coordinando cadera y columna en la subida vertical."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -1981,7 +1343,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona al bajar y se extiende al subir con la barra hexagonal bilateral, con recorrido más vertical que la barra libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1989,7 +1350,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad, extendiéndose junto a la cadera con la carga centrada de la barra hexagonal.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1997,7 +1357,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra hexagonal centrada, con menor exigencia que la barra convencional.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2005,11 +1364,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida bilateral con la barra hexagonal, con movilidad mínima.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -2017,13 +1374,9 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2034,7 +1387,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2044,30 +1396,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "hex_bar · bilateral",
@@ -2075,15 +1403,6 @@
                     "implement": "hex_bar",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                  "technique": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. Cómoda, estable y útil para acumular trabajo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2096,7 +1415,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__bilateral__hex_bar",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -2115,42 +1434,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Barra Hexagonal · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "hex_bar"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2166,9 +1464,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. Cómoda, estable y útil para acumular trabajo."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -2183,7 +1479,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "conventional_deadlift__unilateral__hex_bar",
@@ -2191,16 +1486,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
-                "El rey absoluto de la fuerza total, sin discusión posible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "hex_bar",
@@ -2214,7 +1502,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra hexagonal unilateral, con recorrido vertical y equilibrio exigente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2222,7 +1509,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra hexagonal mientras se mantiene el equilibrio.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2230,7 +1516,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la barra hexagonal unilateral provoca, sosteniendo el tronco en la subida.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2238,7 +1523,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra hexagonal, con movilidad mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2246,32 +1530,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna de apoyo extiende la cadera con la barra hexagonal unilateral y controla la bajada de la carga en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales del lado de trabajo impulsan la extensión de cadera con la barra hexagonal a una pierna y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps extiende la rodilla en el despegue unipodal con la barra hexagonal y mantiene estable la pierna que soporta la carga."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el tronco en isométrico frente al giro que la barra hexagonal unilateral crea, resistiendo la flexión."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica para compensar la carga asimétrica de la barra hexagonal con apoyo en una sola pierna."
-                },
-                {
-                  "muscleId": "tensor_fasciae_latae",
-                  "note": "Estabilizador: El tensor de la fascia lata estabiliza la cadera de la pierna de apoyo en isométrico, ayudando al equilibrio con la barra hexagonal unilateral."
-                }
-              ],
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -2294,7 +1552,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna de apoyo se flexiona y se extiende con la barra hexagonal unilateral, con recorrido vertical y equilibrio exigente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2302,7 +1559,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla del lado de apoyo hace una flexión ligera y aporta estabilidad, extendiéndose con la barra hexagonal mientras se mantiene el equilibrio.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2310,7 +1566,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión y la rotación que la barra hexagonal unilateral provoca, sosteniendo el tronco en la subida.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2318,11 +1573,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco ante la carga asimétrica de la barra hexagonal, con movilidad mínima.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings"
@@ -2330,14 +1583,10 @@
                   "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
                     "tensor_fasciae_latae"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2348,7 +1597,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2358,30 +1606,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "execution": [
-                    "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Convencional",
                   "displaySummary": "hex_bar · unilateral",
@@ -2389,15 +1613,6 @@
                     "implement": "hex_bar",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
-                    "El rey absoluto de la fuerza total, sin discusión posible."
-                  ],
-                  "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-                  "variantRationale": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. Variante exigente que se perciben en el glúteo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2410,7 +1625,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Convencional",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "conventional_deadlift__unilateral__hex_bar",
                   "definitionId": "conventional_deadlift",
                   "familyId": "hinge_deadlift",
@@ -2429,42 +1644,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Convencional en la variante Barra Hexagonal · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "hex_bar"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "hex_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2481,9 +1675,7 @@
                 "tensor_fasciae_latae"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado.",
-              "ttc": 2.0,
-              "variantRationale": "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. Variante exigente que se perciben en el glúteo."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "hex_bar",
@@ -2498,7 +1690,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hinge_deadlift",
@@ -2526,7 +1717,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sumo_deadlift__barbell",
@@ -2534,16 +1724,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
-                "La vía ancha para levantar mucho con menos peaje lumbar."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -2557,7 +1740,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con barra, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2565,7 +1747,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con los brazos por dentro de las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2573,7 +1754,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra en postura sumo, con el tronco más vertical por la base amplia.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2581,7 +1761,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con barra, con movilidad mínima en el recorrido corto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2589,28 +1768,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar la barra en postura sumo y frena la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir la barra con la base amplia y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps extiende la rodilla de forma concéntrica en el despegue sumo, donde la base amplia aumenta su participación desde el suelo."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores ayudan a estabilizar la cadera abierta en la postura sumo y colaboran en la extensión durante la subida de la barra."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con la barra entre las piernas en la postura sumo, coordinando cadera y columna."
-                }
-              ],
               "performanceProfileId": "sumo_deadlift__barbell__peso_muerto_sumo",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -2634,7 +1791,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con barra, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2642,7 +1798,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con los brazos por dentro de las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2650,7 +1805,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con la barra en postura sumo, con el tronco más vertical por la base amplia.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2658,11 +1812,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con barra, con movilidad mínima en el recorrido corto.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings",
@@ -2671,12 +1823,8 @@
                   "secondaryMuscles": [
                     "adductors"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2687,7 +1835,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2697,45 +1844,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
-                  ],
-                  "execution": [
-                    "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Sumo",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
-                    "La vía ancha para levantar mucho con menos peaje lumbar."
-                  ],
-                  "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
-                  "technique": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical.",
-                  "variantRationale": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La elección de muchos para cargar pesado con comodidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2748,7 +1862,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "sumo_deadlift__barbell",
                   "definitionId": "sumo_deadlift",
                   "familyId": "hinge_deadlift",
@@ -2766,42 +1880,22 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Sumo en la variante Barra.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2816,9 +1910,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La elección de muchos para cargar pesado con comodidad."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -2832,7 +1924,6 @@
                 "legacy:exercise_database.json#hams_peso_muerto_convencional",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "sumo_deadlift__dumbbells",
@@ -2840,16 +1931,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-                "La vía ancha para levantar mucho con menos peaje lumbar."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -2863,7 +1947,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con mancuernas, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2871,7 +1954,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con las mancuernas a los lados del cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2879,7 +1961,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas en postura sumo, con el tronco más vertical por la base amplia.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2887,7 +1968,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con mancuernas, con movilidad mínima en el recorrido corto.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2895,28 +1975,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera de forma concéntrica al despegar las mancuernas en postura sumo y frena la bajada en excéntrico."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiotibiales colaboran en la extensión de cadera al subir las mancuernas con la base amplia y frenan el descenso de la carga."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps extiende la rodilla de forma concéntrica en el despegue sumo con mancuernas, donde la base amplia reparte el empuje de las piernas."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores ayudan a estabilizar la cadera abierta en la postura sumo y colaboran en la extensión mientras las mancuernas suben a los lados."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core rigidiza el tronco de forma isométrica con una mancuerna a cada lado en la postura sumo, coordinando cadera y columna sin guía."
-                }
-              ],
               "performanceProfileId": "sumo_deadlift__dumbbells__peso_muerto_sumo",
               "primaryMuscles": [
                 "gluteus_maximus",
@@ -2940,7 +1998,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende en la postura sumo con mancuernas, con la base amplia que acerca la pelvis a la carga antes de la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2948,7 +2005,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla hace una flexión ligera y aporta estabilidad en el sumo, extendiéndose junto a la cadera con las mancuernas a los lados del cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2956,7 +2012,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar resiste la flexión de forma isométrica con las mancuernas en postura sumo, con el tronco más vertical por la base amplia.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2964,11 +2019,9 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en la subida sumo con mancuernas, con movilidad mínima en el recorrido corto.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus",
                     "hamstrings",
@@ -2977,12 +2030,8 @@
                   "secondaryMuscles": [
                     "adductors"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2993,7 +2042,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "deadlift",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -3003,45 +2051,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
-                  ],
-                  "execution": [
-                    "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo."
-                  ]
-                },
                 "display": {
                   "displayName": "Peso Muerto Sumo",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-                    "La vía ancha para levantar mucho con menos peaje lumbar."
-                  ],
-                  "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
-                  "technique": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical.",
-                  "variantRationale": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. Los glúteos y aductores comparten el despegue con una sensación más libre que la barra."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3054,7 +2069,7 @@
                 },
                 "identity": {
                   "canonicalName": "Peso Muerto Sumo",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "sumo_deadlift__dumbbells",
                   "definitionId": "sumo_deadlift",
                   "familyId": "hinge_deadlift",
@@ -3072,42 +2087,22 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Peso Muerto Sumo en la variante Mancuernas.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3122,9 +2117,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. Los glúteos y aductores comparten el despegue con una sensación más libre que la barra."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -3138,7 +2131,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hinge_deadlift",
@@ -3154,13 +2146,11 @@
         ]
       }
     ],
-    "description": "Familia de bisagra de cadera desde el suelo; la postura convencional y la sumo son padres separados y los déficits y métodos nombrados permanecen como especialidades.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "hinge_deadlift",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Sentadilla Búlgara",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_split_squat__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "El ejercicio unilateral más temido y más efectivo para las piernas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral, mientras la barra carga de más la bajada y la subida sobre ese mismo lado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra empujando el torso hacia abajo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero busca dorsiflexión y equilibrio durante todo el arco, y la barra aumenta la presión sobre ese apoyo con el pie trasero en el banco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga de la barra entre pelvis y columna mientras la pierna delantera trabaja sola con el pie trasero elevado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con la barra cargada y extiende la rodilla al subir, con el pie trasero elevado en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera en la subida, y la barra le añade carga suficiente para exigirle en cada repetición."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el torso erguido con la barra puesta y contrarresta la inclinación pélvica que busca el pie trasero apoyado en el banco."
-                }
-              ],
               "performanceProfileId": "bulgarian_split_squat__barbell__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -113,7 +87,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral, mientras la barra carga de más la bajada y la subida sobre ese mismo lado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -121,7 +94,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra empujando el torso hacia abajo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -129,7 +101,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero busca dorsiflexión y equilibrio durante todo el arco, y la barra aumenta la presión sobre ese apoyo con el pie trasero en el banco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -137,22 +108,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga de la barra entre pelvis y columna mientras la pierna delantera trabaja sola con el pie trasero elevado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -163,7 +128,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -173,45 +137,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra y pie trasero en el banco: la búlgara tradicional con carga."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "El ejercicio unilateral más temido y más efectivo para las piernas."
-                  ],
-                  "description": "Con barra, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Barra y pie trasero en el banco: la búlgara tradicional con carga. El ejercicio unilateral más efectivo para las piernas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -224,7 +155,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_split_squat__barbell",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -242,42 +173,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -290,9 +200,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra y pie trasero en el banco: la búlgara tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Barra y pie trasero en el banco: la búlgara tradicional con carga. El ejercicio unilateral más efectivo para las piernas."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -306,7 +214,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_split_squat__smith_machine",
@@ -314,16 +221,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
-                "El ejercicio unilateral más temido y más efectivo para las piernas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -337,7 +237,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido fijo de la Smith, con el pie trasero elevado en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -345,7 +244,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido vertical que fija la Smith.",
                   "role": "PRIMARY"
                 },
                 {
@@ -353,7 +251,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, aunque la guía de la Smith aligera la demanda lateral del apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -361,7 +258,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la Smith guiando la barra y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -369,20 +265,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada guiada por la Smith y extiende la rodilla al subir, con el pie trasero apoyado en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y la guía fija de la Smith le quita parte del equilibrio lateral al conjunto."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el torso erguido contra la barra guiada de la Smith y contrarresta la inclinación pélvica con el pie trasero en el banco."
-                }
-              ],
               "performanceProfileId": "bulgarian_split_squat__smith_machine__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -405,7 +287,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido fijo de la Smith, con el pie trasero elevado en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -413,7 +294,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido vertical que fija la Smith.",
                       "role": "PRIMARY"
                     },
                     {
@@ -421,7 +301,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, aunque la guía de la Smith aligera la demanda lateral del apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -429,22 +308,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la Smith guiando la barra y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -455,7 +328,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -465,45 +337,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith y pie trasero en el banco: el guiado da estabilidad en la bajada."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara",
                   "displaySummary": "smith_machine",
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
-                    "El ejercicio unilateral más temido y más efectivo para las piernas."
-                  ],
-                  "description": "Con máquina Smith, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
-                  "technique": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. Cómoda para cargar peso en la búlgara."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -516,7 +355,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_split_squat__smith_machine",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -534,42 +373,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara en la variante Máquina Smith.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -582,9 +400,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Smith y pie trasero en el banco: el guiado da estabilidad en la bajada. Cómoda para cargar peso en la búlgara."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -598,7 +414,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_split_squat__machine",
@@ -606,16 +421,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                "El ejercicio unilateral más temido y más efectivo para las piernas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -629,7 +437,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido guiado de la máquina, con el pie trasero sujeto por su apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -637,7 +444,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido fijado por la máquina.",
                   "role": "PRIMARY"
                 },
                 {
@@ -645,7 +451,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio sobre el apoyo de la máquina, que aligera la estabilidad lateral del conjunto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -653,7 +458,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con el recorrido guiado de la máquina y el pie trasero sujeto en su apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -661,20 +465,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada en el recorrido guiado de la máquina y extiende la rodilla al subir con el apoyo trasero fijo."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y el apoyo fijo de la máquina concentra el esfuerzo en ese lado sin desequilibrios."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el torso erguido dentro de la máquina y limita la inclinación pélvica que el apoyo trasero fijo intenta provocar."
-                }
-              ],
               "performanceProfileId": "bulgarian_split_squat__machine__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -697,7 +487,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral sobre el recorrido guiado de la máquina, con el pie trasero sujeto por su apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -705,7 +494,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis dentro del recorrido fijado por la máquina.",
                       "role": "PRIMARY"
                     },
                     {
@@ -713,7 +501,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio sobre el apoyo de la máquina, que aligera la estabilidad lateral del conjunto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -721,22 +508,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con el recorrido guiado de la máquina y el pie trasero sujeto en su apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -747,7 +528,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -757,45 +537,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                    "El ejercicio unilateral más temido y más efectivo para las piernas."
-                  ],
-                  "description": "Con máquina, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                  "technique": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La opción cómoda para series exigentes."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -808,7 +555,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_split_squat__machine",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -826,42 +573,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara en la variante Máquina.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -874,9 +600,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina de búlgara: el guiado y el apoyo fijo hacen el ejercicio más estable. La opción cómoda para series exigentes."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine"
@@ -890,7 +614,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_split_squat__dumbbells",
@@ -898,16 +621,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-                "El ejercicio unilateral más temido y más efectivo para las piernas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -921,7 +637,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral mientras las mancuernas libres suman su peso al del torso en la bajada.",
                   "role": "PRIMARY"
                 },
                 {
@@ -929,7 +644,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis mientras las mancuernas libres exigen equilibrio extra.",
                   "role": "PRIMARY"
                 },
                 {
@@ -937,7 +651,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, y las mancuernas libres hacen más delicado el apoyo de esa pierna.",
                   "role": "SECONDARY"
                 },
                 {
@@ -945,7 +658,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con dos mancuernas libres y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -953,20 +665,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con una mancuerna en cada mano y extiende la rodilla al subir, con el pie trasero en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y las dos mancuernas libres obligan a ese lado a dirigir todo el recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el torso erguido con una mancuerna por mano y contrarresta la inclinación pélvica que crea el pie trasero elevado en el banco."
-                }
-              ],
               "performanceProfileId": "bulgarian_split_squat__dumbbells__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -989,7 +687,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral mientras las mancuernas libres suman su peso al del torso en la bajada.",
                       "role": "PRIMARY"
                     },
                     {
@@ -997,7 +694,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis mientras las mancuernas libres exigen equilibrio extra.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1005,7 +701,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en cada repetición, y las mancuernas libres hacen más delicado el apoyo de esa pierna.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1013,22 +708,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con dos mancuernas libres y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1039,7 +728,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1049,45 +737,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-                    "El ejercicio unilateral más temido y más efectivo para las piernas."
-                  ],
-                  "description": "Con mancuernas, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-                  "technique": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. Permite trabajar cada pierna por separado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1100,7 +755,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_split_squat__dumbbells",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1118,42 +773,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara en la variante Mancuernas.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1166,9 +800,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuernas y pie trasero en el banco: la versión más equilibrada y utilizada. Permite trabajar cada pierna por separado."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1182,7 +814,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_split_squat__cable",
@@ -1190,16 +821,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El ejercicio unilateral más temido y más efectivo para las piernas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -1213,7 +837,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral contra la tensión constante de la polea, con el pie trasero apoyado en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1221,7 +844,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis bajo la tracción constante que entrega la polea.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1229,7 +851,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio bajo la tensión constante de la polea, con el pie trasero elevado sobre el banco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1237,7 +858,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la polea tirando de forma constante y el pie trasero sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1245,20 +865,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada contra la tensión constante de la polea y extiende la rodilla al subir, con el pie trasero en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, mientras la polea conserva la tensión también en el punto más alto del recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el torso erguido contra la línea de tracción de la polea y contrarresta la inclinación pélvica con el pie trasero en el banco."
-                }
-              ],
               "performanceProfileId": "bulgarian_split_squat__cable__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -1281,7 +887,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral contra la tensión constante de la polea, con el pie trasero apoyado en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1289,7 +894,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis bajo la tracción constante que entrega la polea.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1297,7 +901,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio bajo la tensión constante de la polea, con el pie trasero elevado sobre el banco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1305,22 +908,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la polea tirando de forma constante y el pie trasero sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1331,7 +928,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1341,45 +937,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea y pie trasero en el banco: la tensión constante se suma a la búlgara."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El ejercicio unilateral más temido y más efectivo para las piernas."
-                  ],
-                  "description": "Con polea, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. Variante precisa que mantiene el tensión durante todo el recorrido."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1392,7 +955,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_split_squat__cable",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1410,42 +973,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara en la variante Polea.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1458,9 +1000,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Polea y pie trasero en el banco: la tensión constante se suma a la búlgara. Variante precisa que mantiene el tensión durante todo el recorrido."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1474,7 +1014,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_split_squat__kettlebell",
@@ -1482,16 +1021,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
-                "El ejercicio unilateral más temido y más efectivo para las piernas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
@@ -1505,7 +1037,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la kettlebell cambiando el equilibrio de la carga y el banco detrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1513,7 +1044,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la kettlebell desplazando el centro de masa del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1521,7 +1051,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la kettlebell en juego, lo que vuelve más delicado el apoyo de la pierna delantera.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1529,7 +1058,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la kettlebell en la mano y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1537,20 +1065,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con la kettlebell y extiende la rodilla al subir, con el pie trasero apoyado en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor de la pierna delantera extiende la cadera al subir, y el centro de masa de la kettlebell cambia el punto duro del recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el torso erguido con la kettlebell desplazando el centro de masa y contrarresta la inclinación del pie trasero elevado."
-                }
-              ],
               "performanceProfileId": "bulgarian_split_squat__kettlebell__sentadilla_bulgara",
               "primaryMuscles": [
                 "quadriceps",
@@ -1573,7 +1087,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la kettlebell cambiando el equilibrio de la carga y el banco detrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1581,7 +1094,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la kettlebell desplazando el centro de masa del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1589,7 +1101,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la kettlebell en juego, lo que vuelve más delicado el apoyo de la pierna delantera.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1597,22 +1108,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la kettlebell en la mano y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1623,7 +1128,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1633,45 +1137,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
-                    "El ejercicio unilateral más temido y más efectivo para las piernas."
-                  ],
-                  "description": "Con kettlebell, con el pie trasero apoyado en el banco, la pierna delantera baja y sube con todo el peso. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del cuádriceps.",
-                  "technique": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. Variante completa para pierna y antebrazos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1684,7 +1155,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_split_squat__kettlebell",
                   "definitionId": "bulgarian_split_squat",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1702,42 +1173,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara en la variante Kettlebell.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1750,9 +1200,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Kettlebell y pie trasero en el banco: el agarre suma trabajo al ejercicio. Variante completa para pierna y antebrazos."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1766,7 +1214,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "unilateral_knee_dominant_bulgarian",
@@ -1792,7 +1239,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_zercher",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "bulgarian_zercher__barbell__zercher",
@@ -1800,16 +1246,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "La búlgara más incómoda y una de las más completas que existen."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -1823,7 +1262,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la barra apoyada en los codos y el pie trasero elevado sobre el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1831,7 +1269,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la carga de la barra pegada al torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1839,7 +1276,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la barra en los codos, que acerca el peso al cuerpo y exige un apoyo firme.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1847,7 +1283,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra en los codos y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1855,20 +1290,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena la bajada con la barra apoyada en los codos y extiende la rodilla al subir, con el pie trasero en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor de la pierna delantera ayuda a extender la cadera al subir mientras la barra en los codos carga el torso en una vertical exigente."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core sostiene el torso erguido con la barra abrazada en los codos, carga que se suma al esfuerzo de la pierna delantera y al pie trasero del banco."
-                }
-              ],
               "performanceProfileId": "bulgarian_zercher__barbell__sentadilla_bulgara_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -1890,7 +1311,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral con la barra apoyada en los codos y el pie trasero elevado sobre el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1898,7 +1318,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la carga de la barra pegada al torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1906,7 +1325,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio con la barra en los codos, que acerca el peso al cuerpo y exige un apoyo firme.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1914,11 +1332,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra en los codos y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -1926,11 +1342,7 @@
                     "gluteus_maximus",
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1940,7 +1352,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1950,43 +1361,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara Zercher",
                   "displaySummary": "Sentadilla búlgara Zercher",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "La búlgara más incómoda y una de las más completas que existen."
-                  ],
-                  "description": "Con barra, con el pie trasero en el banco y la carga abrazada al torso, la bajada es vertical. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. Exigente y con una demanda amplia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1999,7 +1377,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Zercher",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "bulgarian_zercher__barbell__zercher",
                   "definitionId": "bulgarian_zercher",
                   "familyId": "unilateral_knee_dominant_bulgarian",
@@ -2017,42 +1395,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara Zercher en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2066,9 +1422,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en los codos con el pie trasero en el banco: la búlgara con el torso trabajando de extra. Exigente y con una demanda amplia."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -2080,7 +1434,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "unilateral_knee_dominant_bulgarian",
@@ -2094,13 +1447,11 @@
         ]
       }
     ],
-    "description": "Familia unilateral con el pie trasero apoyado; el implemento es la única decisión visible y las variantes con método nombrado quedan como especialidades.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "unilateral_knee_dominant_bulgarian",

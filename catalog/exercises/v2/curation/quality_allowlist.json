@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "description": "Excepciones explícitas del auditor de calidad. Cada entrada exige check, un selector (definitionIds, configurationIds o contains) y un why verificable. Sin why la entrada se ignora y el auditor reporta allowlist_invalid.",
+  "entries": []
+}

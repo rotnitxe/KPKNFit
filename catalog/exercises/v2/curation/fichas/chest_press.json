@@ -1,0 +1,911 @@
+{
+  "schemaVersion": 1,
+  "familyId": "chest_press",
+  "definitions": {
+    "bench_press": {
+      "status": "CURATED",
+      "public": {
+        "description": "Tumbado boca arriba, el Press de Banca Plano (bench press) empuja la carga en horizontal desde el pecho hasta extender los codos. El pectoral mayor flexiona y aduce el húmero, el deltoides anterior acompaña ese empuje y el tríceps braquial endereza el codo. Las escápulas quedan apoyadas en el banco y los pies en el suelo, de modo que el tronco no se columpia para subir el peso. Cada implemento cambia el arco o la estabilidad, pero el gesto compartido es ese empuje con la espalda fija. Ahí se construye la fuerza de pecho en un recorrido que empieza y acaba contra el banco.",
+        "configurations": {
+          "bench_press__barbell": {
+            "description": "Las dos manos comparten una barra y un solo arco, con los discos libres a los lados. Si un brazo se adelanta, la barra se tuerce y ambos lados tienen que empujar a la vez.",
+            "setupCues": [
+              "Échate de espaldas sobre el banco horizontal y apoya las plantas completas en el piso.",
+              "Junta las escápulas contra el banco y agarra la barra poco más ancha que los hombros.",
+              "Saca la barra hasta tenerla sobre el pecho con los codos estirados."
+            ],
+            "executionCues": [
+              "Baja la barra hasta rozar la parte baja del pecho, sin rebotar.",
+              "Vuelve a dejar los codos rectos sin despegar la pelvis del banco."
+            ]
+          },
+          "bench_press__dumbbells": {
+            "description": "Cada mancuerna traza su arco y la muñeca puede rotar hasta donde el hombro lo pide. Un codo puede bajar más que el otro porque las cargas no van unidas.",
+            "setupCues": [
+              "Túmbate en el banco plano con una mancuerna en cada mano y los pies en el suelo.",
+              "Apoya las escápulas y deja las mancuernas sobre los hombros, codos estirados."
+            ],
+            "executionCues": [
+              "Baja cada mancuerna hacia el lado del pecho hasta que el codo quede bajo el hombro.",
+              "Empuja las dos a la vez hasta extender los codos, sin que una se adelante."
+            ]
+          },
+          "bench_press__smith_machine": {
+            "description": "Los rieles verticales imponen la línea de subida y la barra no se va hacia la cara ni hacia las costillas. El banco se corre hasta que el pecho queda debajo de esa línea.",
+            "setupCues": [
+              "Corre el banco plano hasta que el pecho quede bajo la línea de los rieles.",
+              "Túmbate, apoya los pies y agarra la barra un poco más ancha que los hombros."
+            ],
+            "executionCues": [
+              "Baja la barra por los rieles hasta el pecho, sin sacar la cadera del banco.",
+              "Empuja en vertical hasta estirar los codos, con la barra dentro de los rieles."
+            ]
+          },
+          "bench_press__machine": {
+            "description": "Los agarres viajan en brazos articulados y la pila no cuelga de las manos. En culturistas, esa prensa excitó menos el tríceps y el deltoides lateral que el peso libre, con la porción del esternón parecida al plano.",
+            "setupCues": [
+              "Apoya la espalda en el respaldo de la estación, con los pies firmes en el suelo.",
+              "Agarra ambos mangos a la altura del pecho, con las muñecas firmes."
+            ],
+            "executionCues": [
+              "Acerca los mangos al pecho sin despegar la espalda del respaldo.",
+              "Empuja hasta extender los codos y deja que los brazos de la estación marquen el arco."
+            ]
+          },
+          "bench_press__cable": {
+            "description": "La polea arrastra los agarres en todo el arco, también cuando los codos ya están casi estirados. La dirección de la carga apunta a las poleas, no solo hacia el suelo.",
+            "setupCues": [
+              "Túmbate en el banco plano entre las poleas, con los pies en el suelo.",
+              "Agarra un mango en cada mano y llévalos sobre el pecho con los codos estirados."
+            ],
+            "executionCues": [
+              "Deja que los mangos bajen hacia los lados del pecho sin perder la espalda en el banco.",
+              "Cierra los brazos con los mangos, porque las poleas tiran también arriba."
+            ]
+          },
+          "bench_press__kettlebell": {
+            "description": "La bola cuelga bajo el asa y cada kettlebell puede girar dentro del puño. El centro de la masa no coincide con la muñeca, así que el agarre tiene que frenar el vuelco.",
+            "setupCues": [
+              "Túmbate en el banco plano con un kettlebell en cada mano y los pies en el suelo.",
+              "Cierra el asa con fuerza y deja las bolas sobre el pecho, codos estirados."
+            ],
+            "executionCues": [
+              "Baja cada kettlebell hacia el lado del pecho sin soltar el asa.",
+              "Extiende los codos y no dejes que las bolas roten al final."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Empuje horizontal boca arriba sobre un banco plano: la carga baja hasta el pecho y sube hasta extender los codos, con la espalda fija. El banco horizontal lo separa del declinado y del inclinado, y la ausencia de parada en el esternón lo separa del press con pausa.",
+        "setup": [
+          "Antes de bajar, los pies pisan el suelo y las escápulas ya están pegadas al banco plano.",
+          "Agarre bilateral a la anchura de los hombros o poco más, muñecas firmes.",
+          "La carga empieza sobre el pecho con los codos estirados, no flotando al lado del banco."
+        ],
+        "keyPositions": [
+          "Arriba: brazos estirados, la carga sobre el esternón y las escápulas pegadas al banco.",
+          "Punto bajo: carga tocando el pecho, codos flexionados y por debajo de la línea del hombro, cadera quieta."
+        ],
+        "mistakes": [
+          "Rebotar la carga en el esternón para salir del punto bajo.",
+          "Levantar la cadera del banco para acortar el arco.",
+          "Abrir los codos en cruz hasta perder la línea del antebrazo con la muñeca.",
+          "Bajar solo hasta media altura y no llegar al pecho."
+        ],
+        "phases": [
+          {
+            "name": "Bajada",
+            "description": "El descenso dobla los codos y acerca la carga al pecho, con las escápulas quietas en el banco."
+          },
+          {
+            "name": "Contacto",
+            "description": "La carga toca el pecho sin hundirse ni rebotar, y los pies empujan el suelo."
+          },
+          {
+            "name": "Subida",
+            "description": "Los codos se extienden y la carga vuelve sobre el pecho, sin que la cadera se despegue."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "El pectoral mayor flexiona y aduce el húmero, y ese es el arco que lleva la carga desde el pecho hasta arriba. En el banco plano la cabeza esternocostal se activa con claridad y lidera el empuje frente al cambio de ángulo.",
+            "sources": ["baig_pectoral", "trebs2010", "coratella2020"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "Su porción anterior se activa en el press plano y crece cuando el banco se inclina, así que aquí acompaña la flexión del hombro sin quitarle el papel principal al pectoral.",
+            "sources": ["trebs2010", "coratella2020"]
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "why": "Extiende el codo en la subida. En culturistas su excitación fue mayor en el plano y en el declinado que en el inclinado y en la prensa de pecho, así que en este gesto es un sinergista claro.",
+            "sources": ["tiwana_triceps", "coratella2020"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los extensores de la muñeca, en el antebrazo, sostienen una ligera extensión para que el agarre transmita la fuerza. No desplazan la carga: fijan la muñeca debajo de ella.",
+            "sources": ["reeves_wrist"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal", "Flexión del hombro"],
+            "why": "El húmero se flexiona y se aduce en horizontal desde la apertura del pecho hasta quedar sobre el esternón. Ese arco es el que mueve la carga, y lo produce sobre todo el pectoral mayor.",
+            "sources": ["baig_pectoral", "trebs2010"]
+          },
+          {
+            "id": "codo",
+            "role": "SECONDARY",
+            "actions": ["Extensión del codo"],
+            "why": "El codo pasa de flexionado, con la carga en el pecho, a extendido al final. La extensión es necesaria, pero el arco que define el gesto está en el hombro.",
+            "sources": ["tiwana_triceps", "coratella2020"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Retracción escapular"],
+            "why": "Las escápulas se quedan retraídas y apoyadas en el banco mientras el húmero se mueve. El grupo pectoral también ayuda a estabilizar la escápula, así que esta articulación fija la postura y no desplaza la carga.",
+            "sources": ["baig_pectoral"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad en extensión"],
+            "why": "La muñeca se sostiene en ligera extensión bajo la carga para que el agarre no se venza. Los extensores del antebrazo mantienen esa postura durante todo el empuje.",
+            "sources": ["reeves_wrist"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del torso, con cabeza, tronco, brazos y carga dentro del encuadre.",
+          "phase": "Punto bajo del empuje: codos flexionados y la carga junto al pecho, justo antes de subir.",
+          "orientation": "Atleta de lado, torso apoyado en un respaldo y la cabeza hacia un extremo del encuadre.",
+          "contacts": "Espalda y cabeza contra el respaldo, pies en contacto con el suelo, manos cerradas sobre la carga.",
+          "posture": "Escápulas apoyadas, muñecas firmes, codos separados del tronco y cadera quieta.",
+          "load": "Carga sujeta por las dos manos, a la altura del pecho y separada del suelo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco plano; barra transversal sobre la parte baja del pecho, agarre prono algo más ancho que los hombros, discos a ambos lados por debajo del nivel del banco."
+          },
+          "dumbbells": {
+            "geometry": "Banco plano; una mancuerna a cada lado del pecho, muñecas en agarre neutro o semiprono, codos por debajo de la línea del hombro y las dos cargas independientes."
+          },
+          "smith_machine": {
+            "geometry": "Banco plano colocado bajo dos rieles verticales; la barra baja en línea recta hasta el pecho y no puede adelantarse ni retrasarse."
+          },
+          "machine": {
+            "geometry": "Estación de press con respaldo y dos mangos unidos a brazos articulados; los mangos quedan junto al pecho y la pila de placas queda al lado, en el suelo."
+          },
+          "cable": {
+            "geometry": "Banco plano entre dos poleas; un mango en cada mano junto a los lados del pecho, con los cables saliendo hacia atrás, hacia las poleas."
+          },
+          "kettlebell": {
+            "geometry": "Banco plano; un kettlebell en cada mano, asa cerrada en el puño y la bola colgando bajo el asa, a la altura de los lados del pecho."
+          }
+        },
+        "promptCore": {
+          "barbell": "Side view of an athlete lying supine on a flat bench, frozen at the BOTTOM of a barbell bench press. Both hands grip the barbell with an overhand grip and hold it resting on the lower chest. Elbows are bent out to the sides. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The plates hang beside the bench, clear of the floor.",
+          "dumbbells": "Side view of an athlete lying supine on a flat bench, frozen at the BOTTOM of a dumbbell bench press. Both hands grip the dumbbell handles, one dumbbell in each hand, and hold them beside the lower chest. Elbows are bent below the shoulders, palms angled inward. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The dumbbells are clear of the floor.",
+          "smith_machine": "Side view of an athlete lying supine on a flat bench set under vertical rails, frozen at the BOTTOM of a guided barbell press. Both hands grip the bar with an overhand grip and hold it resting on the lower chest. The bar is locked inside the rails. Elbows are bent out to the sides. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The plates hang beside the bench, clear of the floor.",
+          "machine": "Side view of an athlete with the back on a chest-press station, frozen at the BOTTOM of the press. Both hands grip the machine handles and hold them against the lower chest. Elbows are bent out to the sides. The back and head are pressed against the pad, and both feet are planted flat on the floor. The weight stack rests on the floor beside the station, and the handles are clear of the floor.",
+          "cable": "Side view of an athlete lying supine on a flat bench between two cable pulleys, frozen at the BOTTOM of a cable chest press. Both hands grip the cable handles and hold them beside the lower chest. Elbows are bent out to the sides. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The cables run back toward the pulleys, and the weight stacks rest on the floor.",
+          "kettlebell": "Side view of an athlete lying supine on a flat bench, frozen at the BOTTOM of a kettlebell bench press. Both hands grip the kettlebell handles, one kettlebell in each hand, and hold them beside the lower chest. The round bells hang below the handles. Elbows are bent out to the sides. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The kettlebells are clear of the floor."
+        },
+        "forbidden": [
+          "Atleta de pie empujando por encima de la cabeza: eso es un press militar, no un press de banca.",
+          "Respaldo inclinado o cabeza más baja que las caderas: eso es el press inclinado o el declinado.",
+          "Barra o mancuernas flotando sin que las manos las agarren.",
+          "Cadera despegada del banco en un puente de glúteo."
+        ],
+        "qa": [
+          "¿Las dos manos agarran la carga y la carga no flota suelta?",
+          "¿Los codos están flexionados y la carga está junto al pecho, en el punto bajo?",
+          "¿La espalda está apoyada y los pies tocan el suelo?",
+          "¿El banco o el respaldo está horizontal, sin inclinación ni declive?"
+        ]
+      },
+      "sources": [
+        {
+          "id": "trebs2010",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20512064/",
+          "title": "An electromyography analysis of 3 muscles surrounding the shoulder joint during the performance of a chest press exercise at several angles",
+          "claim": "La cabeza clavicular del pectoral mayor se activó más a 44 y 56 grados que en el plano, la esternocostal más en el plano que en los ángulos inclinados, y el deltoides anterior más a 28, 44 y 56 grados que a 0 grados."
+        },
+        {
+          "id": "coratella2020",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31397215/",
+          "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+          "claim": "En la fase concéntrica, el tríceps se excitó más en el plano y en el declinado que en el inclinado y en la máquina. La cabeza esternocostal fue similar entre plano y máquina, y mayor que en el inclinado. El deltoides lateral se excitó más en el peso libre que en la máquina."
+        },
+        {
+          "id": "baig_pectoral",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana_triceps",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "claim": "La función primaria del tríceps braquial es extender el codo. La cabeza larga nace en la escápula y las tres cabezas se insertan en el olécranon."
+        },
+        {
+          "id": "reeves_wrist",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521226/",
+          "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+          "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza."
+        }
+      ]
+    },
+    "decline_bench_press": {
+      "status": "CURATED",
+      "public": {
+        "description": "El Press de Banca Declinado (decline bench press) coloca la cabeza más baja que las caderas y orienta el empuje hacia los pies. En culturistas, la activación de la zona esternal del pectoral mayor resultó parecida a la del banco horizontal y superior a la del banco elevado, sin una medida aparte de fibras bajas. El deltoides anterior dio menos señal que en esos otros dos ángulos. El tríceps braquial, en cambio, quedó al nivel del plano y por encima del banco elevado. Con las piernas ancladas a los rodillos, el hombro recorre menos arco. Es un empuje de pecho con menos demanda del hombro delantero.",
+        "configurations": {
+          "decline_bench_press__barbell": {
+            "description": "Las piernas quedan en los rodillos y la barra baja hacia la parte baja del esternón, en un arco más corto que el horizontal. Las manos van unidas y la carga puede ser alta porque el respaldo ya mira a los pies.",
+            "setupCues": [
+              "Engancha los pies en los rodillos del banco declinado y apoya la espalda.",
+              "Agarra la barra poco más ancha que los hombros y sácala sobre el pecho bajo."
+            ],
+            "executionCues": [
+              "Baja la barra hasta la parte baja del esternón, sin rebotar.",
+              "Empuja en la línea del torso hasta estirar los codos, sin deslizarte hacia la cabeza."
+            ]
+          },
+          "decline_bench_press__dumbbells": {
+            "description": "Las mancuernas entran por separado junto a la parte baja del pecho, con la cabeza ya más baja que las caderas. El codo puede cerrarse sin chocar una pieza rígida contra las costillas.",
+            "setupCues": [
+              "Engancha los pies en los rodillos y túmbate con una mancuerna a cada lado del pecho.",
+              "Apoya las escápulas en el respaldo declinado antes de abrir el arco."
+            ],
+            "executionCues": [
+              "Baja las mancuernas hacia los lados de la parte baja del pecho.",
+              "Empuja hasta extender los codos sin que una mancuerna se adelante a la otra."
+            ]
+          },
+          "decline_bench_press__smith_machine": {
+            "description": "Hay que colocar el banco declinado bajo los rieles, porque la barra solo se desplaza en vertical. Si el pecho queda fuera de esa línea, el contacto no cae en el esternón.",
+            "setupCues": [
+              "Alinea el banco declinado bajo los rieles para que la barra pase por el esternón bajo.",
+              "Con los tobillos en los rodillos, toma la barra y deja las muñecas alineadas."
+            ],
+            "executionCues": [
+              "Baja la barra por los rieles hasta la parte baja del pecho.",
+              "Sube pegado a los rieles hasta los codos rectos, sin resbalar hacia la cabeza."
+            ]
+          },
+          "decline_bench_press__kettlebell": {
+            "description": "Cada kettlebell se empuja con la bola bajo el asa desde un torso que ya apunta hacia abajo. El desnivel del respaldo hace que la masa tienda a vencer el puño hacia la cara.",
+            "setupCues": [
+              "Engancha los pies y sujeta un kettlebell en cada mano sobre el pecho bajo.",
+              "Apoya la espalda en el respaldo declinado, con las muñecas firmes en el asa."
+            ],
+            "executionCues": [
+              "Baja las kettlebells hacia los lados del pecho sin abrir las manos.",
+              "Cierra los brazos y sujeta el asa para que la bola no gire hacia la cara."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Empuje en banco con la cabeza más baja que las caderas: la carga baja hacia la parte inferior del esternón y sube en la línea del torso. Los rodillos sujetan las piernas. Se separa del plano por el declive y del inclinado porque el hombro delantero trabaja menos, no porque exista una medición de fibras bajas aparte.",
+        "setup": [
+          "Banco declinado con los tobillos sujetos en los rodillos para no resbalar hacia la cabeza.",
+          "Escápulas apoyadas en el respaldo y agarre bilateral antes de sacar la carga.",
+          "La trayectoria apunta al borde inferior del esternón, no a la clavícula."
+        ],
+        "keyPositions": [
+          "Posición alta: los brazos ya rectos, el peso encima del pecho bajo y la cabeza bajo las caderas.",
+          "Punto bajo: carga en la parte baja del esternón, codos flexionados, cuerpo sin deslizarse."
+        ],
+        "mistakes": [
+          "Dejar que el cuerpo resbale hacia la cabeza al empujar.",
+          "Llevar la carga a la clavícula, convirtiendo el arco en un press más alto.",
+          "Rebotar en el abdomen o en la parte baja de las costillas.",
+          "Soltar los rodillos y empujar el suelo con los pies para impulsarse."
+        ],
+        "phases": [
+          {
+            "name": "Descenso",
+            "description": "Los codos se doblan y la carga baja hacia el borde inferior del esternón, con las piernas ancladas."
+          },
+          {
+            "name": "Toque",
+            "description": "La carga contacta la parte baja del pecho sin rebotar y sin que el torso se deslice."
+          },
+          {
+            "name": "Empuje",
+            "description": "Los codos se extienden en la línea del torso declinado hasta volver a la posición de brazos estirados."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "Es el motor del empuje: en culturistas la cabeza esternocostal se excitó de forma parecida al press plano y más que en el inclinado. El estudio no separó una franja inferior del pectoral, así que el rol principal es del pectoral mayor entero.",
+            "sources": ["coratella2020", "baig_pectoral"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "El deltoides anterior se excitó menos en el declinado que en el plano, el inclinado y la máquina, y menos también frente al inclinado con barra en otro registro. Acompaña el empuje, con menos demanda que en los otros ángulos.",
+            "sources": ["coratella2020", "christian2023"]
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "why": "Extiende el codo al cerrar el arco corto del declive. En culturistas su excitación en el declinado fue del orden de la del plano y superior a la del inclinado y a la de la máquina.",
+            "sources": ["tiwana_triceps", "coratella2020"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los extensores de la muñeca fijan el agarre en ligera extensión mientras la carga baja al esternón inferior. El antebrazo no empuja: evita que la muñeca se doble bajo el peso.",
+            "sources": ["reeves_wrist"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal", "Flexión del hombro"],
+            "why": "El húmero se aduce en horizontal y se flexiona en un arco más corto, porque el torso ya apunta hacia los pies. El pectoral mayor produce esa aducción y esa flexión del húmero.",
+            "sources": ["baig_pectoral", "coratella2020"]
+          },
+          {
+            "id": "codo",
+            "role": "SECONDARY",
+            "actions": ["Extensión del codo"],
+            "why": "El codo se extiende para alejar la carga del esternón bajo. Es parte del empuje, pero el cambio de ángulo que define este press está en el hombro y en el banco.",
+            "sources": ["tiwana_triceps", "coratella2020"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Retracción escapular"],
+            "why": "Las escápulas permanecen apoyadas y retraídas en el respaldo declinado para que el cuerpo no se deslice. Estabilizan la base del empuje y no son las que mueven la carga.",
+            "sources": ["baig_pectoral"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad en extensión"],
+            "why": "La muñeca aguanta en ligera extensión el agarre mientras la carga viaja hacia el esternón bajo. Los extensores del antebrazo sostienen esa posición.",
+            "sources": ["reeves_wrist"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral del banco en declive, con la cabeza, las piernas ancladas y la carga visibles.",
+          "phase": "Punto bajo: codos flexionados y la carga en la parte baja del pecho.",
+          "orientation": "Atleta boca arriba con la cabeza más baja que las caderas y la cara hacia un lado del encuadre.",
+          "contacts": "Espalda contra el respaldo declinado, tobillos sujetos en los rodillos, manos cerradas sobre la carga.",
+          "posture": "Escápulas apoyadas, cadera quieta en el banco, codos separados del tronco y muñecas firmes.",
+          "load": "Carga sujeta con las dos manos junto al esternón bajo, separada del suelo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco declinado con rodillos en los tobillos; barra transversal sobre la parte baja del esternón, discos a los lados y agarre prono algo más ancho que los hombros."
+          },
+          "dumbbells": {
+            "geometry": "Banco declinado; una mancuerna a cada lado de la parte baja del pecho, codos libres de chocar entre sí y cargas independientes junto al torso."
+          },
+          "smith_machine": {
+            "geometry": "Banco declinado alineado bajo rieles verticales; la barra desciende en línea recta hasta la parte baja del esternón, sin poder desviarse hacia la cara."
+          },
+          "kettlebell": {
+            "geometry": "Banco declinado; un kettlebell en cada mano, asa en el puño y la bola colgando hacia la cara por el desnivel, a los lados del pecho bajo."
+          }
+        },
+        "promptCore": {
+          "barbell": "Side view of an athlete lying on a decline bench with the head lower than the hips, frozen at the BOTTOM of a decline barbell press. Both hands grip the barbell with an overhand grip and hold it resting on the lower sternum. Elbows are bent out to the sides. The back is pressed against the decline pad, and the ankles are locked under the leg rollers. The plates hang beside the bench, clear of the floor.",
+          "dumbbells": "Side view of an athlete lying on a decline bench with the head lower than the hips, frozen at the BOTTOM of a decline dumbbell press. Both hands grip the dumbbell handles, one dumbbell in each hand, and hold them beside the lower chest. Elbows are bent out to the sides. The back is pressed against the decline pad, and the ankles are locked under the leg rollers. The dumbbells are clear of the floor.",
+          "smith_machine": "Side view of an athlete lying on a decline bench set under vertical rails, head lower than the hips, frozen at the BOTTOM of a guided decline press. Both hands grip the bar with an overhand grip and hold it resting on the lower sternum. The bar is locked inside the rails. Elbows are bent. The back is pressed against the decline pad, and the ankles are locked under the leg rollers. The plates hang beside the bench, clear of the floor.",
+          "kettlebell": "Side view of an athlete lying on a decline bench with the head lower than the hips, frozen at the BOTTOM of a decline kettlebell press. Both hands grip the kettlebell handles, one kettlebell in each hand, and hold them beside the lower chest. The round bells hang below the handles, toward the face because the torso slopes down. Elbows are bent. The back is pressed against the decline pad, and the ankles are locked under the leg rollers. The kettlebells are clear of the floor."
+        },
+        "forbidden": [
+          "Banco horizontal o inclinado con la cabeza por encima de las caderas.",
+          "Pies empujando el suelo en vez de ir sujetos a los rodillos.",
+          "Carga en la clavícula, como si fuera un press inclinado.",
+          "Manos abiertas y carga flotando sin agarre."
+        ],
+        "qa": [
+          "¿Las dos manos agarran la carga y la carga no flota suelta?",
+          "¿La cabeza queda más baja que las caderas y los tobillos están en los rodillos?",
+          "¿Los codos están flexionados y la carga está en la parte baja del pecho?",
+          "¿La carga está separada del suelo?"
+        ]
+      },
+      "sources": [
+        {
+          "id": "coratella2020",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31397215/",
+          "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+          "claim": "En la fase concéntrica, la cabeza esternocostal se excitó de forma similar en el declinado y en el plano, y más que en el inclinado. El deltoides anterior se excitó menos en el declinado que en el resto. El tríceps se excitó más en el plano y en el declinado que en el inclinado y en la máquina."
+        },
+        {
+          "id": "christian2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36026487/",
+          "title": "Analysis of the Activation of Upper-Extremity Muscles During Various Chest Press Modalities",
+          "claim": "El deltoides anterior se activó más en el press inclinado con barra que en el declinado con barra y con mancuernas. El pectoral mayor dio menos señal en el inclinado con mancuernas que en el declinado con mancuernas, con la salvedad de que los electrodos no separaron las fibras del pectoral."
+        },
+        {
+          "id": "baig_pectoral",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana_triceps",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "claim": "La función primaria del tríceps braquial es extender el codo."
+        },
+        {
+          "id": "reeves_wrist",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521226/",
+          "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+          "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza."
+        }
+      ]
+    },
+    "incline_bench_press": {
+      "status": "CURATED",
+      "public": {
+        "description": "Subir el respaldo convierte el Press de Banca Inclinado (incline bench press) en un empuje con más flexión de hombro. A 44 y 56 grados creció la señal de la porción clavicular del pectoral mayor y del deltoides anterior, y bajó la de las fibras del esternón. A 45 grados el centro de esa señal se desplazó hacia la clavícula, y el grosor del músculo creció más en esa zona que junto al esternón. El tríceps braquial extiende el codo, con menos excitación a 45 grados que sobre el banco horizontal. El pectoral permanece como músculo principal: el ángulo reparte el trabajo dentro del mismo músculo y suma hombro delantero.",
+        "configurations": {
+          "incline_bench_press__barbell": {
+            "description": "La barra baja hacia la clavícula, por encima de un respaldo elevado, y las dos manos comparten ese arco alto. Los discos cuelgan a los lados, separados del suelo si el banco está a la altura habitual.",
+            "setupCues": [
+              "Fija el respaldo en inclinación, apoya la espalda y planta los pies.",
+              "Agarra la barra un poco más ancha que los hombros, alineada con la clavícula."
+            ],
+            "executionCues": [
+              "Baja la barra hacia la clavícula, sin dejar que se te venga a la cara.",
+              "Empuja hasta estirar los codos, con la espalda pegada al respaldo elevado."
+            ]
+          },
+          "incline_bench_press__dumbbells": {
+            "description": "Cada mancuerna puede pasar por fuera del hombro, un descenso que una barra alta suele cortar al tocar el pecho. Las muñecas rotan y los codos no están obligados a la misma profundidad.",
+            "setupCues": [
+              "Sube el respaldo y túmbate con una mancuerna en cada mano a la altura de los hombros.",
+              "Apoya las escápulas en el banco inclinado y planta los pies en el suelo."
+            ],
+            "executionCues": [
+              "Baja las mancuernas por fuera de los hombros, hacia la clavícula.",
+              "Empuja ambas hasta extender los codos, sin despegar la espalda del respaldo."
+            ]
+          },
+          "incline_bench_press__smith_machine": {
+            "description": "El respaldo inclinado se alinea bajo rieles que solo dejan subir y bajar. La barra no puede adelantarse hacia la cara ni caer hacia las costillas aunque el banco mire hacia arriba.",
+            "setupCues": [
+              "Coloca el banco inclinado bajo los rieles, con la barra sobre la clavícula.",
+              "Espalda y pies apoyados, manos en la barra y muñecas sin vencimiento."
+            ],
+            "executionCues": [
+              "Baja la barra por los rieles hasta la parte alta del pecho.",
+              "Sube en la línea de los rieles hasta bloquear los codos, con la pelvis quieta."
+            ]
+          },
+          "incline_bench_press__machine": {
+            "description": "Los brazos de la estación marcan un arco ya elevado y la carga vive en la pila, junto al asiento. Las manos empujan agarres, no una pieza libre que haya que estabilizar sobre el pecho.",
+            "setupCues": [
+              "Ajusta el asiento para que los agarres queden a la altura de la clavícula.",
+              "Apoya la espalda en el respaldo y sujeta ambos mangos con las muñecas firmes."
+            ],
+            "executionCues": [
+              "Acerca los mangos a la parte alta del pecho sin despegar la espalda.",
+              "Empuja hasta extender los codos, dejando el arco a los brazos de la estación."
+            ]
+          },
+          "incline_bench_press__cable": {
+            "description": "Los cables tiran de los agarres hacia las poleas durante todo el empuje, también arriba del arco. Ahí una carga libre inclinada ya no presiona el pecho con la misma dirección.",
+            "setupCues": [
+              "Inclina el banco entre las poleas y túmbate con los pies en el suelo.",
+              "Agarra un mango en cada mano por encima de la altura de la clavícula."
+            ],
+            "executionCues": [
+              "Deja bajar los mangos hacia los lados de la parte alta del pecho.",
+              "Estira los brazos en lo alto del arco, con el tiro de las poleas todavía presente."
+            ]
+          },
+          "incline_bench_press__kettlebell": {
+            "description": "Sobre un torso reclinado, cada kettlebell cuelga del asa y puede girar hacia la cara si el puño cede. Los brazos no van atados y cada arco es independiente.",
+            "setupCues": [
+              "Inclina el banco y sujeta un kettlebell en cada mano sobre los hombros.",
+              "Apoya la espalda en el respaldo y planta los pies antes de bajar."
+            ],
+            "executionCues": [
+              "Baja las kettlebells hacia los lados de la clavícula sin soltar el asa.",
+              "Empuja hasta extender los codos y controla el giro de cada bola."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Empuje con el torso reclinado hacia atrás: la carga baja hacia la clavícula y sube en una línea más vertical que la del banco plano. Lo separa del plano y del declinado el ángulo del respaldo, que aumenta la flexión de hombro y desplaza la activación del pectoral hacia su porción clavicular.",
+        "setup": [
+          "Respaldo elevado, pies en el suelo y escápulas apoyadas en el banco.",
+          "La línea de bajada apunta a la clavícula, no al esternón inferior.",
+          "Agarre bilateral; con piezas sueltas, cada mano puede abrir su propio arco."
+        ],
+        "keyPositions": [
+          "Inicio: codos extendidos y carga por encima de la clavícula, espalda pegada al respaldo.",
+          "Punto bajo: carga junto a la clavícula, codos flexionados y por debajo de los hombros, sin que la carga caiga hacia la cara."
+        ],
+        "mistakes": [
+          "Bajar la carga al esternón bajo y convertir el gesto en un press casi plano.",
+          "Dejar que la carga se venga hacia la cara al final de la bajada.",
+          "Separar el torso del cojín inclinado para robar recorrido.",
+          "Encoger el cuello y empujar con la barbilla en vez de con el pecho."
+        ],
+        "phases": [
+          {
+            "name": "Bajada alta",
+            "description": "Con el respaldo ya elevado, la carga baja en dirección a la clavícula mientras los codos se doblan."
+          },
+          {
+            "name": "Llegada",
+            "description": "La carga queda junto a la parte alta del pecho, sin rebotar y sin adelantarse a la cara."
+          },
+          {
+            "name": "Cierre",
+            "description": "El cierre lleva la carga por encima de la clavícula, espalda quieta y brazos ya rectos."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "Al abrir el ángulo crece la cabeza clavicular y baja la esternocostal, y a 45 grados el centro de la señal y el grosor agudo se van hacia la clavícula. Las dos porciones son pectoral mayor, que se mantiene como músculo principal del empuje.",
+            "sources": ["trebs2010", "cabral2022", "albarello2022", "baig_pectoral"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "El deltoides anterior se activó más a 28, 44 y 56 grados que en el plano, y más en el inclinado con barra que en el declinado. Suma flexión de hombro al empuje, por debajo del pectoral en el rol de este gesto.",
+            "sources": ["trebs2010", "christian2023"]
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "why": "Extiende el codo al cerrar el arco alto. En culturistas, a 45 grados su excitación fue menor que en el press plano y en el declinado, pero la extensión del codo no desaparece.",
+            "sources": ["tiwana_triceps", "coratella2020"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los extensores de la muñeca sostienen el agarre en ligera extensión mientras la carga baja hacia la clavícula. Fijan la muñeca y no son los que empujan.",
+            "sources": ["reeves_wrist"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal", "Flexión del hombro"],
+            "why": "Con el respaldo elevado el húmero flexiona más y se aduce en un plano más alto, hacia la clavícula. Esa combinación es el arco del inclinado, y el pectoral mayor la produce junto con el deltoides anterior.",
+            "sources": ["baig_pectoral", "trebs2010"]
+          },
+          {
+            "id": "codo",
+            "role": "SECONDARY",
+            "actions": ["Extensión del codo"],
+            "why": "El codo se extiende para terminar el empuje sobre la clavícula. Hace falta, y aun así a 45 grados el tríceps se excitó menos que en el plano.",
+            "sources": ["tiwana_triceps", "coratella2020"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Retracción escapular"],
+            "why": "Las escápulas se apoyan retraídas en el respaldo elevado para que el torso no se redondee al bajar hacia la clavícula. Fijan la base y no recorren el arco de la carga.",
+            "sources": ["baig_pectoral"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad en extensión"],
+            "why": "La muñeca se mantiene en ligera extensión para transmitir el agarre en un arco que ya apunta hacia arriba. Los extensores del antebrazo sostienen esa postura.",
+            "sources": ["reeves_wrist"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral del respaldo elevado, con cabeza, torso, brazos y carga en el mismo encuadre.",
+          "phase": "Punto bajo: codos flexionados y la carga junto a la clavícula.",
+          "orientation": "Atleta reclinado, cabeza más alta que las caderas, visto de lado.",
+          "contacts": "Espalda y cabeza contra el respaldo elevado, pies en el suelo, manos cerradas sobre la carga.",
+          "posture": "Escápulas apoyadas, cuello neutro, codos por debajo de los hombros y cadera quieta.",
+          "load": "Carga sujeta con las dos manos a la altura de la clavícula, separada del suelo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco con respaldo elevado; barra transversal sobre la clavícula, agarre prono algo más ancho que los hombros y discos colgando a los lados, sin tocar el suelo."
+          },
+          "dumbbells": {
+            "geometry": "Respaldo elevado; una mancuerna a cada lado, por fuera de la línea del hombro si el arco lo pide, a la altura de la clavícula y sin unir las dos manos."
+          },
+          "smith_machine": {
+            "geometry": "Banco inclinado bajo rieles verticales; la barra baja en línea recta hasta la parte alta del pecho y no puede desplazarse hacia la cara."
+          },
+          "machine": {
+            "geometry": "Estación con asiento y respaldo elevado; dos mangos en brazos articulados junto a la clavícula, y la pila de placas en el suelo al lado del asiento."
+          },
+          "cable": {
+            "geometry": "Banco inclinado entre poleas; un mango en cada mano a los lados de la clavícula, con los cables saliendo hacia las poleas por detrás del banco."
+          },
+          "kettlebell": {
+            "geometry": "Respaldo elevado; un kettlebell en cada mano, asa en el puño y la bola colgando bajo el asa a los lados de la clavícula, libre de girar hacia la cara."
+          }
+        },
+        "promptCore": {
+          "barbell": "Side view of an athlete lying on an incline bench with the head higher than the hips, frozen at the BOTTOM of an incline barbell press. Both hands grip the barbell with an overhand grip and hold it resting on the upper chest near the collarbones. Elbows are bent out to the sides. The back and head are pressed against the inclined pad, and both feet are planted flat on the floor. The plates hang beside the bench, clear of the floor.",
+          "dumbbells": "Side view of an athlete lying on an incline bench with the head higher than the hips, frozen at the BOTTOM of an incline dumbbell press. Both hands grip the dumbbell handles, one dumbbell in each hand, and hold them outside the shoulders near the collarbones. Elbows are bent. The back and head are pressed against the inclined pad, and both feet are planted flat on the floor. The dumbbells are clear of the floor.",
+          "smith_machine": "Side view of an athlete lying on an incline bench set under vertical rails, head higher than the hips, frozen at the BOTTOM of a guided incline press. Both hands grip the bar with an overhand grip and hold it resting on the upper chest. The bar is locked inside the rails. Elbows are bent. The back and head are pressed against the inclined pad, and both feet are planted flat on the floor. The plates hang beside the bench, clear of the floor.",
+          "machine": "Side view of an athlete seated at an incline chest-press station, frozen at the BOTTOM of the press. Both hands grip the machine handles and hold them against the upper chest. Elbows are bent out to the sides. The back is pressed against the inclined pad, and both feet are planted flat on the floor. The weight stack rests on the floor beside the seat, and the handles are clear of the floor.",
+          "cable": "Side view of an athlete lying on an incline bench between two cable pulleys, head higher than the hips, frozen at the BOTTOM of an incline cable press. Both hands grip the cable handles and hold them beside the upper chest. Elbows are bent. The back and head are pressed against the inclined pad, and both feet are planted flat on the floor. The cables run back toward the pulleys, and the weight stacks rest on the floor.",
+          "kettlebell": "Side view of an athlete lying on an incline bench with the head higher than the hips, frozen at the BOTTOM of an incline kettlebell press. Both hands grip the kettlebell handles, one kettlebell in each hand, and hold them beside the upper chest. The round bells hang below the handles. Elbows are bent. The back and head are pressed against the inclined pad, and both feet are planted flat on the floor. The kettlebells are clear of the floor."
+        },
+        "forbidden": [
+          "Banco plano u horizontal: eso es el press de banca plano.",
+          "Cabeza más baja que las caderas: eso es el press declinado.",
+          "Carga bajada al abdomen o al esternón inferior.",
+          "Manos abiertas con la carga flotando delante de la cara."
+        ],
+        "qa": [
+          "¿Las dos manos agarran la carga y la carga no flota suelta?",
+          "¿La cabeza queda más alta que las caderas, con la espalda en un respaldo elevado?",
+          "¿Los codos están flexionados y la carga está junto a la clavícula, no en el abdomen?",
+          "¿Los pies están en el suelo y la carga no lo toca?"
+        ]
+      },
+      "sources": [
+        {
+          "id": "trebs2010",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20512064/",
+          "title": "An electromyography analysis of 3 muscles surrounding the shoulder joint during the performance of a chest press exercise at several angles",
+          "claim": "La cabeza clavicular del pectoral mayor se activó más a 44 y 56 grados que a 0, y más a 44 que a 28. La esternocostal se activó más a 0 grados que a 28, 44 y 56. El deltoides anterior se activó más en los tres ángulos inclinados que en el plano."
+        },
+        {
+          "id": "cabral2022",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34644424/",
+          "title": "Non-uniform excitation of the pectoralis major muscle during flat and inclined bench press exercises",
+          "claim": "Al pasar del press plano al inclinado de 45 grados, el baricentro de la amplitud EMG se desplazó hacia la región clavicular. Las mayores amplitudes se concentraron en la cabeza esternocostal en el plano y en la clavicular a 45 grados."
+        },
+        {
+          "id": "albarello2022",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36334406/",
+          "title": "Non-uniform excitation of pectoralis major induced by changes in bench press inclination leads to uneven variations in the cross-sectional area measured by panoramic ultrasonography",
+          "claim": "En el press a 45 grados la amplitud fue mayor en la cabeza clavicular que en la esternocostal, y al revés en el plano. El área de sección creció más en la cabeza que más se había activado."
+        },
+        {
+          "id": "coratella2020",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31397215/",
+          "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+          "claim": "A 45 grados la cabeza clavicular se excitó más que en el plano, el declinado y la máquina, y la esternocostal menos que en esos gestos. El tríceps se excitó menos en el inclinado que en el plano y en el declinado."
+        },
+        {
+          "id": "christian2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36026487/",
+          "title": "Analysis of the Activation of Upper-Extremity Muscles During Various Chest Press Modalities",
+          "claim": "El deltoides anterior se activó más en el press inclinado con barra que en el declinado con barra y con mancuernas."
+        },
+        {
+          "id": "baig_pectoral",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana_triceps",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "claim": "La función primaria del tríceps braquial es extender el codo."
+        },
+        {
+          "id": "reeves_wrist",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521226/",
+          "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+          "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza."
+        }
+      ]
+    },
+    "paused_bench_press": {
+      "status": "CURATED",
+      "public": {
+        "description": "En el Press de Banca con Pausa (paused bench press) la barra se detiene sobre el pecho unos dos segundos y el empuje nace después, ya sin el rebote del descenso. En levantadores que presionaron casi al máximo, la ayuda del estiramiento previo decayó al alargar la pausa, con una vida media de 0,85 segundos, así que dos segundos dejan atrás la mayor parte de ese impulso. Pectoral mayor, deltoides anterior y tríceps braquial son los mismos que en el plano: la pausa no recluta otro motor, cambia el momento en que hay que producir la fuerza. Esa zona baja del recorrido también rinde menos fuerza en isométrico que el resto del arco. La repetición se decide con la barra quieta en el esternón.",
+        "configurations": {
+          "paused_bench_press__barbell": {
+            "description": "La barra se queda quieta sobre el esternón unos dos segundos y el empuje empieza después, sin rebote. En el estudio de la pausa, la ayuda del estiramiento previo se reducía a la mitad en menos de un segundo.",
+            "setupCues": [
+              "Acuéstate en el banco horizontal, apoya las plantas y saca la barra hasta el esternón.",
+              "Junta las escápulas contra el banco antes de la primera bajada."
+            ],
+            "executionCues": [
+              "Baja la barra hasta el esternón y detenla ahí dos segundos, sin rebotar.",
+              "Empuja solo cuando la barra haya estado quieta, hasta estirar los codos.",
+              "No aflojes el torso durante esa parada."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Press de banca plano con barra en el que la barra reposa inmóvil sobre el esternón unos dos segundos antes de la subida. Se separa del press plano continuo porque desaparece el rebote entre el descenso y el empuje, no porque cambien los músculos que empujan.",
+        "setup": [
+          "El apoyo es el del press continuo: planta los pies, junta las escápulas y usa el banco horizontal.",
+          "La barra sale de los soportes con los codos estirados, sobre el pecho.",
+          "La pausa se cuenta con la barra ya en contacto con el esternón, no a mitad de arco."
+        ],
+        "keyPositions": [
+          "Inicio de la pausa: barra apoyada en el esternón, codos flexionados, torso todavía en tensión.",
+          "Salida: tras unos dos segundos quieta, la barra empieza a subir sin haber rebotado."
+        ],
+        "mistakes": [
+          "Contar la pausa con la barra todavía en el aire, sin tocar el pecho.",
+          "Rebotar en el esternón y disfrazar el contacto de parada.",
+          "Aflojar las escápulas y la espalda durante los dos segundos.",
+          "Acortar la parada a un roce y recuperar el impulso del descenso."
+        ],
+        "phases": [
+          {
+            "name": "Descenso",
+            "description": "La barra baja hasta el esternón con los codos flexionándose y la espalda quieta en el banco."
+          },
+          {
+            "name": "Parada",
+            "description": "La barra permanece inmóvil sobre el pecho unos dos segundos, sin rebotar y sin aflojar el torso."
+          },
+          {
+            "name": "Salida",
+            "description": "Desde esa quietud los codos se extienden y la barra sube hasta quedar otra vez sobre el pecho."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "El pectoral mayor flexiona y aduce el húmero en la subida, el mismo papel que en el press plano. La pausa no cambia el motor: quita la ayuda del estiramiento previo y deja la fuerza a cargo de ese empuje desde el esternón.",
+            "sources": ["baig_pectoral", "coratella2020", "wilson1991"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "El deltoides anterior acompaña la flexión del hombro al salir del pecho, como en el plano. En la zona de atasco la actividad muscular mantuvo el mismo patrón que en el intento dinámico, así que la pausa no le asigna otro rol.",
+            "sources": ["coratella2020", "vandentillaar2012"]
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "why": "Extiende el codo cuando la barra sale del esternón. En el plano su excitación es alta, y la parada solo retrasa el inicio de esa extensión, ya sin el impulso del descenso.",
+            "sources": ["tiwana_triceps", "coratella2020", "wilson1991"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Durante los dos segundos de parada los extensores de la muñeca sostienen el agarre en ligera extensión, con la barra quieta sobre el esternón. No empujan la carga: evitan que la muñeca se venza.",
+            "sources": ["reeves_wrist"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal", "Flexión del hombro"],
+            "why": "El húmero espera flexionando y aducido, con la barra en el pecho, y desde ahí completa la aducción horizontal y la flexión. La pausa ocurre en una altura donde la fuerza isométrica también es más baja.",
+            "sources": ["baig_pectoral", "vandentillaar2012"]
+          },
+          {
+            "id": "codo",
+            "role": "SECONDARY",
+            "actions": ["Extensión del codo"],
+            "why": "El codo se queda flexionado durante la parada y solo entonces se extiende. La extensión cierra el empuje, igual que en el plano, pero arranca sin el rebote del descenso.",
+            "sources": ["tiwana_triceps", "wilson1991"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Retracción escapular"],
+            "why": "Las escápulas tienen que permanecer retraídas y apoyadas durante los dos segundos, porque si se aflojan la barra se hunde en el pecho. Sostienen la postura y no generan la subida.",
+            "sources": ["baig_pectoral"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad en extensión"],
+            "why": "Con la barra quieta sobre el esternón la muñeca aguanta en ligera extensión todo el peso, sin un rebote que alivie el agarre. Los extensores del antebrazo fijan esa postura.",
+            "sources": ["reeves_wrist"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral del banco plano, con la barra, el pecho y los pies dentro del encuadre.",
+          "phase": "Pausa en el punto bajo: la carga ya está quieta sobre el esternón y los codos permanecen flexionados.",
+          "orientation": "Atleta boca arriba en banco horizontal, cabeza hacia un lado del encuadre.",
+          "contacts": "Espalda y cabeza contra el banco, pies en el suelo, carga apoyada en el esternón y manos cerradas sobre ella.",
+          "posture": "Escápulas apretadas contra el banco, cadera quieta, codos flexionados y muñecas firmes.",
+          "load": "Carga sujeta con las dos manos, en contacto con el pecho y separada del suelo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco plano y barra olímpica transversal quieta sobre el esternón, agarre prono algo más ancho que los hombros, discos a los lados sin tocar el suelo ni rebotar."
+          }
+        },
+        "promptCore": {
+          "barbell": "Side view of an athlete lying supine on a flat bench, frozen in a two-second PAUSE at the BOTTOM of a paused barbell bench press. Both hands grip the barbell with an overhand grip and hold it resting motionless on the sternum. Elbows are bent out to the sides and are not bouncing. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The plates hang beside the bench, clear of the floor."
+        },
+        "forbidden": [
+          "Barra a mitad de camino, sin tocar el pecho: eso no es la pausa.",
+          "Barra rebotando en el esternón o ya con los codos estirados arriba.",
+          "Banco inclinado o declinado.",
+          "Barra flotando sin manos, o atleta de pie."
+        ],
+        "qa": [
+          "¿Las dos manos agarran la barra y la barra no flota suelta?",
+          "¿La barra está quieta, apoyada en el esternón, con los codos todavía flexionados?",
+          "¿El atleta está tumbado en un banco plano, con los pies en el suelo?",
+          "¿Los discos cuelgan separados del suelo?"
+        ]
+      },
+      "sources": [
+        {
+          "id": "wilson1991",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2020276/",
+          "title": "The effect on performance of imposing a delay during a stretch-shorten cycle movement",
+          "claim": "En press de banca al 95 % del máximo, la mejora que aporta el estiramiento previo decayó al imponer una pausa entre la bajada y la subida, con una vida media de 0,85 segundos."
+        },
+        {
+          "id": "vandentillaar2012",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22304656/",
+          "title": "Is the occurrence of the sticking region the result of diminishing potentiation in bench press?",
+          "claim": "La región de atasco también mostró menos fuerza en isométrico, y la actividad de cuatro músculos tuvo el mismo patrón en el máximo dinámico y en esas isométricas. El atasco no se explicó por una pérdida de potenciación."
+        },
+        {
+          "id": "coratella2020",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31397215/",
+          "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+          "claim": "En el press plano con peso libre se registró excitación del pectoral mayor, del deltoides anterior y del tríceps, con el tríceps más alto que en el inclinado y en la máquina."
+        },
+        {
+          "id": "baig_pectoral",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana_triceps",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "claim": "La función primaria del tríceps braquial es extender el codo."
+        },
+        {
+          "id": "reeves_wrist",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521226/",
+          "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+          "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza."
+        }
+      ]
+    }
+  }
+}

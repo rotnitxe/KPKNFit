@@ -1,0 +1,86 @@
+{
+  "definitions": {
+    "stiff_leg_deadlift": {
+      "public": {
+        "configurations": {
+          "stiff_leg_deadlift__bilateral__barbell": {
+            "description": "Con barra y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+            "executionCues": [
+              "Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Barra con ambas piernas casi rectas: el estiramiento de los isquios marca el recorrido."
+            ]
+          },
+          "stiff_leg_deadlift__bilateral__dumbbells": {
+            "description": "Con mancuernas y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Mancuernas con ambas piernas: la carga a los costados con recorrido libre. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con ambas piernas: la carga a los costados con recorrido libre."
+            ]
+          },
+          "stiff_leg_deadlift__bilateral__hex_bar": {
+            "description": "Con barra hexagonal y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan con la barra hexagonal, que centra la carga y alivia la espalda. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Barra hexagonal con ambas piernas: carga estable y estiramiento profundo. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal con ambas piernas: carga estable y estiramiento profundo."
+            ]
+          },
+          "stiff_leg_deadlift__bilateral__smith_machine": {
+            "description": "Con máquina Smith y a dos lados, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+            "executionCues": [
+              "Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Smith con ambas piernas: el guiado te deja bajar hasta el estiramiento máximo con estabilidad."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__barbell": {
+            "description": "Con barra y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Barra en una pierna casi recta: el isquio estirado a fondo y el equilibrio en cada repetición."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__dumbbells": {
+            "description": "Con mancuernas y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Una mancuerna desciende junto a la pierna de apoyo mientras la pierna libre se aleja."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__hex_bar": {
+            "description": "Con barra hexagonal y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Con la barra hexagonal, la carga queda centrada y la espalda sufre menos en el trabajo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Barra hexagonal en una pierna: la carga estable más el reto del equilibrio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal en una pierna: la carga estable más el reto del equilibrio."
+            ]
+          },
+          "stiff_leg_deadlift__unilateral__smith_machine": {
+            "description": "Con máquina Smith y a un lado, con las piernas casi extendidas, la carga baja hasta el estiramiento máximo de los isquiosurales. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio. Las piernas permanecen casi extendidas y la cadera se desplaza atrás hasta el límite del estiramiento, sin buscar profundidad a costa de la espalda."
+            ],
+            "setupCues": [
+              "Preparación: Smith en una pierna: estabilidad del guiado y estiramiento unilateral del isquio."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Piernas Rígidas lleva la bisagra a su rango máximo: con las piernas casi extendidas desde el suelo, los isquiosurales se estiran al límite en cada repetición. La barra sale del piso sin flexionar apenas las rodillas y sube con la espalda firme hasta la vertical. Es hermano del rumano, pero aquí la carga parte del piso y el estiramiento es aún más profundo. El estirón cargado definitivo para la parte trasera del muslo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_hinge_lengthened",
+  "schemaVersion": 1
+}

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Buenos Días",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__bilateral__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra sobre los hombros traslada el peso detrás del eje corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla admite una flexión ligera que estabiliza la pierna durante la inclinación con barra bilateral de pie sin convertirse en el motor del gesto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra sobre los hombros y conserva su curva mientras el torso se inclina con ambas piernas fijas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral de pie con la barra clásica sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,24 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco en excéntrica y extienden la cadera al volver a la vertical con la barra clásica sobre los hombros."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor colabora en la extensión de cadera al subir y refuerza el empuje final con la barra cargada sobre ambos hombros y las dos piernas apoyadas."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen la columna en isometría mientras el torso se inclina hacia delante bajo la barra clásica con carga bilateral."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene el tronco rígido en isometría y reparte la carga de la barra entre pelvis y costillas durante todo el recorrido de pie."
-                }
-              ],
               "performanceProfileId": "good_morning__bilateral__barbell",
               "primaryMuscles": [
                 "hamstrings"
@@ -116,7 +86,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra sobre los hombros traslada el peso detrás del eje corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -124,7 +93,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla admite una flexión ligera que estabiliza la pierna durante la inclinación con barra bilateral de pie sin convertirse en el motor del gesto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,7 +100,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra sobre los hombros y conserva su curva mientras el torso se inclina con ambas piernas fijas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -140,24 +107,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral de pie con la barra clásica sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -168,7 +129,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -178,30 +138,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "barbell · bilateral",
@@ -209,15 +145,6 @@
                     "implement": "barbell",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con barra y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. Este ejercicio de cadera tradicional, exigente y productivo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -230,7 +157,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__bilateral__barbell",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -249,24 +176,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Barra · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -276,18 +189,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -303,9 +208,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Barra sobre los hombros con ambas piernas: la inclinación tradicional de cadera hacia delante. Este ejercicio de cadera tradicional, exigente y productivo."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -320,7 +223,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__unilateral__barbell",
@@ -328,16 +230,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -351,7 +246,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la barra sobre los hombros mientras una sola pierna sostiene el apoyo, lo que aumenta el reto de control.",
                   "role": "PRIMARY"
                 },
                 {
@@ -359,7 +253,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna trabajada mantiene una flexión ligera que aporta estabilidad al gesto unilateral con barra clásica de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -367,7 +260,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera inclinación lateral que la barra unilateral provoca sobre el torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -375,7 +267,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco bajo la asimetría del gesto unilateral con barra clásica sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -383,24 +274,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera con la barra clásica sobre los hombros mientras una sola pierna sostiene el equilibrio."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir y trabaja en solitario con la barra sobre los hombros al apoyar una única pierna."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales mantienen el torso alineado frente a la asimetría de la barra clásica cuando solo un lado sostiene la postura de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core controla la inclinación lateral que provoca la carga unilateral de la barra y sostiene el tronco rígido durante todo el recorrido."
-                }
-              ],
               "performanceProfileId": "good_morning__unilateral__barbell",
               "primaryMuscles": [
                 "hamstrings"
@@ -422,7 +295,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la barra sobre los hombros mientras una sola pierna sostiene el apoyo, lo que aumenta el reto de control.",
                       "role": "PRIMARY"
                     },
                     {
@@ -430,7 +302,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna trabajada mantiene una flexión ligera que aporta estabilidad al gesto unilateral con barra clásica de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -438,7 +309,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera inclinación lateral que la barra unilateral provoca sobre el torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -446,24 +316,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco bajo la asimetría del gesto unilateral con barra clásica sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -474,7 +338,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -484,30 +347,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "barbell · unilateral",
@@ -515,15 +354,6 @@
                     "implement": "barbell",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con barra y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. La barra es la referencia para cargar los isquiosurales con peso de verdad. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -536,7 +366,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__unilateral__barbell",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -555,24 +385,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Barra · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -582,18 +398,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -609,9 +417,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en una sola pierna: el equilibrio añade trabajo a la cadera y la espalda baja. Avanzado, profundo y muy revelador de desequilibrios."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -626,7 +432,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__bilateral__safety_bar",
@@ -634,16 +439,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra de seguridad y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
@@ -657,7 +455,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra de seguridad mantiene la carga más cerca del eje corporal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -665,7 +462,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla ofrece una flexión ligera y estabilidad lateral con ambas piernas mientras la barra de seguridad guía la postura de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -673,7 +469,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso con la barra de seguridad, cuyo agarre frontal modifica cómo se transmite la carga al tronco de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -681,7 +476,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de pie con la barra de seguridad sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -689,24 +483,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera con la barra de seguridad, cuyos agarres frontales acercan la carga al cuerpo."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor completa la extensión de cadera en la subida con ambas piernas apoyadas y la barra de seguridad asentada sobre los hombros."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso en isometría con la barra de seguridad, más próxima al eje corporal que la barra clásica de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene la rigidez del tronco mientras la barra de seguridad, con agarres frontales, reparte la carga sobre las dos piernas de pie."
-                }
-              ],
               "performanceProfileId": "good_morning__bilateral__safety_bar",
               "primaryMuscles": [
                 "hamstrings"
@@ -728,7 +504,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona al inclinar el torso y se extiende al volver arriba; la barra de seguridad mantiene la carga más cerca del eje corporal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -736,7 +511,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla ofrece una flexión ligera y estabilidad lateral con ambas piernas mientras la barra de seguridad guía la postura de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -744,7 +518,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso con la barra de seguridad, cuyo agarre frontal modifica cómo se transmite la carga al tronco de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -752,24 +525,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de pie con la barra de seguridad sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -780,7 +547,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -790,30 +556,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "safety_bar · bilateral",
@@ -821,15 +563,6 @@
                     "implement": "safety_bar",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con barra de seguridad y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -842,7 +575,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__bilateral__safety_bar",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -861,24 +594,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Barra De Seguridad · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "safety_bar"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -888,18 +607,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -915,9 +626,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Barra de estabilidad sobre los hombros: los agarres frontales acercan la carga y hacen más cómoda la posición de las manos. La variante conserva la exigencia de cadera, pero cambia cómo se sostiene el torso."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "safety_bar",
@@ -932,7 +641,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__unilateral__safety_bar",
@@ -940,16 +648,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra de seguridad y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
@@ -963,7 +664,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la barra de seguridad sobre los hombros mientras una sola pierna sostiene el equilibrio del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -971,7 +671,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de apoyo mantiene una flexión ligera que estabiliza la pierna en el trabajo unilateral con barra de seguridad de pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -979,7 +678,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría de la carga con la barra de seguridad cuando solo un lado sostiene el torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -987,7 +685,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en el gesto unilateral con la barra de seguridad sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -995,24 +692,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera con la barra de seguridad mientras una sola pierna sostiene el apoyo y el equilibrio."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir con la barra de seguridad, cuyo agarre cómodo deja el foco en el lado trabajado."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso frente a la carga unilateral de la barra de seguridad y mantienen la alineación de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core frena la inclinación lateral que la barra de seguridad genera al cargar una sola pierna y mantiene el tronco rígido."
-                }
-              ],
               "performanceProfileId": "good_morning__unilateral__safety_bar",
               "primaryMuscles": [
                 "hamstrings"
@@ -1034,7 +713,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la barra de seguridad sobre los hombros mientras una sola pierna sostiene el equilibrio del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1042,7 +720,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de apoyo mantiene una flexión ligera que estabiliza la pierna en el trabajo unilateral con barra de seguridad de pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1050,7 +727,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría de la carga con la barra de seguridad cuando solo un lado sostiene el torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1058,24 +734,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en el gesto unilateral con la barra de seguridad sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1086,7 +756,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1096,30 +765,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "safety_bar · unilateral",
@@ -1127,15 +772,6 @@
                     "implement": "safety_bar",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con barra de seguridad y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan con la barra de seguridad, que asienta la carga con comodidad. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. Una combinación exigente para la cadena posterior."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1148,7 +784,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__unilateral__safety_bar",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1167,24 +803,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Barra De Seguridad · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "safety_bar"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1194,18 +816,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1221,9 +835,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Barra de estabilidad en una pierna: comodidad del agarre más el reto del equilibrio. Una combinación exigente para la cadena posterior."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "safety_bar",
@@ -1238,7 +850,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__bilateral__smith_machine",
@@ -1246,16 +857,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina Smith y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -1269,7 +873,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende bajo la trayectoria guiada de la Smith, que mantiene la carga vertical sin exigir equilibrio lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1277,7 +880,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la Smith guía la barra durante la inclinación del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1285,7 +887,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión con la barra de la Smith guiada, que impone una inclinación previsible al torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1293,7 +894,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral en la Smith, con la carga guiada en vertical.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1301,24 +901,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera sobre la máquina Smith, cuyo guiado vertical reduce la demanda de equilibrio."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor colabora en la extensión de cadera al subir con ambas piernas apoyadas y la barra de la Smith manteniendo su trayectoria fija."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales mantienen el torso alineado en la Smith, donde el guiado sostiene la barra y el tronco trabaja de forma más previsible."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras la Smith guía la carga vertical con las dos piernas fijas sobre el suelo."
-                }
-              ],
               "performanceProfileId": "good_morning__bilateral__smith_machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -1340,7 +922,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende bajo la trayectoria guiada de la Smith, que mantiene la carga vertical sin exigir equilibrio lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1348,7 +929,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la Smith guía la barra durante la inclinación del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1356,7 +936,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión con la barra de la Smith guiada, que impone una inclinación previsible al torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1364,24 +943,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto bilateral en la Smith, con la carga guiada en vertical.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1392,7 +965,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1402,30 +974,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith con ambas piernas: la barra guiada te permite ir profundo con control."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "smith_machine · bilateral",
@@ -1433,15 +981,6 @@
                     "implement": "smith_machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con máquina Smith y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. Útil para aprender el movimiento o cargar más peso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1454,7 +993,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__bilateral__smith_machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1473,24 +1012,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Máquina Smith · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1500,18 +1025,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1527,9 +1044,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Smith con ambas piernas: la barra guiada te permite ir profundo con control. Útil para aprender el movimiento o cargar más peso."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1544,7 +1059,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__unilateral__smith_machine",
@@ -1552,16 +1066,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina Smith y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -1575,7 +1082,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la barra guiada de la Smith mientras una sola pierna sostiene el apoyo y el control del gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1583,7 +1089,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna de apoyo aporta una flexión ligera y estabilidad en el trabajo unilateral sobre la máquina Smith.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1591,7 +1096,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría del gesto unilateral mientras la Smith guía la barra sobre el torso de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1599,7 +1103,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al trabajar una sola pierna con la trayectoria guiada de la Smith.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1607,24 +1110,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales de la pierna trabajada frenan el descenso y extienden la cadera sobre la Smith, cuyo guiado compensa parte del equilibrio."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir con una sola pierna mientras la Smith mantiene la barra en su recorrido fijo."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso frente a la carga unilateral bajo el guiado vertical de la máquina Smith de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core limita la inclinación lateral del torso al cargar una sola pierna en la Smith y mantiene la rigidez del tronco."
-                }
-              ],
               "performanceProfileId": "good_morning__unilateral__smith_machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -1646,7 +1131,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la barra guiada de la Smith mientras una sola pierna sostiene el apoyo y el control del gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1654,7 +1138,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna de apoyo aporta una flexión ligera y estabilidad en el trabajo unilateral sobre la máquina Smith.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1662,7 +1145,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la asimetría del gesto unilateral mientras la Smith guía la barra sobre el torso de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1670,24 +1152,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al trabajar una sola pierna con la trayectoria guiada de la Smith.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1698,7 +1174,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1708,30 +1183,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "smith_machine · unilateral",
@@ -1739,15 +1190,6 @@
                     "implement": "smith_machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con máquina Smith y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la Smith, con la trayectoria guiada y estabilidad extra. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. Variante avanzada para corregir asimetrías."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1760,7 +1202,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__unilateral__smith_machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -1779,24 +1221,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Máquina Smith · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1806,18 +1234,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1833,9 +1253,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Smith en una pierna: el guiado sostiene el equilibrio y la cadera trabaja a fondo. Variante avanzada para corregir asimetrías."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1850,7 +1268,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__bilateral__machine",
@@ -1858,16 +1275,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -1881,7 +1291,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende dentro del recorrido guiado de la máquina, que concentra el momento de cadera sin exigir equilibrio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1889,7 +1298,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la máquina guía la inclinación del torso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1897,7 +1305,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso dentro de la máquina, cuyo guiado descarga parte de la exigencia sobre el tronco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1905,7 +1312,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de la máquina, con recorrido fijo y carga guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1913,24 +1319,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco y extienden la cadera en la máquina específica, cuyo recorrido guiado centra el esfuerzo en la cadena posterior."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor acompaña la extensión de cadera al subir con ambas piernas mientras la máquina sostiene la carga en su recorrido fijo."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso en isometría dentro de la máquina, donde el apoyo y el guiado reducen la carga libre sobre el tronco."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene la rigidez del tronco durante la inclinación en la máquina con las dos piernas apoyadas y el recorrido prefijado."
-                }
-              ],
               "performanceProfileId": "good_morning__bilateral__machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -1952,7 +1340,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende dentro del recorrido guiado de la máquina, que concentra el momento de cadera sin exigir equilibrio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1960,7 +1347,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la máquina guía la inclinación del torso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1968,7 +1354,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso dentro de la máquina, cuyo guiado descarga parte de la exigencia sobre el tronco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1976,24 +1361,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco en el gesto bilateral de la máquina, con recorrido fijo y carga guiada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2004,7 +1383,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2014,30 +1392,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "machine · bilateral",
@@ -2045,15 +1399,6 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con máquina y a dos lados, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La opción más estable para sentir el trabajo trasero."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2066,7 +1411,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__bilateral__machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2085,24 +1430,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2112,18 +1443,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2139,9 +1462,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina de este ejercicio de cadera: la cadera apoya en la almohadilla y el recorrido viene guiado. La opción más estable para sentir el trabajo trasero."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2156,7 +1477,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning__unilateral__machine",
@@ -2164,16 +1484,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -2187,7 +1500,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con el recorrido guiado de la máquina mientras una sola pierna concentra todo el momento articular.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2195,7 +1507,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de apoyo aporta una flexión ligera que estabiliza la pierna en la máquina cuando el trabajo se realiza a un solo lado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2203,7 +1514,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera asimetría del gesto unilateral dentro de la máquina de recorrido guiado.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2211,7 +1521,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al concentrar el esfuerzo en una pierna dentro de la máquina guiada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2219,24 +1528,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales de la pierna trabajada frenan el descenso y extienden la cadera en la máquina, que guía la carga mientras el lado activo hace el esfuerzo."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor impulsa la extensión de cadera al subir con una sola pierna dentro de la máquina de recorrido guiado."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales mantienen el torso alineado en el trabajo unilateral de la máquina, que estabiliza la carga durante el recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core contrarresta la inclinación lateral al concentrar la carga en una pierna dentro de la máquina y sostiene el tronco rígido."
-                }
-              ],
               "performanceProfileId": "good_morning__unilateral__machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -2258,7 +1549,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con el recorrido guiado de la máquina mientras una sola pierna concentra todo el momento articular.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2266,7 +1556,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de apoyo aporta una flexión ligera que estabiliza la pierna en la máquina cuando el trabajo se realiza a un solo lado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2274,7 +1563,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión y la ligera asimetría del gesto unilateral dentro de la máquina de recorrido guiado.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2282,24 +1570,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco al concentrar el esfuerzo en una pierna dentro de la máquina guiada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2310,7 +1592,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2320,30 +1601,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "execution": [
-                    "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días",
                   "displaySummary": "machine · unilateral",
@@ -2351,15 +1608,6 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                    "Un movimiento infravalorado para quien ya domina los pesos muertos y quiere seguir progresando."
-                  ],
-                  "description": "Con máquina y a un lado, el torso se inclina hacia delante desde la cadera y regresa a la vertical con la parte trasera de las piernas al mando. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-                  "variantRationale": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. Útil para equilibrar ambos lados."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2372,7 +1620,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning__unilateral__machine",
                   "definitionId": "good_morning",
                   "familyId": "hinge_good_morning",
@@ -2391,24 +1639,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2418,18 +1652,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2445,9 +1671,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. La carga descansa sobre el cuerpo mientras la cadera se aleja y el torso se inclina como una unidad; la subida nace de los isquios y glúteos.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina en una pierna: el guiado cuida la postura mientras el lado trabajado hace todo el esfuerzo. Útil para equilibrar ambos lados."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2462,7 +1686,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hinge_good_morning",
@@ -2490,7 +1713,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning_seated__barbell",
@@ -2498,16 +1720,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                "La versión acotada que enseña dónde debe vivir el esfuerzo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -2521,7 +1736,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra clásica traslada el peso sobre los hombros sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2529,7 +1743,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas mientras el tronco baja hacia ellas sentado con barra.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2537,7 +1750,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado bajo la barra clásica, con la cadera inmovilizada por el banco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2545,7 +1757,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra clásica sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2553,24 +1764,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco hacia las rodillas y lo devuelven arriba con la barra clásica sobre los hombros y la cadera fija en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor colabora en la extensión de cadera sentado, con la barra clásica sobre los hombros y el tronco bajando hacia las rodillas."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso en isometría sentado mientras la barra clásica carga la parte alta del cuerpo sobre el banco."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene el tronco rígido al inclinarse sentado y reparte la carga de la barra entre el banco y la cadera fija."
-                }
-              ],
               "performanceProfileId": "good_morning_seated__barbell",
               "primaryMuscles": [
                 "hamstrings"
@@ -2592,7 +1785,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra clásica traslada el peso sobre los hombros sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2600,7 +1792,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas mientras el tronco baja hacia ellas sentado con barra.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2608,7 +1799,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado bajo la barra clásica, con la cadera inmovilizada por el banco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2616,24 +1806,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra clásica sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2644,7 +1828,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2654,45 +1837,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "supported"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra sentado en el banco: la cadera fija y la tensión directa en los isquios."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días Sentado",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                    "La versión acotada que enseña dónde debe vivir el esfuerzo."
-                  ],
-                  "description": "Con barra, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                  "technique": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. Menos peso que de pie, pero la sensación es inconfundible."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2705,7 +1855,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning_seated__barbell",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -2722,24 +1872,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días Sentado en la variante Barra.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2748,18 +1884,10 @@
                     "safety_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2775,9 +1903,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Barra sentado en el banco: la cadera fija y la tensión directa en los isquios. Menos peso que de pie, pero la sensación es inconfundible."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -2791,7 +1917,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning_seated__smith_machine",
@@ -2799,16 +1924,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
-                "La versión acotada que enseña dónde debe vivir el esfuerzo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con máquina Smith, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -2822,7 +1940,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la Smith guía la barra sobre el torso sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2830,7 +1947,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas en la inclinación sentado bajo la máquina Smith.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2838,7 +1954,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de la Smith guiada y la cadera bloqueada por el banco.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2846,7 +1961,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en la inclinación sentado con la trayectoria guiada de la Smith.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2854,24 +1968,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco hacia las rodillas con la barra de la Smith guiada y la pelvis sujeta sobre el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor ayuda a extender la cadera en la vuelta sentado mientras la Smith mantiene la barra en su trayectoria fija."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso sentado bajo el guiado de la Smith, que reduce el ajuste fino que exige la barra libre."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría mientras la Smith guía la carga y la cadera permanece fija sobre el banco."
-                }
-              ],
               "performanceProfileId": "good_morning_seated__smith_machine",
               "primaryMuscles": [
                 "hamstrings"
@@ -2893,7 +1989,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la Smith guía la barra sobre el torso sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2901,7 +1996,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla mantiene una flexión ligera de estabilidad con las piernas fijas en la inclinación sentado bajo la máquina Smith.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2909,7 +2003,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de la Smith guiada y la cadera bloqueada por el banco.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2917,24 +2010,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y tronco en la inclinación sentado con la trayectoria guiada de la Smith.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2945,7 +2032,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2955,45 +2041,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "supported"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith sentado: la barra guiada y la postura fija del banco."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días Sentado",
                   "displaySummary": "smith_machine",
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
-                    "La versión acotada que enseña dónde debe vivir el esfuerzo."
-                  ],
-                  "description": "Con máquina Smith, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. En la Smith, la guía fija permite concentrar todo el esfuerzo de los isquiosurales.",
-                  "technique": "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Smith sentado: la barra guiada y la postura fija del banco. Cómodo para progresar con estabilidad en el movimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3006,7 +2059,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning_seated__smith_machine",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -3023,24 +2076,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días Sentado en la variante Máquina Smith.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -3049,18 +2088,10 @@
                     "safety_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3076,9 +2107,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith sentado: la barra guiada y la postura fija del banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Smith sentado: la barra guiada y la postura fija del banco. Cómodo para progresar con estabilidad en el movimiento."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -3092,7 +2121,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning_seated__safety_bar",
@@ -3100,16 +2128,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.6,
-              "benefits": [
-                "Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
-                "La versión acotada que enseña dónde debe vivir el esfuerzo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra de seguridad, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
               "efc": 2.8,
               "equipmentId": "safety_bar",
@@ -3123,7 +2144,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra de seguridad traslada la carga sobre el torso sentado.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3131,7 +2151,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla aporta una flexión ligera y estabilidad con las piernas fijas en el trabajo sentado con barra de seguridad.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3139,7 +2158,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de seguridad, que modifica la posición de los brazos sobre la carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3147,7 +2165,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra de seguridad sobre los hombros.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3155,24 +2172,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan el descenso del tronco hacia las rodillas con la barra de seguridad sobre los hombros y la pelvis fija en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor acompaña la extensión de cadera sentado mientras la barra de seguridad descansa sobre los hombros con un agarre más cómodo."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso sentado bajo la barra de seguridad, cuyo diseño alivia hombros y muñecas durante la carga."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene el tronco rígido al inclinarse sentado con la barra de seguridad y la cadera inmovilizada por el banco."
-                }
-              ],
               "performanceProfileId": "good_morning_seated__safety_bar",
               "primaryMuscles": [
                 "hamstrings"
@@ -3194,7 +2193,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la pelvis fija en el banco mientras la barra de seguridad traslada la carga sobre el torso sentado.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3202,7 +2200,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla aporta una flexión ligera y estabilidad con las piernas fijas en el trabajo sentado con barra de seguridad.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3210,7 +2207,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión del torso sentado con la barra de seguridad, que modifica la posición de los brazos sobre la carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3218,24 +2214,18 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre el banco y el tronco durante la inclinación sentado con la barra de seguridad sobre los hombros.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -3246,7 +2236,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -3256,45 +2245,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "supported"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días Sentado",
                   "displaySummary": "safety_bar",
                   "selectedOptions": {
                     "implement": "safety_bar"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
-                    "La versión acotada que enseña dónde debe vivir el esfuerzo."
-                  ],
-                  "description": "Con barra de seguridad, sentado en el banco, el tronco baja hacia las rodillas con la cadera fija y la tensión directa en los isquiosurales. Con la barra de seguridad, los hombros descansan mientras el estímulo de los isquiosurales permanece intacto.",
-                  "technique": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La variante más agradable para trabajar los isquios sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3307,7 +2263,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning_seated__safety_bar",
                   "definitionId": "good_morning_seated",
                   "familyId": "hinge_good_morning",
@@ -3324,24 +2280,10 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días Sentado en la variante Barra De Seguridad.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "safety_bar"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -3350,18 +2292,10 @@
                     "safety_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3377,9 +2311,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Barra de estabilidad sentado: agarre cómodo y cadera fija en el banco. La variante más agradable para trabajar los isquios sentado."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "safety_bar"
@@ -3393,7 +2325,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hinge_good_morning",
@@ -3418,7 +2349,6 @@
                 "legacy:exercise_database.json#hams_buenos_dias_zercher",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "good_morning_zercher__default",
@@ -3426,16 +2356,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 1.0,
-              "benefits": [
-                "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                "Una especialidad dura para quien ya exprimió las variantes convencionales."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-              ],
               "description": "Con barra, con la carga abrazada en los codos, la inclinación frontal pone al core a trabajar el doble. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -3449,7 +2372,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se flexiona y se extiende con la barra sujeta en los codos, cuya posición adelantada cambia el reparto del momento de cadera.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3457,7 +2379,6 @@
                     "Flexión Ligera Y Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la carga Zercher se sostiene pegada al pecho.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3465,7 +2386,6 @@
                     "Resistencia A La Flexión"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra en los codos, más alejada del eje corporal que otras variantes de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -3473,7 +2393,6 @@
                     "Transferencia Pelvis-Tronco"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto de pie con la barra abrazada en el hueco de los codos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3481,24 +2400,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales frenan la inclinación del tronco y extienden la cadera con la barra sostenida en el hueco de los codos, pegada al pecho."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera al volver a la vertical con la carga abrazada en los codos, que desplaza el peso hacia delante del torso."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Estabilizador: Los erectores espinales sostienen el torso frente a la carga Zercher, más próxima al pecho, que aumenta la inclinación exigida al tronco."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core trabaja en isometría para sujetar el tronco con la barra en los codos, posición que eleva la exigencia sobre la pared abdominal."
-                }
-              ],
               "performanceProfileId": "good_morning_zercher__barbell__buenos_dias_zercher",
               "primaryMuscles": [
                 "hamstrings",
@@ -3521,7 +2422,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se flexiona y se extiende con la barra sujeta en los codos, cuya posición adelantada cambia el reparto del momento de cadera.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3529,7 +2429,6 @@
                         "Flexión Ligera Y Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla mantiene una flexión ligera y estable con ambas piernas mientras la carga Zercher se sostiene pegada al pecho.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3537,7 +2436,6 @@
                         "Resistencia A La Flexión"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar resiste la flexión que provoca la barra en los codos, más alejada del eje corporal que otras variantes de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -3545,23 +2443,17 @@
                         "Transferencia Pelvis-Tronco"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la fuerza entre pelvis y tronco durante el gesto de pie con la barra abrazada en el hueco de los codos.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings",
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -3572,7 +2464,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -3582,43 +2473,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Redondear la zona lumbar, alejar la carga o convertir la bisagra en una sentadilla."
-                  ],
-                  "cues": [
-                    "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer la cadena posterior con una progresión de carga muy clara siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la rodilla como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho."
-                  ]
-                },
                 "display": {
                   "displayName": "Buenos Días/RDL Zercher",
                   "displaySummary": "Buenos Días Zercher",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                    "Una especialidad dura para quien ya exprimió las variantes convencionales."
-                  ],
-                  "description": "Con barra, con la carga abrazada en los codos, la inclinación frontal pone al core a trabajar el doble. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
-                  "technique": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3631,7 +2489,7 @@
                 },
                 "identity": {
                   "canonicalName": "Buenos Días/RDL Zercher",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "good_morning_zercher__default",
                   "definitionId": "good_morning_zercher",
                   "familyId": "hinge_good_morning",
@@ -3653,42 +2511,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Buenos Días Zercher en la variante Barra.",
-                    "Priorizar fortalecer la cadena posterior con una progresión de carga muy clara con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la rodilla y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_hinge:hamstrings",
+                    "hip_hinge:gluteus_maximus"
                   ],
                   "replacementGroup": "hinge_niche",
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -3702,9 +2539,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en los codos, torso inclinándose hacia delante con la carga pegada al pecho. El torso trabaja de más y la sensación en la cadera es distinta a cualquier buenos días."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -3716,7 +2551,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "hinge_good_morning",
@@ -3734,13 +2568,11 @@
         ]
       }
     ],
-    "description": "Familia de bisagra de cadera de pie; el implemento es la única decisión del padre y la postura sentada o la carga zercher quedan como especialidades.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "hinge_good_morning",

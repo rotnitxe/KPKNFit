@@ -1,0 +1,50 @@
+{
+  "definitions": {
+    "triceps_patada": {
+      "public": {
+        "configurations": {
+          "triceps_patada__cable__bilateral": {
+            "description": "Con polea y a dos lados, con el torso inclinado y el codo en alto, el antebrazo se extiende hacia atrás hasta la línea del cuerpo. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+            "executionCues": [
+              "Polea inclinado con ambas manos: la tensión constante acompaña la patada. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea inclinado con ambas manos: la tensión constante acompaña la patada."
+            ]
+          },
+          "triceps_patada__cable__unilateral": {
+            "description": "Con polea y una sola mano, el torso inclinado mantiene el codo en alto y el antebrazo se extiende hacia atrás hasta la línea del cuerpo. Un brazo por vez y la tensión de la polea sin descansar en el tríceps.",
+            "executionCues": [
+              "Con una mano en la empuñadura de la polea baja: el codo queda fijo a la altura del hombro y el antebrazo se extiende hasta alinearse con el tronco sin girar el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Con una mano en la empuñadura de la polea baja: el codo queda fijo a la altura del hombro y el antebrazo se extiende hasta alinearse con el tronco sin girar el cuerpo."
+            ]
+          },
+          "triceps_patada__dumbbells__bilateral": {
+            "description": "Con mancuernas y a dos lados, con el torso inclinado y el codo en alto, el antebrazo se extiende hacia atrás hasta la línea del cuerpo. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+            "executionCues": [
+              "Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas inclinado con ambos brazos: los codos quedan atrás y la extensión termina con el tríceps completamente acortado."
+            ]
+          },
+          "triceps_patada__dumbbells__unilateral": {
+            "description": "Con mancuernas y a un lado, con el torso inclinado y el codo en alto, el antebrazo se extiende hacia atrás hasta la línea del cuerpo. El tríceps trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna con una mano apoyado en el banco: un tríceps a la vez con el codo firme."
+            ]
+          }
+        },
+        "description": "La Patada de Tríceps lleva el brazo hacia atrás inclinando el tronco: el codo quieto en alto y el antebrazo extendiéndose hasta la línea del cuerpo. Se ejecuta con mancuerna o polea, apretando el tríceps en la contracción final de cada repetición. A un brazo cada vez se concentra toda la atención. El acabado clásico que deja el tríceps ardiendo en pocas repeticiones."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_elbow_extension_kickback",
+  "schemaVersion": 1
+}

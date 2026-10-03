@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "core_press_pallof": {
+      "public": {
+        "configurations": {
+          "core_press_pallof__default": {
+            "description": "Con polea, la cuerda se aleja del pecho mientras el core resiste la rotación que la polea intenta imponer. Con la polea, la tensión sobre la zona media se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro. La carga intenta girar el torso y el abdomen responde manteniendo el pecho orientado; la distancia al anclaje define la dificultad."
+            ],
+            "setupCues": [
+              "Preparación: Polea a la altura del pecho y cuerpo firme: llevas la cuerda al frente resistiendo el giro."
+            ]
+          }
+        },
+        "description": "El Press Pallof entrena lo que casi nadie entrena: la capacidad del core de resistir una rotación en vez de producirla. Se ejecuta de lado a la polea con la cuerda a la altura del pecho, alejando las manos del torso mientras la polea intenta girarte y tú no te mueves ni un grado. El abdomen colabora en esa muralla antirotación. El seguro anti-torsiones que sentadillas y pesos muertos agradecen cada semana."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_anti_rotation_trunk",
+  "schemaVersion": 1
+}

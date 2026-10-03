@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · forearm · wrist extension",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_inverso_sentado__cable",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El equilibrante que previene el codo de tenista."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-              ],
               "description": "Con polea, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
@@ -45,7 +37,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca extiende el dorso de la mano hacia arriba con la polea y las palmas hacia abajo, en un arco corto sobre el antebrazo apoyado con tensión constante.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo permanece inmóvil sobre el apoyo y aporta estabilidad isométrica, de modo que la polea mueve solo la muñeca y el brazo queda fuera del gesto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo mientras la polea extiende la muñeca, fijada de forma isométrica.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "wrist_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: Los extensores del antebrazo elevan el dorso de la mano con polea y palmas hacia abajo, acortándose de forma concéntrica sobre el antebrazo apoyado en posición sentada."
-                }
-              ],
               "performanceProfileId": "forearms_extension_muneca__cable",
               "primaryMuscles": [
                 "forearm"
@@ -95,7 +78,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca extiende el dorso de la mano hacia arriba con la polea y las palmas hacia abajo, en un arco corto sobre el antebrazo apoyado con tensión constante.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo permanece inmóvil sobre el apoyo y aporta estabilidad isométrica, de modo que la polea mueve solo la muñeca y el brazo queda fuera del gesto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo mientras la polea extiende la muñeca, fijada de forma isométrica.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "forearm"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "wrist_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "muñeca",
                     "codo",
@@ -143,45 +117,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-                  ],
-                  "cues": [
-                    "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "execution": [
-                    "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de muñeca según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Muñeca",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El equilibrante que previene el codo de tenista."
-                  ],
-                  "description": "Con polea, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. El antebrazo trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-                  "variantRationale": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -194,7 +135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__cable",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -212,24 +153,10 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Extensión de Muñeca en la variante Polea.",
-                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -239,18 +166,10 @@
                     "ez_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
+                    "wrist_extension:forearm"
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -261,9 +180,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-              "ttc": 1.5,
-              "variantRationale": "Polea con las palmas hacia abajo: la mano sube contra una tensión que permanece presente durante todo el recorrido. La carga graduable permite trabajar los extensores sin que el antebrazo abandone el apoyo."
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "cable"
@@ -277,7 +194,6 @@
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_inverso_sentado__dumbbells",
@@ -285,16 +201,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
-                "El equilibrante que previene el codo de tenista."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-              ],
               "description": "Con mancuernas, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
               "efc": 2.0,
               "equipmentId": "dumbbells",
@@ -308,7 +217,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca eleva el dorso de la mano con cada mancuerna y las palmas hacia abajo, sobre el antebrazo apoyado, en un recorrido corto y sin desviaciones laterales.",
                   "role": "PRIMARY"
                 },
                 {
@@ -316,7 +224,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo queda quieto sobre el apoyo y aporta estabilidad isométrica mientras las mancuernas cargan cada muñeca por separado, sin arrastrar flexión del brazo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -324,7 +231,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La radiocubital proximal fija la orientación del antebrazo con las palmas hacia abajo y las mancuernas, sostenida de forma isométrica durante la extensión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -332,12 +238,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: Los extensores del antebrazo suben el dorso de la mano con mancuernas y palmas hacia abajo, contrayéndose de forma concéntrica con una carga separada por lado."
-                }
-              ],
               "performanceProfileId": "forearms_extension_muneca__dumbbells",
               "primaryMuscles": [
                 "forearm"
@@ -358,7 +258,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca eleva el dorso de la mano con cada mancuerna y las palmas hacia abajo, sobre el antebrazo apoyado, en un recorrido corto y sin desviaciones laterales.",
                       "role": "PRIMARY"
                     },
                     {
@@ -366,7 +265,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo queda quieto sobre el apoyo y aporta estabilidad isométrica mientras las mancuernas cargan cada muñeca por separado, sin arrastrar flexión del brazo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -374,20 +272,14 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La radiocubital proximal fija la orientación del antebrazo con las palmas hacia abajo y las mancuernas, sostenida de forma isométrica durante la extensión.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "forearm"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -397,7 +289,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "wrist_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "muñeca",
                     "codo",
@@ -406,45 +297,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-                  ],
-                  "cues": [
-                    "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "execution": [
-                    "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de muñeca según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Muñeca",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
-                    "El equilibrante que previene el codo de tenista."
-                  ],
-                  "description": "Con mancuernas, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con mancuernas, cada lado ajusta su línea y el trabajo del antebrazo se equilibra solo.",
-                  "technique": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-                  "variantRationale": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -457,7 +315,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__dumbbells",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -475,24 +333,10 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Extensión de Muñeca en la variante Mancuernas.",
-                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -502,18 +346,10 @@
                     "ez_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
+                    "wrist_extension:forearm"
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -524,9 +360,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-              "ttc": 1.5,
-              "variantRationale": "Mancuernas con las palmas hacia abajo: ambas muñecas pueden moverse con una carga independiente y fácil de colocar. Es la alternativa más sencilla para localizar el trabajo en la cara posterior del antebrazo."
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -540,7 +374,6 @@
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_inverso_sentado__barbell",
@@ -548,16 +381,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
-                "El equilibrante que previene el codo de tenista."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-              ],
               "description": "Con barra, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
               "efc": 2.0,
               "equipmentId": "barbell",
@@ -571,7 +397,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: Las dos muñecas extienden la mano hacia arriba al mismo tiempo con la barra y las palmas hacia abajo, en un arco corto sobre el apoyo del antebrazo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -579,7 +404,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo permanece fijo sobre el apoyo y ofrece estabilidad isométrica mientras la barra obliga a ambas muñecas a subir juntas y al mismo ritmo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -587,7 +411,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La radiocubital proximal sostiene el antebrazo orientado con las palmas hacia abajo bajo la barra, fijada de forma isométrica en cada repetición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -595,12 +418,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: Los extensores del antebrazo elevan el dorso de ambas manos con la barra y las palmas hacia abajo, acortándose de forma concéntrica con el antebrazo apoyado."
-                }
-              ],
               "performanceProfileId": "forearms_extension_muneca__barbell",
               "primaryMuscles": [
                 "forearm"
@@ -621,7 +438,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: Las dos muñecas extienden la mano hacia arriba al mismo tiempo con la barra y las palmas hacia abajo, en un arco corto sobre el apoyo del antebrazo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -629,7 +445,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo permanece fijo sobre el apoyo y ofrece estabilidad isométrica mientras la barra obliga a ambas muñecas a subir juntas y al mismo ritmo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -637,20 +452,14 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La radiocubital proximal sostiene el antebrazo orientado con las palmas hacia abajo bajo la barra, fijada de forma isométrica en cada repetición.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "forearm"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -660,7 +469,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "wrist_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "muñeca",
                     "codo",
@@ -669,45 +477,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-                  ],
-                  "cues": [
-                    "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "execution": [
-                    "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de muñeca según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra con las palmas abajo: las dos muñecas suben juntas contra la barra."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Muñeca",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
-                    "El equilibrante que previene el codo de tenista."
-                  ],
-                  "description": "Con barra, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra, la carga sube al máximo y la progresión del antebrazo se mide sin trampa.",
-                  "technique": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-                  "variantRationale": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El tradicional para el antebrazo posterior."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -720,7 +495,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__barbell",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -738,24 +513,10 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Extensión de Muñeca en la variante Barra.",
-                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -765,18 +526,10 @@
                     "ez_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
+                    "wrist_extension:forearm"
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -787,9 +540,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-              "ttc": 1.5,
-              "variantRationale": "Barra con las palmas abajo: las dos muñecas suben juntas contra la barra. El tradicional para el antebrazo posterior."
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -803,7 +554,6 @@
                 "legacy:exercise_database.json#forearms_curl_muneca_inverso_sentado",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_curl_muneca_inverso_sentado__ez_bar",
@@ -811,16 +561,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
-                "El equilibrante que previene el codo de tenista."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-              ],
               "description": "Con barra EZ, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
               "efc": 2.0,
               "equipmentId": "ez_bar",
@@ -834,7 +577,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca extiende la mano con la barra EZ y las palmas hacia abajo, aprovechando el ángulo del agarre para un arco corto y cómodo sobre el apoyo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -842,7 +584,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo queda inmóvil sobre el apoyo y aporta estabilidad isométrica mientras la barra EZ reparte el trabajo entre ambas muñecas con su curvatura.",
                   "role": "SECONDARY"
                 },
                 {
@@ -850,7 +591,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo y la barra EZ, fijada de forma isométrica durante la extensión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -858,12 +598,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: Los extensores del antebrazo suben el dorso de la mano con la barra EZ y las palmas hacia abajo, acortándose de forma concéntrica con el antebrazo apoyado."
-                }
-              ],
               "performanceProfileId": "forearms_extension_muneca__ez_bar",
               "primaryMuscles": [
                 "forearm"
@@ -884,7 +618,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca extiende la mano con la barra EZ y las palmas hacia abajo, aprovechando el ángulo del agarre para un arco corto y cómodo sobre el apoyo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -892,7 +625,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo queda inmóvil sobre el apoyo y aporta estabilidad isométrica mientras la barra EZ reparte el trabajo entre ambas muñecas con su curvatura.",
                       "role": "SECONDARY"
                     },
                     {
@@ -900,20 +632,14 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La radiocubital proximal conserva el antebrazo orientado con las palmas hacia abajo y la barra EZ, fijada de forma isométrica durante la extensión.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "forearm"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -923,7 +649,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "wrist_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "muñeca",
                     "codo",
@@ -932,45 +657,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-                  ],
-                  "cues": [
-                    "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "execution": [
-                    "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de muñeca según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Muñeca",
                   "displaySummary": "ez_bar",
                   "selectedOptions": {
                     "implement": "ez_bar"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
-                    "El equilibrante que previene el codo de tenista."
-                  ],
-                  "description": "Con barra EZ, con las palmas hacia abajo y el antebrazo apoyado, el dorso de la mano sube contra la carga. Con la barra EZ, la muñeca viaja cómoda sin perder estímulo del antebrazo.",
-                  "technique": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-                  "variantRationale": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. La opción tolerante con las muñecas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -983,7 +675,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Muñeca",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forearms_curl_muneca_inverso_sentado__ez_bar",
                   "definitionId": "forearms_curl_muneca_inverso_sentado",
                   "familyId": "lower_wrist_extension",
@@ -1001,24 +693,10 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Extensión de Muñeca en la variante Barra EZ.",
-                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "ez_bar"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1028,18 +706,10 @@
                     "ez_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
+                    "wrist_extension:forearm"
                   ],
                   "replacementGroup": "forearm_wrist_curl",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1050,9 +720,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. El antebrazo se fija mientras el dorso de la mano sube contra la resistencia; el recorrido se mantiene corto y limpio.",
-              "ttc": 1.5,
-              "variantRationale": "Barra EZ con las palmas abajo: agarre cómodo y trabajo directo del antebrazo. La opción tolerante con las muñecas."
+              "ttc": 1.5
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -1066,7 +734,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_wrist_extension",
@@ -1082,13 +749,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón wrist_extension; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_wrist_extension",

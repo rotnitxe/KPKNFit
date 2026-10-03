@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "reverse_lunge": {
+      "public": {
+        "configurations": {
+          "reverse_lunge__barbell": {
+            "description": "Con barra, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
+            "executionCues": [
+              "Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Barra y paso atrás: la pierna adelantada recibe la mayor parte de la carga mientras el retroceso deja espacio para bajar con control."
+            ]
+          },
+          "reverse_lunge__bodyweight": {
+            "description": "Sin peso en las manos, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. La pierna delantera organiza la subida y el glúteo de ese lado recibe el trabajo.",
+            "executionCues": [
+              "Con el peso corporal y el paso hacia atrás: la rodilla posterior busca el suelo sin golpearlo y la pierna adelantada empuja para volver a pie con el torso vertical."
+            ],
+            "setupCues": [
+              "Preparación: Con el peso corporal y el paso hacia atrás: la rodilla posterior busca el suelo sin golpearlo y la pierna adelantada empuja para volver a pie con el torso vertical."
+            ]
+          },
+          "reverse_lunge__cable": {
+            "description": "Con polea, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Polea y paso atrás: el cable mantiene una línea de resistencia continua mientras la pierna delantera frena y vuelve a empujar."
+            ]
+          },
+          "reverse_lunge__dumbbells": {
+            "description": "Con mancuernas, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y paso atrás: cada mano lleva una carga independiente y la pierna adelantada organiza la subida."
+            ]
+          },
+          "reverse_lunge__kettlebell": {
+            "description": "Con kettlebell, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells y paso atrás: la carga al costado suma agarre y estabilidad."
+            ]
+          },
+          "reverse_lunge__smith_machine": {
+            "description": "Con máquina Smith, el paso hacia atrás baja la rodilla posterior hasta cerca del suelo con el torso erguido. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith y paso atrás: el guiado sostiene la barra mientras bajas. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Smith y paso atrás: el guiado sostiene la barra mientras bajas."
+            ]
+          }
+        },
+        "description": "La Zancada Inversa da el paso hacia atrás y la rodilla delantera lo agradece: la pierna que se queda frena menos en valgo y el glúteo de ese lado carga más. Se ejecuta retrocediendo con control, bajando la rodilla que viaja hasta cerca del suelo y regresando empujando con la pierna fija. Con mancuernas es el punto de partida ideal para las zancadas. La zancada amable con las articulaciones que no perdona el músculo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_reverse_lunge",
+  "schemaVersion": 1
+}

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · neck · neck lateral flexion",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#neck_flexion_lateral_cuello",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "neck_flexion_lateral_cuello__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuello trabaja con el disco, que añade lastre directo y simple.",
-                "El detalle que redondea un cuello fuerte por todos sus lados."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
-              ],
               "description": "Con disco, la oreja busca el hombro contra la resistencia apoyada en el lateral de la cabeza. El cuello trabaja con el disco, que añade lastre directo y simple.",
               "efc": 2.0,
               "equipmentId": "plate",
@@ -45,7 +37,6 @@
                     "Flexión, Extensión O Inclinación"
                   ],
                   "jointId": "columna-cervical",
-                  "note": "Principal: La columna cervical inclina la cabeza de lado contra el disco sobre el lateral de la cabeza, de pie o tumbado, en un arco corto y sin girar el rostro.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Base Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras el disco pesa sobre el lateral de la cabeza, de pie o tumbado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -61,12 +51,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "neck_lateral_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "neck",
-                  "note": "Principal: Los laterales del cuello inclinan la cabeza hacia cada lado contra el disco apoyado en el lateral, acortándose de forma concéntrica en un trabajo bilateral."
-                }
-              ],
               "performanceProfileId": "neck_flexion_lateral_cuello__plate__flexion_lateral_de_cuello",
               "primaryMuscles": [
                 "neck"
@@ -86,7 +70,6 @@
                         "Flexión, Extensión O Inclinación"
                       ],
                       "jointId": "columna-cervical",
-                      "note": "Principal: La columna cervical inclina la cabeza de lado contra el disco sobre el lateral de la cabeza, de pie o tumbado, en un arco corto y sin girar el rostro.",
                       "role": "PRIMARY"
                     },
                     {
@@ -94,20 +77,14 @@
                         "Base Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La columna torácica sostiene la base del tronco de forma isométrica mientras el disco pesa sobre el lateral de la cabeza, de pie o tumbado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "neck"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "neck"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -117,7 +94,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "neck_lateral_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-cervical",
                     "columna-toracica"
@@ -125,43 +101,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Usar velocidad, llevar la cabeza al extremo del recorrido o encoger los hombros."
-                  ],
-                  "cues": [
-                    "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad de la musculatura cervical con una carga graduable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento o estabilización de la columna cervical como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna cervical según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: De pie o acostado, inclinas la cabeza hacia el lado contra resistencia."
-                  ]
-                },
                 "display": {
                   "displayName": "Flexión Lateral de Cuello",
                   "displaySummary": "Disco",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuello trabaja con el disco, que añade lastre directo y simple.",
-                    "El detalle que redondea un cuello fuerte por todos sus lados."
-                  ],
-                  "description": "Con disco, la oreja busca el hombro contra la resistencia apoyada en el lateral de la cabeza. El cuello trabaja con el disco, que añade lastre directo y simple.",
-                  "technique": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. Los laterales del cuello trabajan para un cuello completo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -174,7 +117,7 @@
                 },
                 "identity": {
                   "canonicalName": "Flexión Lateral de Cuello",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "neck_flexion_lateral_cuello__default",
                   "definitionId": "neck_flexion_lateral_cuello",
                   "familyId": "lower_neck_lateral_flexion",
@@ -191,42 +134,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar la musculatura cervical mediante Flexión Lateral de Cuello en la variante Disco.",
-                    "Priorizar mejorar la capacidad de la musculatura cervical con una carga graduable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "plate"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento o estabilización de la columna cervical y el objetivo de la musculatura cervical.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna cervical, columna torácica."
+                    "neck_lateral_flexion:neck"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -237,9 +158,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "De pie o acostado, inclinas la cabeza hacia el lado contra resistencia. Los laterales del cuello trabajan para un cuello completo."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -251,7 +170,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_neck_lateral_flexion",
@@ -264,13 +182,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón neck_lateral_flexion; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_neck_lateral_flexion",

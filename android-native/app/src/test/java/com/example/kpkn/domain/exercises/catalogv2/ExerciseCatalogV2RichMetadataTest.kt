@@ -16,7 +16,6 @@ class ExerciseCatalogV2RichMetadataTest {
         val family = ExerciseFamilyV2(
             id = "family",
             canonicalName = "Familia",
-            description = "Descripción de familia suficientemente explícita para el fixture.",
             definitions = emptyList(),
             evidence = evidence,
         )
@@ -46,7 +45,13 @@ class ExerciseCatalogV2RichMetadataTest {
         assertEquals("barbell", metadata.biomechanics.equipmentId)
         assertEquals(2.0, metadata.fatigue.efc, 0.0)
         assertEquals(listOf("hamstrings"), metadata.anatomy.primaryMuscles)
-        assertNotNull(metadata.coaching.setup.single())
+        assertEquals("hip_hinge", metadata.biomechanics.movementPatternId)
+        assertEquals("Padre", metadata.display.displayName)
+        assertEquals("Barra", metadata.display.displaySummary)
+        // The builder derives the same mirrors the loader enforces.
+        assertEquals(listOf("hip_hinge:hamstrings"), metadata.replacement.preservesIntent)
+        assertEquals(emptyList<String>(), metadata.anatomy.jointActions)
+        assertNotNull(metadata.evidenceConfidence)
     }
 
     private fun fixtureProfile() = ResolvedExerciseProfileV2(
@@ -66,7 +71,6 @@ class ExerciseCatalogV2RichMetadataTest {
         resistanceProfile = "lengthened_hip_extensor",
         setupCues = listOf("Ajusta la barra."),
         executionCues = listOf("Mueve la cadera."),
-        commonMistakes = listOf("Redondear la espalda."),
         performanceProfileId = "hip_hinge_barbell",
     )
 }

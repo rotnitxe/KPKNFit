@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "hams_peso_muerto_rumano_sumo_deficit": {
+      "public": {
+        "configurations": {
+          "hams_peso_muerto_rumano_sumo_deficit__default": {
+            "description": "Con barra, con la base ancha sobre la plataforma, el estiramiento llega a isquiosurales y aductores. Con la barra, la carga sube al máximo y la progresión de los isquiosurales se mide sin trampa.",
+            "executionCues": [
+              "Postura sumo desde la plataforma: el rumano sumo con más recorrido y los glúteos trabajando de extra. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Postura sumo desde la plataforma: el rumano sumo con más recorrido y los glúteos trabajando de extra."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Rumano Sumo en Déficit junta postura ancha, bisagra desde arriba y plataforma: el estiramiento llega a los isquiosurales y a los aductores desde un ángulo distinto y más largo. Se ejecuta deslizando la carga entre las piernas abiertas hasta donde la movilidad lo permita. Es la variante más profunda de la familia rumana. Reservada para quien busca rango extremo con la técnica ya asentada."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_romanian_deadlift_deficit",
+  "schemaVersion": 1
+}

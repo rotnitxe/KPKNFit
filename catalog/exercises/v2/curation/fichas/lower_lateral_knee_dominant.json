@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "quads_sentadilla_cosaca": {
+      "public": {
+        "configurations": {
+          "quads_sentadilla_cosaca__default": {
+            "description": "Con peso corporal, una pierna se hunde en flexión lateral mientras la otra se extiende hacia el costado. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+            "executionCues": [
+              "Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Paso amplio al lado y bajada lateral con la otra pierna extendida: movilidad y fuerza de piernas en un movimiento elegante."
+            ]
+          }
+        },
+        "description": "La Sentadilla Cosaca traslada el peso a un lado con la otra pierna extendida: el cuádriceps de la pierna que flexiona se hunde en un rango enorme mientras la otra pierna estira el aductor. Se ejecuta desplazándose lateralmente hasta el fondo y regresando al centro, con el peso corporal como carga suficiente. Movilidad de cadera y fuerza unilateral en un solo gesto. La sentadilla lateral que revela lo que falta por trabajar."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_lateral_knee_dominant",
+  "schemaVersion": 1
+}

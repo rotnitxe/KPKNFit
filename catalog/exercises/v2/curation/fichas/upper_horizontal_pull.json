@@ -1,0 +1,135 @@
+{
+  "definitions": {
+    "back_band_pull_apart": {
+      "public": {
+        "configurations": {
+          "back_band_pull_apart__default": {
+            "description": "Con banda elástica, los brazos se abren al frente hasta que los omóplatos se juntan atrás. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+            "executionCues": [
+              "Banda al frente y separación hacia el pecho: la espalda alta se activa al instante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Banda al frente y separación hacia el pecho: la espalda alta se activa al instante."
+            ]
+          }
+        },
+        "description": "El Band Pull-Apart abre los brazos contra una banda elástica hasta que los omóplatos se juntan atrás: trapecio medio y deltoide posterior trabajando en un gesto que cabe en un bolsillo. Se ejecuta con los brazos extendidos al frente, separando la banda hasta tocar el pecho y regresando con calma. El antídoto portátil contra los hombros adelantados por el teclado."
+      },
+      "status": "LEGACY"
+    },
+    "back_remo_banda": {
+      "public": {
+        "configurations": {
+          "back_remo_banda__default": {
+            "description": "Con banda elástica, sentado con las piernas extendidas, la banda anclada a los pies se recoge hacia la cintura. Con la banda, la resistencia crece a medida que avanza el trabajo del trapecio.",
+            "executionCues": [
+              "Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Banda anclada y tirón hacia el torso: el remo que cabe en cualquier mochila."
+            ]
+          }
+        },
+        "description": "El Remo en Banda Elástica monta el tirón horizontal sin gimnasio: la banda anclada a los pies y el dorsal ancho y trapecio tirando hacia la cintura. Se ejecuta sentado con las piernas extendidas, llevando los codos atrás y regresando sin que la banda afloje de golpe. Bíceps y espalda alta acompañan el gesto. El remo que viaja en la mochila y se monta en cualquier hotel."
+      },
+      "status": "LEGACY"
+    },
+    "back_remo_gorilla_mancuernas": {
+      "public": {
+        "configurations": {
+          "back_remo_gorilla_mancuernas__cable": {
+            "description": "Con polea, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con la polea, la tensión sobre el dorsal ancho se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea y tirón con balanceo: la tensión constante cambia el remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea y tirón con balanceo: la tensión constante cambia el remo gorila."
+            ]
+          },
+          "back_remo_gorilla_mancuernas__dumbbells": {
+            "description": "Con mancuernas, con el tronco inclinado, cada tirón sube desde parado alternando brazos. Con mancuernas, cada lado ajusta su línea y el trabajo del dorsal ancho se equilibra solo.",
+            "executionCues": [
+              "Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas colgando y tirón con balanceo del torso: el remo gorila tradicional."
+            ]
+          },
+          "back_remo_gorilla_mancuernas__kettlebell": {
+            "description": "Con kettlebell, con el tronco inclinado, cada tirón sube desde parado alternando brazos. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells colgando y tirón con balanceo: el agarre suma trabajo al remo gorila."
+            ]
+          }
+        },
+        "description": "El Remo Gorilla alterna mancuernas partiendo del suelo y con el tronco inclinado: cada tirón sube desde parado y el dorsal produce fuerza de arranque una y otra vez. Se ejecuta con la espalda firme, tirando una mano mientras la otra espera, como un gorila moviendo carga. Kettlebells o polea baja sirven igual de bien. Potencia de espalda con un punto de picardía en cada brazada."
+      },
+      "status": "LEGACY"
+    },
+    "back_remo_invertido": {
+      "public": {
+        "configurations": {
+          "back_remo_invertido__default": {
+            "description": "Con peso corporal, colgado bajo una barra fija, el cuerpo rígido sube el pecho hasta tocarla. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa.",
+            "executionCues": [
+              "Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Colgado bajo la barra con el cuerpo recto, acercas el pecho a ella."
+            ]
+          }
+        },
+        "description": "El Remo Invertido cuelga del lado contrario de una barra fija: debajo de ella, el cuerpo rígido sube el pecho hasta tocarla con el dorsal ancho tirando. Se ejecuta con los talones en el suelo y la cadera alta, bajando y subiendo sin que la cintura colapse. Bíceps, trapecio y erectores acompañan el tirón. La dominada de quien todavía no hace dominadas, y un remo serio para quien ya las hace."
+      },
+      "status": "LEGACY"
+    },
+    "back_remo_renegado_mancuernas": {
+      "public": {
+        "configurations": {
+          "back_remo_renegado_mancuernas__dumbbells": {
+            "description": "Con mancuernas, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas en plancha y remo de un brazo: el core combate el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas en plancha y remo de un brazo: el core combate el giro."
+            ]
+          },
+          "back_remo_renegado_mancuernas__kettlebell": {
+            "description": "Con kettlebell, desde la posición de plancha, un brazo rema mientras el cuerpo se niega a rotar. El dorsal ancho trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells en plancha y remo de un brazo: la campana baja el centro de gravedad y exige más."
+            ]
+          }
+        },
+        "description": "El Remo Renegado mezcla plancha y remo en la misma repetición: desde la posición de flexión con mancuernas, un brazo rema mientras el resto del cuerpo se niega a rotar. Se ejecuta con los pies separados y la cadera quieta, alternando lados con la espalda plana. El core trabaja tanto como el dorsal en cada tirón. Espalda y abdomen en un solo gesto, eficiencia pura."
+      },
+      "status": "LEGACY"
+    },
+    "deltoides_face_pull": {
+      "public": {
+        "configurations": {
+          "deltoides_face_pull__default": {
+            "description": "Con polea, la cuerda viaja hacia la cara abriendo los codos hasta que las manos quedan a la altura de las orejas. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Cuerda a la altura de la cara: tiras abriendo los codos hacia los lados."
+            ]
+          }
+        },
+        "description": "El Face Pull trae la cuerda de la polea alta hacia la cara abriendo los codos: el deltoide posterior y el trapecio medio juntan los omóplatos en cada repetición. Se ejecuta con la cuerda doble, tirando hasta las orejas con los pulgares atrás y regresando sin perder la postura. El hombro se siente reorganizado al terminar. La vitamina diaria de la salud del hombro, cortesía de la polea."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_horizontal_pull",
+  "schemaVersion": 1
+}

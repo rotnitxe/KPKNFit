@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Extensión de cuádriceps",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_extension_cuadriceps__machine__bilateral",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
-                "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La extensión de la rodilla levanta la almohadilla con ambas piernas, y la trayectoria guiada de la máquina impone un retorno gradual hasta la flexión inicial.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras las dos piernas empujan la almohadilla, con la pelvis quieta sin sumarse al empuje de la rodilla.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo en dorsiflexión bajo la almohadilla fija las espinillas de las dos piernas mientras la máquina guía el empuje y el retorno de la rodilla.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado sin ceder mientras ambas piernas extienden la rodilla contra la máquina y vuelven a la flexión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,12 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla al empujar la almohadilla con las dos piernas y frena de forma excéntrica el retorno guiado de la máquina."
-                }
-              ],
               "performanceProfileId": "quads_extension_cuadriceps__machine__bilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -103,7 +85,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La extensión de la rodilla levanta la almohadilla con ambas piernas, y la trayectoria guiada de la máquina impone un retorno gradual hasta la flexión inicial.",
                       "role": "PRIMARY"
                     },
                     {
@@ -111,7 +92,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras las dos piernas empujan la almohadilla, con la pelvis quieta sin sumarse al empuje de la rodilla.",
                       "role": "SECONDARY"
                     },
                     {
@@ -119,7 +99,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo en dorsiflexión bajo la almohadilla fija las espinillas de las dos piernas mientras la máquina guía el empuje y el retorno de la rodilla.",
                       "role": "STABILIZER"
                     },
                     {
@@ -127,20 +106,14 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado sin ceder mientras ambas piernas extienden la rodilla contra la máquina y vuelven a la flexión.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -150,7 +123,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -160,45 +132,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina con ambas piernas: estiras las rodillas contra la resistencia."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Cuádriceps en Máquina",
                   "displaySummary": "machine · bilateral",
                   "selectedOptions": {
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
-                    "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
-                  ],
-                  "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
-                  "technique": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. El aislamiento tradicional del cuádriceps, simple y efectivo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -211,7 +150,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_extension_cuadriceps__machine__bilateral",
                   "definitionId": "quads_extension_cuadriceps",
                   "familyId": "lower_knee_extension",
@@ -229,42 +168,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Extensión de Cuádriceps en Máquina en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_extension:quadriceps"
                   ],
                   "replacementGroup": "quad_leg_extension",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -275,9 +192,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina con ambas piernas: estiras las rodillas contra la resistencia. El aislamiento tradicional del cuádriceps, simple y efectivo."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -291,7 +206,6 @@
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_extension_cuadriceps__machine__unilateral",
@@ -299,16 +213,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
-                "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -322,7 +229,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla trabajadora levanta la almohadilla en solitario y la máquina la guía de vuelta hasta la flexión inicial sin arrastre del lado contrario.",
                   "role": "PRIMARY"
                 },
                 {
@@ -330,7 +236,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras una sola pierna empuja la almohadilla, con la pelvis quieta ante el esfuerzo desequilibrado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -338,7 +243,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo de la pierna activa fija la espinilla bajo la almohadilla mientras la otra pierna espera, y la máquina guía el empuje de una sola rodilla.",
                   "role": "STABILIZER"
                 },
                 {
@@ -346,7 +250,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado frente al empuje de una pierna, cuando la carga unilateral intenta girar la pelvis sobre el asiento.",
                   "role": "STABILIZER"
                 }
               ],
@@ -354,12 +257,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla una pierna cada vez contra la almohadilla de la máquina y frena el retorno sin ayuda de la pierna contraria."
-                }
-              ],
               "performanceProfileId": "quads_extension_cuadriceps__machine__unilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -380,7 +277,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla trabajadora levanta la almohadilla en solitario y la máquina la guía de vuelta hasta la flexión inicial sin arrastre del lado contrario.",
                       "role": "PRIMARY"
                     },
                     {
@@ -388,7 +284,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera permanece flexionada sobre el asiento mientras una sola pierna empuja la almohadilla, con la pelvis quieta ante el esfuerzo desequilibrado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -396,7 +291,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo de la pierna activa fija la espinilla bajo la almohadilla mientras la otra pierna espera, y la máquina guía el empuje de una sola rodilla.",
                       "role": "STABILIZER"
                     },
                     {
@@ -404,20 +298,14 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el tronco sentado frente al empuje de una pierna, cuando la carga unilateral intenta girar la pelvis sobre el asiento.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -427,7 +315,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -437,45 +324,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Cuádriceps en Máquina",
                   "displaySummary": "machine · unilateral",
                   "selectedOptions": {
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
-                    "El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
-                  ],
-                  "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa de la extensión."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -488,7 +342,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_extension_cuadriceps__machine__unilateral",
                   "definitionId": "quads_extension_cuadriceps",
                   "familyId": "lower_knee_extension",
@@ -506,42 +360,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Extensión de Cuádriceps en Máquina en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_extension:quadriceps"
                   ],
                   "replacementGroup": "quad_leg_extension",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -552,9 +384,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa de la extensión."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -568,7 +398,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_extension",
@@ -594,7 +423,6 @@
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_extension_cuadriceps_pie_polea__bilateral",
@@ -602,16 +430,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
-                "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -625,7 +446,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla se estira de pie contra el cable con ambas piernas y regresa a la flexión sin que la polea afloje la resistencia en ningún punto del arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -633,7 +453,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera de pie permanece extendida y solo acompaña el equilibrio mientras las dos rodillas se estiran contra la tensión continua del cable de la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -641,7 +460,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo enganchado al accesorio de la polea transmite la tensión con las dos piernas de pie y sostiene la dorsiflexión durante el empuje y el retorno.",
                   "role": "STABILIZER"
                 },
                 {
@@ -649,7 +467,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie y de lado al cable mientras las dos rodillas se estiran contra la tensión continua de la polea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -657,12 +474,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla de pie con el tobillo enganchado a la polea y frena el retorno con la tensión del cable siempre viva."
-                }
-              ],
               "performanceProfileId": "quads_extension_cuadriceps_pie_polea__bilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -683,7 +494,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla se estira de pie contra el cable con ambas piernas y regresa a la flexión sin que la polea afloje la resistencia en ningún punto del arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -691,7 +501,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera de pie permanece extendida y solo acompaña el equilibrio mientras las dos rodillas se estiran contra la tensión continua del cable de la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -699,7 +508,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo enganchado al accesorio de la polea transmite la tensión con las dos piernas de pie y sostiene la dorsiflexión durante el empuje y el retorno.",
                       "role": "STABILIZER"
                     },
                     {
@@ -707,20 +515,14 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie y de lado al cable mientras las dos rodillas se estiran contra la tensión continua de la polea.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -730,7 +532,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -740,45 +541,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Cuádriceps de Pie en Polea",
                   "displaySummary": "cable · bilateral",
                   "selectedOptions": {
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
-                    "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
-                  ],
-                  "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
-                  "technique": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. Variante precisa y constante."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -791,7 +559,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_extension_cuadriceps_pie_polea__bilateral",
                   "definitionId": "quads_extension_cuadriceps_pie_polea",
                   "familyId": "lower_knee_extension",
@@ -809,42 +577,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Extensión de Cuádriceps de Pie en Polea en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_extension:quadriceps"
                   ],
                   "replacementGroup": "quad_leg_extension",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -855,9 +601,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. Variante precisa y constante."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "laterality": "bilateral"
@@ -871,7 +615,6 @@
                 "legacy:exercise_database.json#quads_extension_cuadriceps",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_extension_cuadriceps_pie_polea__unilateral",
@@ -879,16 +622,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
-                "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -902,7 +638,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla activa se estira de pie contra el cable y vuelve a la flexión con la polea tensa, mientras la pierna contraria queda fuera del empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -910,7 +645,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera extendida de pie sostiene el equilibrio ante el tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -918,7 +652,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo de la pierna enganchada absorbe la tracción de la polea y sostiene la dorsiflexión mientras la otra pierna equilibra el cuerpo de pie.",
                   "role": "STABILIZER"
                 },
                 {
@@ -926,7 +659,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie frente al tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -934,12 +666,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla con una sola pierna de pie y el tobillo enganchado, y frena el retorno frente a la tensión continua del cable."
-                }
-              ],
               "performanceProfileId": "quads_extension_cuadriceps_pie_polea__unilateral",
               "primaryMuscles": [
                 "quadriceps"
@@ -960,7 +686,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla activa se estira de pie contra el cable y vuelve a la flexión con la polea tensa, mientras la pierna contraria queda fuera del empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -968,7 +693,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera extendida de pie sostiene el equilibrio ante el tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -976,7 +700,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo de la pierna enganchada absorbe la tracción de la polea y sostiene la dorsiflexión mientras la otra pierna equilibra el cuerpo de pie.",
                       "role": "STABILIZER"
                     },
                     {
@@ -984,20 +707,14 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el tronco de pie frente al tirón lateral del cable cuando una sola pierna estira la rodilla contra la polea.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1007,7 +724,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1017,45 +733,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea con una pierna: extensión unilateral con tensión continua."
-                  ]
-                },
                 "display": {
                   "displayName": "Extensión de Cuádriceps de Pie en Polea",
                   "displaySummary": "cable · unilateral",
                   "selectedOptions": {
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
-                    "Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
-                  ],
-                  "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea con una pierna: extensión unilateral con tensión continua. Útil para aislar un cuádriceps a la vez."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1068,7 +751,7 @@
                 },
                 "identity": {
                   "canonicalName": "Extensión de Cuádriceps de Pie en Polea",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_extension_cuadriceps_pie_polea__unilateral",
                   "definitionId": "quads_extension_cuadriceps_pie_polea",
                   "familyId": "lower_knee_extension",
@@ -1086,42 +769,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Extensión de Cuádriceps de Pie en Polea en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_extension:quadriceps"
                   ],
                   "replacementGroup": "quad_leg_extension",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1132,9 +793,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Polea con una pierna: extensión unilateral con tensión continua. Útil para aislar un cuádriceps a la vez."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "laterality": "unilateral"
@@ -1148,7 +807,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_extension",
@@ -1164,13 +822,11 @@
         ]
       }
     ],
-    "description": "Familia de extensión de rodilla con implemento y lateralidad explícitos; la máquina bilateral y unilateral se mantienen dentro del mismo padre.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_extension",

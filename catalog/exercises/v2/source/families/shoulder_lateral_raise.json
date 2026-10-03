@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Elevación Lateral",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_lateral_raise__dumbbells",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                "La versión estricta para sentir el hombro trabajar de verdad."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con mancuernas, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -45,7 +37,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La abducción del hombro con leve flexión se carga aquí; las mancuernas sentado imponen la línea del arco sin ayuda del tronco en la subida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba para acompañar el arco; sentado con mancuernas, el tronco inmóvil traslada ese ajuste solo a la cintura escapular.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular en esta articulación da soporte al arco lateral; con mancuernas sentado, la carga independiente exige un apoyo simétrico.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo queda en extensión relativa y sostiene la palanca del brazo; con mancuernas sentado, esa posición isométrica dirige el esfuerzo al hombro.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide eleva los brazos a los lados en concéntrico y frena la bajada en excéntrico; con mancuernas sentado, el torso fijo impide el impulso."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio asiste la abducción con rotación superior de la escápula; sentado con mancuernas, cada lado guía su brazo y el reparto de trabajo se equilibra."
-                }
-              ],
               "performanceProfileId": "lateral_raise_seated__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -108,7 +86,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La abducción del hombro con leve flexión se carga aquí; las mancuernas sentado imponen la línea del arco sin ayuda del tronco en la subida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba para acompañar el arco; sentado con mancuernas, el tronco inmóvil traslada ese ajuste solo a la cintura escapular.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular en esta articulación da soporte al arco lateral; con mancuernas sentado, la carga independiente exige un apoyo simétrico.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo queda en extensión relativa y sostiene la palanca del brazo; con mancuernas sentado, esa posición isométrica dirige el esfuerzo al hombro.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -167,45 +135,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Sentado",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                    "La versión estricta para sentir el hombro trabajar de verdad."
-                  ],
-                  "description": "Con mancuernas, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                  "technique": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La elevación estricta, la útil para observar la trayectoria."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -218,7 +153,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_lateral_raise__dumbbells",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -237,24 +172,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Sentado en la variante Mancuernas.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -264,18 +185,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -288,9 +201,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La elevación estricta, la útil para observar la trayectoria."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -304,7 +215,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_lateral_raise__cable",
@@ -312,16 +222,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "La versión estricta para sentir el hombro trabajar de verdad."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con polea, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -335,7 +238,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce contra resistencia constante; la polea sentado elimina el impulso posible y carga el arco desde el inicio del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -343,7 +245,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba al ritmo del arco; con polea sentado, la tensión constante obliga a un control escapular continuo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -351,7 +252,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular estabiliza el punto de anclaje del arco; la polea sentado mantiene carga en todo el recorrido y exige ese apoyo constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -359,7 +259,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa transmite al hombro la tensión de la polea; sentado, esa posición fija concentra el trabajo en la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -367,16 +266,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide concentra la abducción y frena el retorno; la polea sentado mantiene tensión constante en todo el arco, incluso en el tramo más alto."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio aporta rotación superior de la escápula durante la subida; con polea sentado, la carga constante no da tregua y la fatiga se acumula en el hombro."
-                }
-              ],
               "performanceProfileId": "lateral_raise_seated__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -398,7 +287,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce contra resistencia constante; la polea sentado elimina el impulso posible y carga el arco desde el inicio del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -406,7 +294,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba al ritmo del arco; con polea sentado, la tensión constante obliga a un control escapular continuo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -414,7 +301,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular estabiliza el punto de anclaje del arco; la polea sentado mantiene carga en todo el recorrido y exige ese apoyo constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -422,22 +308,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa transmite al hombro la tensión de la polea; sentado, esa posición fija concentra el trabajo en la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -447,7 +327,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -457,45 +336,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea sentado: tensión constante y sin impulso posible."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Sentado",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "La versión estricta para sentir el hombro trabajar de verdad."
-                  ],
-                  "description": "Con polea, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea sentado: tensión constante y sin impulso posible. El hombro lateral acumula fatiga local con la versión controlada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -508,7 +354,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_lateral_raise__cable",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -527,24 +373,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Sentado en la variante Polea.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -554,18 +386,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -578,9 +402,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Polea sentado: tensión constante y sin impulso posible. El hombro lateral acumula fatiga local con la versión controlada."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -594,7 +416,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_lateral_raise__machine",
@@ -602,16 +423,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-                "La versión estricta para sentir el hombro trabajar de verdad."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con máquina, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -625,7 +439,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce por la línea que dicta el brazo de la máquina; sentado y sin libertad de trayectoria, la carga se concentra en el deltoide.",
                   "role": "PRIMARY"
                 },
                 {
@@ -633,7 +446,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba dentro del patrón guiado; en la máquina sentado, el movimiento prediseñado simplifica ese ajuste escapular.",
                   "role": "SECONDARY"
                 },
                 {
@@ -641,7 +453,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña la abducción dentro del recorrido fijo; la máquina sentado reparte la carga de forma previsible sobre esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -649,7 +460,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; sentado, esa posición estable impide que la palanca pierda línea.",
                   "role": "STABILIZER"
                 }
               ],
@@ -657,16 +467,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide impulsa la abducción y controla la bajada; la máquina sentado fija la trayectoria y lleva el estímulo directo al paquete lateral del hombro."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio colabora con rotación superior de la escápula; en la máquina sentado, el recorrido guiado reduce su papel asistente y carga más el deltoide."
-                }
-              ],
               "performanceProfileId": "lateral_raise_seated__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -688,7 +488,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce por la línea que dicta el brazo de la máquina; sentado y sin libertad de trayectoria, la carga se concentra en el deltoide.",
                       "role": "PRIMARY"
                     },
                     {
@@ -696,7 +495,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba dentro del patrón guiado; en la máquina sentado, el movimiento prediseñado simplifica ese ajuste escapular.",
                       "role": "SECONDARY"
                     },
                     {
@@ -704,7 +502,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña la abducción dentro del recorrido fijo; la máquina sentado reparte la carga de forma previsible sobre esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -712,22 +509,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; sentado, esa posición estable impide que la palanca pierda línea.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -737,7 +528,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -747,45 +537,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Sentado",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-                    "La versión estricta para sentir el hombro trabajar de verdad."
-                  ],
-                  "description": "Con máquina, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
-                  "technique": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La opción más cómoda del press lateral sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -798,7 +555,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_lateral_raise__machine",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -817,24 +574,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Sentado en la variante Máquina.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -844,18 +587,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -868,9 +603,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La opción más cómoda del press lateral sentado."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "machine"
@@ -884,7 +617,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_lateral_raise__kettlebell",
@@ -892,16 +624,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                "La versión estricta para sentir el hombro trabajar de verdad."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con kettlebell, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -915,7 +640,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce con la carga colgada de la mano; la kettlebell sentado añade inestabilidad al arco y el torso inmóvil impide compensar.",
                   "role": "PRIMARY"
                 },
                 {
@@ -923,7 +647,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba bajo una carga que oscila; con kettlebell sentado, ese balanceo exige un control fino de la cintura escapular.",
                   "role": "SECONDARY"
                 },
                 {
@@ -931,7 +654,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; la kettlebell sentado suma inestabilidad y trabaja esta articulación más que otras variantes.",
                   "role": "SECONDARY"
                 },
                 {
@@ -939,7 +661,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa sujeta el peso colgado de la mano; con kettlebell sentado, el agarre denso mantiene fija esa palanca.",
                   "role": "STABILIZER"
                 }
               ],
@@ -947,16 +668,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide eleva los brazos en concéntrico y frena la carga al bajar; con kettlebell sentado, el centro de peso colgado exige un agarre firme."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio asiste la abducción y rota la escápula hacia arriba; con kettlebell sentado, la inestabilidad del peso colgado obliga a más control escapular."
-                }
-              ],
               "performanceProfileId": "lateral_raise_seated__kettlebell",
               "primaryMuscles": [
                 "deltoid"
@@ -978,7 +689,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce con la carga colgada de la mano; la kettlebell sentado añade inestabilidad al arco y el torso inmóvil impide compensar.",
                       "role": "PRIMARY"
                     },
                     {
@@ -986,7 +696,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba bajo una carga que oscila; con kettlebell sentado, ese balanceo exige un control fino de la cintura escapular.",
                       "role": "SECONDARY"
                     },
                     {
@@ -994,7 +703,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; la kettlebell sentado suma inestabilidad y trabaja esta articulación más que otras variantes.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1002,22 +710,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa sujeta el peso colgado de la mano; con kettlebell sentado, el agarre denso mantiene fija esa palanca.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1027,7 +729,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1037,45 +738,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Sentado",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                    "La versión estricta para sentir el hombro trabajar de verdad."
-                  ],
-                  "description": "Con kettlebell, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                  "technique": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. Variante exigente del press lateral sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1088,7 +756,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_lateral_raise__kettlebell",
                   "definitionId": "seated_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1107,24 +775,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Sentado en la variante Kettlebell.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1134,18 +788,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1158,9 +804,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. Variante exigente del press lateral sentado."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1174,7 +818,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "shoulder_lateral_raise",
@@ -1201,7 +844,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_lateral_raise__dumbbells",
@@ -1209,16 +851,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con mancuernas, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -1232,7 +867,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce con los codos suaves y la carga libre; de pie con mancuernas, la línea del arco la decide cada brazo sin ayuda del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1240,7 +874,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba mientras el cuerpo mantiene el equilibrio de pie; las mancuernas libres demandan ese ajuste en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1248,7 +881,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular sostiene el arco lateral de pie; con mancuernas libres, la carga simétrica pide un apoyo firme de esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1256,7 +888,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa forma la palanca del brazo; de pie con mancuernas, esa posición isométrica sostiene la trayectoria lateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1264,16 +895,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide abre los brazos a los lados y frena el descenso; de pie con mancuernas, cada lado sostiene su propia línea sin apoyo del respaldo."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota la escápula hacia arriba durante la subida; de pie con mancuernas, el equilibrio del cuerpo aumenta su participación en el arco."
-                }
-              ],
               "performanceProfileId": "lateral_raise_standing__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -1295,7 +916,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce con los codos suaves y la carga libre; de pie con mancuernas, la línea del arco la decide cada brazo sin ayuda del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1303,7 +923,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba mientras el cuerpo mantiene el equilibrio de pie; las mancuernas libres demandan ese ajuste en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1311,7 +930,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular sostiene el arco lateral de pie; con mancuernas libres, la carga simétrica pide un apoyo firme de esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1319,22 +937,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa forma la palanca del brazo; de pie con mancuernas, esa posición isométrica sostiene la trayectoria lateral.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1344,7 +956,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1354,45 +965,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales de Pie",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-                  ],
-                  "description": "Con mancuernas, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                  "technique": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La elevación lateral tradicional y más utilizada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1405,7 +983,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_lateral_raise__dumbbells",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1424,24 +1002,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales de Pie en la variante Mancuernas.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1451,18 +1015,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1475,9 +1031,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La elevación lateral tradicional y más utilizada."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -1491,7 +1045,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_lateral_raise__cable",
@@ -1499,16 +1052,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con polea, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -1522,7 +1068,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce contra la polea en todo el recorrido; de pie, sin respaldo que limite el torso, la tensión constante no da puntos muertos.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1530,7 +1075,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba bajo carga continua; de pie con polea, la cintura escapular sostiene el arco sin pausas de descarga.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1538,7 +1082,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña el arco lateral de pie; la polea mantiene la carga en todo el recorrido y esta articulación la absorbe de forma constante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1546,7 +1089,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa guía el cable hacia el hombro; de pie, esa palanca fija traslada la tensión constante de la polea a la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1554,16 +1096,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide impulsa la abducción y frena el retorno; de pie con polea, la tensión constante carga el hombro desde el inicio del arco."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio asiste la subida con rotación superior escapular; de pie con polea, la resistencia constante mantiene activo al hombro y a su fijador."
-                }
-              ],
               "performanceProfileId": "lateral_raise_standing__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -1585,7 +1117,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce contra la polea en todo el recorrido; de pie, sin respaldo que limite el torso, la tensión constante no da puntos muertos.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1593,7 +1124,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba bajo carga continua; de pie con polea, la cintura escapular sostiene el arco sin pausas de descarga.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1601,7 +1131,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña el arco lateral de pie; la polea mantiene la carga en todo el recorrido y esta articulación la absorbe de forma constante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1609,22 +1138,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa guía el cable hacia el hombro; de pie, esa palanca fija traslada la tensión constante de la polea a la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1634,7 +1157,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1644,45 +1166,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales de Pie",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-                  ],
-                  "description": "Con polea, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La versión precisa que no deja descansar al deltoides."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1695,7 +1184,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_lateral_raise__cable",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -1714,24 +1203,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales de Pie en la variante Polea.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -1741,18 +1216,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1765,9 +1232,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La versión precisa que no deja descansar al deltoides."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1781,7 +1246,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_lateral_raise__machine",
@@ -1789,16 +1253,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con máquina, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -1812,7 +1269,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce por el arco que marca la máquina; de pie, con el recorrido guiado, la carga entra directa en el deltoide lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1820,7 +1276,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba dentro de una trayectoria definida; de pie en la máquina, el ajuste escapular acompaña el ritmo del brazo guiado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1828,7 +1283,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular da soporte al arco guiado de la máquina; de pie, la carga previsible se reparte de modo constante sobre esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1836,7 +1290,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; de pie, esa posición fija concentra el recorrido en la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1844,16 +1297,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide concentra la abducción dentro del recorrido guiado; de pie en la máquina, la trayectoria fija lleva el esfuerzo al paquete lateral."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota la escápula hacia arriba como apoyo; de pie en la máquina, el guiado del brazo reduce la demanda sobre este músculo."
-                }
-              ],
               "performanceProfileId": "lateral_raise_standing__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -1875,7 +1318,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce por el arco que marca la máquina; de pie, con el recorrido guiado, la carga entra directa en el deltoide lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1883,7 +1325,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba dentro de una trayectoria definida; de pie en la máquina, el ajuste escapular acompaña el ritmo del brazo guiado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1891,7 +1332,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular da soporte al arco guiado de la máquina; de pie, la carga previsible se reparte de modo constante sobre esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1899,22 +1339,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo sostiene la extensión relativa sobre el apoyo de la máquina; de pie, esa posición fija concentra el recorrido en la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1924,7 +1358,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1934,45 +1367,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales de Pie",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-                  ],
-                  "description": "Con máquina, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                  "technique": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. Cómoda y efectiva para rematar el hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1985,7 +1385,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_lateral_raise__machine",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -2004,24 +1404,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales de Pie en la variante Máquina.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2031,18 +1417,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2055,9 +1433,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. Cómoda y efectiva para rematar el hombro."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "machine"
@@ -2071,7 +1447,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_lateral_raise__kettlebell",
@@ -2079,16 +1454,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con kettlebell, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.5,
               "equipmentId": "kettlebell",
@@ -2102,7 +1470,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro abduce con la carga colgando de la mano; de pie con kettlebell, la inestabilidad del peso suma trabajo al arco lateral.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2110,7 +1477,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba mientras el peso oscila; de pie con kettlebell, la cintura escapular corrige ese vaivén en cada repetición.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2118,7 +1484,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; de pie con kettlebell, esta articulación sostiene el arco con más inestabilidad.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2126,7 +1491,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa sujeta el agarre de la kettlebell; de pie, esa palanca fija traslada el peso colgado a la abducción.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2134,16 +1498,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide abre los brazos en concéntrico y controla el descenso; de pie con kettlebell, el peso colgado exige un control fino del arco."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota la escápula hacia arriba y ayuda a estabilizar la subida; de pie con kettlebell, el balanceo del peso activa aún más su labor."
-                }
-              ],
               "performanceProfileId": "lateral_raise_standing__kettlebell",
               "primaryMuscles": [
                 "deltoid"
@@ -2165,7 +1519,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro abduce con la carga colgando de la mano; de pie con kettlebell, la inestabilidad del peso suma trabajo al arco lateral.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2173,7 +1526,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba mientras el peso oscila; de pie con kettlebell, la cintura escapular corrige ese vaivén en cada repetición.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2181,7 +1533,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular absorbe el vaivén del peso colgado; de pie con kettlebell, esta articulación sostiene el arco con más inestabilidad.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2189,22 +1540,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa sujeta el agarre de la kettlebell; de pie, esa palanca fija traslada el peso colgado a la abducción.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2214,7 +1559,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2224,45 +1568,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales de Pie",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                    "El gesto que separa unos hombros normales de unos que enmarcan el torso."
-                  ],
-                  "description": "Con kettlebell, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                  "technique": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. Variante alternativa de la elevación lateral."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2275,7 +1586,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_lateral_raise__kettlebell",
                   "definitionId": "standing_lateral_raise",
                   "familyId": "shoulder_lateral_raise",
@@ -2294,24 +1605,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales de Pie en la variante Kettlebell.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2321,18 +1618,10 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2345,9 +1634,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. Variante alternativa de la elevación lateral."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -2361,7 +1648,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "shoulder_lateral_raise",
@@ -2388,7 +1674,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lateral_raise_super_rom__cable",
@@ -2396,16 +1681,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                "La evolución del clásico para quien ya exprimió el gesto estándar."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con polea, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
               "efc": 2.5,
               "equipmentId": "cable",
@@ -2419,7 +1697,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro recorre la abducción completa hasta el tramo alto; con polea cruzada por detrás, la resistencia se mantiene presente por debajo del punto de partida.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2427,7 +1704,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba a lo largo de un arco más largo; con polea cruzada por detrás, ese ajuste acompaña el recorrido ampliado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2435,7 +1711,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada hasta el tramo alto; con polea por detrás, la carga constante llega también al descenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2443,7 +1718,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa sostiene la palanca en todo el arco ampliado; con polea cruzada por detrás, esa posición guía la trayectoria amplia.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2451,16 +1725,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide abduce hasta llevar los brazos por encima de la cabeza y frena todo el descenso; la polea cruzada por detrás carga el arco ampliado."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota la escápula hacia arriba en el tramo alto del arco; con polea cruzada por detrás, la tensión viva lo mantiene activo al bajar."
-                }
-              ],
               "performanceProfileId": "lateral_raise_super_rom__cable",
               "primaryMuscles": [
                 "deltoid"
@@ -2482,7 +1746,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro recorre la abducción completa hasta el tramo alto; con polea cruzada por detrás, la resistencia se mantiene presente por debajo del punto de partida.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2490,7 +1753,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba a lo largo de un arco más largo; con polea cruzada por detrás, ese ajuste acompaña el recorrido ampliado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2498,7 +1760,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada hasta el tramo alto; con polea por detrás, la carga constante llega también al descenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2506,22 +1767,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa sostiene la palanca en todo el arco ampliado; con polea cruzada por detrás, esa posición guía la trayectoria amplia.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2531,7 +1786,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2541,45 +1795,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Super ROM",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                    "La evolución del clásico para quien ya exprimió el gesto estándar."
-                  ],
-                  "description": "Con polea, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
-                  "technique": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. El deltoides lateral trabaja en su rango máximo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2592,7 +1813,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lateral_raise_super_rom__cable",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -2611,24 +1832,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Super ROM en la variante Polea.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2637,18 +1844,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2661,9 +1860,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. El deltoides lateral trabaja en su rango máximo."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "cable"
@@ -2677,7 +1874,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lateral_raise_super_rom__dumbbells",
@@ -2685,16 +1881,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                "La evolución del clásico para quien ya exprimió el gesto estándar."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con mancuernas, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -2708,7 +1897,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro lleva la abducción más allá de la horizontal; con mancuernas de recorrido completo, la carga libre acompaña el arco hasta arriba.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2716,7 +1904,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba en un arco ampliado; con mancuernas, la carga libre exige ese ajuste en el tramo alto y en el descenso.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2724,7 +1911,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular sostiene la abducción ampliada hasta arriba; con mancuernas de recorrido completo, esta articulación acompaña todo el arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2732,7 +1918,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa forma la palanca del recorrido completo; con mancuernas, esa posición isométrica guía los brazos hasta arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2740,16 +1925,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide impulsa la abducción hasta arriba y frena cada retorno; con mancuernas de recorrido completo, cada brazo corrige su propia línea."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota la escápula hacia arriba en el tramo alto; con mancuernas de recorrido completo, la subida por encima de la cabeza amplía su papel."
-                }
-              ],
               "performanceProfileId": "lateral_raise_super_rom__dumbbells",
               "primaryMuscles": [
                 "deltoid"
@@ -2771,7 +1946,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro lleva la abducción más allá de la horizontal; con mancuernas de recorrido completo, la carga libre acompaña el arco hasta arriba.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2779,7 +1953,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba en un arco ampliado; con mancuernas, la carga libre exige ese ajuste en el tramo alto y en el descenso.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2787,7 +1960,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular sostiene la abducción ampliada hasta arriba; con mancuernas de recorrido completo, esta articulación acompaña todo el arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2795,22 +1967,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa forma la palanca del recorrido completo; con mancuernas, esa posición isométrica guía los brazos hasta arriba.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2820,7 +1986,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2830,45 +1995,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Super ROM",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                    "La evolución del clásico para quien ya exprimió el gesto estándar."
-                  ],
-                  "description": "Con mancuernas, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
-                  "technique": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La versión tradicional de la Super ROM."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2881,7 +2013,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lateral_raise_super_rom__dumbbells",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -2900,24 +2032,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Super ROM en la variante Mancuernas.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -2926,18 +2044,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2950,9 +2060,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La versión tradicional de la Super ROM."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -2966,7 +2074,6 @@
                 "legacy:exercise_database.json#deltoides_elevaciones_laterales_super_rom_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lateral_raise_super_rom__machine",
@@ -2974,16 +2081,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                "La evolución del clásico para quien ya exprimió el gesto estándar."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con máquina, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.5,
               "equipmentId": "machine",
@@ -2997,7 +2097,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro recorre la abducción completa bajo el guiado de la máquina; el arco ampliado mantiene la carga desde el inicio hasta el tramo alto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3005,7 +2104,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La escápula rota hacia arriba a lo largo del arco guiado; en la máquina de recorrido completo, ese ajuste acompaña la subida hasta arriba.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3013,7 +2111,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada dentro del guiado; la máquina reparte la carga de forma regular sobre esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3021,7 +2118,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo en extensión relativa acompaña el brazo de la máquina; en el recorrido completo, esa posición fija sostiene la palanca hasta arriba.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3029,16 +2125,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: El deltoide abduce por encima de la cabeza dentro del guiado y controla el descenso; la máquina de recorrido completo carga todo el arco ampliado."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio rota la escápula hacia arriba en el tramo alto; en la máquina de recorrido completo, el guiado acompaña esa subida sin exigir equilibrio extra."
-                }
-              ],
               "performanceProfileId": "lateral_raise_super_rom__machine",
               "primaryMuscles": [
                 "deltoid"
@@ -3060,7 +2146,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro recorre la abducción completa bajo el guiado de la máquina; el arco ampliado mantiene la carga desde el inicio hasta el tramo alto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3068,7 +2153,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La escápula rota hacia arriba a lo largo del arco guiado; en la máquina de recorrido completo, ese ajuste acompaña la subida hasta arriba.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3076,7 +2160,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña la abducción ampliada dentro del guiado; la máquina reparte la carga de forma regular sobre esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3084,22 +2167,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo en extensión relativa acompaña el brazo de la máquina; en el recorrido completo, esa posición fija sostiene la palanca hasta arriba.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -3109,7 +2186,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -3119,45 +2195,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina con recorrido completo: el guiado acompaña el arco hasta arriba."
-                  ]
-                },
                 "display": {
                   "displayName": "Elevaciones Laterales Super ROM",
                   "displaySummary": "machine",
                   "selectedOptions": {
                     "implement": "machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                    "La evolución del clásico para quien ya exprimió el gesto estándar."
-                  ],
-                  "description": "Con máquina, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                  "technique": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La forma cómoda de llevar el hombro al límite."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3170,7 +2213,7 @@
                 },
                 "identity": {
                   "canonicalName": "Elevaciones Laterales Super ROM",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lateral_raise_super_rom__machine",
                   "definitionId": "lateral_raise_super_rom",
                   "familyId": "shoulder_lateral_raise",
@@ -3189,24 +2232,10 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Elevaciones Laterales Super ROM en la variante Máquina.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
@@ -3215,18 +2244,10 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3239,9 +2260,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La forma cómoda de llevar el hombro al límite."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "machine"
@@ -3255,7 +2274,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "shoulder_lateral_raise",
@@ -3272,13 +2290,11 @@
         ]
       }
     ],
-    "description": "Familia de abducción del hombro; la postura de pie y sentada son padres separados y la versión con barra y Super ROM quedan como especialidades.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "shoulder_lateral_raise",

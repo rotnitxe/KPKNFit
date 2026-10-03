@@ -1,0 +1,57 @@
+{
+  "definitions": {
+    "hams_peso_muerto_convencional_deficit": {
+      "public": {
+        "configurations": {
+          "hams_peso_muerto_convencional_deficit__default": {
+            "description": "Con barra, desde la plataforma, la carga parte de más abajo y el recorrido crece en cada repetición. Los isquiosurales trabajan con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Desde la plataforma, la barra parte más abajo y el recorrido crece. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Desde la plataforma, la barra parte más abajo y el recorrido crece."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Convencional en Déficit sube al atleta a una plataforma y alarga el arranque: la barra parte de más abajo y los isquiosurales se estiran unos centímetros extra en cada repetición. La técnica es la del convencional de siempre, solo que el suelo queda más lejos. Esos centímetros adicionales se traducen en fuerza de arranque que el peso muerto normal nota enseguida. El déficit que convierte un buen arranque en uno imparable."
+      },
+      "status": "LEGACY"
+    },
+    "hams_peso_muerto_piernas_rigidas_deficit": {
+      "public": {
+        "configurations": {
+          "hams_peso_muerto_piernas_rigidas_deficit__default": {
+            "description": "Con barra, desde la plataforma y con las piernas casi extendidas, el estiramiento llega al límite. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "executionCues": [
+              "Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Plataforma más piernas casi rectas: el estiramiento de los isquios llega al límite."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Piernas Rígidas en Déficit junta las dos cosas que más estiran el isquio: piernas casi extendidas y una plataforma que aleja el suelo. El estiramiento bajo carga llega al máximo disponible y los erectores aguantan la columna en cada bajada. Se ejecuta bajando la barra más allá de los pies con la espalda intacta. Solo para quien ya tiene movilidad y control de sobra."
+      },
+      "status": "LEGACY"
+    },
+    "hams_peso_muerto_sumo_deficit": {
+      "public": {
+        "configurations": {
+          "hams_peso_muerto_sumo_deficit__default": {
+            "description": "Con barra, con la postura amplia sobre la plataforma, el recorrido es más largo que el sumo normal. La barra es la referencia para cargar los isquiosurales con peso de verdad.",
+            "executionCues": [
+              "Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Postura amplia desde la plataforma: más recorrido que el sumo normal y más trabajo para glúteos y aductores."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Sumo en Déficit coloca al atleta sobre un escalón y conserva la postura abierta: aductores y glúteos trabajan en un recorrido más largo que el sumo normal. Se ejecuta presionando el suelo con las piernas separadas mientras la barra sube desde más abajo de lo habitual. La combinación pide técnica fina y caderas fuertes. Una prueba avanzada para los que ya dominan el sumo convencional."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_hinge_deficit",
+  "schemaVersion": 1
+}

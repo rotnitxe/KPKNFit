@@ -7,7 +7,11 @@ import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseProfileV2
 import com.example.kpkn.domain.exercises.catalogv2.ResolvedExerciseSnapshotV2
 import kotlinx.serialization.json.Json
 
-private val snapshotJson = Json { encodeDefaults = true; ignoreUnknownKeys = false }
+// Lenient on decode on purpose: completed-history snapshots written by older builds
+// were encoded with every default and still carry the fields retired in the F1
+// catalog cleanup (commonMistakes, benefits, richMetadata.coaching/safety/editorial...).
+// A strict decoder would silently return null for all of them.
+private val snapshotJson = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
 data class CatalogSelectionIdentityV2(
     val selection: ExerciseSelectionV2,

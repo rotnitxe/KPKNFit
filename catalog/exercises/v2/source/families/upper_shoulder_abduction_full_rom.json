@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · shoulder abduction full rom",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_lu_raises",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_lu_raises__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                "Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-              ],
               "description": "Con mancuernas, los brazos suben formando primero una L y luego una U, con rotación externa del hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
               "efc": 2.5,
               "equipmentId": "dumbbells",
@@ -45,7 +37,6 @@
                     "Abducción O Flexión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: La abducción del hombro sube los brazos en forma de L y luego en U con rotación externa, recorriendo un arco amplio con una mancuerna por mano.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido completo que lleva los brazos de la forma de L a la de U con las mancuernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Ajuste Escapular"
                   ],
                   "jointId": "acromioclavicular",
-                  "note": "Secundaria: El ajuste escapular acompaña el recorrido largo de los brazos, que pasan de la forma de L a la de U con una mancuerna en cada mano.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Extensión Relativa"
                   ],
                   "jointId": "codo",
-                  "note": "Estabilizadora: El codo conserva una extensión relativa mientras los brazos cambian de la forma de L a la de U con las mancuernas cargadas en cada mano.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "shoulder_abduction_full_rom",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con mancuernas, el deltoide abre los brazos en forma de L y luego en U, con rotación externa del hombro a lo largo de un recorrido largo y completo."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio coordina la rotación superior de la escápula mientras los brazos pasan de la forma de L a la de U con una mancuerna en cada mano."
-                }
-              ],
               "performanceProfileId": "deltoides_lu_raises__dumbbells__lu_raises",
               "primaryMuscles": [
                 "deltoid"
@@ -108,7 +86,6 @@
                         "Abducción O Flexión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: La abducción del hombro sube los brazos en forma de L y luego en U con rotación externa, recorriendo un arco amplio con una mancuerna por mano.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el recorrido completo que lleva los brazos de la forma de L a la de U con las mancuernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Ajuste Escapular"
                       ],
                       "jointId": "acromioclavicular",
-                      "note": "Secundaria: El ajuste escapular acompaña el recorrido largo de los brazos, que pasan de la forma de L a la de U con una mancuerna en cada mano.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Extensión Relativa"
                       ],
                       "jointId": "codo",
-                      "note": "Estabilizadora: El codo conserva una extensión relativa mientras los brazos cambian de la forma de L a la de U con las mancuernas cargadas en cada mano.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "shoulder_abduction_full_rom",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -167,43 +135,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Subir con impulso, encoger los hombros o forzar una amplitud que cambie la trayectoria."
-                  ],
-                  "cues": [
-                    "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando dirigir el trabajo a una parte del hombro con una carga moderada y controlable siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar elevación del brazo y acompañamiento de la escápula como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento."
-                  ]
-                },
                 "display": {
                   "displayName": "LU-Raises",
                   "displaySummary": "Mancuerna",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                    "Un movimiento poco común que alcanza zonas del hombro que los gestos normales no tocan."
-                  ],
-                  "description": "Con mancuernas, los brazos suben formando primero una L y luego una U, con rotación externa del hombro. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
-                  "technique": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -216,7 +151,7 @@
                 },
                 "identity": {
                   "canonicalName": "LU-Raises",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_lu_raises__default",
                   "definitionId": "deltoides_lu_raises",
                   "familyId": "upper_shoulder_abduction_full_rom",
@@ -233,42 +168,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante LU-Raises en la variante Mancuernas.",
-                    "Priorizar dirigir el trabajo a una parte del hombro con una carga moderada y controlable con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva elevación del brazo y acompañamiento de la escápula y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, articulación acromioclavicular."
+                    "shoulder_abduction_full_rom:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -281,9 +194,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Brazos en L y luego en U mientras subes: el manguito rotador y el hombro en movimiento. Un ejercicio poco común que cuida y fortalece el hombro."
+              "ttc": 1.6
             },
             "selectedOptions": {}
           }
@@ -295,7 +206,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_shoulder_abduction_full_rom",
@@ -308,13 +218,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón shoulder_abduction_full_rom; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_shoulder_abduction_full_rom",

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Core · abdominals · anti extension pelvic control",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#core_dragon_flag_banco_plano",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_dragon_flag_banco_plano__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El abdomen trabaja con el peso corporal como única carga.",
-                "El nivel al que aspiran los que dominan los crunches y buscan algo serio."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Arquear la espalda, girar con la carga o perder la tensión al final."
-              ],
               "description": "Con peso corporal, el cuerpo entero sube rígido como una tabla y desciende frenado por el abdomen. El abdomen trabaja con el peso corporal como única carga.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
@@ -45,7 +37,6 @@
                     "Anti-Extensión O Anti-Rotación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La zona lumbar resiste la extensión mientras el cuerpo sube y baja rígido sobre el banco plano, con el peso de las piernas extendidas empujando al arqueo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Control De Pelvis"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Secundaria: La pelvis se organiza sobre el banco plano y no desciende por delante del torso, mientras el peso corporal de las piernas extendidas tira de ella.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Posición Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Estabilizadora: La caja torácica acompaña la subida del cuerpo entero desde el banco plano y queda alineada con la pelvis mientras el abdomen frena el descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +58,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "anti_extension_pelvic_control",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El abdomen carga el cuerpo entero sobre el banco plano y frena cada tramo del descenso con las rodillas extendidas, sin dejar que la pelvis se descuelgue."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core acompaña en isometría sosteniendo torso y pelvis como una sola pieza sobre el banco plano, con las rodillas extendidas y la espalda baja sin arquearse."
-                }
-              ],
               "performanceProfileId": "core_dragon_flag_banco_plano__bodyweight__dragon_flag_en_banco_plano",
               "primaryMuscles": [
                 "abdominals"
@@ -99,7 +78,6 @@
                         "Anti-Extensión O Anti-Rotación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La zona lumbar resiste la extensión mientras el cuerpo sube y baja rígido sobre el banco plano, con el peso de las piernas extendidas empujando al arqueo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -107,7 +85,6 @@
                         "Control De Pelvis"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Secundaria: La pelvis se organiza sobre el banco plano y no desciende por delante del torso, mientras el peso corporal de las piernas extendidas tira de ella.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,22 +92,16 @@
                         "Posición Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Estabilizadora: La caja torácica acompaña la subida del cuerpo entero desde el banco plano y queda alineada con la pelvis mientras el abdomen frena el descenso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "abdominals"
                   ],
                   "secondaryMuscles": [
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "abdominals"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -140,7 +111,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "anti_extension_pelvic_control",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "sacroiliaca",
@@ -149,43 +119,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la espalda, girar con la carga o perder la tensión al final."
-                  ],
-                  "cues": [
-                    "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar resistencia del tronco frente a extensión, giro o inclinación como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de articulación sacroilíaca según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro."
-                  ]
-                },
                 "display": {
                   "displayName": "Dragon Flag",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El abdomen trabaja con el peso corporal como única carga.",
-                    "El nivel al que aspiran los que dominan los crunches y buscan algo serio."
-                  ],
-                  "description": "Con peso corporal, el cuerpo entero sube rígido como una tabla y desciende frenado por el abdomen. El abdomen trabaja con el peso corporal como única carga.",
-                  "technique": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -198,7 +135,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dragon Flag",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_dragon_flag_banco_plano__default",
                   "definitionId": "core_dragon_flag_banco_plano",
                   "familyId": "core_anti_extension_pelvic_control",
@@ -215,42 +152,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el recto abdominal mediante Dragon Flag en la variante Peso Corporal.",
-                    "Priorizar mejorar la capacidad del core para transferir fuerza sin movimientos innecesarios con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva resistencia del tronco frente a extensión, giro o inclinación y el objetivo de el recto abdominal.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, articulación sacroilíaca, columna torácica."
+                    "anti_extension_pelvic_control:abdominals"
                   ],
                   "replacementGroup": "core_niche",
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -263,9 +178,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.5,
-              "techniqueSummary": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La dificultad está en impedir que la pelvis se descuelgue durante el descenso."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -277,7 +190,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_anti_extension_pelvic_control",
@@ -290,13 +202,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón anti_extension_pelvic_control; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_anti_extension_pelvic_control",

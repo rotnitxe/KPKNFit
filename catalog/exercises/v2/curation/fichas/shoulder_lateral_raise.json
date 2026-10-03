@@ -1,0 +1,129 @@
+{
+  "definitions": {
+    "lateral_raise_super_rom": {
+      "public": {
+        "configurations": {
+          "lateral_raise_super_rom__cable": {
+            "description": "Con polea, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea con recorrido completo: subes más allá del hombro, por encima de la cabeza."
+            ]
+          },
+          "lateral_raise_super_rom__dumbbells": {
+            "description": "Con mancuernas, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con recorrido completo: subes por encima de la cabeza en cada repetición."
+            ]
+          },
+          "lateral_raise_super_rom__machine": {
+            "description": "Con máquina, el arco lateral se alarga por debajo del punto de partida con la polea cruzada por detrás. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina con recorrido completo: el guiado acompaña el arco hasta arriba. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con recorrido completo: el guiado acompaña el arco hasta arriba."
+            ]
+          }
+        },
+        "description": "Las Elevaciones Laterales Super ROM alargan el recorrido por debajo del punto de partida: la polea cruza por detrás y el deltoide medio trabaja desde un estiramiento que la versión normal no toca. Se ejecutan con la polea baja cruzada, subiendo en el arco lateral completo hasta la horizontal. El rango extra se traduce en más tiempo bajo tensión por repetición. La evolución del clásico para quien ya exprimió el gesto estándar."
+      },
+      "status": "LEGACY"
+    },
+    "seated_lateral_raise": {
+      "public": {
+        "configurations": {
+          "seated_lateral_raise__cable": {
+            "description": "Con polea, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea sentado: tensión constante y sin impulso posible. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea sentado: tensión constante y sin impulso posible."
+            ]
+          },
+          "seated_lateral_raise__dumbbells": {
+            "description": "Con mancuernas, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+            "executionCues": [
+              "Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio."
+            ]
+          },
+          "seated_lateral_raise__kettlebell": {
+            "description": "Con kettlebell, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto."
+            ]
+          },
+          "seated_lateral_raise__machine": {
+            "description": "Con máquina, sentado y sin impulso, los brazos suben a los lados hasta la altura de los hombros. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+            "executionCues": [
+              "Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral."
+            ]
+          }
+        },
+        "description": "Las Elevaciones Laterales Sentado quitan las piernas y el balanceo de la ecuación: el deltoide medio levanta las mancuernas a los lados sin trampas disponibles. Se ejecutan en el banco con el torso firme, subiendo hasta la altura de los hombros y bajando despacio. Al estar sentado, cargas menores exigen más que las grandes de pie. La versión estricta para sentir el hombro trabajar de verdad."
+      },
+      "status": "LEGACY"
+    },
+    "standing_lateral_raise": {
+      "public": {
+        "configurations": {
+          "standing_lateral_raise__cable": {
+            "description": "Con polea, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco."
+            ]
+          },
+          "standing_lateral_raise__dumbbells": {
+            "description": "Con mancuernas, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+            "executionCues": [
+              "Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos."
+            ]
+          },
+          "standing_lateral_raise__kettlebell": {
+            "description": "Con kettlebell, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto."
+            ]
+          },
+          "standing_lateral_raise__machine": {
+            "description": "Con máquina, de pie, los brazos se elevan a los lados con los codos suaves y la bajada sin soltar la tensión. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral."
+            ]
+          }
+        },
+        "description": "Las Elevaciones Laterales de Pie son el constructor de la anchura de hombros por antonomasia: el deltoide medio eleva los brazos a los lados contra la gravedad. Se ejecutan de pie con las mancuernas, subiendo hasta la horizontal con los codos suaves y bajando sin dejar caer el peso. En polea o máquina la tensión se vuelve continua. El gesto que separa unos hombros normales de unos que enmarcan el torso."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "shoulder_lateral_raise",
+  "schemaVersion": 1
+}

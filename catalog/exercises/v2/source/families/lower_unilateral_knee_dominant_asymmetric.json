@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · unilateral knee dominant asymmetric",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_jefferson",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_bulgara_jefferson__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                "Para los que ya dominaron todo lo convencional y buscan territorio nuevo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con el pie de atrás en alto y la barra entre las piernas, el descenso es vertical y asimétrico. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral en el descenso vertical, con la barra entre las piernas y el pie trasero en el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra a horcajadas y el pie trasero sobre el banco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en el descenso asimétrico, con la barra entre las piernas y el pie trasero elevado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra entre las piernas y el pie trasero elevado sobre el banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant_asymmetric",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps de la pierna delantera frena el descenso vertical con la barra entre las piernas y el pie trasero elevado en el banco, y extiende la rodilla al subir."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores ayudan a dirigir la rodilla delantera en la postura a horcajadas, con la barra entre las piernas y el pie trasero apoyado en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor de la pierna delantera ayuda a extender la cadera al subir, con la barra entre las piernas y el descenso vertical concentrado en ese lado."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
               "primaryMuscles": [
                 "quadriceps"
@@ -112,7 +86,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla de la pierna delantera flexiona y extiende de forma unilateral en el descenso vertical, con la barra entre las piernas y el pie trasero en el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de la pierna delantera se extiende al subir y conserva el control frontal de la pelvis con la barra a horcajadas y el pie trasero sobre el banco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo delantero trabaja la dorsiflexión y el equilibrio en el descenso asimétrico, con la barra entre las piernas y el pie trasero elevado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y columna con la barra entre las piernas y el pie trasero elevado sobre el banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -148,11 +117,7 @@
                     "adductors",
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant_asymmetric",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara Jefferson",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                    "Para los que ya dominaron todo lo convencional y buscan territorio nuevo."
-                  ],
-                  "description": "Con barra, con el pie de atrás en alto y la barra entre las piernas, el descenso es vertical y asimétrico. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                  "technique": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Jefferson",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_bulgara_jefferson__default",
                   "definitionId": "quads_sentadilla_bulgara_jefferson",
                   "familyId": "lower_unilateral_knee_dominant_asymmetric",
@@ -238,44 +169,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara Jefferson en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant_asymmetric:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón unilateral_knee_dominant_asymmetric."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -289,9 +196,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno. Pie trasero en el banco y barra en posición Jefferson: dos ejercicios duros combinados en uno."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -303,7 +208,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant_asymmetric",
@@ -316,13 +220,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón unilateral_knee_dominant_asymmetric; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_unilateral_knee_dominant_asymmetric",

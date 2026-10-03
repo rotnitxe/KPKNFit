@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · knee hip dominant",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_cajon",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_cajon__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                "El maestro silencioso que enseña a bajar de verdad."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla flexiona hasta posarse sobre el cajón y vuelve a extenderse con la barra cargada, y la superficie fija marca el final de cada descenso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera se flexiona al sentarse sobre el cajón y se extiende al subir con la barra, donde la pausa sin rebote alarga el trabajo de las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo en dorsiflexión reparte el peso del pie mientras el cuerpo se posa sobre el cajón y vuelve a subir con la barra cargada.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el tronco inclinado bajo la barra y absorbe la carga durante la pausa sobre el cajón y la subida sin rebote.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla al subir desde el cajón con la barra cargada y frena el descenso hasta posarse sobre la superficie sin rebote."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor asiste la extensión de la cadera al levantarse del cajón con la barra y regula el descenso sentado hasta el contacto con la superficie fija."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de la cadera al salir del cajón y frenan la bajada del tronco mientras la barra reparte la carga sobre las piernas."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_cajon__barbell__sentadilla_a_cajon",
               "primaryMuscles": [
                 "quadriceps"
@@ -111,7 +85,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla flexiona hasta posarse sobre el cajón y vuelve a extenderse con la barra cargada, y la superficie fija marca el final de cada descenso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -119,7 +92,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera se flexiona al sentarse sobre el cajón y se extiende al subir con la barra, donde la pausa sin rebote alarga el trabajo de las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -127,7 +99,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo en dorsiflexión reparte el peso del pie mientras el cuerpo se posa sobre el cajón y vuelve a subir con la barra cargada.",
                       "role": "STABILIZER"
                     },
                     {
@@ -135,11 +106,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el tronco inclinado bajo la barra y absorbe la carga durante la pausa sobre el cajón y la subida sin rebote.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -147,11 +116,7 @@
                     "gluteus_maximus",
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -161,7 +126,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_hip_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -171,43 +135,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla a Cajón",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                    "El maestro silencioso que enseña a bajar de verdad."
-                  ],
-                  "description": "Con barra, la bajada se detiene sobre la superficie fija y la subida nace sin rebote. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                  "technique": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. El maestro de la sentadilla."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -220,7 +151,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla a Cajón",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_cajon__default",
                   "definitionId": "quads_sentadilla_cajon",
                   "familyId": "lower_knee_hip_dominant",
@@ -237,42 +168,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla a Cajón en la variante Barra.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -286,9 +195,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Bajas sentándote en el cajón y subes sin rebote: profundidad estable y fuerza de cuádriceps. El maestro de la sentadilla."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -300,7 +207,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_hip_dominant",
@@ -323,7 +229,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_sumo_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_sumo_frontal__default",
@@ -331,16 +236,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                "Una combinación que junta lo mejor de dos mundos exigentes."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -354,7 +252,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla flexiona y se extiende con la barra al frente y las piernas separadas, donde la carga frontal exige un torso erguido en todo el recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -362,7 +259,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión con la barra al frente, que carga las piernas con el torso erguido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -370,7 +266,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo en dorsiflexión sostiene la postura amplia y reparte el peso del pie mientras la barra al frente empuja el torso hacia adelante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -378,7 +273,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra al frente y resiste la flexión durante el descenso y la subida con la postura amplia.",
                   "role": "STABILIZER"
                 }
               ],
@@ -386,24 +280,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla con la barra al frente y la postura amplia, y frena el descenso con el torso erguido en todo el arco."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores asisten la extensión de la cadera en la postura ancha de sumo con la barra al frente y frenan la apertura de las rodillas durante el descenso."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor impulsa la extensión de la cadera al subir con la barra al frente y regula la bajada profunda que permite la postura amplia."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core sostiene el torso erguido contra la carga frontal de la barra y frena cualquier inclinación durante el descenso y la subida con las piernas abiertas."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_sumo_frontal__barbell__sentadilla_sumo_frontal",
               "primaryMuscles": [
                 "quadriceps"
@@ -424,7 +300,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla flexiona y se extiende con la barra al frente y las piernas separadas, donde la carga frontal exige un torso erguido en todo el recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -432,7 +307,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión con la barra al frente, que carga las piernas con el torso erguido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -440,7 +314,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo en dorsiflexión sostiene la postura amplia y reparte el peso del pie mientras la barra al frente empuja el torso hacia adelante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -448,11 +321,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra al frente y resiste la flexión durante el descenso y la subida con la postura amplia.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -461,11 +332,7 @@
                     "gluteus_maximus",
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -475,7 +342,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_hip_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -485,43 +351,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Sumo Frontal",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                    "Una combinación que junta lo mejor de dos mundos exigentes."
-                  ],
-                  "description": "Con barra, con la postura ancha y la carga al frente, el torso queda muy erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                  "technique": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -534,7 +367,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_sumo_frontal__default",
                   "definitionId": "quads_sentadilla_sumo_frontal",
                   "familyId": "lower_knee_hip_dominant",
@@ -551,42 +384,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Sumo Frontal en la variante Barra.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -601,9 +412,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas. Barra al frente con la postura amplia de sumo: torso erguido y piernas trabajando juntas."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -615,7 +424,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_hip_dominant",
@@ -638,7 +446,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_sumo_zercher",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_sumo_zercher__default",
@@ -646,16 +453,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                "Para quien ya domina las versiones por separado y busca un reto serio."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -669,7 +469,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla flexiona y se extiende con la barra en los codos y las piernas separadas, con la carga al frente marcando la profundidad de cada repetición.",
                   "role": "PRIMARY"
                 },
                 {
@@ -677,7 +476,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión mientras la barra descansa en los codos y la carga se sostiene cerca del pecho.",
                   "role": "SECONDARY"
                 },
                 {
@@ -685,7 +483,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo sostiene la postura amplia con la barra en los codos y reparte el peso del pie mientras la carga al frente empuja el torso hacia delante.",
                   "role": "STABILIZER"
                 },
                 {
@@ -693,7 +490,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra en los codos y resiste la flexión durante el descenso y la subida con la postura ancha.",
                   "role": "STABILIZER"
                 }
               ],
@@ -701,24 +497,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps concentra la extensión de la rodilla con la barra sujeta en los codos y la postura amplia, y frena el descenso con la carga pegada al torso."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores asisten la extensión de la cadera con la postura de sumo mientras la barra descansa en los codos, y frenan la apertura de las rodillas."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor impulsa la extensión de la cadera al subir con la barra en los codos y regula la bajada profunda que admite la base ancha."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core sostiene el torso erguido con la barra sujeta en los codos, que acerca la carga al pecho y exige firmeza durante el descenso y la subida."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_sumo_zercher__barbell__sentadilla_sumo_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -739,7 +517,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla flexiona y se extiende con la barra en los codos y las piernas separadas, con la carga al frente marcando la profundidad de cada repetición.",
                       "role": "PRIMARY"
                     },
                     {
@@ -747,7 +524,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera abre la postura de sumo y acompaña la flexión y la extensión mientras la barra descansa en los codos y la carga se sostiene cerca del pecho.",
                       "role": "SECONDARY"
                     },
                     {
@@ -755,7 +531,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo sostiene la postura amplia con la barra en los codos y reparte el peso del pie mientras la carga al frente empuja el torso hacia delante.",
                       "role": "STABILIZER"
                     },
                     {
@@ -763,11 +538,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene el torso erguido con la barra en los codos y resiste la flexión durante el descenso y la subida con la postura ancha.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -776,11 +549,7 @@
                     "gluteus_maximus",
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -790,7 +559,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_hip_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -800,43 +568,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Sumo Zercher",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                    "Para quien ya domina las versiones por separado y busca un reto serio."
-                  ],
-                  "description": "Con barra, con la postura ancha y el peso sujeto al pecho, el core trabaja a destajo. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                  "technique": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -849,7 +584,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Sumo Zercher",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_sumo_zercher__default",
                   "definitionId": "quads_sentadilla_sumo_zercher",
                   "familyId": "lower_knee_hip_dominant",
@@ -866,42 +601,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Sumo Zercher en la variante Barra.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -916,9 +629,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso. Barra en los codos con postura sumo: la combinación exigente que trabaja piernas y torso."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -930,7 +641,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_hip_dominant",
@@ -943,13 +653,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón knee_hip_dominant; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_hip_dominant",

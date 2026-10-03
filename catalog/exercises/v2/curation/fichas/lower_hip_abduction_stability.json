@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "glutes_monster_walk_banda": {
+      "public": {
+        "configurations": {
+          "glutes_monster_walk_banda__default": {
+            "description": "Con banda elástica, con la banda tensa en las piernas, cada paso lateral obliga al glúteo a empujar sin pausa. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido.",
+            "executionCues": [
+              "Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas."
+            ]
+          }
+        },
+        "description": "La Caminata del Monstruo con Banda convierte caminar de lado en un ejercicio: con la banda tensa en las rodillas o los tobillos, cada paso lateral obliga al glúteo a empujar sin pausa. Se ejecuta con la espalda alta y pasos cortos, sin dejar que la banda cierre las piernas. Los glúteos arden en diez pasos. El activador favorito antes de sentadillas y pesos muertos."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_abduction_stability",
+  "schemaVersion": 1
+}

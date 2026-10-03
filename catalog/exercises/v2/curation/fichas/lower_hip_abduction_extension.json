@@ -1,0 +1,41 @@
+{
+  "definitions": {
+    "glutes_patada_gluteo_lateral": {
+      "public": {
+        "configurations": {
+          "glutes_patada_gluteo_lateral__band": {
+            "description": "Con banda elástica, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con la banda, cuya resistencia crece con el recorrido.",
+            "executionCues": [
+              "Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Banda alrededor de los tobillos: abres la pierna contra la resistencia elástica."
+            ]
+          },
+          "glutes_patada_gluteo_lateral__cable": {
+            "description": "Con polea, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. Con la polea, la tensión sobre el glúteo medio se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea lateral: abres la pierna hacia el lado con tensión constante en el glúteo medio."
+            ]
+          },
+          "glutes_patada_gluteo_lateral__dumbbells": {
+            "description": "Con mancuernas, la pierna se aleja hacia el costado con la cadera nivelada y el torso sin balanceo. El glúteo medio trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuerna en la cadera o el tobillo: apertura lateral con carga libre. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna en la cadera o el tobillo: apertura lateral con carga libre."
+            ]
+          }
+        },
+        "description": "La Patada de Glúteo Lateral abre la pierna hacia el costado con la cadera quieta: el glúteo medio hace todo el trabajo mientras el torso no se vende al balanceo. Se ejecuta con polea baja enganchada al tobillo, de pie, separando la pierna con pausa y volviendo sin cruzar el centro. Con banda o una mancuerna suave se puede montar en cualquier rincón. La herramienta precisa para el lateral del glúteo y una pelvis que no baila."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_abduction_extension",
+  "schemaVersion": 1
+}

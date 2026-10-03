@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · unilateral knee dominant",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_bulgara_somersault",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_bulgara_somersault__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con el pie trasero elevado y los brazos cruzados al frente, la bajada es vertical sobre una pierna. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral con la barra cruzando los brazos: la carga frontal eleva la demanda sobre la rodilla de la pierna de trabajo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con el pie trasero elevado en el banco; la barra al frente obliga a la cadera a sostener el torso sin inclinarse.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero sobre el suelo mientras el trasero apoya en el banco y la barra añade inestabilidad al conjunto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga unilateral de la barra entre la pelvis y la pierna de trabajo sin dejar que la cadera se abra.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra cruzando los brazos, el cuádriceps extiende la rodilla al subir desde el fondo y frena la bajada sobre la pierna delantera con el pie trasero en el banco."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al subir y modera la inclinación frontal de la pelvis mientras el apoyo libre flota detrás del banco."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_bulgara_somersault__barbell__sentadilla_bulgara_somersault",
               "primaryMuscles": [
                 "quadriceps"
@@ -108,7 +86,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral con la barra cruzando los brazos: la carga frontal eleva la demanda sobre la rodilla de la pierna de trabajo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con el pie trasero elevado en el banco; la barra al frente obliga a la cadera a sostener el torso sin inclinarse.",
                       "role": "PRIMARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero sobre el suelo mientras el trasero apoya en el banco y la barra añade inestabilidad al conjunto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga unilateral de la barra entre la pelvis y la pierna de trabajo sin dejar que la cadera se abra.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -167,43 +135,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Búlgara Somersault",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "Una variante ingeniosa para quien la búlgara clásica le incomoda en las manos."
-                  ],
-                  "description": "Con barra, con el pie trasero elevado y los brazos cruzados al frente, la bajada es vertical sobre una pierna. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. Avanzada y exigente."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -216,7 +151,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Búlgara Somersault",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_bulgara_somersault__default",
                   "definitionId": "quads_sentadilla_bulgara_somersault",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -233,44 +168,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Búlgara Somersault en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón unilateral_knee_dominant."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -283,9 +194,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Pie trasero en el banco y barra cruzando los brazos: la búlgara con un extra de equilibrio. Avanzada y exigente."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -297,7 +206,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -320,7 +228,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_pistola",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_pistola__default",
@@ -328,16 +235,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
-                "La cima de la calistenia de piernas, al alcance de muy pocos."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con peso corporal, a una sola pierna, el cuerpo desciende hasta el fondo con la otra extendida al frente. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
@@ -351,7 +251,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral sin carga externa: la rodilla desciende a fondo con el propio cuerpo como única resistencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -359,7 +258,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la pierna libre extendida al frente; la cadera sostiene el equilibrio sin apoyo ni contrapeso extra.",
                   "role": "PRIMARY"
                 },
                 {
@@ -367,7 +265,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del tobillo que soporta todo el cuerpo en un solo apoyo durante el descenso completo y el regreso al pie.",
                   "role": "SECONDARY"
                 },
                 {
@@ -375,7 +272,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca absorbe la transferencia unilateral del peso corporal y mantiene la pelvis estable sin ayuda externa.",
                   "role": "STABILIZER"
                 }
               ],
@@ -383,20 +279,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con solo el peso corporal, el cuádriceps extiende la rodilla desde el fondo y frena un descenso profundo con la otra pierna extendida al frente."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al subir desde el suelo y mantiene la pelvis alineada mientras la pierna libre queda suspendida al frente."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core sostiene el torso erguido durante el descenso a una pierna y contrarresta la inclinación lateral que arrastra la pelvis fuera de su eje."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_pistola__bodyweight__sentadilla_pistola",
               "primaryMuscles": [
                 "quadriceps"
@@ -418,7 +300,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral sin carga externa: la rodilla desciende a fondo con el propio cuerpo como única resistencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -426,7 +307,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la pierna libre extendida al frente; la cadera sostiene el equilibrio sin apoyo ni contrapeso extra.",
                       "role": "PRIMARY"
                     },
                     {
@@ -434,7 +314,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del tobillo que soporta todo el cuerpo en un solo apoyo durante el descenso completo y el regreso al pie.",
                       "role": "SECONDARY"
                     },
                     {
@@ -442,11 +321,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca absorbe la transferencia unilateral del peso corporal y mantiene la pelvis estable sin ayuda externa.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -454,11 +331,7 @@
                     "gluteus_maximus",
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -468,7 +341,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "bodyweight",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -478,43 +350,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Pistola",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
-                    "La cima de la calistenia de piernas, al alcance de muy pocos."
-                  ],
-                  "description": "Con peso corporal, a una sola pierna, el cuerpo desciende hasta el fondo con la otra extendida al frente. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
-                  "technique": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. El ejercicio que lo demuestra todo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -527,7 +366,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_pistola__default",
                   "definitionId": "quads_sentadilla_pistola",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -544,44 +383,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Pistola en la variante Peso Corporal.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón unilateral_knee_dominant."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -595,9 +410,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "En una sola pierna bajas hasta el suelo con la otra extendida: equilibrio, movilidad y fuerza. El ejercicio que lo demuestra todo."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -609,7 +422,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -632,7 +444,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_pistola_asistida_trx",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_pistola_asistida_trx__default",
@@ -640,16 +451,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
-                "El puente honesto entre la zancada y la pistola libre."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con TRX, a una pierna con las asas como apoyo, el cuerpo baja hasta el fondo con ayuda del agarre. El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
               "efc": 2.8,
               "equipmentId": "trx",
@@ -663,7 +467,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral asistida por las asas del TRX: la rodilla trabaja a fondo con una exigencia de equilibrio menor.",
                   "role": "PRIMARY"
                 },
                 {
@@ -671,7 +474,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con el apoyo en el TRX; la cadera controla la pierna extendida al frente sin la exigencia total del equilibrio.",
                   "role": "PRIMARY"
                 },
                 {
@@ -679,7 +481,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión con el TRX descargando parte de la estabilidad: el tobillo trabaja sobre un apoyo más amable que en la versión libre.",
                   "role": "SECONDARY"
                 },
                 {
@@ -687,7 +488,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga unilateral del propio cuerpo mientras el TRX reduce el balanceo pélvico lateral.",
                   "role": "STABILIZER"
                 }
               ],
@@ -695,16 +495,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "suspension",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con las asas del TRX como apoyo, el cuádriceps extiende la rodilla al subir y frena la bajada con parte del equilibrio delegado al agarre."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al subir y estabiliza la pelvis mientras las asas ayudan a sostener el torso sin carga externa."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_pistola_asistida_trx__trx__sentadilla_pistola_asistida_en_trx",
               "primaryMuscles": [
                 "quadriceps"
@@ -726,7 +516,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral asistida por las asas del TRX: la rodilla trabaja a fondo con una exigencia de equilibrio menor.",
                       "role": "PRIMARY"
                     },
                     {
@@ -734,7 +523,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con el apoyo en el TRX; la cadera controla la pierna extendida al frente sin la exigencia total del equilibrio.",
                       "role": "PRIMARY"
                     },
                     {
@@ -742,7 +530,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión con el TRX descargando parte de la estabilidad: el tobillo trabaja sobre un apoyo más amable que en la versión libre.",
                       "role": "SECONDARY"
                     },
                     {
@@ -750,22 +537,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga unilateral del propio cuerpo mientras el TRX reduce el balanceo pélvico lateral.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -775,7 +556,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "suspension",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -785,43 +565,10 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Pistola Asistida en TRX",
                   "displaySummary": "TRX",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
-                    "El puente honesto entre la zancada y la pistola libre."
-                  ],
-                  "description": "Con TRX, a una pierna con las asas como apoyo, el cuerpo baja hasta el fondo con ayuda del agarre. El cuádriceps trabaja con el TRX, que convierte tu cuerpo en la carga.",
-                  "technique": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -834,7 +581,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Pistola Asistida en TRX",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_pistola_asistida_trx__default",
                   "definitionId": "quads_sentadilla_pistola_asistida_trx",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -850,44 +597,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Pistola Asistida en TRX en la variante TRX.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "trx"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "trx"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón unilateral_knee_dominant."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -900,9 +623,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola. Sujetándote del TRX, bajas a una pierna con apoyo: la vía estable para conquistar la pistola."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -914,7 +635,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -936,7 +656,6 @@
                 "legacy:exercise_database.json#quads_step_up_cajon_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_step_up_cajon_frontal__default",
@@ -944,16 +663,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "Una forma exigente de mezclar fuerza unilateral y trabajo de torso."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con la carga al frente, la subida al cajón se vuelve vertical y estricta. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -967,7 +679,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral al subir al cajón: la carga al frente acerca el peso al eje de la rodilla y aumenta su participación.",
                   "role": "PRIMARY"
                 },
                 {
@@ -975,7 +686,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la barra en el estante frontal; la cadera sostiene el torso erguido sobre la pierna que sube.",
                   "role": "PRIMARY"
                 },
                 {
@@ -983,7 +693,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie que apoya sobre el cajón mientras el otro busca el suelo y la carga frontal empuja hacia delante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -991,7 +700,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga de la barra al frente hacia la pierna de trabajo sin dejar que la pelvis caiga al lado libre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -999,16 +707,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra al frente, el cuádriceps impulsa la subida al cajón extendiendo la rodilla y frena el descenso controlado de vuelta al suelo."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al alcanzar la altura del cajón y acompaña la bajada sin robar protagonismo al cuádriceps."
-                }
-              ],
               "performanceProfileId": "quads_step_up_cajon_frontal__barbell__step_up_a_cajon_frontal",
               "primaryMuscles": [
                 "quadriceps"
@@ -1030,7 +728,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral al subir al cajón: la carga al frente acerca el peso al eje de la rodilla y aumenta su participación.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1038,7 +735,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la barra en el estante frontal; la cadera sostiene el torso erguido sobre la pierna que sube.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1046,7 +742,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie que apoya sobre el cajón mientras el otro busca el suelo y la carga frontal empuja hacia delante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1054,22 +749,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga de la barra al frente hacia la pierna de trabajo sin dejar que la pelvis caiga al lado libre.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1079,7 +768,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1089,43 +777,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
-                  ]
-                },
                 "display": {
                   "displayName": "Step-Up a Cajón Frontal",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "Una forma exigente de mezclar fuerza unilateral y trabajo de torso."
-                  ],
-                  "description": "Con barra, con la carga al frente, la subida al cajón se vuelve vertical y estricta. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1138,7 +793,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_step_up_cajon_frontal__default",
                   "definitionId": "quads_step_up_cajon_frontal",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1155,42 +810,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Step-Up a Cajón Frontal en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1203,9 +836,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña. Subida al cajón con el peso al frente: el cuádriceps hace el trabajo y el glúteo acompaña."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -1217,7 +848,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -1240,7 +870,6 @@
                 "legacy:exercise_database.json#quads_step_up_cajon_zercher",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_step_up_cajon_zercher__default",
@@ -1248,16 +877,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                "La versión del step-up para quien quiere pierna y abdomen en el mismo paquete."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con la carga abrazada al torso, una pierna eleva el cuerpo al cajón. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -1271,7 +893,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral con la carga en el doblez de los codos: el peso ante la rodilla exige extensión potente al subir al cajón.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1279,7 +900,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera sostiene el torso vertical con la carga pegada al tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1287,7 +907,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión sobre la plataforma del cajón con la carga en los codos desplazando el centro de gravedad hacia delante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1295,7 +914,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher entre el torso y la pierna que sube, con la pelvis sujeta a un empuje frontal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1303,16 +921,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra abrazada en los codos, el cuádriceps eleva el cuerpo al cajón y frena la bajada con la carga pegada al torso."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera en la subida y mantiene la pelvis cuadrada mientras la carga descansa sobre los antebrazos flexionados."
-                }
-              ],
               "performanceProfileId": "quads_step_up_cajon_zercher__barbell__step_up_a_cajon_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -1334,7 +942,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral con la carga en el doblez de los codos: el peso ante la rodilla exige extensión potente al subir al cajón.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1342,7 +949,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera sostiene el torso vertical con la carga pegada al tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1350,7 +956,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión sobre la plataforma del cajón con la carga en los codos desplazando el centro de gravedad hacia delante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1358,22 +963,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher entre el torso y la pierna que sube, con la pelvis sujeta a un empuje frontal.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1383,7 +982,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1393,43 +991,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
-                  ]
-                },
                 "display": {
                   "displayName": "Step-Up a Cajón Zercher",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                    "La versión del step-up para quien quiere pierna y abdomen en el mismo paquete."
-                  ],
-                  "description": "Con barra, con la carga abrazada al torso, una pierna eleva el cuerpo al cajón. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                  "technique": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1442,7 +1007,7 @@
                 },
                 "identity": {
                   "canonicalName": "Step-Up a Cajón Zercher",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_step_up_cajon_zercher__default",
                   "definitionId": "quads_step_up_cajon_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1459,42 +1024,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Step-Up a Cajón Zercher en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1507,9 +1050,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo. Carga en los codos y subida al cajón: el core aguanta mientras la pierna sube con todo."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -1521,7 +1062,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -1544,7 +1084,6 @@
                 "legacy:exercise_database.json#quads_zancada_caminando_frontal_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_caminando_frontal_barra_recta__default",
@@ -1552,16 +1091,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "Caminar con peso nunca fue tan productivo para el muslo frontal."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con la carga al frente, cada apoyo es una zancada que avanza por la sala. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -1575,7 +1107,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral en cada apoyo que avanza: la carga al pecho mantiene la rodilla delantera trabajando durante toda la marcha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1583,7 +1114,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal durante el avance con la barra al pecho; la cadera absorbe cada paso sin dejar que la pelvis gire.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1591,7 +1121,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión en cada apoyo móvil por la sala, con la carga frontal empujando el tobillo hacia la dorsiflexión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1599,7 +1128,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga de la barra al frente entre pasos consecutivos sin permitir que la pelvis oscile al apoyar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1607,16 +1135,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra en el estante frontal, el cuádriceps frena cada zancada al avanzar y extiende la rodilla para seguir el camino paso a paso."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera en cada paso al frente y controla la pelvis mientras el torso avanza con la barra sobre el pecho."
-                }
-              ],
               "performanceProfileId": "quads_zancada_caminando_frontal_barra_recta__barbell__zancada_caminando_frontal_con_barra_recta",
               "primaryMuscles": [
                 "quadriceps"
@@ -1638,7 +1156,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral en cada apoyo que avanza: la carga al pecho mantiene la rodilla delantera trabajando durante toda la marcha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1646,7 +1163,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal durante el avance con la barra al pecho; la cadera absorbe cada paso sin dejar que la pelvis gire.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1654,7 +1170,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión en cada apoyo móvil por la sala, con la carga frontal empujando el tobillo hacia la dorsiflexión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1662,22 +1177,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga de la barra al frente entre pasos consecutivos sin permitir que la pelvis oscile al apoyar.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1687,7 +1196,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1697,43 +1205,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Caminando Frontal con Barra Recta",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "Caminar con peso nunca fue tan productivo para el muslo frontal."
-                  ],
-                  "description": "Con barra, con la carga al frente, cada apoyo es una zancada que avanza por la sala. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1746,7 +1221,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando Frontal con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_caminando_frontal_barra_recta__default",
                   "definitionId": "quads_zancada_caminando_frontal_barra_recta",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -1762,42 +1237,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Caminando Frontal con Barra Recta en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1810,9 +1263,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento. Pasos al frente con la barra en el pecho: piernas y torso trabajando en movimiento."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -1824,7 +1275,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -1846,7 +1296,6 @@
                 "legacy:exercise_database.json#quads_zancada_caminando_zercher_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_caminando_zercher_barra_recta__default",
@@ -1854,16 +1303,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                "Una prueba integral que deja huella en todo el cuerpo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, con la carga sobre los antebrazos flexionados, las piernas avanzan paso a paso. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -1877,7 +1319,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral en marcha: la posición Zercher inclina la carga hacia delante y la rodilla delantera trabaja en cada paso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1885,7 +1326,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera sostiene el torso erguido mientras las piernas avanzan en la marcha.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1893,7 +1333,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión en cada apoyo móvil, con la carga en los codos desplazando el peso hacia el antepié.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1901,7 +1340,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher de pierna a pierna durante la marcha sin dejar que la pelvis se incline al apoyar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1909,16 +1347,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra sobre los antebrazos flexionados, el cuádriceps frena cada zancada al avanzar y extiende la rodilla con la carga pegada al torso."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera en cada paso y sostiene la pelvis mientras la carga en los codos tira del torso hacia delante."
-                }
-              ],
               "performanceProfileId": "quads_zancada_caminando_zercher_barra_recta__barbell__zancada_caminando_zercher_con_barra_recta",
               "primaryMuscles": [
                 "quadriceps"
@@ -1940,7 +1368,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral en marcha: la posición Zercher inclina la carga hacia delante y la rodilla delantera trabaja en cada paso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1948,7 +1375,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera sostiene el torso erguido mientras las piernas avanzan en la marcha.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1956,7 +1382,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión en cada apoyo móvil, con la carga en los codos desplazando el peso hacia el antepié.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1964,22 +1389,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher de pierna a pierna durante la marcha sin dejar que la pelvis se incline al apoyar.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -1989,7 +1408,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1999,43 +1417,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Caminando Zercher con Barra Recta",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                    "Una prueba integral que deja huella en todo el cuerpo."
-                  ],
-                  "description": "Con barra, con la carga sobre los antebrazos flexionados, las piernas avanzan paso a paso. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                  "technique": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2048,7 +1433,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Caminando Zercher con Barra Recta",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_caminando_zercher_barra_recta__default",
                   "definitionId": "quads_zancada_caminando_zercher_barra_recta",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2064,42 +1449,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Caminando Zercher con Barra Recta en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2112,9 +1475,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando. Pasos al frente con la barra en los codos: la versión más exigente de la zancada caminando."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -2126,7 +1487,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -2148,7 +1508,6 @@
                 "legacy:exercise_database.json#quads_zancada_frontal_zercher",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_frontal_zercher__default",
@@ -2156,16 +1515,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                "Una zancada con carácter para quien domina la versión con pesos a los lados."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, el paso al frente con la carga en el doblez de los brazos frena y empuja con la pierna delantera. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -2179,7 +1531,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral de la pierna delantera: el paso al frente con la carga en los codos hace que la rodilla frene y empuje.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2187,7 +1538,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera delantera absorbe el paso y mantiene la pelvis bajo la carga.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2195,7 +1545,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero que frena el paso al frente con el peso abrazado en los antebrazos flexionados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2203,7 +1552,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher hacia la pierna delantera y contiene la inclinación pélvica durante el paso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2211,16 +1559,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra en el doblez de los brazos, el cuádriceps de la pierna delantera frena el paso al frente y devuelve el cuerpo con extensión de rodilla."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera para recuperar la posición y modera el descenso mientras la carga en los codos presiona el torso."
-                }
-              ],
               "performanceProfileId": "quads_zancada_frontal_zercher__barbell__zancada_frontal_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -2242,7 +1580,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral de la pierna delantera: el paso al frente con la carga en los codos hace que la rodilla frene y empuje.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2250,7 +1587,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera delantera absorbe el paso y mantiene la pelvis bajo la carga.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2258,7 +1594,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero que frena el paso al frente con el peso abrazado en los antebrazos flexionados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2266,22 +1601,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher hacia la pierna delantera y contiene la inclinación pélvica durante el paso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2291,7 +1620,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -2301,43 +1629,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Frontal Zercher",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                    "Una zancada con carácter para quien domina la versión con pesos a los lados."
-                  ],
-                  "description": "Con barra, el paso al frente con la carga en el doblez de los brazos frena y empuja con la pierna delantera. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                  "technique": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2350,7 +1645,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal Zercher",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_frontal_zercher__default",
                   "definitionId": "quads_zancada_frontal_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2367,42 +1662,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Frontal Zercher en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2415,9 +1688,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento. Paso al frente con la carga en los codos: equilibrio, piernas y core en un mismo movimiento."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -2429,7 +1700,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -2452,7 +1722,6 @@
                 "legacy:exercise_database.json#quads_zancada_inversa_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_inversa_frontal__default",
@@ -2460,16 +1729,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                "Una combinación elegante de pierna unilateral y trabajo del tronco."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, el paso atrás con la carga en el estante delantero trabaja con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -2483,7 +1745,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral de la pierna delantera: el paso atrás con la barra al pecho reparte la carga con mayor tolerancia para la rodilla.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2491,7 +1752,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal durante el retroceso; la cadera delantera sostiene el torso erguido bajo el estante frontal de la barra.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2499,7 +1759,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero mientras el trasero retrocede y la carga frontal mantiene el peso sobre el apoyo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2507,7 +1766,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga de la barra al frente hacia la pierna que sostiene y modera la rotación pélvica del retroceso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2515,16 +1773,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra en el estante frontal, el cuádriceps de la pierna delantera frena la bajada del paso atrás y extiende la rodilla para volver."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al recuperar la posición y controla la pelvis con el torso erguido bajo la carga frontal."
-                }
-              ],
               "performanceProfileId": "quads_zancada_inversa_frontal__barbell__zancada_inversa_frontal",
               "primaryMuscles": [
                 "quadriceps"
@@ -2546,7 +1794,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral de la pierna delantera: el paso atrás con la barra al pecho reparte la carga con mayor tolerancia para la rodilla.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2554,7 +1801,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal durante el retroceso; la cadera delantera sostiene el torso erguido bajo el estante frontal de la barra.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2562,7 +1808,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero mientras el trasero retrocede y la carga frontal mantiene el peso sobre el apoyo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2570,22 +1815,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga de la barra al frente hacia la pierna que sostiene y modera la rotación pélvica del retroceso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2595,7 +1834,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -2605,43 +1843,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Inversa Frontal",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                    "Una combinación elegante de pierna unilateral y trabajo del tronco."
-                  ],
-                  "description": "Con barra, el paso atrás con la carga en el estante delantero trabaja con el torso erguido. Con la barra, la carga sube al máximo y la progresión del cuádriceps se mide sin trampa.",
-                  "technique": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2654,7 +1859,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_inversa_frontal__default",
                   "definitionId": "quads_zancada_inversa_frontal",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2671,42 +1876,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Inversa Frontal en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2719,9 +1902,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia. Paso atrás con la barra al frente del pecho: estable, tolerante con la rodilla y con una demanda amplia."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -2733,7 +1914,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -2756,7 +1936,6 @@
                 "legacy:exercise_database.json#quads_zancada_inversa_maquina_hack",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_inversa_maquina_hack__default",
@@ -2764,16 +1943,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
-                "La opción guiada para exprimir el cuádriceps pierna a pierna."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con máquina, el paso atrás dentro del raíl deja al cuádriceps de la pierna delantera solo ante la carga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -2787,7 +1959,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral dentro del raíl de la hack: el guiado concentra el esfuerzo en la rodilla de la pierna delantera.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2795,7 +1966,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con el respaldo de la máquina; la cadera trabaja el paso atrás sin equilibrar una carga libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2803,7 +1973,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie apoyado en la plataforma de la hack mientras el otro pie retrocede sobre el raíl guiado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2811,7 +1980,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga guiada de la máquina hacia la pierna delantera con una demanda de estabilidad pélvica menor.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2819,16 +1987,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Sobre el raíl de la hack, el cuádriceps de la pierna delantera frena el paso atrás y extiende la rodilla en la trayectoria guiada de la máquina."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al volver al frente y sostiene la pelvis mientras el carro guiado quita el balanceo del movimiento."
-                }
-              ],
               "performanceProfileId": "quads_zancada_inversa_maquina_hack__machine__zancada_inversa_en_maquina_hack",
               "primaryMuscles": [
                 "quadriceps"
@@ -2850,7 +2008,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral dentro del raíl de la hack: el guiado concentra el esfuerzo en la rodilla de la pierna delantera.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2858,7 +2015,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con el respaldo de la máquina; la cadera trabaja el paso atrás sin equilibrar una carga libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2866,7 +2022,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie apoyado en la plataforma de la hack mientras el otro pie retrocede sobre el raíl guiado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2874,22 +2029,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga guiada de la máquina hacia la pierna delantera con una demanda de estabilidad pélvica menor.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -2899,7 +2048,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -2909,43 +2057,10 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Inversa en Máquina Hack",
                   "displaySummary": "Máquina",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
-                    "La opción guiada para exprimir el cuádriceps pierna a pierna."
-                  ],
-                  "description": "Con máquina, el paso atrás dentro del raíl deja al cuádriceps de la pierna delantera solo ante la carga. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps.",
-                  "technique": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2958,7 +2073,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina Hack",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_inversa_maquina_hack__default",
                   "definitionId": "quads_zancada_inversa_maquina_hack",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -2974,42 +2089,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Inversa en Máquina Hack en la variante Máquina.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3022,9 +2115,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada. Paso atrás con el guiado de la hack: la estabilidad de la máquina con el trabajo de la zancada."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -3036,7 +2127,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -3058,7 +2148,6 @@
                 "legacy:exercise_database.json#quads_zancada_inversa_maquina_v_squat",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_inversa_maquina_v_squat__default",
@@ -3066,16 +2155,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                "La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con máquina, el paso atrás con la plataforma inclinada y guiada elimina el balanceo de la ecuación. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -3089,7 +2171,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral sobre la plataforma guiada de la V-Squat: la rodilla delantera carga sin el balanceo de la barra libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3097,7 +2178,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la espalda sobre el respaldo inclinado; la cadera trabaja el paso atrás sin estabilizar peso libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3105,7 +2185,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie que pisa la plataforma inclinada mientras el otro retrocede dentro del recorrido guiado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3113,7 +2192,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga de la V-Squat hacia la pierna de trabajo con una oscilación pélvica lateral mínima.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3121,16 +2199,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la plataforma inclinada de la V-Squat, el cuádriceps frena el paso atrás y extiende la rodilla sobre un recorrido guiado y profundo."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera en el retroceso y la recuperación mientras el contrapeso guiado mantiene el torso protegido."
-                }
-              ],
               "performanceProfileId": "quads_zancada_inversa_maquina_v_squat__machine__zancada_inversa_en_maquina_v_squat",
               "primaryMuscles": [
                 "quadriceps"
@@ -3152,7 +2220,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral sobre la plataforma guiada de la V-Squat: la rodilla delantera carga sin el balanceo de la barra libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3160,7 +2227,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la espalda sobre el respaldo inclinado; la cadera trabaja el paso atrás sin estabilizar peso libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3168,7 +2234,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie que pisa la plataforma inclinada mientras el otro retrocede dentro del recorrido guiado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3176,22 +2241,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga de la V-Squat hacia la pierna de trabajo con una oscilación pélvica lateral mínima.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -3201,7 +2260,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -3211,43 +2269,10 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Inversa en Máquina V-Squat",
                   "displaySummary": "Máquina",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                    "La zancada unilateral más cómoda para la espalda y más dura para el cuádriceps."
-                  ],
-                  "description": "Con máquina, el paso atrás con la plataforma inclinada y guiada elimina el balanceo de la ecuación. El cuádriceps trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                  "technique": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3260,7 +2285,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa en Máquina V-Squat",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_inversa_maquina_v_squat__default",
                   "definitionId": "quads_zancada_inversa_maquina_v_squat",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3276,42 +2301,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Inversa en Máquina V-Squat en la variante Máquina.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3324,9 +2327,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida. Paso atrás con la plataforma V-Squat guiada: unilateral, profunda y con la espalda protegida."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -3338,7 +2339,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -3360,7 +2360,6 @@
                 "legacy:exercise_database.json#quads_zancada_inversa_zercher",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_zancada_inversa_zercher__default",
@@ -3368,16 +2367,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                "Una especialidad completa para pierna y tronco al mismo tiempo."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, el retroceso con la carga abrazada al tronco suma tensión de torso a cada repetición. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -3391,7 +2383,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Flexión y extensión unilateral de la pierna delantera: el retroceso con la carga en los codos combina freno de rodilla y tensión de torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3399,7 +2390,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera absorbe el paso atrás y sostiene el torso bajo la carga frontal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -3407,7 +2397,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero mientras retrocede el otro y la carga del Zercher desplaza el peso hacia delante.",
                   "role": "SECONDARY"
                 },
                 {
@@ -3415,7 +2404,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher hacia la pierna que sostiene y contrarresta la tendencia de la pelvis a girar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3423,16 +2411,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: Con la barra abrazada en los codos, el cuádriceps frena el paso atrás y extiende la rodilla con la carga del Zercher tirando del torso al frente."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor extiende la cadera al recuperar la posición y contiene la pelvis mientras la carga en los antebrazos presiona el tronco."
-                }
-              ],
               "performanceProfileId": "quads_zancada_inversa_zercher__barbell__zancada_inversa_zercher",
               "primaryMuscles": [
                 "quadriceps"
@@ -3454,7 +2432,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Flexión y extensión unilateral de la pierna delantera: el retroceso con la carga en los codos combina freno de rodilla y tensión de torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3462,7 +2439,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: Extensión y control frontal con la barra en los codos; la cadera absorbe el paso atrás y sostiene el torso bajo la carga frontal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -3470,7 +2446,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: Equilibrio y dorsiflexión del pie delantero mientras retrocede el otro y la carga del Zercher desplaza el peso hacia delante.",
                       "role": "SECONDARY"
                     },
                     {
@@ -3478,22 +2453,16 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroiliaca transfiere la carga del Zercher hacia la pierna que sostiene y contrarresta la tendencia de la pelvis a girar.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -3503,7 +2472,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -3513,43 +2481,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Inversa Zercher",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                    "Una especialidad completa para pierna y tronco al mismo tiempo."
-                  ],
-                  "description": "Con barra, el retroceso con la carga abrazada al tronco suma tensión de torso a cada repetición. La barra es la referencia para cargar el cuádriceps con peso de verdad.",
-                  "technique": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3562,7 +2497,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Inversa Zercher",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_zancada_inversa_zercher__default",
                   "definitionId": "quads_zancada_inversa_zercher",
                   "familyId": "lower_unilateral_knee_dominant",
@@ -3579,42 +2514,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Inversa Zercher en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3627,9 +2540,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso. Paso atrás con la barra en los codos: la combinación exigente que trabaja piernas y torso."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -3641,7 +2552,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_unilateral_knee_dominant",
@@ -3654,13 +2564,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón unilateral_knee_dominant; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_unilateral_knee_dominant",

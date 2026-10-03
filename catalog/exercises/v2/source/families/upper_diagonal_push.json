@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren superior · deltoid · diagonal push",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#deltoides_press_landmine_unilateral",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "deltoides_press_landmine_unilateral__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                "La puerta de entrada al empuje unilateral con barra."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-              ],
               "description": "Con barra, con un extremo de la barra anclado, un solo brazo empuja en diagonal hacia arriba y al frente. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
               "efc": 2.5,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión O Abducción"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro combina flexión y abducción al empujar la barra anclada en diagonal, con un solo brazo trabajando y la trayectoria marcada por el punto fijo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rotación Superior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Secundaria: La rotación superior de la escápula acompaña el empuje diagonal del brazo sobre la barra anclada y sostiene el hombro alto al final del recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: La extensión del codo completa el empuje diagonal con la barra anclada, pasando de semiflexionado a extendido con un solo brazo cargado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Lumbopélvica"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad lumbopélvica mientras un solo brazo empuja la barra anclada, sin dejar que el torso gire con la carga.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,16 +65,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "diagonal_push",
-              "muscleNotes": [
-                {
-                  "muscleId": "deltoid",
-                  "note": "Principal: Con la barra anclada por un extremo al suelo y un solo brazo empujando en diagonal, el deltoide eleva y adelanta la carga hasta extender el brazo."
-                },
-                {
-                  "muscleId": "triceps",
-                  "note": "Secundario: El tríceps extiende el codo para completar el empuje diagonal con un brazo, mientras la barra anclada guía la carga hacia arriba y hacia delante."
-                }
-              ],
               "performanceProfileId": "deltoides_press_landmine_unilateral__barbell__press_landmine_unilateral",
               "primaryMuscles": [
                 "deltoid"
@@ -108,7 +86,6 @@
                         "Flexión O Abducción"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro combina flexión y abducción al empujar la barra anclada en diagonal, con un solo brazo trabajando y la trayectoria marcada por el punto fijo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -116,7 +93,6 @@
                         "Rotación Superior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Secundaria: La rotación superior de la escápula acompaña el empuje diagonal del brazo sobre la barra anclada y sostiene el hombro alto al final del recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -124,7 +100,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: La extensión del codo completa el empuje diagonal con la barra anclada, pasando de semiflexionado a extendido con un solo brazo cargado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,22 +107,16 @@
                         "Estabilidad Lumbopélvica"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad lumbopélvica mientras un solo brazo empuja la barra anclada, sin dejar que el torso gire con la carga.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "deltoid"
                   ],
                   "secondaryMuscles": [
                     "triceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "deltoid"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -157,7 +126,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "diagonal_push",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -167,43 +135,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Arquear la zona lumbar, usar las piernas para impulsarte o bajar detrás de la cabeza sin control."
-                  ],
-                  "cues": [
-                    "Barra anclada al suelo y empuje en diagonal con un brazo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Barra anclada al suelo y empuje en diagonal con un brazo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar los hombros y completar el empuje con ayuda del tríceps siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar empuje del brazo por encima de la cabeza y extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra anclada al suelo y empuje en diagonal con un brazo."
-                  ]
-                },
                 "display": {
                   "displayName": "Press Landmine Unilateral",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                    "La puerta de entrada al empuje unilateral con barra."
-                  ],
-                  "description": "Con barra, con un extremo de la barra anclado, un solo brazo empuja en diagonal hacia arriba y al frente. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
-                  "technique": "Barra anclada al suelo y empuje en diagonal con un brazo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Barra anclada al suelo y empuje en diagonal con un brazo. El hombro trabaja con el torso estable y sin forzar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -216,7 +151,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press Landmine Unilateral",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "deltoides_press_landmine_unilateral__default",
                   "definitionId": "deltoides_press_landmine_unilateral",
                   "familyId": "upper_diagonal_push",
@@ -232,42 +167,20 @@
                     "max": 105,
                     "min": 45
                   },
-                  "objectives": [
-                    "Desarrollar el deltoides mediante Press Landmine Unilateral en la variante Barra.",
-                    "Priorizar desarrollar los hombros y completar el empuje con ayuda del tríceps con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva empuje del brazo por encima de la cabeza y extensión del codo y el objetivo de el deltoides.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "diagonal_push:deltoid"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -280,9 +193,7 @@
               "ssc": 0.3,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.8,
-              "techniqueSummary": "Barra anclada al suelo y empuje en diagonal con un brazo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.6,
-              "variantRationale": "Barra anclada al suelo y empuje en diagonal con un brazo. El hombro trabaja con el torso estable y sin forzar."
+              "ttc": 1.6
             },
             "selectedOptions": {}
           }
@@ -294,7 +205,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_diagonal_push",
@@ -306,13 +216,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón diagonal_push; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_diagonal_push",

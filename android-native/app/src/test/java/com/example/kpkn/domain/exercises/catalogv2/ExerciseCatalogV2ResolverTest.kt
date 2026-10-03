@@ -14,7 +14,6 @@ class ExerciseCatalogV2ResolverTest {
             ExerciseFamilyV2(
                 id = "elbow_flexion",
                 canonicalName = "Curl de bíceps",
-                description = "Familia de flexión de codo para una prueba determinista.",
                 definitions = listOf(
                     ExerciseDefinitionV2(
                         id = "biceps_curl",
@@ -37,7 +36,6 @@ class ExerciseCatalogV2ResolverTest {
             ExerciseFamilyV2(
                 id = "knee_dominant",
                 canonicalName = "Sentadillas",
-                description = "Familia dominante de rodilla.",
                 definitions = listOf(
                     ExerciseDefinitionV2(
                         id = "back_squat",
@@ -70,7 +68,6 @@ class ExerciseCatalogV2ResolverTest {
             ExerciseFamilyV2(
                 id = "chest_fly",
                 canonicalName = "Aperturas de Pecho",
-                description = "Familia de aperturas.",
                 definitions = listOf(
                     ExerciseDefinitionV2(
                         id = "cable_chest_fly",
@@ -103,7 +100,6 @@ class ExerciseCatalogV2ResolverTest {
             ExerciseFamilyV2(
                 id = "chest_crossover",
                 canonicalName = "Cruces de Poleas",
-                description = "Familia de cruces en polea.",
                 definitions = listOf(
                     ExerciseDefinitionV2(
                         id = "cable_crossover",
@@ -183,7 +179,6 @@ class ExerciseCatalogV2ResolverTest {
             resistanceProfile = "gravity_arc",
             setupCues = listOf("Torso estable."),
             executionCues = listOf("Flexiona el codo con control."),
-            commonMistakes = listOf("Balancear el tronco."),
             performanceProfileId = "biceps_curl__$id",
         ),
         evidence = evidence(),
@@ -213,7 +208,6 @@ class ExerciseCatalogV2ResolverTest {
         resistanceProfile = "gravity_arc",
         setupCues = listOf("Posición estable."),
         executionCues = listOf("Ejecuta con control."),
-        commonMistakes = listOf("Perder la posición."),
         performanceProfileId = "${movementPatternId}__${equipmentId}",
     )
 

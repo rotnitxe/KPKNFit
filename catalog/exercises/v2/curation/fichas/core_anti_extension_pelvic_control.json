@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "core_dragon_flag_banco_plano": {
+      "public": {
+        "configurations": {
+          "core_dragon_flag_banco_plano__default": {
+            "description": "Con peso corporal, el cuerpo entero sube rígido como una tabla y desciende frenado por el abdomen. El abdomen trabaja con el peso corporal como única carga.",
+            "executionCues": [
+              "Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Versión completa desde el banco: el cuerpo sube y baja como una sola pieza, con las rodillas extendidas y el abdomen frenando cada centímetro."
+            ]
+          }
+        },
+        "description": "El Dragon Flag es el ejercicio de abdomen que Bruce Lee puso de moda: el cuerpo entero sube rígido como una tabla y el abdomen frena la caída con una exigencia brutal. Se ejecuta boca arriba sujetando el banco por detrás de la cabeza, elevando el tronco y las piernas como una sola pieza hasta casi la vertical y descendiendo a cámara lenta. Trabaja el abdomen con el core entero asistiendo en cada grado del descenso. El nivel al que aspiran los que dominan los crunches y buscan algo serio."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_anti_extension_pelvic_control",
+  "schemaVersion": 1
+}

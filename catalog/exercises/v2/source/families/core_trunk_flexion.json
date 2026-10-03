@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Core · abdominals · trunk flexion",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#core_crunch_banco_declinado_lastrado_disco",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_crunch_banco_declinado_lastrado_disco__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con el disco, el lastre es simple y directo sobre el abdomen.",
-                "El crunch que da frutos cuando el suelo se quedó corto."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con disco, en declive, el torso se encoge hacia arriba con el lastre sobre el pecho. Con el disco, el lastre es simple y directo sobre el abdomen.",
               "efc": 2.0,
               "equipmentId": "plate",
@@ -45,7 +37,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis, y el lastre del disco sobre el pecho hace que esa flexión cueste más en el declive.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La flexión torácica acompaña el encogimiento del torso sobre el banco declinado, mientras el disco en el pecho empuja el tronco hacia la extensión.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: La pelvis apoyada en el banco declinado conserva su posición mientras el disco sobre el pecho carga la flexión, sin que las caderas sustituyan al abdomen.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "free_external_load",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: El disco sostenido sobre el pecho carga la flexión del tronco en el banco declinado; el abdomen se acorta al subir y frena el descenso contra la gravedad."
-                }
-              ],
               "performanceProfileId": "core_crunch_banco_declinado_lastrado_disco__plate__crunch_abdominal_en_banco_declinado_lastrado_con_disco",
               "primaryMuscles": [
                 "abdominals"
@@ -95,7 +78,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis, y el lastre del disco sobre el pecho hace que esa flexión cueste más en el declive.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La flexión torácica acompaña el encogimiento del torso sobre el banco declinado, mientras el disco en el pecho empuja el tronco hacia la extensión.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: La pelvis apoyada en el banco declinado conserva su posición mientras el disco sobre el pecho carga la flexión, sin que las caderas sustituyan al abdomen.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "abdominals"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "abdominals"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "free_external_load",
                   "movementPatternId": "trunk_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -143,43 +117,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "execution": [
-                    "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
-                  ]
-                },
                 "display": {
                   "displayName": "Crunch Abdominal en Banco Declinado",
                   "displaySummary": "Disco",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con el disco, el lastre es simple y directo sobre el abdomen.",
-                    "El crunch que da frutos cuando el suelo se quedó corto."
-                  ],
-                  "description": "Con disco, en declive, el torso se encoge hacia arriba con el lastre sobre el pecho. Con el disco, el lastre es simple y directo sobre el abdomen.",
-                  "technique": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-                  "variantRationale": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -192,7 +133,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Banco Declinado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_crunch_banco_declinado_lastrado_disco__default",
                   "definitionId": "core_crunch_banco_declinado_lastrado_disco",
                   "familyId": "core_trunk_flexion",
@@ -210,42 +151,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el recto abdominal mediante Crunch Abdominal en Banco Declinado en la variante Disco.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "plate"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "plate"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de el recto abdominal.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "trunk_flexion:abdominals"
                   ],
                   "replacementGroup": "core_crunch_bodyweight",
                   "replacementPriority": 3
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -256,9 +175,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-              "ttc": 1.5,
-              "variantRationale": "En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras. En el banco declinado el abdomen trabaja contra la gravedad en cada crunch y el disco en el pecho añade el extra que quieras."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -270,7 +187,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_trunk_flexion",
@@ -294,7 +210,6 @@
                 "legacy:exercise_database.json#core_crunch_en_polea_alta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_crunch_en_polea_alta__default",
@@ -302,16 +217,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "La forma más precisa de dosificar el trabajo abdominal semana a semana."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con polea, de rodillas bajo la polea alta, el torso se encoge hacia las rodillas con tensión constante. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.0,
               "equipmentId": "cable",
@@ -325,7 +233,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis de rodillas frente a la polea, con la cuerda alta empujando el torso atrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -333,7 +240,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La flexión torácica completa el encogimiento con la cuerda de la polea alta tirando desde la frente, un recorrido exigente también en el retorno.",
                   "role": "SECONDARY"
                 },
                 {
@@ -341,7 +247,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: Con las rodillas en el suelo, la pelvis se sostiene quieta mientras la polea alta arrastra el torso hacia delante, sin que el peso se traslade a las caderas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -349,12 +254,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "continuous_cable",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: La polea alta tira del torso hacia las rodillas con tensión constante; el abdomen se acorta contra la cuerda y frena la vuelta cuando el tronco se abre."
-                }
-              ],
               "performanceProfileId": "core_crunch_en_polea_alta__cable__crunch_abdominal_de_rodillas_en_polea_alta",
               "primaryMuscles": [
                 "abdominals"
@@ -375,7 +274,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis de rodillas frente a la polea, con la cuerda alta empujando el torso atrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -383,7 +281,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La flexión torácica completa el encogimiento con la cuerda de la polea alta tirando desde la frente, un recorrido exigente también en el retorno.",
                       "role": "SECONDARY"
                     },
                     {
@@ -391,20 +288,14 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: Con las rodillas en el suelo, la pelvis se sostiene quieta mientras la polea alta arrastra el torso hacia delante, sin que el peso se traslade a las caderas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "abdominals"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "abdominals"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -414,7 +305,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "trunk_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -423,43 +313,10 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "execution": [
-                    "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes."
-                  ]
-                },
                 "display": {
                   "displayName": "Crunch Abdominal de Rodillas en Polea Alta",
                   "displaySummary": "Polea",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "La forma más precisa de dosificar el trabajo abdominal semana a semana."
-                  ],
-                  "description": "Con polea, de rodillas bajo la polea alta, el torso se encoge hacia las rodillas con tensión constante. El abdomen trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-                  "variantRationale": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. La tensión constante hace que el abdomen trabaje en la subida y en la vuelta."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -472,7 +329,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal de Rodillas en Polea Alta",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_crunch_en_polea_alta__default",
                   "definitionId": "core_crunch_en_polea_alta",
                   "familyId": "core_trunk_flexion",
@@ -488,42 +345,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el recto abdominal mediante Crunch Abdominal de Rodillas en Polea Alta en la variante Polea.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de el recto abdominal.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "trunk_flexion:abdominals"
                   ],
                   "replacementGroup": "core_crunch_cable",
                   "replacementPriority": 2
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -534,9 +369,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-              "ttc": 1.5,
-              "variantRationale": "De rodillas frente a la polea alta, tiras de la cuerda desde la frente y crujes. La tensión constante hace que el abdomen trabaje en la subida y en la vuelta."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -548,7 +381,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_trunk_flexion",
@@ -570,7 +402,6 @@
                 "legacy:exercise_database.json#core_crunch_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_crunch_maquina__default",
@@ -578,16 +409,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                "La vía más cómoda para acumular series de abdomen con carga progresiva."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con máquina, sentado en el aparato, el torso se encoge contra la almohadilla con la carga ajustable. El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
               "efc": 2.0,
               "equipmentId": "machine",
@@ -601,7 +425,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis sobre el recorrido guiado de la máquina, con la carga ajustable oponiéndose al gesto.",
                   "role": "PRIMARY"
                 },
                 {
@@ -609,7 +432,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La flexión torácica acompaña al torso sentado contra la almohadilla de la máquina, cuyo recorrido guiado no admite desvíos al subir ni al volver.",
                   "role": "SECONDARY"
                 },
                 {
@@ -617,7 +439,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: Sentado en la máquina, la pelvis se queda en el asiento mientras la carga ajustable empuja el torso, de modo que las caderas solo organizan la postura.",
                   "role": "STABILIZER"
                 }
               ],
@@ -625,12 +446,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "guided_external_load",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: La máquina guía la flexión del tronco contra la almohadilla con carga ajustable; el abdomen se acorta al empujar y frena el retorno sobre el recorrido prefijado."
-                }
-              ],
               "performanceProfileId": "core_crunch_maquina__machine__crunch_abdominal_en_maquina",
               "primaryMuscles": [
                 "abdominals"
@@ -651,7 +466,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis sobre el recorrido guiado de la máquina, con la carga ajustable oponiéndose al gesto.",
                       "role": "PRIMARY"
                     },
                     {
@@ -659,7 +473,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La flexión torácica acompaña al torso sentado contra la almohadilla de la máquina, cuyo recorrido guiado no admite desvíos al subir ni al volver.",
                       "role": "SECONDARY"
                     },
                     {
@@ -667,20 +480,14 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: Sentado en la máquina, la pelvis se queda en el asiento mientras la carga ajustable empuja el torso, de modo que las caderas solo organizan la postura.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "abdominals"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "abdominals"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -690,7 +497,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "trunk_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -699,43 +505,10 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "execution": [
-                    "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado."
-                  ]
-                },
                 "display": {
                   "displayName": "Crunch Abdominal en Máquina",
                   "displaySummary": "Máquina",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                    "La vía más cómoda para acumular series de abdomen con carga progresiva."
-                  ],
-                  "description": "Con máquina, sentado en el aparato, el torso se encoge contra la almohadilla con la carga ajustable. El abdomen trabaja en la máquina, con el recorrido guiado y sin distracciones.",
-                  "technique": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-                  "variantRationale": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -748,7 +521,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Máquina",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_crunch_maquina__default",
                   "definitionId": "core_crunch_maquina",
                   "familyId": "core_trunk_flexion",
@@ -764,42 +537,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el recto abdominal mediante Crunch Abdominal en Máquina en la variante Máquina.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de el recto abdominal.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "trunk_flexion:abdominals"
                   ],
                   "replacementGroup": "core_crunch_machine",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -810,9 +561,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-              "ttc": 1.5,
-              "variantRationale": "Sentado en la máquina con el peso ajustado, crujes con el recorrido guiado. Rápida de usar, cómoda para cargar y útil para acumular trabajo para el abdomen."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -824,7 +573,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_trunk_flexion",
@@ -846,7 +594,6 @@
                 "legacy:exercise_database.json#core_crunch_suelo_peso_corporal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "core_crunch_suelo_peso_corporal__default",
@@ -854,16 +601,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El abdomen trabaja con el peso corporal como única carga.",
-                "La base donde se aprende a sentir el abdomen antes de pedirle cargas."
-              ],
               "bodyRegion": "CORE",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-              ],
               "description": "Con peso corporal, tumbado con las rodillas dobladas, los hombros se despegan del suelo con el abdomen encogiéndose. El abdomen trabaja con el peso corporal como única carga.",
               "efc": 2.0,
               "equipmentId": "bodyweight",
@@ -877,7 +617,6 @@
                     "Flexión Controlada"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis tumbado en el suelo, con solo el peso corporal oponiéndose al regreso del torso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -885,7 +624,6 @@
                     "Flexión Torácica"
                   ],
                   "jointId": "columna-toracica",
-                  "note": "Secundaria: La flexión torácica despega la parte alta de la espalda del suelo mientras las rodillas dobladas y el peso corporal limitan la ayuda de las caderas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -893,7 +631,6 @@
                     "Posición Pélvica"
                   ],
                   "jointId": "cadera",
-                  "note": "Estabilizadora: Con las rodillas dobladas y el suelo como apoyo, la pelvis queda quieta mientras el torso se encoge, sin que el peso corporal se traslade a las caderas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -901,12 +638,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "trunk_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "abdominals",
-                  "note": "Principal: Con peso corporal sobre el suelo, el abdomen se acorta al despegar los hombros y frena el descenso, sin material añadido que compense la pérdida de tensión."
-                }
-              ],
               "performanceProfileId": "core_crunch_suelo_peso_corporal__bodyweight__crunch_abdominal_en_suelo",
               "primaryMuscles": [
                 "abdominals"
@@ -927,7 +658,6 @@
                         "Flexión Controlada"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Principal: La flexión controlada del raquis lumbar acerca las costillas a la pelvis tumbado en el suelo, con solo el peso corporal oponiéndose al regreso del torso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -935,7 +665,6 @@
                         "Flexión Torácica"
                       ],
                       "jointId": "columna-toracica",
-                      "note": "Secundaria: La flexión torácica despega la parte alta de la espalda del suelo mientras las rodillas dobladas y el peso corporal limitan la ayuda de las caderas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -943,20 +672,14 @@
                         "Posición Pélvica"
                       ],
                       "jointId": "cadera",
-                      "note": "Estabilizadora: Con las rodillas dobladas y el suelo como apoyo, la pelvis queda quieta mientras el torso se encoge, sin que el peso corporal se traslade a las caderas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "abdominals"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "abdominals"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -966,7 +689,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "trunk_flexion",
-                  "rangeOfMotion": "limited_by_support",
                   "relevantJoints": [
                     "columna-lumbar",
                     "columna-toracica",
@@ -975,43 +697,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Tirar del cuello, hacer el movimiento desde la cadera o usar rebote."
-                  ],
-                  "cues": [
-                    "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "execution": [
-                    "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer el abdomen con una resistencia fácil de progresar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión controlada del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible.",
-                    "Movilidad de columna torácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen."
-                  ]
-                },
                 "display": {
                   "displayName": "Crunch Abdominal en Suelo",
                   "displaySummary": "Peso Corporal",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El abdomen trabaja con el peso corporal como única carga.",
-                    "La base donde se aprende a sentir el abdomen antes de pedirle cargas."
-                  ],
-                  "description": "Con peso corporal, tumbado con las rodillas dobladas, los hombros se despegan del suelo con el abdomen encogiéndose. El abdomen trabaja con el peso corporal como única carga.",
-                  "technique": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-                  "variantRationale": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. La base de todo y el más difícil de hacer bien."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1024,7 +713,7 @@
                 },
                 "identity": {
                   "canonicalName": "Crunch Abdominal en Suelo",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "core_crunch_suelo_peso_corporal__default",
                   "definitionId": "core_crunch_suelo_peso_corporal",
                   "familyId": "core_trunk_flexion",
@@ -1041,42 +730,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el recto abdominal mediante Crunch Abdominal en Suelo en la variante Peso Corporal.",
-                    "Priorizar fortalecer el abdomen con una resistencia fácil de progresar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "core_accessory"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión controlada del tronco y el objetivo de el recto abdominal.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar, columna torácica, cadera."
+                    "trunk_flexion:abdominals"
                   ],
                   "replacementGroup": "core_crunch_bodyweight",
                   "replacementPriority": 3
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -1087,9 +754,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. Las costillas se acercan a la pelvis sin tirar del cuello; la resistencia acompaña la flexión y la vuelta no se convierte en caída.",
-              "ttc": 1.5,
-              "variantRationale": "El crunch básico del suelo: rodillas dobladas, mirada al techo y contracción limpia del abdomen. La base de todo y el más difícil de hacer bien."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -1101,7 +766,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "core_trunk_flexion",
@@ -1114,13 +778,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón trunk_flexion; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "core_trunk_flexion",

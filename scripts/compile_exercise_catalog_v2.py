@@ -17,12 +17,15 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from build_catalog_v2_complete import AXIS_ORDER_OVERRIDES
+from catalog_v2_axis_order import AXIS_ORDER_OVERRIDES
+from catalog_v2_derived import derive_joint_actions, derive_preserves_intent
+from catalog_v2_retired_fields import find_retired
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "catalog" / "exercises" / "v2" / "source" / "catalog_v2.json"
 OUTPUT = ROOT / "android-native" / "app" / "src" / "main" / "assets" / "exercise_catalog_v2.json"
+IOS_OUTPUT = ROOT / "ios-native" / "KPKNFit" / "KPKNFit" / "exercise_catalog_v2.json"
 
 
 def fail(message: str) -> None:
@@ -62,23 +65,18 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         "movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId",
         "loadMode", "primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "efc",
         "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty", "resistanceProfile",
-        "description", "benefits", "techniqueSummary", "variantRationale", "jointInvolvement",
-        "setupCues", "executionCues", "commonMistakes",
+        "description", "jointInvolvement", "setupCues", "executionCues",
         "performanceProfileId",
     }
     missing = sorted(key for key in required if key not in value)
     require(not missing, f"{path}.profile missing required fields: {', '.join(missing)}")
-    for key in ("primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "setupCues", "executionCues", "commonMistakes"):
+    for key in ("primaryMuscles", "secondaryMuscles", "stabilizerMuscles", "setupCues", "executionCues"):
         require(isinstance(value[key], list), f"{path}.profile.{key} must be a list")
     require(value["primaryMuscles"], f"{path}.profile.primaryMuscles cannot be empty")
     all_listed = value["primaryMuscles"] + value["secondaryMuscles"] + value["stabilizerMuscles"]
     require(len(all_listed) == len(set(all_listed)), f"{path}.profile lists a muscle in more than one role")
     require(isinstance(value["description"], str) and len(value["description"].strip()) >= 40, f"{path}.profile.description is too short")
     require(not re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", value["description"]), f"{path}.profile.description must be descriptive, not instructional")
-    require(isinstance(value["benefits"], list) and len(value["benefits"]) >= 2, f"{path}.profile.benefits requires at least two entries")
-    require(all(isinstance(item, str) and len(item.strip()) >= 40 for item in value["benefits"]), f"{path}.profile.benefits contains short text")
-    require(isinstance(value["techniqueSummary"], str) and len(value["techniqueSummary"].strip()) >= 40, f"{path}.profile.techniqueSummary is too short")
-    require(isinstance(value["variantRationale"], str) and len(value["variantRationale"].strip()) >= 40, f"{path}.profile.variantRationale is too short")
     joints = value.get("jointInvolvement")
     require(isinstance(joints, list) and joints, f"{path}.profile.jointInvolvement cannot be empty")
     joint_ids = []
@@ -94,7 +92,6 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
     require(1 <= value["technicalDifficulty"] <= 10, f"{path}.profile.technicalDifficulty must be 1..10")
     require(all(isinstance(item, str) and item.strip() for item in value["setupCues"]), f"{path}.profile.setupCues contains empty text")
     require(all(isinstance(item, str) and item.strip() for item in value["executionCues"]), f"{path}.profile.executionCues contains empty text")
-    require(all(isinstance(item, str) and item.strip() for item in value["commonMistakes"]), f"{path}.profile.commonMistakes contains empty text")
     require(isinstance(value["performanceProfileId"], str) and value["performanceProfileId"], f"{path}.profile.performanceProfileId required")
     require(value.get("articulationType") in {"MULTIARTICULAR", "AISLADO"}, f"{path}.profile.articulationType must be MULTIARTICULAR or AISLADO")
     require(isinstance(value.get("setupTimeSeconds"), int) and value["setupTimeSeconds"] > 0, f"{path}.profile.setupTimeSeconds must be a positive integer")
@@ -103,7 +100,7 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
         require(value.get("automationEligible") is True, f"{path}.profile.automationEligible must be true for runtime")
         rich = value.get("richMetadata")
         require(isinstance(rich, dict), f"{path}.profile.richMetadata is required for runtime")
-        required_sections = {"identity", "anatomy", "biomechanics", "programming", "fatigue", "replacement", "coaching", "safety", "display", "editorial", "evidenceConfidence"}
+        required_sections = {"identity", "anatomy", "biomechanics", "programming", "fatigue", "replacement", "display", "evidenceConfidence"}
         require(required_sections.issubset(rich), f"{path}.profile.richMetadata missing required sections")
         require(rich.get("evidenceConfidence") in {"MEDIUM", "HIGH"}, f"{path}.profile.richMetadata confidence must be MEDIUM or HIGH for runtime")
 
@@ -148,10 +145,11 @@ def validate_rich_metadata(
     require(display.get("selectedOptions") == configuration["selectedOptions"], f"{path}.richMetadata.display.selectedOptions mismatch")
     anatomy = rich.get("anatomy")
     require(isinstance(anatomy, dict), f"{path}.profile.richMetadata.anatomy must be an object")
-    require_text_list(anatomy.get("targetRegions"), "anatomy.targetRegions")
-    require_text_list(anatomy.get("jointActions"), "anatomy.jointActions")
-    for key in ("muscleLengthBias", "volumeContribution", "stabilizationDemand"):
-        require_text(anatomy.get(key), f"anatomy.{key}")
+    require(
+        anatomy.get("jointActions") == derive_joint_actions(profile["jointInvolvement"]),
+        f"{path}.richMetadata.anatomy.jointActions must be derived from jointInvolvement",
+    )
+    require_text(anatomy.get("volumeContribution"), "anatomy.volumeContribution")
     require(anatomy.get("primaryMuscles") == profile["primaryMuscles"], f"{path}.richMetadata.anatomy.primaryMuscles mismatch")
     require(anatomy.get("secondaryMuscles") == profile["secondaryMuscles"], f"{path}.richMetadata.anatomy.secondaryMuscles mismatch")
     require(anatomy.get("stabilizerMuscles") == profile["stabilizerMuscles"], f"{path}.richMetadata.anatomy.stabilizerMuscles mismatch")
@@ -160,7 +158,6 @@ def validate_rich_metadata(
     require(isinstance(biomechanics, dict), f"{path}.profile.richMetadata.biomechanics must be an object")
     for key in ("movementPatternId", "bodyRegion", "kineticChain", "laterality", "equipmentId", "loadMode", "resistanceProfile"):
         require(biomechanics.get(key) == profile[key], f"{path}.richMetadata.biomechanics.{key} mismatch")
-    require_text(biomechanics.get("rangeOfMotion"), "biomechanics.rangeOfMotion")
     require_text(biomechanics.get("stability"), "biomechanics.stability")
     require_text_list(biomechanics.get("relevantJoints"), "biomechanics.relevantJoints")
     require(set(biomechanics["relevantJoints"]) == {joint["jointId"] for joint in profile["jointInvolvement"]}, f"{path}.richMetadata.biomechanics.relevantJoints mismatch")
@@ -168,49 +165,26 @@ def validate_rich_metadata(
     require(isinstance(fatigue, dict), f"{path}.profile.richMetadata.fatigue must be an object")
     for key in ("efc", "cnc", "ssc", "ttc", "axialLoadFactor", "technicalDifficulty"):
         require(fatigue.get(key) == profile[key], f"{path}.richMetadata.fatigue.{key} mismatch")
-    coaching = rich.get("coaching")
-    require(isinstance(coaching, dict), f"{path}.profile.richMetadata.coaching must be an object")
-    require(coaching.get("setup") == profile["setupCues"], f"{path}.richMetadata.coaching.setup mismatch")
-    require(coaching.get("execution") == profile["executionCues"], f"{path}.richMetadata.coaching.execution mismatch")
-    require_text_list(coaching.get("cues"), "coaching.cues")
-    require_text_list(coaching.get("progressions"), "coaching.progressions")
-    require_text_list(coaching.get("regressions"), "coaching.regressions")
-    require_text_list(coaching.get("relevantMobility"), "coaching.relevantMobility", allow_empty=True)
-    require(coaching.get("commonMistakes") == profile["commonMistakes"], f"{path}.richMetadata.coaching.commonMistakes mismatch")
     require(identity.get("searchTerms") == definition.get("searchTerms", []), f"{path}.richMetadata.identity.searchTerms mismatch")
     require(identity.get("kind") == definition.get("kind"), f"{path}.richMetadata.identity.kind mismatch")
     programming = rich.get("programming")
     require(isinstance(programming, dict), f"{path}.profile.richMetadata.programming must be an object")
     require_text(programming.get("role"), "programming.role")
-    require_text_list(programming.get("objectives"), "programming.objectives")
-    require_text_list(programming.get("suitableRepRanges"), "programming.suitableRepRanges")
     require_range(programming.get("indicativeRestSeconds"), "programming.indicativeRestSeconds")
     require_text(programming.get("fatigueCost"), "programming.fatigueCost")
-    require_text(programming.get("recoveryCost"), "programming.recoveryCost")
     require_text_list(programming.get("requiredEquipment"), "programming.requiredEquipment")
-    require_text(programming.get("setupTransitionCost"), "programming.setupTransitionCost")
-    require_text_list(programming.get("splitSuitability"), "programming.splitSuitability")
     replacement = rich.get("replacement")
     require(isinstance(replacement, dict), f"{path}.profile.richMetadata.replacement must be an object")
     require(replacement.get("replacementGroup") == profile.get("replacementGroup"), f"{path}.richMetadata.replacement.replacementGroup mismatch")
     require(replacement.get("replacementPriority") == profile.get("replacementPriority"), f"{path}.richMetadata.replacement.replacementPriority mismatch")
     require_text_list(replacement.get("compatibleEquipmentIds"), "replacement.compatibleEquipmentIds", allow_empty=True)
-    require_text_list(replacement.get("preservesIntent"), "replacement.preservesIntent")
-    safety = rich.get("safety")
-    require(isinstance(safety, dict), f"{path}.profile.richMetadata.safety must be an object")
-    require_text_list(safety.get("risks"), "safety.risks", allow_empty=True)
-    require_text_list(safety.get("precautions"), "safety.precautions", allow_empty=True)
-    require(isinstance(safety.get("medicalDisclaimerRequired"), bool), f"{path}.richMetadata.safety.medicalDisclaimerRequired must be boolean")
-    editorial = rich.get("editorial")
-    require(isinstance(editorial, dict), f"{path}.profile.richMetadata.editorial must be an object")
-    require(editorial.get("description") == profile["description"], f"{path}.richMetadata.editorial.description mismatch")
-    require(editorial.get("benefits") == profile["benefits"], f"{path}.richMetadata.editorial.benefits mismatch")
-    require(editorial.get("technique") == profile["techniqueSummary"], f"{path}.richMetadata.editorial.technique mismatch")
-    require(editorial.get("variantRationale") == profile["variantRationale"], f"{path}.richMetadata.editorial.variantRationale mismatch")
-    require_text_list(editorial.get("benefits"), "editorial.benefits")
-    require_text(editorial.get("technique"), "editorial.technique")
-    require_text(editorial.get("variantRationale"), "editorial.variantRationale")
+    require(
+        replacement.get("preservesIntent") == derive_preserves_intent(profile["movementPatternId"], profile["primaryMuscles"]),
+        f"{path}.richMetadata.replacement.preservesIntent must be derived from pattern + primary muscles",
+    )
     require(rich.get("evidenceConfidence") in {"MEDIUM", "HIGH"}, f"{path}.profile.richMetadata confidence must be MEDIUM or HIGH for runtime")
+
+
 def validate_family_manifest(source: dict[str, Any]) -> None:
     manifest_path = ROOT / "catalog" / "exercises" / "v2" / "source" / "manifest.json"
     family_dir = ROOT / "catalog" / "exercises" / "v2" / "source" / "families"
@@ -234,6 +208,11 @@ def validate_family_manifest(source: dict[str, Any]) -> None:
     require(expected == actual, "family files drift from aggregated source")
 
 def validate(source: dict[str, Any], allow_draft: bool) -> tuple[int, int]:
+    retired = find_retired(source)
+    require(
+        not retired,
+        f"source carries {len(retired)} retired field(s); first: {', '.join(retired[:3])}",
+    )
     family_ids: set[str] = set()
     definition_ids: set[str] = set()
     configuration_ids: set[str] = set()
@@ -340,33 +319,6 @@ def canonical_bytes(source: dict[str, Any]) -> bytes:
     return (json.dumps(source, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
 
 
-def strip_retired_knowledge(value: Any) -> Any:
-    """Remove retired explanatory payloads while preserving catalog identity."""
-    if isinstance(value, list):
-        return [strip_retired_knowledge(item) for item in value]
-    if not isinstance(value, dict):
-        return value
-    retired = {"muscleNotes", "relevantTendons"}
-    result = {
-        key: strip_retired_knowledge(item)
-        for key, item in value.items()
-        if key not in retired
-    }
-    if isinstance(result.get("jointInvolvement"), list):
-        result["jointInvolvement"] = [
-            {key: item for key, item in joint.items() if key != "note"}
-            if isinstance(joint, dict) else joint
-            for joint in result["jointInvolvement"]
-        ]
-    if isinstance(result.get("anatomy"), dict) and isinstance(result["anatomy"].get("jointInvolvement"), list):
-        result["anatomy"]["jointInvolvement"] = [
-            {key: item for key, item in joint.items() if key != "note"}
-            if isinstance(joint, dict) else joint
-            for joint in result["anatomy"]["jointInvolvement"]
-        ]
-    return result
-
-
 def write_atomic(path: Path, content: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -394,7 +346,9 @@ def main() -> int:
     source = load_source()
     validate_family_manifest(source)
     definitions, configurations = validate(source, allow_draft=args.allow_draft)
-    payload = canonical_bytes(strip_retired_knowledge(source))
+    # The runtime asset is the validated source itself: retired fields are
+    # rejected by `validate`, so there is no projection step to drift.
+    payload = canonical_bytes(source)
     digest = hashlib.sha256(payload).hexdigest()
     print(f"catalogRevision={source['catalogRevision']}")
     print(f"definitions={definitions} configurations={configurations}")
@@ -403,7 +357,9 @@ def main() -> int:
         write_atomic(OUTPUT, payload)
         resources = ROOT / "android-native" / "app" / "src" / "main" / "resources" / "exercise_catalog_v2.json"
         write_atomic(resources, payload)
+        write_atomic(IOS_OUTPUT, payload)
         print(f"wrote={OUTPUT}")
+        print(f"wrote={IOS_OUTPUT}")
     return 0
 
 

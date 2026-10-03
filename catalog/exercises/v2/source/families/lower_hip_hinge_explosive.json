@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · hamstrings · hip hinge explosive",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#hams_swing_kettlebell_dos_manos",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_swing_kettlebell_dos_manos__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
-                "El movimiento que enseña potencia de cadera y quema energía a partes iguales."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
-              ],
               "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
@@ -45,7 +37,6 @@
                     "Extensión Explosiva"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell hasta el pecho con dos manos y frena el descenso del peso en el recorrido hacia entre las piernas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Rigidez Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco durante el vaivén de la kettlebell con dos manos mientras la cadera impulsa la campana hasta el pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Extensión Coordinada"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso de la kettlebell a dos manos y cede con control en el descenso del peso entre las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Al Suelo"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo durante el impulso a dos manos y sostiene el apoyo de los pies cuando la campana viaja entre las piernas y sube al pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales concentran la extensión explosiva de cadera que lanza la campana con dos manos hasta el pecho y frenan el descenso excéntrico entre las piernas."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor asiste la extensión explosiva de cadera en cada vaivén de la kettlebell sostenida con dos manos y frena el descenso del peso hacia entre las piernas."
-                },
-                {
-                  "muscleId": "erector_spinae",
-                  "note": "Secundario: Los erectores espinales asisten la extensión del tronco en el impulso de la campana con dos manos y frenan el descenso del torso hacia el suelo durante el vaivén."
-                }
-              ],
               "performanceProfileId": "hams_swing_kettlebell_dos_manos__kettlebell__swing_con_kettlebell_a_dos_manos",
               "primaryMuscles": [
                 "hamstrings"
@@ -112,7 +86,6 @@
                         "Extensión Explosiva"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell hasta el pecho con dos manos y frena el descenso del peso en el recorrido hacia entre las piernas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Rigidez Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco durante el vaivén de la kettlebell con dos manos mientras la cadera impulsa la campana hasta el pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Extensión Coordinada"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso de la kettlebell a dos manos y cede con control en el descenso del peso entre las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Transferencia Al Suelo"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo durante el impulso a dos manos y sostiene el apoyo de los pies cuando la campana viaja entre las piernas y sube al pecho.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -148,11 +117,7 @@
                     "gluteus_maximus",
                     "erector_spinae"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge_explosive",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "columna-lumbar",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
-                  ],
-                  "cues": [
-                    "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar potencia de cadera y coordinación con una carga moderada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión rápida de cadera y control del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Impulsas la campana entre las piernas y la lanzas al pecho con la cadera."
-                  ]
-                },
                 "display": {
                   "displayName": "Swing con Kettlebell a Dos Manos",
                   "displaySummary": "Kettlebell",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
-                    "El movimiento que enseña potencia de cadera y quema energía a partes iguales."
-                  ],
-                  "description": "Con kettlebell, la campana se balancea entre las piernas y sale lanzada hasta el pecho por la potencia de la cadera. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo de los isquiosurales.",
-                  "technique": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. Potencia, glúteos y un subidón de energía en cada repetición."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Dos Manos",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hams_swing_kettlebell_dos_manos__default",
                   "definitionId": "hams_swing_kettlebell_dos_manos",
                   "familyId": "lower_hip_hinge_explosive",
@@ -237,42 +168,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Swing con Kettlebell a Dos Manos en la variante Kettlebell.",
-                    "Priorizar desarrollar potencia de cadera y coordinación con una carga moderada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión rápida de cadera y control del tronco y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, columna lumbar, rodilla."
+                    "hip_hinge_explosive:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -286,9 +195,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Impulsas la campana entre las piernas y la lanzas al pecho con la cadera. Potencia, glúteos y un subidón de energía en cada repetición."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -300,7 +207,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge_explosive",
@@ -322,7 +228,6 @@
                 "legacy:exercise_database.json#hams_swing_kettlebell_unilateral",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hams_swing_kettlebell_unilateral__default",
@@ -330,16 +235,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                "La progresión natural cuando el swing básico ya se domina."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
-              ],
               "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
@@ -353,7 +251,6 @@
                     "Extensión Explosiva"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell colgada de una sola mano hasta el pecho y frena el descenso del peso entre las piernas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -361,7 +258,6 @@
                     "Rigidez Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco frente al giro de la campana con una sola mano mientras la cadera impulsa el peso hasta el pecho.",
                   "role": "STABILIZER"
                 },
                 {
@@ -369,7 +265,6 @@
                     "Extensión Coordinada"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso unilateral de la kettlebell y cede con control cuando el peso vuelve entre las piernas.",
                   "role": "SECONDARY"
                 },
                 {
@@ -377,7 +272,6 @@
                     "Transferencia Al Suelo"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo desde el impulso de una sola mano y sostiene el apoyo de los pies cuando la campana viaja hasta el pecho.",
                   "role": "STABILIZER"
                 }
               ],
@@ -385,20 +279,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Los isquiosurales concentran la extensión explosiva de cadera con la kettlebell sostenida por una sola mano y frenan el descenso excéntrico del peso entre las piernas."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor asiste la extensión explosiva de cadera con una sola mano llevando la campana hasta el pecho y frena el descenso del peso hacia entre las piernas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Secundario: El core asiste al tronco en el recorrido de la kettlebell con una sola mano y frena el giro del torso cuando la campana viaja entre las piernas y hasta el pecho."
-                }
-              ],
               "performanceProfileId": "hams_swing_kettlebell_unilateral__kettlebell__swing_con_kettlebell_a_una_mano",
               "primaryMuscles": [
                 "hamstrings"
@@ -420,7 +300,6 @@
                         "Extensión Explosiva"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma explosiva para lanzar la kettlebell colgada de una sola mano hasta el pecho y frena el descenso del peso entre las piernas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -428,7 +307,6 @@
                         "Rigidez Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar sostiene la rigidez del tronco frente al giro de la campana con una sola mano mientras la cadera impulsa el peso hasta el pecho.",
                       "role": "STABILIZER"
                     },
                     {
@@ -436,7 +314,6 @@
                         "Extensión Coordinada"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla se extiende de forma coordinada con la cadera en el impulso unilateral de la kettlebell y cede con control cuando el peso vuelve entre las piernas.",
                       "role": "SECONDARY"
                     },
                     {
@@ -444,11 +321,9 @@
                         "Transferencia Al Suelo"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo transfiere la fuerza al suelo desde el impulso de una sola mano y sostiene el apoyo de los pies cuando la campana viaja hasta el pecho.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -456,11 +331,7 @@
                     "gluteus_maximus",
                     "core"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -470,7 +341,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_hinge_explosive",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "columna-lumbar",
@@ -480,43 +350,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Convertir el gesto en una sentadilla, levantar la carga solo con los brazos o arquear la espalda."
-                  ],
-                  "cues": [
-                    "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar potencia de cadera y coordinación con una carga moderada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión rápida de cadera y control del tronco como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: La campana viaja con una sola mano y el torso aguanta el giro."
-                  ]
-                },
                 "display": {
                   "displayName": "Swing con Kettlebell a Una Mano",
                   "displaySummary": "Kettlebell",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                    "La progresión natural cuando el swing básico ya se domina."
-                  ],
-                  "description": "Con kettlebell, la campana se balancea con una sola mano mientras el torso impide la rotación en cada vaivén. Los isquiosurales trabajan con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                  "technique": "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "La campana viaja con una sola mano y el torso aguanta el giro. Variante avanzada que suma estabilidad al swing tradicional."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -529,7 +366,7 @@
                 },
                 "identity": {
                   "canonicalName": "Swing con Kettlebell a Una Mano",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hams_swing_kettlebell_unilateral__default",
                   "definitionId": "hams_swing_kettlebell_unilateral",
                   "familyId": "lower_hip_hinge_explosive",
@@ -545,42 +382,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Swing con Kettlebell a Una Mano en la variante Kettlebell.",
-                    "Priorizar desarrollar potencia de cadera y coordinación con una carga moderada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión rápida de cadera y control del tronco y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, columna lumbar, rodilla."
+                    "hip_hinge_explosive:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -594,9 +409,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "La campana viaja con una sola mano y el torso aguanta el giro. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "La campana viaja con una sola mano y el torso aguanta el giro. Variante avanzada que suma estabilidad al swing tradicional."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -608,7 +421,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_hinge_explosive",
@@ -620,13 +432,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón hip_hinge_explosive; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_hinge_explosive",

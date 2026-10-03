@@ -10,11 +10,27 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
+
+try:
+    import catalog_v2_quality_audit as quality_audit
+    from catalog_v2_apply_fichas import check_family, validate_ficha
+    from catalog_v2_derived import derive_joint_actions, derive_preserves_intent
+    from catalog_v2_retired_fields import find_retired
+    from catalog_v2_sources import load_proof, proof_problems
+except ModuleNotFoundError:  # loaded by file path (tests) without scripts/ on sys.path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import catalog_v2_quality_audit as quality_audit
+    from catalog_v2_apply_fichas import check_family, validate_ficha
+    from catalog_v2_derived import derive_joint_actions, derive_preserves_intent
+    from catalog_v2_retired_fields import find_retired
+    from catalog_v2_sources import load_proof, proof_problems
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "catalog" / "exercises" / "v2" / "source" / "catalog_v2.json"
-BRIEFS = ROOT / "catalog" / "exercises" / "v2" / "curation" / "editorial_briefs.json"
+FICHAS = ROOT / "catalog" / "exercises" / "v2" / "curation" / "fichas"
+SOURCES_PROOF = ROOT / "catalog" / "exercises" / "v2" / "curation" / "sources_verified.json"
 INVENTORY = ROOT / "catalog" / "exercises" / "v2" / "curation" / "candidate_inventory.json"
 ANDROID = ROOT / "android-native" / "app" / "src" / "main"
 JOINT_ROLES = {"PRIMARY", "SECONDARY", "STABILIZER"}
@@ -318,54 +334,76 @@ def _normalized_first_sentence(value: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^a-záéíóúüñ0-9 ]", " ", first.casefold())).strip()
 
 
-def editorial_brief_gate(source: dict, definitions: list[dict], configurations: list[dict]) -> list[str]:
+def fichas_gate(source: dict) -> list[str]:
+    """The ficha is the only authoring surface of the public copy and the anatomy.
+
+    Every family of the compiled source must equal what its ficha produces
+    (``catalog_v2_apply_fichas.py --check`` semantics), and no ficha may be orphaned,
+    malformed or out of inventory.  A hand edit of the source can not survive this.
+    """
+    if not FICHAS.is_dir():
+        return ["fichas_missing"]
     failures: list[str] = []
-    if not BRIEFS.exists():
-        return ["editorial_briefs_missing"]
+    family_ids: set[str] = set()
+    for family in source["families"]:
+        family_id = family["id"]
+        family_ids.add(family_id)
+        path = FICHAS / f"{family_id}.json"
+        if not path.is_file():
+            failures.append(f"ficha_missing:{family_id}")
+            continue
+        try:
+            ficha = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            failures.append(f"ficha_invalid_json:{family_id}:{exc.lineno}:{exc.colno}")
+            continue
+        payload = {"family": family}
+        problems = validate_ficha(payload, ficha)
+        if problems:
+            failures.extend(f"ficha_invalid:{problem}" for problem in problems)
+            continue
+        drift = check_family(payload, ficha)
+        failures.extend(f"ficha_drift:{family_id}:{drift_path}" for drift_path in drift[:10])
+        if len(drift) > 10:
+            failures.append(f"ficha_drift:{family_id}:+{len(drift) - 10}_more")
+    failures.extend(f"ficha_orphan:{path.name}" for path in sorted(FICHAS.glob("*.json")) if path.stem not in family_ids)
+    return failures
+
+
+def sources_gate() -> list[str]:
+    """Every source cited by a CURATED ficha has offline proof that it exists and is the work named."""
+    if not FICHAS.is_dir():
+        return []
+    return proof_problems(FICHAS, load_proof(SOURCES_PROOF))
+
+
+def quality_gate(source: dict) -> list[str]:
+    """A CURATED definition must stay clean under the editorial quality audit (ERROR findings block)."""
     try:
-        brief_source = json.loads(BRIEFS.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        return [f"editorial_briefs_invalid_json:{exc.lineno}:{exc.colno}"]
-    if brief_source.get("schemaVersion") != 1:
-        failures.append("editorial_briefs_schema_version")
-    if brief_source.get("catalogRevision") != source.get("catalogRevision"):
-        failures.append("editorial_briefs_revision_mismatch")
-    brief_definitions = brief_source.get("definitions")
-    if not isinstance(brief_definitions, dict):
-        return failures + ["editorial_briefs_definitions_invalid"]
-    definition_ids = {definition["id"] for definition in definitions}
-    configuration_ids = {configuration["id"] for configuration in configurations}
-    if set(brief_definitions) != definition_ids:
-        missing = sorted(definition_ids - set(brief_definitions))
-        extra = sorted(set(brief_definitions) - definition_ids)
-        if missing:
-            failures.append(f"editorial_brief_definitions_missing:{','.join(missing)}")
-        if extra:
-            failures.append(f"editorial_brief_definitions_extra:{','.join(extra)}")
-    profile_fields = ("description", "benefits", "techniqueSummary", "variantRationale", "setupCues", "executionCues")
-    for definition in definitions:
-        brief = brief_definitions.get(definition["id"])
-        if not isinstance(brief, dict):
-            continue
-        if brief.get("description") != definition.get("description"):
-            failures.append(f"editorial_definition_mismatch:{definition['id']}")
-        configurations_brief = brief.get("configurations")
-        if not isinstance(configurations_brief, dict):
-            failures.append(f"editorial_configurations_invalid:{definition['id']}")
-            continue
-        actual_ids = {configuration["id"] for configuration in definition["configurations"]}
-        if set(configurations_brief) != actual_ids:
-            failures.append(f"editorial_configuration_inventory_mismatch:{definition['id']}")
-        for configuration in definition["configurations"]:
-            copy = configurations_brief.get(configuration["id"])
-            if not isinstance(copy, dict):
-                continue
-            profile = configuration.get("profile", {})
-            for field in profile_fields:
-                if copy.get(field) != profile.get(field):
-                    failures.append(f"editorial_field_mismatch:{configuration['id']}:{field}")
-    if set(configuration_ids) != {configuration_id for brief in brief_definitions.values() for configuration_id in (brief.get("configurations", {}) if isinstance(brief, dict) else {})}:
-        failures.append("editorial_configuration_inventory_global_mismatch")
+        fichas = quality_audit.load_fichas(FICHAS) if FICHAS.is_dir() else {}
+    except (json.JSONDecodeError, AttributeError, TypeError):
+        return []  # a malformed ficha is already reported by fichas_gate; nothing reliable to audit
+    curated = sorted(definition_id for definition_id, ficha in fichas.items() if ficha.get("status") == "CURATED")
+    if not curated:
+        return []
+    read = lambda path: json.loads(path.read_text(encoding="utf-8")) if path.exists() else None  # noqa: E731
+    result = quality_audit.run_audit(
+        source,
+        rules=read(quality_audit.RULES),
+        allowlist=read(quality_audit.ALLOWLIST),
+        lexicon=read(quality_audit.LEXICON),
+        fichas=fichas,
+        scope=curated,
+    )
+    return [
+        f"quality_audit:{finding.check}:{finding.definition_id}:{finding.configuration_id or '-'}:{finding.field}"
+        for finding in result.findings
+        if finding.severity == quality_audit.ERROR
+    ]
+
+
+def copy_hygiene_gate(definitions: list[dict], configurations: list[dict]) -> list[str]:
+    failures: list[str] = []
     forbidden = (
         "llevas las manos hacia el cuerpo",
         "esta configuración aporta",
@@ -392,13 +430,16 @@ def editorial_brief_gate(source: dict, definitions: list[dict], configurations: 
     return failures
 
 
-
 def source_gate() -> list[str]:
     failures: list[str] = []
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     definitions = [d for family in source["families"] for d in family["definitions"]]
     configurations = [c for definition in definitions for c in definition["configurations"]]
-    failures.extend(editorial_brief_gate(source, definitions, configurations))
+    failures.extend(f"retired_field_present:{path}" for path in find_retired(source))
+    failures.extend(fichas_gate(source))
+    failures.extend(sources_gate())
+    failures.extend(quality_gate(source))
+    failures.extend(copy_hygiene_gate(definitions, configurations))
     generic_markers = (
         "configuración specialty",
         "configuración parent",
@@ -479,34 +520,6 @@ def source_gate() -> list[str]:
                     failures.append(f"instructional_configuration_description:{configuration['id']}")
                 if profile.get("catalogRevision") != source.get("catalogRevision"):
                     failures.append(f"profile_revision_mismatch:{configuration['id']}")
-                listed = set(profile.get("primaryMuscles", [])) | set(profile.get("secondaryMuscles", [])) | set(profile.get("stabilizerMuscles", []))
-                notes = profile.get("muscleNotes") or []
-                note_ids = {note.get("muscleId") for note in notes if isinstance(note, dict)}
-                if not notes:
-                    failures.append(f"missing_muscle_note:{configuration['id']}")
-                if listed != note_ids:
-                    failures.append(f"muscle_notes_mismatch:{configuration['id']}")
-                if len(note_ids) != len(notes):
-                    failures.append(f"duplicate_muscle_note:{configuration['id']}")
-                for note in notes:
-                    if isinstance(note, dict):
-                        note_text = str(note.get("note") or "").strip()
-                        if len(note_text) < 40:
-                            failures.append(f"short_muscle_note:{configuration['id']}:{note.get('muscleId')}")
-                        if note_text and not note_text[0].isupper():
-                            failures.append(f"muscle_note_not_capitalized:{configuration['id']}:{note.get('muscleId')}")
-                benefits = profile.get("benefits")
-                if not isinstance(benefits, list) or len(benefits) < 2:
-                    failures.append(f"missing_configuration_benefits:{configuration['id']}")
-                elif any(not isinstance(benefit, str) or len(benefit.strip()) < 40 for benefit in benefits):
-                    failures.append(f"short_configuration_benefit:{configuration['id']}")
-                elif any(benefit.strip() and not benefit.strip()[0].isupper() for benefit in benefits):
-                    failures.append(f"configuration_benefit_not_capitalized:{configuration['id']}")
-                for field in ("techniqueSummary", "variantRationale"):
-                    if not isinstance(profile.get(field), str) or len(profile[field].strip()) < 40:
-                        failures.append(f"short_configuration_{field}:{configuration['id']}")
-                    elif profile[field].strip() and not profile[field].strip()[0].isupper():
-                        failures.append(f"configuration_{field}_not_capitalized:{configuration['id']}")
                 joints = profile.get("jointInvolvement")
                 if not isinstance(joints, list) or not joints:
                     failures.append(f"missing_joint_involvement:{configuration['id']}")
@@ -527,10 +540,6 @@ def source_gate() -> list[str]:
                         failures.append(f"invalid_joint_actions:{configuration['id']}:{joint_id}")
                     elif any(action.strip() and not action.strip()[0].isupper() for action in actions):
                         failures.append(f"joint_action_not_capitalized:{configuration['id']}:{joint_id}")
-                    if not isinstance(joint.get("note"), str) or len(joint["note"].strip()) < 40:
-                        failures.append(f"short_joint_note:{configuration['id']}:{joint_id}")
-                    elif joint["note"].strip() and not joint["note"].strip()[0].isupper():
-                        failures.append(f"joint_note_not_capitalized:{configuration['id']}:{joint_id}")
                 if len(joint_ids) != len(set(joint_ids)):
                     failures.append(f"duplicate_joint_involvement:{configuration['id']}")
                 serialized = json.dumps(configuration, ensure_ascii=False)
@@ -543,18 +552,7 @@ def source_gate() -> list[str]:
                     failures.append(f"rich_metadata_missing:{configuration['id']}")
                 elif rich.get("evidenceConfidence") not in {"MEDIUM", "HIGH"}:
                     failures.append(f"rich_metadata_low_confidence:{configuration['id']}")
-                elif not isinstance(rich.get("editorial"), dict):
-                    failures.append(f"rich_editorial_missing:{configuration['id']}")
                 else:
-                    editorial = rich["editorial"]
-                    if editorial.get("description") != profile_description:
-                        failures.append(f"rich_editorial_description_mismatch:{configuration['id']}")
-                    if editorial.get("benefits") != benefits:
-                        failures.append(f"rich_editorial_benefits_mismatch:{configuration['id']}")
-                    if editorial.get("technique") != profile.get("techniqueSummary"):
-                        failures.append(f"rich_editorial_technique_mismatch:{configuration['id']}")
-                    if editorial.get("variantRationale") != profile.get("variantRationale"):
-                        failures.append(f"rich_editorial_variant_mismatch:{configuration['id']}")
                     anatomy = rich.get("anatomy")
                     if not isinstance(anatomy, dict) or anatomy.get("jointInvolvement") != joints:
                         failures.append(f"rich_anatomy_joint_mismatch:{configuration['id']}")
@@ -562,6 +560,14 @@ def source_gate() -> list[str]:
                     relevant_joints = biomechanics.get("relevantJoints") if isinstance(biomechanics, dict) else None
                     if not isinstance(relevant_joints, list) or set(relevant_joints) != set(joint_ids):
                         failures.append(f"rich_biomechanics_joint_mismatch:{configuration['id']}")
+                    # Derived mirrors: the ficha authors muscles and joints, everything else follows.
+                    replacement = rich.get("replacement")
+                    expected_intent = derive_preserves_intent(profile.get("movementPatternId", ""), profile.get("primaryMuscles") or [])
+                    if not isinstance(replacement, dict) or replacement.get("preservesIntent") != expected_intent:
+                        failures.append(f"rich_replacement_intent_not_derived:{configuration['id']}")
+                    if joints and all(isinstance(joint, dict) and isinstance(joint.get("actions"), list) for joint in joints):
+                        if not isinstance(anatomy, dict) or anatomy.get("jointActions") != derive_joint_actions(joints):
+                            failures.append(f"rich_anatomy_joint_actions_not_derived:{configuration['id']}")
             if len(definition["configurations"]) > 1 and len(configuration_descriptions) != len(definition["configurations"]):
                 failures.append(f"non_distinct_configuration_descriptions:{definition['id']}")
     return failures

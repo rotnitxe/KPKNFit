@@ -1,0 +1,59 @@
+{
+  "definitions": {
+    "forward_lunge": {
+      "public": {
+        "configurations": {
+          "forward_lunge__barbell": {
+            "description": "Con barra, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la espalda y paso al frente: la zancada tradicional con carga."
+            ]
+          },
+          "forward_lunge__cable": {
+            "description": "Con polea, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Polea y paso al frente: la tensión constante añade exigencia a la zancada."
+            ]
+          },
+          "forward_lunge__dumbbells": {
+            "description": "Con mancuernas, el paso largo al frente frena con la pierna delantera y regresa con fuerza. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda."
+            ]
+          },
+          "forward_lunge__kettlebell": {
+            "description": "Con kettlebell, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells y paso al frente: el agarre suma trabajo al ejercicio."
+            ]
+          },
+          "forward_lunge__smith_machine": {
+            "description": "Con máquina Smith, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada."
+            ]
+          }
+        },
+        "description": "La Zancada Frontal es el paso largo al frente que lo trabaja todo: cuádriceps y glúteo mayor frenan la bajada y empujan el regreso mientras el equilibrio se pone a prueba. Se ejecuta dando un paso decidido, bajando la rodilla trasera hacia el suelo y volviendo con fuerza a la posición inicial. Con mancuernas a los lados la carga queda cómoda; con barra a la espalda sube la exigencia. El básico unilateral que no puede faltar en ninguna pierna completa."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_forward_lunge",
+  "schemaVersion": 1
+}

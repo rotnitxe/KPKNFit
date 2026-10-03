@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "hams_curl_nordic_peso_corporal": {
+      "public": {
+        "configurations": {
+          "hams_curl_nordic_peso_corporal__default": {
+            "description": "Con peso corporal, de rodillas con los tobillos anclados, el cuerpo cae hacia delante frenado por los isquiosurales. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+            "executionCues": [
+              "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios."
+            ]
+          }
+        },
+        "description": "El Curl Nórdico es el ejercicio de isquiosurales más temido con razón: de rodillas y con los tobillos anclados, el cuerpo cae hacia delante y los isquiosurales frenan el descenso hasta donde aguanten. Se ejecuta bajando lento con la cadera extendida y empujando con las manos lo justo para volver. El peso corporal basta y sobra. La referencia mundial para proteger los isquiosurales de lesiones."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_eccentric_knee_flexion",
+  "schemaVersion": 1
+}

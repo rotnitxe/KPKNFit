@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "core_elevacion_piernas": {
+      "public": {
+        "configurations": {
+          "core_elevacion_piernas__default": {
+            "description": "Con peso corporal, colgado, las piernas suben hacia el pecho mientras el abdomen enrolla la pelvis sin balanceo. Sin más carga que el propio cuerpo, la exigencia del abdomen es la justa.",
+            "executionCues": [
+              "Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Colgado de la barra, subes las piernas rectas o dobladas hasta la cintura."
+            ]
+          }
+        },
+        "description": "La Elevación de Piernas Colgado es el trabajo abdominal visto desde abajo: las piernas suben hacia la barra fija mientras el abdomen enrolla la pelvis y los flexores de la cadera dan el impulso inicial. Se ejecuta colgado con los brazos extendidos, elevando las piernas sin balanceo y bajándolas con la misma calma. Todo con el peso corporal, sin más equipamiento que un punto donde colgarse. El escalón que separa el abdomen de principiante del que impone respeto."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "core_hip_flexion",
+  "schemaVersion": 1
+}

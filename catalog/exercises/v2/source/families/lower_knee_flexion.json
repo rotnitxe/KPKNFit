@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Curl de Isquiosurales",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "curl_isquios_con_balon__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
-                "La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla alterna flexión y extensión con el peso corporal; el balón sujeto entre los pies obliga a un control continuo y simétrico de ambas piernas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera acompaña la flexión y la extensión con la pelvis elevada; sostener el balón entre los pies exige que la línea de cada pierna permanezca estable.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control mientras los pies sujetan el balón; el peso corporal es la única resistencia del recorrido bilateral.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado boca arriba y la pelvis elevada mientras el balón viaja hacia los glúteos.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
               "movementPatternId": "knee_hip_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Con peso corporal, boca arriba y las pantorrillas sobre el balón, los isquiosurales flexionan ambas rodillas de forma concéntrica y frenan el retorno del balón."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor sostiene la cadera extendida con la pelvis elevada mientras los talones acercan el balón, sin carga externa que guíe el recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco tumbado boca arriba e impide que la pelvis se hunda mientras el balón queda sujeto entre los pies por el peso corporal."
-                }
-              ],
               "performanceProfileId": "curl_isquios_con_balon__bodyweight__curl_de_isquiosurales_con_balón",
               "primaryMuscles": [
                 "hamstrings"
@@ -111,7 +85,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla alterna flexión y extensión con el peso corporal; el balón sujeto entre los pies obliga a un control continuo y simétrico de ambas piernas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -119,7 +92,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera acompaña la flexión y la extensión con la pelvis elevada; sostener el balón entre los pies exige que la línea de cada pierna permanezca estable.",
                       "role": "SECONDARY"
                     },
                     {
@@ -127,7 +99,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control mientras los pies sujetan el balón; el peso corporal es la única resistencia del recorrido bilateral.",
                       "role": "STABILIZER"
                     },
                     {
@@ -135,23 +106,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado boca arriba y la pelvis elevada mientras el balón viaja hacia los glúteos.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight",
                   "movementPatternId": "knee_hip_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas."
-                  ]
-                },
                 "display": {
                   "displayName": "Curl de Isquiosurales con Balón",
                   "displaySummary": "Curl de Isquiosurales con Balón",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
-                    "La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
-                  ],
-                  "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
-                  "technique": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. Isquios y glúteos bajo una tensión intensa sin máquinas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Balón",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "curl_isquios_con_balon__default",
                   "definitionId": "curl_isquios_con_balon",
                   "familyId": "lower_knee_flexion",
@@ -239,42 +170,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales con Balón en la variante Peso Corporal.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_hip_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -289,9 +198,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. Isquios y glúteos bajo una tensión intensa sin máquinas."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -303,7 +210,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_flexion",
@@ -327,7 +233,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "curl_isquios_con_sliders__default",
@@ -335,16 +240,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
-                "La alternativa de suelo más exigente para la cadena posterior."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-              ],
               "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
               "efc": 2.8,
               "equipmentId": "sliders",
@@ -358,7 +256,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La rodilla flexiona deslizando los pies hacia el cuerpo y extiende con frenado excéntrico; los sliders imponen un recorrido lento y bilateral sin carga externa.",
                   "role": "PRIMARY"
                 },
                 {
@@ -366,7 +263,6 @@
                     "Flexión Y Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Secundaria: La cadera flexiona y extiende con la pelvis alta; al no existir apoyo fijo, la estabilidad de la posición depende por completo del control de esta articulación.",
                   "role": "SECONDARY"
                 },
                 {
@@ -374,7 +270,6 @@
                     "Dorsiflexión Y Control"
                   ],
                   "jointId": "tobillo",
-                  "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control sobre los sliders; los pies presionan los discos en todo el recorrido con el peso corporal como carga.",
                   "role": "STABILIZER"
                 },
                 {
@@ -382,7 +277,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar estabiliza el tronco extendido y la pelvis alta mientras los pies deslizan, sin máquina ni banco que sujete la posición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -390,16 +284,6 @@
               "laterality": "BILATERAL",
               "loadMode": "bodyweight_with_sliding_resistance",
               "movementPatternId": "knee_hip_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Con los pies sobre los sliders y el cuerpo extendido, los isquiosurales flexionan ambas rodillas de forma concéntrica y frenan el deslizamiento al volver."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor mantiene la cadera alta y acompaña la extensión mientras los pies deslizan hacia el cuerpo con solo el rozamiento como resistencia."
-                }
-              ],
               "performanceProfileId": "curl_isquios_con_sliders__sliders__curl_de_isquiosurales_con_sliders",
               "primaryMuscles": [
                 "hamstrings"
@@ -420,7 +304,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La rodilla flexiona deslizando los pies hacia el cuerpo y extiende con frenado excéntrico; los sliders imponen un recorrido lento y bilateral sin carga externa.",
                       "role": "PRIMARY"
                     },
                     {
@@ -428,7 +311,6 @@
                         "Flexión Y Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Secundaria: La cadera flexiona y extiende con la pelvis alta; al no existir apoyo fijo, la estabilidad de la posición depende por completo del control de esta articulación.",
                       "role": "SECONDARY"
                     },
                     {
@@ -436,7 +318,6 @@
                         "Dorsiflexión Y Control"
                       ],
                       "jointId": "tobillo",
-                      "note": "Estabilizadora: El tobillo sostiene dorsiflexión y control sobre los sliders; los pies presionan los discos en todo el recorrido con el peso corporal como carga.",
                       "role": "STABILIZER"
                     },
                     {
@@ -444,22 +325,16 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar estabiliza el tronco extendido y la pelvis alta mientras los pies deslizan, sin máquina ni banco que sujete la posición.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "hamstrings"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -469,7 +344,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight_with_sliding_resistance",
                   "movementPatternId": "knee_hip_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -479,43 +353,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Dejar caer las rodillas hacia dentro, perder el apoyo del pie o inclinar demasiado el tronco."
-                  ],
-                  "cues": [
-                    "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando acumular trabajo de cuádriceps graduando profundidad, apoyo y carga siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión y extensión de la rodilla con ayuda de cadera y tobillo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti."
-                  ]
-                },
                 "display": {
                   "displayName": "Curl de Isquiosurales con Sliders",
                   "displaySummary": "Curl de Isquiosurales con Sliders",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
-                    "La alternativa de suelo más exigente para la cadena posterior."
-                  ],
-                  "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
-                  "technique": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La versión exigente del curl en casa."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -528,7 +369,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales con Sliders",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "curl_isquios_con_sliders__default",
                   "definitionId": "curl_isquios_con_sliders",
                   "familyId": "lower_knee_flexion",
@@ -546,42 +387,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales con Sliders en la variante Deslizadores.",
-                    "Priorizar acumular trabajo de cuádriceps graduando profundidad, apoyo y carga con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "sliders"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "sliders"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión y extensión de la rodilla con ayuda de cadera y tobillo y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_hip_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -594,9 +413,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La versión exigente del curl en casa."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -608,7 +425,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_flexion",
@@ -632,7 +448,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_leg_curl__bilateral__machine",
@@ -640,16 +455,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                "El constructor básico de isquiosurales, cómodo y medible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -663,7 +471,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco contra el banco tumbado; la máquina fija la cadera y la carga guiada se reparte entre las dos piernas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -671,24 +478,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Tumbado en la máquina con ambas piernas, los isquiosurales flexionan las rodillas contra la almohadilla y frenan de forma excéntrica la vuelta guiada."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor mantiene la cadera extendida contra el banco de la máquina mientras las dos piernas elevan la carga de forma simultánea."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla con la punta del pie bajo la almohadilla; la máquina guía ese apoyo por igual en las dos piernas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene el tronco pegado al banco tumbado e impide el arqueo lumbar mientras ambas piernas trabajan contra la carga guiada de la máquina."
-                }
-              ],
               "performanceProfileId": "lying_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -707,11 +496,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco contra el banco tumbado; la máquina fija la cadera y la carga guiada se reparte entre las dos piernas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -719,12 +506,8 @@
                     "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -735,35 +518,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Tumbado",
@@ -772,15 +531,6 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                    "El constructor básico de isquiosurales, cómodo y medible."
-                  ],
-                  "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                  "technique": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. El aislamiento tradicional de los isquios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -793,7 +543,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lying_leg_curl__bilateral__machine",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -812,42 +562,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Tumbado en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -863,9 +591,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. El aislamiento tradicional de los isquios."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -880,7 +606,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_leg_curl__unilateral__machine",
@@ -888,16 +613,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                "El constructor básico de isquiosurales, cómodo y medible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -911,7 +629,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera y concentra la resistencia en ese lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -919,24 +636,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Tumbado en la máquina con una pierna, el isquiosurial de ese lado flexiona la rodilla de forma concéntrica y frena la vuelta guiada sin ayuda del otro lado."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor sostiene la cadera extendida contra el banco mientras una sola pierna trabaja, lo que deja al descubierto las diferencias entre lados."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del lado trabajado; el recorrido guiado de la máquina mantiene la punta de ese pie bajo control unilateral."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco tumbado y contrarresta la carga unilateral de la máquina, que concentra todo el esfuerzo en una sola pierna."
-                }
-              ],
               "performanceProfileId": "lying_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -955,11 +654,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera y concentra la resistencia en ese lado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -967,12 +664,8 @@
                     "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -983,35 +676,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Tumbado",
@@ -1020,15 +689,6 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                    "El constructor básico de isquiosurales, cómodo y medible."
-                  ],
-                  "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa del curl tumbado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1041,7 +701,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lying_leg_curl__unilateral__machine",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1060,42 +720,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Tumbado en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1111,9 +749,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La versión precisa del curl tumbado."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1128,7 +764,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_leg_curl__bilateral__cable",
@@ -1136,16 +771,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                "El constructor básico de isquiosurales, cómodo y medible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -1159,7 +787,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene el tronco contra la tracción continua de la polea; la cadera queda fija por el apoyo mientras ambas piernas flexionan.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1167,24 +794,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Tumbado con polea y ambas piernas, los isquiosurales flexionan las rodillas contra la tensión constante y frenan de forma excéntrica el retorno de la polea."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor estabiliza la cadera sobre el apoyo mientras la polea tira sin pausa y las dos piernas comparten la resistencia continua."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla colabora en la flexión de rodilla con la punta enganchada; la polea mantiene la tensión en ambos lados durante todo el arco de movimiento."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco tumbado frente a la tracción constante de la polea, que no ofrece ningún punto de descanso para las dos piernas."
-                }
-              ],
               "performanceProfileId": "lying_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1203,11 +812,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene el tronco contra la tracción continua de la polea; la cadera queda fija por el apoyo mientras ambas piernas flexionan.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -1215,12 +822,8 @@
                     "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1231,35 +834,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Tumbado",
@@ -1268,15 +847,6 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                    "El constructor básico de isquiosurales, cómodo y medible."
-                  ],
-                  "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                  "technique": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. Variante exigente y con una demanda amplia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1289,7 +859,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lying_leg_curl__bilateral__cable",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1308,42 +878,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Tumbado en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1359,9 +907,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. Variante exigente y con una demanda amplia."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1376,7 +922,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_leg_curl__unilateral__cable",
@@ -1384,16 +929,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                "El constructor básico de isquiosurales, cómodo y medible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -1407,7 +945,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; la cadera permanece fija sobre el apoyo del banco.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1415,24 +952,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Tumbado con polea y una pierna, el isquiosurial de ese lado flexiona la rodilla contra la tensión continua y frena el retorno sin ayuda del lado contrario."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor mantiene la cadera quieta sobre el apoyo mientras una sola pierna tira de la polea, una situación útil para igualar el trabajo entre lados."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del lado enganchado a la polea, donde la tensión constante no cede ni en la subida ni en la bajada."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core contrarresta la tracción unilateral de la polea y mantiene el tronco tumbado sin que la pelvis rote hacia el lado cargado."
-                }
-              ],
               "performanceProfileId": "lying_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1451,11 +970,9 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; la cadera permanece fija sobre el apoyo del banco.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
@@ -1463,12 +980,8 @@
                     "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1479,35 +992,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea tumbado con una pierna: tensión continua en un isquio a la vez."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Tumbado",
@@ -1516,15 +1005,6 @@
                     "implement": "cable",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                    "El constructor básico de isquiosurales, cómodo y medible."
-                  ],
-                  "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. Útil para igualar ambos lados."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1537,7 +1017,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lying_leg_curl__unilateral__cable",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1556,42 +1036,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Tumbado en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1607,9 +1065,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Polea tumbado con una pierna: tensión continua en un isquio a la vez. Útil para igualar ambos lados."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -1624,7 +1080,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_leg_curl__bilateral__dumbbells",
@@ -1632,16 +1087,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "El constructor básico de isquiosurales, cómodo y medible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -1655,7 +1103,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado sin máquina que guíe el recorrido; el peso libre entre los pies exige más control de la cadera.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1663,20 +1110,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Tumbado con una mancuerna sujeta entre los pies, los isquiosurales flexionan ambas rodillas levantando el peso libre y frenan su descenso de forma excéntrica."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor sostiene la cadera extendida contra el apoyo mientras ambos pies sujetan la mancuerna, sin guía mecánica que marque la trayectoria."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco tumbado frente al peso libre, cuya línea inestable obliga a las dos piernas a sujetar la mancuerna entre los pies en todo momento."
-                }
-              ],
               "performanceProfileId": "lying_leg_curl__dumbbells__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1695,23 +1128,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco tumbado sin máquina que guíe el recorrido; el peso libre entre los pies exige más control de la cadera.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1722,35 +1149,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Tumbado",
@@ -1759,15 +1162,6 @@
                     "implement": "dumbbells",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "El constructor básico de isquiosurales, cómodo y medible."
-                  ],
-                  "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. Una forma alternativa de hacer curl de isquios en casa."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1780,7 +1174,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lying_leg_curl__bilateral__dumbbells",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -1799,42 +1193,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Tumbado en la variante Mancuernas · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1849,9 +1221,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. Una forma alternativa de hacer curl de isquios en casa."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -1866,7 +1236,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "lying_leg_curl__unilateral__dumbbells",
@@ -1874,16 +1243,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                "El constructor básico de isquiosurales, cómodo y medible."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -1897,7 +1259,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con el peso libre colgando de un solo pie; la cadera de ese lado asume todo el control del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1905,20 +1266,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Tumbado con una mancuerna sujeta por un pie, el isquiosurial de esa pierna flexiona la rodilla levantando el peso libre y controla el descenso sin guía externa."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor estabiliza la cadera del lado cargado mientras un solo pie sostiene la mancuerna, sin ayuda del otro lado ni recorrido prefijado."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene el tronco plano y contrarresta la mancuerna libre colocada en un solo pie, que tiende a rotar la pelvis hacia el lado cargado."
-                }
-              ],
               "performanceProfileId": "lying_leg_curl__dumbbells__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -1937,23 +1284,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con el peso libre colgando de un solo pie; la cadera de ese lado asume todo el control del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1964,35 +1305,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Tumbado",
@@ -2001,15 +1318,6 @@
                     "implement": "dumbbells",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                    "El constructor básico de isquiosurales, cómodo y medible."
-                  ],
-                  "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-                  "technique": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. Variante accesible y muy directa."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2022,7 +1330,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Tumbado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "lying_leg_curl__unilateral__dumbbells",
                   "definitionId": "lying_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2041,42 +1349,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Tumbado en la variante Mancuernas · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2091,9 +1377,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. Variante accesible y muy directa."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells",
@@ -2108,7 +1392,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_flexion",
@@ -2136,7 +1419,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_leg_curl__bilateral__machine",
@@ -2144,16 +1426,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                "La postura cómoda para la espalda y dura para la parte trasera."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -2167,7 +1442,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco apoyada en el respaldo; la máquina fija el muslo sentado y ambas piernas flexionan con recorrido guiado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2175,16 +1449,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Sentado en la máquina con ambas piernas, los isquiosurales flexionan las rodillas llevando los talones por debajo del asiento contra la almohadilla guiada."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core acompaña la estabilidad del tronco contra el respaldo mientras las dos piernas empujan la almohadilla de la máquina de forma simultánea."
-                }
-              ],
               "performanceProfileId": "seated_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2203,21 +1467,15 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco apoyada en el respaldo; la máquina fija el muslo sentado y ambas piernas flexionan con recorrido guiado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2228,35 +1486,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Sentado",
@@ -2265,15 +1499,6 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                    "La postura cómoda para la espalda y dura para la parte trasera."
-                  ],
-                  "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                  "technique": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. El curl de isquios más estable."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2286,7 +1511,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_leg_curl__bilateral__machine",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2305,42 +1530,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Sentado en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -2353,9 +1556,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. El curl de isquios más estable."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2370,7 +1571,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_leg_curl__unilateral__machine",
@@ -2378,16 +1578,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                "La postura cómoda para la espalda y dura para la parte trasera."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -2401,7 +1594,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado con una sola pierna cargada; la máquina fija el muslo y concentra el recorrido en ese lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2409,16 +1601,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Sentado en la máquina con una pierna, el isquiosurial de ese lado flexiona la rodilla contra la almohadilla y frena de forma excéntrica el retorno guiado."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco contra el respaldo mientras una sola pierna empuja la almohadilla, sin que la carga se reparta hacia el lado contrario."
-                }
-              ],
               "performanceProfileId": "seated_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2437,21 +1619,15 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado con una sola pierna cargada; la máquina fija el muslo y concentra el recorrido en ese lado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2462,35 +1638,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina sentado con una pierna: cada isquio trabaja por separado."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Sentado",
@@ -2499,15 +1651,6 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                    "La postura cómoda para la espalda y dura para la parte trasera."
-                  ],
-                  "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Máquina sentado con una pierna: cada isquio trabaja por separado. Útil para corregir desequilibrios sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2520,7 +1663,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_leg_curl__unilateral__machine",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2539,42 +1682,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Sentado en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -2587,9 +1708,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina sentado con una pierna: cada isquio trabaja por separado. Útil para corregir desequilibrios sentado."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -2604,7 +1723,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_leg_curl__bilateral__cable",
@@ -2612,16 +1730,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "La postura cómoda para la espalda y dura para la parte trasera."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -2635,7 +1746,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado frente a la polea; el muslo queda fijo por el asiento y ambas piernas flexionan con tensión constante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2643,16 +1753,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Sentado con polea y ambas piernas, los isquiosurales flexionan las rodillas contra la tensión constante, que no cede ni en la subida ni en la bajada."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco sentado frente a la tracción continua de la polea mientras las dos piernas comparten la resistencia del cable."
-                }
-              ],
               "performanceProfileId": "seated_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2671,21 +1771,15 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco sentado frente a la polea; el muslo queda fijo por el asiento y ambas piernas flexionan con tensión constante.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2696,35 +1790,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea sentado con ambas piernas: la tensión constante acompaña la flexión."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Sentado",
@@ -2733,15 +1803,6 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "La postura cómoda para la espalda y dura para la parte trasera."
-                  ],
-                  "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. Variante precisa para los isquios sentado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2754,7 +1815,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_leg_curl__bilateral__cable",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -2773,42 +1834,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Sentado en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -2821,9 +1860,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. Variante precisa para los isquios sentado."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -2838,7 +1875,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "seated_leg_curl__unilateral__cable",
@@ -2846,16 +1882,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                "La postura cómoda para la espalda y dura para la parte trasera."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -2869,7 +1898,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; el asiento y el respaldo fijan el muslo de ese lado.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2877,16 +1905,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: Sentado con polea y una pierna, el isquiosurial de ese lado flexiona la rodilla con tensión continua y frena el retorno sin apoyo de la otra pierna."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core contrarresta la tracción de la polea sobre un solo lado y mantiene el tronco sentado frente al respaldo sin rotar la pelvis."
-                }
-              ],
               "performanceProfileId": "seated_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -2905,21 +1923,15 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de una sola pierna; el asiento y el respaldo fijan el muslo de ese lado.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2930,35 +1942,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea sentado con una pierna: tensión continua en un isquio a la vez."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales Sentado",
@@ -2967,15 +1955,6 @@
                     "implement": "cable",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                    "La postura cómoda para la espalda y dura para la parte trasera."
-                  ],
-                  "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Polea sentado con una pierna: tensión continua en un isquio a la vez. Útil para centrarse en cada lado."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2988,7 +1967,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales Sentado",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "seated_leg_curl__unilateral__cable",
                   "definitionId": "seated_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3007,42 +1986,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales Sentado en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -3055,9 +2012,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Polea sentado con una pierna: tensión continua en un isquio a la vez. Útil para centrarse en cada lado."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -3072,7 +2027,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_flexion",
@@ -3100,7 +2054,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_leg_curl__bilateral__machine",
@@ -3108,16 +2061,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                "El detector y corrector de desequilibrios en los isquiosurales."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -3131,7 +2077,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la máquina fija la cadera y la resistencia guiada acompaña la flexión de ambas rodillas.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3139,20 +2084,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: De pie en la máquina con ambas piernas, los isquiosurales flexionan las rodillas llevando los talones hacia atrás contra la resistencia guiada del aparato."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla con la punta del pie apoyada en la máquina; de pie, ese apoyo acompaña por igual a las dos piernas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco erguido mientras la máquina guía la flexión de rodilla, con el peso corporal repartido sobre la base de apoyo de pie."
-                }
-              ],
               "performanceProfileId": "standing_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3171,23 +2102,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la máquina fija la cadera y la resistencia guiada acompaña la flexión de ambas rodillas.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3198,35 +2123,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales de Pie",
@@ -3235,15 +2136,6 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                    "El detector y corrector de desequilibrios en los isquiosurales."
-                  ],
-                  "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-                  "technique": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. Trabajo limpio y cómodo de los isquios."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3256,7 +2148,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_leg_curl__bilateral__machine",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3275,42 +2167,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales de Pie en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3325,9 +2195,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. Trabajo limpio y cómodo de los isquios."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -3342,7 +2210,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_leg_curl__unilateral__machine",
@@ -3350,16 +2217,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                "El detector y corrector de desequilibrios en los isquiosurales."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -3373,7 +2233,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera de ese lado y la otra pierna hace de apoyo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3381,20 +2240,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: De pie en la máquina con una pierna, el isquiosurial de ese lado flexiona la rodilla llevando el talón hacia atrás contra la resistencia guiada del aparato."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del lado trabajado, con la punta del pie en la máquina mientras la pierna libre sostiene la postura de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core mantiene el tronco erguido frente a la carga unilateral de la máquina, que concentra el esfuerzo en una sola pierna y exige equilibrio de pie."
-                }
-              ],
               "performanceProfileId": "standing_leg_curl__machine__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3413,23 +2258,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con una sola pierna cargada; la máquina fija la cadera de ese lado y la otra pierna hace de apoyo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3440,35 +2279,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de pie con una pierna: un aislamiento mayor de un isquio."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales de Pie",
@@ -3477,15 +2292,6 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                    "El detector y corrector de desequilibrios en los isquiosurales."
-                  ],
-                  "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La variante utilizada para igualar ambos lados."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3498,7 +2304,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_leg_curl__unilateral__machine",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3517,42 +2323,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales de Pie en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3567,9 +2351,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La variante utilizada para igualar ambos lados."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -3584,7 +2366,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_leg_curl__bilateral__cable",
@@ -3592,16 +2373,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                "El detector y corrector de desequilibrios en los isquiosurales."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -3615,7 +2389,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la polea tira de ambos tobillos y la cadera sostiene la postura durante la flexión.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3623,20 +2396,6 @@
               "laterality": "BILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: De pie con polea y ambos tobillos enganchados, los isquiosurales flexionan las rodillas contra la tensión constante y frenan el retorno del cable."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla con los tobillos enganchados a la polea, donde la tensión constante acompaña a los dos lados sin pausas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco erguido frente a la tracción de la polea, que tira de ambos tobillos sin ofrecer descanso en ningún punto del recorrido."
-                }
-              ],
               "performanceProfileId": "standing_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3655,23 +2414,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco de pie; la polea tira de ambos tobillos y la cadera sostiene la postura durante la flexión.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3682,35 +2435,11 @@
                   "laterality": "BILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales de Pie",
@@ -3719,15 +2448,6 @@
                     "implement": "cable",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                    "El detector y corrector de desequilibrios en los isquiosurales."
-                  ],
-                  "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-                  "technique": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. Variante constante y exigente."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3740,7 +2460,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_leg_curl__bilateral__cable",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -3759,42 +2479,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales de Pie en la variante Polea · Trabajo Bilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -3809,9 +2507,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. Variante constante y exigente."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -3826,7 +2522,6 @@
                 "legacy:exercise_database.json#hams_curl_femoral_sentado_unilateral_maquina",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "standing_leg_curl__unilateral__cable",
@@ -3834,16 +2529,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                "El detector y corrector de desequilibrios en los isquiosurales."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-              ],
               "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -3857,7 +2545,6 @@
                     "Estabilidad Del Tronco"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de un solo tobillo; la cadera de apoyo mantiene la postura de pie.",
                   "role": "STABILIZER"
                 }
               ],
@@ -3865,20 +2552,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "knee_flexion",
-              "muscleNotes": [
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Principal: De pie con polea y un solo tobillo enganchado, el isquiosurial de ese lado flexiona la rodilla contra la tensión continua y controla el retorno del cable."
-                },
-                {
-                  "muscleId": "calves",
-                  "note": "Secundario: La pantorrilla asiste la flexión de rodilla del tobillo enganchado, con tensión constante mientras la pierna libre sostiene la postura de pie."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core contrarresta la tracción de la polea sobre un solo tobillo y mantiene el tronco erguido sin dejar que la pelvis rote hacia el lado cargado."
-                }
-              ],
               "performanceProfileId": "standing_leg_curl__cable__curl_isquios",
               "primaryMuscles": [
                 "hamstrings"
@@ -3897,23 +2570,17 @@
                         "Estabilidad Del Tronco"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La zona lumbar sostiene la estabilidad del tronco con la polea tirando de un solo tobillo; la cadera de apoyo mantiene la postura de pie.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
                     "calves"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "hamstrings"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3924,35 +2591,11 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
-                },
-                "coaching": {
-                  "commonMistakes": [
-                    "Acortar el recorrido, perder la posición inicial o usar impulso para superar la parte difícil."
-                  ],
-                  "cues": [
-                    "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "execution": [
-                    "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el grupo muscular objetivo con una técnica fácil de repetir siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar movimiento principal del ejercicio y estabilidad de las articulaciones cercanas como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de columna lumbar según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea de pie con una pierna: tensión continua en un isquio a la vez."
-                  ]
                 },
                 "display": {
                   "displayName": "Curl de Isquiosurales de Pie",
@@ -3961,15 +2604,6 @@
                     "implement": "cable",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                    "El detector y corrector de desequilibrios en los isquiosurales."
-                  ],
-                  "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-                  "variantRationale": "Polea de pie con una pierna: tensión continua en un isquio a la vez. Útil para un trabajo preciso de la parte trasera."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -3982,7 +2616,7 @@
                 },
                 "identity": {
                   "canonicalName": "Curl de Isquiosurales de Pie",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "standing_leg_curl__unilateral__cable",
                   "definitionId": "standing_leg_curl",
                   "familyId": "lower_knee_flexion",
@@ -4001,42 +2635,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los isquiosurales mediante Curl de Isquiosurales de Pie en la variante Polea · Trabajo Unilateral.",
-                    "Priorizar desarrollar el grupo muscular objetivo con una técnica fácil de repetir con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva movimiento principal del ejercicio y estabilidad de las articulaciones cercanas y el objetivo de los isquiosurales.",
-                    "La sustitución debe respetar las articulaciones relevantes: columna lumbar."
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -4051,9 +2663,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible.",
-              "ttc": 2.0,
-              "variantRationale": "Polea de pie con una pierna: tensión continua en un isquio a la vez. Útil para un trabajo preciso de la parte trasera."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable",
@@ -4068,7 +2678,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_flexion",
@@ -4086,13 +2695,11 @@
         ]
       }
     ],
-    "description": "Familia de flexión de rodilla con la postura como identidad: sentado, tumbado y de pie son padres separados; los sliders, el balón y el nórdico permanecen como especialidades.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_flexion",

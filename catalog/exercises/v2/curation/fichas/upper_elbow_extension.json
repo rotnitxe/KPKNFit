@@ -1,0 +1,240 @@
+{
+  "definitions": {
+    "skullcrusher": {
+      "public": {
+        "configurations": {
+          "skullcrusher__default": {
+            "description": "Con la barra recta tomada a la anchura de los hombros y el cuerpo tumbado en el banco, la carga baja hacia la frente mientras los codos permanecen fijos hacia el techo y vuelve a subir hasta extender los brazos: el tríceps recorre todo el codo con el hombro sostenido, que es lo que distingue al skullcrusher de un press de banca.",
+            "executionCues": [
+              "Con la barra sobre el pecho y los codos hacia el techo, la carga baja hacia la frente doblando el antebrazo sin mover el hombro, pausa breve en el punto de mayor tensión y extensión completa hasta los brazos rectos sin chocar la barra contra la frente."
+            ],
+            "setupCues": [
+              "Preparación: Tumbado en el banco con la barra recta sobre el pecho, pies apoyados en el suelo y codos hacia el techo, la barra se toma a la anchura de los hombros y los hombros quedan fijos antes de empezar la serie."
+            ]
+          }
+        },
+        "description": "La Extensión de Tríceps Tumbada, el skullcrusher clásico, baja la barra hacia la frente con los codos fijos hacia el techo y vuelve a extender los brazos sin mover el hombro: el tríceps trabaja con carga externa mientras el banco sostiene el torso."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_extension": {
+      "public": {
+        "configurations": {
+          "triceps_extension__default": {
+            "description": "Con TRX, inclinado hacia delante con las asas, los codos se extienden para enderezar el cuerpo. Con el TRX, el propio cuerpo es la pila de placas y la estabilidad se suma al trabajo del tríceps.",
+            "executionCues": [
+              "Colgado del TRX con los codos extendiendo: tu peso carga el tríceps y el core aguanta el cuerpo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Colgado del TRX con los codos extendiendo: tu peso carga el tríceps y el core aguanta el cuerpo."
+            ]
+          }
+        },
+        "description": "La Extensión de Tríceps en TRX convierte las cintas en una extensión de codo donde tu cuerpo es la carga: inclinado hacia delante, los brazos se estiran para enderezar la figura. Se ejecuta con las manos en las asas, flexionando solo los codos y empujando hasta el bloqueo. El deltoide estabiliza mientras el tríceps hace el trabajo central. Tríceps serio colgado de una puerta, sin más hierro que tu cuerpo."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_extension_pjr_mancuerna": {
+      "public": {
+        "configurations": {
+          "triceps_extension_pjr_mancuerna__default": {
+            "description": "Con mancuernas, tumbado, la carga baja por detrás de la nuca y el tríceps se estira al máximo antes de empujar. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
+            "executionCues": [
+              "Mancuerna bajando hacia la cadera con un brazo: el tríceps se estira y se concentra a la vez. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna bajando hacia la cadera con un brazo: el tríceps se estira y se concentra a la vez."
+            ]
+          }
+        },
+        "description": "La Extensión de Tríceps PJR con Mancuerna baja la mancuerna por detrás de la cabeza estando tumbado: la cabeza larga del tríceps se estira al máximo antes de empujar. Se ejecuta con las palmas en la mancuerna vertical, bajando tras la nuca y extendiendo con los codos mirando al cielo. El dorsal acompaña en la vuelta. El estiramiento profundo que hace crecer la parte larga del tríceps."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_flexiones_esfinge": {
+      "public": {
+        "configurations": {
+          "triceps_flexiones_esfinge__default": {
+            "description": "Con peso corporal, desde los antebrazos en el suelo, el cuerpo sube extendiendo los codos con el tronco en línea. El tríceps trabaja con el peso corporal como única carga.",
+            "executionCues": [
+              "Flexiones con los codos pegados y apuntando atrás: el tríceps hace el trabajo completo. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Flexiones con los codos pegados y apuntando atrás: el tríceps hace el trabajo completo."
+            ]
+          }
+        },
+        "description": "Las Flexiones Esfinge son la flexión de brazos que casi todo recae en el tríceps: desde antebrazos en el suelo, el cuerpo sube extendiendo los codos con el tronco en línea. Se ejecutan empujando el suelo con los antebrazos hasta quedar en flexión alta y bajando despacio. Solo el peso corporal, pero la exigencia es de otro nivel. La flexión de los que quieren tríceps sin tocar una pesa."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_fondos_entre_bancos": {
+      "public": {
+        "configurations": {
+          "triceps_fondos_entre_bancos__default": {
+            "description": "Con peso corporal, con las manos en un banco y los pies en otro, el cuerpo baja entre ambos con el tríceps frenando. Sin más carga que el propio cuerpo, la exigencia del tríceps es la justa.",
+            "executionCues": [
+              "Manos en el banco y cuerpo bajando: el tríceps sube y baja todo el peso. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Manos en el banco y cuerpo bajando: el tríceps sube y baja todo el peso."
+            ]
+          }
+        },
+        "description": "Los Fondos Entre Bancos montan un gimnasio con dos bancos: las manos detrás, los pies sobre el otro banco y el cuerpo bajando entre ambos con el tríceps frenando. Se ejecutan bajando hasta que los hombros quedan a la par de los codos y empujando de vuelta. El deltoide y el pectoral asisten en la subida. El clásico de casa que llena brazos décadas después."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_press_frances": {
+      "public": {
+        "configurations": {
+          "triceps_press_frances__barbell": {
+            "description": "Con barra, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra acostado: bajas la barra hacia la frente y estiras. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra acostado: bajas la barra hacia la frente y estiras."
+            ]
+          },
+          "triceps_press_frances__cable": {
+            "description": "Con polea, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea acostado: la tensión constante estira el tríceps en todo el recorrido. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea acostado: la tensión constante estira el tríceps en todo el recorrido."
+            ]
+          },
+          "triceps_press_frances__dumbbells": {
+            "description": "Con mancuernas, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas acostado: bajas hacia la frente flexionando los codos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas acostado: bajas hacia la frente flexionando los codos."
+            ]
+          },
+          "triceps_press_frances__ez_bar": {
+            "description": "Con barra EZ, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
+            "executionCues": [
+              "Barra EZ acostado: el ángulo de las manos suele resultar más cómodo para muñecas y codos mientras la carga desciende hacia la frente. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ acostado: el ángulo de las manos suele resultar más cómodo para muñecas y codos mientras la carga desciende hacia la frente."
+            ]
+          },
+          "triceps_press_frances__kettlebell": {
+            "description": "Con kettlebell, tumbado, la carga baja hacia la frente con los codos quietos y la extensión completa al subir. El tríceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebell acostado: la campana baja hacia la frente con un agarre distinto. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell acostado: la campana baja hacia la frente con un agarre distinto."
+            ]
+          }
+        },
+        "description": "El Press Francés baja la carga hacia la frente tumbado en el banco: el tríceps frena el descenso y empuja la vuelta con los codos siempre en vertical. Se ejecuta con barra EZ o mancuernas, doblando solo los codos y extendiendo completo. La polea ofrece la misma tensión desde otro plano. El estiramiento bajo carga del tríceps en su forma más clásica."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_press_maquina": {
+      "public": {
+        "configurations": {
+          "triceps_press_maquina__default": {
+            "description": "Con máquina, sentado en el aparato, los codos se extienden contra la resistencia guiada. En la máquina, la trayectoria guiada concentra todo el esfuerzo del tríceps.",
+            "executionCues": [
+              "Máquina de tríceps: empujas la palanca con el recorrido guiado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de tríceps: empujas la palanca con el recorrido guiado."
+            ]
+          }
+        },
+        "description": "El Press de Tríceps en Máquina guía la extensión del codo por un raíl: el tríceps empuja sin preocuparse del equilibrio ni de la trayectoria. Se ejecuta sentado, empujando las empuñaduras hasta la extensión completa y volviendo sin que las placas choquen. La carga se ajusta en placas al kilo. La vía directa y segura para congestionar el tríceps al final de la rutina."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_pushdown": {
+      "public": {
+        "configurations": {
+          "triceps_pushdown__bilateral__band": {
+            "description": "Con banda elástica y a dos lados, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+            "executionCues": [
+              "Banda anclada arriba con ambas manos: la resistencia crece cuando los codos se acercan a la extensión completa. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Banda anclada arriba con ambas manos: la resistencia crece cuando los codos se acercan a la extensión completa."
+            ]
+          },
+          "triceps_pushdown__bilateral__cable": {
+            "description": "Con polea y a dos lados, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. Con la polea, la tensión sobre el tríceps se mantiene viva de principio a fin. A dos lados, el trabajo del tríceps admite más carga total.",
+            "executionCues": [
+              "Polea alta con ambas manos: estiras los brazos hacia abajo con los codos pegados. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta con ambas manos: estiras los brazos hacia abajo con los codos pegados."
+            ]
+          },
+          "triceps_pushdown__bilateral__machine": {
+            "description": "Con máquina y a dos lados, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo del tríceps se reparte.",
+            "executionCues": [
+              "Máquina de tríceps con ambas manos: la palanca baja guiada y el tríceps concentrado. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de tríceps con ambas manos: la palanca baja guiada y el tríceps concentrado."
+            ]
+          },
+          "triceps_pushdown__unilateral__band": {
+            "description": "Con banda elástica y a un lado, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. Con la banda, la resistencia crece a medida que avanza el trabajo del tríceps. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Banda con una mano: tensión progresiva en un tríceps a la vez. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Banda con una mano: tensión progresiva en un tríceps a la vez."
+            ]
+          },
+          "triceps_pushdown__unilateral__cable": {
+            "description": "Con polea y a un lado, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja con la polea, que mantiene la tensión constante en todo el arco. A un lado, el trabajo del tríceps se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Polea alta con una mano: cada tríceps trabaja por separado con tensión constante. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Polea alta con una mano: cada tríceps trabaja por separado con tensión constante."
+            ]
+          },
+          "triceps_pushdown__unilateral__machine": {
+            "description": "Con máquina y a un lado, de pie frente a la polea alta, las manos empujan hacia abajo con los codos pegados al torso. El tríceps trabaja en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo del tríceps se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Máquina con una mano: un tríceps a la vez con el guiado de la palanca. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Máquina con una mano: un tríceps a la vez con el guiado de la palanca."
+            ]
+          }
+        },
+        "description": "La Extensión de Tríceps en polea alta, el famoso pushdown, es el aislamiento de tríceps más practicado del mundo: los codos pegados al torso y las manos empujando la cuerda hacia abajo. Se ejecuta de pie, extendiendo por completo y regresando sin que los codos viajen. Una banda elástica lo resuelve en casa con la misma tensión continua. El básico que todo brazo serio conoce bien."
+      },
+      "status": "LEGACY"
+    },
+    "triceps_rolling_extension": {
+      "public": {
+        "configurations": {
+          "triceps_rolling_extension__default": {
+            "description": "Con mancuernas, tumbado en el suelo, la carga rueda desde la cadera hasta detrás de la cabeza y se extiende sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
+            "executionCues": [
+              "Barra que rueda por los muslos mientras extiendes: una variante rara con una sensación fresca. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
+            ],
+            "setupCues": [
+              "Preparación: Barra que rueda por los muslos mientras extiendes: una variante rara con una sensación fresca."
+            ]
+          }
+        },
+        "description": "La Rolling Extension de Tríceps hace rodar las mancuernas desde la cadera hasta detrás de la cabeza tumbado en el suelo: el tríceps trabaja en estiramiento y el hombro acompaña el viaje. Se ejecuta llevando las mancuernas atrás con los codos flexionados y extendiendo sobre el pecho. El movimiento fluido suma rango al press francés. Una variante con rodaje, literalmente, para el brazo completo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_elbow_extension",
+  "schemaVersion": 1
+}

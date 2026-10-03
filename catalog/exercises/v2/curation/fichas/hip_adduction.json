@@ -1,0 +1,120 @@
+{
+  "definitions": {
+    "copenhagen_plank": {
+      "public": {
+        "configurations": {
+          "copenhagen_plank__default": {
+            "description": "Con peso corporal, de lado con la pierna superior apoyada en el banco, los aductores sostienen la cadera en el aire. Los aductores trabajan con el peso corporal como única carga.",
+            "executionCues": [
+              "Versión estática: pierna superior en el banco y cadera arriba todo el tiempo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Versión estática: pierna superior en el banco y cadera arriba todo el tiempo."
+            ]
+          }
+        },
+        "description": "La Plancha Copenhague convierte los aductores en el puente del cuerpo: de lado, con la pierna superior apoyada en un banco, la cara interna del muslo sostiene la cadera en el aire. Se ejecuta apoyando el antebrazo y aguantando la línea recta de cabeza a pies el mayor tiempo posible. El core asiste en la estabilidad lateral. La plancha más dura por centímetro cuadrado y la mejor protección de ingle que existe."
+      },
+      "status": "LEGACY"
+    },
+    "copenhagen_plank_dynamic": {
+      "public": {
+        "configurations": {
+          "copenhagen_plank_dynamic__default": {
+            "description": "Con peso corporal, en la posición lateral del banco, la cadera baja y sube con ritmo desafiando el equilibrio. Sin más carga que el propio cuerpo, la exigencia de los aductores es la justa.",
+            "executionCues": [
+              "Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Versión dinámica: subes y bajas la cadera con ritmo entre el banco y el suelo."
+            ]
+          }
+        },
+        "description": "La Plancha Copenhague Dinámica mete movimiento en la postura lateral: con la pierna arriba apoyada, la cadera baja y sube sin tocar el suelo. Los aductores trabajan ahora en acortamiento y estiramiento, no solo en isometría, y la fatiga llega el doble de rápido. Se ejecuta con el antebrazo firme y el ritmo lento. La progresión para quien la versión estática ya respira tranquila."
+      },
+      "status": "LEGACY"
+    },
+    "hip_adduction": {
+      "public": {
+        "configurations": {
+          "hip_adduction__seated__machine__bilateral": {
+            "description": "Con máquina, a dos lados y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Con ambos lados a la vez, el trabajo de los aductores se reparte. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
+            "executionCues": [
+              "Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sentado con ambas piernas: cierras las almohadillas juntando los muslos y los aductores aumentan su tensión."
+            ]
+          },
+          "hip_adduction__seated__machine__unilateral": {
+            "description": "Con máquina, a un lado y sentado, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Los aductores trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. Sentado, el tronco queda fijo y el aislamiento de los aductores mejora.",
+            "executionCues": [
+              "Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sentado de un lado a la vez: cada aductor trabaja por separado y corriges desequilibrios."
+            ]
+          },
+          "hip_adduction__standing__band__bilateral": {
+            "description": "Con banda elástica, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. Con ambos lados a la vez, el trabajo de los aductores se reparte. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
+            "executionCues": [
+              "Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Banda de pie con ambas piernas: juntas las piernas contra la resistencia elástica."
+            ]
+          },
+          "hip_adduction__standing__band__unilateral": {
+            "description": "Con banda elástica, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la banda, la resistencia crece a medida que avanza el trabajo de los aductores. A un lado, el trabajo de los aductores se hace en solitario y las diferencias salen a la vista. En la posición de pie, el equilibrio y la zona media se suman al trabajo de los aductores.",
+            "executionCues": [
+              "Banda en una pierna: aducciones contra la banda lado a lado. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Banda en una pierna: aducciones contra la banda lado a lado."
+            ]
+          },
+          "hip_adduction__standing__cable__bilateral": {
+            "description": "Con polea, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. A dos lados, el trabajo de los aductores admite más carga total. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
+            "executionCues": [
+              "Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Polea de pie con ambas piernas: juntas las piernas contra la tensión del cable."
+            ]
+          },
+          "hip_adduction__standing__cable__unilateral": {
+            "description": "Con polea, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. Con la polea, la tensión sobre los aductores se mantiene viva de principio a fin. Un lado cada vez: el esfuerzo de los aductores se aísla y las asimetrías quedan al descubierto. De pie, el equilibrio y la zona media participan más en el trabajo de los aductores.",
+            "executionCues": [
+              "Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante. La pierna vuelve hacia la línea media con el tronco quieto; el apoyo elegido decide cuánto participa la cadera que sostiene el cuerpo."
+            ],
+            "setupCues": [
+              "Preparación: Polea de pie con una pierna: el aductor trabaja concentrado con tensión constante."
+            ]
+          },
+          "hip_adduction__standing__machine__bilateral": {
+            "description": "Con máquina, a dos lados y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria del muslo y el apoyo de pie exige que la cadera de apoyo estabilice la pelvis mientras la otra pierna cierra. Los aductores concentran el esfuerzo y la carga se dosifica sin distracciones.",
+            "executionCues": [
+              "Máquina de pie con ambas piernas: la pierna cruza hacia dentro contra la almohadilla con los aductores concentrados y la pelvis estable. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de pie con ambas piernas: coloca las almohadillas a la altura de la rodilla y afirma el apoyo antes de cerrar."
+            ]
+          },
+          "hip_adduction__standing__machine__unilateral": {
+            "description": "Con máquina, a un lado y de pie, la pierna cruza hacia el centro del cuerpo venciendo la resistencia y los aductores mandan. La máquina guía la trayectoria y el trabajo a una pierna deja al descubierto las diferencias entre muslos. El apoyo de pie exige estabilizar la pelvis mientras el aductor de la pierna que cierra concentra el esfuerzo.",
+            "executionCues": [
+              "Máquina de pie de un lado a la vez: la pierna cruza hacia dentro contra la almohadilla con el aductor concentrado y comparas cada lado. El apoyo de pie suma equilibrio, por lo que el cierre se dosifica sin que el tronco se incline."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de pie de un lado a la vez: ajusta la almohadilla a la altura de la rodilla y afirma el apoyo antes de cerrar."
+            ]
+          }
+        },
+        "description": "Las Aducciones de Pierna llevan la pierna hacia el centro contra resistencia y cargan la cara interna del muslo, esa zona que la sentadilla roza pero no termina de tocar. Se ejecutan en la máquina de aducción, cerrando las piernas con control y soltando despacio. La polea baja y la banda ofrecen el mismo trabajo de pie o en casa. Equilibrio muscular real para una cadera a prueba de giros."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "hip_adduction",
+  "schemaVersion": 1
+}

@@ -1,0 +1,112 @@
+{
+  "definitions": {
+    "conventional_deadlift": {
+      "public": {
+        "configurations": {
+          "conventional_deadlift__bilateral__barbell": {
+            "description": "Con barra y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. La barra es la referencia para cargar el glúteo mayor con peso de verdad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+            "executionCues": [
+              "Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Barra con ambas piernas: el peso muerto más directo para, desde el suelo con las dos manos."
+            ]
+          },
+          "conventional_deadlift__bilateral__dumbbells": {
+            "description": "Con mancuernas y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A dos lados, el trabajo del glúteo mayor admite más carga total.",
+            "executionCues": [
+              "Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con ambas piernas: las pesas viajan por fuera de las rodillas y el recorrido es más libre."
+            ]
+          },
+          "conventional_deadlift__bilateral__hex_bar": {
+            "description": "Con barra hexagonal y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+            "executionCues": [
+              "Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal con ambas piernas: el cuerpo queda dentro de la carga y el recorrido es más vertical."
+            ]
+          },
+          "conventional_deadlift__bilateral__smith_machine": {
+            "description": "Con máquina Smith y a dos lados, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
+            "executionCues": [
+              "Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Smith con ambas piernas: la barra sube guiada y puedes concentrarte en empujar sin pensar en el equilibrio."
+            ]
+          },
+          "conventional_deadlift__unilateral__barbell": {
+            "description": "Con barra y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Barra en apoyo de una sola pierna: el equilibrio se convierte en protagonista y la cadera trabaja a fondo."
+            ]
+          },
+          "conventional_deadlift__unilateral__dumbbells": {
+            "description": "Con mancuernas y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con mancuernas, que dejan que cada lado corrija su trayectoria. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Mancuerna en una pierna: equilibrio, isquios y glúteo trabajando juntos."
+            ]
+          },
+          "conventional_deadlift__unilateral__hex_bar": {
+            "description": "Con barra hexagonal y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. El glúteo mayor trabaja con la barra hexagonal, que centra la carga y alivia la espalda. Un lado cada vez: el esfuerzo del glúteo mayor se aísla y las asimetrías quedan al descubierto.",
+            "executionCues": [
+              "Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Barra hexagonal en una pierna: la carga estable y el trabajo de equilibrio de la cadera."
+            ]
+          },
+          "conventional_deadlift__unilateral__smith_machine": {
+            "description": "Con máquina Smith y a un lado, con los pies al ancho de la cadera, la carga sale del suelo empujando con las piernas y abriendo la cadera. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
+            "executionCues": [
+              "Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad. La carga sale del suelo cerca de las piernas; cadera y rodillas se extienden juntas hasta que el cuerpo queda alineado."
+            ],
+            "setupCues": [
+              "Preparación: Smith en una pierna: el guiado te permite trabajar un lado a la vez con estabilidad."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Convencional es el levantamiento que mide la fuerza entera de una persona: glúteos e isquiosurales abren la cadera y los cuádriceps empujan el suelo mientras la espalda transmite todo a la barra. Se ejecuta con los pies al ancho de la cadera y la barra pegada a las espinillas, extendiendo cadera y rodillas a la vez hasta quedar erguido. Con la barra hexagonal la carga queda centrada y la espalda trabaja más cómoda; con mancuernas se aprende el gesto con cargas amables. El rey absoluto de la fuerza total, sin discusión posible."
+      },
+      "status": "LEGACY"
+    },
+    "sumo_deadlift": {
+      "public": {
+        "configurations": {
+          "sumo_deadlift__barbell": {
+            "description": "Con barra, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa.",
+            "executionCues": [
+              "Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
+            ],
+            "setupCues": [
+              "Preparación: Barra en postura sumo: pies amplios, manos dentro y el recorrido más corto hacia arriba."
+            ]
+          },
+          "sumo_deadlift__dumbbells": {
+            "description": "Con mancuernas, con los pies muy abiertos y los brazos por dentro, el recorrido se acorta y la cadera empuja al frente. Con mancuernas, cada lado ajusta su línea y el trabajo del glúteo mayor se equilibra solo.",
+            "executionCues": [
+              "Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo. La base amplia deja los brazos dentro de las piernas; la cadera se acerca a la carga antes de iniciar una subida vertical."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas a los costados con una base amplia: la carga deja espacio entre las piernas y la cadera puede acercarse al suelo."
+            ]
+          }
+        },
+        "description": "El Peso Muerto Sumo abre los pies y mete los brazos por dentro: el recorrido se acorta y aductores y cuádriceps toman parte del botín que en el convencional se llevan los isquiosurales. Se ejecuta con las puntas hacia afuera y la espalda alta, empujando el suelo con las piernas mientras la barra sube rozando el cuerpo. Muchos levantadores descubren aquí que su estructura pide esta postura. La vía ancha para levantar mucho con menos peaje lumbar."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "hinge_deadlift",
+  "schemaVersion": 1
+}

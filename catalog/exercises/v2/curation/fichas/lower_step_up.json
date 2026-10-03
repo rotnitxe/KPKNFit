@@ -1,0 +1,59 @@
+{
+  "definitions": {
+    "step_up": {
+      "public": {
+        "configurations": {
+          "step_up__barbell": {
+            "description": "Con barra, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
+            "executionCues": [
+              "Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Barra en la espalda y subida al cajón: fuerza y estabilidad en cada paso."
+            ]
+          },
+          "step_up__cable": {
+            "description": "Con polea, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea y subida al cajón: la tensión constante añade exigencia a cada paso. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Polea y subida al cajón: la tensión constante añade exigencia a cada paso."
+            ]
+          },
+          "step_up__dumbbells": {
+            "description": "Con mancuernas, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
+            "executionCues": [
+              "Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas y subida al cajón: la versión más equilibrada y cómoda del step-up."
+            ]
+          },
+          "step_up__kettlebell": {
+            "description": "Con kettlebell, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebell y subida al cajón: el agarre suma trabajo al movimiento. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell y subida al cajón: el agarre suma trabajo al movimiento."
+            ]
+          },
+          "step_up__smith_machine": {
+            "description": "Con máquina Smith, un pie sube a la plataforma y la pierna de apoyo impulsa el cuerpo hasta quedar de pie sobre ella. En la Smith, la guía fija permite concentrar todo el esfuerzo del cuádriceps.",
+            "executionCues": [
+              "Smith y subida al cajón: el guiado cuida el equilibrio mientras subes. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
+            ],
+            "setupCues": [
+              "Preparación: Smith y subida al cajón: el guiado cuida el equilibrio mientras subes."
+            ]
+          }
+        },
+        "description": "El Step-Up a Cajón convierte subir un escalón en fuerza unilateral real: la pierna de arriba eleva todo el cuerpo sin ayuda de la de abajo. Se ejecuta apoyando el pie entero en el cajón, subiendo hasta extender la cadera y bajando despacio sin empujarse con el pie del suelo. Cuádriceps y glúteo se turnan según la inclinación del torso. Con barra o mancuernas se carga como un básico más. La medida exacta de la fuerza de cada pierna por separado."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_step_up",
+  "schemaVersion": 1
+}

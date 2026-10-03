@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Press California",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#triceps_press_california_barra_recta",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "california_press__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "Un híbrido con mucha historia que llena el brazo como pocos."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con barra, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.2,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo baja la barra hacia la cara y se extiende para devolverla sobre el pecho, mezclando press y extensión con el brazo superior de referencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra desciende hacia la cara; la carga bilateral se reparte sin abrir los brazos en el arco.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca alinea la mano bajo la barra recta durante el recorrido entre la cara y el pecho, donde la carga pide un apoyo firme y estable.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,16 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con la barra, el tríceps extiende el codo en el empuje que devuelve la carga sobre el pecho; el descenso hacia la cara se frena de forma excéntrica."
-                },
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Secundario: El pectoral comparte el empuje con la barra cuando la carga vuelve sobre el pecho, con los codos cerca del cuerpo y sin abrir los brazos."
-                }
-              ],
               "performanceProfileId": "california_press__barbell__press_california",
               "primaryMuscles": [
                 "triceps"
@@ -99,7 +78,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo baja la barra hacia la cara y se extiende para devolverla sobre el pecho, mezclando press y extensión con el brazo superior de referencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -107,7 +85,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra desciende hacia la cara; la carga bilateral se reparte sin abrir los brazos en el arco.",
                       "role": "SECONDARY"
                     },
                     {
@@ -115,22 +92,16 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca alinea la mano bajo la barra recta durante el recorrido entre la cara y el pecho, donde la carga pide un apoyo firme y estable.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [
                     "pectoralis"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -140,7 +111,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -149,45 +119,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos."
-                  ]
-                },
                 "display": {
                   "displayName": "Press California",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "Un híbrido con mucha historia que llena el brazo como pocos."
-                  ],
-                  "description": "Con barra, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. La carga bilateral facilita progresar cuando la prioridad es fuerza."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -200,7 +137,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press California",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "california_press__barbell",
                   "definitionId": "california_press",
                   "familyId": "triceps_california_press",
@@ -219,42 +156,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Press California en la variante Barra.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -267,9 +182,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Barra hacia el pecho con los codos cerca del cuerpo: el tríceps comparte el empuje con el pectoral sin abrir los brazos. La carga bilateral facilita progresar cuando la prioridad es fuerza."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -283,7 +196,6 @@
                 "legacy:exercise_database.json#triceps_press_california_barra_ez",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "california_press__ez_bar",
@@ -291,16 +203,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
-                "Un híbrido con mucha historia que llena el brazo como pocos."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con barra EZ, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
               "efc": 2.2,
               "equipmentId": "ez_bar",
@@ -314,7 +219,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: El codo guía la barra EZ hacia la cara y se abre para devolverla sobre el pecho; con los codos hacia dentro se mezclan press y extensión.",
                   "role": "PRIMARY"
                 },
                 {
@@ -322,7 +226,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra EZ viaja hacia la cara; el ángulo de las manos reduce la rotación exigida al conjunto.",
                   "role": "SECONDARY"
                 },
                 {
@@ -330,7 +233,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La barra EZ reduce la rotación exigida a la muñeca, que conserva la alineación durante el arco entre la cara y el pecho sin forzar la posición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -338,16 +240,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con la barra EZ, el tríceps extiende el codo en el empuje que devuelve la carga sobre el pecho; el descenso hacia la cara se frena excéntricamente."
-                },
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Secundario: El pectoral colabora en el empuje final sobre el pecho con la barra EZ, que mantiene los codos hacia dentro y el trabajo repartido entre ambos lados."
-                }
-              ],
               "performanceProfileId": "california_press__ez_bar__press_california",
               "primaryMuscles": [
                 "triceps"
@@ -368,7 +260,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: El codo guía la barra EZ hacia la cara y se abre para devolverla sobre el pecho; con los codos hacia dentro se mezclan press y extensión.",
                       "role": "PRIMARY"
                     },
                     {
@@ -376,7 +267,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro sostiene el brazo superior mientras la barra EZ viaja hacia la cara; el ángulo de las manos reduce la rotación exigida al conjunto.",
                       "role": "SECONDARY"
                     },
                     {
@@ -384,22 +274,16 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La barra EZ reduce la rotación exigida a la muñeca, que conserva la alineación durante el arco entre la cara y el pecho sin forzar la posición.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [
                     "pectoralis"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -409,7 +293,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -418,45 +301,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps."
-                  ]
-                },
                 "display": {
                   "displayName": "Press California",
                   "displaySummary": "ez_bar",
                   "selectedOptions": {
                     "implement": "ez_bar"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
-                    "Un híbrido con mucha historia que llena el brazo como pocos."
-                  ],
-                  "description": "Con barra EZ, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. El tríceps trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
-                  "technique": "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. La variante tolerante del California."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -469,7 +319,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press California",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "california_press__ez_bar",
                   "definitionId": "california_press",
                   "familyId": "triceps_california_press",
@@ -488,42 +338,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Press California en la variante Barra EZ.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "ez_bar"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "ez_bar"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -536,9 +364,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Barra EZ con codos hacia dentro: agarre cómodo y mismo trabajo de pecho y tríceps. La variante tolerante del California."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "ez_bar"
@@ -552,7 +378,6 @@
                 "legacy:exercise_database.json#triceps_press_california_mancuernas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "california_press__dumbbells",
@@ -560,16 +385,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-                "Un híbrido con mucha historia que llena el brazo como pocos."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.8,
-              "commonMistakes": [
-                "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-              ],
               "description": "Con mancuernas, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
               "efc": 2.2,
               "equipmentId": "dumbbells",
@@ -583,7 +401,6 @@
                     "Extensión"
                   ],
                   "jointId": "codo",
-                  "note": "Principal: Cada codo baja su mancuerna hacia la cara y se extiende sobre el pecho, mezclando press y extensión con el brazo superior como referencia.",
                   "role": "PRIMARY"
                 },
                 {
@@ -591,7 +408,6 @@
                     "Posición Del Hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Secundaria: El hombro fija el brazo superior de cada lado mientras la mancuerna desciende hacia la cara, sin abrir el brazo durante el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
@@ -599,7 +415,6 @@
                     "Alineación"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: Cada muñeca conserva su alineación bajo la mancuerna independiente, que ajusta su propia línea entre la cara y el pecho en cada repetición.",
                   "role": "STABILIZER"
                 }
               ],
@@ -607,16 +422,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "elbow_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "triceps",
-                  "note": "Principal: Con mancuernas, cada tríceps extiende el codo para devolver su carga sobre el pecho; el descenso hacia la cara se frena de forma excéntrica por separado."
-                },
-                {
-                  "muscleId": "pectoralis",
-                  "note": "Secundario: El pectoral asiste el empuje de cada mancuerna sobre el pecho con los codos recogidos, y cada lado reparte su propio trabajo sin dominar al otro."
-                }
-              ],
               "performanceProfileId": "california_press__dumbbells__press_california",
               "primaryMuscles": [
                 "triceps"
@@ -637,7 +442,6 @@
                         "Extensión"
                       ],
                       "jointId": "codo",
-                      "note": "Principal: Cada codo baja su mancuerna hacia la cara y se extiende sobre el pecho, mezclando press y extensión con el brazo superior como referencia.",
                       "role": "PRIMARY"
                     },
                     {
@@ -645,7 +449,6 @@
                         "Posición Del Hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Secundaria: El hombro fija el brazo superior de cada lado mientras la mancuerna desciende hacia la cara, sin abrir el brazo durante el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
@@ -653,22 +456,16 @@
                         "Alineación"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: Cada muñeca conserva su alineación bajo la mancuerna independiente, que ajusta su propia línea entre la cara y el pecho en cada repetición.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "triceps"
                   ],
                   "secondaryMuscles": [
                     "pectoralis"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "triceps"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -678,7 +475,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "elbow_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "codo",
                     "glenohumeral",
@@ -687,45 +483,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Mover el hombro, separar el codo o usar el tronco para ganar recorrido."
-                  ],
-                  "cues": [
-                    "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "execution": [
-                    "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando cargar el tríceps de forma directa y ajustar la dificultad con precisión siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de codo según tolerancia y rango disponible.",
-                    "Movilidad de hombro según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine."
-                  ]
-                },
                 "display": {
                   "displayName": "Press California",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-                    "Un híbrido con mucha historia que llena el brazo como pocos."
-                  ],
-                  "description": "Con mancuernas, la carga baja hacia la cara con los codos abiertos y el empuje final la devuelve sobre el pecho. Con mancuernas, cada lado ajusta su línea y el trabajo del tríceps se equilibra solo.",
-                  "technique": "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-                  "variantRationale": "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. La variante ayuda a equilibrar el empuje sin perder el carácter híbrido del movimiento."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -738,7 +501,7 @@
                 },
                 "identity": {
                   "canonicalName": "Press California",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "california_press__dumbbells",
                   "definitionId": "california_press",
                   "familyId": "triceps_california_press",
@@ -757,42 +520,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el tríceps mediante Press California en la variante Mancuernas.",
-                    "Priorizar cargar el tríceps de forma directa y ajustar la dificultad con precisión con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión del codo y el objetivo de el tríceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: codo, hombro, muñeca."
+                    "elbow_extension:triceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -805,9 +546,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 4.8,
-              "techniqueSummary": "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. El brazo superior queda como referencia y el codo se abre hasta completar la extensión; el hombro no roba el recorrido.",
-              "ttc": 1.6,
-              "variantRationale": "Mancuernas hacia el pecho con los codos recogidos: cada brazo dirige su propio descenso y impide que el lado fuerte domine. La variante ayuda a equilibrar el empuje sin perder el carácter híbrido del movimiento."
+              "ttc": 1.6
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -821,7 +560,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "triceps_california_press",
@@ -838,13 +576,11 @@
         ]
       }
     ],
-    "description": "Familia de extensión de codo California; la barra o mancuerna se elige como configuración materializada.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "triceps_california_press",

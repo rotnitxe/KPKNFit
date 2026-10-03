@@ -1,0 +1,880 @@
+{
+  "schemaVersion": 1,
+  "familyId": "chest_fly",
+  "definitions": {
+    "decline_chest_fly": {
+      "status": "CURATED",
+      "public": {
+        "description": "Las Aperturas Declinadas (decline fly) colocan la cabeza por debajo de la cadera para que el arco de los brazos cruce la zona baja del pecho. El pectoral mayor, en su porción esternal, acerca las manos; el deltoides anterior colabora poco porque el húmero no asciende hacia la cara. Con una mancuerna en cada mano, los brazos se abren por debajo de los hombros y se reúnen sobre las costillas inferiores, mientras las piernas ancladas evitan que el cuerpo resbale. El codo guarda el mismo ángulo corto en la bajada y en el cierre, así que el gesto no se convierte en un press declinado. Ese arco bajo alarga el pectoral inferior con el torso fijo y las mancuernas a los lados del pecho.",
+        "configurations": {
+          "decline_chest_fly__dumbbells": {
+            "description": "En este banco cabeza abajo cada mancuerna pesa más con el brazo abierto, por debajo de la línea del hombro, y menos al reunir las manos sobre las costillas bajas. Las piernas quedan enganchadas para que el cuerpo no se deslice hacia la cabeza.",
+            "setupCues": [
+              "Engancha los pies y túmbate en el banco declinado, con la cabeza más baja que la cadera.",
+              "Lleva una mancuerna en cada mano sobre las costillas bajas, con las palmas mirándose y una flexión corta de codo."
+            ],
+            "executionCues": [
+              "Abre los brazos por debajo de los hombros sin cambiar el ángulo de los codos.",
+              "Para antes de que el hombro se vaya detrás del banco.",
+              "Reúne las mancuernas sobre las costillas bajas sin despegar la cabeza."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Aducción horizontal en banco declinado: la cabeza queda por debajo de la cadera, las piernas ancladas, y las mancuernas viajan en arco desde los lados bajos hasta juntarse sobre las costillas inferiores, con el codo en un ángulo fijo. Frente a la versión con el torso a nivel, el encuentro cae sobre las costillas. Frente a la versión con respaldo alto, el húmero no asciende hacia la clavícula.",
+        "setup": [
+          "Banco declinado con los pies enganchados en los topes.",
+          "Espalda y cabeza apoyadas, mancuernas sobre las costillas bajas, codos suavemente flexionados y palmas enfrentadas."
+        ],
+        "keyPositions": [
+          "Inicio del arco: los brazos se han separado bajo los hombros, los codos guardan un ángulo corto y fijo, y las mancuernas quedan lejos del pecho sin tocar el suelo.",
+          "Cierre: manos juntas sobre las costillas inferiores, codos todavía flexionados, cabeza pegada al banco."
+        ],
+        "mistakes": [
+          "Enderezar los codos en el cierre y convertir la serie en un press declinado.",
+          "Bajar tanto que el húmero pase por detrás del plano del banco.",
+          "Desenganchar las piernas y dejar que el cuerpo se deslice hacia la cabeza.",
+          "Juntar las mancuernas sobre el esternón, como en el banco plano."
+        ],
+        "phases": [
+          {
+            "name": "Salida",
+            "description": "Las manos parten juntas sobre las costillas bajas, con los codos ya flexionados y la espalda pegada al banco."
+          },
+          {
+            "name": "Apertura",
+            "description": "Los brazos describen un arco hacia abajo y afuera, sin que el codo se abra ni se cierre."
+          },
+          {
+            "name": "Fondo",
+            "description": "Las mancuernas quedan a los lados, por debajo de los hombros, y el pectoral inferior queda largo."
+          },
+          {
+            "name": "Cierre",
+            "description": "Las manos vuelven a encontrarse sobre las costillas bajas, todavía con los codos flexionados."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "Aduce el húmero y, con el torso declinado, el arco cruza las costillas bajas. Coratella y colaboradores vieron la cabeza esternocostal tan excitada en el press declinado como en el plano, y más que en el inclinado. Esa medición es de press: aquí se usa por el ángulo del banco, junto con la aducción que describen Baig y Bordoni.",
+            "sources": ["coratella2020", "baig2023"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "Su porción anterior acompaña la aducción, pero en el press declinado Coratella y colaboradores la vieron menos excitada que en el plano, el inclinado y la máquina de press. En esta apertura se deja como acompañante por ese menor papel al bajar el torso, sin un EMG propio de la apertura declinada.",
+            "sources": ["coratella2020", "welsch2005"]
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "why": "Según Tiwana y colaboradores, este músculo flexiona el antebrazo. En esta apertura el codo no recorre flexión ni extensión: el bíceps sujeta el ángulo corto para que la mancuerna no abra el codo en el fondo. El rol es isométrico, no un motor del arco.",
+            "sources": ["tiwana2024"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Fazal y colaboradores sitúan en el compartimento anterior del antebrazo los músculos que flexionan muñeca y dedos. Esos flexores aprietan cada mancuerna durante todo el arco, sin mover el hombro.",
+            "sources": ["fazal2023"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal"],
+            "why": "El húmero se acerca al torso en el plano del banco declinado, desde los lados bajos hasta las costillas inferiores. Esa aducción es el arco; el hombro no se flexiona hacia la cara como en el banco inclinado.",
+            "sources": ["baig2023", "coratella2020"]
+          },
+          {
+            "id": "codo",
+            "role": "STABILIZER",
+            "actions": ["Sostén del ángulo del codo"],
+            "why": "El codo permanece en una flexión corta y casi fija. Si se extendiera para acercar las mancuernas, el gesto sería un press declinado. El bíceps, flexor del antebrazo, sujeta ese ángulo y no lo recorre.",
+            "sources": ["tiwana2024", "welsch2005"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad escapular"],
+            "why": "Baig y Bordoni incluyen la estabilización de la escápula entre las funciones del grupo pectoral. Con la espalda en el banco declinado, la escápula no debe encogerse hacia la oreja ni adelantarse mientras el húmero se aduce.",
+            "sources": ["baig2023"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Sostén del agarre"],
+            "why": "La muñeca se queda neutra, con las palmas enfrentadas, mientras los flexores de los dedos sostienen la mancuerna. No empuja la carga hacia las costillas.",
+            "sources": ["fazal2023"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del banco, de la cabeza a los pies, con las dos cargas visibles a los lados.",
+          "phase": "Fondo del arco: brazos abiertos por debajo de la línea de los hombros y codos flexionados en un ángulo fijo.",
+          "orientation": "Atleta boca arriba en un banco declinado, cabeza más baja que la cadera y hacia la izquierda del encuadre.",
+          "contacts": "Espalda y cabeza apoyadas en el banco; pies enganchados en los topes; las manos son el único contacto con la carga.",
+          "posture": "Torso fijo, cuello apoyado, codos suavemente flexionados y hombros lejos de las orejas.",
+          "load": "Carga a los lados del pecho bajo, separada del suelo y del banco, sostenida por las manos."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Banco declinado con topes en los pies; una mancuerna en cada mano, palmas enfrentadas, brazos abiertos por debajo de los hombros y mancuernas alejadas del pecho, sin tocar el suelo ni el banco."
+          }
+        },
+        "forbidden": [
+          "Banco plano o inclinado con la cabeza a la altura del pecho o por encima: eso es otra apertura.",
+          "Codos estirándose hasta juntar las mancuernas como en un press declinado.",
+          "Pies sueltos y cuerpo deslizándose hacia la cabeza.",
+          "Boca abajo o brazos abriéndose hacia atrás: eso es una apertura inversa."
+        ],
+        "qa": [
+          "¿La cabeza queda más baja que la cadera y los pies están enganchados?",
+          "¿Cada mano agarra una mancuerna y la carga no flota suelta?",
+          "¿Los brazos están abiertos por debajo de los hombros, con los codos todavía doblados?",
+          "¿Las mancuernas quedan a los lados, sin apoyarse en el suelo ni en el banco?"
+        ],
+        "promptCore": {
+          "dumbbells": "Side view of a muscular athlete lying face up on a decline bench, head lower than the hips, frozen at the BOTTOM of a decline dumbbell fly. Each hand grips one dumbbell with palms facing each other. Arms are opened wide below shoulder height, elbows softly bent and held at that angle. Back and head are pressed against the bench, feet hooked under the pads. The dumbbells are held out to the sides, clear of the floor and not touching the bench."
+        }
+      },
+      "sources": [
+        {
+          "id": "coratella2020",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31397215/",
+          "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+          "claim": "En el press declinado la cabeza esternocostal del pectoral se excitó de forma parecida al press plano y más que en el inclinado, y el deltoides anterior se excitó menos que en los otros presses."
+        },
+        {
+          "id": "welsch2005",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15903389/",
+          "title": "Electromyographic activity of the pectoralis major and anterior deltoid muscles during three upper-body lifts",
+          "claim": "La activación del pectoral mayor y del deltoides anterior en la fase concéntrica no difirió entre press con barra, press con mancuernas y apertura con mancuernas, y la apertura tuvo menos tiempo relativo de activación."
+        },
+        {
+          "id": "baig2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana2024",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "claim": "El bíceps braquial flexiona el antebrazo y, con el codo flexionado, es su supinador más potente."
+        },
+        {
+          "id": "fazal2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "claim": "El compartimento anterior del antebrazo contiene los músculos que flexionan la muñeca y los dedos y así sostienen el agarre."
+        }
+      ]
+    },
+    "flat_chest_fly": {
+      "status": "CURATED",
+      "public": {
+        "description": "Las Aperturas Planas, o chest fly, abren los brazos en un arco ancho con el torso acostado a nivel y los codos en un ángulo que apenas cambia. El pectoral mayor cierra ese arco por aducción horizontal y el deltoides anterior lo acompaña. El bíceps no acorta el codo: solo evita que el peso lo abra de golpe. En la posición abierta los brazos llegan a la línea del pecho y, al cerrar, las manos se encuentran sobre el esternón sin chocar. Frente a un press en el mismo banco, el esfuerzo nace del estiramiento largo del pectoral y no de enderezar los codos.",
+        "configurations": {
+          "flat_chest_fly__dumbbells": {
+            "description": "Cada mano carga su propio peso, y ese peso pide más con el brazo abierto, lejos del hombro, que cuando las manos ya se han reunido sobre el esternón. Si un hombro se cansa, ese lado puede quedarse más bajo que el otro.",
+            "setupCues": [
+              "Apoya la espalda y la cabeza en el banco horizontal, planta los pies y mira al techo.",
+              "Sostén una mancuerna en cada mano sobre el esternón, con las palmas una frente a la otra y los codos un poco flexionados."
+            ],
+            "executionCues": [
+              "Separa los brazos en arco hasta la altura del pecho sin abrir ni cerrar más los codos.",
+              "Detén la bajada antes de perder el hombro detrás del banco.",
+              "Vuelve a juntar las manos sobre el esternón sin golpear las mancuernas."
+            ]
+          },
+          "flat_chest_fly__cable": {
+            "description": "Tumbado en el banco plano, los mangos de las poleas tiran de los brazos también cuando las manos ya están juntas delante del esternón, el tramo en el que dos pesos libres casi dejan de pesar. El torso permanece apoyado y el cable cruza el pecho de lado a lado.",
+            "setupCues": [
+              "Coloca el banco plano entre dos poleas bajas y túmbate con los pies en el suelo.",
+              "Agarra un mango con cada mano sobre el esternón, codos levemente doblados."
+            ],
+            "executionCues": [
+              "Deja que los mangos se abran hasta la línea del pecho sin cambiar la flexión del codo.",
+              "Cruza las manos delante del esternón mientras el cable todavía tira.",
+              "No te incorpores del banco para ayudar al cierre."
+            ]
+          },
+          "flat_chest_fly__machine": {
+            "description": "Las palancas repiten el mismo arco y el respaldo sostiene la espalda, así que el hombro no tiene que sujetar un peso suelto en la apertura. El cruce termina delante del pecho, con los codos todavía flexionados.",
+            "setupCues": [
+              "Siéntate con la espalda en el respaldo y los pies en el suelo.",
+              "Agarra las dos empuñaduras a la altura del pecho, con los codos levemente doblados."
+            ],
+            "executionCues": [
+              "Abre los brazos hasta el tope cómodo del arco, sin enderezar los codos.",
+              "Cierra hasta juntar las manos delante del esternón.",
+              "Deja la espalda pegada al respaldo durante todo el arco."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Aducción horizontal con el torso acostado a nivel del suelo y los codos en un ángulo fijo: las manos se abren a la altura del pecho y se cierran sobre el esternón. Se separa de la apertura inclinada porque el encuentro no sube a la clavícula, de la declinada porque la cabeza no queda por debajo de la cadera, y del cruce de poleas de pie porque aquí el torso está apoyado.",
+        "setup": [
+          "Banco plano o asiento con respaldo vertical a la altura del pecho, pies en el suelo.",
+          "Codos levemente flexionados desde el principio, palmas enfrentadas o empuñaduras a la altura del esternón."
+        ],
+        "keyPositions": [
+          "Fondo: brazos abiertos a la altura del pecho, codos en ángulo fijo, carga a los lados sin tocar el suelo.",
+          "Cierre: manos juntas sobre el esternón, codos todavía flexionados, espalda apoyada."
+        ],
+        "mistakes": [
+          "Estirar los codos al cerrar y convertir el arco en un press.",
+          "Bajar los brazos por detrás del banco hasta perder el hombro.",
+          "Encoger los hombros hacia las orejas en el fondo.",
+          "Hacerlo de pie entre dos poleas: eso es un cruce de poleas, no esta apertura apoyada."
+        ],
+        "phases": [
+          {
+            "name": "Salida",
+            "description": "Las manos empiezan juntas sobre el esternón, con los codos ya flexionados y la espalda apoyada."
+          },
+          {
+            "name": "Apertura",
+            "description": "Los brazos se separan en arco hasta la altura del pecho y el ángulo del codo no cambia."
+          },
+          {
+            "name": "Fondo",
+            "description": "La carga queda a los lados del pecho, el pectoral largo y los hombros lejos de las orejas."
+          },
+          {
+            "name": "Cierre",
+            "description": "Las manos vuelven al esternón por el mismo arco, sin estirar los codos ni despegar la espalda."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "Aduce el húmero en horizontal, que es el cierre de este arco con el torso a nivel. Welsch, Bird y Mayhew no hallaron diferencia de activación del pectoral mayor, en la fase concéntrica, entre el press con barra, el press con mancuernas y la apertura con mancuernas. Baig y Bordoni describen esa aducción entre las acciones del grupo pectoral.",
+            "sources": ["welsch2005", "baig2023"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "Welsch, Bird y Mayhew registraron el deltoides anterior en la apertura con mancuernas y su activación no fue distinta en magnitud de la del press, aunque la apertura ocupó menos tiempo relativo. Acompaña la aducción horizontal; el arco lo define el pectoral, que es el aductor del húmero.",
+            "sources": ["welsch2005", "baig2023"]
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "why": "Tiwana y colaboradores lo describen como flexor del antebrazo. Sousa y colaboradores lo registraron durante la apertura con mancuernas, sin publicar su amplitud. El codo no se flexiona a lo largo del arco, así que el bíceps sujeta el ángulo y no acerca la carga como en un curl.",
+            "sources": ["tiwana2024", "sousa2022"]
+          },
+          {
+            "id": "trapezius",
+            "role": "STABILIZER",
+            "why": "Sousa y colaboradores midieron el trapecio superior en la apertura con mancuernas y solo vieron un pequeño aumento al pasar el banco estable a una superficie inestable. En el banco firme su papel es no elevar la escápula, no cerrar el arco.",
+            "sources": ["sousa2022"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los flexores de muñeca y dedos del compartimento anterior, descritos por Fazal y colaboradores, cierran la mano sobre la mancuerna, el mango o la empuñadura durante todo el arco.",
+            "sources": ["fazal2023"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal"],
+            "why": "El húmero viaja en el plano del banco, desde los lados del pecho hasta el esternón. Esa aducción horizontal es el arco de la apertura plana; la flexión hacia la cara pertenece a la versión inclinada.",
+            "sources": ["baig2023", "welsch2005"]
+          },
+          {
+            "id": "codo",
+            "role": "STABILIZER",
+            "actions": ["Sostén del ángulo del codo"],
+            "why": "El codo conserva una flexión leve. Welsch, Bird y Mayhew compararon la apertura con los presses como otro levantamiento de pectoral y deltoides anterior, no como una extensión de codo. Si el codo se estirara, el gesto dejaría de ser esta apertura.",
+            "sources": ["welsch2005", "tiwana2024"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad escapular"],
+            "why": "En el banco estable el trapecio superior apenas cambia, y Sousa y colaboradores solo lo vieron subir un poco al inestabilizar la superficie. La escápula se queda quieta sobre el banco mientras el húmero se aduce.",
+            "sources": ["sousa2022", "baig2023"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Sostén del agarre"],
+            "why": "La muñeca permanece neutra y los flexores de los dedos sostienen la empuñadura o la mancuerna. La muñeca no arrastra el arco hacia el esternón.",
+            "sources": ["fazal2023"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del pecho, con el torso entero y la carga visible a ambos lados.",
+          "phase": "Fondo del arco: brazos abiertos a la altura del pecho, codos flexionados y fijos, manos lejos del esternón.",
+          "orientation": "Atleta con la espalda apoyada, cabeza a la altura del torso y hacia la izquierda del encuadre, pies hacia la derecha.",
+          "contacts": "Espalda y cabeza apoyadas; pies en el suelo; las manos agarran la carga y no hay otro contacto con ella.",
+          "posture": "Torso a nivel, hombros lejos de las orejas, codos suavemente flexionados, cuello apoyado.",
+          "load": "Carga abierta a los lados del pecho, separada del suelo, sostenida por las manos."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Banco plano; una mancuerna en cada mano con las palmas enfrentadas; en el fondo los brazos están abiertos a la altura del pecho y las mancuernas quedan a los lados, sin tocar el banco ni el suelo."
+          },
+          "cable": {
+            "geometry": "Banco plano entre dos poleas bajas situadas detrás de los hombros; cada mano agarra un mango; los cables van de la polea a la mano y, en el fondo, los brazos están abiertos a la altura del pecho."
+          },
+          "machine": {
+            "geometry": "Asiento con respaldo y dos palancas; cada mano agarra una empuñadura vertical a la altura del pecho; en el fondo los brazos están abiertos y los antebrazos contactan los apoyos sin que las manos suelten las empuñaduras."
+          }
+        },
+        "forbidden": [
+          "De pie en el centro de una torre de poleas: eso es un cruce de poleas, no esta apertura apoyada.",
+          "Codos estirados en el cierre, como un press de banca.",
+          "Banco inclinado o declinado.",
+          "Boca abajo con los brazos abriéndose hacia atrás."
+        ],
+        "qa": [
+          "¿La espalda está apoyada y la cabeza queda a la altura del torso, no por debajo de la cadera?",
+          "¿Las dos manos agarran la carga y esta no flota suelta?",
+          "¿Los brazos están abiertos a la altura del pecho con los codos todavía doblados?",
+          "¿El atleta está boca arriba o sentado de frente al respaldo, no boca abajo?"
+        ],
+        "promptCore": {
+          "dumbbells": "Side view of a muscular athlete lying face up on a flat bench, frozen at the BOTTOM of a dumbbell chest fly. Each hand grips one dumbbell with palms facing each other. Arms are opened wide at chest height, elbows softly bent and held at that angle. Upper back and head are pressed against the bench, feet flat on the floor. The dumbbells are held out to the sides, clear of the floor and not touching the bench.",
+          "cable": "Side view of a muscular athlete lying face up on a flat bench set between two low cable pulleys, frozen at the BOTTOM of a cable chest fly. Each hand grips one cable handle with palms facing each other. Arms are opened wide at chest height, elbows softly bent. Upper back and head are pressed against the bench, feet flat on the floor. Cables run from the pulleys behind the shoulders to the hands, and the handles are gripped, not floating.",
+          "machine": "Three-quarter view of a muscular athlete seated at a pec deck machine, frozen at the OPEN position of a machine chest fly. Both hands grip the vertical handles and the forearms rest against the pads. Elbows are softly bent, arms opened wide at chest height. The back is pressed against the seat pad, feet flat on the floor. The handles are held in the hands and the elbows are not locked into a press."
+        }
+      },
+      "sources": [
+        {
+          "id": "welsch2005",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15903389/",
+          "title": "Electromyographic activity of the pectoralis major and anterior deltoid muscles during three upper-body lifts",
+          "claim": "La activación del pectoral mayor y del deltoides anterior en la fase concéntrica no difirió entre press con barra, press con mancuernas y apertura con mancuernas, y la apertura tuvo menos tiempo relativo de activación."
+        },
+        {
+          "id": "sousa2022",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35599468/",
+          "title": "Activation of upper limb muscles in subjects with scapular dyskinesis during bench-press and dumbbell fly on stable and unstable surfaces",
+          "claim": "En press de banca y apertura con mancuernas no hubo diferencia de EMG entre personas con y sin discinesia escapular, y la superficie inestable elevó un poco el trapecio superior."
+        },
+        {
+          "id": "baig2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana2024",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "claim": "El bíceps braquial flexiona el antebrazo y, con el codo flexionado, es su supinador más potente."
+        },
+        {
+          "id": "fazal2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "claim": "El compartimento anterior del antebrazo contiene los músculos que flexionan la muñeca y los dedos y así sostienen el agarre."
+        }
+      ]
+    },
+    "incline_chest_fly": {
+      "status": "CURATED",
+      "public": {
+        "description": "Con el respaldo por encima de la horizontal, las Aperturas Inclinadas (incline fly) hacen que las manos se encuentren cerca de la clavícula. El pectoral mayor, sobre todo en sus fibras altas, cierra el arco, y el deltoides anterior colabora porque el húmero también se flexiona. Los codos guardan una flexión suave desde la apertura, bajo la línea de la clavícula, hasta el cruce delante de ella. El ángulo del banco no transforma el gesto en una elevación frontal: las manos viajan en abrazo, no hacia el techo. Ese cruce alto deja al pectoral clavicular un estiramiento largo, con el codo quieto en vez de enderezarse como en el press inclinado.",
+        "configurations": {
+          "incline_chest_fly__dumbbells": {
+            "description": "El respaldo alto lleva el encuentro de las dos mancuernas hacia la clavícula, y cada brazo puede abrirse un poco más o menos según su hombro. El peso libre se nota sobre todo con los brazos separados, no cuando las manos ya se tocan arriba.",
+            "setupCues": [
+              "Fija el respaldo en inclinación y apoya espalda y cabeza en el banco.",
+              "Sostén una mancuerna en cada mano delante de la clavícula, con los codos levemente doblados."
+            ],
+            "executionCues": [
+              "Abre el arco por debajo de la clavícula sin subir los hombros hacia las orejas.",
+              "Cierra delante de la clavícula con el mismo ángulo de codo del inicio.",
+              "No conviertas el cierre en una elevación frontal hacia el techo."
+            ]
+          },
+          "incline_chest_fly__cable": {
+            "description": "Unas poleas bajas, por detrás del banco inclinado, tiran del brazo durante el cruce alto, justo cuando dos mancuernas ya se aliviarían al juntarse sobre la clavícula. El respaldo deja el torso en el ángulo alto durante todo el arco.",
+            "setupCues": [
+              "Inclina el banco entre dos poleas bajas, por detrás de los hombros.",
+              "Agarra un mango con cada mano delante de la clavícula y dobla un poco los codos."
+            ],
+            "executionCues": [
+              "Deja abrir los mangos por debajo de la clavícula sin cambiar el codo.",
+              "Cruza las manos delante de la clavícula mientras el cable todavía tira.",
+              "Mantén la espalda en el respaldo inclinado, sin encoger los hombros."
+            ]
+          },
+          "incline_chest_fly__machine": {
+            "description": "El asiento y el respaldo inclinado fijan el torso, y las palancas suben el cruce hacia la clavícula. El arco no depende de sostener dos pesos sueltos a la vez, así que una repetición se parece a la siguiente.",
+            "setupCues": [
+              "Ajusta el asiento para que las empuñaduras queden a la altura de la parte alta del pecho.",
+              "Apoya la espalda en el respaldo inclinado y agarra las dos empuñaduras."
+            ],
+            "executionCues": [
+              "Abre los brazos en el arco de las palancas, con los codos siempre levemente doblados.",
+              "Cierra hasta que las manos se acerquen delante de la clavícula.",
+              "No levantes el torso del cojín para hacer más corto el cierre."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Aducción horizontal con el respaldo elevado: las manos se abren por debajo de la clavícula y se cierran delante de ella, con el codo en un ángulo fijo y el húmero en algo de flexión. El encuentro no cae sobre el esternón, que es donde termina la apertura con el torso a nivel. Las manos tampoco suben hacia el techo, como en una elevación frontal.",
+        "setup": [
+          "Respaldo inclinado, cabeza y espalda apoyadas, pies en el suelo.",
+          "Codos levemente flexionados, manos juntas delante de la clavícula al empezar el arco."
+        ],
+        "keyPositions": [
+          "Fondo: los brazos se han separado bajo la clavícula, la flexión del codo no ha cambiado y los hombros se quedan lejos de las orejas.",
+          "Cierre: manos delante de la clavícula, no sobre el esternón ni por encima de la cara, codos todavía flexionados."
+        ],
+        "mistakes": [
+          "Cerrar sobre el esternón, como en el banco plano.",
+          "Subir las manos hacia el techo y convertir el arco en una elevación frontal.",
+          "Encoger los hombros al abrir.",
+          "Estirar los codos en el cierre."
+        ],
+        "phases": [
+          {
+            "name": "Salida",
+            "description": "Las manos parten juntas delante de la clavícula, con la espalda ya apoyada en el respaldo elevado."
+          },
+          {
+            "name": "Apertura",
+            "description": "Los brazos se separan por debajo de la clavícula y el codo conserva su flexión suave."
+          },
+          {
+            "name": "Fondo",
+            "description": "La carga queda abierta bajo la línea de la clavícula, con los hombros lejos de las orejas."
+          },
+          {
+            "name": "Cierre",
+            "description": "Las manos vuelven a encontrarse delante de la clavícula, sin subir hacia el techo ni estirar los codos."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "Con el respaldo elevado el cierre ocurre cerca de la clavícula. Trebs y colaboradores vieron más activación de la cabeza clavicular en el press a 44 y 56 grados que en el banco plano, y Coratella y colaboradores la vieron más excitada en el press a 45 grados que en el plano, el declinado y la máquina. Es evidencia de press, trasladada al ángulo del banco; el pectoral es el aductor del húmero.",
+            "sources": ["trebs2010", "coratella2020", "baig2023"]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "En el press, Trebs y colaboradores midieron más deltoides anterior a 28, 44 y 56 grados que a 0 grados. En esta apertura ese deltoides ayuda a flexionar el húmero mientras el pectoral lo aduce hacia la clavícula. El dato es de press y se traslada al ángulo del respaldo, no a un EMG de la apertura inclinada.",
+            "sources": ["trebs2010", "welsch2005"]
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "why": "El bíceps flexiona el antebrazo, según Tiwana y colaboradores. Aquí el codo no avanza hacia más flexión ni hacia la extensión: el músculo aguanta el ángulo suave para que el arco alto no se convierta en un press inclinado.",
+            "sources": ["tiwana2024"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los flexores de dedos y muñeca del compartimento anterior sostienen el mango, la mancuerna o la empuñadura mientras el húmero se flexiona y se aduce. No son ellos quienes suben el arco hacia la clavícula.",
+            "sources": ["fazal2023"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Aducción horizontal", "Flexión del hombro"],
+            "why": "El húmero se acerca a la clavícula combinando aducción en el plano del banco con algo de flexión. Trebs y colaboradores relacionaron los ángulos altos del press con más cabeza clavicular y más deltoides anterior, que es el mismo cruce alto de esta apertura.",
+            "sources": ["trebs2010", "baig2023"]
+          },
+          {
+            "id": "codo",
+            "role": "STABILIZER",
+            "actions": ["Sostén del ángulo del codo"],
+            "why": "El codo guarda una flexión suave de principio a fin. Enderezarlo acercaría la carga como en un press inclinado, y el bíceps, flexor del antebrazo, solo sujeta ese ángulo.",
+            "sources": ["tiwana2024", "welsch2005"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": ["Estabilidad escapular"],
+            "why": "El respaldo fija el tórax y la escápula no debe elevarse hacia la oreja cuando las manos bajan del cruce alto. Baig y Bordoni incluyen la estabilización escapular en el grupo pectoral, que aquí sujeta la escápula en vez de dejarla encogerse.",
+            "sources": ["baig2023"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Sostén del agarre"],
+            "why": "La muñeca se mantiene neutra mientras los dedos cierran la empuñadura. No flexiona la carga hacia la clavícula.",
+            "sources": ["fazal2023"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral que muestre el respaldo elevado, la cabeza y la carga abierta bajo la clavícula.",
+          "phase": "Fondo del arco: brazos abiertos por debajo de la clavícula, codos flexionados, manos lejos del pecho.",
+          "orientation": "Atleta recostado en un respaldo elevado, cabeza más alta que la cadera y hacia la izquierda del encuadre.",
+          "contacts": "Espalda y cabeza apoyadas en el respaldo elevado; pies en el suelo; las manos agarran la carga.",
+          "posture": "Torso inclinado, hombros lejos de las orejas, codos suavemente flexionados, cuello apoyado en el respaldo.",
+          "load": "Carga abierta por debajo de la línea de la clavícula, sostenida por las manos y separada del suelo."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Banco con respaldo inclinado; una mancuerna en cada mano, palmas enfrentadas; en el fondo los brazos están abiertos bajo la clavícula y las mancuernas no tocan el pecho ni el suelo."
+          },
+          "cable": {
+            "geometry": "Banco inclinado entre dos poleas bajas colocadas detrás de los hombros; cada mano agarra un mango; los cables suben desde la polea hasta las manos abiertas bajo la clavícula."
+          },
+          "machine": {
+            "geometry": "Asiento y respaldo inclinados; cada mano agarra una empuñadura; en el fondo los brazos están abiertos bajo la clavícula y los antebrazos contactan los apoyos sin soltar las empuñaduras."
+          }
+        },
+        "forbidden": [
+          "Banco plano con las manos cerrando sobre el esternón.",
+          "Banco declinado con la cabeza por debajo de la cadera.",
+          "Brazos subiendo hacia el techo como una elevación frontal.",
+          "De pie cruzando poleas sin respaldo."
+        ],
+        "qa": [
+          "¿El respaldo está elevado y la cabeza queda más alta que la cadera?",
+          "¿Las dos manos agarran la carga y esta no flota suelta?",
+          "¿Los brazos están abiertos por debajo de la clavícula, con los codos doblados?",
+          "¿Las manos quedan a la altura de la parte alta del pecho y no junto a la cintura?"
+        ],
+        "promptCore": {
+          "dumbbells": "Side view of a muscular athlete lying face up on an incline bench, head higher than the hips, frozen at the BOTTOM of an incline dumbbell fly. Each hand grips one dumbbell with palms facing each other. Arms are opened wide below the line of the collarbone, elbows softly bent and held there. Back and head are pressed against the raised pad, feet flat on the floor. The dumbbells are held out to the sides, clear of the floor.",
+          "cable": "Side view of a muscular athlete lying face up on an incline bench between two low cable pulleys, frozen at the BOTTOM of an incline cable fly. Each hand grips one handle with palms facing each other. Arms are opened wide below the collarbone, elbows softly bent. Back and head are pressed against the raised pad, feet flat on the floor. Cables run upward from the low pulleys behind the shoulders to the gripped handles.",
+          "machine": "Three-quarter view of a muscular athlete seated in an incline pec deck, frozen at the OPEN position of an incline machine fly. Both hands grip the handles, forearms against the pads, elbows softly bent, arms opened wide below the collarbone. The back is pressed against the inclined pad, feet flat on the floor. The handles are held in the hands and are not floating."
+        }
+      },
+      "sources": [
+        {
+          "id": "trebs2010",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20512064/",
+          "title": "An electromyography analysis of 3 muscles surrounding the shoulder joint during the performance of a chest press exercise at several angles",
+          "claim": "En el press, la cabeza clavicular del pectoral se activó más a 44 y 56 grados que en el banco plano, la esternocostal más en el plano que en los ángulos altos, y el deltoides anterior más en los inclinados que a 0 grados."
+        },
+        {
+          "id": "coratella2020",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31397215/",
+          "title": "Specific prime movers' excitation during free-weight bench press variations and chest press machine in competitive bodybuilders",
+          "claim": "En la fase concéntrica, la cabeza clavicular del pectoral se excitó más en el press inclinado a 45 grados que en el plano, el declinado y la máquina de press."
+        },
+        {
+          "id": "welsch2005",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15903389/",
+          "title": "Electromyographic activity of the pectoralis major and anterior deltoid muscles during three upper-body lifts",
+          "claim": "La activación del pectoral mayor y del deltoides anterior en la fase concéntrica no difirió entre press con barra, press con mancuernas y apertura con mancuernas, y la apertura tuvo menos tiempo relativo de activación."
+        },
+        {
+          "id": "baig2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana2024",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "claim": "El bíceps braquial flexiona el antebrazo y, con el codo flexionado, es su supinador más potente."
+        },
+        {
+          "id": "fazal2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "claim": "El compartimento anterior del antebrazo contiene los músculos que flexionan la muñeca y los dedos y así sostienen el agarre."
+        }
+      ]
+    },
+    "reverse_pec_fly": {
+      "status": "CURATED",
+      "public": {
+        "description": "Las Aperturas Inversas, o reverse fly, separan los brazos hacia atrás en abducción horizontal, y el deltoides posterior es quien abre ese arco. El trapecio, en sus fibras medias e inferiores, y los romboides acercan las escápulas a la columna. No es un gesto de pecho: el torso ofrece el lado que se estira, no el que mueve la carga. El codo se conserva flexionado para que las manos no viajen a la cintura como en un remo. Encaja cuando el entrenamiento ya empuja mucho por delante y hace falta la cara posterior del hombro junto con la espalda alta.",
+        "configurations": {
+          "reverse_pec_fly__bilateral__machine": {
+            "description": "Las dos palancas se abren a la vez con el pecho pegado al respaldo, así que el tronco no puede columpiarse para ayudar. En esta máquina, el agarre con el pulgar hacia arriba activó más el deltoides posterior que el agarre prono.",
+            "setupCues": [
+              "Siéntate de frente al respaldo, con el pecho apoyado y los pies en el suelo.",
+              "Agarra las dos empuñaduras con los pulgares hacia arriba y los codos levemente doblados."
+            ],
+            "executionCues": [
+              "Abre los dos brazos a la vez hasta la línea de los hombros, sin estirar los codos.",
+              "Acerca las escápulas sin subir los hombros hacia las orejas.",
+              "Vuelve despacio hasta que las manos queden delante del pecho."
+            ]
+          },
+          "reverse_pec_fly__bilateral__cable": {
+            "description": "Dos poleas a la altura de los hombros, cruzadas por delante, tiran de ambos brazos durante todo el camino hacia atrás, también en el instante en que las manos están juntas. Los dos lados salen y regresan juntos, de pie y con el tronco quieto.",
+            "setupCues": [
+              "Coloca las dos poleas a la altura de los hombros y cruza los mangos por delante.",
+              "Agarra un mango con cada mano, pulgares hacia arriba, y da un paso atrás hasta notar el tiro."
+            ],
+            "executionCues": [
+              "Abre los dos brazos hacia los lados, a la altura del hombro, con los codos quietos.",
+              "Para cuando las manos queden en la línea de los hombros, sin echar el tronco atrás.",
+              "Regresa hasta que los mangos vuelvan a cruzarse delante del pecho."
+            ]
+          },
+          "reverse_pec_fly__bilateral__dumbbells": {
+            "description": "Boca abajo sobre un banco inclinado, cada mancuerna pesa más cuando el brazo cuelga hacia el suelo y menos cuando el codo sube hacia atrás, a la altura del hombro. Los dos brazos se abren juntos y el pecho no se despega.",
+            "setupCues": [
+              "Túmbate boca abajo en un banco inclinado, con el pecho apoyado y los pies en el suelo.",
+              "Toma una mancuerna en cada mano bajo los hombros, con los pulgares hacia arriba."
+            ],
+            "executionCues": [
+              "Eleva los dos brazos hacia los lados hasta la altura del hombro, sin doblar más los codos.",
+              "Acerca las escápulas arriba y no levantes el pecho del banco.",
+              "Baja las mancuernas hasta que los brazos vuelvan a colgar."
+            ]
+          },
+          "reverse_pec_fly__unilateral__machine": {
+            "description": "Una sola palanca se mueve y el otro brazo queda fuera del apoyo. El pecho permanece en el respaldo, y el hombro que trabaja no puede acortar el arco apoyándose en el lado contrario.",
+            "setupCues": [
+              "Siéntate de frente al respaldo y agarra una sola empuñadura, con el pulgar hacia arriba.",
+              "Deja el otro brazo caído junto al tronco y el pecho pegado al respaldo."
+            ],
+            "executionCues": [
+              "Abre solo ese brazo hasta la línea del hombro, con el codo levemente doblado.",
+              "No gires el tronco para llegar más atrás.",
+              "Regresa el mango delante del pecho y repite luego el otro lado."
+            ]
+          },
+          "reverse_pec_fly__unilateral__cable": {
+            "description": "Un solo mango cruza por delante del cuerpo y tira de un hombro durante toda la apertura posterior. El otro brazo no carga, así que el tronco tiene que quedarse quieto sin un contrapeso del lado contrario.",
+            "setupCues": [
+              "Pon una polea a la altura del hombro y agarra el mango con la mano del lado contrario al cruce.",
+              "Da un paso lateral hasta que el cable tire con el brazo delante del pecho."
+            ],
+            "executionCues": [
+              "Abre ese brazo hacia fuera, a la altura del hombro, sin girar la cadera.",
+              "Mantén el codo levemente doblado hasta el final de la apertura.",
+              "Vuelve a cruzar el mango por delante del pecho y cambia de lado."
+            ]
+          },
+          "reverse_pec_fly__unilateral__dumbbells": {
+            "description": "Una mancuerna y el pecho apoyado: la mano libre se apoya en el banco y no comparte el peso. La apertura posterior de ese hombro se ve sola, desde el brazo colgando hasta la altura del hombro.",
+            "setupCues": [
+              "Apoya el pecho y la mano libre en el banco inclinado.",
+              "Toma una mancuerna con la otra mano, pulgar hacia arriba, y deja el brazo colgando."
+            ],
+            "executionCues": [
+              "Sube ese brazo hacia el lado hasta la altura del hombro, sin tirar del codo a la cintura.",
+              "No levantes el pecho para impulsar la mancuerna.",
+              "Baja hasta colgar el brazo y luego cambia de lado."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Abducción horizontal del hombro con el codo en un ángulo corto y fijo: las manos se separan hacia atrás o hacia los lados, a la altura del hombro, y las escápulas se acercan. No es una apertura de pecho, porque los brazos no se cierran por delante, ni un remo, porque la mano no viaja a la cintura.",
+        "setup": [
+          "Pecho apoyado en un respaldo o en un banco inclinado, o de pie entre poleas a la altura del hombro.",
+          "Codos levemente flexionados, pulgares hacia arriba, manos delante del cuerpo al inicio."
+        ],
+        "keyPositions": [
+          "Inicio: manos delante del pecho o brazos colgando, codos flexionados, escápulas separadas.",
+          "Final: brazos abiertos a la altura del hombro, codos todavía flexionados, escápulas más cerca de la columna."
+        ],
+        "mistakes": [
+          "Doblar más el codo y llevar la mano a la cintura, como en un remo.",
+          "Juntar las manos delante del esternón: eso es una apertura de pecho, no esta.",
+          "Balancear el tronco para subir la carga.",
+          "Encoger los hombros hacia las orejas en vez de acercar las escápulas."
+        ],
+        "phases": [
+          {
+            "name": "Salida",
+            "description": "Las manos empiezan delante del cuerpo o colgando, con el codo ya flexionado y el pecho estable."
+          },
+          {
+            "name": "Apertura",
+            "description": "El brazo se separa en abducción horizontal hasta la altura del hombro y el codo no se cierra más."
+          },
+          {
+            "name": "Final",
+            "description": "Las manos quedan a la altura del hombro, las escápulas más cerca de la columna y los hombros lejos de las orejas."
+          },
+          {
+            "name": "Regreso",
+            "description": "Los brazos vuelven delante del pecho sin dejar caer el tronco ni estirar los codos."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "deltoid",
+            "role": "PRIMARY",
+            "why": "Schoenfeld y colaboradores describen la máquina de aperturas inversas como trabajo de los abductores horizontales del hombro, incluido el deltoides posterior, y midieron más actividad media de ese deltoides con agarre neutro que con prono. En polea y mancuernas el húmero hace la misma abducción: el rol se extrapola de la máquina, sin un EMG propio de esas dos variantes en estas fuentes.",
+            "sources": ["schoenfeld2013"]
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "why": "Yu y Kang vieron más trapecio medio e inferior en la abducción horizontal sentado cuando el hombro iba en rotación externa. Berckmans y colaboradores también registraron trapecio medio e inferior en la abducción horizontal boca abajo con rotación externa. Mitchell y colaboradores incluyen el trapecio entre los músculos extrínsecos que mueven el brazo al dirigir la escápula.",
+            "sources": ["yu2024", "berckmans2021", "mitchell2024"]
+          },
+          {
+            "id": "rhomboids",
+            "role": "SECONDARY",
+            "why": "Berckmans y colaboradores hallaron actividad moderada del romboides mayor, entre el 25 y el 45 por ciento de la contracción voluntaria máxima, en la abducción horizontal boca abajo con rotación externa. Farrell y Kiel los relacionan con el movimiento del brazo y la estabilidad de la escápula. En máquina y polea, sentado, el mismo acercamiento escapular se extrapola de esa medición en prono.",
+            "sources": ["berckmans2021", "farrell2023"]
+          },
+          {
+            "id": "biceps",
+            "role": "STABILIZER",
+            "why": "Tiwana y colaboradores describen el bíceps como flexor del antebrazo. Aquí el codo no se cierra hacia la cintura: se queda en un ángulo corto para que la mano viaje en arco. Por eso el bíceps estabiliza y no es un motor de la abducción horizontal.",
+            "sources": ["tiwana2024"]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los flexores de muñeca y dedos sostienen el mango o la mancuerna con el pulgar hacia arriba. Fazal y colaboradores los sitúan en el compartimento anterior del antebrazo. No abducen el hombro.",
+            "sources": ["fazal2023"]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": ["Abducción horizontal"],
+            "why": "El húmero se separa del plano frontal del pecho hasta quedar a la altura del hombro. Schoenfeld y colaboradores estudiaron exactamente esa abducción horizontal en la máquina de aperturas inversas, y Yu y Kang la estudiaron sentados.",
+            "sources": ["schoenfeld2013", "yu2024"]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "SECONDARY",
+            "actions": ["Retracción escapular"],
+            "why": "Las escápulas se acercan a la columna al abrir los brazos. Yu y Kang aumentaron trapecio medio e inferior con rotación externa en la abducción horizontal sentada, y Berckmans y colaboradores vieron romboides mayor moderado en la versión boca abajo. No es una elevación de hombros hacia las orejas.",
+            "sources": ["yu2024", "berckmans2021"]
+          },
+          {
+            "id": "codo",
+            "role": "STABILIZER",
+            "actions": ["Sostén del ángulo del codo"],
+            "why": "El codo conserva una flexión corta. Si se flexionara más, la mano iría a la cintura y el gesto sería un remo. El bíceps, flexor del antebrazo, sujeta ese ángulo y no recorre el movimiento.",
+            "sources": ["tiwana2024"]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": ["Sostén del agarre"],
+            "why": "La muñeca aguanta el agarre con el pulgar hacia arriba, que en la máquina de Schoenfeld y colaboradores coincidió con más deltoides posterior que el agarre prono. La muñeca no abre el brazo.",
+            "sources": ["fazal2023", "schoenfeld2013"]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista de tres cuartos que muestre los dos brazos de frente y el pecho estable.",
+          "phase": "Final de la apertura: brazos separados a la altura del hombro, codos flexionados, escápulas acercadas.",
+          "orientation": "Atleta con el pecho hacia el apoyo o hacia el banco, cuello neutro, pies en el suelo.",
+          "contacts": "Pecho o espalda alta apoyados cuando hay banco o respaldo; pies en el suelo; las manos agarran la carga.",
+          "posture": "Tronco quieto, hombros lejos de las orejas, codos suavemente flexionados, pulgares hacia arriba.",
+          "load": "Carga en las manos, a la altura del hombro en el final del arco, sin apoyarse en el suelo."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Asiento de cara al respaldo; el pecho está pegado a la almohadilla; cada mano agarra una empuñadura con el pulgar hacia arriba; en el final los dos brazos están abiertos a la altura del hombro."
+          },
+          "cable": {
+            "geometry": "Dos poleas a la altura del hombro, cables cruzados por delante del pecho; cada mano agarra un mango con el pulgar hacia arriba; en el final los brazos están abiertos a los lados y los cables llegan de las poleas a las manos."
+          },
+          "dumbbells": {
+            "geometry": "Banco inclinado, atleta boca abajo con el pecho apoyado; una mancuerna en cada mano, pulgares hacia arriba; en el final los brazos están abiertos a la altura del hombro y las mancuernas no tocan el suelo."
+          }
+        },
+        "byVariant": {
+          "reverse_pec_fly__unilateral__machine": {
+            "difference": "Solo una mano agarra la empuñadura y el otro brazo cuelga junto al tronco, sin palanca."
+          },
+          "reverse_pec_fly__unilateral__cable": {
+            "difference": "Una sola mano agarra el mango cruzado y el otro brazo no carga ni sujeta un cable."
+          },
+          "reverse_pec_fly__unilateral__dumbbells": {
+            "difference": "Una mano agarra la mancuerna abierta hacia el lado y la otra mano está apoyada en el banco."
+          }
+        },
+        "forbidden": [
+          "Brazos que se juntan delante del esternón: eso es una apertura de pecho, no esta.",
+          "Codos yendo a la cintura con la mano junto a la costilla: eso es un remo.",
+          "De pie e inclinado tirando una barra hacia el abdomen.",
+          "Hombros encogidos hacia las orejas.",
+          "Carga flotando sin que las manos la agarren."
+        ],
+        "qa": [
+          "¿Las manos agarran la carga y esta no flota suelta?",
+          "¿Los brazos están abiertos a la altura del hombro, con los codos todavía doblados?",
+          "¿El pecho está estable, apoyado en un respaldo o en un banco, o el tronco está quieto de pie?",
+          "¿Las manos quedan a los lados y no juntas delante del esternón ni pegadas a la cintura?"
+        ],
+        "promptCore": {
+          "machine": "Three-quarter view of a muscular athlete seated facing the pad of a reverse fly machine, frozen at the END of a reverse fly. Both hands grip the handles with thumbs up. Arms are opened out to the sides at shoulder height, elbows softly bent. The chest is pressed against the front pad, feet flat on the floor. The handles are held in the hands and are not floating.",
+          "cable": "Front view of a muscular athlete standing between two shoulder-height cable pulleys, frozen at the END of a bilateral cable reverse fly. Both hands grip the crossed handles with thumbs up. Arms are opened out to the sides at shoulder height, elbows softly bent. Feet are planted and the torso is upright and still. The cables run from the pulleys to the gripped hands.",
+          "dumbbells": "Side view of a muscular athlete lying face down on an incline bench, frozen at the END of a dumbbell reverse fly. Each hand grips one dumbbell with the thumb pointing up. Arms are opened out to the sides at shoulder height, elbows softly bent. The chest is pressed against the bench, feet on the floor. The dumbbells are held out to the sides, clear of the floor."
+        }
+      },
+      "sources": [
+        {
+          "id": "schoenfeld2013",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23302754/",
+          "title": "Effect of hand position on EMG activity of the posterior shoulder musculature during a horizontal abduction exercise",
+          "claim": "En la máquina de aperturas inversas, el agarre neutro produjo más actividad media del deltoides posterior y del infraespinoso que el agarre prono."
+        },
+        {
+          "id": "yu2024",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39084328/",
+          "title": "Shoulder Rotation Affects Trapezius Muscle Activity During Shoulder Horizontal Abduction",
+          "claim": "En la abducción horizontal de hombro sentado, la rotación externa aumentó la actividad del trapecio medio y del trapecio inferior frente a las otras rotaciones, y redujo la inclinación anterior de la escápula."
+        },
+        {
+          "id": "berckmans2021",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34279126/",
+          "title": "Rehabilitation Exercises for Dysfunction of the Scapula: Exploration of Muscle Activity Using Fine-Wire EMG",
+          "claim": "En la abducción horizontal boca abajo con rotación externa, el romboides mayor mostró actividad moderada, en la misma franja del 25 al 45 por ciento de la contracción máxima que el elevador de la escápula en los cuatro ejercicios."
+        },
+        {
+          "id": "mitchell2024",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "claim": "Los músculos extrínsecos de la espalda, entre ellos el trapecio y los romboides, mueven el miembro superior al dirigir la escápula y el húmero."
+        },
+        {
+          "id": "farrell2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "claim": "Los romboides importan para el movimiento del miembro superior y para la estabilidad de la cintura escapular y de la escápula."
+        },
+        {
+          "id": "tiwana2024",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "claim": "El bíceps braquial flexiona el antebrazo y, con el codo flexionado, es su supinador más potente."
+        },
+        {
+          "id": "fazal2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "claim": "El compartimento anterior del antebrazo contiene los músculos que flexionan la muñeca y los dedos y así sostienen el agarre."
+        }
+      ]
+    }
+  }
+}

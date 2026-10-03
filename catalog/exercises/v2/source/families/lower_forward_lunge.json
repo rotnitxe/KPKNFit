@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Zancada Frontal",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_zancada_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forward_lunge__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "El básico unilateral que no puede faltar en ninguna pierna completa."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y la barra sobre la espalda carga la rodilla delantera en todo el arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La extensión de la cadera cierra el gesto y su control frontal impide que la pelvis se tuerza bajo la barra apoyada sobre la espalda durante el paso.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y su equilibrio sostiene el apoyo delantero mientras la barra descansa sobre la espalda.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la barra sobre la espalda exige una pelvis nivelada al cerrar el paso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,24 +65,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps frena la bajada del paso al frente y concentra la extensión de rodilla que devuelve el cuerpo arriba mientras la barra descansa sobre la espalda."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera al final de la subida y frena el descenso de la pelvis mientras la barra sobre la espalda deja el torso erguido."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera y frenan la flexión del tronco bajo la barra, que pesa sobre la espalda durante todo el arco del gesto."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría para que la barra sobre la espalda no incline la pelvis cuando la pierna libre acompaña el paso al frente."
-                }
-              ],
               "performanceProfileId": "forward_lunge__barbell__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -117,7 +87,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y la barra sobre la espalda carga la rodilla delantera en todo el arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -125,7 +94,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La extensión de la cadera cierra el gesto y su control frontal impide que la pelvis se tuerza bajo la barra apoyada sobre la espalda durante el paso.",
                       "role": "PRIMARY"
                     },
                     {
@@ -133,7 +101,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y su equilibrio sostiene el apoyo delantero mientras la barra descansa sobre la espalda.",
                       "role": "SECONDARY"
                     },
                     {
@@ -141,11 +108,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la barra sobre la espalda exige una pelvis nivelada al cerrar el paso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -153,12 +118,8 @@
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -169,7 +130,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -179,45 +139,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra en la espalda y paso al frente: la zancada tradicional con carga."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Frontal",
                   "displaySummary": "barbell",
                   "selectedOptions": {
                     "implement": "barbell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "El básico unilateral que no puede faltar en ninguna pierna completa."
-                  ],
-                  "description": "Con barra, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Barra en la espalda y paso al frente: la zancada tradicional con carga. Piernas y glúteos trabajando con estabilidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -230,7 +157,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forward_lunge__barbell",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -248,42 +175,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Frontal en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -298,9 +204,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra en la espalda y paso al frente: la zancada tradicional con carga. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Barra en la espalda y paso al frente: la zancada tradicional con carga. Piernas y glúteos trabajando con estabilidad."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell"
@@ -314,7 +218,6 @@
                 "legacy:exercise_database.json#quads_zancada_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forward_lunge__smith_machine",
@@ -322,16 +225,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                "El básico unilateral que no puede faltar en ninguna pierna completa."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con máquina Smith, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -345,7 +241,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida sobre el eje fijo de la Smith, que lleva la rodilla delantera por su línea.",
                   "role": "PRIMARY"
                 },
                 {
@@ -353,7 +248,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La extensión de la cadera remata la subida y el control frontal de la pelvis se apoya en el carril de la Smith, que impide que la carga se desvíe del arco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -361,7 +255,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada sobre el eje fijo de la Smith, mientras el equilibrio del apoyo delantero resulta menos exigente que con carga libre.",
                   "role": "SECONDARY"
                 },
                 {
@@ -369,7 +262,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral de la pelvis al tronco, y el guiado de la Smith reduce el balanceo que el paso al frente suele provocar.",
                   "role": "STABILIZER"
                 }
               ],
@@ -377,24 +269,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps frena la bajada del paso al frente y concentra la extensión de rodilla con la trayectoria guiada de la Smith, que impone un ritmo constante en la subida."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis sobre el eje guiado de la Smith, que sostiene la carga sin oscilaciones laterales."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera y frenan el descenso del tronco sobre el carril de la Smith, que retira buena parte del equilibrio."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría sobre el eje guiado de la Smith, donde la pelvis baja sin oscilar mientras la pierna libre acompaña el paso."
-                }
-              ],
               "performanceProfileId": "forward_lunge__smith_machine__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -417,7 +291,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida sobre el eje fijo de la Smith, que lleva la rodilla delantera por su línea.",
                       "role": "PRIMARY"
                     },
                     {
@@ -425,7 +298,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La extensión de la cadera remata la subida y el control frontal de la pelvis se apoya en el carril de la Smith, que impide que la carga se desvíe del arco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -433,7 +305,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada sobre el eje fijo de la Smith, mientras el equilibrio del apoyo delantero resulta menos exigente que con carga libre.",
                       "role": "SECONDARY"
                     },
                     {
@@ -441,11 +312,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral de la pelvis al tronco, y el guiado de la Smith reduce el balanceo que el paso al frente suele provocar.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -453,12 +322,8 @@
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -469,7 +334,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -479,45 +343,12 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Frontal",
                   "displaySummary": "smith_machine",
                   "selectedOptions": {
                     "implement": "smith_machine"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                    "El básico unilateral que no puede faltar en ninguna pierna completa."
-                  ],
-                  "description": "Con máquina Smith, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
-                  "technique": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. Útil para aprender la zancada con peso."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -530,7 +361,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forward_lunge__smith_machine",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -548,42 +379,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Frontal en la variante Máquina Smith.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -598,9 +408,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Smith y paso al frente: el guiado da estabilidad y puedes concentrarte en la bajada. Útil para aprender la zancada con peso."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine"
@@ -614,7 +422,6 @@
                 "legacy:exercise_database.json#quads_zancada_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forward_lunge__dumbbells",
@@ -622,16 +429,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-                "El básico unilateral que no puede faltar en ninguna pierna completa."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con mancuernas, el paso largo al frente frena con la pierna delantera y regresa con fuerza. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
@@ -645,7 +445,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y las mancuernas a los costados cargan la rodilla delantera sin empujarla.",
                   "role": "PRIMARY"
                 },
                 {
@@ -653,7 +452,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La extensión de la cadera cierra la subida y el control frontal de la pelvis resiste el balanceo de las mancuernas colgadas a los costados en el paso al frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -661,7 +459,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y el equilibrio sostiene el apoyo delantero mientras las mancuernas cuelgan libres a los costados.",
                   "role": "SECONDARY"
                 },
                 {
@@ -669,7 +466,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras cada mancuerna al costado añade su propio peso al paso al frente.",
                   "role": "STABILIZER"
                 }
               ],
@@ -677,24 +473,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps frena la bajada del paso al frente y concentra la extensión de rodilla mientras las mancuernas colgadas a los costados dejan cada pierna en su línea."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis con las mancuernas a los costados, donde la carga acompaña al cuerpo sin empujarlo."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera y frenan el descenso del tronco mientras las mancuernas a los costados suman peso sin alterar la pelvis."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría frente al balanceo de las mancuernas colgadas a los costados durante el paso al frente con la pierna libre."
-                }
-              ],
               "performanceProfileId": "forward_lunge__dumbbells__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -717,7 +495,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y las mancuernas a los costados cargan la rodilla delantera sin empujarla.",
                       "role": "PRIMARY"
                     },
                     {
@@ -725,7 +502,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La extensión de la cadera cierra la subida y el control frontal de la pelvis resiste el balanceo de las mancuernas colgadas a los costados en el paso al frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -733,7 +509,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y el equilibrio sostiene el apoyo delantero mientras las mancuernas cuelgan libres a los costados.",
                       "role": "SECONDARY"
                     },
                     {
@@ -741,11 +516,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras cada mancuerna al costado añade su propio peso al paso al frente.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -753,12 +526,8 @@
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -769,7 +538,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -779,45 +547,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Frontal",
                   "displaySummary": "dumbbells",
                   "selectedOptions": {
                     "implement": "dumbbells"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-                    "El básico unilateral que no puede faltar en ninguna pierna completa."
-                  ],
-                  "description": "Con mancuernas, el paso largo al frente frena con la pierna delantera y regresa con fuerza. Con mancuernas, cada lado ajusta su línea y el trabajo del cuádriceps se equilibra solo.",
-                  "technique": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. Permite acumular series de zancadas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -830,7 +565,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forward_lunge__dumbbells",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -848,42 +583,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Frontal en la variante Mancuernas.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "dumbbells"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -898,9 +612,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Mancuernas a los costados y paso al frente: la versión más equilibrada y cómoda. Permite acumular series de zancadas."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "dumbbells"
@@ -914,7 +626,6 @@
                 "legacy:exercise_database.json#quads_zancada_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forward_lunge__kettlebell",
@@ -922,16 +633,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                "El básico unilateral que no puede faltar en ninguna pierna completa."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con kettlebell, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
               "efc": 2.8,
               "equipmentId": "kettlebell",
@@ -945,7 +649,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y las kettlebells oscilantes obligan a la rodilla delantera a repetir la línea.",
                   "role": "PRIMARY"
                 },
                 {
@@ -953,7 +656,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La extensión de la cadera cierra la subida y el control frontal de la pelvis resiste el vaivén de las kettlebells colgadas de las manos en el paso al frente.",
                   "role": "PRIMARY"
                 },
                 {
@@ -961,7 +663,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y el equilibrio del apoyo delantero lucha con el vaivén de las kettlebells al costado.",
                   "role": "SECONDARY"
                 },
                 {
@@ -969,7 +670,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras las kettlebells, colgadas de las manos, exigen firmeza en la cadera.",
                   "role": "STABILIZER"
                 }
               ],
@@ -977,24 +677,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps frena la bajada del paso al frente y concentra la extensión de rodilla mientras las kettlebells colgadas de las manos añaden inestabilidad a la subida."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis con las kettlebells al costado, cuyo peso libre exige firmeza en cada repetición."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera y frenan el descenso del tronco mientras las kettlebells cuelgan de las manos y presionan el agarre."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría frente a la oscilación de las kettlebells durante el paso al frente, con la pelvis resistiendo el vaivén."
-                }
-              ],
               "performanceProfileId": "forward_lunge__kettlebell__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -1017,7 +699,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y las kettlebells oscilantes obligan a la rodilla delantera a repetir la línea.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1025,7 +706,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La extensión de la cadera cierra la subida y el control frontal de la pelvis resiste el vaivén de las kettlebells colgadas de las manos en el paso al frente.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1033,7 +713,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y el equilibrio del apoyo delantero lucha con el vaivén de las kettlebells al costado.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1041,11 +720,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras las kettlebells, colgadas de las manos, exigen firmeza en la cadera.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -1053,12 +730,8 @@
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1069,7 +742,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1079,45 +751,12 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Kettlebells y paso al frente: el agarre suma trabajo al ejercicio."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Frontal",
                   "displaySummary": "kettlebell",
                   "selectedOptions": {
                     "implement": "kettlebell"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                    "El básico unilateral que no puede faltar en ninguna pierna completa."
-                  ],
-                  "description": "Con kettlebell, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
-                  "technique": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. Variante completa para piernas y antebrazos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1130,7 +769,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forward_lunge__kettlebell",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -1148,42 +787,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Frontal en la variante Kettlebell.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "kettlebell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1198,9 +816,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Kettlebells y paso al frente: el agarre suma trabajo al ejercicio. Variante completa para piernas y antebrazos."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "kettlebell"
@@ -1214,7 +830,6 @@
                 "legacy:exercise_database.json#quads_zancada_frontal",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forward_lunge__cable",
@@ -1222,16 +837,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                "El básico unilateral que no puede faltar en ninguna pierna completa."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con polea, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
               "efc": 2.8,
               "equipmentId": "cable",
@@ -1245,7 +853,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y la tensión constante de la polea acompaña la rodilla delantera sin pausas.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1253,7 +860,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La extensión de la cadera cierra la subida y el control frontal de la pelvis resiste el tirón constante de la polea durante el paso al frente de la pierna libre.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1261,7 +867,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y el equilibrio sostiene el apoyo delantero contra la tensión continua de la polea.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1269,7 +874,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la polea ejerce un tirón constante que la pelvis absorbe sin inclinarse.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1277,24 +881,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "continuous_cable",
               "movementPatternId": "unilateral_knee_dominant",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps frena la bajada del paso al frente y concentra la extensión de rodilla mientras la polea sostiene la tensión constante también en el punto más alto."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor extiende la cadera al subir y frena el descenso de la pelvis con la tensión constante de la polea, que no descansa ni arriba ni abajo del arco."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiotibiales asisten la extensión de la cadera y frenan el descenso del tronco mientras la polea tira de forma continua a lo largo de todo el recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene el tronco en isometría frente al tirón constante de la polea, que exige firmeza en la pelvis durante el paso al frente con la pierna libre."
-                }
-              ],
               "performanceProfileId": "forward_lunge__cable__zancada",
               "primaryMuscles": [
                 "quadriceps",
@@ -1317,7 +903,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: La flexión y la extensión unilateral de la rodilla guían la bajada y la subida, y la tensión constante de la polea acompaña la rodilla delantera sin pausas.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1325,7 +910,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La extensión de la cadera cierra la subida y el control frontal de la pelvis resiste el tirón constante de la polea durante el paso al frente de la pierna libre.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1333,7 +917,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: La dorsiflexión del tobillo acompaña la bajada del paso al frente y el equilibrio sostiene el apoyo delantero contra la tensión continua de la polea.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1341,11 +924,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga unilateral entre pelvis y tronco mientras la polea ejerce un tirón constante que la pelvis absorbe sin inclinarse.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -1353,12 +934,8 @@
                   "secondaryMuscles": [
                     "hamstrings"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1369,7 +946,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "continuous_cable",
                   "movementPatternId": "unilateral_knee_dominant",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -1379,45 +955,12 @@
                   "resistanceProfile": "continuous_cable",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "execution": [
-                    "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Polea y paso al frente: la tensión constante añade exigencia a la zancada."
-                  ]
-                },
                 "display": {
                   "displayName": "Zancada Frontal",
                   "displaySummary": "cable",
                   "selectedOptions": {
                     "implement": "cable"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                    "El básico unilateral que no puede faltar en ninguna pierna completa."
-                  ],
-                  "description": "Con polea, el paso largo al frente frena con la pierna delantera y regresa con fuerza. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco.",
-                  "technique": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-                  "variantRationale": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. Un cambio de estímulo que se perciben en cada repetición."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1430,7 +973,7 @@
                 },
                 "identity": {
                   "canonicalName": "Zancada Frontal",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forward_lunge__cable",
                   "definitionId": "forward_lunge",
                   "familyId": "lower_forward_lunge",
@@ -1448,42 +991,21 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Zancada Frontal en la variante Polea.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "cable"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "cable"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "unilateral_knee_dominant:quadriceps",
+                    "unilateral_knee_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1498,9 +1020,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. La pierna de trabajo recibe la bajada y la subida; el apoyo libre acompaña sin robar fuerza ni dejar que la pelvis se incline.",
-              "ttc": 2.0,
-              "variantRationale": "Polea y paso al frente: la tensión constante añade exigencia a la zancada. Un cambio de estímulo que se perciben en cada repetición."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "cable"
@@ -1514,7 +1034,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_forward_lunge",
@@ -1530,13 +1049,11 @@
         ]
       }
     ],
-    "description": "Familia de zancada con el paso hacia adelante; el implemento es la única decisión visible.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_forward_lunge",

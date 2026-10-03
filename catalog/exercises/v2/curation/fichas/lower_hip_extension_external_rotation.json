@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "glutes_frog_pumps": {
+      "public": {
+        "configurations": {
+          "glutes_frog_pumps__default": {
+            "description": "Con peso corporal, con las plantas juntas y las rodillas abiertas, la cadera sube y baja en un recorrido corto y quemante. Sin más carga que el propio cuerpo, la exigencia del glúteo mayor es la justa.",
+            "executionCues": [
+              "Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Plantas de los pies juntas y rodillas abiertas: bombeas la cadera hacia arriba y el glúteo acumula fatiga local."
+            ]
+          }
+        },
+        "description": "Los Frog Pumps juntan las plantas de los pies y abren las rodillas para bombear la cadera en un recorrido corto y quemante. Se ejecutan tumbado, subiendo y bajando la pelvis con ritmo constante mientras el glúteo mayor arde desde la décima repetición. Solo con el peso corporal y sin moverse del sitio. El finalizador que deja el glúteo congestionado en dos minutos."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_extension_external_rotation",
+  "schemaVersion": 1
+}

@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Hip Thrust",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__bilateral__barbell",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con barra y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma concéntrica hasta alinear pelvis y tronco, y la barra sobre la pelvis carga esa extensión con ambas piernas empujando el suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla flexionada sobre los dos pies aporta estabilidad a la extensión de cadera y reparte el empuje de las piernas bajo la barra apoyada en la cadera.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva su alineación neutra con la espalda alta en el banco mientras la barra descansa sobre la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico mientras la pelvis asciende alineada con la barra sobre la cadera y los dos pies en el suelo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,24 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera hasta alinear la pelvis, con la barra apoyada sobre la cadera y ambas piernas empujando el suelo con firmeza."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera con la barra sobre la pelvis y frenan el descenso excéntrico de la cadera hacia el suelo con los dos pies apoyados."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza la rodilla sobre los dos pies apoyados y asiste el empuje final de la pelvis mientras la barra descansa sobre la cadera con ambas piernas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico el tronco y la pelvis mientras la barra viaja sobre la cadera con las dos piernas y la espalda alta apoyada en el banco."
-                }
-              ],
               "performanceProfileId": "hip_thrust__barbell__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -116,7 +86,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma concéntrica hasta alinear pelvis y tronco, y la barra sobre la pelvis carga esa extensión con ambas piernas empujando el suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -124,7 +93,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla flexionada sobre los dos pies aporta estabilidad a la extensión de cadera y reparte el empuje de las piernas bajo la barra apoyada en la cadera.",
                       "role": "SECONDARY"
                     },
                     {
@@ -132,7 +100,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva su alineación neutra con la espalda alta en el banco mientras la barra descansa sobre la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -140,11 +107,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico mientras la pelvis asciende alineada con la barra sobre la cadera y los dos pies en el suelo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -152,12 +117,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -168,7 +129,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -178,30 +138,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "barbell · bilateral",
@@ -209,15 +145,6 @@
                     "implement": "barbell",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con barra y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la barra, que permite cargar pesado y medir la progresión con claridad. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                  "technique": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -230,7 +157,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__bilateral__barbell",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -247,42 +174,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Barra · Trabajo Bilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -298,9 +203,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla. La carga bilateral ofrece la progresión más directa para acumular fuerza en la extensión de cadera."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -315,7 +218,6 @@
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__unilateral__barbell",
@@ -323,16 +225,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con barra y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -346,7 +241,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la barra sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -354,7 +248,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad a la extensión unilateral y reparte el empuje bajo la barra, mientras la otra pierna no comparte el empuje.",
                   "role": "SECONDARY"
                 },
                 {
@@ -362,7 +255,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra pese a la carga asimétrica de la barra sobre la cadera, con la espalda alta en el banco y una sola pierna empujando.",
                   "role": "STABILIZER"
                 },
                 {
@@ -370,7 +262,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico ante la carga unilateral de la barra, con la pelvis subiendo alineada sobre una sola pierna apoyada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -378,24 +269,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna sin ayuda de la contralateral, con la barra sobre la cadera y la espalda alta en el banco."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de la cadera que trabaja sola bajo la barra y frenan el descenso excéntrico de la pelvis hacia el suelo con una sola pierna."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que empuja el suelo y asiste el empuje final con la barra sobre la cadera mientras la otra pierna no ayuda."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico la pelvis y el tronco ante el desnivel de carga unilateral, con la barra sobre la cadera y la espalda alta en el banco."
-                }
-              ],
               "performanceProfileId": "hip_thrust__barbell__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -417,7 +290,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la barra sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -425,7 +297,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad a la extensión unilateral y reparte el empuje bajo la barra, mientras la otra pierna no comparte el empuje.",
                       "role": "SECONDARY"
                     },
                     {
@@ -433,7 +304,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra pese a la carga asimétrica de la barra sobre la cadera, con la espalda alta en el banco y una sola pierna empujando.",
                       "role": "STABILIZER"
                     },
                     {
@@ -441,11 +311,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico ante la carga unilateral de la barra, con la pelvis subiendo alineada sobre una sola pierna apoyada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -453,12 +321,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -469,7 +333,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -479,30 +342,6 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "barbell · unilateral",
@@ -510,15 +349,6 @@
                     "implement": "barbell",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con barra y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. Con la barra, la carga sube al máximo y la progresión del glúteo mayor se mide sin trampa. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La versión avanzada para quien ya domina el tradicional."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -531,7 +361,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__unilateral__barbell",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -548,42 +378,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Barra · Trabajo Unilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -599,9 +407,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma. La versión avanzada para quien ya domina el tradicional."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "barbell",
@@ -616,7 +422,6 @@
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__bilateral__smith_machine",
@@ -624,16 +429,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con máquina Smith y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -647,7 +445,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma concéntrica bajo la trayectoria guiada de la Smith, que mantiene la barra sobre la pelvis mientras ambas piernas empujan el suelo.",
                   "role": "PRIMARY"
                 },
                 {
@@ -655,7 +452,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la barra guiada de la Smith, con los dos pies repartiendo el empuje sobre el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -663,7 +459,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la Smith guía la barra sobre la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -671,7 +466,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo el guiado de la Smith, con la pelvis alineada, los dos pies en el suelo y la barra sobre la cadera.",
                   "role": "STABILIZER"
                 }
               ],
@@ -679,24 +473,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera con la barra guiada de la Smith sobre la pelvis y ambas piernas empujando el suelo hasta alinear el tronco."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera bajo el guiado de la Smith y frenan el descenso excéntrico de la pelvis con los dos pies apoyados."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza las rodillas sobre los dos pies mientras la Smith guía la barra sobre la cadera y la pelvis empuja hasta la extensión con ambas piernas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico el tronco sin equilibrar la barra, ya que la Smith la guía sobre la cadera con las dos piernas y la espalda alta en el banco."
-                }
-              ],
               "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -718,7 +494,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma concéntrica bajo la trayectoria guiada de la Smith, que mantiene la barra sobre la pelvis mientras ambas piernas empujan el suelo.",
                       "role": "PRIMARY"
                     },
                     {
@@ -726,7 +501,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la barra guiada de la Smith, con los dos pies repartiendo el empuje sobre el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -734,7 +508,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la Smith guía la barra sobre la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -742,11 +515,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo el guiado de la Smith, con la pelvis alineada, los dos pies en el suelo y la barra sobre la cadera.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -754,12 +525,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -770,7 +537,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -780,30 +546,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "smith_machine · bilateral",
@@ -811,15 +553,6 @@
                     "implement": "smith_machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con máquina Smith y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                  "technique": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. Útil para series pesadas."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -832,7 +565,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__bilateral__smith_machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -849,42 +582,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Máquina Smith · Trabajo Bilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -900,9 +611,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio. Útil para series pesadas."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -917,7 +626,6 @@
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__unilateral__smith_machine",
@@ -925,16 +633,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con máquina Smith y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "smith_machine",
@@ -948,7 +649,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica bajo el guiado de la Smith, sin la extensión de la otra pierna, hasta alinear pelvis y tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -956,7 +656,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la barra guiada de la Smith, mientras la otra rodilla no comparte el empuje del suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -964,7 +663,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la carga unilateral de la Smith, con la espalda alta en el banco y una sola pierna empujando.",
                   "role": "STABILIZER"
                 },
                 {
@@ -972,7 +670,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada mientras la Smith guía la barra sobre la cadera y la pelvis sube alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -980,24 +677,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna bajo el guiado de la Smith, con la barra sobre la pelvis y la espalda alta en el banco."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión unilateral que guía la Smith y frenan el descenso excéntrico de la pelvis mientras solo una pierna empuja el suelo."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que trabaja bajo la barra guiada de la Smith, mientras la otra pierna acompaña sin empujar el suelo."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico la pelvis frente a la carga de un solo lado, con la Smith guiando la barra sobre la cadera y la espalda alta en el banco."
-                }
-              ],
               "performanceProfileId": "hip_thrust__smith_machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1019,7 +698,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica bajo el guiado de la Smith, sin la extensión de la otra pierna, hasta alinear pelvis y tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1027,7 +705,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la barra guiada de la Smith, mientras la otra rodilla no comparte el empuje del suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1035,7 +712,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la carga unilateral de la Smith, con la espalda alta en el banco y una sola pierna empujando.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1043,11 +719,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada mientras la Smith guía la barra sobre la cadera y la pelvis sube alineada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -1055,12 +729,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1071,7 +741,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1081,30 +750,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Smith con una pierna: guiado estable y trabajo unilateral del glúteo."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "smith_machine · unilateral",
@@ -1112,15 +757,6 @@
                     "implement": "smith_machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con máquina Smith y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la Smith, la guía fija permite concentrar todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. Útil para corregir desequilibrios con carga."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1133,7 +769,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__unilateral__smith_machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1150,42 +786,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Máquina Smith · Trabajo Unilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "smith_machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1201,9 +815,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Smith con una pierna: guiado estable y trabajo unilateral del glúteo. Útil para corregir desequilibrios con carga."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "smith_machine",
@@ -1219,7 +831,6 @@
                 "editorial:configuration:glutes_hip_thrust__machine__bilateral",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__bilateral__machine",
@@ -1227,16 +838,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con máquina y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -1250,7 +854,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma concéntrica contra la almohadilla de la máquina, que dirige la carga mientras ambas piernas empujan hasta alinear la pelvis.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1258,7 +861,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera contra la almohadilla de la máquina, con los dos pies repartiendo el empuje sobre el suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1266,7 +868,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva su alineación sobre el apoyo de la máquina mientras la almohadilla carga la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1274,7 +875,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la almohadilla de la máquina, con los dos pies en el suelo y la pelvis subiendo alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1282,24 +882,6 @@
               "laterality": "BILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera contra la almohadilla de la máquina, con ambas piernas empujando el suelo y la espalda alta sobre el apoyo."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera contra la almohadilla de la máquina y frenan el descenso excéntrico de la pelvis con los dos pies apoyados."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza las rodillas sobre los dos pies mientras la almohadilla de la máquina carga la cadera y la pelvis empuja hasta la extensión."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico el tronco sobre el apoyo de la máquina, con la almohadilla cargando la cadera y las dos piernas empujando el suelo."
-                }
-              ],
               "performanceProfileId": "hip_thrust__machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1321,7 +903,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma concéntrica contra la almohadilla de la máquina, que dirige la carga mientras ambas piernas empujan hasta alinear la pelvis.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1329,7 +910,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera contra la almohadilla de la máquina, con los dos pies repartiendo el empuje sobre el suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1337,7 +917,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva su alineación sobre el apoyo de la máquina mientras la almohadilla carga la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1345,11 +924,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la almohadilla de la máquina, con los dos pies en el suelo y la pelvis subiendo alineada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -1357,12 +934,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1373,7 +946,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1383,30 +955,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "machine · bilateral",
@@ -1414,15 +962,6 @@
                     "implement": "machine",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con máquina y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A dos lados, el trabajo del glúteo mayor admite más carga total.",
-                  "technique": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La opción más cómoda para cargar el glúteo con estabilidad."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1435,7 +974,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__bilateral__machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1452,42 +991,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Máquina · Trabajo Bilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1503,9 +1020,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto. La opción más cómoda para cargar el glúteo con estabilidad."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1521,7 +1036,6 @@
                 "editorial:configuration:glutes_hip_thrust__machine__bilateral",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__unilateral__machine",
@@ -1529,16 +1043,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con máquina y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "machine",
@@ -1552,7 +1059,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la almohadilla de la máquina, sin la extensión de la otra pierna, hasta alinear la pelvis.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1560,7 +1066,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad contra la almohadilla de la máquina, mientras la otra rodilla no comparte el empuje del suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1568,7 +1073,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra sobre el apoyo de la máquina con la carga en una sola pierna y la pelvis subiendo bajo la almohadilla.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1576,7 +1080,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la almohadilla de la máquina sobre la cadera y la pelvis alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1584,24 +1087,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna contra la almohadilla de la máquina, con la espalda alta sobre el apoyo y sin ayuda contralateral."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión unilateral contra la almohadilla de la máquina y frenan el descenso excéntrico de la pelvis cuando solo una pierna empuja."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que trabaja contra la almohadilla de la máquina, mientras la otra pierna permanece sin empujar el suelo."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico la pelvis frente a la carga de un solo lado, con la almohadilla de la máquina sobre la cadera y la espalda alta en el apoyo."
-                }
-              ],
               "performanceProfileId": "hip_thrust__machine__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1623,7 +1108,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la almohadilla de la máquina, sin la extensión de la otra pierna, hasta alinear la pelvis.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1631,7 +1115,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad contra la almohadilla de la máquina, mientras la otra rodilla no comparte el empuje del suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1639,7 +1122,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra sobre el apoyo de la máquina con la carga en una sola pierna y la pelvis subiendo bajo la almohadilla.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1647,11 +1129,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la almohadilla de la máquina sobre la cadera y la pelvis alineada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -1659,12 +1139,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1675,7 +1151,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "guided_external_load",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1685,30 +1160,6 @@
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "machine · unilateral",
@@ -1716,15 +1167,6 @@
                     "implement": "machine",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con máquina y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. En la máquina, la trayectoria guiada concentra todo el esfuerzo del glúteo mayor. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. Útil para igualar ambos lados."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1737,7 +1179,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__unilateral__machine",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -1754,42 +1196,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Máquina · Trabajo Unilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "machine"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "high",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "machine"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -1805,9 +1225,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina. Útil para igualar ambos lados."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "machine",
@@ -1822,7 +1240,6 @@
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__bilateral__band",
@@ -1830,16 +1247,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con banda elástica y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
               "efc": 2.8,
               "equipmentId": "band",
@@ -1853,7 +1263,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende de forma concéntrica contra la banda elástica sobre la pelvis, cuya resistencia crece al final del recorrido con ambas piernas empujando.",
                   "role": "PRIMARY"
                 },
                 {
@@ -1861,7 +1270,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la banda elástica, con los dos pies repartiendo el empuje del suelo hasta alinear la pelvis.",
                   "role": "SECONDARY"
                 },
                 {
@@ -1869,7 +1277,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la banda elástica tira de la cadera y la pelvis sube con las dos piernas.",
                   "role": "STABILIZER"
                 },
                 {
@@ -1877,7 +1284,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la banda elástica, con los dos pies en el suelo y la pelvis subiendo alineada al final del recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1885,24 +1291,6 @@
               "laterality": "BILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera contra la banda elástica sobre la pelvis, con ambas piernas empujando el suelo y la espalda alta en el banco."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión de cadera contra la banda elástica y frenan el descenso excéntrico de la pelvis cuando la banda pierde tensión."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza las rodillas sobre los dos pies mientras la banda elástica carga la cadera y la pelvis empuja hasta la extensión con ambas piernas."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico el tronco y la pelvis mientras la banda elástica sobre la cadera gana tensión, con las dos piernas y la espalda alta en el banco."
-                }
-              ],
               "performanceProfileId": "hip_thrust__band__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -1924,7 +1312,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende de forma concéntrica contra la banda elástica sobre la pelvis, cuya resistencia crece al final del recorrido con ambas piernas empujando.",
                       "role": "PRIMARY"
                     },
                     {
@@ -1932,7 +1319,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla aporta estabilidad a la extensión de cadera bajo la banda elástica, con los dos pies repartiendo el empuje del suelo hasta alinear la pelvis.",
                       "role": "SECONDARY"
                     },
                     {
@@ -1940,7 +1326,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva su alineación con la espalda alta en el banco mientras la banda elástica tira de la cadera y la pelvis sube con las dos piernas.",
                       "role": "STABILIZER"
                     },
                     {
@@ -1948,11 +1333,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico bajo la banda elástica, con los dos pies en el suelo y la pelvis subiendo alineada al final del recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -1960,12 +1343,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1976,7 +1355,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -1986,30 +1364,6 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "band · bilateral",
@@ -2017,15 +1371,6 @@
                     "implement": "band",
                     "laterality": "bilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con banda elástica y a dos lados, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. Con ambos lados a la vez, el trabajo del glúteo mayor se reparte.",
-                  "technique": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. Fácil de montar en cualquier sitio y muy exigente al final de la serie."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2038,7 +1383,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__bilateral__band",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -2055,42 +1400,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Banda Elástica · Trabajo Bilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2106,9 +1429,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba. Fácil de montar en cualquier sitio y muy exigente al final de la serie."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "band",
@@ -2123,7 +1444,6 @@
                 "legacy:exercise_database.json#glutes_hip_thrust",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "hip_thrust__unilateral__band",
@@ -2131,16 +1451,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                "El constructor de glúteos número uno del mundo moderno."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-              ],
               "description": "Con banda elástica y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
               "efc": 2.8,
               "equipmentId": "band",
@@ -2154,7 +1467,6 @@
                     "Extensión"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la banda elástica sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2162,7 +1474,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "rodilla",
-                  "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la banda elástica, mientras la otra rodilla no comparte el empuje del suelo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2170,7 +1481,6 @@
                     "Alineación"
                   ],
                   "jointId": "columna-lumbar",
-                  "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la banda elástica cargada en un solo lado, con la espalda alta en el banco y una pierna empujando.",
                   "role": "STABILIZER"
                 },
                 {
@@ -2178,7 +1488,6 @@
                     "Control Pélvico"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la banda elástica sobre la cadera y la pelvis subiendo alineada.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2186,24 +1495,6 @@
               "laterality": "UNILATERAL",
               "loadMode": "variable_band_resistance",
               "movementPatternId": "hip_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Principal: El glúteo mayor concentra la extensión de cadera de una sola pierna contra la banda elástica sobre la pelvis, con la espalda alta en el banco y sin ayuda contralateral."
-                },
-                {
-                  "muscleId": "hamstrings",
-                  "note": "Secundario: Los isquiosurales asisten la extensión unilateral contra la banda elástica y frenan el descenso excéntrico de la pelvis cuando la banda pierde tensión."
-                },
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Secundario: El cuádriceps estabiliza la rodilla de la pierna que empuja el suelo contra la banda elástica, mientras la otra pierna no comparte el trabajo."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene en isométrico la pelvis frente a la resistencia elástica asimétrica, con una sola pierna apoyada y la espalda alta en el banco."
-                }
-              ],
               "performanceProfileId": "hip_thrust__band__hip_thrust",
               "primaryMuscles": [
                 "gluteus_maximus"
@@ -2225,7 +1516,6 @@
                         "Extensión"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera de un solo lado se extiende de forma concéntrica contra la banda elástica sobre la pelvis, sin la extensión de la otra pierna, hasta alinear el tronco.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2233,7 +1523,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "rodilla",
-                      "note": "Secundaria: La rodilla de la pierna que trabaja aporta estabilidad bajo la banda elástica, mientras la otra rodilla no comparte el empuje del suelo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2241,7 +1530,6 @@
                         "Alineación"
                       ],
                       "jointId": "columna-lumbar",
-                      "note": "Estabilizadora: La columna lumbar conserva la alineación neutra frente a la banda elástica cargada en un solo lado, con la espalda alta en el banco y una pierna empujando.",
                       "role": "STABILIZER"
                     },
                     {
@@ -2249,11 +1537,9 @@
                         "Control Pélvico"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La articulación sacroiliaca sostiene el control pélvico con una sola pierna apoyada, la banda elástica sobre la cadera y la pelvis subiendo alineada.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "gluteus_maximus"
                   ],
@@ -2261,12 +1547,8 @@
                     "hamstrings",
                     "quadriceps"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "core"
-                  ],
-                  "targetRegions": [
-                    "gluteus_maximus"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -2277,7 +1559,6 @@
                   "laterality": "UNILATERAL",
                   "loadMode": "variable_band_resistance",
                   "movementPatternId": "hip_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "cadera",
                     "rodilla",
@@ -2287,30 +1568,6 @@
                   "resistanceProfile": "variable_band",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Hiperextender la zona lumbar, abrir demasiado las costillas o mover la carga con rebote."
-                  ],
-                  "cues": [
-                    "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "execution": [
-                    "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de cadera y control de la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de cadera según tolerancia y rango disponible.",
-                    "Movilidad de rodilla según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica."
-                  ]
-                },
                 "display": {
                   "displayName": "Hip Thrust",
                   "displaySummary": "band · unilateral",
@@ -2318,15 +1575,6 @@
                     "implement": "band",
                     "laterality": "unilateral"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                    "El constructor de glúteos número uno del mundo moderno."
-                  ],
-                  "description": "Con banda elástica y a un lado, con los omóplatos apoyados en el banco, la cadera sube hasta la extensión completa con el glúteo empujando. El glúteo mayor trabaja con la banda, cuya resistencia crece con el recorrido. A un lado, el trabajo del glúteo mayor se hace en solitario y las diferencias salen a la vista.",
-                  "technique": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-                  "variantRationale": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. Variante sencilla y útil para acumular trabajo para rematar."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2339,7 +1587,7 @@
                 },
                 "identity": {
                   "canonicalName": "Hip Thrust",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "hip_thrust__unilateral__band",
                   "definitionId": "hip_thrust",
                   "familyId": "lower_hip_extension_hip_thrust",
@@ -2356,42 +1604,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el glúteo mayor mediante Hip Thrust en la variante Banda Elástica · Trabajo Unilateral.",
-                    "Priorizar concentrar el trabajo en la extensión de cadera sin exigir demasiado a la rodilla con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "band"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "band"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de cadera y control de la pelvis y el objetivo de el glúteo mayor.",
-                    "La sustitución debe respetar las articulaciones relevantes: cadera, rodilla, columna lumbar."
+                    "hip_extension:gluteus_maximus"
                   ],
                   "replacementGroup": "glute_hip_thrust",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
@@ -2407,9 +1633,7 @@
                 "core"
               ],
               "technicalDifficulty": 4.2,
-              "techniqueSummary": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. La espalda alta apoya en el banco y la pelvis sube hasta quedar alineada; la carga se mantiene sobre la cadera sin perder el apoyo de los pies.",
-              "ttc": 2.0,
-              "variantRationale": "Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica. Variante sencilla y útil para acumular trabajo para rematar."
+              "ttc": 2.0
             },
             "selectedOptions": {
               "implement": "band",
@@ -2424,7 +1648,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_hip_extension_hip_thrust",
@@ -2440,13 +1663,11 @@
         ]
       }
     ],
-    "description": "Familia de extensión de cadera con la espalda apoyada; el implemento y la lateralidad son las decisiones visibles de cada variante.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_hip_extension_hip_thrust",

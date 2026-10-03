@@ -1,5 +1,98 @@
 # Estado de ejecución — catálogo de ejercicios
 
+## Estado vigente — re-curaduría integral (desde 2026-10-01)
+
+Todo lo que sigue a esta sección es el **registro histórico** de las curadurías
+anteriores (v3 a v7.2). Nombra archivos y campos que ya no existen:
+`editorial_briefs.json`, `muscleNotes`, `techniqueSummary`, `benefits`, etc. Lo
+vigente es esto:
+
+- Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
+  cambian, el resolver rechaza ejercicios guardados con otra revisión) y
+  ontología `wikilab-v3-2026-08-08`.
+- 96 familias, 201 definiciones, 523 configuraciones, 411 pares definición ×
+  implemento. SHA-256 canónico compartido
+  `6bdb9e599685132d226a9e6bccad96230874ad4e1717e55008c4e22cf33d9ae0`.
+- Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
+  96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
+  reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
+  que producen las fichas.
+- Estado de las fichas: 178 definiciones `LEGACY` y **23 `CURATED`**. Piloto
+  (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
+  (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
+  (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
+  los presses (`bench_press`, `decline_bench_press`, `incline_bench_press`,
+  `paused_bench_press`) y los empujes de `upper_horizontal_push`. El paso a
+  `CURATED` se hace por lotes y queda registrado aquí.
+- `editorial_briefs.json` y su copia `.bak.2026-08-08` se eliminaron: sus 201
+  definiciones eran idénticas al contenido de las fichas esqueleto.
+- Los 8 generadores por plantilla (`build_catalog_v2_*`, `curaduria_v3` a `v6`,
+  `seed_catalog_editorial_briefs`) viven en `scripts/legacy/` y no corren sin
+  una confirmación explícita (`_legacy_guard.py`).
+- `quality_lexicon.json`, `quality_allowlist.json`, `anatomy_rules.json` y
+  `QUALITY_BASELINE.md` pertenecen a `scripts/catalog_v2_quality_audit.py`
+  (auditoría de solo lectura; el baseline es la medición **previa** a retirar los
+  campos, por eso sigue midiendo textos que el catálogo ya no contiene).
+
+### Campos retirados del esquema y prueba de no uso (F1)
+
+Retirar significa: no se escribe, no se guarda en `source/`, no se compila en el
+asset de runtime y no lo lee Android, iOS ni el backend. La lista única es
+`scripts/catalog_v2_retired_fields.py` (24 rutas); el compilador, el gate, el
+backend (copia literal, sincronizada por prueba) y la prueba de Android
+`ExerciseCatalogRetiredKnowledgeTest` rechazan cualquier carga que las traiga.
+
+Método de la prueba de no uso: (1) las líneas eliminadas por F1 en código de
+producción (`git diff HEAD` sobre `android-native/app/src/main`,
+`ios-native/KPKNFit/KPKNFit` y `backend/`) se clasificaron en declaraciones del
+modelo y lecturas; (2) se buscó cada nombre de campo en el código de producción
+que queda. Resultado por grupo:
+
+| Campos retirados | Lectores de producción antes de F1 | Efecto visible | Decisión |
+| --- | --- | --- | --- |
+| `family.description`, `*.evidence.rationale` | Ninguno (solo validación de formato) | Ninguno | Retirado |
+| `profile.benefits`, `techniqueSummary`, `variantRationale` | Validación del loader de Android y métricas de `AprendeCatalogAudit`; armado de `richMetadata.editorial`; validación del backend. Ninguna pantalla los muestra | Ninguno | Retirado |
+| `profile.commonMistakes`, `richMetadata.coaching` | Android: `ExerciseCatalogV2LegacyAdapter` los copiaba a `ExerciseMuscleInfo.commonMistakes`, que solo agrega `ExerciseMatchEngine` para sugerir un ejercicio personalizado nuevo y se guarda sin mostrarse. iOS: lo mismo en `ExerciseDatabase` y `ExerciseMatchEngine` | Ninguno: ninguna pantalla muestra «errores comunes» del catálogo | Retirado |
+| `profile.muscleNotes`, `jointInvolvement[].note` (y su espejo en `richMetadata.anatomy`) | Solo validadores (loader de Android, backend, gate) | Ninguno | Retirado |
+| `richMetadata.editorial`, `richMetadata.safety` | Armado en `toRichMetadata` y validadores | Ninguno | Retirado |
+| `anatomy.targetRegions`, `muscleLengthBias`, `stabilizationDemand`; `biomechanics.rangeOfMotion`, `relevantTendons` | Validadores; iOS copiaba `rangeOfMotion` a `peakTensionPoint`, que ningún código lee | Ninguno | Retirado |
+| `programming.suitableRepRanges`, `recoveryCost`, `setupTransitionCost` | Solo validadores | Ninguno | Retirado |
+| `programming.objectives`, `programming.splitSuitability` | iOS: alimentaban `functionalTransfer` y `sportsRelevance`, que lee `inferTransferLabel` (texto de justificación de ejercicios sustitutos) | **iOS**: sin esos campos la frase cae en la frase por región (antes eran 514 frases de plantilla distintas) | Retirado; cambio visible escalado al dueño del producto |
+
+Campos que **se conservan** porque tienen lector: `programming.indicativeRestSeconds`
+(iOS: asistente de sesión y analítica), `programming.requiredEquipment` (Android:
+compatibilidad de planes), `programming.role` y `biomechanics.stability` (iOS:
+proyección) y `replacement.preservesIntent` (Android: similitud entre ejercicios;
+ahora se deriva como `<patrón>:<músculo primario>`).
+
+Campos **sin lector pero conservados** a la espera de decisión del dueño del
+producto: `anatomy.volumeContribution`, `programming.fatigueCost` y
+`replacement.compatibleEquipmentIds`. Los espejos `anatomy.jointActions` y
+`biomechanics.relevantJoints` también se conservan, pero ya se derivan de la
+ficha y no se escriben a mano.
+
+Compatibilidad con datos ya guardados en el teléfono: las instantáneas de
+historial y el `catalogRichMetadataJson` persistidos antes de F1 contienen
+claves retiradas; los decodificadores de Android las ignoran
+(`ignoreUnknownKeys`), y `ExerciseCatalogV2LegacyPersistedDataTest` lo fija.
+
+### Piloto de re-curaduría (F2, 2026-10-01)
+
+Tres definiciones pasaron de `LEGACY` a `CURATED`, con ficha completa (`public`,
+`technique`, `anatomy`, `visual`, `sources`), aplicadas y compiladas:
+
+| Definición | Qué cambió | Evidencia |
+| --- | --- | --- |
+| `seal_row` | Se retiran los erectores como músculo de trabajo (el torso apoyado sostiene la columna) y se añade el antebrazo como estabilizador del agarre. La descripción deja de atribuir el tope de la barra a la variante con mancuernas. | Regla `rows.chest-supported-spine` |
+| `pull_up` | El bíceps sube de estabilizador a secundario en todos los agarres, también en el supino: no pasa a principal, porque el dorsal sigue por encima. Entran pectoral, erectores y antebrazo como estabilizadores. Salen los romboides (sin medición) y el reparto inventado por ancho de agarre. | Youdas 2010 (PMID 21068680), Dickie 2017 (PMID 28011412). Regla `vertical-pull.elbow-flexors` |
+| `glutes_clamshells_banda` | El glúteo medio queda principal por su función abductora, no porque domine el EMG, y el glúteo mayor queda secundario. Entran los flexores de cadera como secundarios (54 % frente a 33 % y 34 %). Sale la sacroilíaca: ninguna fuente la midió en la almeja. | Distefano 2009 (PMID 19574661), McBeth 2012 (PMID 22488226), Willcox 2013 (PMID 23485733). Regla `hip.abductors-gluteus-medius` |
+
+Las 17 fuentes citadas tienen prueba offline en `curation/sources_verified.json`.
+Estos tres cambios de criterio están **pendientes de confirmación del usuario**.
+
+---
+
+
 Fecha de corte: 2026-08-10 (curaduría editorial v7.2 — copy humano editorial)
 Revisión: `v2-approved-2026-08-10-c`
 Hash canónico compartido: `20ecd23cb4766c341236e09d336bf1c3d3db3041ec6d8b3dd568de124acc0aa5`

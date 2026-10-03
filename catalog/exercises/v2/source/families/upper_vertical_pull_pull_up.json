@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Dominadas",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__pronated__wide",
@@ -22,54 +21,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre amplio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
+              "description": "Con las manos bastante más separadas que los hombros y las palmas al frente, el hombro trabaja más abducido. La escápula se mueve menos hacia delante y atrás, y esa técnica se asocia a más riesgo de pinzamiento.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Sube llevando los codos hacia los lados hasta que la barbilla supere la barra.",
+                "Baja despacio hasta estirar los brazos sin dejar caer el cuerpo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo para elevar el cuerpo; el agarre prono ancho abre los codos y traslada parte del esfuerzo hacia la espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota durante el ascenso; el ancho del agarre aumenta la rotación y deja la espalda alta como protagonista del tirón.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir el cuerpo y se extiende al descender; el agarre prono ancho acorta su recorrido y deja más trabajo al hombro.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre prono sobre la barra fija de forma isométrica, con las palmas al frente y el antebrazo alineado en todo el recorrido.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,28 +69,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira del cuerpo hacia arriba con el agarre prono y ancho, llevando el hombro a aducción y extensión mientras los codos se abren hacia fuera."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Secundario: El trapecio asiste la subida con los codos abiertos, acompañando la depresión escapular al inicio del tirón y la rotación escapular al acercarse la barra."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps sostiene el codo en flexión isométrica durante el tirón prono ancho, sin perder altura cuando el cuerpo asciende hacia la barra fija."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica mientras el agarre ancho fija los codos abiertos y la espalda alta cargada."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco colgado con agarre ancho, sostiene la línea del cuerpo durante el ascenso y frena cualquier balanceo lateral."
-                }
-              ],
               "performanceProfileId": "pull_up__pronated__wide",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -109,61 +79,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo para elevar el cuerpo; el agarre prono ancho abre los codos y traslada parte del esfuerzo hacia la espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota durante el ascenso; el ancho del agarre aumenta la rotación y deja la espalda alta como protagonista del tirón.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir el cuerpo y se extiende al descender; el agarre prono ancho acorta su recorrido y deja más trabajo al hombro.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre prono sobre la barra fija de forma isométrica, con las palmas al frente y el antebrazo alineado en todo el recorrido.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "trapezius"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
                     "biceps",
-                    "rhomboids",
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi",
                     "trapezius"
+                  ],
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -174,7 +142,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -184,30 +151,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "pronated · wide",
@@ -215,15 +158,6 @@
                     "grip_type": "pronated",
                     "grip_width": "wide"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre amplio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. El agarre amplio abre los codos y reparte el esfuerzo del dorsal ancho hacia la espalda alta. Las palmas al frente dejan el dorsal ancho al mando.",
-                  "technique": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Una variante para trabajar la espalda alta con los codos abiertos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -236,7 +170,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__pronated__wide",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -256,61 +190,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Prono · Agarre Amplio.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
+                "biceps",
                 "trapezius"
               ],
               "setupCues": [
-                "Preparación: Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo."
+                "Cuélgate con las palmas al frente y las manos claramente más separadas que los hombros.",
+                "Deja los brazos estirados y las escápulas altas, sin adelantar la cabeza hacia la barra."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "biceps",
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre amplio y palmas al frente: la dominada tradicional, con la espalda alta tomando protagonismo. Una variante para trabajar la espalda alta con los codos abiertos."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -325,7 +238,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__pronated__medium",
@@ -333,54 +245,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre medio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
+              "description": "Con las palmas al frente y las manos al ancho de los hombros, el trapecio bajo trabaja más que con las palmas hacia ti, y el bíceps no recibe ese extra. Es la dominada de referencia.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Arranca deprimiendo las escápulas y sube hasta pasar la barbilla por encima de la barra.",
+                "Baja hasta estirar los brazos del todo, sin balancear las piernas."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo mientras el cuerpo asciende; el agarre prono medio reparte el esfuerzo por igual entre la espalda y el brazo.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre prono medio, que equilibra la rotación y reparte el tirón entre la espalda alta y el dorsal ancho.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; con el agarre prono medio su recorrido queda entre la apertura amplia y el tirón cerrado.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca estabiliza el agarre prono medio sobre la barra fija, con las palmas al frente y el antebrazo alineado mientras el cuerpo sube y baja.",
                   "role": "STABILIZER"
                 }
               ],
@@ -388,24 +293,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho dirige el ascenso con el agarre prono medio, llevando el hombro a aducción y extensión con un reparto equilibrado entre espalda y brazo."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica durante el tirón prono medio, aportando estabilidad al brazo sin adelantar el codo del torso."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides fijan la escápula con retracción isométrica mientras el agarre medio sitúa los codos en una posición equilibrada a la altura del torso."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sujeta el tronco colgado con agarre medio y sostiene el ascenso vertical sin balanceo, con el peso del cuerpo como única resistencia."
-                }
-              ],
               "performanceProfileId": "pull_up__pronated__medium",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -416,58 +303,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo mientras el cuerpo asciende; el agarre prono medio reparte el esfuerzo por igual entre la espalda y el brazo.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre prono medio, que equilibra la rotación y reparte el tirón entre la espalda alta y el dorsal ancho.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; con el agarre prono medio su recorrido queda entre la apertura amplia y el tirón cerrado.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca estabiliza el agarre prono medio sobre la barra fija, con las palmas al frente y el antebrazo alineado mientras el cuerpo sube y baja.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
+                  "secondaryMuscles": [
                     "biceps",
-                    "rhomboids",
-                    "core"
+                    "trapezius"
                   ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -478,7 +366,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -488,30 +375,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "pronated · medium",
@@ -519,15 +382,6 @@
                     "grip_type": "pronated",
                     "grip_width": "medium"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre medio y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre medio equilibra el reparto del trabajo del dorsal ancho. Las palmas al frente dejan el dorsal ancho al mando.",
-                  "technique": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. La dominada de referencia para la mayoría."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -540,7 +394,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__pronated__medium",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -560,59 +414,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Prono · Agarre Medio.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius"
+              ],
               "setupCues": [
-                "Preparación: Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda."
+                "Cuélgate con las palmas al frente y las manos al ancho de los hombros, brazos estirados.",
+                "Cruza los tobillos por detrás y deja las escápulas altas hasta que empieces a tirar."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "biceps",
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre medio y palmas al frente: el punto equilibrado entre fuerza y espalda. La dominada de referencia para la mayoría."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -627,7 +462,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__pronated__close",
@@ -635,54 +469,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre cerrado y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
+              "description": "Con las manos juntas y las palmas al frente, los codos bajan rozando las costillas en lugar de abrirse hacia los lados. El dorsal lleva la subida y el bíceps flexiona el codo sin la ventaja de la palma hacia ti.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Sube con los codos rozando los costados hasta pasar la barbilla por encima de la barra.",
+                "Baja hasta colgar del todo, sin acortar el recorrido abajo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con el agarre prono cerrado, que acerca los codos al torso y concentra el recorrido del tirón en el dorsal ancho.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre cerrado, que reduce la apertura y carga la espalda media al llevar los codos cerca del costado.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; el agarre cerrado acerca sus codos al torso y le da al brazo un papel claro en el tirón.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre prono cerrado sobre la barra fija, con las manos juntas y las palmas al frente dando estabilidad al tirón vertical.",
                   "role": "STABILIZER"
                 }
               ],
@@ -690,24 +517,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira con el agarre prono cerrado, donde los codos viajan pegados al torso y el músculo se estira al fondo de cada descenso."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps sostiene la flexión del codo de forma isométrica con las manos próximas, y el antebrazo alineado con la barra carga el agarre en cada subida."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica en el tirón cerrado, con los codos cerca del costado y la espalda media sosteniendo el recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco alineado con el agarre prono cerrado, donde el cuerpo cuelga cerca de la barra y el menor balanceo rompe el tirón."
-                }
-              ],
               "performanceProfileId": "pull_up__pronated__close",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -718,58 +527,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con el agarre prono cerrado, que acerca los codos al torso y concentra el recorrido del tirón en el dorsal ancho.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre cerrado, que reduce la apertura y carga la espalda media al llevar los codos cerca del costado.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir y se extiende al descender; el agarre cerrado acerca sus codos al torso y le da al brazo un papel claro en el tirón.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre prono cerrado sobre la barra fija, con las manos juntas y las palmas al frente dando estabilidad al tirón vertical.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
+                  "secondaryMuscles": [
                     "biceps",
-                    "rhomboids",
-                    "core"
+                    "trapezius"
                   ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -780,7 +590,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -790,30 +599,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "pronated · close",
@@ -821,15 +606,6 @@
                     "grip_type": "pronated",
                     "grip_width": "close"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre cerrado y agarre prono, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Con las palmas al frente, el dorsal ancho manda.",
-                  "technique": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. La variante profunda para la espalda media."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -842,7 +618,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__pronated__close",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -862,59 +638,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Prono · Agarre Cerrado.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius"
+              ],
               "setupCues": [
-                "Preparación: Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos."
+                "Cuélgate con las palmas al frente y las manos casi juntas, dentro del ancho de los hombros.",
+                "Estira los brazos y mantén las escápulas altas hasta el primer tirón."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "biceps",
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre cerrado y palmas al frente: el dorsal se estira más con los codos bajos. La variante profunda para la espalda media."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "pronated",
@@ -929,7 +686,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__supinated__wide",
@@ -937,54 +693,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre amplio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
+              "description": "Las palmas hacia ti y las manos muy separadas alejan el brazo del plano de la escápula, con una rotación de hombro marcada. El ancho reduce el juego de la escápula y suma riesgo de pinzamiento.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Sube hasta pasar la barbilla por encima de la barra, con los codos hacia los lados.",
+                "Baja despacio hasta estirar los brazos, sin soltar el agarre."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y el agarre ancho, que abre los codos y traslada el esfuerzo hacia la espalda alta del tirón.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre supino ancho, cuya apertura aumenta la rotación y exige más estabilidad escapular en la parte alta del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir con la palma supina, que le da más protagonismo al bíceps y acompaña el ascenso con una flexión activa del brazo.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre supino ancho sobre la barra fija, con las palmas hacia ti y el antebrazo girado, exigiendo firmeza en el agarre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -992,28 +741,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho inicia el ascenso con las palmas hacia ti y el agarre ancho, aunque los codos abiertos desplazan parte del esfuerzo hacia la espalda alta."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps asiste la subida con flexión de codo activa, favorecido por la palma supina, que lo sitúa en una posición fuerte para tirar del cuerpo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica mientras el agarre supino ancho fija los codos abiertos y la espalda alta cargada."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sujeta el tronco colgado con las palmas hacia ti y el agarre ancho, sosteniendo la línea del cuerpo en cada repetición del ascenso."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Estabilizador: El trapecio fija la escápula deprimida y estable de forma isométrica durante el ascenso con agarre ancho, donde los codos abiertos exigen estabilidad escapular."
-                }
-              ],
               "performanceProfileId": "pull_up__supinated__wide",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1024,62 +751,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y el agarre ancho, que abre los codos y traslada el esfuerzo hacia la espalda alta del tirón.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre supino ancho, cuya apertura aumenta la rotación y exige más estabilidad escapular en la parte alta del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir con la palma supina, que le da más protagonismo al bíceps y acompaña el ascenso con una flexión activa del brazo.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre supino ancho sobre la barra fija, con las palmas hacia ti y el antebrazo girado, exigiendo firmeza en el agarre.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps"
-                  ],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "rhomboids",
-                    "core",
+                    "biceps",
                     "trapezius"
                   ],
-                  "targetRegions": [
-                    "latissimus_dorsi",
-                    "trapezius",
-                    "biceps"
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1090,7 +814,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1100,30 +823,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "supinated · wide",
@@ -1131,15 +830,6 @@
                     "grip_type": "supinated",
                     "grip_width": "wide"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre amplio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas hacia ti, el bíceps gana protagonismo.",
-                  "technique": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Chin-up amplio que combina espalda y brazo."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1152,7 +842,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__supinated__wide",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -1172,61 +862,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Supino · Agarre Amplio.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
-                "biceps"
+                "biceps",
+                "trapezius"
               ],
               "setupCues": [
-                "Preparación: Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina."
+                "Cuélgate con las palmas hacia ti y las manos claramente más separadas que los hombros.",
+                "Revisa que las muñecas no se doblen hacia atrás al cargar el peso del cuerpo."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
+                "pectoralis",
                 "core",
-                "trapezius"
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre amplio y palmas hacia ti: el bíceps ayuda más con la palma supina. Chin-up amplio que combina espalda y brazo."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -1241,7 +910,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__supinated__medium",
@@ -1249,54 +917,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre medio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
+              "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps y el pectoral se activan más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Tira con los codos hacia abajo hasta que la barbilla supere la barra.",
+                "Baja controlando el estiramiento del bíceps hasta colgar del todo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y un agarre medio, donde el ascenso combina el tirón del dorsal con la ayuda del brazo.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre supino medio, que fija una rotación intermedia y un reparto equilibrado del tirón vertical.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir con la palma supina, y el agarre medio le da un recorrido intermedio que le permite aportar fuerza al ascenso.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca estabiliza el agarre supino medio sobre la barra fija, con las palmas hacia ti y el antebrazo alineado durante el ascenso y el descenso.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1304,24 +965,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho mueve el ascenso con el agarre supino medio, repartiendo el esfuerzo con el bíceps mientras el cuerpo sube hacia la barra con ambas manos."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps contribuye con flexión de codo activa en el agarre supino medio, donde la palma hacia ti le permite ayudar al dorsal en cada subida."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides fijan la escápula con retracción isométrica durante el tirón supino medio, sosteniendo la espalda media en todo el recorrido."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco con el agarre supino medio, donde el bíceps trabaja de más y el cuerpo busca balancearse para ayudar en el ascenso."
-                }
-              ],
               "performanceProfileId": "pull_up__supinated__medium",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1332,60 +975,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas hacia ti y un agarre medio, donde el ascenso combina el tirón del dorsal con la ayuda del brazo.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre supino medio, que fija una rotación intermedia y un reparto equilibrado del tirón vertical.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir con la palma supina, y el agarre medio le da un recorrido intermedio que le permite aportar fuerza al ascenso.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca estabiliza el agarre supino medio sobre la barra fija, con las palmas hacia ti y el antebrazo alineado durante el ascenso y el descenso.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps"
+                    "biceps",
+                    "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi",
-                    "biceps"
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1396,7 +1038,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1406,30 +1047,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "supinated · medium",
@@ -1437,15 +1054,6 @@
                     "grip_type": "supinated",
                     "grip_width": "medium"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre medio y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Con las palmas hacia ti, el bíceps gana protagonismo.",
-                  "technique": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. La dominada habitual de muchos."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1458,7 +1066,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__supinated__medium",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -1478,60 +1086,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Supino · Agarre Medio.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
-                "biceps"
+                "biceps",
+                "trapezius"
               ],
               "setupCues": [
-                "Preparación: Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo."
+                "Cuélgate con las palmas hacia ti y las manos al ancho de los hombros.",
+                "Estira los brazos con las escápulas altas y no dobles las muñecas hacia atrás."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre medio y palmas hacia ti: el bíceps trabaja de más y la subida aumenta la demanda del brazo. La dominada habitual de muchos."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -1546,7 +1134,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__supinated__close",
@@ -1554,54 +1141,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre cerrado y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
+              "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps y el pectoral aportan más que con las palmas al frente, sin una medición propia de este ancho.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Sube con los codos pegados a las costillas hasta superar la barra con la barbilla.",
+                "Baja hasta colgar del todo, frenando el estiramiento del bíceps."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con el agarre supino cerrado, que acerca los codos al torso y concentra el tirón cerca del cuerpo.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con las manos juntas y las palmas hacia ti, en un recorrido que acerca los codos y carga la espalda media del ascenso.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona con fuerza al subir con el agarre supino cerrado, la variante que más le exige al brazo y al bíceps en todo el recorrido.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre supino cerrado sobre la barra fija, con las manos juntas y las palmas hacia ti, donde el antebrazo aporta firmeza.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1609,24 +1189,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho trabaja con el agarre supino cerrado, donde los codos se acercan al torso y el músculo se estira al fondo del descenso antes de subir."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Secundario: El bíceps aporta fuerza de flexión de codo en el agarre supino cerrado, la posición donde su participación es más acusada y acompaña todo el tirón."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica con las manos juntas y las palmas hacia ti, cuidando la espalda media del tirón cerrado."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sujeta el tronco en la subida con el agarre supino cerrado, con el cuerpo colgado cerca de la barra y la línea del abdomen firme en cada fase."
-                }
-              ],
               "performanceProfileId": "pull_up__supinated__close",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1637,60 +1199,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con el agarre supino cerrado, que acerca los codos al torso y concentra el tirón cerca del cuerpo.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con las manos juntas y las palmas hacia ti, en un recorrido que acerca los codos y carga la espalda media del ascenso.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona con fuerza al subir con el agarre supino cerrado, la variante que más le exige al brazo y al bíceps en todo el recorrido.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre supino cerrado sobre la barra fija, con las manos juntas y las palmas hacia ti, donde el antebrazo aporta firmeza.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps"
+                    "biceps",
+                    "trapezius"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
-                    "rhomboids",
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi",
-                    "biceps"
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1701,7 +1262,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -1711,30 +1271,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "supinated · close",
@@ -1742,15 +1278,6 @@
                     "grip_type": "supinated",
                     "grip_width": "close"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre cerrado y agarre supino, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. El agarre cerrado acerca los codos y concentra el esfuerzo del dorsal ancho cerca del torso. Las palmas hacia ti dan más protagonismo al bíceps.",
-                  "technique": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Una progresión directa hacia la dominada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -1763,7 +1290,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__supinated__close",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -1783,60 +1310,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Supino · Agarre Cerrado.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [
-                "biceps"
+                "biceps",
+                "trapezius"
               ],
               "setupCues": [
-                "Preparación: Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado."
+                "Cuélgate con las palmas hacia ti y las manos casi juntas.",
+                "Estira los brazos por completo y deja las escápulas altas antes de flexionar los codos."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre cerrado y palmas hacia ti: la chin-up por excelencia, con el bíceps cargado. Una progresión directa hacia la dominada."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "supinated",
@@ -1851,7 +1358,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__neutral__wide",
@@ -1859,54 +1365,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre amplio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
+              "description": "Las asas se separan más que los hombros y las palmas siguen enfrentadas, así que los codos se abren y el hombro queda abducido. Entre prono y neutro solo cambió el trapecio medio, mayor en el prono, no el trapecio bajo por el ancho.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Sube llevando los codos hacia los lados hasta pasar la barbilla por encima de las manos.",
+                "Baja despacio hasta colgar del todo, sin dejar caer el cuerpo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre ancho, que abre los codos y combina comodidad articular con exigencia de espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre neutro ancho, cuya apertura pide una rotación marcada y más trabajo de la espalda alta.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas, y el agarre ancho acorta su recorrido mientras el hombro asume el peso del ascenso.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre neutro ancho sobre la barra fija, con las palmas enfrentadas y el antebrazo en línea, una posición que reparte la tensión del agarre.",
                   "role": "STABILIZER"
                 }
               ],
@@ -1914,28 +1413,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho tira del cuerpo con las palmas enfrentadas y el agarre ancho, donde los codos se abren y el esfuerzo se reparte hacia la espalda alta."
-                },
-                {
-                  "muscleId": "trapezius",
-                  "note": "Estabilizador: El trapecio fija la escápula deprimida y rotada de forma isométrica durante el ascenso neutro ancho, sosteniendo la espalda alta con los codos abiertos."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica con las palmas enfrentadas, ayudando al tirón ancho sin cargar la muñeca ni el antebrazo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la retracción escapular isométrica con el agarre neutro ancho, mientras los codos abiertos exigen estabilidad en la espalda alta."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco alineado colgado con las palmas enfrentadas y el agarre ancho, frenando el balanceo del cuerpo en el ascenso y el descenso."
-                }
-              ],
               "performanceProfileId": "pull_up__neutral__wide",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -1946,60 +1423,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre ancho, que abre los codos y combina comodidad articular con exigencia de espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre neutro ancho, cuya apertura pide una rotación marcada y más trabajo de la espalda alta.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas, y el agarre ancho acorta su recorrido mientras el hombro asume el peso del ascenso.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre neutro ancho sobre la barra fija, con las palmas enfrentadas y el antebrazo en línea, una posición que reparte la tensión del agarre.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
-                    "trapezius",
+                  "secondaryMuscles": [
                     "biceps",
-                    "rhomboids",
-                    "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi",
                     "trapezius"
+                  ],
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2010,7 +1486,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2020,30 +1495,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "neutral · wide",
@@ -2051,15 +1502,6 @@
                     "grip_type": "neutral",
                     "grip_width": "wide"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre amplio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. El dorsal ancho trabaja con el peso corporal como única carga. Con el agarre amplio, los codos se abren y el foco se desplaza del dorsal ancho hacia la espalda alta. Con las palmas enfrentadas, muñeca y codo viajan cómodos.",
-                  "technique": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Variante estable de la dominada amplia."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2072,7 +1514,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__neutral__wide",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -2092,60 +1534,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Neutro · Agarre Amplio.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius"
+              ],
               "setupCues": [
-                "Preparación: Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro."
+                "Cuélgate de unas asas separadas con las palmas enfrentadas, las manos más abiertas que los hombros.",
+                "Deja los brazos estirados y las escápulas altas, con el cuerpo vertical entre las asas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "trapezius",
-                "biceps",
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre amplio con palmas enfrentadas: el punto medio cómodo para el hombro. Variante estable de la dominada amplia."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -2160,7 +1582,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__neutral__medium",
@@ -2168,54 +1589,47 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre medio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
+              "description": "En las asas, con las palmas enfrentadas y las manos al ancho de los hombros, hombro, brazo y antebrazo se activaron parecido al prono y al supino. La muñeca queda mirando al otro brazo, sin girar al frente ni hacia ti.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Tira con los codos hacia abajo hasta que la barbilla supere las manos.",
+                "Baja hasta estirar los brazos sin balancear el cuerpo."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Aducción Y Extensión"
+                    "Aducción del hombro",
+                    "Extensión del hombro"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre medio, la posición neutra que reparte el tirón entre dorsal, espalda alta y brazo.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Depresión Y Rotación"
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre neutro medio, que fija una rotación equilibrada y un recorrido amable para el conjunto del hombro.",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión"
+                    "Flexión del codo"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas y el agarre medio, en un recorrido que reparte la demanda entre el brazo y la espalda.",
                   "role": "SECONDARY"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Agarre"
+                    "Sostén del agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre neutro medio sobre la barra fija, con las palmas enfrentadas y el antebrazo alineado, la posición más tolerante del tirón.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2223,24 +1637,6 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho conduce el ascenso con las palmas enfrentadas y el agarre medio, un reparto equilibrado que combina recorrido amplio y comodidad para el hombro."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica con el agarre neutro medio, colaborando en el tirón con la muñeca y el hombro en posición cómoda."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides fijan la escápula con retracción isométrica durante el ascenso neutro medio, sosteniendo la espalda media en un recorrido cómodo para el hombro."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core sostiene la línea del tronco colgado con las palmas enfrentadas y el agarre medio, con el cuerpo en línea y sin balanceo durante todo el recorrido."
-                }
-              ],
               "performanceProfileId": "pull_up__neutral__medium",
               "primaryMuscles": [
                 "latissimus_dorsi"
@@ -2251,58 +1647,59 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Aducción Y Extensión",
-                    "Depresión Y Rotación",
-                    "Flexión",
-                    "Estabilidad Del Agarre"
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Aducción Y Extensión"
+                        "Aducción del hombro",
+                        "Extensión del hombro"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y el agarre medio, la posición neutra que reparte el tirón entre dorsal, espalda alta y brazo.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Depresión Y Rotación"
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre neutro medio, que fija una rotación equilibrada y un recorrido amable para el conjunto del hombro.",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión"
+                        "Flexión del codo"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir con las palmas enfrentadas y el agarre medio, en un recorrido que reparte la demanda entre el brazo y la espalda.",
                       "role": "SECONDARY"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Agarre"
+                        "Sostén del agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre neutro medio sobre la barra fija, con las palmas enfrentadas y el antebrazo alineado, la posición más tolerante del tirón.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
-                  "stabilizerMuscles": [
+                  "secondaryMuscles": [
                     "biceps",
-                    "rhomboids",
-                    "core"
+                    "trapezius"
                   ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2313,7 +1710,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2323,30 +1719,6 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos."
-                  ]
-                },
                 "display": {
                   "displayName": "Dominadas",
                   "displaySummary": "neutral · medium",
@@ -2354,15 +1726,6 @@
                     "grip_type": "neutral",
                     "grip_width": "medium"
                   }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre medio y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre medio, el reparto del esfuerzo del dorsal ancho queda equilibrado. Las palmas enfrentadas cuidan muñeca y codo.",
-                  "technique": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. La versión más tolerante de la dominada."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2375,7 +1738,7 @@
                 },
                 "identity": {
                   "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "pull_up__neutral__medium",
                   "definitionId": "pull_up",
                   "familyId": "upper_vertical_pull_pull_up",
@@ -2395,59 +1758,40 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Neutro · Agarre Medio.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius"
+              ],
               "setupCues": [
-                "Preparación: Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos."
+                "Cuélgate de unas asas paralelas con las palmas enfrentadas, al ancho de los hombros.",
+                "Estira los brazos, deja las escápulas altas y cruza los tobillos por detrás."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.4,
               "stabilizerMuscles": [
-                "biceps",
-                "rhomboids",
-                "core"
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre medio con palmas enfrentadas: equilibrio entre espalda y brazo con hombros cómodos. La versión más tolerante de la dominada."
+              "ttc": 1.8
             },
             "selectedOptions": {
               "grip_type": "neutral",
@@ -2462,7 +1806,6 @@
                 "legacy:exercise_database.json#back_dominadas",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "pull_up__neutral__close",
@@ -2470,21 +1813,266 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
-                "El rey de los ejercicios de espalda: cada repetición cuenta."
-              ],
               "bodyRegion": "UPPER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.0,
-              "commonMistakes": [
-                "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-              ],
-              "description": "Con agarre cerrado y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
+              "description": "Con las asas juntas y las palmas enfrentadas, los codos bajan pegados al tronco y la muñeca no gira hacia ti. Orientar la mano así no cambió la activación respecto del prono ni del supino.",
               "efc": 2.5,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
+                "Sube con los codos rozando las costillas hasta que la barbilla supere las manos.",
+                "Baja hasta estirar los brazos del todo, sin acortar el recorrido abajo."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción del hombro",
+                    "Extensión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "NOT_APPLICABLE",
+              "loadMode": "bodyweight",
+              "movementPatternId": "vertical_pull",
+              "performanceProfileId": "pull_up__neutral__close",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_pullup_pronated",
+              "replacementPriority": 1,
+              "resistanceProfile": "body_angle",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Retracción escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción del hombro",
+                        "Extensión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión escapular",
+                        "Retracción escapular",
+                        "Rotación escapular inferior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "trapezius"
+                  ],
+                  "stabilizerMuscles": [
+                    "pectoralis",
+                    "core",
+                    "erector_spinae",
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "bodyweight",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "NOT_APPLICABLE",
+                  "loadMode": "bodyweight",
+                  "movementPatternId": "vertical_pull",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "body_angle",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Dominadas",
+                  "displaySummary": "neutral · close",
+                  "selectedOptions": {
+                    "grip_type": "neutral",
+                    "grip_width": "close"
+                  }
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Dominadas",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "pull_up__neutral__close",
+                  "definitionId": "pull_up",
+                  "familyId": "upper_vertical_pull_pull_up",
+                  "kind": "PARENT",
+                  "performanceProfileId": "pull_up__neutral__close",
+                  "searchTerms": [
+                    "dominadas",
+                    "pull up",
+                    "dominadas prono",
+                    "dominadas supino",
+                    "chin up"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "bodyweight"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "bodyweight"
+                  ],
+                  "preservesIntent": [
+                    "vertical_pull:latissimus_dorsi"
+                  ],
+                  "replacementGroup": "back_pullup_pronated",
+                  "replacementPriority": 1
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius"
+              ],
+              "setupCues": [
+                "Cuélgate de unas asas juntas con las palmas enfrentadas.",
+                "Estira los brazos y deja las escápulas altas, sin empujar las rodillas hacia delante."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "pectoralis",
+                "core",
+                "erector_spinae",
+                "forearm"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {
+              "grip_type": "neutral",
+              "grip_width": "close"
+            }
+          }
+        ],
+        "defaultConfigurationId": "pull_up__pronated__medium",
+        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps y el pectoral aportan más, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_pull_pull_up",
+        "id": "pull_up",
+        "kind": "PARENT",
+        "optionAxes": [
+          "grip_type",
+          "grip_width"
+        ],
+        "searchTerms": [
+          "dominadas",
+          "pull up",
+          "dominadas prono",
+          "dominadas supino",
+          "chin up"
+        ]
+      },
+      {
+        "canonicalName": "Dominada en Rack",
+        "configurations": [
+          {
+            "displaySummary": "default",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "plan:planes-adaptativos-wizard-20260928#13.5",
+                "editorial:configuration:rack_chin__default"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "rack_chin__default",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.0,
+              "description": "Con la barra fijada a la altura del pecho y los pies apoyados en el suelo, el cuerpo sube en tracción vertical hasta acercar el esternón a la barra y desciende sin impulso. La posición inclinada descarga parte del peso corporal y convierte el gesto en una alternativa accesible a la dominada completa.",
+              "efc": 2.5,
+              "equipmentId": "bodyweight",
+              "executionCues": [
+                "Barra en el rack al nivel del esternón y manos con agarre prono algo más anchas que los hombros: desde pies planos, el pecho sube hacia la barra con los codos viajando hacia atrás y la escápula deprimida, y el regreso baja hasta estirar los brazos sin hundir los hombros."
               ],
               "fatigueTier": "BAJA",
               "jointInvolvement": [
@@ -2493,7 +2081,6 @@
                     "Aducción Y Extensión"
                   ],
                   "jointId": "glenohumeral",
-                  "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y las manos juntas, un recorrido profundo que acerca los codos al torso y carga el dorsal ancho.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2501,7 +2088,6 @@
                     "Depresión Y Rotación"
                   ],
                   "jointId": "escapulotoracica",
-                  "note": "Principal: La escápula se deprime y rota con el agarre neutro cerrado, que acerca los codos al costado y lleva la rotación escapular a la parte media del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -2509,7 +2095,6 @@
                     "Flexión"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo se flexiona al subir con las manos juntas y las palmas enfrentadas, con un recorrido amplio que le da un papel claro en la subida del cuerpo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -2517,7 +2102,6 @@
                     "Estabilidad Del Agarre"
                   ],
                   "jointId": "muñeca",
-                  "note": "Estabilizadora: La muñeca sostiene el agarre neutro cerrado sobre la barra fija, con las manos juntas y las palmas enfrentadas, la posición que mejor alinea muñeca y antebrazo.",
                   "role": "STABILIZER"
                 }
               ],
@@ -2525,25 +2109,7 @@
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
-              "muscleNotes": [
-                {
-                  "muscleId": "latissimus_dorsi",
-                  "note": "Principal: El dorsal ancho trabaja con las palmas enfrentadas y el agarre cerrado, donde los codos viajan pegados al torso y el recorrido del tirón se hace más profundo."
-                },
-                {
-                  "muscleId": "biceps",
-                  "note": "Estabilizador: El bíceps sostiene el codo flexionado de forma isométrica con el agarre neutro cerrado, donde las manos juntas y las palmas enfrentadas cuidan el antebrazo."
-                },
-                {
-                  "muscleId": "rhomboids",
-                  "note": "Estabilizador: Los romboides sostienen la escápula retraída de forma isométrica en el tirón neutro cerrado, con las manos juntas y la espalda media trabajando de lleno."
-                },
-                {
-                  "muscleId": "core",
-                  "note": "Estabilizador: El core fija el tronco colgado con el agarre neutro cerrado, donde el cuerpo se acerca a la barra y cualquier balanceo rompe la línea del ascenso."
-                }
-              ],
-              "performanceProfileId": "pull_up__neutral__close",
+              "performanceProfileId": "rack_chin__default",
               "primaryMuscles": [
                 "latissimus_dorsi"
               ],
@@ -2564,7 +2130,6 @@
                         "Aducción Y Extensión"
                       ],
                       "jointId": "glenohumeral",
-                      "note": "Principal: El hombro aduce y extiende el brazo con las palmas enfrentadas y las manos juntas, un recorrido profundo que acerca los codos al torso y carga el dorsal ancho.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2572,7 +2137,6 @@
                         "Depresión Y Rotación"
                       ],
                       "jointId": "escapulotoracica",
-                      "note": "Principal: La escápula se deprime y rota con el agarre neutro cerrado, que acerca los codos al costado y lleva la rotación escapular a la parte media del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -2580,7 +2144,6 @@
                         "Flexión"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo se flexiona al subir con las manos juntas y las palmas enfrentadas, con un recorrido amplio que le da un papel claro en la subida del cuerpo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -2588,23 +2151,17 @@
                         "Estabilidad Del Agarre"
                       ],
                       "jointId": "muñeca",
-                      "note": "Estabilizadora: La muñeca sostiene el agarre neutro cerrado sobre la barra fija, con las manos juntas y las palmas enfrentadas, la posición que mejor alinea muñeca y antebrazo.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [
                     "biceps",
                     "rhomboids",
                     "core"
-                  ],
-                  "targetRegions": [
-                    "latissimus_dorsi"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2615,7 +2172,6 @@
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
                   "movementPatternId": "vertical_pull",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "glenohumeral",
                     "escapulotoracica",
@@ -2625,46 +2181,10 @@
                   "resistanceProfile": "body_angle",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Balancear el cuerpo, encoger los hombros o convertir el tirón en un simple movimiento de brazos."
-                  ],
-                  "cues": [
-                    "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "execution": [
-                    "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando fortalecer dorsales y espalda alta con una resistencia fácil de ajustar siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar tirón hacia abajo y flexión del codo como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de hombro según tolerancia y rango disponible.",
-                    "Movilidad de articulación escapulotorácica según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido."
-                  ]
-                },
                 "display": {
-                  "displayName": "Dominadas",
-                  "displaySummary": "neutral · close",
-                  "selectedOptions": {
-                    "grip_type": "neutral",
-                    "grip_width": "close"
-                  }
-                },
-                "editorial": {
-                  "benefits": [
-                    "Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
-                    "El rey de los ejercicios de espalda: cada repetición cuenta."
-                  ],
-                  "description": "Con agarre cerrado y agarre neutro, colgado de la barra fija, el cuerpo asciende hasta que el mentón la supera y desciende sin balanceo. Sin más carga que el propio cuerpo, la exigencia del dorsal ancho es la justa. Con el agarre cerrado, los codos viajan cerca del torso y el esfuerzo del dorsal ancho se concentra. Las palmas enfrentadas cuidan muñeca y codo.",
-                  "technique": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-                  "variantRationale": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Variante profunda y cómoda para el hombro."
+                  "displayName": "Dominada en Rack",
+                  "displaySummary": "default",
+                  "selectedOptions": {}
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -2676,19 +2196,18 @@
                   "ttc": 1.8
                 },
                 "identity": {
-                  "canonicalName": "Dominadas",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
-                  "configurationId": "pull_up__neutral__close",
-                  "definitionId": "pull_up",
+                  "canonicalName": "Dominada en Rack",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "rack_chin__default",
+                  "definitionId": "rack_chin",
                   "familyId": "upper_vertical_pull_pull_up",
-                  "kind": "PARENT",
-                  "performanceProfileId": "pull_up__neutral__close",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "rack_chin__default",
                   "searchTerms": [
-                    "dominadas",
-                    "pull up",
-                    "dominadas prono",
-                    "dominadas supino",
-                    "chin up"
+                    "rack chin",
+                    "dominada rack",
+                    "dominada inclinada",
+                    "dominada asistida barra"
                   ]
                 },
                 "programming": {
@@ -2697,49 +2216,27 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar el dorsal mediante Dominadas en la variante Peso Corporal · Agarre Neutro · Agarre Cerrado.",
-                    "Priorizar fortalecer dorsales y espalda alta con una resistencia fácil de ajustar con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "bodyweight"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "Conserva tirón hacia abajo y flexión del codo y el objetivo de el dorsal.",
-                    "La sustitución debe respetar las articulaciones relevantes: hombro, articulación escapulotorácica, codo."
+                    "vertical_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_pullup_pronated",
                   "replacementPriority": 1
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido."
+                "Preparación: Barra en el rack al nivel del esternón y manos con agarre prono algo más anchas que los hombros: desde pies planos, el pecho sube hacia la barra con los codos viajando hacia atrás y la escápula deprimida, y el regreso baja hasta estirar los brazos sin hundir los hombros."
               ],
-              "setupTimeSeconds": 20,
+              "setupTimeSeconds": 30,
               "ssc": 0.4,
               "stabilizerMuscles": [
                 "biceps",
@@ -2747,49 +2244,38 @@
                 "core"
               ],
               "technicalDifficulty": 4.0,
-              "techniqueSummary": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Los codos descienden hacia el costado elegido y la carga vuelve arriba sin perder el control del hombro ni encogerlo hacia las orejas.",
-              "ttc": 1.8,
-              "variantRationale": "Agarre cerrado con palmas enfrentadas: el dorsal trabaja con mucho recorrido. Variante profunda y cómoda para el hombro."
+              "ttc": 1.8
             },
-            "selectedOptions": {
-              "grip_type": "neutral",
-              "grip_width": "close"
-            }
+            "selectedOptions": {}
           }
         ],
-        "defaultConfigurationId": "pull_up__pronated__medium",
-        "description": "Las Dominadas son la tracción vertical por excelencia: el dorsal ancho sube todo tu peso hasta que el mentón supera la barra fija, con bíceps y trapecio cerrando el gesto. Se ejecutan colgado de una barra fija, subiendo sin balanceo y bajando con control; el agarre que elijas —prono, supino o neutro— reparte el énfasis entre espalda y brazo. El rey de los ejercicios de espalda: cada repetición cuenta.",
+        "defaultConfigurationId": "rack_chin__default",
+        "description": "La dominada en rack fija la barra a la altura del pecho para que el cuerpo suba en tracción vertical con los pies en el suelo: el mismo gesto de tirón que la dominada, con parte del peso corporal descargada sobre las piernas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
-            "editorial:catalog-v7.2-human-editorial-2026-08-10"
+            "plan:planes-adaptativos-wizard-20260928#13.5",
+            "editorial:configuration:rack_chin__default"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "upper_vertical_pull_pull_up",
-        "id": "pull_up",
-        "kind": "PARENT",
-        "optionAxes": [
-          "grip_type",
-          "grip_width"
-        ],
+        "id": "rack_chin",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
         "searchTerms": [
-          "dominadas",
-          "pull up",
-          "dominadas prono",
-          "dominadas supino",
-          "chin up"
+          "rack chin",
+          "dominada rack",
+          "dominada inclinada",
+          "dominada asistida barra"
         ]
       }
     ],
-    "description": "Familia de tirón vertical con el peso corporal; el tipo de agarre y su amplitud definen cada configuración materializada.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "upper_vertical_pull_pull_up",

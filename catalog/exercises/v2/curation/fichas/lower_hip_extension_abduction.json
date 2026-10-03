@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "glutes_patada_gluteo_polea_diagonal": {
+      "public": {
+        "configurations": {
+          "glutes_patada_gluteo_polea_diagonal__default": {
+            "description": "Con polea, la pierna sale atrás y hacia afuera en un arco diagonal que mezcla extensión y apertura. El glúteo mayor trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Polea baja con el cable cruzando el cuerpo: la patada viaja en diagonal con tensión constante."
+            ]
+          }
+        },
+        "description": "La Patada de Glúteos Diagonal en Polea cruza la trayectoria: la pierna sale atrás y hacia afuera en un arco diagonal que mezcla extensión y apertura de cadera. Se ejecuta con el tobillo enganchado a la polea baja, dejando que la pierna dibuje la diagonal completa y vuelva sin tocar el suelo. El glúteo mayor recibe tensión en una línea que las patadas rectas no cubren. El toque final para redondear el trabajo de glúteo."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_hip_extension_abduction",
+  "schemaVersion": 1
+}

@@ -45,7 +45,6 @@ class ExerciseCatalogV2LegacyAdapterTest {
             resistanceProfile = "gravity_arc",
             setupCues = listOf("Estable."),
             executionCues = listOf("Controla."),
-            commonMistakes = listOf("Balancear."),
             performanceProfileId = "curl_free",
         )
         val catalog = ExerciseCatalogV2(
@@ -56,7 +55,6 @@ class ExerciseCatalogV2LegacyAdapterTest {
                 ExerciseFamilyV2(
                     id = "family",
                     canonicalName = "Familia",
-                    description = "Familia de prueba para adaptar un perfil v2 a una card heredada.",
                     definitions = listOf(
                         ExerciseDefinitionV2(
                             id = "curl",

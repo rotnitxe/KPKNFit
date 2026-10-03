@@ -1,0 +1,67 @@
+{
+  "definitions": {
+    "forearms_curl_muneca_de_pie_tras_espalda_barra": {
+      "public": {
+        "configurations": {
+          "forearms_curl_muneca_de_pie_tras_espalda_barra__default": {
+            "description": "Con barra, con la barra a la altura de los glúteos tras la espalda, las muñecas la enrollan hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
+            "executionCues": [
+              "Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra."
+            ]
+          }
+        },
+        "description": "El Curl de Muñeca de Pie Tras Espalda con Barra trabaja los flexores con la barra escondida detrás del cuerpo: las muñecas enrollan la barra hacia arriba sin mover los brazos. Se ejecuta de pie, con la barra a la altura de los glúteos y los dedos haciendo todo el trabajo. La posición añade un estiramiento extra al antebrazo. Un gesto antiguo que construye muñecas de acero como siempre."
+      },
+      "status": "LEGACY"
+    },
+    "forearms_curl_muneca_sentado": {
+      "public": {
+        "configurations": {
+          "forearms_curl_muneca_sentado__barbell": {
+            "description": "Con barra, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. La barra es la referencia para cargar el antebrazo con peso de verdad.",
+            "executionCues": [
+              "Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Barra con los antebrazos apoyados: las dos muñecas suben juntas contra la barra."
+            ]
+          },
+          "forearms_curl_muneca_sentado__cable": {
+            "description": "Con polea, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. Con la polea, la tensión sobre el antebrazo se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Polea con los antebrazos apoyados: la tensión constante mantiene la muñeca cargada en todo el recorrido."
+            ]
+          },
+          "forearms_curl_muneca_sentado__dumbbells": {
+            "description": "Con mancuernas, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con los antebrazos apoyados: cada muñeca flexiona por separado y el peso no permite que el codo fabrique impulso."
+            ]
+          },
+          "forearms_curl_muneca_sentado__ez_bar": {
+            "description": "Con barra EZ, con el antebrazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. El antebrazo trabaja con la barra EZ, que cuida las muñecas en todo el arco.",
+            "executionCues": [
+              "Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total. El antebrazo queda apoyado y la mano se mueve desde la muñeca; el codo no acompaña para fabricar un recorrido mayor."
+            ],
+            "setupCues": [
+              "Preparación: Barra EZ con los antebrazos apoyados: el agarre girado alivia la muñeca y el trabajo permanece total."
+            ]
+          }
+        },
+        "description": "El Curl de Muñeca sentado es el constructor directo de los flexores del antebrazo: con el brazo apoyado en el muslo y la palma arriba, la mano enrolla la carga hacia arriba. Se ejecuta con mancuerna, barra o polea, en un arco pequeño y con repeticiones pacientes. La polea da tensión constante si la mancuerna se queda corta. Antebrazos densos a golpe de muñeca, sin atajos."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_wrist_flexion",
+  "schemaVersion": 1
+}

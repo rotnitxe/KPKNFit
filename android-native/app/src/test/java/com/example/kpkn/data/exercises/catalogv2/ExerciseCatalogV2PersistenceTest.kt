@@ -33,7 +33,6 @@ class ExerciseCatalogV2PersistenceTest {
         resistanceProfile = "gravity_arc",
         setupCues = listOf("Setup."),
         executionCues = listOf("Execute."),
-        commonMistakes = listOf("Error."),
         performanceProfileId = "curl_free",
     )
 

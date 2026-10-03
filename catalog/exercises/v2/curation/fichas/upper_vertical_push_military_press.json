@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "military_press": {
+      "public": {
+        "configurations": {
+          "military_press__barbell": {
+            "description": "Con barra, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. La barra es la referencia para cargar el deltoide con peso de verdad.",
+            "executionCues": [
+              "Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Barra desde los hombros hasta arriba: el cuerpo de pie debe transferir la fuerza sin inclinarse hacia atrás."
+            ]
+          },
+          "military_press__cable": {
+            "description": "Con polea, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea desde los hombros: la tensión constante acompaña todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Polea desde los hombros: la tensión constante acompaña todo el empuje."
+            ]
+          },
+          "military_press__dumbbells": {
+            "description": "Con mancuernas, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja con mancuernas, que dejan que cada lado corrija su trayectoria.",
+            "executionCues": [
+              "Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas desde los hombros: cada brazo empuja y estabiliza su propia carga, con una trayectoria que puede adaptarse mejor al hombro."
+            ]
+          },
+          "military_press__kettlebell": {
+            "description": "Con kettlebell, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+            "executionCues": [
+              "Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell desde los hombros: el empuje se vuelve más inestable y el core trabaja."
+            ]
+          },
+          "military_press__machine": {
+            "description": "Con máquina, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. En la máquina, la trayectoria guiada concentra todo el esfuerzo del deltoide.",
+            "executionCues": [
+              "Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Máquina de empuje vertical: el respaldo y la guía reducen la demanda de equilibrio para que el hombro reciba una carga más directa."
+            ]
+          },
+          "military_press__smith_machine": {
+            "description": "Con máquina Smith, de pie, la carga sube desde los hombros hasta el bloqueo completo con el tronco firme. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Smith desde los hombros: la barra guiada te deja empujar sin preocuparte por el equilibrio."
+            ]
+          }
+        },
+        "description": "El Press Militar es el empuje vertical de referencia: de pie, la barra sube desde los hombros hasta el bloqueo completo con el deltoide empujando y el core impidiendo que la espalda se arquee. Se practica con los pies clavados, apretando glúteos y abdomen mientras la barra pasa cerca de la cara. Con mancuernas cada brazo responde por sí solo. La medida clásica de la fuerza de hombros, dura y honesta."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_vertical_push_military_press",
+  "schemaVersion": 1
+}

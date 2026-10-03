@@ -1,0 +1,41 @@
+{
+  "definitions": {
+    "arnold_press": {
+      "public": {
+        "configurations": {
+          "arnold_press__cable": {
+            "description": "Con polea, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. El deltoide trabaja con la polea, que mantiene la tensión constante en todo el arco.",
+            "executionCues": [
+              "Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Polea con el giro de Arnold: la tensión constante acompaña el giro y el empuje."
+            ]
+          },
+          "arnold_press__dumbbells": {
+            "description": "Con mancuernas, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+            "executionCues": [
+              "Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas con el giro de Arnold: subes girando las palmas hasta arriba."
+            ]
+          },
+          "arnold_press__kettlebell": {
+            "description": "Con kettlebell, las mancuernas arrancan con las palmas al cuerpo y terminan el empuje con las palmas al frente tras la rotación. Con la kettlebell, el agarre y el centro de masa cambian el tacto del trabajo del deltoide.",
+            "executionCues": [
+              "Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebells con el giro de Arnold: el movimiento rotatorio con campanas exige más estabilidad."
+            ]
+          }
+        },
+        "description": "El Press Arnold es el press de hombros con giro de muñeca: las mancuernas arrancan con las palmas al pecho y terminan el empuje con las palmas al frente tras una rotación completa. Se ejecuta sentado o de pie, girando mientras se sube y deshaciendo el giro al bajar. El deltoide recorre un arco mayor que el press normal y el tríceps cierra arriba. La firma de Arnold: más recorrido, más estímulo, más hombro."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "shoulder_arnold_press",
+  "schemaVersion": 1
+}

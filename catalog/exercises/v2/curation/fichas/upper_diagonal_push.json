@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "deltoides_press_landmine_unilateral": {
+      "public": {
+        "configurations": {
+          "deltoides_press_landmine_unilateral__default": {
+            "description": "Con barra, con un extremo de la barra anclado, un solo brazo empuja en diagonal hacia arriba y al frente. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+            "executionCues": [
+              "Barra anclada al suelo y empuje en diagonal con un brazo. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Barra anclada al suelo y empuje en diagonal con un brazo."
+            ]
+          }
+        },
+        "description": "El Press Landmine Unilateral ancla un extremo de la barra y empuja el otro con un solo brazo en diagonal: el deltoide trabaja en un arco que mezcla vertical y horizontal, amable con la articulación. Se ejecuta de pie o de rodillas, empujando el extremo libre hacia arriba y al frente con el torso firme. La trayectoria diagonal es más cómoda para hombros sensibles que el press vertical. La puerta de entrada al empuje unilateral con barra."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_diagonal_push",
+  "schemaVersion": 1
+}

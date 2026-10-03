@@ -7,23 +7,38 @@ improvisar.
 
 ## Flujo de trabajo
 
-1. Editar `curation/editorial_briefs.json` para cualquier cambio de copy. Debe
-   existir un brief por definición y por configuración; no se acepta fallback
-   por patrón, implemento o nombre.
-2. `python scripts/curaduria_v6_catalogo_editorial.py` — aplica los briefs a
-   `source/families/*.json` sin recalcular músculos ni articulaciones.
+La **ficha** (`curation/fichas/<familyId>.json`) es la única superficie de
+autoría: copy público, anatomía y, en las definiciones `CURATED`, la técnica
+interna y el brief visual. Nada se escribe a mano en `source/families/*.json`.
+
+1. Editar la ficha de la familia. Cada definición está `LEGACY` (solo `public`,
+   copy heredado) o `CURATED` (ficha completa). No se acepta fallback por
+   patrón, implemento o nombre.
+2. `python scripts/catalog_v2_apply_fichas.py --only-definitions=<id>[,<id>]` —
+   copia la ficha a `source/families/*.json`. Solo copia: nunca redacta ni
+   adivina. Valida todo antes de escribir (si algo falla no se escribe nada);
+   sin `--only-definitions` aplica todas las familias; `--check` verifica sin
+   escribir.
 3. `python scripts/merge_catalog_v2_families.py` — reconstruye
    `source/catalog_v2.json` (fuente canónica única) con serialización idéntica.
 4. `python scripts/compile_exercise_catalog_v2.py --check` — validación estructural.
-5. `python scripts/catalog_v2_gate.py --strict` — gate editorial.
-6. Tras aprobación: `python scripts/compile_exercise_catalog_v2.py --write` para
+5. `python scripts/catalog_v2_gate.py --strict` — gate editorial; exige además
+   que la fuente coincida byte a byte con lo que producen las fichas.
+6. `python scripts/catalog_v2_quality_audit.py --strict --definitions=<id>[,<id>]`
+   — auditoría de calidad de lo curado.
+7. Tras aprobación: `python scripts/compile_exercise_catalog_v2.py --write` para
    regenerar el asset Android y copiarlo idéntico al runtime iOS.
 
 Para cambios estructurales, `python scripts/split_catalog_v2_source.py` sigue
 siendo la superficie de revisión de `source/families/`; no se debe usar para
-reemplazar los briefs editoriales.
+reemplazar las fichas.
 
-Nunca editar `source/catalog_v2.json` a mano: el merge lo reconstruye.
+Nunca editar `source/catalog_v2.json` ni `source/families/*.json` a mano: el
+aplicador y el merge los reconstruyen, y el gate falla si divergen de las fichas.
+
+Los generadores por plantilla de las curadurías v3–v6 viven en
+`scripts/legacy/` y están retirados: piden una confirmación explícita para
+correr porque reciclan frases y sobrescribirían fichas curadas.
 
 ## R1 — Identidad del padre
 
@@ -94,21 +109,31 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
 ## R7 — Involucramiento muscular (única verdad)
 
 - Cada configuración declara `primaryMuscles` (≥1) / `secondaryMuscles` /
-  `stabilizerMuscles` con los 20 IDs de la ontología.
+  `stabilizerMuscles` con los 21 IDs de la ontología.
 - Equivalencias FIJAS por rol: Principal 1.0 / Secundario 0.5 / Estabilizador
   0.4. NO se guardan números en el JSON; UI y contadores derivan del rol.
 - Principal = motor del patrón (RDL: hamstrings, gluteus_maximus).
 - Secundario = asiste con contribución real (remo: biceps).
 - Estabilizador = isométrico/postural (RDL: erector_spinae, core → 0.4).
+- El rol lo decide la evidencia, no la costumbre. Donde una ficha corrige el
+  criterio anterior, la regla vive en `curation/anatomy_rules.json` con su
+  evidencia y el gate la exige. Cambios del piloto, **pendientes de
+  confirmación del usuario**: el glúteo medio es el principal en abducción y
+  rotación externa de cadera (`hip.abductors-gluteus-medius`; el mayor asiste),
+  el antebrazo es al menos estabilizador cuando el agarre sostiene el peso del
+  cuerpo (`grip.hanging-forearm`) y, con el torso apoyado, los erectores no son
+  motor (`rows.chest-supported-spine`).
 - Un músculo no puede estar en dos listas de la misma config.
 - Chips que redistribuyen énfasis cambian las listas por config.
 - NEUTRALIZER no existe en el catálogo.
-- `muscleNotes` (obligatorio): array de `{"muscleId", "note"}` con exactamente
-  una nota ≥40 chars por músculo listado (sin huérfanos ni faltantes). Explica
-  la función de ESE músculo en ESE ejercicio y justifica su rol.
-  Ejemplo RDL erectores: "Estabilizador: trabaja isométricamente para mantener
-  la columna neutra durante toda la bisagra; por eso suma 0.4 y no una serie
-  completa."
+- El porqué de cada rol vive en la ficha (`anatomy`, campo `why` de cada
+  músculo), no en el catálogo runtime: explica la función de ESE músculo en ESE
+  ejercicio y justifica su rol. Ejemplo RDL erectores: "Estabilizador: trabaja
+  isométricamente para mantener la columna neutra durante toda la bisagra; por
+  eso suma 0.4 y no una serie completa."
+- Las listas por rol y todos sus espejos en `richMetadata` los escribe el
+  aplicador desde la ficha con `scripts/catalog_v2_derived.py`; nunca se editan
+  a mano.
 
 ## R8 — Descripciones (estructura v7.2, aprobada por el dueño del producto)
 
@@ -129,7 +154,8 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
   del ejercicio + el efecto real de sus chips (implemento/agarre/lateralidad).
 - La primera frase de cada descripción debe distinguir el ejercicio o la
   configuración; el gate bloquea aperturas repetidas.
-- Todas distintas entre sí y sincronizadas con `editorial_briefs.json`.
+- Todas distintas entre sí. La ficha (`public`) es su única fuente y el gate
+  exige que la fuente coincida con ella.
 - ≥40 chars.
 - Sin verbos instruccionales en imperativo: mantén, configura, adopta,
   controla, asegura, evita, sigue, selecciona. Formas descriptivas/reflexivas
@@ -142,32 +168,53 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
 ## R9 — Involucramiento articular (única verdad)
 
 - Cada configuración declara `jointInvolvement` con una entrada por
-  articulación realmente implicada: `jointId`, `role`, `actions` y `note`.
+  articulación realmente implicada: `jointId`, `role` y `actions`.
 - `jointId` usa la ontología canónica de WikiLab; no se crean nombres visibles
   alternativos ni se mezclan articulaciones con músculos o tendones.
 - Los roles son `PRIMARY`, `SECONDARY` y `STABILIZER`. Principal = articulación
   que produce la acción dominante; secundaria = acompaña y comparte la
   transferencia de fuerza; estabilizadora = conserva la posición o transmite
   la carga sin ser el motor principal.
-- Cada nota tiene ≥40 caracteres y explica qué movimiento, transmisión o
-  estabilidad aporta ESA articulación en ESA configuración, incluyendo el
-  efecto de agarre, implemento, apoyo, lateralidad o altura de polea cuando
-  corresponda.
-- `richMetadata.anatomy.jointInvolvement` y
-  `richMetadata.biomechanics.relevantJoints` deben replicar exactamente la
-  ficha de perfil. No se aceptan articulaciones huérfanas, duplicadas o
-  genéricas.
+- El porqué de cada articulación vive en la ficha (`anatomy`, campo `why` de
+  cada articulación): explica qué movimiento, transmisión o estabilidad aporta
+  ESA articulación en ESA configuración, incluyendo el efecto de agarre,
+  implemento, apoyo, lateralidad o altura de polea cuando corresponda.
+- `richMetadata.anatomy.jointInvolvement`, `richMetadata.anatomy.jointActions` y
+  `richMetadata.biomechanics.relevantJoints` se derivan de la ficha con las
+  mismas funciones que usan el compilador, el gate y la app; no se editan a
+  mano. No se aceptan articulaciones huérfanas, duplicadas o genéricas.
 
-## R10 — Ficha editorial de cada configuración
+## R10 — La ficha como fuente única de autoría
 
-- `benefits` contiene ≥2 beneficios concretos; `techniqueSummary` resume la
-  técnica de esa opción y `variantRationale` explica cuándo la elección cambia
-  la demanda o el beneficio.
-- Los cuatro campos visibles se escriben en el brief de la configuración y se
-  copian sin transformación genérica al perfil y a `richMetadata.editorial`.
-- La descripción visible, los beneficios, la técnica, `muscleNotes` y
-  `jointInvolvement` deben describir la misma configuración exacta. Cambiar
-  solo el nombre del implemento no constituye curaduría.
+- Un archivo por familia: `curation/fichas/<familyId>.json`, con
+  `{schemaVersion, familyId, definitions: {<definitionId>: {status, public, ...}}}`.
+- `status: LEGACY` conserva el copy heredado (solo `public`). `status: CURATED`
+  exige además `technique`, `anatomy`, `visual` y `sources`, y es lo único que
+  puede sobrescribir anatomía y patrón de movimiento.
+- `public` es lo que ve la persona: la descripción de la definición y, por
+  configuración, `description`, `setupCues` y `executionCues`. Se copia sin
+  transformación genérica al perfil.
+- `anatomy` declara músculos y articulaciones por definición, con `overrides`
+  por configuración (`role: NONE` quita una entrada). Todo lo que es función
+  pura de la anatomía se deriva; nada de eso se escribe a mano.
+- `technique` y `visual` son internos (no viajan a la app). `visual` es el brief
+  exacto con el que se generan las imágenes de demostración.
+- La descripción visible, las señales y la anatomía deben describir la misma
+  configuración exacta. Cambiar solo el nombre del implemento no constituye
+  curaduría.
+- Los campos que antes se escribían a mano y ningún código de producción leía
+  (`benefits`, `techniqueSummary`, `variantRationale`, `commonMistakes`,
+  `muscleNotes`, la nota de cada articulación, `richMetadata.editorial`,
+  `coaching` y `safety`, entre otros) están retirados del esquema.
+  `scripts/catalog_v2_retired_fields.py` es su lista única: el compilador, el
+  gate, el backend y las pruebas de Android los rechazan.
+- El formato interno de `technique`, `anatomy` y `visual` quedó **congelado** con
+  el piloto (Remo Seal, Dominadas y Clamshells, 2026-10-01). Lo define
+  `curation/AUTHORING_FICHA.md`, que es el manual de autoría: cualquier campo
+  nuevo pasa por ahí y por el gate antes de usarse. El gate rechaza una ficha
+  CURATED incompleta (`ficha_shape`, `visual_incomplete`), una fuente sin prueba
+  offline (`source_unverified`) y el texto que recicla frases o plantillas
+  (`shared_sentence`, `template_skeleton`, `banned_phrase`).
 
 ## R11 — Lectura y presentación para la persona que entrena
 
@@ -236,12 +283,23 @@ v3. Son vinculantes para la siguiente pasada editorial.
     Y mediante un patrón de Z") y los verbos instruccionales en imperativo
     (mantén, configura, adopta, controla, asegura, evita, sigue, selecciona).
     Cada configuración menciona el matiz real de sus chips.
+    **Anti-reciclaje (piloto):** una configuración no puede repetir la frase de
+    una hermana cambiando solo el implemento, el agarre o un número
+    (`template_skeleton_in_definition`), ni una definición puede reutilizar una
+    frase o un fragmento denso de otra (`shared_sentence`, `shared_ngram`). Si
+    dos variantes se describen igual, falta el dato que las distingue.
 11. **L11 — El involucramiento cambia de verdad con los chips**: si el agarre,
-    la altura o la postura alteran el estímulo, las listas musculares, las
-    notas y la descripción deben reflejarlo por configuración. Ejemplos reales
-    del catálogo: remos con agarre amplio → trapecio y espalda alta; agarre
-    cerrado → dorsal y bíceps; dominada supina → bíceps protagonista;
-    pronada/neutra → bíceps solo estabilizador.
+    la altura o la postura alteran el estímulo, las listas musculares y la
+    descripción deben reflejarlo por configuración. Ejemplos: remos con agarre
+    amplio → trapecio y espalda alta; agarre cerrado → dorsal y bíceps.
+    **Corrección (piloto, pendiente de confirmación del usuario):** en la
+    dominada el bíceps flexiona el codo contra carga con cualquier agarre, así
+    que su suelo es secundario. No es solo estabilizador y tampoco pasa a
+    principal: el dorsal sigue por encima (117-130 % frente a 78-96 % en el
+    conjunto de las condiciones; Youdas et al. 2010). El supino lo activa más
+    que el prono, sin igualarlo. Dickie et al. 2017 vieron el complejo
+    hombro-brazo parecido entre prono, supino y neutro. Lo fija la regla
+    `vertical-pull.elbow-flexors` de `curation/anatomy_rules.json`.
 12. **L12 — La ficha articular cambia con la variante**: el implemento, el
     agarre, la altura de polea, la lateralidad o el apoyo deben modificar la
     explicación articular cuando cambian la trayectoria, la estabilidad o la
@@ -271,8 +329,12 @@ Notas:
 4. No "femoral", minúsculas, paréntesis dobles ni taxonomías crudas.
 5. No guardar equivalencias numéricas en el JSON ni fuentes paralelas.
 6. No NEUTRALIZER en el catálogo.
-7. No tocar iOS (salvo copia de datos), `.env`, keystores, telegramBot.js.
+7. No tocar iOS salvo la copia de datos y el contrato del esquema que decidió
+   el dueño del producto (retiro de campos sin consumidor), `.env`, keystores,
+   telegramBot.js.
 8. No descripciones idénticas ni instruccionales.
 9. No commits sin permiso explícito.
 10. No regenerar assets a mano: solo scripts documentados.
 11. No chips en zerchers, crunches, curls sliders/balón/nórdico.
+12. No ejecutar los generadores por plantilla de `scripts/legacy/`: reciclan
+    frases y sobrescribirían fichas curadas.

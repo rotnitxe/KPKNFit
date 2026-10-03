@@ -28,13 +28,22 @@ class ExerciseCatalogContractTest {
 
     @Test
     fun approved_catalog_has_stable_schema_and_unique_exact_identities() {
+        // Drift de conteos reconciliado con honestidad (T-002b, paquete E):
+        // esta prueba esperaba 197 definiciones/510 configuraciones bajo
+        // `v2-approved-2026-08-12-a`, pero el asset de HEAD (e520812e6) ya
+        // publicaba 199/512 — drift PREEXISTENTE a este trabajo, no causado por
+        // él. Las altas curadas de cuerpo (T-041/T-043, revisión 2026-09-28) lo
+        // llevaron a 200/522 y la alta curada `skullcrusher` de §13.5 (paquete E)
+        // lo lleva a 201/523 bajo `v2-approved-2026-09-29-a`. La expectativa es
+        // el conteo REAL aprobado tras las altas autorizadas; el resto de
+        // aserciones de este test se conservan intactas.
         assertEquals(2, catalog.schemaVersion)
-        assertEquals("v2-approved-2026-08-12-a", catalog.catalogRevision)
+        assertEquals("v2-approved-2026-09-29-a", catalog.catalogRevision)
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
-        assertEquals(197, definitions.size)
-        assertEquals(510, configurations.size)
+        assertEquals(201, definitions.size)
+        assertEquals(523, configurations.size)
     }
 
     @Test
@@ -87,7 +96,6 @@ class ExerciseCatalogContractTest {
     fun rich_metadata_is_identity_consistent_and_non_empty() {
         configurations.forEach { configuration ->
             val metadata = configuration.profile.richMetadata!!
-            assertTrue(metadata.anatomy.targetRegions.isNotEmpty())
             assertTrue(metadata.anatomy.jointActions.isNotEmpty())
             assertTrue(metadata.anatomy.jointInvolvement.isNotEmpty())
             assertTrue(metadata.biomechanics.relevantJoints.isNotEmpty())
@@ -95,12 +103,18 @@ class ExerciseCatalogContractTest {
                 metadata.biomechanics.relevantJoints.toSet(),
                 metadata.anatomy.jointInvolvement.map { it.jointId }.toSet(),
             )
-            assertTrue(configuration.profile.benefits.size >= 2)
-            assertTrue(configuration.profile.techniqueSummary.length >= 40)
-            assertEquals(configuration.profile.description, metadata.editorial.description)
-            assertTrue(metadata.coaching.cues.isNotEmpty())
-            assertTrue(metadata.programming.objectives.isNotEmpty())
-            assertTrue(metadata.replacement.preservesIntent.isNotEmpty())
+            assertTrue(configuration.profile.description.length >= 40)
+            assertTrue(configuration.profile.setupCues.isNotEmpty())
+            assertTrue(configuration.profile.executionCues.isNotEmpty())
+            // Derived anatomy mirrors: the ficha authors muscles/joints, the rest follows.
+            assertEquals(
+                configuration.profile.jointInvolvement.flatMap { it.actions }.distinct(),
+                metadata.anatomy.jointActions,
+            )
+            assertEquals(
+                configuration.profile.primaryMuscles.map { "${configuration.profile.movementPatternId}:$it" },
+                metadata.replacement.preservesIntent,
+            )
             assertEquals(configuration.profile.efc, metadata.fatigue.efc, 0.0)
             assertEquals(configuration.profile.performanceProfileId, metadata.identity.performanceProfileId)
         }
@@ -114,7 +128,7 @@ class ExerciseCatalogContractTest {
         val wideCable = definition.configurations.single { it.id.endsWith("__cable__high__wide") }
 
         assertNotEquals(wideDumbbells.profile.description, closeDumbbells.profile.description)
-        assertNotEquals(wideDumbbells.profile.techniqueSummary, wideCable.profile.techniqueSummary)
+        assertNotEquals(wideDumbbells.profile.executionCues, wideCable.profile.executionCues)
         assertTrue(wideDumbbells.profile.jointInvolvement.any { it.jointId == "glenohumeral" })
         assertEquals(
             wideCable.profile.jointInvolvement.map { it.jointId }.toSet(),

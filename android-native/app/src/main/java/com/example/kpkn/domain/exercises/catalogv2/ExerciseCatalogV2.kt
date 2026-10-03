@@ -18,7 +18,6 @@ data class ExerciseCatalogV2(
 data class ExerciseFamilyV2(
     val id: String,
     val canonicalName: String,
-    val description: String,
     val definitions: List<ExerciseDefinitionV2>,
     val evidence: CatalogEvidenceV2,
     val taxonomy: List<String> = emptyList(),
@@ -75,7 +74,6 @@ data class ResolvedExerciseProfileV2(
     val resistanceProfile: String,
     val setupCues: List<String>,
     val executionCues: List<String>,
-    val commonMistakes: List<String>,
     val performanceProfileId: String,
     /** Optional during the editorial migration; approved catalogs must populate it. */
     val richMetadata: ResolvedExerciseMetadataV2? = null,
@@ -84,12 +82,6 @@ data class ResolvedExerciseProfileV2(
     val automationEligible: Boolean = false,
     /** Factual prose for this exact materialized configuration; never a cue. */
     val description: String = "",
-    /** Variant-specific benefits shown separately from coaching cues. */
-    val benefits: List<String> = emptyList(),
-    /** Concise technique explanation for this exact materialized configuration. */
-    val techniqueSummary: String = "",
-    /** Editorial explanation of what the selected axes change. */
-    val variantRationale: String = "",
     /** Articulación del patrón: MULTIARTICULAR (compuesto) o AISLADO (una
      *  articulación). Alimenta las reglas del editor de sesiones. */
     val articulationType: ExerciseArticulationTypeV2? = null,
@@ -154,7 +146,6 @@ data class CatalogEvidenceV2(
     val reviewStatus: CatalogReviewStatusV2,
     val confidence: CatalogConfidenceV2,
     val evidenceRefs: List<String>,
-    val rationale: String? = null,
 )
 
 @Serializable

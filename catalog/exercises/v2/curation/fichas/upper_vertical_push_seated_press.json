@@ -1,0 +1,68 @@
+{
+  "definitions": {
+    "seated_shoulder_press": {
+      "public": {
+        "configurations": {
+          "seated_shoulder_press__barbell": {
+            "description": "Con barra, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la barra, la carga sube al máximo y la progresión del deltoide se mide sin trampa.",
+            "executionCues": [
+              "Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Barra sentado con respaldo: el torso fijo y los hombros haciendo todo el empuje."
+            ]
+          },
+          "seated_shoulder_press__cable": {
+            "description": "Con polea, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con la polea, la tensión sobre el deltoide se mantiene viva de principio a fin.",
+            "executionCues": [
+              "Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Polea sentado: la tensión constante mantiene el hombro activo en todo el empuje."
+            ]
+          },
+          "seated_shoulder_press__dumbbells": {
+            "description": "Con mancuernas, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. Con mancuernas, cada lado ajusta su línea y el trabajo del deltoide se equilibra solo.",
+            "executionCues": [
+              "Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Mancuernas sentado: el respaldo fija el torso y cada brazo trabaja sin ayuda del otro lado."
+            ]
+          },
+          "seated_shoulder_press__kettlebell": {
+            "description": "Con kettlebell, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja con la kettlebell, que añade inestabilidad útil y un agarre distinto.",
+            "executionCues": [
+              "Kettlebell sentado: el empuje inestable suma trabajo al core. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Kettlebell sentado: el empuje inestable suma trabajo al core."
+            ]
+          },
+          "seated_shoulder_press__machine": {
+            "description": "Con máquina, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la máquina, con el recorrido guiado y sin distracciones.",
+            "executionCues": [
+              "Máquina sentada: el guiado lleva el trabajo directo al hombro. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Máquina sentada: el guiado lleva el trabajo directo al hombro."
+            ]
+          },
+          "seated_shoulder_press__smith_machine": {
+            "description": "Con máquina Smith, sentado con el respaldo firme, el peso asciende desde la altura de los hombros hasta el bloqueo por encima de la cabeza. El deltoide trabaja en la Smith, con la trayectoria guiada y estabilidad extra.",
+            "executionCues": [
+              "Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo. El brazo sube en el plano de la variante y el codo termina el empuje; el tronco ofrece una base que no se arquea para ganar altura."
+            ],
+            "setupCues": [
+              "Preparación: Smith sentado: barra guiada y respaldo firme, aislar el hombro es sencillo."
+            ]
+          }
+        },
+        "description": "El Press de Hombros Sentado quita las piernas del empuje vertical: con el respaldo firme, el deltoide y el tríceps suben la carga sin rebote ni impulso de abajo. Se ejecuta en el banco, bajando la barra o las mancuernas hasta la altura de las orejas y empujando hasta arriba. La máquina o la Smith guían la trayectoria cuando la fatiga aprieta. El press de hombro limpio para concentrarse solo en empujar."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "upper_vertical_push_seated_press",
+  "schemaVersion": 1
+}

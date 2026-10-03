@@ -91,7 +91,6 @@ class CatalogV2MetadataBridgeTest {
             resistanceProfile = "gravity_arc",
             setupCues = listOf("Setup."),
             executionCues = listOf("Execute."),
-            commonMistakes = listOf("Error."),
             performanceProfileId = "profile",
         )
         val definition = ExerciseDefinitionV2(
@@ -120,7 +119,6 @@ class CatalogV2MetadataBridgeTest {
                 ExerciseFamilyV2(
                     id = "family",
                     canonicalName = "Familia",
-                    description = "Familia de prueba suficientemente descriptiva.",
                     definitions = listOf(definition),
                     evidence = evidence,
                 ),

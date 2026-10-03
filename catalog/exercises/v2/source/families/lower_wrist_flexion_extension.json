@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · forearm · wrist flexion extension",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#forearms_enrollamiento_muneca_rodillo",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "forearms_enrollamiento_muneca_rodillo__default",
@@ -22,16 +21,9 @@
               "articulationType": "AISLADO",
               "automationEligible": true,
               "axialLoadFactor": 0.0,
-              "benefits": [
-                "Con el rodillo, cada giro exprime el agarre un poco más.",
-                "El agarre que forjaba a los levantadores de antes, incómodo y eficaz."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 1.5,
-              "commonMistakes": [
-                "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-              ],
               "description": "Con rodillo de muñecas, la cuerda se enrolla en el rodillo giro a giro hasta subir la carga colgante. Con el rodillo, cada giro exprime el agarre un poco más.",
               "efc": 2.0,
               "equipmentId": "wrist_roller",
@@ -45,7 +37,6 @@
                     "Flexión O Extensión"
                   ],
                   "jointId": "muñeca",
-                  "note": "Principal: La muñeca alterna flexión y extensión para girar el rodillo y enrollar la cuerda, con la carga colgante tensando cada giro hasta el final del recorrido.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Estabilidad"
                   ],
                   "jointId": "codo",
-                  "note": "Secundaria: El codo aporta estabilidad con los brazos extendidos ante el rodillo, sin doblarse mientras las muñecas giran la cuerda y la carga tira hacia abajo.",
                   "role": "SECONDARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Orientación Del Antebrazo"
                   ],
                   "jointId": "radiocubital-proximal",
-                  "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo en cada giro del rodillo, alternando la rotación de la mano mientras la cuerda enrolla la carga colgante.",
                   "role": "STABILIZER"
                 }
               ],
@@ -69,12 +58,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "wrist_flexion_extension",
-              "muscleNotes": [
-                {
-                  "muscleId": "forearm",
-                  "note": "Principal: El antebrazo trabaja sin descanso mientras la cuerda se enrolla en el rodillo: flexiona y extiende la muñeca giro a giro hasta subir la carga colgante."
-                }
-              ],
               "performanceProfileId": "forearms_enrollamiento_muneca_rodillo__wrist_roller__enrollamiento_de_muneca_con_rodillo_y_cuerda",
               "primaryMuscles": [
                 "forearm"
@@ -95,7 +78,6 @@
                         "Flexión O Extensión"
                       ],
                       "jointId": "muñeca",
-                      "note": "Principal: La muñeca alterna flexión y extensión para girar el rodillo y enrollar la cuerda, con la carga colgante tensando cada giro hasta el final del recorrido.",
                       "role": "PRIMARY"
                     },
                     {
@@ -103,7 +85,6 @@
                         "Estabilidad"
                       ],
                       "jointId": "codo",
-                      "note": "Secundaria: El codo aporta estabilidad con los brazos extendidos ante el rodillo, sin doblarse mientras las muñecas giran la cuerda y la carga tira hacia abajo.",
                       "role": "SECONDARY"
                     },
                     {
@@ -111,20 +92,14 @@
                         "Orientación Del Antebrazo"
                       ],
                       "jointId": "radiocubital-proximal",
-                      "note": "Estabilizadora: La radiocubital proximal orienta el antebrazo en cada giro del rodillo, alternando la rotación de la mano mientras la cuerda enrolla la carga colgante.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "forearm"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "forearm"
-                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -134,7 +109,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "wrist_flexion_extension",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "muñeca",
                     "codo",
@@ -143,43 +117,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Levantar el antebrazo, apretar demasiado los dedos o mover el codo."
-                  ],
-                  "cues": [
-                    "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar flexión o extensión de la muñeca como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de muñeca según tolerancia y rango disponible.",
-                    "Movilidad de codo según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento."
-                  ]
-                },
                 "display": {
                   "displayName": "Enrollamiento de Muñeca con Rodillo y Cuerda",
                   "displaySummary": "Rodillo de Muñeca",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "Con el rodillo, cada giro exprime el agarre un poco más.",
-                    "El agarre que forjaba a los levantadores de antes, incómodo y eficaz."
-                  ],
-                  "description": "Con rodillo de muñecas, la cuerda se enrolla en el rodillo giro a giro hasta subir la carga colgante. Con el rodillo, cada giro exprime el agarre un poco más.",
-                  "technique": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. El ejercicio de la tradicional."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -192,7 +133,7 @@
                 },
                 "identity": {
                   "canonicalName": "Enrollamiento de Muñeca con Rodillo y Cuerda",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "forearms_enrollamiento_muneca_rodillo__default",
                   "definitionId": "forearms_enrollamiento_muneca_rodillo",
                   "familyId": "lower_wrist_flexion_extension",
@@ -208,42 +149,20 @@
                     "max": 90,
                     "min": 30
                   },
-                  "objectives": [
-                    "Desarrollar el antebrazo mediante Enrollamiento de Muñeca con Rodillo y Cuerda en la variante Rodillo De Muñeca.",
-                    "Priorizar desarrollar el antebrazo y la tolerancia de la muñeca con una carga localizada con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "wrist_roller"
                   ],
-                  "role": "accessory_isolation",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_isolation"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "wrist_roller"
                   ],
                   "preservesIntent": [
-                    "Conserva flexión o extensión de la muñeca y el objetivo de el antebrazo.",
-                    "La sustitución debe respetar las articulaciones relevantes: muñeca, codo, radiocubital proximal."
+                    "wrist_flexion_extension:forearm"
                   ],
                   "replacementGroup": "forearm_grip_isometric",
                   "replacementPriority": 3
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": []
                 }
               },
               "secondaryMuscles": [],
@@ -254,9 +173,7 @@
               "ssc": 0.2,
               "stabilizerMuscles": [],
               "technicalDifficulty": 3.5,
-              "techniqueSummary": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 1.5,
-              "variantRationale": "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. El ejercicio de la tradicional."
+              "ttc": 1.5
             },
             "selectedOptions": {}
           }
@@ -268,7 +185,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_wrist_flexion_extension",
@@ -280,13 +196,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón wrist_flexion_extension; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_wrist_flexion_extension",

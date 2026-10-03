@@ -17,6 +17,10 @@ F) ¿Cómic (contornos gruesos) o ilustración semi-realista? ¿Logos/texto?
 
 Si dos inspectores discrepan, recorta la zona de contacto y pregunta otra vez **solo** sobre ese recorte.
 
+## Preguntas de la ficha
+
+Si la definición está CURATED, el inspector contesta las preguntas `qa` que imprime `python scripts/catalog_v2_visual_brief.py <definitionId> --equipment <equipmentId>` (sí/no, sin el historial) y se cruzan con `RECHAZAR SI` (`visual.forbidden`): una sola respuesta que contradiga la ficha o un ítem prohibido visible reprueba el candidato. Las preguntas de A) a F) de arriba siguen valiendo para el apoyo de pies y el estilo.
+
 ## Recortes
 
 ```

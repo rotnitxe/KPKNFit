@@ -1,0 +1,23 @@
+{
+  "definitions": {
+    "forearms_enrollamiento_muneca_rodillo": {
+      "public": {
+        "configurations": {
+          "forearms_enrollamiento_muneca_rodillo__default": {
+            "description": "Con rodillo de muñecas, la cuerda se enrolla en el rodillo giro a giro hasta subir la carga colgante. Con el rodillo, cada giro exprime el agarre un poco más.",
+            "executionCues": [
+              "Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+            ],
+            "setupCues": [
+              "Preparación: Rodillo con cuerda y peso: enrollas la cuerda girando las muñecas hasta arriba y bajas lento."
+            ]
+          }
+        },
+        "description": "El Enrollamiento de Muñeca con Rodillo y Cuerda es el ejercicio de antebrazo de la vieja escuela: una cuerda con peso se enrolla en el rodillo giro a giro hasta subir la carga. Se ejecuta con los brazos al frente, enrollando hacia arriba y desenrollando con la misma calma. Flexores y extensores trabajan según el sentido del giro. El agarre que forjaba a los levantadores de antes, incómodo y eficaz."
+      },
+      "status": "LEGACY"
+    }
+  },
+  "familyId": "lower_wrist_flexion_extension",
+  "schemaVersion": 1
+}

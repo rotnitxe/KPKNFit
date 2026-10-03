@@ -1,5 +1,5 @@
 {
-  "catalogRevision": "v2-approved-2026-08-12-a",
+  "catalogRevision": "v2-approved-2026-09-29-a",
   "family": {
     "canonicalName": "Tren inferior · quadriceps · knee dominant asymmetric",
     "definitions": [
@@ -14,7 +14,6 @@
                 "legacy:exercise_database.json#quads_sentadilla_jefferson",
                 "editorial:catalog-v7.2-human-editorial-2026-08-10"
               ],
-              "rationale": "Configuración con descripción, beneficios y técnica redactados para su identidad y opción exactas.",
               "reviewStatus": "APPROVED"
             },
             "id": "quads_sentadilla_jefferson__default",
@@ -22,16 +21,9 @@
               "articulationType": "MULTIARTICULAR",
               "automationEligible": true,
               "axialLoadFactor": 0.7,
-              "benefits": [
-                "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                "Un ejercicio de otra época que todavía enseña cosas nuevas."
-              ],
               "bodyRegion": "LOWER",
-              "catalogRevision": "v2-approved-2026-08-12-a",
+              "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "commonMistakes": [
-                "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-              ],
               "description": "Con barra, a horcajadas sobre la barra con un extremo a cada lado, el descenso viaja en diagonal. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
               "efc": 2.8,
               "equipmentId": "barbell",
@@ -45,7 +37,6 @@
                     "Flexión Y Extensión Unilateral"
                   ],
                   "jointId": "rodilla",
-                  "note": "Principal: Cada rodilla flexiona y extiende de forma unilateral sobre la diagonal que marca la barra a horcajadas, con un extremo al frente y otro atrás.",
                   "role": "PRIMARY"
                 },
                 {
@@ -53,7 +44,6 @@
                     "Extensión Y Control Frontal"
                   ],
                   "jointId": "cadera",
-                  "note": "Principal: La cadera se extiende al subir y conserva el control frontal de la pelvis mientras la barra a horcajadas obliga a un descenso que viaja en diagonal.",
                   "role": "PRIMARY"
                 },
                 {
@@ -61,7 +51,6 @@
                     "Equilibrio Y Dorsiflexión"
                   ],
                   "jointId": "tobillo",
-                  "note": "Secundaria: El tobillo trabaja la dorsiflexión y el equilibrio durante el descenso diagonal, con la barra a horcajadas y un extremo al frente y otro atrás.",
                   "role": "SECONDARY"
                 },
                 {
@@ -69,7 +58,6 @@
                     "Transferencia Unilateral"
                   ],
                   "jointId": "sacroiliaca",
-                  "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y columna en la postura asimétrica de la barra a horcajadas, con el descenso viajando en diagonal.",
                   "role": "STABILIZER"
                 }
               ],
@@ -77,20 +65,6 @@
               "laterality": "BILATERAL",
               "loadMode": "free_external_load",
               "movementPatternId": "knee_dominant_asymmetric",
-              "muscleNotes": [
-                {
-                  "muscleId": "quadriceps",
-                  "note": "Principal: El cuádriceps frena el descenso diagonal con la barra a horcajadas y un extremo al frente y otro atrás, y extiende las rodillas en la subida."
-                },
-                {
-                  "muscleId": "adductors",
-                  "note": "Secundario: Los aductores ayudan a dirigir las rodillas en la postura a horcajadas, con la barra entre las piernas y el descenso viajando en diagonal."
-                },
-                {
-                  "muscleId": "gluteus_maximus",
-                  "note": "Secundario: El glúteo mayor ayuda a extender la cadera al subir desde el descenso diagonal, con la barra a horcajadas repartiendo la carga entre los dos lados."
-                }
-              ],
               "performanceProfileId": "quads_sentadilla_jefferson__barbell__sentadilla_jefferson",
               "primaryMuscles": [
                 "quadriceps"
@@ -112,7 +86,6 @@
                         "Flexión Y Extensión Unilateral"
                       ],
                       "jointId": "rodilla",
-                      "note": "Principal: Cada rodilla flexiona y extiende de forma unilateral sobre la diagonal que marca la barra a horcajadas, con un extremo al frente y otro atrás.",
                       "role": "PRIMARY"
                     },
                     {
@@ -120,7 +93,6 @@
                         "Extensión Y Control Frontal"
                       ],
                       "jointId": "cadera",
-                      "note": "Principal: La cadera se extiende al subir y conserva el control frontal de la pelvis mientras la barra a horcajadas obliga a un descenso que viaja en diagonal.",
                       "role": "PRIMARY"
                     },
                     {
@@ -128,7 +100,6 @@
                         "Equilibrio Y Dorsiflexión"
                       ],
                       "jointId": "tobillo",
-                      "note": "Secundaria: El tobillo trabaja la dorsiflexión y el equilibrio durante el descenso diagonal, con la barra a horcajadas y un extremo al frente y otro atrás.",
                       "role": "SECONDARY"
                     },
                     {
@@ -136,11 +107,9 @@
                         "Transferencia Unilateral"
                       ],
                       "jointId": "sacroiliaca",
-                      "note": "Estabilizadora: La sacroilíaca transfiere la carga entre pelvis y columna en la postura asimétrica de la barra a horcajadas, con el descenso viajando en diagonal.",
                       "role": "STABILIZER"
                     }
                   ],
-                  "muscleLengthBias": "mixed_controlled",
                   "primaryMuscles": [
                     "quadriceps"
                   ],
@@ -148,11 +117,7 @@
                     "adductors",
                     "gluteus_maximus"
                   ],
-                  "stabilizationDemand": "moderate",
                   "stabilizerMuscles": [],
-                  "targetRegions": [
-                    "quadriceps"
-                  ],
                   "volumeContribution": "indirect"
                 },
                 "biomechanics": {
@@ -162,7 +127,6 @@
                   "laterality": "BILATERAL",
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_dominant_asymmetric",
-                  "rangeOfMotion": "controlled_full_available",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -172,43 +136,10 @@
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
                 },
-                "coaching": {
-                  "commonMistakes": [
-                    "Impulsarte con la pierna libre, dejar caer la pelvis o perder la línea de la rodilla."
-                  ],
-                  "cues": [
-                    "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "execution": [
-                    "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
-                  ],
-                  "progressions": [
-                    "Aumentar la carga o el ángulo solo cuando trabajar cada pierna por separado y detectar diferencias de fuerza o control siga siendo perceptible sin compensaciones."
-                  ],
-                  "regressions": [
-                    "Reducir la carga o el rango y conservar extensión de una pierna y control del tobillo y la pelvis como referencia técnica."
-                  ],
-                  "relevantMobility": [
-                    "Movilidad de rodilla según tolerancia y rango disponible.",
-                    "Movilidad de cadera según tolerancia y rango disponible."
-                  ],
-                  "setup": [
-                    "Preparación: De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal."
-                  ]
-                },
                 "display": {
                   "displayName": "Sentadilla Jefferson",
                   "displaySummary": "Barra",
                   "selectedOptions": {}
-                },
-                "editorial": {
-                  "benefits": [
-                    "El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                    "Un ejercicio de otra época que todavía enseña cosas nuevas."
-                  ],
-                  "description": "Con barra, a horcajadas sobre la barra con un extremo a cada lado, el descenso viaja en diagonal. El cuádriceps trabaja con la barra, que permite cargar pesado y medir la progresión con claridad.",
-                  "technique": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-                  "variantRationale": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta."
                 },
                 "evidenceConfidence": "MEDIUM",
                 "fatigue": {
@@ -221,7 +152,7 @@
                 },
                 "identity": {
                   "canonicalName": "Sentadilla Jefferson",
-                  "catalogRevision": "v2-approved-2026-08-12-a",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
                   "configurationId": "quads_sentadilla_jefferson__default",
                   "definitionId": "quads_sentadilla_jefferson",
                   "familyId": "lower_knee_dominant_asymmetric",
@@ -238,44 +169,20 @@
                     "max": 120,
                     "min": 60
                   },
-                  "objectives": [
-                    "Desarrollar los cuádriceps mediante Sentadilla Jefferson en la variante Barra.",
-                    "Priorizar trabajar cada pierna por separado y detectar diferencias de fuerza o control con la línea de resistencia elegida."
-                  ],
-                  "recoveryCost": "moderate",
                   "requiredEquipment": [
                     "barbell"
                   ],
-                  "role": "accessory_compound",
-                  "setupTransitionCost": "low",
-                  "splitSuitability": [
-                    "full_body",
-                    "upper_lower"
-                  ],
-                  "suitableRepRanges": [
-                    "8-15",
-                    "12-20"
-                  ]
+                  "role": "accessory_compound"
                 },
                 "replacement": {
                   "compatibleEquipmentIds": [
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "Conserva extensión de una pierna y control del tobillo y la pelvis y el objetivo de los cuádriceps.",
-                    "La sustitución debe respetar las articulaciones relevantes: rodilla, cadera, tobillo."
+                    "knee_dominant_asymmetric:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
-                },
-                "safety": {
-                  "medicalDisclaimerRequired": false,
-                  "precautions": [
-                    "Detener la serie si aparece dolor agudo o pérdida de control; no diagnostica lesiones."
-                  ],
-                  "risks": [
-                    "La pérdida de la posición puede trasladar carga fuera del patrón knee_dominant_asymmetric."
-                  ]
                 }
               },
               "secondaryMuscles": [
@@ -289,9 +196,7 @@
               "ssc": 0.5,
               "stabilizerMuscles": [],
               "technicalDifficulty": 5.2,
-              "techniqueSummary": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante.",
-              "ttc": 2.0,
-              "variantRationale": "De pie sobre la barra, un extremo al frente y otro atrás: bajas en diagonal. Un ejercicio poco habitual, exigente y con una demanda técnica alta."
+              "ttc": 2.0
             },
             "selectedOptions": {}
           }
@@ -303,7 +208,6 @@
           "evidenceRefs": [
             "editorial:catalog-v7.2-human-editorial-2026-08-10"
           ],
-          "rationale": "Descripción editorial dedicada al ejercicio; las variantes tienen copy propio por configuración.",
           "reviewStatus": "APPROVED"
         },
         "familyId": "lower_knee_dominant_asymmetric",
@@ -316,13 +220,11 @@
         ]
       }
     ],
-    "description": "Familia controlada por patrón knee_dominant_asymmetric; cada especialidad conserva su perfil resuelto.",
     "evidence": {
       "confidence": "MEDIUM",
       "evidenceRefs": [
         "editorial:catalog-v7.2-human-editorial-2026-08-10"
       ],
-      "rationale": "Familia con copy editorial dedicado por definición y configuración; anatomía preservada.",
       "reviewStatus": "APPROVED"
     },
     "id": "lower_knee_dominant_asymmetric",

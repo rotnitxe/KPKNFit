@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
-Revisión: `v2-approved-2026-08-12-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 199 definiciones · 512 configuraciones
-Hash canónico: `27a560111f28dc16…`
+Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
+96 familias · 201 definiciones · 523 configuraciones
+Hash canónico: `6bdb9e599685132d…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -69,7 +69,7 @@ No editar a mano: se regenera en cada merge.
 | lower_hip_abduction_stability | glutes_monster_walk_banda | Caminata del Monstruo (Monster Walk) con Banda |  | 1 |
 | lower_hip_extension | glutes_hiperextension_45 | Hiperextensiones a 45° para Glúteos | implement | 4 |
 | lower_hip_extension | glutes_patada_gluteo | Patada de Glúteo | implement | 3 |
-| lower_hip_extension | glutes_puente_gluteos | Puente de Glúteos | implement, laterality | 6 |
+| lower_hip_extension | glutes_puente_gluteos | Puente de Glúteos | implement, laterality | 7 |
 | lower_hip_extension | reverse_hyper | Reverse Hyper |  | 1 |
 | lower_hip_extension | glutes_hiperextension_45_zercher | Hiperextensión a 45 Zercher para Glúteos |  | 1 |
 | lower_hip_extension_abduction | glutes_patada_gluteo_polea_diagonal | Patada de Glúteos Diagonal en Polea |  | 1 |
@@ -118,8 +118,8 @@ No editar a mano: se regenera en cada merge.
 | lower_neck_extension | neck_extension_cuello | Extensiones de Cuello | implement | 2 |
 | lower_neck_flexion | neck_flexion_cuello | Flexiones de Cuello | implement | 2 |
 | lower_neck_lateral_flexion | neck_flexion_lateral_cuello | Flexión Lateral de Cuello |  | 1 |
-| lower_plantar_flexion | calf_raise | Elevación de Talones | implement, laterality | 8 |
-| lower_reverse_lunge | reverse_lunge | Zancada Inversa | implement | 5 |
+| lower_plantar_flexion | calf_raise | Elevación de Talones | implement, laterality | 12 |
+| lower_reverse_lunge | reverse_lunge | Zancada Inversa | implement | 6 |
 | lower_romanian_deadlift | hams_peso_muerto_rumano_deficit | Peso Muerto Rumano en Déficit |  | 1 |
 | lower_romanian_deadlift_deficit | hams_peso_muerto_rumano_sumo_deficit | Peso Muerto Rumano Sumo en Déficit |  | 1 |
 | lower_sissy_squat | sissy_squat | Sentadilla Sissy | implement | 5 |
@@ -171,16 +171,17 @@ No editar a mano: se regenera en cada merge.
 | upper_elbow_extension | triceps_press_maquina | Press de Tríceps en Máquina |  | 1 |
 | upper_elbow_extension | triceps_pushdown | Extensión de Tríceps | implement, laterality | 6 |
 | upper_elbow_extension | triceps_rolling_extension | Rolling Extension de Tríceps |  | 1 |
+| upper_elbow_extension | skullcrusher | Extensión de Tríceps Tumbada |  | 1 |
 | upper_elbow_extension_crossbody | crossbody_triceps_extension | Extensión de Tríceps Cruzada en Polea Alta | laterality | 2 |
-| upper_elbow_extension_kickback | triceps_patada | Patada de Tríceps | implement, laterality | 3 |
-| upper_elbow_extension_overhead | overhead_triceps_extension | Extensión de Tríceps Overhead | implement | 4 |
+| upper_elbow_extension_kickback | triceps_patada | Patada de Tríceps | implement, laterality | 4 |
+| upper_elbow_extension_overhead | overhead_triceps_extension | Extensión de Tríceps Overhead | implement | 5 |
 | upper_horizontal_pull | back_band_pull_apart | Band Pull-Apart |  | 1 |
 | upper_horizontal_pull | back_remo_banda | Remo en Banda Elástica |  | 1 |
 | upper_horizontal_pull | back_remo_gorilla_mancuernas | Remo Gorilla | implement | 3 |
 | upper_horizontal_pull | back_remo_invertido | Remo Invertido |  | 1 |
 | upper_horizontal_pull | back_remo_renegado_mancuernas | Remo Renegado | implement | 2 |
 | upper_horizontal_pull | deltoides_face_pull | Face Pull |  | 1 |
-| upper_horizontal_push | push_up | Flexiones de Brazos | support_angle | 2 |
+| upper_horizontal_push | push_up | Flexiones de Brazos | support_angle | 3 |
 | upper_horizontal_push | knee_push_up | Flexiones con Rodillas Apoyadas |  | 1 |
 | upper_horizontal_push | tren_superior_cruce_poleas | Cruce de Poleas | implement, pulley_height | 3 |
 | upper_horizontal_push | tren_superior_fondos | Fondos en Paralelas |  | 1 |
@@ -202,6 +203,7 @@ No editar a mano: se regenera en cada merge.
 | upper_vertical_pull_abduction | deltoides_remo_menton | Remo al Mentón |  | 1 |
 | upper_vertical_pull_lat_pulldown | lat_pulldown | Jalón al Pecho | implement, laterality | 6 |
 | upper_vertical_pull_pull_up | pull_up | Dominadas | grip_type, grip_width | 9 |
+| upper_vertical_pull_pull_up | rack_chin | Dominada en Rack |  | 1 |
 | upper_vertical_pull_pullover | lying_pullover | Pull Over en Banca | implement | 4 |
 | upper_vertical_pull_pullover | pullover | Pull Over de Pie en Polea | laterality | 2 |
 | upper_vertical_pull_pullover | seated_machine_pullover | Pull Over Sentado en Máquina |  | 1 |

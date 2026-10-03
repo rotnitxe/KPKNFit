@@ -14,13 +14,11 @@ public struct ExerciseCatalogEvidenceV2: Codable {
     public let reviewStatus: String
     public let confidence: String
     public let evidenceRefs: [String]
-    public let rationale: String?
 }
 
 public struct ExerciseCatalogFamilyV2: Codable {
     public let id: String
     public let canonicalName: String
-    public let description: String
     public let definitions: [ExerciseCatalogDefinitionV2]
     public let evidence: ExerciseCatalogEvidenceV2
     public let taxonomy: [String]?
@@ -66,7 +64,6 @@ public struct ExerciseCatalogProfileV2: Codable {
     public let resistanceProfile: String
     public let setupCues: [String]
     public let executionCues: [String]
-    public let commonMistakes: [String]
     public let performanceProfileId: String
     public let replacementGroup: String?
     public let replacementPriority: Int?
@@ -81,8 +78,6 @@ public struct ExerciseCatalogRichMetadataV2: Codable {
     public let programming: ExerciseCatalogProgrammingV2
     public let fatigue: ExerciseCatalogFatigueV2
     public let replacement: ExerciseCatalogReplacementV2
-    public let coaching: ExerciseCatalogCoachingV2
-    public let safety: ExerciseCatalogSafetyV2
     public let display: ExerciseCatalogDisplayV2
     public let evidenceConfidence: String
 }
@@ -100,12 +95,9 @@ public struct ExerciseCatalogIdentityV2: Codable {
 
 public struct ExerciseCatalogAnatomyV2: Codable {
     public let jointActions: [String]
-    public let muscleLengthBias: String
     public let primaryMuscles: [String]
     public let secondaryMuscles: [String]
-    public let stabilizationDemand: String
     public let stabilizerMuscles: [String]
-    public let targetRegions: [String]
     public let volumeContribution: String
 }
 
@@ -116,9 +108,7 @@ public struct ExerciseCatalogBiomechanicsV2: Codable {
     public let laterality: String
     public let loadMode: String
     public let movementPatternId: String
-    public let rangeOfMotion: String
     public let relevantJoints: [String]
-    public let relevantTendons: [String]
     public let resistanceProfile: String
     public let stability: String
 }
@@ -126,13 +116,8 @@ public struct ExerciseCatalogBiomechanicsV2: Codable {
 public struct ExerciseCatalogProgrammingV2: Codable {
     public let fatigueCost: String
     public let indicativeRestSeconds: ExerciseCatalogRestRangeV2
-    public let objectives: [String]
-    public let recoveryCost: String
     public let requiredEquipment: [String]
     public let role: String
-    public let setupTransitionCost: String
-    public let splitSuitability: [String]
-    public let suitableRepRanges: [String]
 }
 
 public struct ExerciseCatalogRestRangeV2: Codable {
@@ -154,22 +139,6 @@ public struct ExerciseCatalogReplacementV2: Codable {
     public let preservesIntent: [String]
     public let replacementGroup: String?
     public let replacementPriority: Int?
-}
-
-public struct ExerciseCatalogCoachingV2: Codable {
-    public let commonMistakes: [String]
-    public let cues: [String]
-    public let execution: [String]
-    public let progressions: [String]
-    public let regressions: [String]
-    public let relevantMobility: [String]
-    public let setup: [String]
-}
-
-public struct ExerciseCatalogSafetyV2: Codable {
-    public let medicalDisclaimerRequired: Bool
-    public let precautions: [String]
-    public let risks: [String]
 }
 
 public struct ExerciseCatalogDisplayV2: Codable {
