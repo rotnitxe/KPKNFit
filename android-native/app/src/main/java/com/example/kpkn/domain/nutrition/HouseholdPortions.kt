@@ -57,6 +57,74 @@ object HouseholdPortions {
 
     private val CHEESE_MARKERS = listOf("queso", "gouda", "gauda", "cheddar", "mantecoso")
     private val FAT_MARKERS = listOf("aceite", "mantequilla", "mayo", "mayonesa")
+
+    /** A fat marker as a WHOLE word: "mayo" is not found inside "mayor" (WP-N11b). The text is accent-free and lower case. */
+    private val FAT_PATTERN = Regex(RegexEs.bounded(FAT_MARKERS.joinToString("|")))
+
+    /**
+     * The words of a drink that is named by them: water, tea, coffee, juice, soft drinks and shakes (WP-N11b). The text is accent-free and
+     * lower case; a word is whole ("mate" is not in "tomate"). Milk is one only as the first word ([DRINK_HEAD_PATTERN]): it is also in
+     * the "dulce de leche" and the "arroz con leche".
+     */
+    private val DRINK_NAME_PATTERN = Regex(
+        RegexEs.bounded("""aguas?|tes?|cafes?|bebidas?|gaseosas?|jugos?|zumos?|nectar(?:es)?|cervezas?|refrescos?|mates?|infusion(?:es)?|batidos?|licuados?|smoothies?|coca|sprite|fanta|pepsi"""),
+    )
+
+    /** "atún al agua" is a food in water, not a drink. */
+    private val IN_WATER_PATTERN = Regex(RegexEs.bounded("""(?:al|en)\s+agua"""))
+
+    /** A drink named by its first word: milk and the coffees not called "café" ("leche descremada", "capuchino"); "dulce de leche" is not one. */
+    private val DRINK_HEAD_PATTERN = Regex("""^(?:leches?|capuchinos?|cortados?|expresos?|espressos?|lattes?)(?: |$)""")
+
+    /** "helado" is also the adjective of an iced drink ("té helado"): that drink is no dessert, whichever way it is weighed. */
+    private val ICED_DRINK_PATTERN = Regex(RegexEs.bounded("""(?:te|cafe|mate|agua|jugo|bebida|refresco|batido)\s+helad[oa]s?"""))
+
+    /**
+     * The weight of ONE piece of a dessert or a hot piece when it has no row of its own (WP-N11b), so that an estimate is a slice
+     * and not a plate: a pie weighed as the generic dish of [HEURISTIC_DISH_GRAMS] came to 1085 kcal. Rounded household weights,
+     * every one from the data the app ships or from USDA FoodData Central (FDC) household measures:
+     *  - A slice of a cake or a pie, 100 g (torta, pie, kuchen, mil hojas, cheesecake, tres leches): FDC pieces of apple pie 175011
+     *    (125 g, 1/8 of a 9" pie), lemon meringue pie 172785 (113 g) and commercial cheesecake 172711 (80 g; 125 g the NLEA
+     *    serving); a pie de limón of 120 g and a cheesecake of 90 g in OFF Chile; the catalog's kuchen is a piece of 100 g (gen190).
+     *    100 g of the dessert profile (310 kcal per 100 g) is the energy of the piece of apple pie: 125 g x 237 kcal = 296 kcal.
+     *  - A queque, 70 g: the piece of the catalog row (gen152); FDC pound cake 172704 (1/6 of a loaf) is 61 g and OFF Chile has a
+     *    70 g queque mármol. A brownie, 60 g: FDC 172713 (a large square) is 56 g and the median brownie of OFF Chile 61 g. An
+     *    alfajor, 45 g: the median of the 31 alfajores of OFF Chile.
+     *  - A cup of flan, mousse or pudding, 120 g: 110 g in OFF Chile (17 flans and a mousse); half a cup of FDC flan 167574 is 153 g.
+     *  - A helado, 100 g: the serving of the catalog row (gen193); half a cup of FDC vanilla ice cream 167575 is 66 g.
+     *  - A completo, 220 g: the unit weight of WP-N8; the catalog's completos are 200 g and 220 g (cl002, cl035).
+     *  - A hot dog or a choripán, 180 g: a roll of 80 g (OFF Chile, "pan de hot dog x 6" is 480 g) and a frankfurter of 49 g (FDC,
+     *    foundation) with their toppings; a choripán is a pan-fried chorizo of 80 g (FDC, medium link) in a marraqueta of 100 g.
+     * The words are whole words of the accent-free name with the optional Spanish plural; the first rule that matches wins. "chesecake" is
+     * how the text normalizer leaves a "cheesecake" (it folds the double e).
+     */
+    private class PiecePortion(words: List<String>, val grams: Double) {
+        val matcher = Regex(RegexEs.bounded("(?:" + words.joinToString("|") + ")(?:e?s)?"))
+    }
+
+    private val PIECE_PORTIONS: List<PiecePortion> = listOf(
+        PiecePortion(listOf("hot dog", "hotdog", "perro caliente", "choripan"), 180.0),
+        PiecePortion(listOf("completo"), 220.0),
+        PiecePortion(listOf("flan", "mousse", "budin"), 120.0),
+        PiecePortion(listOf("tres leches", "torta", "pie", "kuchen", "mil hojas", "milhojas", "cheesecake", "chesecake", "cheese cake"), 100.0),
+        PiecePortion(listOf("queque", "keke"), 70.0),
+        PiecePortion(listOf("brownie"), 60.0),
+        PiecePortion(listOf("alfajor"), 45.0),
+        PiecePortion(listOf("helado"), 100.0),
+    )
+
+    /** The weight of the piece that the accent-free [blob] names, or null when it names none of [PIECE_PORTIONS]. */
+    internal fun pieceGrams(blob: String): Double? {
+        val key = blob.replace(ICED_DRINK_PATTERN, " ")
+        return PIECE_PORTIONS.firstOrNull { it.matcher.containsMatchIn(key) }?.grams
+    }
+
+    /** True when the [text] holds the name of a drink (a juice, a coffee, a cola, a milk) and is not a food in water. */
+    internal fun isDrinkName(text: String): Boolean {
+        val name = FoodIdentity.normalize(text)
+        return DRINK_NAME_PATTERN.containsMatchIn(name.replace(IN_WATER_PATTERN, " ")) || DRINK_HEAD_PATTERN.containsMatchIn(name)
+    }
+
     private val NUT_MARKERS = listOf(
         "almendra", "nuez", "mani", "maní", "cacahuate", "pistacho", "avellana",
         "nueces", "pecana", "marañon", "maranon",
@@ -185,17 +253,25 @@ object HouseholdPortions {
      * or bottle); the household piece of a poultry, beef, turkey or fish cut. Nuts, berries, dishes and every other food have none:
      * their default is a portion, and multiplying it by "20 almendras" would log 600 g.
      */
-    fun countedUnitGrams(food: FoodItem?, query: String? = null): Double? {
+    fun countedUnitGrams(food: FoodItem?, query: String? = null, quantity: Double = 1.0): Double? {
         if (isCountable(food, query)) return unitGrams(food, query)
         return unitWeightByToken(query, food) ?: drinkServingGrams(food, query) ?: anchoredPieceGrams(food, query)
+            ?: dessertPieceGrams(food, query, quantity)
     }
+
+    /**
+     * One piece of a dessert or a hot piece when the person counted several ("2 helados", "dos brownies"), N11b: the food is an estimate or a
+     * row that is only its 100 g denominator, and a count of one or of a fraction is not read ("medio pie" is half a pie, not half a slice).
+     */
+    private fun dessertPieceGrams(food: FoodItem?, query: String?, quantity: Double): Double? =
+        if (quantity >= 2.0 && (food == null || isDenominatorOnlyServing(food))) pieceGrams(FoodIdentity.normalize(query.orEmpty())) else null
 
     /**
      * True when a count typed before [query] must scale a unit weight. A bare "un"/"una" does so only for a food with a piece of
      * its own ("una palta" is 150 g, "un café" stays the 220 g cup it already was).
      */
     fun countAppliesTo(food: FoodItem?, query: String?, quantity: Double): Boolean {
-        if (countedUnitGrams(food, query) == null) return false
+        if (countedUnitGrams(food, query, quantity) == null) return false
         return quantity != 1.0 || unitWeightByToken(query, food) != null
     }
 
@@ -225,12 +301,14 @@ object HouseholdPortions {
         FoodStapleOntology.householdDefaultGrams(query ?: "", food)?.let { return it }
         // A beverage row declares its own single serving: a glass of water, a can of soda, a copa of wine.
         food?.takeIf(::isBeverageRow)?.let { return NutrientBasis.massForServingUnits(it, it.servingSize) }
+        // A row that is only its 100 g denominator has no piece of its own: a dessert weighs the piece that is eaten ("un alfajor" is 45 g) (WP-N11b).
+        if (food != null && isDenominatorOnlyServing(food)) pieceGrams(FoodIdentity.normalize(query ?: food.name))?.let { return it }
         val queryNorm = FoodIdentity.normalize(query.orEmpty())
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
         )
         when {
-            FAT_MARKERS.any { blob.contains(it) } -> return 10.0
+            isFatItem(food, blob) -> return 10.0
             SubjectivePortionLexicon.looksLikePortionExpression(query ?: food?.name.orEmpty()) &&
                 (CHEESE_MARKERS.any { blob.contains(it) } || FoodIdentity.familyFor(blob) == "queso") ->
                 return SubjectivePortionLexicon.resolve(query ?: food?.name.orEmpty(), blob)?.grams
@@ -257,6 +335,22 @@ object HouseholdPortions {
 
     private fun isBeverageRow(food: FoodItem?): Boolean = food?.category.equals(BEVERAGE_CATEGORY, ignoreCase = true)
 
+    /**
+     * True when [blob] (accent-free, lower case) names a fat or a condiment by one of its words and [food] is not a prepared dish of the
+     * catalog (WP-N11b). "Ave mayo" is a sandwich of 180 g and its serving wins: the fat in its name never caps it at the 15 g of a
+     * spoonful of mayonnaise. A row that is only its 100 g denominator ("Mayonesa", "Aceite Vegetal") and a supermarket SKU stay fats.
+     */
+    private fun isFatItem(food: FoodItem?, blob: String): Boolean =
+        FAT_PATTERN.containsMatchIn(blob) && !isPreparedDish(food)
+
+    /** A prepared dish of the static catalog: a row tagged "preparacion" that is no supermarket SKU ("Ave mayo", "Sándwich de Pavita"). */
+    private fun isPreparedDish(food: FoodItem?): Boolean =
+        food != null && !isGlobalSku(food) && food.tags.any { it.equals("preparacion", ignoreCase = true) }
+
+    /** The serving that a prepared dish of the catalog declares (a whole sandwich of 150 g); null for any other food. */
+    private fun ownServingGrams(food: FoodItem?): Double? =
+        food?.takeIf { isPreparedDish(it) }?.let { declaredPortionGrams(it) }
+
     internal fun hasClassDefault(food: FoodItem?, query: String?): Boolean {
         if (FoodStapleOntology.hasAnchoredPortion(query ?: "", food)) return true
         if (isCountable(food, query)) return true
@@ -265,7 +359,7 @@ object HouseholdPortions {
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
         )
-        if (FAT_MARKERS.any { blob.contains(it) }) return true
+        if (isFatItem(food, blob)) return true
         if (CHEESE_MARKERS.any { blob.contains(it) }) return true
         if (blob.contains("granola") || blob.contains("avena")) return true
         val family = food?.let(FoodIdentity::familyFor) ?: query?.let(FoodIdentity::familyFor)
@@ -321,7 +415,7 @@ object HouseholdPortions {
         }
         if (countExpressed && intent == AmountIntent.UNSPECIFIED) {
             val unit = datasetHint?.takeIf { it.isFinite() && it > 0.0 && isHouseholdHint(it, food, query) }
-                ?: countedUnitGrams(food, query)
+                ?: countedUnitGrams(food, query, qty)
                 ?: defaultGrams(food, query)
             return unit * qty
         }
@@ -349,6 +443,12 @@ object HouseholdPortions {
         if (isBeverageRow(food)) return defaultGrams(food, query)
         val factor = context.primaryContext.portionFactor.coerceIn(0.55, 1.45)
         val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
+        // A dessert or a hot piece with no row of its own is that piece in any meal, not the filling or the side of its plate (WP-N11b).
+        if (food == null) pieceGrams(blob)?.let { return it }
+        // A drink that is no beverage row (a branded cola) is still its can or its glass next to a plate (WP-N11b); a drinks-only meal knows drinks.
+        if (context.shape != InferredMealContext.Shape.BEVERAGE && food != null && isDrinkName(query)) {
+            drinkServingGrams(food, query)?.let { return it }
+        }
         val role = inferredRole(blob)
         val grams = when (context.shape) {
             InferredMealContext.Shape.MAIN_PLATE -> when (role) {
@@ -370,9 +470,14 @@ object HouseholdPortions {
                     blob.contains("marraqueta") -> unitGrams(food, query)
                 CHEESE_MARKERS.any { blob.contains(it) } -> 30.0
                 blob.contains("palta") -> 60.0
-                else -> 40.0
+                // A prepared dish of the catalog ("Sándwich de Pavita", 150 g) keeps its serving, and a drink next to a sandwich is the glass,
+                // the cup or the can it is: neither is the 40 g of a filling (WP-N11b).
+                else -> ownServingGrams(food)
+                    ?: if (isDrinkName(query)) drinkServingGrams(food, query) ?: loneDrinkGrams(food, query) else 40.0
             }
-            InferredMealContext.Shape.BEVERAGE -> loneDrinkGrams(food, query)
+            // The cup is the portion of a drink: any other food of a drinks-only meal ("ave mayo y un jugo") keeps its own portion (WP-N11b).
+            InferredMealContext.Shape.BEVERAGE ->
+                if (food != null && !isDrinkName(query)) ownServingGrams(food) ?: defaultGrams(food, query) else loneDrinkGrams(food, query)
             InferredMealContext.Shape.WRAP -> when {
                 blob.contains("quesadilla") ||
                     CHEESE_MARKERS.any { blob.contains(it) } ||
@@ -396,6 +501,8 @@ object HouseholdPortions {
 
     fun heuristicDishGrams(query: String, context: ContextDetector.ContextResult? = null): Double {
         val blob = FoodIdentity.normalize(query)
+        // A dessert or a hot piece weighs the piece that is eaten, not the generic plate (WP-N11b, see [PIECE_PORTIONS]).
+        pieceGrams(blob)?.let { return it }
         // A whole mixed dish keeps a meal portion even if its name includes cheese/oil.
         if (isWholeDish(query)) return 250.0
         if (isNoodleDish(blob)) return 320.0
@@ -468,7 +575,7 @@ object HouseholdPortions {
 
     private fun isEnergyDenseFood(food: FoodItem?, query: String, role: String): Boolean {
         val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
-        if (FAT_MARKERS.any { blob.contains(it) }) return true
+        if (isFatItem(food, blob)) return true
         if (CHEESE_MARKERS.any { blob.contains(it) } || FoodIdentity.familyFor(blob) == "queso") return true
         if (NUT_MARKERS.any { blob.contains(it) }) return true
         if (CHOCOLATE_CANDY_MARKERS.any { blob.contains(it) } &&
@@ -484,7 +591,7 @@ object HouseholdPortions {
 
     private fun energyDenseHouseholdCap(food: FoodItem?, query: String): Double {
         val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
-        if (FAT_MARKERS.any { blob.contains(it) }) return 15.0
+        if (isFatItem(food, blob)) return 15.0
         if (NUT_MARKERS.any { blob.contains(it) }) return 35.0
         if (CHOCOLATE_CANDY_MARKERS.any { blob.contains(it) }) return 40.0
         if (CHEESE_MARKERS.any { blob.contains(it) } || FoodIdentity.familyFor(blob) == "queso") return 40.0

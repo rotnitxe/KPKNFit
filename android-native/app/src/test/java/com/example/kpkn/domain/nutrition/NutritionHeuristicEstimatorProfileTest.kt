@@ -75,7 +75,7 @@ class NutritionHeuristicEstimatorProfileTest {
             "helado", "helados", "helado de vainilla", "helado de chocolate", "helado de frutilla",
             "pie", "pies", "pie de limón", "pie de manzana",
             "flan", "flanes", "flan de caramelo",
-            "mil hojas", "milhojas",
+            "mil hojas", "milhojas", "cheesecake", "chesecake", "cheesecake de frambuesa",
             "brownie", "brownies", "alfajor", "alfajores", "alfajor de maicena",
         )
         // not three milks, not a beef cut ("tres" holds "res"), and not the sugar, vegetable or fruit of its flavour

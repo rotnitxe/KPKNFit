@@ -127,10 +127,9 @@ class FluencyGoldenCorpusTest {
         assertTrue("arroz kcal $kcal", kcal in 130.0..190.0)
         assertTrue(tags.single().statusText.contains("Asumí", ignoreCase = true))
         assertFalse(tags.single().hasMaterialQuestion())
-        assertTrue(
-            tags.single().foodItem?.name?.contains("cocid", ignoreCase = true) == true ||
-                tags.single().stateAssumed,
-        )
+        // WP-N12: the id is gen005 (asserted above) and the cooked state is assumed, not asked and not read from the name.
+        assertTrue(tags.single().stateAssumed)
+        assertEquals(FoodState.COOKED, tags.single().foodState)
     }
 
     @Test
@@ -153,7 +152,8 @@ class FluencyGoldenCorpusTest {
         assertTrue(tag.hasMaterialQuestion())
         assertNotNull(tag.loggedFood)
         assertTrue(tag.loggedFood!!.foodName.contains("torta", ignoreCase = true))
-        assertTrue(tag.amountGrams!! in 150.0..350.0)
+        // WP-N11b: a torta with no row weighs a slice (100 g), no longer the 250 g of a plate
+        assertTrue(requireNotNull(tag.amountGrams) in 80.0..350.0)
     }
 
     @Test

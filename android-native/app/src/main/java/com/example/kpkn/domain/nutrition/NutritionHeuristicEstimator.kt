@@ -158,7 +158,7 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     // ── Postres (antes que legumbres, lácteos, frutas y dulces: "helado de frutilla" y "torta de zanahoria" son postres) ──
     listOf(
         "tres leches", "torta", "queque", "kuchen", "helado", "pie", "flan",
-        "mil hojas", "milhojas", "brownie", "alfajor",
+        "mil hojas", "milhojas", "brownie", "alfajor", "cheesecake", "chesecake", "cheese cake",
     ) to DESSERT,
 
     // ── Legumbres ─────────────────────────────────────────────────────────────

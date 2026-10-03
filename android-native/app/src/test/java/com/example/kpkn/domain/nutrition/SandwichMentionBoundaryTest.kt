@@ -69,8 +69,9 @@ class SandwichMentionBoundaryTest {
 
     @Test
     fun `a y before a quantified mention is not a filling separator`() {
-        assertNull(FoodCombinationParser.sandwichMention("1 sandwich de ave mayo y 1 jugo"))
-        assertNull(FoodCombinationParser.sandwichMention("1 sandwich de ave mayo"))
+        // the single filling is the mention and the juice is not part of it (WP-N11b); the row of "ave mayo" is what keeps it from being taken apart
+        assertEquals("sandwich de ave mayo", FoodCombinationParser.sandwichMention("1 sandwich de ave mayo y 1 jugo"))
+        assertEquals("sandwich de ave mayo", FoodCombinationParser.sandwichMention("1 sandwich de ave mayo"))
         assertNull(FoodCombinationParser.sandwichMention("pan con palta y huevo"))
         assertNull(FoodCombinationParser.sandwichMention(""))
     }
@@ -91,7 +92,7 @@ class SandwichMentionBoundaryTest {
         val tags = resolve("un sandwich de jamón y queso y una coca cola")
         assertEquals(listOf("pan", "jamón", "queso", "coca cola"), tags.names())
         assertEquals(listOf("gen019", "gen094", "gen047"), tags.take(3).map { it.foodItem?.id })
-        assertTrue("the cola is a food of its own: ${tags.last()}", tags.last().foodItem != null || tags.last().loggedFood != null)
+        assertEquals("the cola is a food of its own: ${tags.last()}", "gen146", tags.last().foodItem?.id)
     }
 
     @Test

@@ -735,12 +735,17 @@ class TagResolver(
                     ambiguousPackageGrams = ambiguousPackageGrams,
                 )
             } else {
+                // The parser sizes a counted piece with the unit weight of the row it found first ("un hot dog": the vienesa, 50 g). An estimate
+                // has no such row: the piece weighs what its own table says, as many times as it was counted (WP-N11b).
+                val countedPieceGrams = HouseholdPortions.pieceGrams(FoodIdentity.normalize(identityQuery))
+                    ?.let { piece -> piece * item.quantity * (PORTION_MULTIPLIERS[item.portion] ?: 1.0) }
                 val dishGramsRaw = when {
                     countApplied -> HouseholdPortions.resolveEatenGrams(
                         AmountIntent.UNSPECIFIED, item.quantity, null, null, query = identityQuery, countExpressed = true,
                     )
                     ambiguousPackageGrams != null -> HouseholdPortions.defaultGrams(smartFood, identityQuery)
                     itemIntent == AmountIntent.INFERRED_CONTEXT && inferredGrams != null -> inferredGrams
+                    item.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE && item.unitId == null && countedPieceGrams != null -> countedPieceGrams
                     item.amountIntent == AmountIntent.EXPLICIT_MASS ||
                         item.amountIntent == AmountIntent.RESOLVED_SUBJECTIVE ->
                         item.amountGrams?.takeIf { it > 0 }
@@ -849,20 +854,22 @@ class TagResolver(
         val compositionDescription = if (parsed.items.any { it.isExcluded }) consumedDescription else parsed.rawDescription
         val combination = FoodCombinationParser.parse(compositionDescription)
         // A full-dish expansion has no recipe quantities with which to remove an ingredient.
-        val sandwichMention = if (parsed.items.any { it.excludedIngredients.isNotEmpty() || it.isExcluded }) null
-            else FoodCombinationParser.sandwichMention(parsed.rawDescription)
-        // The sandwich is expanded inside its own mention, and the parser is given only that mention (WP-N11): the drink or the
+        val sandwichMentions = if (parsed.items.any { it.excludedIngredients.isNotEmpty() || it.isExcluded }) emptyList()
+            else FoodCombinationParser.sandwichMentions(parsed.rawDescription)
+        // Each sandwich is expanded inside its own mention, and the parser is given only that mention (WP-N11, N11b): the drink or the
         // course said after it keeps its tag, and no other dish of the description can be taken for the sandwich.
-        val sandwichExpanded = sandwichMention?.let { expandSandwichComponents(FoodCombinationParser.parse(it), it, resolvedTags) }
-        if (sandwichExpanded != null) {
+        var sandwichExpanded = false
+        for (mention in sandwichMentions) {
+            val expanded = expandSandwichComponents(FoodCombinationParser.parse(mention), mention, resolvedTags) ?: continue
             resolvedTags.clear()
-            resolvedTags.addAll(sandwichExpanded)
+            resolvedTags.addAll(expanded)
+            sandwichExpanded = true
         }
 
         val isSingleTagPlate = resolvedTags.count { !it.isExcluded } == 1
         val exactPlate = findFoodExactByNormalized(parsed.rawDescription) != null
 
-        if (sandwichExpanded == null && !isSingleTagPlate && !exactPlate && combination.confidence >= 0.70) {
+        if (!sandwichExpanded && !isSingleTagPlate && !exactPlate && combination.confidence >= 0.70) {
             val totalGrams = resolvedTags.filterNot { it.isExcluded }.sumOf { it.loggedFood?.amount ?: 0.0 }
             val comboParts = buildList {
                 add(Triple(combination.baseFood, combination.baseProportion, FoodCombinationParser.Role.STARCH))
@@ -958,11 +965,14 @@ class TagResolver(
         if (combination.baseFood != "pan" || combination.confidence < 0.70) return null
         // The tags this mention produced: the sandwich tag (made only of its words) and the ones right after it that are too.
         val words = mentionWords(mention)
-        val first = existing.indexOfFirst { belongsToMention(it, words) && tagWords(it).any { word -> word.startsWith("sandwich") } }
-            .takeIf { it >= 0 } ?: existing.indexOfFirst { belongsToMention(it, words) }
+        val sandwichTag = existing.indexOfFirst { belongsToMention(it, words) && tagWords(it).any { word -> word.startsWith("sandwich") } }
+        val first = sandwichTag.takeIf { it >= 0 } ?: existing.indexOfFirst { belongsToMention(it, words) }
         if (first < 0) return null
         var end = first + 1
         while (end < existing.size && belongsToMention(existing[end], words)) end++
+        // A sandwich that the catalog has a row for ("barros luco", "ave mayo", "de pavita") already includes its bread and its filling: when
+        // that row is the whole mention it is the sandwich and is not taken apart. A row found for the first words of a longer mention is not (WP-N11b).
+        if (sandwichTag == first && end - first == 1 && existing[first].let { it.foodItem != null && it.resolutionStatus == FoodResolutionStatus.AUTO }) return null
         val hasBread = existing.subList(first, end).any { tag ->
             val n = FoodIdentity.normalize("${tag.foodItem?.name.orEmpty()} ${tag.tag}")
             n.contains("pan") || n.contains("hallulla") || n.contains("marraqueta")
@@ -973,9 +983,20 @@ class TagResolver(
             combination.accompaniments.forEach { add(it.food) }
         }
         if (parts.size < 2) return null
-        val tags = parts.map { name ->
-            val food = HouseholdPortions.householdStaticFood(name) ?: port.staticFood(name)
-            val grams = HouseholdPortions.defaultGrams(food, name)
+        val roles = listOf(FoodCombinationParser.Role.STARCH) + combination.accompaniments.map { it.role }
+        var dishInside = false
+        val tags = parts.mapIndexed { index, name ->
+            // A filling is an ingredient: the loose lookup of the catalog must not take it for a prepared dish ("mayo" is not the sandwich
+            // "Ave mayo", "ave" is not "Ave Palta"). A filling that IS a prepared dish by its exact name ("ave palta") is the sandwich itself:
+            // its bread is in it, so the mention is not taken apart (WP-N11b).
+            val found = HouseholdPortions.householdStaticFood(name) ?: port.staticFood(name)
+            val isDish = index > 0 && found != null && found.tags.any { it.equals("preparacion", ignoreCase = true) }
+            if (isDish && port.staticIsExact(name)) dishInside = true
+            val food = found?.takeUnless { isDish }
+            // A sauce in a sandwich is a spoonful, not the 100 g of its table.
+            val grams = HouseholdPortions.defaultGrams(food, name).let { whole ->
+                if (index > 0 && roles.getOrNull(index) == FoodCombinationParser.Role.SAUCE) minOf(whole, sauceSpoonfulGrams(name)) else whole
+            }
             if (food != null) {
                 val logged = scaleFoodByPortion(
                     food = food,
@@ -1037,8 +1058,16 @@ class TagResolver(
                 )
             }
         }
+        if (dishInside) return null
         val expansion = tags.takeIf { it.size >= 2 } ?: return null
         return existing.subList(0, first) + expansion + existing.subList(end, existing.size)
+    }
+
+    /** The most a sauce weighs in a sandwich: 15 g for a fat (mayonnaise, butter, oil), 30 g for any other sauce. */
+    private fun sauceSpoonfulGrams(name: String): Double {
+        val n = FoodIdentity.normalize(name)
+        val isFat = listOf("aceite", "mantequilla", "mayonesa", "mayo", "margarina", "manteca").any { n.contains(it) }
+        return if (isFat) 15.0 else 30.0
     }
 
     /** The singular, accent-free content words of a mention: what a tag must be made of to have come from it. */

@@ -88,7 +88,8 @@ class ResolutionGoldenCorpusTest {
         assertTrue(tag.hasMaterialQuestion())
         assertNotNull(tag.loggedFood)
         assertTrue(tag.loggedFood!!.foodName.contains("torta", ignoreCase = true))
-        assertTrue(tag.amountGrams!! in 150.0..350.0)
+        // WP-N11b: a torta with no row weighs a slice (100 g), no longer the 250 g of a plate
+        assertTrue(requireNotNull(tag.amountGrams) in 80.0..350.0)
     }
 
     @Test
