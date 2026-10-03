@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.kpkn.data.db.*
 import com.example.kpkn.data.food.DatasetKnowledgeStore
 import com.example.kpkn.data.food.FoodImporter
+import com.example.kpkn.data.food.FoodKnowledgeStore
 import com.example.kpkn.data.persistence.PersistenceWriteCoordinator
 import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
@@ -11,6 +12,7 @@ import com.example.kpkn.data.food.findFoodByNormalized
 import com.example.kpkn.data.food.staticFoodForAlias
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.nutrition.FoodIndex
+import com.example.kpkn.domain.nutrition.FoodKnowledge
 import com.example.kpkn.domain.nutrition.FoodState
 import com.example.kpkn.domain.nutrition.FoodIdentity
 import com.example.kpkn.domain.nutrition.FoodSearchRanker
@@ -925,6 +927,7 @@ class NutritionRepository private constructor(
         if (datasetKnowledgeReady || datasetKnowledgeFailed) return
         datasetKnowledgeMutex.withLock {
             if (datasetKnowledgeReady || datasetKnowledgeFailed) return@withLock
+            installFoodKnowledge()
             // CRI-ANALYSIS: install() (con require lanzable) antes quedaba FUERA del
             // runCatching; un fallo ahí propagaba desde prepareSemanticDataset() y
             // resolveFoodWithSmartResolver() a la vez (pipeline + salvage).
@@ -941,6 +944,17 @@ class NutritionRepository private constructor(
                 datasetKnowledgeFailed = true
                 android.util.Log.w("NutritionRepository", "Dataset knowledge load failed", error)
             }
+        }
+    }
+
+    /** WP-N13: installs the versioned food knowledge asset once; any failure is logged and the Kotlin default stays in force. */
+    private suspend fun installFoodKnowledge() {
+        try {
+            FoodKnowledge.install(FoodKnowledgeStore.load(appContext))
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            android.util.Log.w("NutritionRepository", "Food knowledge asset not installed; the built-in default stays", error)
         }
     }
 

@@ -1,0 +1,330 @@
+{
+  "version": 1,
+  "sections": {
+    "protectedPhrases": {
+      "entityLiterals": [
+        "arroz con leche", "pastel de choclo", "pasteles de choclo", "empanada de pino", "empanadas de pino",
+        "empanada de queso", "empanadas de queso", "porotos con riendas", "cafe con leche", "café con leche",
+        "te con leche", "té con leche", "leche con chocolate", "leche con platano", "leche con plátano",
+        "sandwich de pollo con mayonesa", "sandwich de jamon con mayonesa", "sándwich de pollo con mayonesa",
+        "sándwich de jamón con mayonesa", "sandwich de jamon y queso", "sandwich de jamón y queso",
+        "sándwich de jamon y queso", "sándwich de jamón y queso", "hamburguesa con queso", "hamburguesas con queso",
+        "papas fritas con mayonesa", "papa fritas con mayonesa", "papas con mayo"
+      ],
+      "fixedCompoundNames": [
+        "agua con gas", "agua sin gas", "agua mineral con gas", "agua mineral sin gas", "ave palta", "ave mayo"
+      ],
+      "filledHeads": [
+        "sándwich", "sanguche", "emparedado", "tostada", "tostadita", "empanada", "croissant", "wrap", "quesadilla",
+        "calzone", "pizza"
+      ],
+      "maizeProducts": [
+        "tortilla", "harina", "aceite", "almidón", "fécula", "sémola", "pan", "galleta", "palomitas", "cereal",
+        "hojuelas", "jarabe", "snack", "nachos", "tostadas", "chips"
+      ],
+      "flavors": [
+        "vainilla", "chocolate", "frutilla", "lúcuma", "manjar", "menta", "frambuesa", "mora", "coco", "caramelo",
+        "avellana", "pistacho", "limón", "maracuyá"
+      ],
+      "flavoredHeads": [
+        "helado", "helados", "torta", "tortas", "pastel", "pasteles", "queque", "queques", "keke", "kekes", "kuchen",
+        "pie", "pies", "mousse", "flan", "flanes", "budín", "budines", "yogur", "yogures", "yogurt", "yogurts",
+        "galleta", "galletas", "alfajor", "alfajores", "panqueque", "panqueques", "crepe", "crepes", "cheesecake",
+        "cupcake", "cupcakes", "muffin", "muffins", "brownie", "brownies", "bizcocho", "bizcochos", "bombón",
+        "bombones", "paleta", "paletas", "sorbete", "sorbetes", "trufa", "trufas", "turrón", "turrones", "barra",
+        "barras", "crema", "cremas"
+      ],
+      "catalogExtraPhrases": ["salsa de tomate"]
+    },
+    "typos": {
+      "poyo": "pollo",
+      "polllo": "pollo",
+      "pyo": "pollo",
+      "arros": "arroz",
+      "arro": "arroz",
+      "aros": "arroz",
+      "uebo": "huevo",
+      "wevo": "huevo",
+      "guevo": "huevo",
+      "güevo": "huevo",
+      "gueso": "queso",
+      "keso": "queso",
+      "gauda": "gouda",
+      "gouda": "gouda",
+      "panna": "pana",
+      "papa": "papa",
+      "tomate": "tomate",
+      "cebolla": "cebolla",
+      "zanahoria": "zanahoria",
+      "sanahoria": "zanahoria",
+      "platano": "platano",
+      "plátano": "platano",
+      "naranja": "naranja",
+      "naraja": "naranja",
+      "manzana": "manzana",
+      "mansana": "manzana",
+      "lechuga": "lechuga",
+      "lechua": "lechuga",
+      "brocoli": "brocoli",
+      "brocolí": "brocoli",
+      "espinaca": "espinaca",
+      "espina": "espinaca",
+      "palta": "palta",
+      "choclo": "choclo",
+      "poroto": "poroto",
+      "lenteja": "lenteja",
+      "garbanzo": "garbanzo",
+      "avena": "avena",
+      "abena": "avena",
+      "merluza": "merluza",
+      "salmon": "salmon",
+      "salmón": "salmon",
+      "camaron": "camaron",
+      "camarón": "camaron",
+      "pimenton": "pimenton",
+      "pimentón": "pimenton",
+      "betarraga": "betarraga",
+      "zapallo": "zapallo",
+      "marraqueta": "marraqueta",
+      "hallulla": "hallulla",
+      "hallula": "hallulla",
+      "halulla": "hallulla",
+      "allulla": "hallulla",
+      "empanada": "empanada",
+      "cazuela": "cazuela",
+      "charquican": "charquicán",
+      "charquicán": "charquicán",
+      "porotos granados": "porotos granados",
+      "completo": "completo",
+      "chorrillana": "chorrillana"
+    },
+    "synonyms": {
+      "aguacate": "palta",
+      "aguacates": "paltas",
+      "maiz": "choclo",
+      "maíz": "choclo",
+      "maices": "choclos",
+      "maíces": "choclos",
+      "remolacha": "betarraga",
+      "remolachas": "betarragas",
+      "calabaza": "zapallo",
+      "calabazas": "zapallos"
+    },
+    "householdUnits": {
+      "unitGramsByToken": {
+        "tomate": 120.0,
+        "tomates": 120.0,
+        "jitomate": 120.0,
+        "jitomates": 120.0,
+        "palta": 150.0,
+        "paltas": 150.0,
+        "aguacate": 150.0,
+        "aguacates": 150.0,
+        "naranja": 130.0,
+        "naranjas": 130.0,
+        "manzana": 150.0,
+        "manzanas": 150.0,
+        "platano": 120.0,
+        "platanos": 120.0,
+        "pera": 150.0,
+        "peras": 150.0,
+        "kiwi": 75.0,
+        "kiwis": 75.0,
+        "durazno": 150.0,
+        "duraznos": 150.0,
+        "melocoton": 150.0,
+        "melocotones": 150.0,
+        "yogurt": 125.0,
+        "yogurts": 125.0,
+        "yogur": 125.0,
+        "yogures": 125.0,
+        "completo": 220.0,
+        "completos": 220.0
+      },
+      "notAWholePiece": [
+        "cherry", "cocktail", "coctel", "mini", "seco", "seca", "secos", "secas", "deshidratado", "deshidratada",
+        "deshidratados", "deshidratadas", "enlatado", "enlatada", "enlatados", "enlatadas", "conserva", "congelado",
+        "congelada", "congelados", "congeladas", "triturado", "triturada", "triturados", "trituradas", "rallado",
+        "rallada", "picado", "picada"
+      ],
+      "countableFamilies": ["pan_chileno", "pan", "huevo", "empanada", "wrap"],
+      "countableNameMarkers": [
+        "hallulla", "hallula", "marraqueta", "sopaipilla", "empanada", "completo", "huevo", "galleta", "arepa",
+        "pan amasado", "panecillo", "manzana", "platano", "naranja", "pera", "kiwi", "taco", "burrito", "sushi",
+        "wrap", "hamburguesa", "galletas"
+      ],
+      "familyDefaultGrams": {
+        "huevo": 50.0,
+        "leche": 200.0,
+        "yogurt": 125.0,
+        "arroz": 120.0,
+        "avena": 40.0,
+        "pasta": 160.0,
+        "pollo": 150.0,
+        "papa": 100.0,
+        "tomate": 80.0,
+        "palta": 80.0
+      }
+    },
+    "containers": {
+      "words": [
+        {"id": "botella", "pattern": "media\\s+botella", "fraction": 0.5},
+        {"id": "botella", "pattern": "un\\s+cuarto\\s+de\\s+botella", "fraction": 0.25},
+        {"id": "lata_chica", "pattern": "(?:un|una)\\s+(?:latas?\\s+(?:chicas?|peque[ñn][oa]s?)|latitas?)"},
+        {"id": "lata", "pattern": "(?:un|una)\\s+latas?"},
+        {"id": "botellita", "pattern": "(?:un|una)\\s+botellitas?"},
+        {"id": "botella", "pattern": "(?:un|una)\\s+botellas?"},
+        {"id": "vasito", "pattern": "(?:un|una)\\s+vasit[oa]s?"},
+        {"id": "cajita", "pattern": "(?:un|una)\\s+cajitas?"},
+        {"id": "caja", "pattern": "(?:un|una)\\s+cajas?"},
+        {"id": "carton", "pattern": "(?:un|una)\\s+cart[oó](?:n|nes)"},
+        {"id": "bote", "pattern": "(?:un|una)\\s+botes?"},
+        {"id": "frasco", "pattern": "(?:un|una)\\s+frascos?"},
+        {"id": "bolsa", "pattern": "(?:un|una)\\s+bolsas?"},
+        {"id": "capsula", "pattern": "(?:un|una)\\s+c[aá]psulas?"}
+      ],
+      "contentByContainer": {
+        "lata": {
+          "bebida": 350.0,
+          "cerveza": 350.0,
+          "jugo": 350.0,
+          "conserva": 170.0,
+          "legumbre": 400.0,
+          "default": 180.0
+        },
+        "lata_chica": {"bebida": 250.0, "cerveza": 250.0, "conserva": 120.0, "default": 120.0},
+        "botellita": {"default": 330.0},
+        "botella": {"agua": 500.0, "bebida": 500.0, "cerveza": 330.0, "vino": 750.0, "default": 750.0},
+        "vasito": {"default": 150.0},
+        "cajita": {"default": 200.0},
+        "caja": {"jugo": 200.0, "bebida": 200.0, "default": 500.0},
+        "carton": {"default": 1000.0},
+        "bote": {"default": 400.0},
+        "frasco": {"default": 250.0},
+        "bolsa": {"default": 200.0},
+        "capsula": {"default": 6.0}
+      },
+      "liquidContainers": ["botella", "botellita", "carton", "vasito", "cajita"],
+      "foodClasses": [
+        {
+          "class": "vino",
+          "words": ["vino", "vinos", "tinto", "tintos", "espumante", "espumantes"]
+        },
+        {
+          "class": "cerveza",
+          "words": ["cerveza", "cervezas", "chela", "chelas", "schop", "schops"]
+        },
+        {
+          "class": "conserva",
+          "words": [
+            "atun", "jurel", "sardina", "sardinas", "caballa", "anchoa", "anchoas", "salmon", "chorito", "choritos",
+            "macha", "machas", "almeja", "almejas", "mejillones"
+          ]
+        },
+        {
+          "class": "legumbre",
+          "words": [
+            "poroto", "porotos", "lenteja", "lentejas", "garbanzo", "garbanzos", "arveja", "arvejas", "frijole",
+            "frijoles", "frejole", "frejoles", "haba", "habas"
+          ]
+        },
+        {
+          "class": "agua",
+          "words": ["agua", "aguas"]
+        },
+        {
+          "class": "jugo",
+          "words": ["jugo", "jugos", "zumo", "zumos", "nectar", "nectares"]
+        },
+        {
+          "class": "bebida",
+          "words": [
+            "bebida", "bebidas", "gaseosa", "gaseosas", "refresco", "refrescos", "coca", "cola", "sprite", "fanta",
+            "pepsi", "energetica", "energeticas", "gatorade", "powerade", "monster"
+          ]
+        }
+      ]
+    },
+    "utensils": {
+      "defaultMl": {
+        "cucharadita": 5.0,
+        "cucharada": 15.0,
+        "cucharon": 90.0,
+        "taza": 240.0,
+        "vaso": 250.0,
+        "plato": 250.0,
+        "plato_hondo": 400.0,
+        "bol": 300.0,
+        "copa": 150.0
+      }
+    },
+    "densities": {
+      "gramsPerMl": {
+        "LIQUID": 1.0,
+        "POWDER": 0.6,
+        "GRAIN": 0.85,
+        "VEGETABLE": 0.7,
+        "PROTEIN": 1.0,
+        "FAT": 0.9,
+        "DAIRY": 1.03,
+        "NUTS": 0.65,
+        "FRUIT": 0.6,
+        "MIXED": 0.8
+      },
+      "rules": [
+        {
+          "category": "DAIRY",
+          "contains": ["leche", "bebida de avena"],
+          "words": [
+            "batido", "batidos", "licuado", "licuados", "smoothie", "smoothies", "malteada", "malteadas"
+          ]
+        },
+        {
+          "category": "LIQUID",
+          "words": [
+            "agua", "aguas", "te", "tes", "té", "tés", "cafe", "cafes", "café", "cafés", "bebida", "bebidas",
+            "gaseosa", "gaseosas", "jugo", "jugos", "zumo", "zumos", "nectar", "nectares", "néctar", "néctares",
+            "cerveza", "cervezas", "chela", "chelas", "schop", "schops", "vino", "vinos", "refresco", "refrescos",
+            "mate", "mates", "infusion", "infusiones", "infusión", "infusiónes", "caldo", "caldos", "coca", "sprite",
+            "fanta", "pepsi"
+          ]
+        },
+        {
+          "category": "FAT",
+          "contains": ["aceite", "mantequilla", "manteca", "ghee", "margarina", "mayonesa", "mayo"]
+        },
+        {
+          "category": "POWDER",
+          "contains": ["azúcar", "azucar", "harina", "cacao", "canela"]
+        },
+        {
+          "category": "GRAIN",
+          "contains": ["arroz", "pasta", "quinoa", "avena", "lenteja", "garbanzo", "poroto"]
+        },
+        {
+          "category": "PROTEIN",
+          "contains": [
+            "pollo", "carne", "pescado", "cerdo", "vacuno", "pavo", "huevo", "merluza", "salmón", "camarón"
+          ]
+        },
+        {
+          "category": "VEGETABLE",
+          "contains": ["lechuga", "tomate", "cebolla", "zanahoria", "espinaca", "brócoli", "pepino"]
+        },
+        {
+          "category": "FRUIT",
+          "contains": ["manzana", "plátano", "naranja", "uva", "frutilla", "pera"]
+        },
+        {
+          "category": "DAIRY",
+          "contains": ["leche", "yogurt", "yogur", "queso", "crema"]
+        },
+        {
+          "category": "NUTS",
+          "contains": ["almendra", "nuez", "maní", "cashew", "chía"]
+        }
+      ],
+      "fallbackCategory": "MIXED"
+    }
+  }
+}

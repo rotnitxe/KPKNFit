@@ -26,10 +26,13 @@ private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
 // The dishes the parser protects from splitting live in ProtectedPhrases (WP-N9): one list for the typo pass, the splitter and the
 // readers of amounts and modifiers. "empanadas de pino" and "pasteles de choclo" keep their plural, like catalog names do: the
-// singularizer only changes a phrase into another known phrase.
-private val SINGULARIZER_LEXICON: SpanishSingularizer.Lexicon by lazy(LazyThreadSafetyMode.PUBLICATION) {
+// singularizer only changes a phrase into another known phrase. The lexicon is built again when an install of the food knowledge
+// changes those lists (WP-N13).
+private val SINGULARIZER_LEXICONS = KnowledgeCache {
     SpanishSingularizer.defaultLexicon.withPhrases(ProtectedPhrases.lexiconEntries)
 }
+
+private val SINGULARIZER_LEXICON: SpanishSingularizer.Lexicon get() = SINGULARIZER_LEXICONS.get()
 
 private val LITERAL_QUANTITIES = mapOf(
     "un" to 1.0, "una" to 1.0, "uno" to 1.0, "dos" to 2.0, "tres" to 3.0,

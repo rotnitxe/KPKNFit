@@ -24,6 +24,8 @@ class AssetInventoryTest {
         "dataset_knowledge.bin", "dataset_knowledge_report.json",
         // Portion lexicon mirror and the JSON halves of the two branded catalogs.
         "subjective_portion_lexicon.json", "branded_snack_catalog.json", "branded_energy_kcal_catalog.json",
+        // The food knowledge of the description pipeline (FoodKnowledgeStore, WP-N13): JSON, so it is not part of the catalog fingerprint.
+        "food_knowledge_v1.json",
     )
 
     private val dir = File("src/main/assets/food_data")
