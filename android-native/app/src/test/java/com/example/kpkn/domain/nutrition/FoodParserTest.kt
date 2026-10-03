@@ -378,13 +378,13 @@ class FoodParserTest {
             amountGrams = 100.0,
             cookingMethod = CookingMethod.FRITO,
         )
-        // Factor por categoría: papas → kcal ×1.20
-        assertEquals(104.4, logged.calories, 0.5) // 87 × 1.20
+        // WP-N10: una ficha cruda frita no recibe factor de kcal (antes papas x1,20); su grasa entra en gramos por el aceite.
+        assertEquals(87.0, logged.calories, 0.5)
         // Aceite medio para tubérculo: 12 g
         val oiled = com.example.kpkn.domain.nutrition.adjustLoggedFoodForOil(
             logged, CookingMethod.FRITO, "medio", foodName = "Papa (cruda)",
         )
         assertEquals(12.1, oiled.fats, 0.1) // 0.1 + 12
-        assertEquals(212.4, oiled.calories, 0.5) // 104.4 + 108
+        assertEquals(195.0, oiled.calories, 0.5) // 87 + 108
     }
 }

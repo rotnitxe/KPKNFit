@@ -393,6 +393,12 @@ data class ParsedMealItem(
      * by the piece) and utensils resolve their amount in the parser and never set it.
      */
     val countExpressed: Boolean = false,
+    /**
+     * The cooking word as the person typed it, normalized ("revueltos", "fritas"), when the parser kept it (WP-N10). The method
+     * says HOW the food was cooked; the word chooses between rows prepared the same way ("revuelto" is not "frito"). While the
+     * parser leaves it null, the resolver derives it from the description (CookingStateResolver.literalCookingWord).
+     */
+    val cookingWord: String? = null,
 )
 
 @Serializable

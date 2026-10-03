@@ -212,6 +212,23 @@ object NutritionHeuristicEstimator {
         return estimateNutritionByKeyword(foodName) ?: MIXED_DISH
     }
 
+    /**
+     * Profile of a dish with no catalog row that the parser says was prepared with [method] (its cooking word is no longer in
+     * [foodName]): the method acts on the profile once. Frying adds its fat in grams ([HEURISTIC_FRYING_FAT_G_PER_100G]; breading
+     * also its carbs) and the kcal follow 4/4/9; the dry methods use their factor. A name that still carries a cooking word got
+     * that same effect in [estimateNutritionByKeyword], so the profile comes back as it is.
+     */
+    fun withCookingMethod(profile: NutritionProfile, foodName: String, method: CookingMethod?): NutritionProfile {
+        if (method == null || detectCookingBoost(foodName.lowercase()) != null) return profile
+        val boost = when (method) {
+            CookingMethod.FRITO -> frying()
+            CookingMethod.EMPANIZADO_FRITO -> frying(HEURISTIC_BREADING_CARBS_G_PER_100G)
+            in CONCENTRATING_METHODS -> dryMethod(method)
+            else -> return profile
+        }
+        return boost.applyTo(profile)
+    }
+
     /** References are injected catalog rows; the mixture is an explicit assumption, never a recipe fact. */
     fun estimateWithEvidence(foodName: String, referenceFoods: List<FoodItem> = emptyList()): NutritionEstimate {
         val salad = FoodIdentity.normalize(foodName) == "ensalada"
@@ -254,36 +271,43 @@ fun estimateNutritionByKeyword(foodName: String): NutritionProfile? {
 
     for ((keywords, profile) in KEYWORD_PROFILES) {
         if (keywords.any { lower.contains(it) }) {
-            if (cookingBoost != null) {
-                return NutritionProfile(
-                    calories = profile.calories * cookingBoost.kcal,
-                    protein = profile.protein * cookingBoost.protein,
-                    carbs = profile.carbs * cookingBoost.carbs + cookingBoost.additiveCarbs,
-                    fats = profile.fats * cookingBoost.fats,
-                )
-            }
-            return profile
+            return cookingBoost?.applyTo(profile) ?: profile
         }
     }
-    return if (lower.length >= 3) {
-        if (cookingBoost != null) {
-            NutritionProfile(
-                calories = MIXED_DISH.calories * cookingBoost.kcal,
-                protein = MIXED_DISH.protein * cookingBoost.protein,
-                carbs = MIXED_DISH.carbs * cookingBoost.carbs + cookingBoost.additiveCarbs,
-                fats = MIXED_DISH.fats * cookingBoost.fats,
-            )
-        } else MIXED_DISH
-    } else null
+    return if (lower.length >= 3) cookingBoost?.applyTo(MIXED_DISH) ?: MIXED_DISH else null
 }
 
+/**
+ * Fat a fried dish absorbs, in grams per 100 g: the heuristic counterpart of the oil path (6 g for lean protein, which is what
+ * separates "Pechuga de Pollo" from "Pechuga de Pollo (frita)").
+ */
+const val HEURISTIC_FRYING_FAT_G_PER_100G = 6.0
+
+/** Carbohydrate that the breading of a breaded dish adds, in grams per 100 g. */
+const val HEURISTIC_BREADING_CARBS_G_PER_100G = 15.0
+
+/**
+ * How a cooking word changes the per-100 g profile of a dish with no catalog row, exactly once (WP-N10). Frying adds fat in
+ * grams ([addedFatGrams]; breading also [addedCarbsGrams]) and the kcal follow 4/4/9 from that macro change: there is no
+ * independent kcal multiplier. The dry methods apply their table [factor] (see [CONCENTRATING_METHODS]).
+ */
 private data class CookingEstimateBoost(
-    val kcal: Double = 1.0,
-    val protein: Double = 1.0,
-    val carbs: Double = 1.0,
-    val fats: Double = 1.0,
-    val additiveCarbs: Double = 0.0,
-)
+    val factor: CookingFactor = CookingFactor(),
+    val addedFatGrams: Double = 0.0,
+    val addedCarbsGrams: Double = 0.0,
+) {
+    fun applyTo(profile: NutritionProfile): NutritionProfile = NutritionProfile(
+        calories = profile.calories * factor.kcal + 4.0 * addedCarbsGrams + 9.0 * addedFatGrams,
+        protein = profile.protein * factor.protein,
+        carbs = profile.carbs * factor.carbs + addedCarbsGrams,
+        fats = profile.fats * factor.fats + addedFatGrams,
+    )
+}
+
+private fun frying(addedCarbsGrams: Double = 0.0) =
+    CookingEstimateBoost(addedFatGrams = HEURISTIC_FRYING_FAT_G_PER_100G, addedCarbsGrams = addedCarbsGrams)
+
+private fun dryMethod(method: CookingMethod) = CookingEstimateBoost(factor = cookingFactorFor(method))
 
 private val REGEX_FRITO = Regex("""\bfrit[oa]s?\b|\bfritura\b|\bfre[ií]do\b""")
 private val REGEX_EMPANIZADO = Regex("""\bempanizad[oa]s?\b|\bapanad[oa]s?\b|\brebozad[oa]s?\b|\btempura\b|\bcapead[oa]s?\b""")
@@ -297,40 +321,27 @@ private fun detectCookingBoost(foodName: String): CookingEstimateBoost? {
     val lower = foodName.lowercase()
     var boost: CookingEstimateBoost? = null
 
-    // B6: una sola fuente de verdad para las magnitudes — kcal/proteína/carbs vienen de
-    // COOKING_FACTORS (antes frito kcal ×2-3). La heurística no tiene paso de aceite
-    // separado, así que fats lleva un factor moderado (×2) que aproxima el aceite
-    // absorbido por la fritura.
-    fun boostFor(method: CookingMethod, fatsBoost: Double = 1.0, additiveCarbs: Double = 0.0): CookingEstimateBoost {
-        val f = COOKING_FACTORS[method]!!
-        return CookingEstimateBoost(
-            kcal = f.kcal,
-            fats = f.fats * fatsBoost,
-            protein = f.protein,
-            additiveCarbs = additiveCarbs,
-        )
-    }
-
+    // B6/WP-N10: one source of truth. Frying and sauteing add fat in grams; the dry methods use their table factor.
     if (REGEX_FRITO.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.FRITO, fatsBoost = 2.0)
+        boost = frying()
     }
     if (REGEX_EMPANIZADO.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.EMPANIZADO_FRITO, fatsBoost = 2.0, additiveCarbs = 15.0)
+        boost = frying(HEURISTIC_BREADING_CARBS_G_PER_100G)
     }
     if (REGEX_SALTEADO.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.FRITO, fatsBoost = 2.0)
+        boost = frying()
     }
     if (REGEX_CONFITADO.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.FRITO, fatsBoost = 2.0)
+        boost = frying()
     }
     if (REGEX_GRATINADO.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.HORNO)
+        boost = dryMethod(CookingMethod.HORNO)
     }
     if (REGEX_PLANCHA.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.PLANCHA)
+        boost = dryMethod(CookingMethod.PLANCHA)
     }
     if (REGEX_PARRILLA.containsMatchIn(lower)) {
-        boost = boostFor(CookingMethod.ASADO_PARRILLA)
+        boost = dryMethod(CookingMethod.ASADO_PARRILLA)
     }
 
     return boost

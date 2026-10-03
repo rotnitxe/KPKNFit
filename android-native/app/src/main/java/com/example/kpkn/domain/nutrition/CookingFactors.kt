@@ -7,7 +7,11 @@ import com.example.kpkn.data.models.FoodItem
  * CookingFactors — Multipliers for adjusting food macros by cooking method.
  * Values sourced from CookingMethodParser.kt (440+ pattern system).
  *
- * Multipliers are applied per-gram to the DB food's macros.
+ * Multipliers are per gram of the food's macros, but the pipeline does NOT apply the whole table (WP-N10): a row is
+ * transformed by exactly one of a state conversion by yield, one of these factors, or nothing (see [CookingTransform]).
+ * Only the [CONCENTRATING_METHODS] reach a row, and only when the catalog does not declare its state; boiling, steaming,
+ * pot and stew are covered by the yield of a raw row, and frying and breading by oil in grams ([adjustLoggedFoodForOil]).
+ * Those entries stay as the documented water and fat effect of each method; [cookingFactorFor] is the gate.
  * waterChange: positive = water gained (macros dilute), negative = water lost (macros concentrate).
  */
 data class CookingFactor(
@@ -201,16 +205,28 @@ fun oilAbsorptionCategory(foodName: String): OilAbsorptionCategory {
 }
 
 /**
- * Factor de cocción por categoría (IT3): la fritura de masas/tubérculos concentra
- * más kcal por el aceite absorbido (×1.20 en vez de ×1.10). El resto usa la tabla base.
+ * Methods whose per-gram factor can apply (rule b of [cookingTransformFor]): they lose water or fat on a row whose state the
+ * catalog does not declare.
  */
-fun cookingFactorFor(foodName: String, method: CookingMethod?): CookingFactor {
-    if (method == null) return CookingFactor()
-    val base = COOKING_FACTORS[method] ?: return CookingFactor()
-    if (method == CookingMethod.FRITO &&
-        oilAbsorptionCategory(foodName) == OilAbsorptionCategory.STARCH_BATTER
-    ) {
-        return base.copy(kcal = 1.20)
-    }
-    return base
-}
+val CONCENTRATING_METHODS: Set<CookingMethod> = setOf(
+    CookingMethod.HORNO,
+    CookingMethod.PLANCHA,
+    CookingMethod.ASADO_PARRILLA,
+    CookingMethod.AHUMADO,
+)
+
+/** True when every macro multiplier is 1 (the water change is informative only). */
+val CookingFactor.isIdentity: Boolean
+    get() = kcal == 1.0 && fats == 1.0 && carbs == 1.0 && protein == 1.0
+
+/**
+ * The per-gram factor the pipeline applies for [method]: the table entry of a [CONCENTRATING_METHODS] method, identity for
+ * every other one. Frying and breading never multiply kcal (their fat is added in grams by the oil path, 12 g per 100 g for
+ * starches and batters), and a raw row never gets a factor on top of its yield conversion.
+ */
+fun cookingFactorFor(method: CookingMethod?): CookingFactor =
+    if (method != null && method in CONCENTRATING_METHODS) COOKING_FACTORS[method] ?: CookingFactor() else CookingFactor()
+
+/** Kept for its callers: the factor no longer depends on the food (WP-N10 removed the extra x1.20 of fried starches). */
+@Suppress("UNUSED_PARAMETER")
+fun cookingFactorFor(foodName: String, method: CookingMethod?): CookingFactor = cookingFactorFor(method)

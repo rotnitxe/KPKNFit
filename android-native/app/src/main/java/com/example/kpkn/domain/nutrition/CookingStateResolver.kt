@@ -89,7 +89,8 @@ object CookingStateResolver {
      * sinónimos cotidianos de cocido.
      */
     fun methodSearchSuffixes(method: CookingMethod): List<String> = when (method) {
-        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO -> listOf("frita", "frito", "revuelto", "revuelta", "fritas", "fritos")
+        CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO ->
+            listOf("frita", "frito", "revuelto", "revuelta", "fritas", "fritos", "revueltos", "revueltas")
         CookingMethod.PLANCHA -> listOf("plancha")
         CookingMethod.HORNO -> listOf("horno")
         CookingMethod.VAPOR -> listOf("vapor")
@@ -112,10 +113,13 @@ object CookingStateResolver {
         else -> FoodState.COOKED
     }
 
-    /** Prefer a DB row that already encodes the preparation (e.g. pechuga frita). */
-    fun findPreparedVariant(tag: String, method: CookingMethod?): FoodItem? {
+    /**
+     * Prefer a DB row that already encodes the preparation (e.g. pechuga frita). [cookingWord] is the word the person typed
+     * ("revueltos"): its row wins over a sibling prepared the same way ("huevos revueltos" is gen007r, not gen007f).
+     */
+    fun findPreparedVariant(tag: String, method: CookingMethod?, cookingWord: String? = null): FoodItem? {
         if (method == null || method == CookingMethod.CRUDO) return null
-        val suffixes = methodSearchSuffixes(method)
+        val suffixes = suffixesLiteralFirst(method, cookingWord)
         if (suffixes.isEmpty()) return null
         for (suffix in suffixes) {
             // La forma entre paréntesis es la clave de nombre exacto de la fila
@@ -132,6 +136,35 @@ object CookingStateResolver {
             }
         }
         return null
+    }
+
+    /**
+     * The search suffixes of [method] with the typed [cookingWord] first, then the suffixes that share its stem ("revueltos"
+     * before "revuelto" and "revuelta") and only then the rest: the method says HOW it was cooked, the word says WHICH row.
+     */
+    internal fun suffixesLiteralFirst(method: CookingMethod, cookingWord: String?): List<String> {
+        val all = methodSearchSuffixes(method)
+        val word = cookingWord?.let(TextKeys::normalize)?.takeIf { it.length >= 4 && ' ' !in it } ?: return all
+        val stem = word.removeSuffix("s").dropLast(1)
+        return (listOf(word) + all.filter { it.startsWith(stem) } + all).distinct()
+    }
+
+    // A clause ends at punctuation or at a connector that starts another mention.
+    private val CLAUSE_BOUNDARY = Regex("""[,;.+\n]|\s+(?:y|e|con|mas|más)\s+""")
+
+    /**
+     * The cooking word as the person typed it ("revueltos", "fritas") for the mention [tag] of [description], when the parser
+     * did not keep it (ParsedMealItem.cookingWord): the first word of the clause with [tag] whose stem belongs to the suffixes
+     * of [method]. [occurrence] picks the n-th clause with that tag ("huevos fritos y huevos revueltos"). Null when there is none.
+     */
+    fun literalCookingWord(description: String, tag: String, method: CookingMethod?, occurrence: Int = 0): String? {
+        if (method == null || method == CookingMethod.CRUDO) return null
+        val key = TextKeys.normalize(tag)
+        if (key.isEmpty()) return null
+        val stems = methodSearchSuffixes(method).map { it.dropLast(1) }.distinct()
+        val clause = description.lowercase().split(CLAUSE_BOUNDARY).map(TextKeys::normalize)
+            .filter { it.contains(key) }.getOrNull(occurrence) ?: return null
+        return clause.split(' ').firstOrNull { word -> stems.any { word.startsWith(it) } }
     }
 
     fun findRawVariant(food: FoodItem): FoodItem? {

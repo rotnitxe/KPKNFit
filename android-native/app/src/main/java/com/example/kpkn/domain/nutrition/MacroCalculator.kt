@@ -67,22 +67,102 @@ fun getContextualDefaultServingSize(food: FoodItem): Double {
     }
 }
 
-fun cookingWeightYield(food: FoodItem): Double = when {
-        food.cookingWeightFactor != null && food.cookingWeightFactor > 0.0 -> food.cookingWeightFactor
-        food.name.lowercase().contains("soya") || food.name.lowercase().contains("soja") || food.name.lowercase().contains("pvt") -> 3.5
-        food.name.lowercase().contains("arroz") || food.name.lowercase().contains("pasta") || food.name.lowercase().contains("fideo") || food.name.lowercase().contains("lenteja") || food.name.lowercase().contains("garbanzo") || food.name.lowercase().contains("poroto") || food.name.lowercase().contains("avena") || food.name.lowercase().contains("quinoa") -> 2.2
-        food.name.lowercase().contains("pollo") || food.name.lowercase().contains("carne") || food.name.lowercase().contains("pavo") || food.name.lowercase().contains("cerdo") || food.name.lowercase().contains("pescado") || food.name.lowercase().contains("salmón") || food.name.lowercase().contains("vacuno") || food.name.lowercase().contains("bife") || food.name.lowercase().contains("espinaca") || food.name.lowercase().contains("acelga") || food.name.lowercase().contains("champiñón") -> 0.75
-        else -> 1.0
+// ─── Cocción: una sola transformación por ficha (WP-N10) ──────────────────────
+
+/**
+ * REGLA DE COCCIÓN (contrato v2: "Apply raw/cooked conversions exactly once and record them").
+ *
+ * Los nutrientes por 100 g de una ficha se transforman por EXACTAMENTE UNA de estas tres vías. [cookingTransformFor] decide
+ * cuál y es la única fuente de esa decisión: la comparten [scaleFoodByPortion], el resolvedor de tags y las pruebas.
+ *
+ * a) [CookingTransform.StateConversion]: conversión de base por rendimiento cuando el estado de la ficha difiere del pedido.
+ *    Ficha cruda y pedido cocido: los gramos que come la persona se dividen por el rendimiento ([cookingWeightYield]); ficha
+ *    cocida y pedido crudo: se multiplican. El resolvedor la registra una sola vez en `ResolvedTag.stateConversion`. El
+ *    rendimiento ya contiene el agua que se pierde o se gana, así que no se le suma ningún factor por gramo.
+ * b) [CookingTransform.ConcentrationFactor]: factor por gramo de [COOKING_FACTORS], solo si el estado de la ficha es
+ *    desconocido (ni cruda, ni cocida, ni ya preparada para ese método) y el método concentra ([CONCENTRATING_METHODS]:
+ *    horno, plancha, parrilla y ahumado).
+ * c) [CookingTransform.None]: nada. La ficha ya es la variante preparada, ya está en la base pedida o no hay método.
+ *
+ * Frito y empanizado nunca multiplican kcal ni macros: su grasa entra en gramos por [adjustLoggedFoodForOil], con la
+ * categoría de absorción de la ficha (masas y tubérculos 12 g por 100 g). "Sin aceite" es una sartén seca (regla plancha): no
+ * se añade aceite, no hay factor de fritura y, si el alimento pierde agua al cocerse (aves, carnes, pescados), se parte de la
+ * ficha cruda convertida por rendimiento (vía a) en vez de la fila frita, que ya lleva su aceite.
+ */
+sealed interface CookingTransform {
+    /** c) La ficha se escala tal cual. */
+    data object None : CookingTransform
+
+    /** a) Los gramos pasan de la base [from] a la base [to] con el rendimiento [weightYield] (cocido por gramo crudo). */
+    data class StateConversion(val from: FoodState, val to: FoodState, val weightYield: Double) : CookingTransform
+
+    /** b) Factor por gramo de [method] sobre una ficha de estado desconocido. */
+    data class ConcentrationFactor(val method: CookingMethod, val factor: CookingFactor) : CookingTransform
+}
+
+/**
+ * La única transformación de cocción de [food] cuando se come preparada con [method] (ver [CookingTransform]). Una ficha que
+ * por su nombre y alias es a la vez cruda y cocida cuenta como cruda ante un pedido cocido.
+ */
+fun cookingTransformFor(food: FoodItem, method: CookingMethod?): CookingTransform {
+    if (method == null) return CookingTransform.None
+    val isRaw = CookingStateResolver.isDbFoodRaw(food)
+    val isCooked = CookingStateResolver.isDbFoodCooked(food)
+    return when {
+        method != CookingMethod.CRUDO && isRaw ->
+            CookingTransform.StateConversion(FoodState.RAW, FoodState.COOKED, cookingWeightYield(food))
+        method == CookingMethod.CRUDO && isCooked ->
+            CookingTransform.StateConversion(FoodState.COOKED, FoodState.RAW, cookingWeightYield(food))
+        method in CONCENTRATING_METHODS && !isRaw && !isCooked &&
+            !CookingStateResolver.isAlreadyPreparedForMethod(food, method) ->
+            CookingTransform.ConcentrationFactor(method, cookingFactorFor(method))
+        else -> CookingTransform.None
     }
+}
+
+/**
+ * Palabras del nombre (singular, sin acentos) que fijan el rendimiento de cocción. Gana el primer grupo que tenga una:
+ * proteína texturizada, granos y legumbres secos (se hidratan), carnes, pescados, hojas y hongos (se encogen) y verduras
+ * firmes (pierden algo de agua).
+ */
+private val YIELD_BY_FOOD_WORD: List<Pair<Set<String>, Double>> = listOf(
+    setOf("soya", "soja", "pvt") to 3.5,
+    setOf("arroz", "pasta", "fideo", "lenteja", "garbanzo", "poroto", "avena", "quinoa") to 2.2,
+    setOf(
+        "pollo", "carne", "pavo", "cerdo", "pescado", "salmon", "vacuno", "bife",
+        "espinaca", "acelga", "champinon", "hongo",
+    ) to 0.75,
+    setOf("zapallo", "zanahoria", "brocoli") to 0.9,
+)
+
+/**
+ * Rendimiento de cocción: gramos cocidos por gramo crudo (0,75: la carne pierde un cuarto; 2,2: el arroz y las legumbres
+ * secas más que se duplican). Una ficha con [FoodItem.cookingWeightFactor] manda; si no, se buscan las palabras del nombre
+ * normalizado, no trozos de texto: "champiñones" es "champiñón" y "repollo" no es "pollo". "Poroto verde" es una verdura, no
+ * una legumbre seca, y "pasta de maní" o "pasta de tomate" no son fideos.
+ */
+fun cookingWeightYield(food: FoodItem): Double {
+    food.cookingWeightFactor?.takeIf { it > 0.0 }?.let { return it }
+    val words = TextKeys.normalize(food.name).split(' ')
+        .flatMap { word -> listOf(word, word.removeSuffix("s"), word.removeSuffix("es")) }
+        .toSet()
+    val notThisFood = buildSet {
+        if ("poroto" in words && "verde" in words) add("poroto")
+        val family = FoodIdentity.familyFor(food.name)
+        if (family?.startsWith("untable_") == true || family == "pasta_concentrada") add("pasta")
+    }
+    return YIELD_BY_FOOD_WORD.firstOrNull { (group, _) -> group.any { it in words && it !in notThisFood } }?.second ?: 1.0
+}
 
 /**
  * Escala una ficha a la porción pedida.
  *
- * Reglas de base (plan 2026-08-16_nutrition_precision_v2, Fase 1):
+ * Reglas de base (plan 2026-08-16_nutrition_precision_v2, Fase 1; una sola transformación: ver [CookingTransform]):
  * - ficha y peso comparten base → escala directo, sin rendimiento ni factores;
- * - ficha cruda + pedido cocido → conversión real de base (yield/retención);
- * - una ficha ya cocida/preparada jamás recibe yield ni factor de concentración
- *   adicional (era la doble conversión que llevaba 200 g cocidos a 78–91 g);
+ * - ficha cruda + pedido cocido → conversión real de base (rendimiento) y nada más: ningún factor por gramo encima;
+ * - una ficha ya cocida/preparada jamás recibe rendimiento ni factor de concentración adicional (era la doble conversión
+ *   que llevaba 200 g cocidos a 78–91 g);
+ * - el factor por gramo de horno, plancha, parrilla y ahumado solo existe para una ficha de estado desconocido;
  * - el contexto (post-entreno, etc.) no muta la densidad por 100 g.
  */
 fun scaleFoodByPortion(
@@ -98,24 +178,12 @@ fun scaleFoodByPortion(
     val baseGrams = amountGrams ?: NutrientBasis.massForServingUnits(food, baseServing * quantity * multiplier)
     val grams = if (amountGrams != null) baseGrams else baseGrams * portionAdjustment
 
-    // --- AJUSTE DE COCCIÓN / HIDRATACIÓN CULINARIA ---
-    val dbFoodIsRaw = CookingStateResolver.isDbFoodRaw(food)
-    val dbFoodIsCooked = CookingStateResolver.isDbFoodCooked(food)
-    val userRequestIsCooked = cookingMethod != null && cookingMethod != CookingMethod.CRUDO
-    val userRequestIsRaw = cookingMethod == CookingMethod.CRUDO
-
-    val rawToCookedFactor = cookingWeightYield(food)
-
-    // El rendimiento solo convierte entre bases distintas: crudo→cocido (o el
-    // retorno cocido→crudo). Si la ficha ya está en la base pedida, los gramos
-    // del usuario escalan la ficha tal cual.
-    val finalGrams = when {
-        dbFoodIsRaw && userRequestIsCooked -> {
-            grams / rawToCookedFactor
-        }
-        dbFoodIsCooked && userRequestIsRaw -> {
-            grams * rawToCookedFactor
-        }
+    // --- UNA SOLA TRANSFORMACIÓN DE COCCIÓN (ver CookingTransform) ---
+    // La conversión de base cambia los gramos de la ficha (rendimiento); el factor por gramo, su densidad. Nunca las dos.
+    val transform = cookingTransformFor(food, cookingMethod)
+    val finalGrams = when (transform) {
+        is CookingTransform.StateConversion ->
+            if (transform.to == FoodState.COOKED) grams / transform.weightYield else grams * transform.weightYield
         else -> grams
     }
 
@@ -137,24 +205,12 @@ fun scaleFoodByPortion(
         ?: extractMicronutrientAmount("cafeina", "caffeine")
     val creatineBase = food.creatineG
 
-    var calPerGram = food.calories
-    var protPerGram = food.protein
-    var carbPerGram = food.carbs
-    var fatPerGram = food.fats
-
-    // Los factores de cocción (rendimiento/retención aproximados) solo aplican
-    // cuando la ficha NO codifica ya la preparación: sobre una ficha cocida es
-    // una segunda concentración. Tampoco cuando el usuario pidió crudo.
-    if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO && !dbFoodIsCooked) {
-        // IT3: factor por categoría de alimento (fritura de masas/tubérculos concentra más).
-        val cf = cookingFactorFor(food.name, cookingMethod)
-        if (cf != CookingFactor()) {
-            calPerGram = food.calories * cf.kcal
-            protPerGram = food.protein * cf.protein
-            carbPerGram = food.carbs * cf.carbs
-            fatPerGram = food.fats * cf.fats
-        }
-    }
+    // Factor por gramo: solo la vía b) de la regla (ficha de estado desconocido y método que concentra).
+    val factor = (transform as? CookingTransform.ConcentrationFactor)?.factor ?: CookingFactor()
+    val calPerGram = food.calories * factor.kcal
+    val protPerGram = food.protein * factor.protein
+    val carbPerGram = food.carbs * factor.carbs
+    val fatPerGram = food.fats * factor.fats
 
     val totalCalories = kotlin.math.round(calPerGram * ratio)
     val totalProtein = kotlin.math.round(protPerGram * ratio * 10) / 10.0
@@ -194,6 +250,11 @@ fun scaleFoodByPortion(
 
 // ─── Manual Override Food ─────────────────────────────────────────────────────
 
+/**
+ * Alimento manual o estimado: escala los valores por 100 g dados por [amount]. Nunca aplica un factor de cocción: quien
+ * arma los valores es dueño de la única transformación (un perfil estimado ya lleva la fritura o el factor del método
+ * seco, ver [NutritionHeuristicEstimator.withCookingMethod]). [cookingMethod] solo se registra.
+ */
 fun createLoggedFood(
     foodName: String,
     amount: Double,
@@ -213,28 +274,16 @@ fun createLoggedFood(
     cookingMethod: CookingMethod? = null,
 ): LoggedFood {
     val ratio = if (amount > 0) amount / 100.0 else 1.0
-    val (adjCal, adjProt, adjCarb, adjFat) = if (cookingMethod != null && cookingMethod != CookingMethod.CRUDO) {
-        // IT3: factor por categoría de alimento.
-        val cf = cookingFactorFor(foodName, cookingMethod)
-        if (cf != CookingFactor()) {
-            Quadruple(
-                round1(calories * cf.kcal * ratio),
-                round1(protein * cf.protein * ratio),
-                round1(carbs * cf.carbs * ratio),
-                round1(fats * cf.fats * ratio),
-            )
-        } else Quadruple(calories * ratio, protein * ratio, carbs * ratio, fats * ratio)
-    } else Quadruple(calories * ratio, protein * ratio, carbs * ratio, fats * ratio)
 
     return LoggedFood(
         id = java.util.UUID.randomUUID().toString(),
         foodName = foodName,
         amount = amount,
         unit = unit,
-        calories = adjCal,
-        protein = adjProt,
-        carbs = adjCarb,
-        fats = adjFat,
+        calories = calories * ratio,
+        protein = protein * ratio,
+        carbs = carbs * ratio,
+        fats = fats * ratio,
         fiber = fiber,
         sugar = sugar,
         sodiumMg = sodiumMg,

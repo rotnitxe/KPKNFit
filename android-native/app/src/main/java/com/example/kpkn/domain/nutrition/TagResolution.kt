@@ -247,11 +247,24 @@ class TagResolver(
 
         // FIX NUT-02: trace común por análisis + subtiempos por tag
         val analysisTraceId = UUID.randomUUID().toString().substring(0, 8)
-        for (item in parsed.items) {
+        for ((itemIndex, item) in parsed.items.withIndex()) {
             val tagStart = System.nanoTime()
             val identityQuery = item.effectiveFoodQuery()
             val hasGreaseCooking = item.cookingMethod in setOf(CookingMethod.FRITO, CookingMethod.EMPANIZADO_FRITO)
-            val hasExcludedOil = item.excludedIngredients.any(::isOilTag)
+            val hasExcludedOil = item.excludedIngredients.any(::isOilExclusion)
+            // Frying "sin aceite" is a dry pan (WP-N10): no oil and no frying factor. The prepared fried row is dropped (it carries its
+            // oil) and, for a food that loses water when it is cooked from raw, the cooked weight is rebuilt from its raw row.
+            val dryPanFrying = hasExcludedOil && hasGreaseCooking
+            // The word the person typed ("revueltos"), when the parser did not keep it: it chooses between prepared rows.
+            val cookingWord = item.cookingWord ?: item.cookingMethod?.let { method ->
+                CookingStateResolver.literalCookingWord(
+                    description = parsed.rawDescription.ifBlank { parsed.verbatimDescription },
+                    tag = item.tag,
+                    method = method,
+                    occurrence = parsed.items.take(itemIndex)
+                        .count { FoodIdentity.normalize(it.tag) == FoodIdentity.normalize(item.tag) },
+                )
+            }
             val mappedCanonicalId = calibrationProfile?.identityMappings?.let { map ->
                 sequenceOf(
                     identityQuery.trim().lowercase(),
@@ -344,9 +357,9 @@ class TagResolver(
                 else -> staticLocal
             }
 
-            // Prefer DB row that already encodes the method (pollo frito → pechuga frita).
-            val preparedVariant = CookingStateResolver.findPreparedVariant(identityQuery, item.cookingMethod)
-                ?.takeUnless { hasExcludedOil && hasGreaseCooking }
+            // Prefer DB row that already encodes the method (pollo frito → pechuga frita; huevos revueltos → huevo revuelto).
+            val preparedVariant = CookingStateResolver.findPreparedVariant(identityQuery, item.cookingMethod, cookingWord)
+                ?.takeUnless { dryPanFrying }
             val rememberedState = if (item.cookingMethod == null) preferenceHint ?: food?.id?.let { id ->
                 calibrationProfile?.statePreferences?.get(id)?.let { runCatching { FoodState.valueOf(it) }.getOrNull() }
             }?.takeUnless { it == FoodState.UNKNOWN } else null
@@ -379,10 +392,13 @@ class TagResolver(
                 item.cookingMethod == CookingMethod.CRUDO && food != null &&
                     CookingStateResolver.isDbFoodCooked(food) ->
                     CookingStateResolver.findRawVariant(food) ?: food
-                item.cookingMethod != null && item.cookingMethod != CookingMethod.CRUDO && food != null -> {
-                    if (CookingStateResolver.isAlreadyPreparedForMethod(food, item.cookingMethod)) {
+                item.cookingMethod != null && item.cookingMethod != CookingMethod.CRUDO && food != null -> when {
+                    CookingStateResolver.isAlreadyPreparedForMethod(food, item.cookingMethod) ->
                         CookingStateResolver.findRawVariant(food) ?: food
-                    } else food
+                    // A dry pan cooks from raw and loses water (poultry, meat, fish, leaves): the cooked weight is rebuilt from the raw row.
+                    dryPanFrying && CookingStateResolver.isDbFoodCooked(food) ->
+                        CookingStateResolver.findRawVariant(food)?.takeIf { cookingWeightYield(it) < 1.0 } ?: food
+                    else -> food
                 }
                 else -> food
             }.takeIf { it == null || (NutrientBasis.isVerified(it) && FoodIdentity.matchesDeclaredIdentity(identityQuery, it, effectiveBrandHint) &&
@@ -409,9 +425,9 @@ class TagResolver(
                 convertsAssumedState -> CookingMethod.COCIDO
                 else -> null
             }
-            val convertedTarget = CookingStateResolver.stateForMethod(scaleMethod)?.takeIf { target ->
-                effectiveFood != null && ((target == FoodState.COOKED && CookingStateResolver.isDbFoodRaw(effectiveFood)) ||
-                    (target == FoodState.RAW && CookingStateResolver.isDbFoodCooked(effectiveFood)))
+            // The one raw/cooked basis conversion of this tag (rule a of MacroCalculator): the same decision scaleFoodByPortion applies.
+            val convertedTarget = effectiveFood?.let {
+                (cookingTransformFor(it, scaleMethod) as? CookingTransform.StateConversion)?.to
             }
             val rememberedOil = if (applyOil && !hasExcludedOil) effectiveFood?.id?.let { calibrationProfile?.oilProfiles?.get(it) }
                 ?.takeIf { it.isFinite() && it >= 0.0 } else null
@@ -439,7 +455,9 @@ class TagResolver(
             val retrievalForMacroValidation: SemanticPortionRetriever.RetrievalResult? = null
             val preferAiLoggedFood = effectiveFood == null && shouldUseAiLoggedFood(item)
             val canonicalFamily = FoodIdentity.familyFor(effectiveFood?.name ?: identityQuery)
-            val foodState = convertedTarget ?: effectiveFood?.let { FoodIdentity.stateFor(it) }
+            // A prepared row states what its method says even when its name has no state word ("Huevo Entero (revuelto)").
+            val foodState = convertedTarget ?: preparedVariant?.let { CookingStateResolver.stateForMethod(item.cookingMethod) }
+                ?: effectiveFood?.let { FoodIdentity.stateFor(it) }
                 ?: FoodIdentity.stateFor(identityQuery)
             val resolutionConfidence = when {
                 staticIsExact && !approximationAlias -> 1.0
@@ -737,13 +755,15 @@ class TagResolver(
                     dishGrams *= PORTION_MULTIPLIERS[item.portion] ?: 1.0
                 }
                 val mac = item.macroOverrides
+                // The estimated profile has no catalog state: the parsed method acts on it once, here (overrides are taken as given).
+                val cooked = NutritionHeuristicEstimator.withCookingMethod(profile, identityQuery, item.cookingMethod)
                 var logged = createLoggedFood(
                     foodName = "${item.tag} (estimado)",
                     amount = dishGrams,
-                    calories = mac?.calories ?: profile.calories,
-                    protein = mac?.protein ?: profile.protein,
-                    carbs = mac?.carbs ?: profile.carbs,
-                    fats = mac?.fats ?: profile.fats,
+                    calories = mac?.calories ?: cooked.calories,
+                    protein = mac?.protein ?: cooked.protein,
+                    carbs = mac?.carbs ?: cooked.carbs,
+                    fats = mac?.fats ?: cooked.fats,
                     fiber = 0.0,
                     sugar = 0.0,
                     sodiumMg = 0.0,
@@ -1147,6 +1167,15 @@ fun isOilTag(tag: String): Boolean {
     val lower = tag.lowercase().trim()
     return lower == "aceite" || lower == "aceite vegetal" || lower == "aceite de oliva" ||
         lower == "aceite de maravilla" || lower == "aceite de girasol"
+}
+
+/**
+ * True when an exclusion of a mention is oil ("sin aceite"). The parser can leave the measure that follows the exclusion inside
+ * it ("sin aceite 150 g" gives "aceite 150 g"), so the check is on the oil word, not on the whole phrase.
+ */
+fun isOilExclusion(excluded: String): Boolean {
+    val key = FoodIdentity.normalize(excluded).removePrefix("sin ").trim()
+    return key == "aceite" || key.startsWith("aceite ")
 }
 
 /**

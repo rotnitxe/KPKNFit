@@ -105,10 +105,10 @@ class CookingPortionPrecisionTest {
             amountGrams = 100.0,
             cookingMethod = CookingMethod.COCIDO,
         )
-        // 100 g on plate hydrated → macros from ~28.6 g dry profile; COCIDO also ×0.90 kcal
+        // 100 g on plate hydrated → macros from ~28.6 g dry profile, by yield alone: no COCIDO x0.90 on top (WP-N10)
         assertEquals(100.0, asHydrated.amount, 0.01)
         val dryEquivalentRatio = (100.0 / 3.5) / 100.0
-        val expectedKcal = kotlin.math.round(340.0 * dryEquivalentRatio * 0.90)
+        val expectedKcal = kotlin.math.round(340.0 * dryEquivalentRatio)
         assertEquals(expectedKcal, asHydrated.calories, 1.0)
         assertTrue(asHydrated.calories < 200.0)
     }

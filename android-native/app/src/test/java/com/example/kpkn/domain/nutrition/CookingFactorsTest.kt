@@ -171,11 +171,12 @@ class CookingFactorsTest {
     }
 
     @Test
-    fun `IT3 factor de fritura mayor para masas y tuberculos`() {
+    fun `WP-N10 fritura nunca multiplica kcal y el horno concentra una sola vez`() {
+        // Antes: papas x1,20 y pollo x1,10 (IT3). La grasa de la fritura entra en gramos por el aceite (12 g y 6 g por 100 g).
         val papas = cookingFactorFor("papas", CookingMethod.FRITO)
-        assertEquals(1.20, papas.kcal, 0.01)
+        assertEquals(1.00, papas.kcal, 0.01)
         val pollo = cookingFactorFor("Pollo", CookingMethod.FRITO)
-        assertEquals(1.10, pollo.kcal, 0.01)
+        assertEquals(1.00, pollo.kcal, 0.01)
         val hornoPapas = cookingFactorFor("papas", CookingMethod.HORNO)
         assertEquals(1.15, hornoPapas.kcal, 0.01)
         val sinMetodo = cookingFactorFor("papas", null)

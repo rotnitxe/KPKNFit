@@ -329,17 +329,17 @@ class MacroCalculatorTest {
     // ─── Cooking Method Application ─────────────────────────────────────────
 
     @Test
-    fun `scale food with frito concentrates macros for meat`() {
+    fun `scale food with frito applies no factor to a row, its fat is oil in grams`() {
         val food = FoodItem(
             id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
             calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 200.0, cookingMethod = CookingMethod.FRITO)
         assertEquals(200.0, logged.amount, 0.01)
-        assertEquals(363.0, logged.calories, 1.0) // 165 * 1.10 * 2 = 363
-        assertEquals(68.2, logged.protein, 0.5)    // 31 * 1.10 * 2 = 68.2
+        assertEquals(330.0, logged.calories, 1.0) // 165 * 2 = 330 (WP-N10: was x1.10 = 363)
+        assertEquals(62.0, logged.protein, 0.5)    // 31 * 2 = 62 (was x1.10 = 68.2)
         assertEquals(0.0, logged.carbs, 0.5)
-        assertEquals(7.2, logged.fats, 0.5)       // 3.6 * 1.00 * 2 = 7.2
+        assertEquals(7.2, logged.fats, 0.5)       // 3.6 * 2 = 7.2 (the fat of frying enters as oil grams: adjustLoggedFoodForOil)
         assertEquals(CookingMethod.FRITO, logged.cookingMethod)
     }
 
@@ -357,28 +357,28 @@ class MacroCalculatorTest {
     }
 
     @Test
-    fun `scale food with empanizado frito concentrates macros and carbs`() {
+    fun `scale food with empanizado frito applies no factor to a row`() {
         val food = FoodItem(
             id = "merluza", name = "Merluza", servingSize = 100.0, unit = "g",
             calories = 120.0, protein = 22.0, carbs = 0.0, fats = 3.0,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.EMPANIZADO_FRITO)
         assertEquals(150.0, logged.amount, 0.01)
-        assertEquals(216.0, logged.calories, 1.0)
-        assertEquals(36.3, logged.protein, 0.5)
+        assertEquals(180.0, logged.calories, 1.0) // 120 * 1.5 = 180 (WP-N10: was x1.20 = 216)
+        assertEquals(33.0, logged.protein, 0.5) // 22 * 1.5 = 33 (was x1.10 = 36.3)
         assertEquals(4.5, logged.fats, 0.5)
     }
 
     @Test
-    fun `scale food with cocido reduces kcal due to water dilution`() {
+    fun `scale food with cocido applies no factor to a row of unknown state`() {
         val food = FoodItem(
             id = "pollo", name = "Pollo", servingSize = 100.0, unit = "g",
             calories = 165.0, protein = 31.0, carbs = 0.0, fats = 3.6,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 200.0, cookingMethod = CookingMethod.COCIDO)
-        // kcal: 165 * 0.90 * 2 = 297
-        assertTrue(logged.calories < 310.0)
-        assertTrue(logged.protein < 60.0) // 31 * 0.95 * 2 = 58.9
+        // WP-N10: boiling changes a raw row through its yield, never through a per-gram factor (was x0.90 kcal and x0.95 protein)
+        assertEquals(330.0, logged.calories, 1.0) // 165 * 2
+        assertEquals(62.0, logged.protein, 0.5) // 31 * 2
     }
 
     @Test
@@ -394,16 +394,155 @@ class MacroCalculatorTest {
     }
 
     @Test
-    fun `scale food with frito concentrates macros`() {
+    fun `scale food with frito applies no factor to vegetables`() {
         val food = FoodItem(
             id = "verduras", name = "Verduras", servingSize = 100.0, unit = "g",
             calories = 28.0, protein = 2.0, carbs = 5.0, fats = 0.3,
         )
         val logged = scaleFoodByPortion(food, amountGrams = 150.0, cookingMethod = CookingMethod.FRITO)
-        // kcal: 28 * 1.10 * 1.5 = 46.2, which rounds to 46.0
-        // fats: 0.3 * 1.00 * 1.5 = 0.45, which rounds to 0.5
-        assertEquals(46.0, logged.calories, 0.1)
+        // kcal: 28 * 1.5 = 42 (WP-N10: was x1.10 = 46.2, which rounded to 46.0)
+        // fats: 0.3 * 1.5 = 0.45, which rounds to 0.5
+        assertEquals(42.0, logged.calories, 0.1)
         assertEquals(0.5, logged.fats, 0.1)
+    }
+
+    // ─── WP-N10: una sola transformación de cocción por ficha ───────────────────
+
+    /** kcal, protein, carbs and fats of [food] at [grams], rounded as scaleFoodByPortion does, with an optional per-gram [factor]. */
+    private fun scaledMacros(food: FoodItem, grams: Double, factor: CookingFactor = CookingFactor()): List<Double> {
+        val ratio = grams / NutrientBasis.grams(food)
+        return listOf(
+            kotlin.math.round(food.calories * factor.kcal * ratio),
+            kotlin.math.round(food.protein * factor.protein * ratio * 10) / 10.0,
+            kotlin.math.round(food.carbs * factor.carbs * ratio * 10) / 10.0,
+            kotlin.math.round(food.fats * factor.fats * ratio * 10) / 10.0,
+        )
+    }
+
+    private fun macrosOf(logged: LoggedFood) = listOf(logged.calories, logged.protein, logged.carbs, logged.fats)
+
+    @Test
+    fun `invariant every row of the catalog is transformed by exactly one of conversion, factor or nothing`() {
+        val foods = com.example.kpkn.data.food.buildFoodDatabase()
+        var conversions = 0
+        var factors = 0
+        var untouched = 0
+        for (food in foods) {
+            for (method in CookingMethod.entries) {
+                val actual = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0, cookingMethod = method))
+                val expected = when (val transform = cookingTransformFor(food, method)) {
+                    // The basis changes the grams of the row; nothing else touches its nutrients.
+                    is CookingTransform.StateConversion -> {
+                        conversions++
+                        val grams = if (transform.to == FoodState.COOKED) 100.0 / transform.weightYield else 100.0 * transform.weightYield
+                        scaledMacros(food, grams)
+                    }
+                    // Only a concentrating method on a row of unknown state carries its table factor, once.
+                    is CookingTransform.ConcentrationFactor -> {
+                        factors++
+                        assertTrue(transform.method in CONCENTRATING_METHODS)
+                        assertEquals(COOKING_FACTORS[method], transform.factor)
+                        scaledMacros(food, 100.0, transform.factor)
+                    }
+                    CookingTransform.None -> {
+                        untouched++
+                        scaledMacros(food, 100.0)
+                    }
+                }
+                assertEquals("${food.id} ${food.name} + $method", expected, actual)
+            }
+        }
+        assertTrue("the catalog should exercise every route", conversions > 0 && factors > 0 && untouched > 0)
+    }
+
+    @Test
+    fun `invariant a raw row never carries a factor with its state conversion, whatever the method`() {
+        val rawRows = com.example.kpkn.data.food.buildFoodDatabase().filter { CookingStateResolver.isDbFoodRaw(it) }
+        assertTrue(rawRows.size >= 10)
+        val cookedMethods = CookingMethod.entries.filter { it != CookingMethod.CRUDO }
+        for (food in rawRows) {
+            val reference = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0, cookingMethod = CookingMethod.COCIDO))
+            for (method in cookedMethods) {
+                assertTrue("${food.id} + $method", cookingTransformFor(food, method) is CookingTransform.StateConversion)
+                val logged = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0, cookingMethod = method))
+                assertEquals("${food.id} + $method", reference, logged)
+            }
+        }
+        // A raw row asked raw is the row as it is.
+        for (food in rawRows.filter { !CookingStateResolver.isDbFoodCooked(it) }) {
+            assertEquals(CookingTransform.None, cookingTransformFor(food, CookingMethod.CRUDO))
+        }
+    }
+
+    @Test
+    fun `a row of unknown state changes only with a concentrating method, once`() {
+        val unknownRows = com.example.kpkn.data.food.buildFoodDatabase()
+            .filter { !CookingStateResolver.isDbFoodRaw(it) && !CookingStateResolver.isDbFoodCooked(it) }
+        assertTrue(unknownRows.size >= 10)
+        for (food in unknownRows) {
+            val plain = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0))
+            for (method in CookingMethod.entries) {
+                val logged = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0, cookingMethod = method))
+                if (method in CONCENTRATING_METHODS && !CookingStateResolver.isAlreadyPreparedForMethod(food, method)) {
+                    assertEquals("${food.id} + $method", scaledMacros(food, 100.0, COOKING_FACTORS.getValue(method)), logged)
+                } else {
+                    assertEquals("${food.id} + $method", plain, logged)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `scale food with horno on a row of unknown state applies the table factor once`() {
+        val tomato = FoodItem(id = "t", name = "Tomate", servingSize = 100.0, unit = "g", calories = 18.0, protein = 0.9, carbs = 3.9, fats = 0.2)
+        val logged = scaleFoodByPortion(tomato, amountGrams = 200.0, cookingMethod = CookingMethod.HORNO)
+        assertEquals(41.0, logged.calories, 0.0) // 18 * 1.15 * 2 = 41.4
+        assertEquals(2.0, logged.protein, 0.0) // 0.9 * 1.10 * 2 = 1.98
+        assertEquals(8.2, logged.carbs, 0.0) // 3.9 * 1.05 * 2 = 8.19
+        assertEquals(0.4, logged.fats, 0.0) // 0.2 * 0.95 * 2 = 0.38
+    }
+
+    @Test
+    fun `scale food converts a raw row by yield alone, with no factor on top`() {
+        val salmon = FoodItem(
+            id = "s", name = "Salmón (crudo)", servingSize = 100.0, unit = "g",
+            calories = 208.0, protein = 20.0, carbs = 0.0, fats = 13.0, cookingWeightFactor = 0.78,
+        )
+        // 150 g cooked = 150 / 0.78 g raw: 192.3 g x 2.08 = 400 kcal. Before WP-N10 the parrilla factor made it 420.
+        for (method in listOf(CookingMethod.ASADO_PARRILLA, CookingMethod.HORNO, CookingMethod.COCIDO, CookingMethod.FRITO)) {
+            val logged = scaleFoodByPortion(salmon, amountGrams = 150.0, cookingMethod = method)
+            assertEquals("$method", 400.0, logged.calories, 0.0)
+            assertEquals("$method", 38.5, logged.protein, 0.0)
+            assertEquals("$method", 25.0, logged.fats, 0.0)
+            assertEquals(150.0, logged.amount, 0.0)
+        }
+        val plain = scaleFoodByPortion(salmon, amountGrams = 150.0)
+        assertEquals(312.0, plain.calories, 0.0) // no method: the row as it is
+    }
+
+    @Test
+    fun `scale food converts a cooked row to raw by multiplying with the yield`() {
+        val chicken = FoodItem(
+            id = "p", name = "Pechuga de Pollo (cocida)", servingSize = 100.0, unit = "g",
+            calories = 168.0, protein = 32.0, carbs = 0.0, fats = 3.2,
+        )
+        // 100 g raw = 75 g cooked: 75 g x 1.68 = 126 kcal and 24 g of protein.
+        val logged = scaleFoodByPortion(chicken, amountGrams = 100.0, cookingMethod = CookingMethod.CRUDO)
+        assertEquals(126.0, logged.calories, 0.0)
+        assertEquals(24.0, logged.protein, 0.0)
+    }
+
+    @Test
+    fun `createLoggedFood scales by the amount and never applies a cooking factor`() {
+        val logged = createLoggedFood(
+            foodName = "Plato (estimado)", amount = 200.0, calories = 160.0, protein = 10.0, carbs = 16.0, fats = 6.0,
+            cookingMethod = CookingMethod.HORNO,
+        )
+        assertEquals(320.0, logged.calories, 0.0)
+        assertEquals(20.0, logged.protein, 0.0)
+        assertEquals(32.0, logged.carbs, 0.0)
+        assertEquals(12.0, logged.fats, 0.0)
+        assertEquals(CookingMethod.HORNO, logged.cookingMethod)
     }
 
     @Test
