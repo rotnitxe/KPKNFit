@@ -1,6 +1,6 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 27b.** Recoge hallazgos
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 28.** Recoge hallazgos
 > por lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0
 > bajo Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado. Evidencia de
 > los 55 hallazgos con id: **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de
@@ -298,6 +298,18 @@ plan. Además hubo lectura directa propia de los hallazgos críticos (etiqueta V
 - USDA (`food.csv` 78 k filas) es el download **Foundation Foods**: solo **436** alimentos reales (resto
   `sub_sample_food`/`market_acquisition`), en inglés: son 436 filas foundation candidatas, de las cuales 366 tienen
   energía (B4). `food_nutrient.csv` 159 k filas.
+- **Tras WP-S9b (gate 28).** De las 436 fichas Foundation, 60 no traían fila de energía (8 aceites, 2 mantequillas, 34
+  legumbres secas, 13 frutas, verduras y jugos, la sandía y 2 sales; las otras 376 sí) y 10 un carbohidrato por
+  diferencia levemente negativo (de -0,71 a -0,06 g), por lo que solo 366 eran importables. `FoodImporter.parseUsda`
+  calcula ahora la energía con los factores de Atwater (4/4/9; alcohol 7) únicamente si proteína, carbohidrato, grasa y
+  alcohol cubren al menos el 90 % de la materia seca: recupera los 8 aceites (836-851 kcal/100 g, un 4-5 % bajo SR
+  Legacy porque «Total fat (NLEA)» no cuenta el glicerol) y las 2 mantequillas (734-740 kcal/100 g), con la bandera
+  `ENERGY_ATWATER`. Un carbohidrato negativo de -2 g o más se recorta a 0 con `CARB_CLAMPED` (las 10 filas: pollo con
+  piel, cordero y bisonte molidos, chuleta y panceta de cerdo, halibut y atún); por debajo de -2 g la fila se descarta.
+  Las otras 50 siguen fuera: ninguna declara carbohidrato y la fórmula literal daría 110 kcal a un poroto seco
+  (referencia ~340). Filas USDA importadas: de 366 a 386, sin cambiar ninguna existente. `NutrientBasis.isVerified`
+  ignora las dos banderas informativas (si no, las 20 filas serían invisibles en el logger). `DATA_VERSION` pasa de 10 a
+  11: una reimportación en las instalaciones existentes (la huella del manifiesto no cambia).
 - `off_chile.csv`: **16.805** productos OpenFoodFacts Chile (54 MB, TSV sin cabecera). Diagnóstico ago-2026 reportó
   5.766 filas en Room tras validación.
 - `dataset_knowledge.bin`: 19.405 ejemplos instruccionales ("DATASET_KPKN_TRINIDAD_MASTER.json", no versionado) =>
@@ -866,7 +878,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP. Avance tras los gates 1 a 27b: 43 de los 45 paquetes del plan cerrados, más S2b
+divide el WP. Avance tras los gates 1 a 28: 43 de los 45 paquetes del plan cerrados, más S2b
 (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
@@ -1149,8 +1161,9 @@ p95 de la sonda menor; N2 #6-8; N3 #37-38 + 3 ediciones golden; N4 JVM e instrum
 | 2026-10-03, 15:14-15:26 | Gate 26 | FALLÓ (BUILD FAILED en 11 min 38 s; filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`) solo en la guarda nueva `NoDoubleOutcomeAssertionsTest` («no assertion of domain nutrition accepts two outcomes», `NoDoubleOutcomeAssertionsTest.kt:210`): una aserción legítima de «al menos uno de» en `FoodKnowledgeAssetTest.kt:160`, escrita por N13 después de la foto en la que N12 contó los `||`. El resto, verde: 115 suites y 1.685 tests con 1 fallo. Es el motivo del seguimiento N12b (3 archivos: la aserción reescrita sin `||`, `SandwichMentionBoundaryTest` línea 95 estrechada a un `assertEquals` de `gen146` y la entrada obsoleta de la allow-list borrada; la guarda queda en 2 encontradas, 2 permitidas y 0 infractoras) | - |
 | 2026-10-03, 15:45-15:59 | Gate 27 | FALLÓ al compilar los tests (BUILD FAILED en 8 min 48 s en `compileBaseDebugUnitTestKotlin`, tras ~4,5 min esperando que `classes.jar` quedara libre) por una edición en curso de otra sesión: `SetupWizardActivationGateTest` usa `setupRejectionOf`, que pasó de `private` a `internal` en `SetupWizardViewModel.kt` entre la compilación principal y la de tests (ambos archivos ajenos y sin commitear). Ningún test corrió. Se reencoló como gate 27b | - |
 | 2026-10-03, 16:00-16:21 | Gate 27b | BUILD SUCCESSFUL en 13 min 19 s, tras ~8 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:08 a 16:21); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.722 tests, 0 fallos. `GoldenCorpusTest` 320 (parametrizado; eran 4) y `GoldenCorpusInvariantsTest` 4; `BlindMealCorpusTest` 7; `NoDoubleOutcomeAssertionsTest` 2; `DessertPiecePortionTest` 16, `SandwichFillingMentionTest` 14 y `FatMarkerAndDrinkPortionTest` 7; `NutritionMetricsContractTest` 5 (E16 robusta a la carga; precisión@1 como aserción dura de 49/50 como mínimo). Corpus ciego: identidad 97,6 %, cobertura 100 %, gramos 83,1 %, kcal 68,7 % y pregunta 95,2 % (ver «Corpus ciego permanente»). Frente al estado tras el gate 25, la sonda cambia en cuatro líneas (#27, #28, #50 y #53); 42 de las 60 difieren de la línea base oficial en la línea de resultado y ninguna pierde una ficha ni gana un fantasma (ver «Línea base»). Paquete cerrado: N12; seguimientos cerrados: N11b y N12b | `6420f5983` "fix(nutrition): WP-N11b — porciones por pieza de postres y hot dogs sin ficha, sándwich de un relleno o lista expandido a pan + rellenos, marcador de grasa por palabra y bebidas con su porción junto a un plato"; `25e8cf787` "test(nutrition): WP-N12 — suite endurecida: golden parametrizado, sin aserciones de doble resultado, bandas exactas con masa declarada, corpus ciego permanente con umbrales y E16 robusto a carga" |
+| 2026-10-03, 16:32-16:47 | Gate 28 | BUILD SUCCESSFUL en 11 min 21 s, tras ~4 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:36 a 16:47); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.745 tests, 0 fallos. `FoodImporterParseTest` 29 (+3), `FoodImporterUsdaMappingTest` 47 (+13; fija los conteos reales: 60 fichas sin energía, 50 que siguen fuera, 20 filas nuevas y 386 importadas), `SearchGoldenCorpusTest` 58 (+7), `FoodImporterUsageTest` 12, `UsdaAliasTableTest` 11 y `NutritionRepositoryStartupTest` 14. La sonda es idéntica a la del estado tras WP-N11b en todos los campos, también con las 386 filas USDA inyectadas en el pool de búsqueda. Seguimiento cerrado: S9b (de las 436 fichas Foundation, los 8 aceites y las 2 mantequillas sin fila de energía reciben la de Atwater, con la bandera `ENERGY_ATWATER`, y las 10 con carbohidrato levemente negativo se recortan a 0, con `CARB_CLAMPED`: de 366 a 386 filas USDA, sin cambiar ninguna existente; `DATA_VERSION` pasa de 10 a 11, con una reimportación en las instalaciones existentes porque la huella del manifiesto no cambia; el pool de `SearchGoldenCorpusTest` incluye ya filas USDA del extracto de test: "aceite de oliva extra virgen" resuelve a `usda_748608` y "aceite de canola" y "aceite de maravilla" ya no dan un resultado vacío) | `611fdf2c4` "feat(nutrition): WP-S9b — energía Atwater para aceites y mantequillas USDA sin fila de energía, carbohidrato negativo recortado y filas USDA en el corpus de búsqueda" |
 
-Nota sobre las horas: las de los gates 3 a 27b son las marcas de creación (inicio) y de última escritura (fin) de los
+Nota sobre las horas: las de los gates 3 a 28 son las marcas de creación (inicio) y de última escritura (fin) de los
 logs de cada gate (no versionados), en hora local; incluyen los pasos previos a Gradle (aplicar el parche y esperar el
 candado de Gradle o a que `classes.jar` quede libre). Las filas de los gates 3 a 18 se corrigieron con los logs: las
 horas anotadas durante la ejecución diferían de las que muestran los logs y los commits hasta 13 minutos en los gates 3
@@ -1167,19 +1180,19 @@ Detalle del gate 1:
 - Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
   (WP-S10/S11); ver «Límites».
 
-Avance acumulado (gates 1 a 27b):
+Avance acumulado (gates 1 a 28):
 
 - Paquetes cerrados: 43 de los 45 del plan, más S2b (añadido en la ejecución): WP-0; N0 a N6 y N8 a N13 (N13: secciones
   1 y 2); S1 a S11 y S2b; U1 a U17; D1. Por bloque: WP-0 1/1, N 13/14, S 11/12 más S2b, U 17/17, D 1/1.
-- Pendientes del plan (2): N7 (en curso) y S12 (diferido). Seguimientos cerrados, fuera del plan: N10b, N11b, S10a, S10c
-  y N12b; en curso: S9b y la sección 3 de N13 (`dishCompositions`; las secciones 4 a 6 son incrementales); abiertos:
-  N8b, N10c, S1b y D1b (ver «Límites» y «Corpus ciego permanente»).
+- Pendientes del plan (2): N7 (en curso) y S12 (diferido). Seguimientos cerrados, fuera del plan: N10b, N11b, S9b, S10a,
+  S10c y N12b; en curso: la sección 3 de N13 (`dishCompositions`; las secciones 4 a 6 son incrementales); abiertos: N8b,
+  N10c, S1b y D1b (ver «Límites» y «Corpus ciego permanente»).
 - Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y el gate 11 repite
   esa salida; tras el gate 14 difiere de la línea base en 27 casos, con WP-N6/N8 en 30, con WP-N10 en 37, con WP-N9 en
   42, tras el gate 23 en 45, con WP-N11 en 47 y con WP-N11b en 48 (42 en la línea de resultado y 6 solo en campos
-  internos); los gates 19 y 23 no cambian ninguna línea y el gate 25 deja la sonda idéntica a la de WP-N11. Con WP-N11 y
-  WP-N11b ningún caso pierde una ficha ni gana un fantasma frente a la línea base: #10, que WP-N9 dejó como una mención
-  sin ficha, vuelve a resolver (`gen193`) (ver «Línea base»).
+  internos); los gates 19 y 23 no cambian ninguna línea, el gate 25 deja la sonda idéntica a la de WP-N11 y el gate 28 a
+  la de WP-N11b. Con WP-N11 y WP-N11b ningún caso pierde una ficha ni gana un fantasma frente a la línea base: #10, que
+  WP-N9 dejó como una mención sin ficha, vuelve a resolver (`gen193`) (ver «Línea base»).
 - Cobertura del catálogo estático: de 118/174 términos con ficha en WP-0 a 169/174 tras WP-D1 (gate 19; criterio de
   frase completa, más estricto que el grep de WP-0); quedan sin ficha mate, tallarines, negrita, pre entreno y pap (ver
   «Sonda de cobertura de términos cotidianos»).
@@ -1292,9 +1305,6 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
 - **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
   master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`). Los commits de WP-S11 (gate 19) y WP-S10 (gate 23)
   no tocan el bin y ninguno de los gates registrados ejecutó esa tarea, así que sigue pendiente y sin paquete asignado.
-- **WP-S9b, nuevo y pendiente.** Tras WP-S9 (gate 13), 60 alimentos foundation no tienen fila de energía (8 de ellos
-  aceites) y 10 tienen carbohidrato negativo: quedan fuera del import (436 - 60 - 10 = 366, la cifra importada). La
-  energía por Atwater sigue pendiente.
 - **WP-N8b, abierto.** Los topes por ítem frenan los conteos grandes ("3 completos" y "5 manzanas" quedan en revisión) y
   reúne las porciones por defecto y las identidades que fallan en el corpus ciego (ver «Corpus ciego permanente»).
 - **Plural corto de 3 letras.** El plural corto con conteo se corrigió en el gate 17; "tés" y "tes" sin conteo siguen
@@ -1318,7 +1328,11 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   leche); "mayo" no tiene alias en Mayonesa.
 - **WP-N10c, nuevo y abierto.** Cocción: x1,15 sobre una fila de plato ya horneado y rendimiento de crudo a cocido que
   sobreestima el pescado graso y las carnes (#49 y #4 del corpus ciego; ver «Corpus ciego permanente»).
-- **WP-D1b, nuevo y abierto.** Datos: `cl007` "porotos granados" con 149 kcal/100 g parece alto (#39 del corpus ciego).
+- **WP-D1b, nuevo y abierto.** Datos: `cl007` "porotos granados" con 149 kcal/100 g parece alto (#39 del corpus ciego),
+  y faltan fichas estáticas de legumbres secas (poroto negro seco, ~341 kcal/100 g): los porotos secos de USDA no se
+  pueden importar con seguridad (ver «Datos y catálogos»).
+- **Negación en la búsqueda.** `matchesDeclaredIdentity` ignora la negación: con "con sal" entra la fila "sin sal" en el
+  segundo puesto (hallado por WP-S9b; sin paquete asignado).
 - **Doble fuente del conocimiento (WP-N13, secciones 1 y 2).** El asset `food_knowledge_v1.json` (mantenido a mano, sin
   generador) y la copia Kotlin `FoodKnowledgeDefaults.kt` coexisten: la copia es el respaldo si el asset falla y se
   borrará cuando `FoodKnowledgeParityTest` lo permita; antes hay que adelantar la instalación al inicio de la app,
@@ -1328,7 +1342,7 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 27b de «Registro de ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 28 de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6
