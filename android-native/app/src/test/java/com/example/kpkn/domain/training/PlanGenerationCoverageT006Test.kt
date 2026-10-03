@@ -1,45 +1,38 @@
 package com.example.kpkn.domain.training
 
-import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.CardioType
-import com.example.kpkn.data.models.EquipmentAvailability
-import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.models.VolumeRecommendation
-import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.programs.TrainingCapability
 import com.example.kpkn.data.programs.TrainingFocus
-import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.protocols.CompositionSeverity
 import com.example.kpkn.data.protocols.RecipeSessionKind
 import com.example.kpkn.data.protocols.SlotIntent
 import com.example.kpkn.data.protocols.definitions.NativeCardioDefaults
-import com.example.kpkn.data.protocols.definitions.NativeProfileCalendars
-import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
+import com.example.kpkn.domain.onboarding.NativePlanFailureMapper
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluation
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
-import com.example.kpkn.domain.onboarding.PlanCandidateRequest
-import com.example.kpkn.domain.onboarding.PlanCatalogSnapshot
-import com.example.kpkn.domain.onboarding.PlanEvaluationStage
-import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanMaterializationException
 import com.example.kpkn.domain.onboarding.PlanMaterializationOutcome
 import com.example.kpkn.domain.onboarding.PlanMaterializationPort
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.SetupTrainingPlanner
 import com.example.kpkn.domain.onboarding.SetupTrainingPlannerInput
-import com.example.kpkn.domain.onboarding.SetupTrainingOptions
+import com.example.kpkn.domain.training.CoverageFixtures.EquipmentFixture
+import com.example.kpkn.domain.training.CoverageFixtures.Profile
+import com.example.kpkn.domain.training.CoverageFixtures.draft
+import com.example.kpkn.domain.training.CoverageFixtures.legacyFixtures
+import com.example.kpkn.domain.training.CoverageFixtures.levelOf
+import com.example.kpkn.domain.training.CoverageFixtures.materializer
+import com.example.kpkn.domain.training.CoverageFixtures.personalizer
+import com.example.kpkn.domain.training.CoverageFixtures.plannerInput
+import com.example.kpkn.domain.training.CoverageFixtures.request
+import com.example.kpkn.domain.training.CoverageFixtures.weekdays
 import com.example.kpkn.screens.onboarding.SetupExperience
-import com.example.kpkn.screens.onboarding.SetupFocus
-import com.example.kpkn.screens.onboarding.SetupGoal
-import com.example.kpkn.screens.onboarding.SetupVolumeAnswers
-import com.example.kpkn.screens.onboarding.SetupWizardDraft
-import com.example.kpkn.screens.onboarding.inferredTrainingStyle
-import com.example.kpkn.screens.onboarding.trainingReference
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -62,245 +55,16 @@ class PlanGenerationCoverageT006Test {
         }
     }
 
-    private enum class Profile(
-        val goal: SetupGoal,
-        val planGoal: PlanGoalProfile,
-        val reference: TrainingReference?,
-        val nativeKind: NativeProfileKind,
-    ) {
-        STRENGTH(SetupGoal.STRENGTH, PlanGoalProfile.STRENGTH, TrainingReference.POWERLIFTING, NativeProfileKind.STRENGTH),
-        MUSCLE(SetupGoal.MUSCLE, PlanGoalProfile.MUSCLE, TrainingReference.HYPERTROPHY, NativeProfileKind.MUSCLE),
-        POWERBUILDING(
-            SetupGoal.STRENGTH_MUSCLE,
-            PlanGoalProfile.STRENGTH_MUSCLE,
-            TrainingReference.POWERBUILDING,
-            NativeProfileKind.POWERBUILDING,
-        ),
-        COMPLETE_ATHLETE(
-            SetupGoal.COMPLETE_ATHLETE,
-            PlanGoalProfile.COMPLETE_ATHLETE,
-            null,
-            NativeProfileKind.COMPLETE_ATHLETE,
-        ),
-    }
-
-    private data class EquipmentFixture(val id: String, val availability: EquipmentAvailability) {
-        val tokens: Set<String>
-            get() = TrainingOptions(availability = availability).effectiveEquipment(emptySet())
-    }
-
     private val profiles = Profile.entries
     private val experiences = SetupExperience.entries
     private val catalog get() = CatalogCompositionTestSupport.catalog
     private val entries get() = PersonalizedPlanCatalog.entries()
-    private val snapshot by lazy {
-        PlanCatalogSnapshot(
-            entries = entries,
-            planRevision = PersonalizedPlanCatalog.REVISION,
-            exerciseCatalogRevision = catalog.catalogRevision,
-        )
-    }
-
-    private fun equipmentFixtures(): List<EquipmentFixture> {
-        val allCategories = EquipmentCategory.entries.toSet()
-        val confirmedSupports = mapOf(
-            "bench_flat" to ApparatusPresence.PRESENT,
-            "bench_adjustable" to ApparatusPresence.PRESENT,
-            "squat_rack" to ApparatusPresence.PRESENT,
-            "preacher_bench" to ApparatusPresence.PRESENT,
-            "pullup_bar" to ApparatusPresence.PRESENT,
-            "dip_bars" to ApparatusPresence.PRESENT,
-            "low_bar_support" to ApparatusPresence.PRESENT,
-            "ez_bar" to ApparatusPresence.PRESENT,
-        )
-        val confirmedMachines = EFFECTIVE_EQUIPMENT_KEYS
-            .filter { it.category == EquipmentCategory.MACHINES }
-            .associate { it.key to ApparatusPresence.PRESENT }
-        val confirmedStations = EFFECTIVE_EQUIPMENT_KEYS
-            .filter { it.category in setOf(EquipmentCategory.CABLE, EquipmentCategory.SMITH_MACHINE) }
-            .associate { it.key to ApparatusPresence.PRESENT }
-
-        return listOf(
-            EquipmentFixture("E0", EquipmentAvailability()),
-            EquipmentFixture("E1", EquipmentAvailability(setOf(EquipmentCategory.BAND))),
-            EquipmentFixture("E2", EquipmentAvailability(setOf(EquipmentCategory.DUMBBELLS))),
-            EquipmentFixture(
-                "E3",
-                EquipmentAvailability(
-                    categories = setOf(EquipmentCategory.DUMBBELLS, EquipmentCategory.SUPPORT),
-                    supports = mapOf(
-                        "bench_flat" to ApparatusPresence.PRESENT,
-                        "bench_adjustable" to ApparatusPresence.PRESENT,
-                    ),
-                ),
-            ),
-            EquipmentFixture(
-                "E4",
-                EquipmentAvailability(
-                    categories = setOf(EquipmentCategory.BARBELL, EquipmentCategory.SUPPORT),
-                    supports = mapOf(
-                        "bench_flat" to ApparatusPresence.PRESENT,
-                        "squat_rack" to ApparatusPresence.PRESENT,
-                    ),
-                ),
-            ),
-            // Broad gym categories are present, but individual machines remain UNKNOWN.
-            EquipmentFixture(
-                "E5",
-                EquipmentAvailability(categories = allCategories, supports = confirmedSupports),
-            ),
-            EquipmentFixture(
-                "E6",
-                EquipmentAvailability(
-                    categories = allCategories,
-                    apparatus = confirmedMachines + confirmedStations,
-                    supports = confirmedSupports,
-                ),
-            ),
-            EquipmentFixture(
-                "E7",
-                EquipmentAvailability(
-                    categories = setOf(EquipmentCategory.SUPPORT, EquipmentCategory.PULL_UP_BAR),
-                    supports = mapOf(
-                        "pullup_bar" to ApparatusPresence.PRESENT,
-                        "low_bar_support" to ApparatusPresence.PRESENT,
-                    ),
-                ),
-            ),
-        )
-    }
-
-    private fun levelOf(experience: SetupExperience): CatalogLevel = when (experience) {
-        SetupExperience.NEW, SetupExperience.RETURNING -> CatalogLevel.BEGINNER
-        SetupExperience.INTERMEDIATE -> CatalogLevel.INTERMEDIATE
-        SetupExperience.ADVANCED -> CatalogLevel.ADVANCED
-    }
-
-    private fun weekdays(days: Int): List<Int> = NativeProfileCalendars.DEFAULT_WEEKDAYS.getValue(days)
-
-    private fun draft(
-        profile: Profile,
-        experience: SetupExperience,
-        days: Int,
-        minutes: Int,
-        equipment: EquipmentFixture,
-    ) = SetupWizardDraft(
-        goal = profile.goal,
-        experience = experience,
-        focus = SetupFocus.FULL_BODY,
-        volumeAnswers = SetupVolumeAnswers(style = profile.goal.inferredTrainingStyle),
-        daysPerWeek = days,
-        selectedWeekdays = weekdays(days).toSet(),
-        minutesPerSession = minutes,
-        trainingOptions = SetupTrainingOptions(availability = equipment.availability),
-    )
-
-    private fun plannerInput(draft: SetupWizardDraft): SetupTrainingPlannerInput =
-        SetupTrainingPlannerInput(
-            reference = draft.trainingReference(),
-            frequency = draft.daysPerWeek,
-            equipment = draft.trainingOptions.effectiveEquipment(emptySet()),
-            level = levelOf(requireNotNull(draft.experience)),
-            focus = TrainingFocus.FULL_BODY,
-        )
-
-    private fun request(
-        profile: Profile,
-        experience: SetupExperience,
-        days: Int,
-        minutes: Int,
-        equipment: EquipmentFixture,
-    ): PlanCandidateRequest {
-        val inputKey = listOf(
-            profile.name,
-            experience.name,
-            days,
-            weekdays(days).joinToString(","),
-            minutes,
-            equipment.id,
-            equipment.tokens.sorted().joinToString(","),
-        ).joinToString("|")
-        return PlanCandidateRequest(
-            inputKey = inputKey,
-            goalProfile = profile.planGoal,
-            level = levelOf(experience),
-            focus = TrainingFocus.FULL_BODY,
-            reference = profile.reference,
-            daysPerWeek = days,
-            weekdays = weekdays(days).toSet(),
-            minutesPerSession = minutes,
-            effectiveEquipment = equipment.tokens,
-            cardioMinutes = if (profile == Profile.COMPLETE_ATHLETE) 10 else null,
-            requiresCardio = profile == Profile.COMPLETE_ATHLETE,
-            planCatalogRevision = PersonalizedPlanCatalog.REVISION,
-            exerciseCatalogRevision = catalog.catalogRevision,
-        )
-    }
-
-    private fun personalizer(): SimpleCyclePersonalizer = SimpleCyclePersonalizer(
-        InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } },
-    )
-
-    private fun materializer(
-        generator: SimpleCyclePersonalizer,
-        experience: SetupExperience,
-        equipment: EquipmentFixture,
-    ) = PlanMaterializationPort { entry: CatalogEntry, candidate: PlanCandidateRequest ->
-        val result = generator.personalize(
-            programId = "t006-${candidate.inputKey.hashCode().toUInt().toString(16)}-${entry.id.substringAfterLast(':')}",
-            input = PersonalizerInput(
-                catalogEntryId = entry.id,
-                focus = candidate.focus,
-                frequency = candidate.daysPerWeek,
-                weekdays = candidate.weekdays.sorted(),
-                equipment = emptySet(),
-                level = levelOf(experience),
-                availableMinutes = candidate.minutesPerSession,
-                cardio = if (candidate.requiresCardio) {
-                    CardioPreference(CardioType.WALK, requireNotNull(candidate.cardioMinutes))
-                } else {
-                    null
-                },
-            ),
-            options = TrainingOptions(availability = equipment.availability),
-        )
-        val program = result.program
-        if (program == null) {
-            val reason = when (result.report.reasonCode) {
-                "APPARATUS_ABSENT" -> PlanRejectionReason.APPARATUS_ABSENT
-                "PROFILE_MISMATCH" -> PlanRejectionReason.PROFILE_MISMATCH
-                "TIME_BUDGET" -> PlanRejectionReason.TIME_BUDGET
-                "COMPOSITION" -> PlanRejectionReason.COMPOSITION
-                else -> throw IllegalStateException(
-                    "${entry.id}: rechazo sin motivo de producto reconocido " +
-                        "(${result.report.reasonCode}): ${result.report.limitations}",
-                )
-            }
-            val stage = when (reason) {
-                PlanRejectionReason.APPARATUS_ABSENT -> PlanEvaluationStage.MATERIAL
-                PlanRejectionReason.PROFILE_MISMATCH -> PlanEvaluationStage.PROFILE
-                PlanRejectionReason.TIME_BUDGET -> PlanEvaluationStage.SESSION_DURATION
-                PlanRejectionReason.COMPOSITION -> PlanEvaluationStage.COMPOSITION
-                else -> error("Unhandled reason $reason")
-            }
-            throw PlanMaterializationException(
-                stage = stage,
-                reason = reason,
-                message = result.report.limitations.joinToString("; "),
-                requiredMinutes = result.report.maxSessionMinutes,
-            )
-        }
-        PlanMaterializationOutcome(
-            program = program,
-            recipe = program.sourceRecipe,
-            report = result.report,
-        )
-    }
+    private val snapshot by lazy { CoverageFixtures.snapshot(entries, catalog) }
 
     /** Q1: all 62,208 planner inputs; publication/filtering only, no fake generation. */
     @Test
     fun Q1_pure_planner_coverage_62208_inputs() {
-        val fixtures = equipmentFixtures()
+        val fixtures = legacyFixtures()
         assertEquals("fixtures E0..E7", (0..7).map { "E$it" }, fixtures.map { it.id })
         assertEquals("four product goals", 4, profiles.size)
         assertEquals("four experience answers", 4, experiences.size)
@@ -383,7 +147,7 @@ class PlanGenerationCoverageT006Test {
     /** Q2: real recipe + materializer + composition + shared duration, 2,304 rows. */
     @Test
     fun Q2_real_generation_coverage_2304_inputs() = runBlocking {
-        val fixtures = equipmentFixtures()
+        val fixtures = legacyFixtures()
         val generator = personalizer() // load the approved exercise catalog once for this group
         var totalInputs = 0
         var publishedCandidates = 0
@@ -577,7 +341,7 @@ class PlanGenerationCoverageT006Test {
      */
     @Test
     fun Q2_calibrated_pass_changes_no_viable_row() = runBlocking {
-        val fixtures = equipmentFixtures()
+        val fixtures = legacyFixtures()
         val repository = InMemoryExerciseCatalogRepositoryV2(catalog).also { runBlocking { it.load() } }
         val legacyPersonalizer = SimpleCyclePersonalizer(repository, glutesSoftBand = 0.0)
         val bandPersonalizer = SimpleCyclePersonalizer(repository)
@@ -849,7 +613,7 @@ class PlanGenerationCoverageT006Test {
      */
     @Test
     fun Q2_required_positives() = runBlocking {
-        val fixtures = equipmentFixtures().associateBy { it.id }
+        val fixtures = legacyFixtures().associateBy { it.id }
         val generator = personalizer()
         val failures = mutableListOf<String>()
         val rowsByWitness = linkedMapOf<String, Int>()
@@ -941,7 +705,7 @@ class PlanGenerationCoverageT006Test {
      */
     @Test
     fun Q3_fitter_viability_neighbors_and_cardio_default_boundaries() = runBlocking {
-        val fixtures = equipmentFixtures().associateBy { it.id }
+        val fixtures = legacyFixtures().associateBy { it.id }
         val generator = personalizer()
         val cases = listOf(
             Triple(Profile.STRENGTH, SetupExperience.NEW, "E4" to 3),
@@ -1036,15 +800,16 @@ class PlanGenerationCoverageT006Test {
                     val program = result.program
                     if (program == null) {
                         val expectedMinutes = requireNotNull(NativeCardioDefaults.defaultBlockMinutes(minutes))
-                        val reason = when (result.report.reasonCode) {
-                            "TIME_BUDGET" -> PlanRejectionReason.TIME_BUDGET
-                            else -> error("cardio $minutes: rechazo no temporal ${result.report.reasonCode} ${result.report.limitations}")
+                        // A1: el mapeo de producto es el del wizard (NativePlanFailureMapper), no un `when` propio.
+                        val typed = NativePlanFailureMapper.typedFailure(result.report)
+                        if (typed == null || typed.reason != PlanRejectionReason.TIME_BUDGET) {
+                            error("cardio $minutes: rechazo no temporal ${result.report.reasonCode} ${result.report.limitations}")
                         }
                         throw PlanMaterializationException(
-                            PlanEvaluationStage.SESSION_DURATION,
-                            reason,
-                            result.report.limitations.joinToString("; ") + " (defaultCardio=${expectedMinutes}m)",
-                            requiredMinutes = result.report.maxSessionMinutes,
+                            typed.stage,
+                            typed.reason,
+                            typed.message.orEmpty() + " (defaultCardio=${expectedMinutes}m)",
+                            requiredMinutes = typed.requiredMinutes,
                         )
                     }
                     PlanMaterializationOutcome(program, program.sourceRecipe, result.report)
