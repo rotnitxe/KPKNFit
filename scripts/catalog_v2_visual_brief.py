@@ -9,6 +9,8 @@ One image per (definition x implement). For each pair this prints
 * ``PROMPT``     the ASCII text to pass to ``GenerateImage`` (house style header + ``promptCore``);
 * ``GEOMETRIA``  where the implement sits relative to the body, to check the picture against;
 * the base frame (camera, phase, orientation, contacts, posture, load);
+* ``CONTEXTO TECNICO`` the ficha's ``technique`` (identity, key positions, phases): what the exercise
+  is, to understand the frame. It is shared by every implement and never enters the prompt;
 * ``RECHAZAR SI`` the ficha's ``forbidden`` list: a picture showing any of it is wrong;
 * ``QA``         the ficha's yes/no questions for a clean inspector (a subagent that has not seen the
   history of the generation, only the picture and these questions).
@@ -68,12 +70,22 @@ def brief_for(definition_id: str, body: dict[str, Any], equipment_id: str) -> di
     if equipment_id not in cores:
         raise BriefError(f"{definition_id} has no visual brief for equipment {equipment_id!r} (has: {', '.join(sorted(cores)) or 'none'})")
     base = visual.get("base") or {}
+    technique = body.get("technique") or {}
     return {
         "definition": definition_id,
         "equipment": equipment_id,
         "prompt": build_prompt(cores[equipment_id]),
         "geometry": ((visual.get("byImplement") or {}).get(equipment_id) or {}).get("geometry", ""),
         "base": {label: base.get(key, "") for key, label in BASE_LABELS},
+        "technique": {
+            "identity": technique.get("identity", ""),
+            "keyPositions": list(technique.get("keyPositions") or []),
+            "phases": [
+                {"name": phase.get("name", ""), "description": phase.get("description", "")}
+                for phase in technique.get("phases") or []
+                if isinstance(phase, dict)
+            ],
+        },
         "rejectIf": list(visual.get("forbidden") or []),
         "qa": list(visual.get("qa") or []),
         "variants": {
@@ -87,6 +99,13 @@ def brief_for(definition_id: str, body: dict[str, Any], equipment_id: str) -> di
 def render(brief: dict[str, Any]) -> str:
     lines = [f"== {brief['definition']} x {brief['equipment']}", "PROMPT (GenerateImage, ASCII):", brief["prompt"], "", f"GEOMETRIA: {brief['geometry']}"]
     lines += [f"{label}: {value}" for label, value in brief["base"].items()]
+    technique = brief.get("technique") or {}
+    if technique.get("identity") or technique.get("keyPositions") or technique.get("phases"):
+        lines += ["", "CONTEXTO TECNICO (no va en el prompt; comun a todos los implementos):"]
+        if technique.get("identity"):
+            lines.append(f"  QUE ES: {technique['identity']}")
+        lines += [f"  POSICION CLAVE: {item}" for item in technique.get("keyPositions") or []]
+        lines += [f"  FASE {phase['name']}: {phase['description']}" for phase in technique.get("phases") or []]
     lines += ["", "RECHAZAR SI:"] + [f"  - {item}" for item in brief["rejectIf"]]
     lines += ["", "QA (si/no, inspector limpio):"] + [f"  {index}. {item}" for index, item in enumerate(brief["qa"], 1)]
     if brief["variants"]:
@@ -102,8 +121,9 @@ def main(argv: list[str] | None = None, *, fichas_dir: Path | None = None) -> in
     parser.add_argument("--equipment", help="only this implement (default: every implement of the definition)")
     parser.add_argument("--list", action="store_true", help="list every CURATED (definition, implement) pair that has a brief")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
+    parser.add_argument("--fichas-dir", type=Path, help="read the fichas of this directory (a private copy) instead of the shared one")
     arguments = parser.parse_args(argv)
-    definitions = load_definitions(fichas_dir or FICHAS)
+    definitions = load_definitions(fichas_dir or arguments.fichas_dir or FICHAS)
     curated = {key: body for key, body in definitions.items() if body.get("status") == "CURATED"}
 
     if arguments.list:

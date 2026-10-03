@@ -10,9 +10,10 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 201 definiciones, 523 configuraciones, 411 pares definición ×
-  implemento. SHA-256 canónico compartido
-  `6bdb9e599685132d226a9e6bccad96230874ad4e1717e55008c4e22cf33d9ae0`.
+- 96 familias, 201 definiciones, 522 configuraciones, 410 pares definición ×
+  implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
+  guardadas se remapean a `sissy_squat__smith_machine`). SHA-256 canónico compartido
+  `d46cc093d5e144cf66529e376a9eb195e4dda718e4043da39bafd66faa593984`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
@@ -88,7 +89,48 @@ Tres definiciones pasaron de `LEGACY` a `CURATED`, con ficha completa (`public`,
 | `glutes_clamshells_banda` | El glúteo medio queda principal por su función abductora, no porque domine el EMG, y el glúteo mayor queda secundario. Entran los flexores de cadera como secundarios (54 % frente a 33 % y 34 %). Sale la sacroilíaca: ninguna fuente la midió en la almeja. | Distefano 2009 (PMID 19574661), McBeth 2012 (PMID 22488226), Willcox 2013 (PMID 23485733). Regla `hip.abductors-gluteus-medius` |
 
 Las 17 fuentes citadas tienen prueba offline en `curation/sources_verified.json`.
-Estos tres cambios de criterio están **pendientes de confirmación del usuario**.
+El 2026-10-02 el usuario confirmó tres criterios: `rows.chest-supported-spine`
+(Remo Seal), `hip.abductors-gluteus-medius` (Almejas) y `grip.hanging-forearm`.
+Sigue **pendiente de confirmación** el de la Dominada (`vertical-pull.elbow-flexors`,
+bíceps secundario con cualquier agarre).
+
+### Re-curaduría por lotes (plan aprobado el 2026-10-02)
+
+Las 178 definiciones `LEGACY` pasan a `CURATED` en diez lotes ordenados por gravedad:
+2 sentadillas, 3 rodilla aislada, 4 tirones, 5 bisagras, 6 unilaterales, 7 glúteo y
+pierna baja, 8 hombro, 9 bíceps, 10 tríceps, 11 core, cuello y antebrazo.
+
+- **Ciclo de cada lote.**
+  - Los autores trabajan en copias privadas (`catalog_v2_splice_fichas.py snapshot`
+    con `--fichas-dir`).
+  - Un revisor que no participó comprueba la anatomía contra los resúmenes de las
+    fuentes y las imágenes existentes contra la ficha nueva.
+  - Quien coordina copia el trabajo con `splice` y corre el lint de integración.
+  - El usuario recibe el informe (`catalog_v2_lote_report.py`). Se aplica y se hace
+    commit solo con su OK.
+- **Decisiones del usuario.**
+  - Se retira `sissy_squat__barbell`.
+  - Patrones nuevos, que entran en el lote 4:
+    - Y-Raises pasa a `shoulder_abduction_diagonal`.
+    - `scapular_retraction` para el Kelso.
+    - `forearm_rotation` para pronaciones y supinaciones.
+  - Quien coordina puede añadir `allowedDifferences` de herencia, con razón y fuente,
+    listadas en el informe del lote.
+- **Línea base antes del lote 2.** El árbol tiene trabajo del wizard sin commit.
+  - pytest de scripts y backend: 3 fallos previos, corregidos en la preparación.
+    - Dos tests del brief visual asumían que `bench_press` era LEGACY.
+    - El test de `reverse_pec_fly` exigía «polea» en la descripción de la definición,
+      que por regla no se ata a un implemento. Ahora lo comprueba en la configuración
+      de polea.
+  - Android `testBaseDebugUnitTest`: 4270 pruebas, con 1 fallo ajeno al catálogo
+    (`WorkoutSnapshotCommitTest`).
+- **Fuera de alcance, documentado para después.**
+  - `bodyRegion` LOWER en cuello, muñeca y agarre.
+  - Nombres de familia autogenerados.
+  - `programming.role` que contradice `articulationType`.
+  - `searchTerms` de press que apuntan a otros ángulos.
+  - `CompositionTaxonomy` asigna a lateral el deltoides del empuje horizontal.
+  - Peso 0.25 de los estabilizadores en `WorkoutContextComponents.kt`.
 
 ---
 

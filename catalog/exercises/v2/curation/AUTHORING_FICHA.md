@@ -49,19 +49,32 @@ reintroducir:
    `status: "CURATED"` (formato en §3).
 5. **Verificar las fuentes**:
    `python scripts/catalog_v2_sources.py verify --definitions <id>[,<id>]` (usa la
-   red; es seguro ejecutarlo varios a la vez).
+   red; es seguro ejecutarlo varios a la vez). Siempre con `--definitions`: sin él,
+   `verify` borra la prueba de las fuentes que no cita ninguna ficha del directorio
+   leído. Nunca con `--refresh`.
 6. **Comprobar** hasta que dé OK:
-   `python scripts/catalog_v2_ficha_lint.py --definitions <id>[,<id>]`. No escribe
-   nada en el repo: previsualiza las fichas en memoria y corre el gate y la
+   `python scripts/catalog_v2_ficha_lint.py --definitions <id>[,<id>] --examples 100`.
+   No escribe nada en el repo: previsualiza las fichas en memoria y corre el gate y la
    auditoría de calidad. Un `RESULT: OK` sin errores ni avisos es la condición
-   mínima, no el objetivo: después **relee tu texto como lo leería quien entrena** y
-   compáralo con las definiciones hermanas.
+   mínima, no el objetivo (el lint acepta avisos; tú no): después **relee tu texto
+   como lo leería quien entrena** y compáralo con las definiciones hermanas.
 7. **No ejecutes** `catalog_v2_apply_fichas.py`, `merge_catalog_v2_families.py` ni
    `compile_exercise_catalog_v2.py`: reescriben archivos compartidos y los corre
    quien coordina, después de revisar. Tampoco hay commits.
 
 Un archivo de ficha es de **una familia** (`fichas/<familyId>.json`); quien edita
 una familia la edita entera y no toca las demás.
+
+**Varios autores a la vez.** Cada autor trabaja sobre una **copia privada** de las
+fichas, para que lo que otro tiene a medias no contamine su lint:
+
+1. `python scripts/catalog_v2_splice_fichas.py snapshot --to <dir>` copia las fichas.
+2. Se edita `<dir>/<familyId>.json` y se pasa `--fichas-dir <dir>` al lint, a
+   `catalog_v2_sources.py verify` y `check`, al brief visual y a
+   `catalog_v2_lote_report.py`.
+3. Quien coordina copia las definiciones terminadas a las fichas compartidas con
+   `catalog_v2_splice_fichas.py splice --from <dir> --definitions <ids>`. El splice se
+   niega si alguien tocó esa definición después de la copia.
 
 ## 3. Formato de la ficha
 
@@ -106,6 +119,13 @@ las configuraciones de la definición, ni una más ni una menos.
 - Las **descripciones** no empiezan frases con verbos instruccionales (mantén,
   controla, asegura…). Mayúscula inicial en cada texto. Sin dobles nombres,
   paréntesis de taxonomía ni palabras de `quality_lexicon.json` (léelo).
+- En la descripción de la **definición** no aparece en ninguna parte, ni a mitad de
+  frase, mantén, mantener, configura, adopta, controla ni selecciona: el test del
+  backend lo exige y el gate lo comprueba.
+- Cada descripción de **configuración** tiene al menos 80 caracteres (la app falla
+  por debajo) y es distinta de todas las demás del catálogo.
+- Ningún texto usa la palabra «pendiente»: el gate la toma por un marcador sin
+  completar.
 
 ### 3.2 `anatomy` — verdad muscular y articular
 
@@ -114,6 +134,14 @@ las configuraciones de la definición, ni una más ni una menos.
   menos un `PRIMARY`.
 - `joints`: `{id, role, actions[], why, sources[]}`; `actions` empiezan con
   mayúscula ("Flexión del codo"). Una entrada por articulación realmente implicada.
+- **Orden de los músculos.** Dentro de cada rol se respeta el orden en que se
+  escriben, y el **primer PRIMARY es el músculo dominante** de la configuración: la
+  composición de sesiones (`SessionCompositionPolicy`, `CompositionTaxonomy`) lee
+  `primaryMuscles.first()`, y cada PRIMARY suma una serie completa al volumen semanal.
+  Los PRIMARY van primero y en orden de dominancia. El dominante heredado no se cambia
+  sin evidencia; si cambia, se reporta (§6). En `overrides`, un PRIMARY nuevo se agrega
+  al final (nunca queda dominante) y `role: NONE` sobre el primero promueve al
+  siguiente.
 - `why` (≥40 caracteres): la función concreta de ESE músculo o articulación en ESE
   ejercicio y por qué merece ese rol. No es una definición de libro del músculo.
 - `sources`: ids declarados en `sources` (cada `why` se apoya en lo que el estudio
@@ -141,7 +169,10 @@ posición del cuerpo y de la carga, **y qué lo separa de sus definiciones herma
 carga en el inicio y en el punto clave), `mistakes[]` (≥2, errores reales de ese
 ejercicio) y `phases[]` (≥2, cada una `{name, description ≥20}`, en el orden del
 movimiento). Es lo que lee quien genera la imagen: debe poder dibujarse sin ver el
-catálogo.
+catálogo (`catalog_v2_visual_brief.py` lo imprime como contexto técnico, fuera del
+prompt). No nombres en `technique` implementos ajenos a la definición ni contrastes
+con hermanas («a diferencia de la versión con barra»): el auditor lo marca, y esos
+contrastes van en `visual.forbidden`.
 
 ### 3.4 `visual` — el brief con el que se hace la imagen
 
@@ -213,6 +244,11 @@ que esa fuente respalda **aquí**, fiel a lo que dice (no inflar un resultado).
   rol en otro ejercicio parecido. Si extrapolas, dilo en el `why`.
 - Al menos 2 fuentes por definición; más cuando haya músculos o variantes
   discutibles. Una misma fuente puede respaldar varias entradas.
+- Si la URL ya figura en `curation/sources_verified.json`, copia su `title` exacto: la
+  prueba se guarda por URL y exige el mismo título, así que dos grafías distintas se
+  pisan entre autores.
+- Para juzgar si un `claim` es fiel, lee el resumen:
+  `python scripts/catalog_v2_sources.py abstract <pmid>`.
 
 ## 6. Qué se reporta (y no se decide solo)
 
@@ -220,7 +256,10 @@ Al terminar, devuelve un informe breve con:
 
 - **Definiciones** entregadas y el resultado del lint (OK / qué falta).
 - **Cambios de anatomía respecto del heredado**: definición/configuración, entrada,
-  rol antes → rol después, y la evidencia en una línea.
+  rol antes → rol después, y la evidencia en una línea. La tabla la genera
+  `python scripts/catalog_v2_lote_report.py --definitions <ids> --fichas-dir <dir>`,
+  que además marca los cambios de músculo dominante en configuraciones que usa el
+  código de la app (planes, plantillas, protocolos) o que fijan sus tests.
 - **Conflictos con reglas**: regla de `anatomy_rules.json` o de la guía que tu
   evidencia contradice (id de la regla, qué dice la evidencia).
 - **Errores heredados** que corregiste (qué decía el texto viejo y por qué era falso).

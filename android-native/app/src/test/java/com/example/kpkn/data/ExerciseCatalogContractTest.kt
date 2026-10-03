@@ -2,6 +2,9 @@ package com.example.kpkn.data
 
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Resolver
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseSelectionValidationV2
 import java.io.File
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -36,14 +39,36 @@ class ExerciseCatalogContractTest {
         // llevaron a 200/522 y la alta curada `skullcrusher` de §13.5 (paquete E)
         // lo lleva a 201/523 bajo `v2-approved-2026-09-29-a`. La expectativa es
         // el conteo REAL aprobado tras las altas autorizadas; el resto de
-        // aserciones de este test se conservan intactas.
+        // aserciones de este test se conservan intactas. El retiro de
+        // `sissy_squat__barbell` (decisión del usuario, 2026-10-02) lo deja en 201/522.
         assertEquals(2, catalog.schemaVersion)
         assertEquals("v2-approved-2026-09-29-a", catalog.catalogRevision)
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
         assertEquals(201, definitions.size)
-        assertEquals(523, configurations.size)
+        assertEquals(522, configurations.size)
+    }
+
+    @Test
+    fun retired_configuration_selection_resolves_to_its_documented_replacement() {
+        assertTrue(configurations.none { it.id == "sissy_squat__barbell" })
+        val resolver = ExerciseCatalogV2Resolver(catalog)
+        val saved = ExerciseSelectionV2(
+            definitionId = "sissy_squat",
+            configurationId = "sissy_squat__barbell",
+            catalogRevision = catalog.catalogRevision,
+        )
+        val validation = resolver.validate(saved)
+        assertTrue(validation is ExerciseSelectionValidationV2.Valid)
+        assertEquals(
+            "sissy_squat__smith_machine",
+            (validation as ExerciseSelectionValidationV2.Valid).selection.configurationId,
+        )
+        assertEquals(
+            configurations.single { it.id == "sissy_squat__smith_machine" }.profile,
+            resolver.resolve(saved),
+        )
     }
 
     @Test

@@ -20,6 +20,12 @@ tool
 
 Exit code: 0 clean, 2 blocking findings, 1 unusable input (bad ficha, unknown id).
 Without ``--definitions`` every CURATED definition of every ficha is linted.
+
+Several authors working at once each lint a private copy of the fichas, so one author's
+half-written definitions never leak into another's results::
+
+    python scripts/catalog_v2_splice_fichas.py snapshot --to <dir>
+    python scripts/catalog_v2_ficha_lint.py --fichas-dir <dir> --definitions <ids> --examples 100
 """
 from __future__ import annotations
 
@@ -103,6 +109,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="definition ids to lint (default: every CURATED definition)",
     )
     parser.add_argument("--examples", type=int, default=3, help="print N example findings per audit check")
+    parser.add_argument(
+        "--fichas-dir",
+        type=Path,
+        help="lint the fichas of this directory (a private copy of curation/fichas) instead of the shared one",
+    )
     return parser
 
 
@@ -117,7 +128,7 @@ def main(
         sys.stdout.reconfigure(encoding="utf-8")
     arguments = build_parser().parse_args(argv)
     families_dir = Path(families_dir) if families_dir is not None else FAMILIES
-    fichas_dir = Path(fichas_dir) if fichas_dir is not None else FICHAS
+    fichas_dir = Path(fichas_dir) if fichas_dir is not None else (arguments.fichas_dir or FICHAS)
     source_path = Path(source_path) if source_path is not None else SOURCE
     try:
         requested = apply_fichas.parse_only_definitions(arguments.definitions)

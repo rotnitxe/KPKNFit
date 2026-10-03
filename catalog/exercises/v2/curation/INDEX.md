@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 201 definiciones · 523 configuraciones
-Hash canónico: `6bdb9e599685132d…`
+96 familias · 201 definiciones · 522 configuraciones
+Hash canónico: `d46cc093d5e144cf…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -122,7 +122,7 @@ No editar a mano: se regenera en cada merge.
 | lower_reverse_lunge | reverse_lunge | Zancada Inversa | implement | 6 |
 | lower_romanian_deadlift | hams_peso_muerto_rumano_deficit | Peso Muerto Rumano en Déficit |  | 1 |
 | lower_romanian_deadlift_deficit | hams_peso_muerto_rumano_sumo_deficit | Peso Muerto Rumano Sumo en Déficit |  | 1 |
-| lower_sissy_squat | sissy_squat | Sentadilla Sissy | implement | 5 |
+| lower_sissy_squat | sissy_squat | Sentadilla Sissy | implement | 4 |
 | lower_spinal_extension | back_extension_lumbar | Hiperextensiones de Espalda Baja |  | 1 |
 | lower_spinal_extension | back_superman_suelo | Superman en Suelo |  | 1 |
 | lower_spinal_extension | back_hiperextension_45_zercher_espalda_baja | Hiperextensión a 45 Zercher para Espalda Baja |  | 1 |

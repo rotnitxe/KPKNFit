@@ -3,6 +3,18 @@ package com.example.kpkn.domain.exercises.catalogv2
 import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 
 /**
+ * Configurations retired from the catalogue, each mapped to the remaining configuration that
+ * replaces it, so a selection saved before the retirement keeps resolving instead of failing as
+ * `unknown_configuration`. Every entry is a product decision recorded in
+ * catalog/exercises/v2/curation/STATUS.md: an explicit identity, never a fallback.
+ */
+internal val RETIRED_CONFIGURATION_REPLACEMENTS: Map<String, String> = mapOf(
+    // 2026-10-02: retirada por el dueño del producto (muy inestable, casi nadie puede hacerla);
+    // la Smith lleva la misma barra sobre la espalda.
+    "sissy_squat__barbell" to "sissy_squat__smith_machine",
+)
+
+/**
  * Pure resolver for the v2 contract. It never falls back to a default when a
  * definition/configuration pair is invalid and it never creates combinations
  * that were not materialized by the compiler.
@@ -83,20 +95,21 @@ class ExerciseCatalogV2Resolver(
         }
         val definition = definitionsById[selection.definitionId]
             ?: return ExerciseSelectionValidationV2.Invalid("unknown_definition:${selection.definitionId}")
-        if (definition.configurations.none { it.id == selection.configurationId }) {
+        val configurationId = RETIRED_CONFIGURATION_REPLACEMENTS[selection.configurationId] ?: selection.configurationId
+        if (definition.configurations.none { it.id == configurationId }) {
             return ExerciseSelectionValidationV2.Invalid(
                 "unknown_configuration:${selection.definitionId}:${selection.configurationId}",
             )
         }
-        return ExerciseSelectionValidationV2.Valid(selection)
+        return ExerciseSelectionValidationV2.Valid(selection.copy(configurationId = configurationId))
     }
 
     fun resolve(selection: ExerciseSelectionV2): ResolvedExerciseProfileV2? =
-        when (validate(selection)) {
+        when (val validation = validate(selection)) {
             is ExerciseSelectionValidationV2.Invalid -> null
-            is ExerciseSelectionValidationV2.Valid -> definitionsById[selection.definitionId]
+            is ExerciseSelectionValidationV2.Valid -> definitionsById[validation.selection.definitionId]
                 ?.configurations
-                ?.firstOrNull { it.id == selection.configurationId }
+                ?.firstOrNull { it.id == validation.selection.configurationId }
                 ?.profile
         }
 

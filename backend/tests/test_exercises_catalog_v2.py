@@ -133,7 +133,7 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
     def test_editorial_android_ios_artifacts_have_one_hash_and_revision(self) -> None:
         self.assertEqual(
             verify_shared_catalog_artifacts(),
-            "6bdb9e599685132d226a9e6bccad96230874ad4e1717e55008c4e22cf33d9ae0",
+            "d46cc093d5e144cf66529e376a9eb195e4dda718e4043da39bafd66faa593984",
         )
 
     def test_retired_decline_variants_are_absent_from_the_shared_catalog(self) -> None:
@@ -166,7 +166,14 @@ class ExerciseCatalogV2BackendTest(unittest.TestCase):
             {configuration["selectedOptions"]["implement"] for configuration in definition["configurations"]},
             {"machine", "cable", "dumbbells"},
         )
-        self.assertIn("polea", definition["description"].lower())
+        # The definition text tells the shared exercise and never marries one implement
+        # (AUTHORING_FICHA.md 3.1); the cable is named by its own configuration.
+        cable = next(
+            configuration
+            for configuration in definition["configurations"]
+            if configuration["selectedOptions"]["implement"] == "cable"
+        )
+        self.assertIn("polea", cable["profile"]["description"].lower())
 
     def test_descriptions_are_factual_and_configuration_specific(self) -> None:
         definitions = [

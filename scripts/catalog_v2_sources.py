@@ -20,7 +20,9 @@ The ``title`` of a source must be the title of the work in its original language
     python scripts/catalog_v2_sources.py abstract 21068680   # prints the abstract; judge a ``claim`` against it
 
 ``verify`` is safe to run from several authors at once: the network work happens outside a lock and
-only the read-merge-write of the proof file is serialized.
+only the read-merge-write of the proof file is serialized. Authors working on a private copy of the
+fichas pass ``--fichas-dir <copy>`` to ``verify``/``check`` and always scope ``verify`` with
+``--definitions`` (an unscoped run drops proof that no ficha of *that* directory cites).
 """
 from __future__ import annotations
 
@@ -79,10 +81,21 @@ def containment(claimed: str, page: str) -> float:
     return len(a & b) / len(a) if a else 0.0
 
 
-def http_get(url: str, *, limit: int = 600_000) -> str:
+RETRY_STATUSES = frozenset({429, 500, 502, 503, 504})
+
+
+def http_get(url: str, *, limit: int = 600_000, attempts: int = 5, backoff: float = 1.5) -> str:
+    """GET with exponential backoff on rate limiting (PubMed answers 429 when several authors search at once)."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/json"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return response.read(limit).decode("utf-8", errors="replace")
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return response.read(limit).decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as error:
+            if error.code not in RETRY_STATUSES or attempt == attempts - 1:
+                raise
+            time.sleep(backoff * (2 ** attempt))
+    raise AssertionError("unreachable")
 
 
 def strip_tags(page: str) -> str:
@@ -182,7 +195,15 @@ def write_proof(path: Path, proof: dict[str, Any]) -> None:
     """Atomic: a reader (the gate, another author) never sees a half-written file."""
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(proof, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-    os.replace(temporary, path)
+    for attempt in range(20):
+        try:
+            os.replace(temporary, path)
+            return
+        except PermissionError:
+            # Windows refuses the replace while a reader (the gate, a lint) has the file open; it is brief.
+            if attempt == 19:
+                raise
+            time.sleep(0.25)
 
 
 class ProofLock:
@@ -252,8 +273,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--definitions",
         help="comma-separated definition ids: verify only their sources and never drop proof of other definitions",
     )
+    verify.add_argument("--fichas-dir", type=Path, help="read the fichas of this directory (a private copy) instead of the shared one")
     check = commands.add_parser("check", help="offline: every CURATED source has fresh proof")
     check.add_argument("--definitions", help="comma-separated definition ids: check only their sources")
+    check.add_argument("--fichas-dir", type=Path, help="read the fichas of this directory (a private copy) instead of the shared one")
     abstract = commands.add_parser("abstract", help="print the PubMed abstract of a source (to judge whether a claim is faithful)")
     abstract.add_argument("pmids", nargs="+", help="PubMed ids or pubmed.ncbi.nlm.nih.gov URLs")
     return parser
@@ -275,7 +298,7 @@ def main(
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     arguments = build_parser().parse_args(argv)
-    fichas_dir = Path(fichas_dir) if fichas_dir is not None else FICHAS
+    fichas_dir = Path(fichas_dir) if fichas_dir is not None else (getattr(arguments, "fichas_dir", None) or FICHAS)
     proof_path = Path(proof_path) if proof_path is not None else PROOF
     if arguments.command == "lookup":
         for query in arguments.queries:

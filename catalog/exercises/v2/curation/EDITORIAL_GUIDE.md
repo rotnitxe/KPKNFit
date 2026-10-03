@@ -117,8 +117,8 @@ sliders/balón, Curl Nórdico, zerchers, planchas, Dragon Flag, Frog Pumps.
 - Estabilizador = isométrico/postural (RDL: erector_spinae, core → 0.4).
 - El rol lo decide la evidencia, no la costumbre. Donde una ficha corrige el
   criterio anterior, la regla vive en `curation/anatomy_rules.json` con su
-  evidencia y el gate la exige. Cambios del piloto, **pendientes de
-  confirmación del usuario**: el glúteo medio es el principal en abducción y
+  evidencia y el gate la exige. Criterios del piloto **confirmados por el
+  usuario (2026-10-02)**: el glúteo medio es el principal en abducción y
   rotación externa de cadera (`hip.abductors-gluteus-medius`; el mayor asiste),
   el antebrazo es al menos estabilizador cuando el agarre sostiene el peso del
   cuerpo (`grip.hanging-forearm`) y, con el torso apoyado, los erectores no son

@@ -65,20 +65,21 @@ class AprendeCatalogAuditTest {
         // llevaron el asset a 200/522 y la alta curada `skullcrusher` de §13.5
         // (paquete E) lo lleva a 201/523 bajo `v2-approved-2026-09-29-a`. Se
         // fija la expectativa al conteo REAL aprobado y al hash REAL del asset;
-        // ninguna otra aserción de esta suite se elimina ni se debilita.
+        // ninguna otra aserción de esta suite se elimina ni se debilita. El retiro
+        // de `sissy_squat__barbell` (decisión del usuario, 2026-10-02) deja 201/522.
         assertEquals("v2-approved-2026-09-29-a", report.catalogRevision)
         assertEquals("wikilab-v3-2026-08-08", report.ontologyRevision)
         assertEquals(96, report.familyCount)
         assertEquals(201, report.definitionCount)
-        assertEquals(523, report.configurationCount)
-        assertEquals(523, report.richMetadataCount)
-        assertEquals(523, report.editorialCoverageCount)
-        assertEquals(523, report.jointCoverageCount)
+        assertEquals(522, report.configurationCount)
+        assertEquals(522, report.richMetadataCount)
+        assertEquals(522, report.editorialCoverageCount)
+        assertEquals(522, report.jointCoverageCount)
         assertEquals(0, report.shortDescriptionCount)
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("6bdb9e599685132d226a9e6bccad96230874ad4e1717e55008c4e22cf33d9ae0", report.sourceSha256)
+        assertEquals("d46cc093d5e144cf66529e376a9eb195e4dda718e4043da39bafd66faa593984", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
@@ -124,9 +125,9 @@ class AprendeCatalogAuditTest {
             .map { it.id }
             .toSet()
 
-        // 201 definiciones / 523 configuraciones aprobadas (ver comentario de
+        // 201 definiciones / 522 configuraciones aprobadas (ver comentario de
         // `approved_catalog_has_complete_aprende_ontology_and_editorial_coverage`).
-        assertEquals(523, runtime.size)
+        assertEquals(522, runtime.size)
         assertEquals(sourceConfigurationIds, runtime.keys)
         assertTrue(runtime.values.all {
             val configurationId = it.catalogConfigurationId
@@ -140,7 +141,7 @@ class AprendeCatalogAuditTest {
         val reverse = buildAprendeCatalogReverseIndex(catalog)
         // A configuration contributes to exactly one movement-pattern bucket;
         // this also guards against parent-name deduplication.
-        assertEquals(523, reverse.exerciseIdsByPattern.values.sumOf { it.size })
+        assertEquals(522, reverse.exerciseIdsByPattern.values.sumOf { it.size })
         catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.forEach { configuration ->
             val profile = configuration.profile
             assertTrue(configuration.id in reverse.exerciseIdsByPattern[profile.movementPatternId].orEmpty())

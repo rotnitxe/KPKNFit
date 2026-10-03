@@ -110,6 +110,16 @@ class LintContractTest(unittest.TestCase):
         self.assertEqual(1, code)
         self.assertIn("duplicate definition ids", err)
 
+    def test_fichas_dir_flag_lints_a_private_copy(self) -> None:
+        # A private copy that breaks seal_row: the flag must make the lint read it, not the shared fichas.
+        path = self.fichas / "back_seal_row.json"
+        ficha = json.loads(path.read_text(encoding="utf-8"))
+        ficha["definitions"]["seal_row"]["public"]["configurations"].pop("seal_row__dumbbells")
+        path.write_text(json.dumps(ficha, ensure_ascii=False), encoding="utf-8")
+        code, _, err = run_lint(["--definitions", "seal_row", "--fichas-dir", str(self.fichas)], families_dir=self.families)
+        self.assertEqual(1, code)
+        self.assertIn("configuration inventory mismatch", err)
+
 
 if __name__ == "__main__":
     unittest.main()

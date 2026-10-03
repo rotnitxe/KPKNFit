@@ -34,6 +34,10 @@ SOURCES_PROOF = ROOT / "catalog" / "exercises" / "v2" / "curation" / "sources_ve
 INVENTORY = ROOT / "catalog" / "exercises" / "v2" / "curation" / "candidate_inventory.json"
 ANDROID = ROOT / "android-native" / "app" / "src" / "main"
 JOINT_ROLES = {"PRIMARY", "SECONDARY", "STABILIZER"}
+# Same floor as MIN_DESCRIPTION_CHARS in AprendeCatalogAudit.kt (Android fails the build below it).
+MIN_CONFIGURATION_DESCRIPTION_CHARS = 80
+# Same words backend/tests/test_exercises_catalog_v2.py forbids anywhere in a definition description.
+INSTRUCTIONAL_DEFINITION = re.compile(r"(?i)\b(?:mantén|mantener|configura|adopta|controla|selecciona)\b")
 
 # Editorial hierarchy is deliberately duplicated in the gate as a review
 # contract.  If a generator change silently alphabetizes or flattens these
@@ -464,6 +468,8 @@ def source_gate() -> list[str]:
                 failures.append(f"generic_description:{definition['id']}")
             if placeholder_pattern.search(definition["description"]):
                 failures.append(f"placeholder_description:{definition['id']}")
+            if INSTRUCTIONAL_DEFINITION.search(definition["description"]):
+                failures.append(f"instructional_definition_description:{definition['id']}")
             # v7.2: la descripción de definición abre con el nombre del ejercicio
             # a propósito (introducción editorial aprobada). El nombre sigue
             # prohibido en las descripciones de configuración (ver abajo).
@@ -510,7 +516,7 @@ def source_gate() -> list[str]:
                 profile = configuration["profile"]
                 profile_description = str(profile.get("description") or "")
                 configuration_descriptions.add(profile_description.strip())
-                if len(profile_description.strip()) < 40:
+                if len(profile_description.strip()) < MIN_CONFIGURATION_DESCRIPTION_CHARS:
                     failures.append(f"configuration_description_too_short:{configuration['id']}")
                 if re.search(rf"(?i)(?<!\w){re.escape(definition['canonicalName'])}(?!\w)", profile_description):
                     failures.append(f"canonical_name_repeated_in_configuration_description:{configuration['id']}")
@@ -570,6 +576,14 @@ def source_gate() -> list[str]:
                             failures.append(f"rich_anatomy_joint_actions_not_derived:{configuration['id']}")
             if len(definition["configurations"]) > 1 and len(configuration_descriptions) != len(definition["configurations"]):
                 failures.append(f"non_distinct_configuration_descriptions:{definition['id']}")
+    # Android (AprendeCatalogAudit.duplicateDescriptionCount) also wants them unique across the whole catalog.
+    by_description: dict[str, list[str]] = {}
+    for configuration in configurations:
+        key = str(configuration["profile"].get("description") or "").strip().lower()
+        by_description.setdefault(key, []).append(configuration["id"])
+    for identifiers in by_description.values():
+        if len(identifiers) > 1:
+            failures.append(f"duplicate_configuration_description:{'|'.join(identifiers)}")
     return failures
 
 

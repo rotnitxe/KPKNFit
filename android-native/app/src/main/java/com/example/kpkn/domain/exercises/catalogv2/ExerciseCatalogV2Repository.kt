@@ -193,21 +193,24 @@ class InMemoryExerciseCatalogRepositoryV2(
         return when (val validation = resolver.validate(selection)) {
             is ExerciseSelectionValidationV2.Invalid ->
                 ExerciseCatalogResolveResultV2.Invalid(validation.reason)
-            is ExerciseSelectionValidationV2.Valid ->
-                resolver.resolve(selection)?.let { profile ->
+            is ExerciseSelectionValidationV2.Valid -> {
+                // The validated selection may name the replacement of a retired configuration.
+                val valid = validation.selection
+                resolver.resolve(valid)?.let { profile ->
                     val family = catalog.families.firstOrNull { family ->
-                        family.definitions.any { definition -> definition.id == selection.definitionId }
+                        family.definitions.any { definition -> definition.id == valid.definitionId }
                     } ?: return ExerciseCatalogResolveResultV2.Invalid("definition_family_missing")
-                    val definition = family.definitions.firstOrNull { it.id == selection.definitionId }
+                    val definition = family.definitions.firstOrNull { it.id == valid.definitionId }
                         ?: return ExerciseCatalogResolveResultV2.Invalid("definition_missing")
                     val configuration = definition.configurations
-                        .firstOrNull { it.id == selection.configurationId }
+                        .firstOrNull { it.id == valid.configurationId }
                         ?: return ExerciseCatalogResolveResultV2.Invalid("configuration_missing")
                     if (profile.richMetadata == null) {
                         return ExerciseCatalogResolveResultV2.Invalid("rich_metadata_missing:${configuration.id}")
                     }
-                    ExerciseCatalogResolveResultV2.Resolved(selection, profile)
+                    ExerciseCatalogResolveResultV2.Resolved(valid, profile)
                 } ?: ExerciseCatalogResolveResultV2.Invalid("configuration_profile_missing")
+            }
         }
     }
 }
