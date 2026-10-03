@@ -19,6 +19,9 @@ object HouseholdPortions {
     const val MAX_ITEM_GRAMS_WITHOUT_KG = 600.0
     const val MAX_ITEM_KCAL_WITHOUT_KG = 1200.0
 
+    /** Grams a per-100 g basis refers to: a denominator, not a portion anyone eats. */
+    private const val NUTRIENT_DENOMINATOR_GRAMS = 100.0
+
     private val COUNTABLE_FAMILIES = setOf(
         "pan_chileno", "pan", "huevo", "empanada", "wrap",
     )
@@ -107,7 +110,9 @@ object HouseholdPortions {
         if (FoodIdentity.familyFor(q) == "huevo" || q.contains("huevo")) {
             return food?.servingSize?.takeIf { it in 40.0..70.0 } ?: 50.0
         }
-        if (food != null) {
+        // A per-100 g row with no declared portion has no serving of its own: its 100 g is the
+        // nutrient denominator, so the unit mass comes from the family defaults below.
+        if (food != null && !isDenominatorOnlyServing(food)) {
             val serving = food.servingSize.takeIf { it.isFinite() && it > 0.0 } ?: 100.0
             if (food.unit.equals("u", ignoreCase = true)) return serving
             val family = FoodIdentity.familyFor(food)
@@ -118,7 +123,7 @@ object HouseholdPortions {
                 else -> serving.coerceAtMost(150.0)
             }
         }
-        return when (FoodIdentity.familyFor(q)) {
+        return when (FoodIdentity.familyFor(q) ?: food?.let(FoodIdentity::familyFor)) {
             "pan_chileno" -> 80.0
             "pan" -> 50.0
             "huevo" -> 50.0
@@ -476,8 +481,12 @@ object HouseholdPortions {
         explicitKilogram: Boolean,
         amountIntent: AmountIntent,
         identityAccepted: Boolean = true,
+        // The person tapped this exact row in the search tab: a supermarket SKU is a valid identity.
+        explicitPick: Boolean = false,
     ): FoodResolutionStatus {
-        if (food == null || !isHouseholdIdentity(food, brandHint)) return FoodResolutionStatus.NO_RESOLVED
+        if (food == null || (!explicitPick && !isHouseholdIdentity(food, brandHint))) {
+            return FoodResolutionStatus.NO_RESOLVED
+        }
         if (!FoodIdentity.hasPlausibleMacros(food)) return FoodResolutionStatus.NO_RESOLVED
         if (!grams.isFinite() || grams <= 0.0) return FoodResolutionStatus.NO_RESOLVED
         if (!identityAccepted) return FoodResolutionStatus.NEEDS_CONFIRMATION
@@ -487,32 +496,28 @@ object HouseholdPortions {
         return if (massOk) FoodResolutionStatus.AUTO else FoodResolutionStatus.NO_RESOLVED
     }
 
-    fun isSimpleUnbrandedQuery(query: String): Boolean {
-        if (isExplicitKilogram(query)) return false
-        val tokens = FoodIdentity.normalize(query).split(" ").filter { it.isNotBlank() && it.length > 1 }
-        return tokens.size <= 2
-    }
+    /**
+     * Tab Buscar: the person tapped one specific row, so that row IS the eaten identity.
+     * A supermarket SKU or a per-100 g profile only changes the portion ([eatenGramsForSearchPick]),
+     * never the food: swapping the row (or silently doing nothing) used to log a different product.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun identityForSearchPick(selected: FoodItem, query: String): FoodItem = selected
 
     /**
-     * Tab Buscar: a generic query must not persist a pack/SKU as the eaten identity.
+     * Grams eaten after tapping [identity] while searching for [query].
+     *
+     * - Explicit kilograms in the query keep the row's declared mass (`portionGrams`, else `servingSize`).
+     * - Otherwise only a household-sized declared portion applies: the 100 g of a per-100 g basis is a
+     *   nutrient denominator, never a portion, and a pack mass is never what a person ate.
+     * - Everything else falls back to the family defaults (milk 200 g, yogurt 125 g, egg 50 g, ...).
      */
-    fun identityForSearchPick(selected: FoodItem, query: String): FoodItem? {
-        if (!isSimpleUnbrandedQuery(query)) return selected
-        val bulk = looksLikePackName(selected.name) ||
-            (selected.portionGrams ?: 0.0) >= PACK_GRAMS ||
-            selected.servingSize >= PACK_GRAMS ||
-            isGlobalSku(selected)
-        if (!bulk) return selected
-        return householdStaticFood(query)
-    }
-
-    fun eatenGramsForSearchPick(identity: FoodItem, query: String, selected: FoodItem): Double {
+    fun eatenGramsForSearchPick(identity: FoodItem, query: String): Double {
         val kg = isExplicitKilogram(query)
-        val parsed = when {
-            kg -> selected.servingSize.takeIf { it.isFinite() && it > 0.0 }
-            identity.id == selected.id ->
-                selected.servingSize.takeIf { isHouseholdHint(it, identity, query) }
-            else -> null
+        val parsed = if (kg) {
+            identity.portionGrams.positiveOrNull() ?: identity.servingSize.positiveOrNull()
+        } else {
+            declaredPortionGrams(identity)?.takeIf { isHouseholdHint(it, identity, query) }
         }
         return resolveEatenGrams(
             intent = if (kg) AmountIntent.EXPLICIT_MASS else AmountIntent.UNSPECIFIED,
@@ -523,6 +528,27 @@ object HouseholdPortions {
             explicitKilogram = kg,
         )
     }
+
+    /**
+     * True for a per-100 g row whose only "serving" is the default 100 g (no `portionGrams`): every
+     * OFF/USDA row built by `GlobalFoodEntity.toFoodItem()` and the curated per-100 g rows that never
+     * declared a portion. That 100 g is the nutrient denominator, not something a person eats. Custom
+     * foods are excluded: their `servingSize` is always the serving the user typed.
+     */
+    private fun isDenominatorOnlyServing(food: FoodItem): Boolean =
+        !food.isCustom &&
+            food.nutritionBasis.startsWith("PER_100G") &&
+            food.portionGrams.positiveOrNull() == null &&
+            kotlin.math.abs(food.servingSize - NUTRIENT_DENOMINATOR_GRAMS) < 1e-6
+
+    /** The one portion the row itself declares, in grams; null when its only serving is the denominator. */
+    private fun declaredPortionGrams(food: FoodItem): Double? = when {
+        isDenominatorOnlyServing(food) -> null
+        food.isCustom || !food.nutritionBasis.startsWith("PER_100G") -> food.servingSize.positiveOrNull()
+        else -> food.portionGrams.positiveOrNull() ?: food.servingSize.positiveOrNull()
+    }
+
+    private fun Double?.positiveOrNull(): Double? = this?.takeIf { it.isFinite() && it > 0.0 }
 
     /**
      * Meal-memory template: stored grams are a hint, never a supermarket pack.

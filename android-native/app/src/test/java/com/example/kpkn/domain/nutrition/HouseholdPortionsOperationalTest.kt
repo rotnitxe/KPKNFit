@@ -60,12 +60,14 @@ class HouseholdPortionsOperationalTest {
     }
 
     @Test
-    fun `search pick on a simple query does not persist an OFF pack`() {
+    fun `a search pick on a simple query never persists the pack MASS`() {
         val off = offPack()
+        // The tapped row stays the identity (WP-S1); only the portion is household-sized.
         val identity = HouseholdPortions.identityForSearchPick(off, "hallulla")
-        assertEquals("cl013", identity?.id)
-        val grams = HouseholdPortions.eatenGramsForSearchPick(identity!!, "hallulla", off)
+        assertEquals("off_hallulla_kg", identity.id)
+        val grams = HouseholdPortions.eatenGramsForSearchPick(identity, "hallulla")
         assertTrue("search grams $grams", grams in 70.0..90.0)
+        // Description path: an unbranded pack-named SKU is still not a household identity.
         assertFalse(HouseholdPortions.isHouseholdIdentity(off, brandHint = null))
     }
 
@@ -73,7 +75,7 @@ class HouseholdPortionsOperationalTest {
     fun `explicit kilogram query may keep the selected row`() {
         val off = offPack()
         val identity = HouseholdPortions.identityForSearchPick(off, "Hallulla Ideal 1kg")
-        assertEquals("off_hallulla_kg", identity?.id)
+        assertEquals("off_hallulla_kg", identity.id)
     }
 
     @Test

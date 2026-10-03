@@ -190,6 +190,8 @@ fun FoodLoggerDrawer(
     var activeTab by remember { mutableIntStateOf(initialTab.coerceIn(0, 1)) }
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
+    // Bumped on every rejected search tap so the same message still scrolls into view (never a silent no-op).
+    var errorPulse by remember { mutableIntStateOf(0) }
     var showDiscardConfirmation by remember { mutableStateOf(false) }
     var sheetRevision by remember { mutableIntStateOf(0) }
     var draftLogId by remember { mutableStateOf(UUID.randomUUID().toString()) }
@@ -238,6 +240,14 @@ fun FoodLoggerDrawer(
     // Auto-scroll to show newly detected foods when analysis finishes
     LaunchedEffect(isAnalyzing) {
         if (!isAnalyzing && tags.isNotEmpty()) {
+            val lastIndex = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
+            listState.animateScrollToItem(lastIndex)
+        }
+    }
+
+    // C21: an error or a notice shows where the primary action is (the last item), never above the fold.
+    LaunchedEffect(saveError, analysisNotice, errorPulse) {
+        if (saveError != null || analysisNotice != null) {
             val lastIndex = (listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)
             listState.animateScrollToItem(lastIndex)
         }
@@ -1416,8 +1426,6 @@ fun FoodLoggerDrawer(
                 }
             }
 
-            item { saveError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) } }
-
             // ── Tab Selector ────────────────────────────────────────────────
             item {
                 Row(
@@ -1587,17 +1595,19 @@ fun FoodLoggerDrawer(
                         val selectedFood = food.food
                         if (!NutrientBasis.isVerified(selectedFood)) {
                             saveError = "Esta ficha no tiene nutrientes verificables. Elige otro alimento."
+                            errorPulse++
                             return@FoodSearchResultCard
                         }
                         val queryUsed = searchQuery.ifBlank { selectedFood.name }
-                        if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) return@FoodSearchResultCard
+                        if (!FoodIdentity.matchesDeclaredIdentity(queryUsed, selectedFood)) {
+                            // The results outlive the query box: a tap that no longer matches must say so.
+                            saveError = "Esa ficha no coincide con lo que buscaste. Elige otra."
+                            errorPulse++
+                            return@FoodSearchResultCard
+                        }
+                        // The tapped row IS the eaten identity; a pack or per-100 g row only changes the portion.
                         val identity = HouseholdPortions.identityForSearchPick(selectedFood, queryUsed)
-                            ?: return@FoodSearchResultCard
-                        val grams = HouseholdPortions.eatenGramsForSearchPick(
-                            identity,
-                            queryUsed,
-                            selectedFood,
-                        )
+                        val grams = HouseholdPortions.eatenGramsForSearchPick(identity, queryUsed)
                         val logged = scaleFoodByPortion(identity, amountGrams = grams)
                         val status = HouseholdPortions.operationalAutoStatus(
                             food = identity,
@@ -1605,6 +1615,7 @@ fun FoodLoggerDrawer(
                             brandHint = null,
                             explicitKilogram = HouseholdPortions.isExplicitKilogram(queryUsed),
                             amountIntent = AmountIntent.UNSPECIFIED,
+                            explicitPick = true,
                         )
                         val tag = ResolvedTag(
                             tag = identity.name,
@@ -1621,6 +1632,7 @@ fun FoodLoggerDrawer(
                             resolutionConfidence = 1.0,
                         )
                         tags = tags + NutritionInterpretationBridge.refresh(tag.copy(foodQuery = queryUsed, confirmedDimensions = setOf("identity")))
+                        saveError = null
                         searchQuery = ""
                         searchResults = emptyList()
                     })
@@ -1704,6 +1716,40 @@ fun FoodLoggerDrawer(
                                 MacroBadge("P", "${kotlin.math.round(tagTotals.protein).toInt()}g", PROTEIN_COLOR)
                                 MacroBadge("C", "${kotlin.math.round(tagTotals.carbs).toInt()}g", CARBS_COLOR)
                                 MacroBadge("G", "${kotlin.math.round(tagTotals.fats).toInt()}g", FATS_COLOR)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // C21: errors sit next to the primary action (where the list scrolls to) and can be dismissed.
+            saveError?.let { message ->
+                item(key = "save_error") {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(start = 14.dp, top = 4.dp, end = 4.dp, bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = message,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                            IconButton(
+                                onClick = { saveError = null },
+                                modifier = Modifier.size(40.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cerrar aviso",
+                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                )
                             }
                         }
                     }
