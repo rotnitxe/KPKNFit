@@ -381,4 +381,16 @@ class SetupStepDefinitionsTest {
         // La identidad de género nunca tiene mapa hacia el sexo de cálculo.
         assertNull(SetupStepDefinitions.migratedValue(WizChatQuestionId.P_GENDER, "Mujer"))
     }
+
+    @Test
+    fun routeOptionsUseTheLabelsThatTheLegacyAnswerMapAlreadyRecognises() {
+        val route = requireNotNull(SetupStepDefinitions.of(SetupStepId.ROUTE))
+        assertEquals("Recomiéndame un plan", route.option("recommended")?.label)
+        assertEquals("Elegir un protocolo", route.option("protocol")?.label)
+        // Cada etiqueta visible es una clave del mapa legacy: ningún borrador antiguo deja de leerse.
+        route.options.forEach { option ->
+            assertEquals("etiqueta «${option.label}»", option.value, route.legacyValueMap[option.label])
+        }
+        assertEquals("recommended", SetupStepDefinitions.migratedValue(WizChatQuestionId.T_ROUTE, "Recomiéndame un plan"))
+    }
 }

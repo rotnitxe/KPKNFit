@@ -1,8 +1,11 @@
 package com.example.kpkn.data.protocols
 
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.protocols.definitions.AuthoredSources
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -128,6 +131,94 @@ class ProtocolAttributionTest {
                 }
             }
             assertTrue("§14.3 liftSlots vacío", recipe.liftSlots.isEmpty())
+        }
+    }
+
+    // ─── E-11 / E-32: autores completos y planes propios sin URL ──────────────
+
+    private val visibleProtocols get() = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }
+
+    private val kpknOwnIds = listOf(
+        "kpkn-native-sbd-4",
+        "kpkn-ppl-6",
+        "kpkn-rp-style",
+        "kpkn-rts-style",
+        "kpkn-sbs-rtf",
+    )
+
+    @Test
+    fun no_visible_author_has_a_slash_or_a_section_mark() {
+        val authors = visibleProtocols.map { it.id to it.author } +
+            PersonalizedPlanCatalog.entries().flatMap { entry ->
+                listOfNotNull(entry.sourceAuthor, entry.provenance?.sourceAuthor, entry.authoredSource?.author)
+                    .map { entry.id to it }
+            }
+        assertTrue("sin autores que revisar", authors.isNotEmpty())
+        authors.forEach { (id, author) ->
+            assertTrue("$id: autor vacío", author.isNotBlank())
+            assertFalse("$id: el autor «$author» usa barra; los autores se unen con «y»", author.contains('/'))
+            assertFalse("$id: el autor «$author» lleva un símbolo de sección", author.contains('§'))
+        }
+    }
+
+    @Test
+    fun third_party_methods_name_every_author_in_full_and_the_disclaimer_repeats_them() {
+        val expected = mapOf(
+            "texas-method-3d" to "Mark Rippetoe y Glenn Pendlay",
+            "texas-method-4d" to "Andy Baker y Mark Rippetoe",
+            "madcow-5x5" to "Madcow (a partir de Bill Starr)",
+            // El id conserva la grafía «phillipi» porque está persistido; solo cambia el texto.
+            "coan-phillipi-dl" to "Ed Coan y Mark Philippi",
+        )
+        expected.forEach { (id, authors) ->
+            val protocol = visibleProtocols.single { it.id == id }
+            assertEquals("$id: autores", authors, protocol.author)
+            assertEquals("$id: disclaimer", "No afiliado a $authors", protocol.source.disclaimer)
+        }
+        // E-32: el autor declarado y el disclaimer citan siempre a las mismas personas.
+        visibleProtocols.filter { it.publicationStatus == ProtocolPublicationStatus.VERIFIED }.forEach { protocol ->
+            assertTrue(
+                "${protocol.id}: el disclaimer «${protocol.source.disclaimer}» no repite el autor «${protocol.author}»",
+                protocol.source.disclaimer.orEmpty().contains(protocol.author),
+            )
+        }
+    }
+
+    @Test
+    fun kpkn_own_plans_have_no_source_url_and_never_say_not_affiliated_to_kpkn() {
+        kpknOwnIds.forEach { id ->
+            val protocol = visibleProtocols.single { it.id == id }
+            assertEquals("$id: estado", ProtocolPublicationStatus.KPKN_NATIVE, protocol.publicationStatus)
+            assertNull("$id: un plan propio no tiene página de fuente", protocol.source.primaryUrl)
+            assertNull("$id: ni una evidencia con URL", protocol.source.evidenceUrl)
+            val disclaimer = protocol.source.disclaimer.orEmpty()
+            assertTrue("$id: «$disclaimer» no empieza por «$KPKN_OWN_PLAN_DISCLAIMER»", disclaimer.startsWith(KPKN_OWN_PLAN_DISCLAIMER))
+            assertFalse("$id: «$disclaimer» afilia a KPKN", disclaimer.contains("No afiliado a KPKN", ignoreCase = true))
+            // El catálogo copia la fuente de la definición: tampoco ahí queda una URL ni la leyenda.
+            val entry = requireNotNull(PersonalizedPlanCatalog.find("protocol:$id")) { "Falta la entrada de $id" }
+            assertNull("$id: sourceUrl del catálogo", entry.sourceUrl)
+            assertFalse(
+                "$id: el disclaimer del catálogo afilia a KPKN",
+                entry.disclaimer.orEmpty().contains("No afiliado a KPKN", ignoreCase = true),
+            )
+        }
+    }
+
+    @Test
+    fun no_visible_protocol_links_to_a_kpkn_fit_source_page() {
+        visibleProtocols.forEach { protocol ->
+            listOfNotNull(protocol.source.primaryUrl, protocol.source.evidenceUrl).forEach { url ->
+                assertFalse("${protocol.id}: la URL «$url» apunta a kpkn.fit", url.contains("kpkn.fit", ignoreCase = true))
+            }
+        }
+    }
+
+    @Test
+    fun authored_source_texts_shown_to_the_user_carry_no_section_marks() {
+        listOf(AuthoredSources.phul, AuthoredSources.phat).forEach { source ->
+            (source.effectiveRules + source.kpknDefaults + listOf(source.sourceTitle, source.edition)).forEach { text ->
+                assertFalse("${source.planId}: «$text» lleva un símbolo de sección", text.contains('§'))
+            }
         }
     }
 }

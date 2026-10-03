@@ -5,6 +5,7 @@ import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayArchetypes
+import com.example.kpkn.data.protocols.KPKN_OWN_PLAN_DISCLAIMER
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.ProtocolBlock
@@ -93,13 +94,13 @@ object KpknNativeSbd4 {
             definitionId = "kpkn-native-sbd-4",
             revision = "2026-09-13",
             primaryReference = "KPKN Native SBD v4",
-            primaryUrl = "https://kpkn.fit/protocols/kpkn-native-sbd-4",
+            primaryUrl = null, // plan propio: no hay una página de fuente que enlazar
             variant = "4-day SBD",
             version = "v5",
             reviewedAt = "2026-09-13",
             catalogRevision = "v2-approved-2026-08-12-a",
             approvedBy = "KPKN Editorial",
-            disclaimer = "Protocolo nativo KPKN. No afiliado a federaciones de powerlifting.",
+            disclaimer = "$KPKN_OWN_PLAN_DISCLAIMER No afiliado a federaciones de powerlifting.",
         ),
         recipe = recipe(),
         fidelitySpec = ProtocolFidelitySpec(

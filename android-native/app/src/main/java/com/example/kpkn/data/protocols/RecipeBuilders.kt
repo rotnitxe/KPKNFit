@@ -234,6 +234,11 @@ fun DayRecipe.withMinRir(minRir: Int): DayRecipe = copy(
     },
 )
 
+/**
+ * Fuente de un método de tercero. [author] lleva los autores completos, escritos como
+ * «Nombre Apellido y Nombre Apellido» (sin barras ni abreviaturas) y debe coincidir con
+ * `Protocol.author`: el disclaimer lo repite tal cual («No afiliado a {autores}»).
+ */
 fun attributed(
     primaryReference: String,
     primaryUrl: String,
@@ -246,6 +251,27 @@ fun attributed(
     evidenceUrl = evidenceUrl ?: primaryUrl,
     variant = variant,
     disclaimer = "No afiliado a $author",
+    reviewedAt = "2026-09-13",
+    catalogRevision = "v2-approved-2026-08-12-a",
+    approvedBy = "KPKN Editorial",
+)
+
+/** Disclaimer de los planes propios de KPKN: no hay un tercero del que desafiliarse. */
+const val KPKN_OWN_PLAN_DISCLAIMER = "Plan propio de KPKN."
+
+/**
+ * Fuente de un plan propio de KPKN (E-11): sin URL, porque no existe una página de fuente que
+ * enlazar, y con [KPKN_OWN_PLAN_DISCLAIMER] en lugar de «No afiliado a KPKN».
+ */
+fun kpknOwnSource(
+    primaryReference: String,
+    variant: String? = null,
+): ProtocolSource = ProtocolSource(
+    primaryReference = primaryReference,
+    primaryUrl = null,
+    evidenceUrl = null,
+    variant = variant,
+    disclaimer = KPKN_OWN_PLAN_DISCLAIMER,
     reviewedAt = "2026-09-13",
     catalogRevision = "v2-approved-2026-08-12-a",
     approvedBy = "KPKN Editorial",

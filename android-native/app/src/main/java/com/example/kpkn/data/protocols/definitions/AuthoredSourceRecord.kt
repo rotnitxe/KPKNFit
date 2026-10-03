@@ -68,7 +68,7 @@ object AuthoredSources {
             "Elección inicial dentro de rangos: mínimo de series y RIR 2.",
             "Calentamiento: preset operativo KPKN (3 min generales + aproximación técnica del primer patrón), no publicado por Campbell.",
             "Nombres traducidos al español; cada slot conserva el canonicalName del catálogo.",
-            "Regla de progreso inicial: recomendación KPKN §12.4, no un incremento escrito por Campbell.",
+            "Regla de progreso inicial: recomendación KPKN de progresión por rango de repeticiones, no un incremento escrito por Campbell.",
         ),
     )
 

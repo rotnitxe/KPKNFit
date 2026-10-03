@@ -53,12 +53,19 @@ fun TrainingMaxWizard(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Training Max", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
+            Text("Máximo de entrenamiento (TM)", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
             Text(
-                "Introduce 1RM de competición. El TM se calcula al ${(trainingMaxPercent * 100).toInt()} %.",
+                trainingMaxIntro(trainingMaxPercent),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.7f),
             )
+            trainingMaxFiveRepNote(trainingMaxPercent)?.let { note ->
+                Text(
+                    note,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.7f),
+                )
+            }
             if (autoEstimate != null && squat.isBlank() && bench.isBlank() && deadlift.isBlank()) {
                 TextButton(onClick = {
                     autoEstimate.squat1RM?.let { squat = trimTrailingZero(it) }
@@ -70,7 +77,7 @@ fun TrainingMaxWizard(
                 }
             }
             TmField(value = squat, onValueChange = { squat = it }, label = "Sentadilla 1RM (kg)")
-            TmField(value = bench, onValueChange = { bench = it }, label = "Banca 1RM (kg)")
+            TmField(value = bench, onValueChange = { bench = it }, label = "Press de banca 1RM (kg)")
             TmField(value = deadlift, onValueChange = { deadlift = it }, label = "Peso muerto 1RM (kg)")
             TmField(value = overhead, onValueChange = { overhead = it }, label = "Press militar 1RM (kg, opcional)")
             if (attempted && parsed(squat) == null && parsed(bench) == null && parsed(deadlift) == null) {
@@ -90,7 +97,7 @@ fun TrainingMaxWizard(
                 trainingMaxPercent,
             )
             Text(
-                "TM: SQ ${preview.squatTM?.toInt() ?: "—"} · BP ${preview.benchTM?.toInt() ?: "—"} · DL ${preview.deadliftTM?.toInt() ?: "—"}",
+                trainingMaxPreviewLine(preview.squatTM, preview.benchTM, preview.deadliftTM),
                 color = Color.White.copy(alpha = 0.8f),
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -129,4 +136,28 @@ private fun TmField(value: String, onValueChange: (String) -> Unit, label: Strin
 private fun trimTrailingZero(value: Double): String {
     val asLong = value.toLong()
     return if (value == asLong.toDouble()) asLong.toString() else value.toString()
+}
+
+/** Porcentaje del 1RM que usan Texas Method y Madcow como TM (D7): un peso parecido a un 5RM. */
+private const val TEXAS_MADCOW_TM_PERCENT = 87
+
+/** Explicación bajo el título; el porcentaje es el de la receta del plan que se va a crear. */
+internal fun trainingMaxIntro(trainingMaxPercent: Double): String =
+    "Introduce 1RM de competición. El TM se calcula al ${(trainingMaxPercent * 100).toInt()} % de tu 1RM."
+
+/**
+ * Nota de D7. Solo aparece cuando el TM del plan es el 87 % del 1RM (Texas Method y Madcow): en los
+ * demás planes el porcentaje es otro y la nota no aplica.
+ */
+internal fun trainingMaxFiveRepNote(trainingMaxPercent: Double): String? =
+    if ((trainingMaxPercent * 100).toInt() == TEXAS_MADCOW_TM_PERCENT) {
+        "Texas Method y Madcow usan el $TEXAS_MADCOW_TM_PERCENT % de tu 1RM como TM (parecido a un 5RM)."
+    } else {
+        null
+    }
+
+/** `TM: sentadilla 85 · press de banca 60 · peso muerto 100`, con «—» donde aún no hay marca. */
+internal fun trainingMaxPreviewLine(squatTM: Double?, benchTM: Double?, deadliftTM: Double?): String {
+    fun tmText(tm: Double?): String = tm?.toInt()?.toString() ?: "—"
+    return "TM: sentadilla ${tmText(squatTM)} · press de banca ${tmText(benchTM)} · peso muerto ${tmText(deadliftTM)}"
 }

@@ -57,6 +57,14 @@ class WizChatCopyCatalogTest {
     }
 
     @Test
+    fun theChosenPlanAcknowledgementDoesNotTalkAboutCuttingTheRecipe() {
+        val chosen = requireNotNull(WizChatCopyCatalog.contextualAck(WizChatQuestionId.T_PLAN, "protocol:texas-method-3d"))
+        assertEquals("Hecho: preparo ese plan para que lo revises antes de activarlo.", chosen)
+        assertFalse(chosen.contains("recort"))
+        assertFalse(chosen.contains("tal cual"))
+    }
+
+    @Test
     fun sameStageMilestonesStillPreviewWhatIsNext() {
         val hint = WizChatCopyCatalog.nextStepHint(WizChatQuestionId.T_PLAN)
         assertTrue(hint.contains("opciones de plan"))

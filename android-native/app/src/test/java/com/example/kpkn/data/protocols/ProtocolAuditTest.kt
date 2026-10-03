@@ -4,6 +4,8 @@ import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.domain.templates.CatalogV2TestFixture
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.RecipeContractPolicy
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -147,8 +149,22 @@ class ProtocolAuditTest {
         assertTrue(visible.isNotEmpty())
         visible.forEach { protocol ->
             assertTrue("${protocol.id} debe tener receta", protocol.recipe != null && protocol.recipe!!.weeks.isNotEmpty())
-            assertTrue("${protocol.id} necesita URL", !protocol.source.primaryUrl.isNullOrBlank())
-            assertTrue("${protocol.id} necesita disclaimer", !protocol.source.disclaimer.isNullOrBlank())
+            when (protocol.publicationStatus) {
+                // Un método de tercero cita su fuente: URL y aviso de no afiliación.
+                ProtocolPublicationStatus.VERIFIED -> {
+                    assertTrue("${protocol.id} necesita URL", !protocol.source.primaryUrl.isNullOrBlank())
+                    assertTrue("${protocol.id} necesita disclaimer", !protocol.source.disclaimer.isNullOrBlank())
+                }
+                // Un plan propio no tiene página de fuente que enlazar ni a quién desafiliarse (E-11).
+                ProtocolPublicationStatus.KPKN_NATIVE -> {
+                    assertNull("${protocol.id} KPKN_NATIVE no lleva URL de fuente", protocol.source.primaryUrl)
+                    assertFalse(
+                        "${protocol.id} KPKN_NATIVE no dice «No afiliado a KPKN»",
+                        protocol.source.disclaimer.orEmpty().contains("No afiliado a KPKN", ignoreCase = true),
+                    )
+                }
+                ProtocolPublicationStatus.HIDDEN_UNVERIFIED -> Unit
+            }
             assertTrue("${protocol.id} necesita fidelitySpec", protocol.fidelitySpec != null)
             if (protocol.publicationStatus == ProtocolPublicationStatus.KPKN_NATIVE) {
                 assertTrue("${protocol.id} KPKN_NATIVE no declara exenciones", protocol.exemptions.isEmpty() && protocol.recipe!!.exemptions.isEmpty())

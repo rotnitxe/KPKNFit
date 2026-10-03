@@ -281,7 +281,7 @@ object SetupStepDefinitions {
             subtitle = "Elige entre un plan recomendado o un protocolo de catálogo.",
             control = SetupControlKind.ROUTE_CHOICE,
             options = opt(
-                "recommended" to "Qué me lo recomiendes",
+                "recommended" to "Recomiéndame un plan",
                 "protocol" to "Elegir un protocolo",
             ),
             legacyQuestion = WizChatQuestionId.T_ROUTE,

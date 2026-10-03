@@ -658,11 +658,11 @@ object RemainingVerifiedProtocols {
     )
 
     val coan = protocol(
-        "coan-phillipi-dl", "Coan-Phillipi Deadlift", "💀",
+        "coan-phillipi-dl", "Coan-Philippi Deadlift", "💀",
         "10 semanas, 1 día: pesado + velocidad + circuito. Add-on de peso muerto.",
-        "Ed Coan / Mark Philippi", listOf("powerlifting", "avanzado", "especialización", "10 semanas", "%"),
+        "Ed Coan y Mark Philippi", listOf("powerlifting", "avanzado", "especialización", "10 semanas", "%"),
         listOf(ProtocolBlock("Pesado", 10, "Intensificación", 60, 100)),
-        "coan_split", attributed("Coan-Phillipi deadlift routine", "https://www.powerliftingtowin.com/coan-phillipi-deadlift-routine/", "Ed Coan / Mark Philippi"),
+        "coan_split", attributed("Coan-Philippi deadlift routine", "https://www.powerliftingtowin.com/coan-phillipi-deadlift-routine/", "Ed Coan y Mark Philippi"),
         run {
             val heavy = listOf(75.0, 80.0, 85.0, 90.0, 80.0, 85.0, 90.0, 95.0, 97.5, 100.0)
             val speed = listOf(60.0, 65.0, 70.0, 75.0, 65.0, 70.0, 75.0, 70.0, 70.0, 60.0)

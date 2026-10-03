@@ -1134,7 +1134,7 @@ private fun TrainingAutoregulationConfirmStep(state: SetupWizardState, vm: Setup
 
     WizardChoiceCard(
         title = options.firstOrNull { it.value == "confirmed" }?.label ?: "Confirmar",
-        subtitle = "Mantengo AUTO: los cambios se aplican con esta confirmación y siempre puedes revertirlos.",
+        subtitle = "Mantener el ajuste automático: los cambios se aplican con esta confirmación y siempre puedes revertirlos.",
         selected = confirmed,
         onClick = {
             if (!confirmed) {
@@ -1151,7 +1151,7 @@ private fun TrainingAutoregulationConfirmStep(state: SetupWizardState, vm: Setup
     )
     WizardChoiceCard(
         title = options.firstOrNull { it.value == "review_only" }?.label ?: "Solo revisar",
-        subtitle = "Vuelvo a PROPOSE: nada se aplica sin que tú lo confirmes.",
+        subtitle = "Volver a proponer cambios: nada se aplica sin que tú lo confirmes.",
         selected = training.autoregulationMode != AutoregulationMode.AUTO,
         onClick = {
             vm.updateStep(step) { draft ->

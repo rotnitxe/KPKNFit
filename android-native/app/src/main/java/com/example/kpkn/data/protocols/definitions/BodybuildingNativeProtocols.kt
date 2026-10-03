@@ -22,6 +22,7 @@ import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.attributed
 import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.dropT3
+import com.example.kpkn.data.protocols.kpknOwnSource
 import com.example.kpkn.data.protocols.rangeRirSets
 import com.example.kpkn.data.protocols.repeatPercentSets
 import com.example.kpkn.data.protocols.rpeSets
@@ -208,7 +209,7 @@ object KpknNativeHypertrophyProtocols {
         defaultSplit = "ppl_x6",
         publicationStatus = ProtocolPublicationStatus.KPKN_NATIVE,
         kind = ProtocolKind.WEEKLY_SPLIT,
-        source = attributed("KPKN PPL hipertrofia", "https://kpkn.fit/protocols/kpkn-ppl-6", "KPKN Fit"),
+        source = kpknOwnSource("KPKN PPL hipertrofia"),
         recipe = TrainingPlanRecipe(
             id = "kpkn-ppl-6",
             weeks = (1..12).map { w ->
@@ -249,7 +250,7 @@ object KpknNativeHypertrophyProtocols {
         defaultSplit = "ul_x4",
         publicationStatus = ProtocolPublicationStatus.KPKN_NATIVE,
         kind = ProtocolKind.AUTOREGULATED_FRAMEWORK,
-        source = attributed("KPKN mesociclo inspirado en RP", "https://kpkn.fit/protocols/kpkn-rp-style", "KPKN Fit"),
+        source = kpknOwnSource("KPKN mesociclo inspirado en RP"),
         recipe = TrainingPlanRecipe(
             id = "kpkn-rp-style",
             weeks = (1..6).map { w ->
@@ -287,7 +288,7 @@ object KpknNativeAutoregFrameworks {
         defaultSplit = "pl_classic_4",
         publicationStatus = ProtocolPublicationStatus.KPKN_NATIVE,
         kind = ProtocolKind.AUTOREGULATED_FRAMEWORK,
-        source = attributed("KPKN framework inspirado en RTS", "https://kpkn.fit/protocols/kpkn-rts-style", "KPKN Fit"),
+        source = kpknOwnSource("KPKN framework inspirado en RTS"),
         recipe = TrainingPlanRecipe(
             id = "kpkn-rts-style",
             weeks = (1..8).map { w ->
@@ -324,7 +325,7 @@ object KpknNativeAutoregFrameworks {
         defaultSplit = "pl_classic_4",
         publicationStatus = ProtocolPublicationStatus.KPKN_NATIVE,
         kind = ProtocolKind.AUTOREGULATED_FRAMEWORK,
-        source = attributed("KPKN framework inspirado en SBS RTF", "https://kpkn.fit/protocols/kpkn-sbs-rtf", "KPKN Fit"),
+        source = kpknOwnSource("KPKN framework inspirado en SBS RTF"),
         recipe = TrainingPlanRecipe(
             id = "kpkn-sbs-rtf",
             weeks = (1..8).map { w ->
