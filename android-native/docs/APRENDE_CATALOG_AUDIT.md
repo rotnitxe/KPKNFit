@@ -6,6 +6,7 @@ Runtime: `ExerciseCatalogV2Loader` → adaptador de lectura compartido (sin clon
 
 ## Identidad y cobertura
 
+- Estado vigente (altas M1–M5, 2026-10-03; commit `d68e91872`): 96 familias, 206 definiciones y 527 configuraciones aprobadas; el SHA vigente está en `catalog/exercises/v2/curation/STATUS.md`. Las cifras de las líneas siguientes (201 definiciones, 523 configuraciones y el SHA `d1fde47d…`) son la foto del corte 2026-10-01 y no se han reescrito.
 - Revisión del catálogo: `v2-approved-2026-09-29-a`.
 - Revisión de ontología declarada por la fuente: `wikilab-v3-2026-08-08`.
 - 96 familias, 201 definiciones y 523 configuraciones aprobadas.
