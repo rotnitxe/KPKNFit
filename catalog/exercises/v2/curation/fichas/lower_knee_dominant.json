@@ -1038,6 +1038,303 @@
         ]
       }
     },
+    "paused_back_squat": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "vandentillaar2024",
+              "pallares2014",
+              "glassbrook2017",
+              "statpearls_knee"
+            ],
+            "why": "La rodilla baja hasta su flexión máxima, se queda quieta durante la parada y desde ahí se extiende. El arranque parte de la altura donde la fuerza isométrica fue más baja (van den Tillaar 2024), así que la salida de la parada es el tramo más exigente para ella. Imponer los dos segundos redujo la variación de la relación carga-velocidad entre intentos repetidos en la sentadilla (Pallarés 2014): el arranque desde quieto se repite mejor."
+          },
+          {
+            "actions": [
+              "Flexión de la cadera",
+              "Extensión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "wretenberg1996",
+              "caterisano2002"
+            ],
+            "why": "La cadera baja por debajo de la rodilla, espera y se extiende en la subida. En la sentadilla el pico de momento de fuerza en la cadera superó al de la rodilla en halterófilos y en powerlifters (Wretenberg 1996), así que comparte el papel principal."
+          },
+          {
+            "actions": [
+              "Dorsiflexión del tobillo",
+              "Flexión plantar del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "kim2015",
+              "bryanton2012"
+            ],
+            "why": "La tibia se inclina hacia delante con el talón en el suelo y se mantiene así durante la parada; la dorsiflexión fue de las variables de movilidad más ligadas a la profundidad alcanzada (Kim 2015). Los flexores plantares frenan ese avance."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "schoenfeld2010"
+            ],
+            "why": "La zona lumbar queda neutra bajo la carga mientras el torso se inclina, y la parada alarga ese esfuerzo: los erectores y la pared abdominal fijan la columna sin que se flexione ni se extienda durante la espera."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "glassbrook2017",
+              "vandentillaar2024",
+              "wilson1991",
+              "martinezcava2021",
+              "statpearls_quadriceps"
+            ],
+            "why": "Extiende la rodilla al salir de la parada y es el motor dominante, como en la sentadilla continua: con la barra en lo alto de la espalda su actividad es mayor que con la barra baja (Glassbrook 2017). En el fondo, sin rebote, el arranque lo produce solo el músculo: en isometría la fuerza fue la más baja a la altura más baja de la barra (van den Tillaar 2024) y el beneficio del estiramiento previo se disipa al esperar (Wilson 1991, medido en press de banca, así que aquí es una extrapolación). Con una pausa de unos dos segundos, diez semanas de sentadilla dieron mayores tamaños de efecto en fuerza que con rebote (Martínez-Cava 2021)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "caterisano2002",
+              "kubo2019",
+              "statpearls_gluteus"
+            ],
+            "why": "Extiende la cadera desde el fondo, donde su aporte relativo es mayor cuanto más profunda es la sentadilla (Caterisano 2002). La parada obliga a producir esa extensión sin el impulso de la bajada, de modo que sigue siendo motor junto al cuádriceps."
+          },
+          {
+            "id": "adductors",
+            "role": "SECONDARY",
+            "sources": [
+              "kubo2019",
+              "statpearls_adductor"
+            ],
+            "why": "El aductor mayor, con su porción isquiocondílea, ayuda a extender la cadera cuando está muy flexionada, justo la posición que la parada deja sostenida unos segundos. Su volumen creció con la sentadilla completa (Kubo 2019): aporta trabajo real, pero no mueve la carga por sí solo."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007",
+              "statpearls_back"
+            ],
+            "why": "Sostienen la columna neutra con la barra encima durante la bajada, la parada y la subida; en la sentadilla pesada su actividad lumbosacra superó a la del peso muerto al mismo porcentaje (Hamlyn 2007). Su esfuerzo es isométrico durante toda la serie, por lo que cuentan como estabilizador y no como motor."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La pared abdominal fija el tronco para que la fuerza de las piernas llegue a la barra, y en la parada tiene que hacerlo con la carga quieta. Su actividad no varió entre la sentadilla pesada y otros ejercicios (Hamlyn 2007): es sostén postural, no motor."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "paused_back_squat__barbell": {
+            "description": "La barra olímpica reposa libre sobre los hombros, sin rieles ni topes, y durante la parada el torso sostiene toda la carga quieta. Esa espera quita el rebote que ayuda a salir del fondo en la sentadilla continua.",
+            "executionCues": [
+              "Flexiona rodillas y cadera a la vez hasta que la cadera quede más baja que las rodillas.",
+              "Haz una pausa de dos segundos abajo con la barra quieta, sin rebotar ni relajar la espalda.",
+              "Arranca empujando el suelo con todo el pie y sube con el pecho y la cadera a la vez."
+            ],
+            "setupCues": [
+              "Ajusta el soporte a media altura del pecho y apoya la barra en lo alto de la espalda, bajo la base del cuello.",
+              "Retrocede dos pasos con la barra y coloca los pies a la anchura de los hombros, con las puntas algo abiertas."
+            ]
+          }
+        },
+        "description": "La Sentadilla Trasera con Pausa (paused back squat) es una sentadilla con barra a la espalda con una parada de unos dos segundos abajo, sin rebote, antes de subir. Con la barra en lo alto de la espalda y el torso bastante vertical, la cadera baja bajo las rodillas y allí queda quieta. Al subir trabajan el cuádriceps, que estira las rodillas, el glúteo mayor, que lleva la cadera hacia delante, y los aductores, que ayudan desde el fondo: los mismos que sin pausa. Cambia el arranque: sin el impulso de la bajada, la salida parte del punto donde menos fuerza se produce en isometría, y con la misma carga se rinde algo menos que con rebote. A cambio, la velocidad que alcanza la barra con cada carga varía menos de un intento a otro."
+      },
+      "sources": [
+        {
+          "claim": "En 26 hombres, diez semanas de sentadilla con una pausa de unos 2 segundos entre las fases excéntrica y concéntrica dieron mayores tamaños de efecto en fuerza máxima y velocidad (0,76-1,12) que la misma técnica con rebote (0,45-0,92); los autores citan además un consenso sobre el menor rendimiento agudo de la pausa.",
+          "id": "martinezcava2021",
+          "title": "Effect of Pause Versus Rebound Techniques on Neuromuscular and Functional Performance After a Prolonged Velocity-Based Training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33561819/"
+        },
+        {
+          "claim": "En 17 deportistas, una pausa de 2 segundos entre las fases excéntrica y concéntrica redujo la variación de la relación carga-velocidad entre intentos repetidos en la sentadilla (2,9 % frente a 3,9 %) y en el press de banca (2,9 % frente a 4,1 %).",
+          "id": "pallares2014",
+          "title": "Imposing a pause between the eccentric and concentric phases increases the reliability of isoinertial strength assessments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24575723/"
+        },
+        {
+          "claim": "En press de banca al 95 % del máximo, la mejora que aporta el estiramiento previo decayó al imponer una pausa entre la bajada y la subida, con una vida media de 0,85 segundos.",
+          "id": "wilson1991",
+          "title": "The effect on performance of imposing a delay during a stretch-shorten cycle movement",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/2020276/"
+        },
+        {
+          "claim": "En sentadillas isométricas a diez alturas de la barra, la fuerza más baja apareció en la altura más baja; en la sentadilla de una repetición máxima, la fuerza fue la más baja en la región de atasco, donde el momento extensor de cadera alcanzó su pico.",
+          "id": "vandentillaar2024",
+          "title": "Are Diminishing Potentiation and Large Extensor Moments the Cause for the Occurrence of the Sticking Region in Maximum Free-Weight Barbell Back Squats among Resistance-Trained Males?",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38689586/"
+        },
+        {
+          "claim": "La barra alta se caracteriza por más flexión de rodilla, menos flexión de cadera, torso más erguido, más profundidad y más actividad del cuádriceps; la barra baja, por más flexión de cadera e inclinación del tronco y más actividad de erectores, aductores y glúteos.",
+          "id": "glassbrook2017",
+          "title": "A Review of the Biomechanical Differences Between the High-Bar and Low-Bar Back-Squat",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28570490/"
+        },
+        {
+          "claim": "Halterófilos con barra alta llevaron la carga más pareja entre cadera y rodilla y powerlifters con barra baja cargaron relativamente más la cadera; en ambos grupos el pico de momento de la cadera superó al de la rodilla.",
+          "id": "wretenberg1996",
+          "title": "High- and low-bar squatting techniques during weight-training",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/8775157/"
+        },
+        {
+          "claim": "Diez semanas de sentadilla completa aumentaron el volumen de los extensores de la rodilla (4,9 %), los aductores (6,2 %) y el glúteo mayor (6,7 %), sin cambios en recto femoral ni isquiosurales; aductores y glúteo crecieron más que con media sentadilla.",
+          "id": "kubo2019",
+          "title": "Effects of squat training with different depths on lower limb muscle volumes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31230110/"
+        },
+        {
+          "claim": "La contribución relativa del glúteo mayor en la fase concéntrica subió con la profundidad (16,9 % parcial, 28 % paralela, 35,4 % completa), sin cambios en vastos ni bíceps femoral.",
+          "id": "caterisano2002",
+          "title": "The effect of back squat depth on the EMG activity of 4 superficial hip and thigh muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12173958/"
+        },
+        {
+          "claim": "La actividad lumbosacra de los erectores en la sentadilla al 80 % del 1RM superó a la del peso muerto al 80 % y a la de la sentadilla con el peso corporal; oblicuo externo y abdominales bajos no cambiaron de forma significativa entre ejercicios.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "La dorsiflexión del tobillo y la flexión de cadera fueron las variables de movilidad más asociadas a la profundidad de la sentadilla.",
+          "id": "kim2015",
+          "title": "Lower extremity strength and the range of motion in relation to squat depth",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25964810/"
+        },
+        {
+          "claim": "El esfuerzo relativo de los flexores plantares del tobillo aumentó con la carga de la barra, el de los extensores de rodilla con la profundidad y el de los extensores de cadera con ambas.",
+          "id": "bryanton2012",
+          "title": "Effect of squat depth and barbell load on relative muscular effort in squatting",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22797000/"
+        },
+        {
+          "claim": "Revisa la cinemática y la cinética del tobillo, la rodilla, la cadera y la columna durante la sentadilla dinámica.",
+          "id": "schoenfeld2010",
+          "title": "Squatting kinematics and kinetics and their application to exercise performance",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20182386/"
+        },
+        {
+          "claim": "Describe el cuádriceps femoral como el músculo más voluminoso del cuerpo, esencial para levantarse de una silla o subir escaleras, con funciones sobre la rodilla y la cadera.",
+          "id": "statpearls_quadriceps",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "Describe el glúteo mayor como el más grande y superficial de la región glútea, clave en los movimientos dinámicos y en la estabilidad en posición erguida.",
+          "id": "statpearls_gluteus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Describe el aductor mayor como el más grande del grupo aductor, con una porción aductora y otra isquiocondílea de tipo isquiosural.",
+          "id": "statpearls_adductor",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Adductor Magnus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521263/"
+        },
+        {
+          "claim": "Describe la rodilla como una articulación sobre todo en bisagra, de flexión y extensión, cuya estabilidad depende ante todo del soporte muscular.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Clasifica los músculos de la espalda y señala que solo los intrínsecos o profundos, unidos a la columna, son músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Sentadilla trasera bilateral con la barra en lo alto de la espalda: al llegar al fondo se hace una parada de unos dos segundos, sin rebote, antes de subir. La parada la separa de la sentadilla trasera continua. El reparto muscular es el mismo, pero la subida arranca desde la quietud y no desde el impulso de la bajada.",
+        "keyPositions": [
+          "Arriba: de pie, con rodillas y cadera estiradas, la barra sobre el centro del pie y la mirada al frente.",
+          "Fondo con parada: la cadera queda más baja que las rodillas, que avanzan sobre los dedos; el torso se inclina sin llegar a la horizontal, los talones siguen en el suelo y la barra permanece quieta unos dos segundos."
+        ],
+        "mistakes": [
+          "Rebotar en el fondo y llamar parada a un contacto breve.",
+          "Relajar la espalda durante la parada y perder la posición del torso.",
+          "Contar los dos segundos sin haber llegado a la profundidad fijada.",
+          "Levantar los talones o dejar que las rodillas colapsen al arrancar desde la parada.",
+          "Subir la cadera antes que los hombros al arrancar desde la quietud."
+        ],
+        "phases": [
+          {
+            "description": "Rodillas y cadera ceden a la vez; la barra baja vertical sobre el medio del pie y las rodillas avanzan sobre los dedos.",
+            "name": "Bajada"
+          },
+          {
+            "description": "En el fondo la cadera queda bajo las rodillas unos dos segundos: la barra no se mueve, la espalda no se relaja y los talones no se despegan.",
+            "name": "Parada"
+          },
+          {
+            "description": "Desde la quietud los pies empujan el suelo y rodillas, cadera y hombros suben al mismo tiempo hasta quedar de pie.",
+            "name": "Subida"
+          }
+        ],
+        "setup": [
+          "Barra en lo alto de la espalda, por encima de la espina de los omóplatos, con las manos algo más abiertas que los hombros.",
+          "Pies a la anchura de los hombros o algo más, puntas ligeramente hacia fuera y el peso sobre todo el pie.",
+          "La profundidad de la parada se fija antes de empezar: la cadera por debajo de las rodillas, o la que se pueda sostener quieta sin perder la postura."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral en tres cuartos a la altura de la cadera, desde atrás, con el cuerpo entero y la barra de extremo a extremo dentro del encuadre.",
+          "contacts": "Pies planos en el suelo con los talones apoyados; la carga descansa sobre lo alto de la espalda y las manos la sujetan a cada lado de los hombros.",
+          "load": "Carga apoyada en lo alto de la espalda, por encima de los omóplatos y muy lejos del suelo.",
+          "orientation": "Atleta de perfil, con la cara hacia el lado derecho del encuadre.",
+          "phase": "Parada en el fondo de la sentadilla: pliegue de la cadera por debajo de la rodilla y la barra quieta, justo antes de empezar a subir.",
+          "posture": "Torso inclinado pero más cerca de la vertical que de la horizontal, espalda neutra, rodillas por delante de los dedos y abiertas en la línea de los pies, mirada al frente."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica recta apoyada en lo alto de la espalda, en la base del cuello y por encima de la espina de los omóplatos; agarre algo más ancho que los hombros, codos hacia abajo y atrás; discos a ambos lados a la altura de los hombros. Sin soporte, rieles ni cajón bajo la cadera."
+          }
+        },
+        "forbidden": [
+          "Atleta de pie o ya subiendo desde el fondo: la imagen es la parada abajo, no la salida.",
+          "Cadera sentada sobre un cajón o un banco: eso es una sentadilla a cajón, no una pausa.",
+          "Barra apoyada sobre la parte trasera de los hombros con el torso muy inclinado: eso es la sentadilla con barra baja.",
+          "Cadera por encima de las rodillas: eso es una sentadilla corta, sin la profundidad de la pausa.",
+          "Barra flotando sobre la espalda sin que las manos la sujeten.",
+          "Talones despegados del suelo o rodillas cerradas hacia dentro."
+        ],
+        "promptCore": {
+          "barbell": "Three-quarter rear side view of an athlete frozen in a two-second PAUSE at the BOTTOM of a paused barbell back squat. A straight barbell rests high on the upper back, at the base of the neck and above the shoulder blades. Both hands grip the bar just outside the shoulders, elbows pointing down. Hips sit below knee level, the torso leans only slightly forward, the knees travel past the toes in line with the feet, and both heels stay flat on the floor. The body is completely still. The plates are at shoulder height, far above the floor."
+        },
+        "qa": [
+          "¿Las manos sujetan la barra y la carga no flota suelta sobre la espalda?",
+          "¿La cadera está por debajo de la altura de las rodillas, en el fondo?",
+          "¿La carga descansa en lo alto de la espalda y el torso está más cerca de la vertical que de la horizontal?",
+          "¿Los talones están apoyados en el suelo y no hay cajón ni banco bajo la cadera?",
+          "¿El atleta está en el punto más bajo, ni de pie ni subiendo?"
+        ]
+      }
+    },
     "quads_prensa_piernas": {
       "anatomy": {
         "joints": [

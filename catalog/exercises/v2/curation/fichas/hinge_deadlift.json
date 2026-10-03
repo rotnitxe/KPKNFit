@@ -80,6 +80,261 @@
       },
       "status": "LEGACY"
     },
+    "deadlift_to_knees": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la cadera",
+              "Flexión de la cadera"
+            ],
+            "id": "cadera",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "statpearls_hamstring"
+            ],
+            "why": "La cadera se extiende para sacar la barra del suelo y se flexiona de nuevo en la bajada. Entre el despegue y el paso de la barra por las rodillas se generó momento extensor de cadera (Escamilla 2000), pero sin el bloqueo la cadera termina todavía flexionada."
+          },
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2000",
+              "escamilla2002"
+            ],
+            "why": "Las rodillas se extienden mientras la barra sube del suelo a la rodilla y se flexionan en la bajada. En ese tramo se generó momento extensor de rodilla (Escamilla 2000), así que no es una articulación de apoyo sino una de las que mueven la carga."
+          },
+          {
+            "actions": [
+              "Estabilidad de la columna"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002",
+              "hamlyn2007"
+            ],
+            "why": "La zona lumbar queda neutra con el torso inclinado mientras la barra sube; los erectores y la pared abdominal la fijan sin que se flexione. Con las rodillas más flexionadas la actividad paraespinal fue mayor (Escamilla 2002)."
+          },
+          {
+            "actions": [
+              "Transferencia entre pelvis y tronco"
+            ],
+            "id": "sacroiliaca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_pelvic_joints"
+            ],
+            "why": "La articulación sacroilíaca transmite al miembro inferior buena parte del peso del tronco y de la carga que cuelga de los brazos, y su movilidad es muy restringida; aquí solo estabiliza esa transferencia."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "gluteus_maximus",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000",
+              "statpearls_gluteus"
+            ],
+            "why": "Extiende la cadera desde el suelo. En el peso muerto se activó más con las rodillas muy flexionadas, el tramo que cubre este ejercicio, que cerca del bloqueo (Escamilla 2002). Aquí no hay bloqueo final, pero el arranque ya es trabajo de motor."
+          },
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "andersen2018",
+              "statpearls_hamstring"
+            ],
+            "why": "Extienden la cadera junto al glúteo y cooperan con el cuádriceps. Su actividad crece hacia el bloqueo (Escamilla 2002), que este recorrido no alcanza, pero en la mitad inferior del peso muerto con barra el bíceps femoral se activó un 48 % más que en el hip thrust (Andersen 2018): siguen siendo motor aquí."
+          },
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "escamilla2002",
+              "escamilla2000",
+              "martinfuentes2020",
+              "statpearls_quadriceps"
+            ],
+            "why": "Estira las rodillas mientras la barra sube del suelo a la rodilla. En el peso muerto el cuádriceps se activó más en los intervalos de mayor flexión de rodilla (Escamilla 2002) y, en la revisión sistemática, más que el glúteo mayor y los isquiosurales (Martín-Fuentes 2020); en el tramo hasta la rodilla se generó además momento extensor de rodilla (Escamilla 2000)."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "escamilla2002",
+              "hamlyn2007",
+              "statpearls_back"
+            ],
+            "why": "Sostienen la columna neutra con el torso inclinado y la barra lejos del suelo. Los paraespinales lumbares y torácicos se activaron más con las rodillas más flexionadas (Escamilla 2002), el tramo de este ejercicio. El esfuerzo es isométrico: cuentan como estabilizador y no como motor."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "hamlyn2007"
+            ],
+            "why": "La pared abdominal rodea la columna y la fija para que el tronco transmita la fuerza de las piernas a la barra. Su actividad no varió de forma significativa entre ejercicios de sentadilla y peso muerto (Hamlyn 2007): es sostén postural, no motor."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "deadlift_to_knees__barbell": {
+            "description": "La barra olímpica empieza con los discos apoyados en el suelo y sube pegada a las piernas hasta la altura de la rodilla. Como arriba no hay bloqueo, la bajada parte de esa altura y también cuenta como trabajo.",
+            "executionCues": [
+              "Empuja el suelo con los pies y sube la barra pegada a las piernas hasta la altura de las rodillas.",
+              "Detente al llegar a la rodilla, sin estirar del todo la cadera.",
+              "Baja la barra despacio por el mismo camino hasta dejarla en el suelo."
+            ],
+            "setupCues": [
+              "Coloca los pies bajo la barra, con la barra sobre la mitad del pie y pegada a las espinillas.",
+              "Agarra la barra por fuera de las rodillas, con los brazos estirados y la espalda recta.",
+              "Fija antes de empezar la altura final: la barra no pasa de la rodilla."
+            ]
+          }
+        },
+        "description": "El Peso Muerto hasta la Rodilla (deadlift to the knees) es un tirón desde el suelo que se detiene cuando la barra llega a la altura de las rodillas, sin llegar a bloquear la cadera. Con la barra pegada a las espinillas, las piernas empujan el suelo, el glúteo mayor y los isquiosurales extienden la cadera y los erectores sostienen la espalda recta mientras el torso sigue inclinado. Al llegar a la rodilla la barra baja despacio hasta el suelo, sin soltarla. Es el peso muerto sin su final: en este arranque el cuádriceps y el glúteo mayor se activan más que cerca del bloqueo, donde los isquiosurales toman el relevo."
+      },
+      "sources": [
+        {
+          "claim": "En 13 jugadores de fútbol con 12 repeticiones máximas, cuádriceps, aductores, glúteo mayor y paraespinales lumbares y torácicos se activaron más en los intervalos de mayor flexión de rodilla, y isquiosurales y gemelos más en los de menor flexión.",
+          "id": "escamilla2002",
+          "title": "An electromyographic analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/11932579/"
+        },
+        {
+          "claim": "En 24 powerlifters de campeonato (12 por estilo), entre el despegue de la barra y su paso por las rodillas, el grupo convencional generó momentos extensores de cadera y de rodilla, flexor de rodilla y flexor plantar de tobillo.",
+          "id": "escamilla2000",
+          "title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/10912892/"
+        },
+        {
+          "claim": "En 13 hombres, en la mitad inferior del movimiento el bíceps femoral se activó un 48 % más en el peso muerto con barra que en el hip thrust, sin diferencias de los erectores entre ejercicios.",
+          "id": "andersen2018",
+          "title": "Electromyographic Comparison of Barbell Deadlift, Hex Bar Deadlift, and Hip Thrust Exercises: A Cross-Over Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28151780/"
+        },
+        {
+          "claim": "La revisión concluye que erectores espinales y cuádriceps se activan más que glúteo mayor y bíceps femoral en el peso muerto y sus variantes, y que el semitendinoso supera al bíceps femoral dentro de los isquiosurales.",
+          "id": "martinfuentes2020",
+          "title": "Electromyographic activity in deadlift exercise and its variants. A systematic review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32107499/"
+        },
+        {
+          "claim": "La actividad lumbosacra de los erectores en la sentadilla al 80 % del 1RM superó a la del peso muerto al 80 % y a la de la sentadilla con el peso corporal; oblicuo externo y abdominales bajos no cambiaron de forma significativa entre ejercicios.",
+          "id": "hamlyn2007",
+          "title": "Trunk muscle activation during dynamic weight-training exercises and isometric instability activities",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/18076231/"
+        },
+        {
+          "claim": "Describe el cuádriceps femoral como el músculo más voluminoso del cuerpo, esencial para levantarse de una silla o subir escaleras, con funciones sobre la rodilla y la cadera.",
+          "id": "statpearls_quadriceps",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "Describe el glúteo mayor como el más grande y superficial de la región glútea, clave en los movimientos dinámicos y en la estabilidad en posición erguida.",
+          "id": "statpearls_gluteus",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30855781/"
+        },
+        {
+          "claim": "Describe los isquiosurales como tres músculos del compartimento posterior del muslo, con fibras paralelas orientadas a la generación de fuerza y a la extensión de cadera, y tendones que cruzan la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "Clasifica los músculos de la espalda y señala que solo los intrínsecos o profundos, unidos a la columna, son músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Describe la articulación sacroilíaca como la que transmite al miembro inferior buena parte del peso de los miembros superiores y del tronco, lo que explica su movilidad muy restringida.",
+          "id": "statpearls_pelvic_joints",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30860758/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Peso muerto convencional con barra desde el suelo que se detiene al pasar por las rodillas: la barra sube pegada a las piernas hasta la altura de las rodillas, sin extender la cadera ni cerrar el bloqueo, y baja controlada al suelo. Esa parada a media altura lo separa del peso muerto completo, y empezar desde el suelo lo separa del peso muerto desde bloques.",
+        "keyPositions": [
+          "Inicio: barra en el suelo sobre la mitad del pie, brazos verticales y espalda neutra.",
+          "Punto alto: barra a la altura de las rodillas, pegada a las piernas, rodillas casi extendidas, cadera aún flexionada y espalda neutra."
+        ],
+        "mistakes": [
+          "Dejar que las caderas suban antes que los hombros y convertir el arranque en un tirón con las piernas casi rectas.",
+          "Despegar la barra de las piernas al subir, con lo que crece el brazo de palanca sobre la espalda.",
+          "Seguir hasta el bloqueo de la cadera y perder el sentido del recorrido parcial.",
+          "Soltar la barra al llegar a la rodilla en lugar de bajarla con control.",
+          "Redondear la espalda al arrancar desde el suelo."
+        ],
+        "phases": [
+          {
+            "description": "Los pies empujan el suelo y la barra despega pegada a las espinillas, con la espalda neutra y los brazos estirados.",
+            "name": "Arranque"
+          },
+          {
+            "description": "Las rodillas se extienden y la barra sube pegada a las piernas mientras el torso mantiene casi el mismo ángulo.",
+            "name": "Subida"
+          },
+          {
+            "description": "La barra llega a la altura de las rodillas, con la cadera aún flexionada, y se detiene sin cerrar el bloqueo.",
+            "name": "Parada"
+          },
+          {
+            "description": "La barra desciende por el mismo camino, pegada a las piernas, hasta apoyar los discos en el suelo sin dejarla caer.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Barra sobre la mitad del pie, pegada a las espinillas, con las manos por fuera de las rodillas y los brazos estirados.",
+          "Espalda neutra, pecho alto y caderas por encima de las rodillas y por debajo de los hombros, con la barra aún en el suelo.",
+          "El recorrido se fija de antemano: la barra sube hasta la altura de las rodillas y no pasa de ahí."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la barra, con el cuerpo entero de la cabeza a los pies y la barra a la altura de las rodillas dentro del encuadre.",
+          "contacts": "Pies planos en el suelo, manos cerradas sobre la barra, barra pegada a las espinillas y a los muslos, sin tocar el suelo.",
+          "load": "Barra sujeta por las dos manos a la altura de las rodillas, con los discos separados del suelo.",
+          "orientation": "Atleta de perfil, con la cara hacia el lado derecho del encuadre y la barra bajo los hombros.",
+          "phase": "Punto alto del recorrido parcial: la barra a la altura de las rodillas, las rodillas casi extendidas y la cadera aún flexionada, justo antes de bajar.",
+          "posture": "Espalda neutra con el torso inclinado unos cuarenta y cinco grados, pecho alto, brazos estirados y mirada al frente."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Barra olímpica recta a la altura de las rodillas, pegada a las espinillas y a los muslos; agarre por fuera de las rodillas con los brazos estirados; los discos cuelgan a ambos lados, separados del suelo."
+          }
+        },
+        "forbidden": [
+          "Atleta erguido con la cadera y las rodillas bloqueadas: eso es un peso muerto completo con bloqueo, no el recorrido hasta la rodilla.",
+          "Barra apoyada en el suelo en la posición de salida, o ya por encima de las rodillas, sobre los muslos.",
+          "Espalda redondeada o cabeza levantada mirando al techo.",
+          "Barra separada de las piernas, delante de las espinillas.",
+          "Barra flotando sin que las manos la agarren."
+        ],
+        "promptCore": {
+          "barbell": "Side view of an athlete frozen at the TOP of a partial barbell deadlift pulled from the floor to knee height. Both hands grip the barbell with a double overhand grip just outside the knees, arms straight, and the bar is held at knee level, touching the shins and lower thighs. Knees are almost straight but the hips are still bent, the torso leans forward about 45 degrees with a flat neutral back and the chest up. Both feet are flat on the floor. The plates hang clear of the floor."
+        },
+        "qa": [
+          "¿Las manos agarran la barra y la carga no flota suelta?",
+          "¿La barra está a la altura de las rodillas, ni en el suelo ni sobre los muslos?",
+          "¿La cadera sigue flexionada y el torso inclinado, sin el bloqueo de pie?",
+          "¿La espalda es recta y la barra va pegada a las piernas?"
+        ]
+      }
+    },
     "sumo_deadlift": {
       "public": {
         "configurations": {

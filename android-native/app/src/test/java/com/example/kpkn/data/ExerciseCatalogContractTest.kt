@@ -40,14 +40,17 @@ class ExerciseCatalogContractTest {
         // lo lleva a 201/523 bajo `v2-approved-2026-09-29-a`. La expectativa es
         // el conteo REAL aprobado tras las altas autorizadas; el resto de
         // aserciones de este test se conservan intactas. El retiro de
-        // `sissy_squat__barbell` (decisión del usuario, 2026-10-02) lo deja en 201/522.
+        // `sissy_squat__barbell` (decisión del usuario, 2026-10-02) lo deja en 201/522. Las
+        // cinco altas M1-M5 del 2026-10-03 (`close_grip_bench_press`, `paused_back_squat`,
+        // `deadlift_to_knees`, `close_grip_lat_pulldown` e `incline_biceps_curl`) lo llevan
+        // a 206/527 con la misma revisión.
         assertEquals(2, catalog.schemaVersion)
         assertEquals("v2-approved-2026-09-29-a", catalog.catalogRevision)
         assertEquals(catalog.families.size, catalog.families.map { it.id }.distinct().size)
         assertEquals(definitions.size, definitions.map { it.id }.distinct().size)
         assertEquals(configurations.size, configurations.map { it.id }.distinct().size)
-        assertEquals(201, definitions.size)
-        assertEquals(522, configurations.size)
+        assertEquals(206, definitions.size)
+        assertEquals(527, configurations.size)
     }
 
     @Test

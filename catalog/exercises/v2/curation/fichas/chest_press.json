@@ -906,6 +906,226 @@
           "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza."
         }
       ]
+    },
+    "close_grip_bench_press": {
+      "status": "CURATED",
+      "public": {
+        "description": "El Press de Banca con Agarre Cerrado (close-grip bench press) es un empuje horizontal con barra en el que el tríceps braquial gana peso frente a los agarres anchos, sin que el pectoral mayor deje de ser el motor. Las manos se colocan a la anchura de los hombros y la barra baja con los codos pegados a las costillas hasta tocar la parte baja del pecho, con los antebrazos verticales. Desde ahí los codos se extienden y el hombro se flexiona, con el deltoides anterior de apoyo. Con el agarre estrecho se levanta algo menos peso que con el medio, y las diferencias de activación entre ambos son pequeñas. Es la forma de dar más trabajo de codo a un día de press sin cambiar de banco ni de barra.",
+        "configurations": {
+          "close_grip_bench_press__barbell": {
+            "description": "La barra recta sube y baja casi vertical sobre el pecho, con las manos casi bajo los hombros. Con este agarre las manos empujan la barra algo hacia dentro, al revés que con las manos muy abiertas, que la empujan hacia fuera.",
+            "setupCues": [
+              "Túmbate en el banco plano, con los pies firmes en el suelo y las escápulas juntas y apoyadas.",
+              "Agarra la barra con las manos a la anchura de los hombros y los pulgares rodeándola.",
+              "Saca la barra del soporte y llévala sobre el pecho con los codos estirados."
+            ],
+            "executionCues": [
+              "Baja la barra con los codos pegados a las costillas hasta tocar la parte baja del pecho.",
+              "Deja los antebrazos verticales durante toda la bajada.",
+              "Empuja la barra hacia arriba hasta estirar los codos, sin despegar la cadera del banco."
+            ]
+          }
+        }
+      },
+      "technique": {
+        "identity": "Press de banca plano con barra y las manos a la anchura de los hombros, con los codos pegados a las costillas y los antebrazos verticales de arriba abajo. El agarre estrecho lo separa del press plano de agarre medio, porque acerca el trabajo al codo y limita la carga, y la ausencia de parada sobre el pecho lo separa del press con pausa.",
+        "setup": [
+          "Banco plano, pies en el suelo y escápulas juntas y apoyadas desde antes de bajar.",
+          "Agarre prono con las manos a la anchura de los hombros o algo menos, pulgares rodeando la barra y muñecas rectas sobre los antebrazos.",
+          "La barra sale del soporte con los codos estirados y queda sobre el pecho, no sobre la cara."
+        ],
+        "keyPositions": [
+          "Arriba: brazos estirados, barra sobre el esternón y escápulas pegadas al banco.",
+          "Punto bajo: barra tocando la parte baja del pecho, codos pegados a las costillas y antebrazos verticales vistos de frente."
+        ],
+        "mistakes": [
+          "Separar los codos del tronco hasta convertir el gesto en un press de agarre medio.",
+          "Juntar tanto las manos que las muñecas se doblan hacia atrás bajo la barra.",
+          "Rebotar la barra contra el pecho o despegar los glúteos del banco para ayudarse.",
+          "Bajar la barra hacia el cuello en lugar de hacia la parte baja del pecho."
+        ],
+        "phases": [
+          {
+            "name": "Bajada",
+            "description": "La barra desciende con los codos rozando las costillas y los antebrazos verticales, con las escápulas quietas en el banco."
+          },
+          {
+            "name": "Contacto",
+            "description": "La barra toca la parte baja del pecho sin hundirse ni rebotar, con los pies empujando el suelo."
+          },
+          {
+            "name": "Subida",
+            "description": "Los codos se estiran y la barra sube casi vertical hasta quedar sobre el pecho, sin despegar la cadera del banco."
+          }
+        ]
+      },
+      "anatomy": {
+        "muscles": [
+          {
+            "id": "pectoralis",
+            "role": "PRIMARY",
+            "why": "El pectoral mayor flexiona y aduce el húmero y sigue siendo el motor que lleva la barra desde el pecho. Al estrechar el agarre, una de sus porciones se activó algo menos en un estudio isométrico (Lehman 2005), con repeticiones su actividad fue similar entre anchuras (Saeterbakken 2021) y su relación con el tríceps casi no cambió (Tanimoto 2023): a lo sumo cede algo de protagonismo al tríceps, sin perder el mando.",
+            "sources": [
+              "baig_pectoral",
+              "lehman2005",
+              "saeterbakken2021",
+              "tanimoto2023"
+            ]
+          },
+          {
+            "id": "triceps",
+            "role": "SECONDARY",
+            "why": "Endereza el codo al empujar la barra desde el pecho. Su activación fue menor con el agarre ancho que con el medio y el estrecho (Saeterbakken 2021) y subió al pasar de ancho a estrecho en isometría (Lehman 2005), pero en 12 atletas de competición no hubo diferencias de activación del tríceps entre anchuras (Saeterbakken 2017). Entre el medio y el estrecho las diferencias son pequeñas, y por eso se queda como secundario.",
+            "sources": [
+              "tiwana_triceps",
+              "lehman2005",
+              "saeterbakken2021",
+              "saeterbakken2017"
+            ]
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "why": "Su porción anterior acompaña la flexión del hombro al salir del pecho. Con el agarre estrecho su actividad fue menor que con el medio (Saeterbakken 2021), así que acompaña sin liderar.",
+            "sources": [
+              "saeterbakken2021"
+            ]
+          },
+          {
+            "id": "forearm",
+            "role": "STABILIZER",
+            "why": "Los extensores de la muñeca, en el antebrazo, la fijan en ligera extensión bajo la barra con los antebrazos verticales. No desplazan la carga: evitan que la muñeca se venza mientras los codos suben y bajan.",
+            "sources": [
+              "reeves_wrist"
+            ]
+          }
+        ],
+        "joints": [
+          {
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "actions": [
+              "Aducción horizontal",
+              "Flexión del hombro"
+            ],
+            "why": "El húmero se flexiona y se aduce en horizontal para llevar la barra desde el pecho hacia arriba. Con el agarre estrecho los codos quedan cerca del costado y la fuerza lateral sobre la barra cambia de sentido, de empujar hacia fuera con las manos muy abiertas a empujar un poco hacia dentro (Tanimoto 2023).",
+            "sources": [
+              "baig_pectoral",
+              "tanimoto2023"
+            ]
+          },
+          {
+            "id": "codo",
+            "role": "SECONDARY",
+            "actions": [
+              "Extensión del codo"
+            ],
+            "why": "El codo pasa de flexionado, con la barra en el pecho, a extendido arriba, con los antebrazos verticales. La extensión pesa algo más que con un agarre ancho, pero el arco que define el gesto sigue estando en el hombro.",
+            "sources": [
+              "tiwana_triceps",
+              "saeterbakken2021"
+            ]
+          },
+          {
+            "id": "escapulotoracica",
+            "role": "STABILIZER",
+            "actions": [
+              "Retracción escapular"
+            ],
+            "why": "Las escápulas permanecen retraídas y apoyadas contra el banco durante todo el empuje, y el pectoral colabora en fijarlas. Es una articulación de sostén: no mueve la barra.",
+            "sources": [
+              "baig_pectoral"
+            ]
+          },
+          {
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "actions": [
+              "Estabilidad en extensión"
+            ],
+            "why": "La muñeca se sostiene en ligera extensión bajo la barra, con las manos casi bajo los hombros. Los extensores del antebrazo fijan esa postura durante todo el empuje.",
+            "sources": [
+              "reeves_wrist"
+            ]
+          }
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista en tres cuartos desde el pie del banco, algo elevada, con la barra, las dos manos y los codos pegados a las costillas dentro del encuadre.",
+          "phase": "Punto bajo del empuje: la barra toca la parte baja del pecho, con los codos pegados a las costillas y los antebrazos verticales.",
+          "orientation": "Atleta boca arriba en un banco plano, con la cabeza hacia el fondo del encuadre y los pies hacia la cámara.",
+          "contacts": "Espalda y cabeza contra el banco, pies planos en el suelo, barra apoyada sobre la parte baja del pecho y manos cerradas sobre ella.",
+          "posture": "Escápulas apretadas contra el banco, cadera quieta, codos pegados a las costillas, antebrazos verticales y muñecas rectas.",
+          "load": "Carga sujeta por las dos manos a la anchura de los hombros, en contacto con el pecho y separada del suelo."
+        },
+        "byImplement": {
+          "barbell": {
+            "geometry": "Banco plano; barra olímpica transversal sobre la parte baja del pecho, agarre prono con las manos a la anchura de los hombros y los pulgares rodeándola; los discos cuelgan a ambos lados del banco sin tocar el suelo."
+          }
+        },
+        "promptCore": {
+          "barbell": "Three-quarter view from the foot end of a flat bench, slightly above, of an athlete lying supine, frozen at the BOTTOM of a close-grip barbell bench press. Both hands grip the barbell with an overhand grip, about shoulder width apart, thumbs wrapped around the bar, and hold it resting on the lower chest. Elbows are bent and tucked close to the ribs, forearms vertical. The upper back and head are pressed against the bench, and both feet are planted flat on the floor. The plates hang beside the bench, clear of the floor."
+        },
+        "forbidden": [
+          "Manos muy separadas y codos abiertos en cruz: eso es el press de banca con agarre medio o ancho, no el agarre cerrado.",
+          "Manos casi pegadas en el centro de la barra: el agarre cerrado es a la anchura de los hombros.",
+          "Barra a mitad de camino sin tocar el pecho, o ya con los codos estirados arriba.",
+          "Banco inclinado o declinado, o atleta de pie.",
+          "Barra flotando sin que las manos la agarren."
+        ],
+        "qa": [
+          "¿Las dos manos agarran la barra y la barra no flota suelta?",
+          "¿Las manos están aproximadamente a la anchura de los hombros, no muy separadas?",
+          "¿La barra toca la parte baja del pecho con los codos pegados a las costillas?",
+          "¿Los antebrazos están casi verticales?",
+          "¿El banco es plano y los pies tocan el suelo?"
+        ]
+      },
+      "sources": [
+        {
+          "id": "lehman2005",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16095407/",
+          "title": "The influence of grip width and forearm pronation/supination on upper-body myoelectric activity during the flat bench press",
+          "claim": "En 12 hombres, en isometría, pasar de un agarre ancho a uno estrecho subió la actividad del tríceps y bajó la de la porción esternoclavicular del pectoral mayor; los cambios fueron pequeños y el agarre supino aumentó la del bíceps."
+        },
+        {
+          "id": "saeterbakken2021",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34198674/",
+          "title": "The Effect of Grip Width on Muscle Strength and Electromyographic Activity in Bench Press among Novice- and Resistance-Trained Men",
+          "claim": "En 28 hombres con cargas de 6 repeticiones, el agarre ancho activó menos el tríceps que el medio y el estrecho, el bíceps aumentó con la anchura, el deltoides anterior fue mayor con el agarre medio que con el estrecho y las cargas fueron las más bajas con el agarre estrecho."
+        },
+        {
+          "id": "saeterbakken2017",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28713459/",
+          "title": "The Effects of Bench Press Variations in Competitive Athletes on Muscle Activity and Performance",
+          "claim": "En 12 atletas de press de banca con cargas de 6 repeticiones, el agarre estrecho redujo entre un 25,9 y un 30,5 % la actividad del bíceps frente al medio y al ancho, sin otras diferencias de activación entre anchuras, y las cargas fueron entre un 5,8 y un 11,1 % mayores con el agarre medio y el ancho que con el estrecho."
+        },
+        {
+          "id": "tanimoto2023",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/37624134/",
+          "title": "Lateral Force and EMG Activity in Wide- and Narrow-Grip Bench Press in Various Conditions",
+          "claim": "En 14 hombres con 10 repeticiones máximas, la fuerza lateral sobre la barra fue de un 30 % hacia fuera con el agarre ancho y de un 10 % hacia dentro con el estrecho, y la relación de activación entre pectoral y tríceps casi no cambió con la anchura de las manos."
+        },
+        {
+          "id": "baig_pectoral",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424825/",
+          "title": "Anatomy, Shoulder and Upper Limb, Pectoral Muscles",
+          "claim": "El grupo pectoral flexiona, aduce y rota internamente el húmero, y participa en la estabilización de la escápula."
+        },
+        {
+          "id": "tiwana_triceps",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725681/",
+          "title": "Anatomy, Shoulder and Upper Limb, Triceps Muscle",
+          "claim": "La función primaria del tríceps braquial es extender el codo. La cabeza larga nace en la escápula y las tres cabezas se insertan en el olécranon."
+        },
+        {
+          "id": "reeves_wrist",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521226/",
+          "title": "Anatomy, Shoulder and Upper Limb, Wrist Extensor Muscles",
+          "claim": "Los extensores de la muñeca la mantienen en ligera extensión durante el agarre para que los flexores puedan hacer fuerza."
+        }
+      ]
     }
   }
 }

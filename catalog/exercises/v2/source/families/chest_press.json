@@ -3692,6 +3692,242 @@
           "paused bench press",
           "bench press pause"
         ]
+      },
+      {
+        "canonicalName": "Press de Banca con Agarre Cerrado",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:catalog-v7.2-human-editorial-2026-08-10",
+                "editorial:curaduria-programas-2026-10-03#M1"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "close_grip_bench_press__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 4.0,
+              "description": "La barra recta sube y baja casi vertical sobre el pecho, con las manos casi bajo los hombros. Con este agarre las manos empujan la barra algo hacia dentro, al revés que con las manos muy abiertas, que la empujan hacia fuera.",
+              "efc": 4.2,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Baja la barra con los codos pegados a las costillas hasta tocar la parte baja del pecho.",
+                "Deja los antebrazos verticales durante toda la bajada.",
+                "Empuja la barra hacia arriba hasta estirar los codos, sin despegar la cadera del banco."
+              ],
+              "fatigueTier": "ALTA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción horizontal",
+                    "Flexión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Retracción escapular"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad en extensión"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "horizontal_push",
+              "performanceProfileId": "close_grip_bench_press__barbell__press_de_banca_con_agarre_cerrado",
+              "primaryMuscles": [
+                "pectoralis"
+              ],
+              "replacementGroup": "chest_press_flat",
+              "replacementPriority": 2,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción horizontal",
+                    "Flexión del hombro",
+                    "Extensión del codo",
+                    "Retracción escapular",
+                    "Estabilidad en extensión"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción horizontal",
+                        "Flexión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Retracción escapular"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad en extensión"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "pectoralis"
+                  ],
+                  "secondaryMuscles": [
+                    "triceps",
+                    "deltoid"
+                  ],
+                  "stabilizerMuscles": [
+                    "forearm"
+                  ],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "horizontal_push",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "codo",
+                    "escapulotoracica",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Press de Banca con Agarre Cerrado",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 4.0,
+                  "efc": 4.2,
+                  "ssc": 0.35,
+                  "technicalDifficulty": 7.0,
+                  "ttc": 2.2
+                },
+                "identity": {
+                  "canonicalName": "Press de Banca con Agarre Cerrado",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "close_grip_bench_press__barbell",
+                  "definitionId": "close_grip_bench_press",
+                  "familyId": "chest_press",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "close_grip_bench_press__barbell__press_de_banca_con_agarre_cerrado",
+                  "searchTerms": [
+                    "press de banca con agarre cerrado",
+                    "press banca agarre cerrado",
+                    "press banca agarre estrecho",
+                    "close grip bench press",
+                    "close-grip bench press",
+                    "narrow grip bench press"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "high",
+                  "indicativeRestSeconds": {
+                    "max": 150,
+                    "min": 90
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "primary_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "horizontal_push:pectoralis"
+                  ],
+                  "replacementGroup": "chest_press_flat",
+                  "replacementPriority": 2
+                }
+              },
+              "secondaryMuscles": [
+                "triceps",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Túmbate en el banco plano, con los pies firmes en el suelo y las escápulas juntas y apoyadas.",
+                "Agarra la barra con las manos a la anchura de los hombros y los pulgares rodeándola.",
+                "Saca la barra del soporte y llévala sobre el pecho con los codos estirados."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.35,
+              "stabilizerMuscles": [
+                "forearm"
+              ],
+              "technicalDifficulty": 7.0,
+              "ttc": 2.2
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "close_grip_bench_press__barbell",
+        "description": "El Press de Banca con Agarre Cerrado (close-grip bench press) es un empuje horizontal con barra en el que el tríceps braquial gana peso frente a los agarres anchos, sin que el pectoral mayor deje de ser el motor. Las manos se colocan a la anchura de los hombros y la barra baja con los codos pegados a las costillas hasta tocar la parte baja del pecho, con los antebrazos verticales. Desde ahí los codos se extienden y el hombro se flexiona, con el deltoides anterior de apoyo. Con el agarre estrecho se levanta algo menos peso que con el medio, y las diferencias de activación entre ambos son pequeñas. Es la forma de dar más trabajo de codo a un día de press sin cambiar de banco ni de barra.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10",
+            "editorial:curaduria-programas-2026-10-03#M1"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "chest_press",
+        "id": "close_grip_bench_press",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "press de banca con agarre cerrado",
+          "press banca agarre cerrado",
+          "press banca agarre estrecho",
+          "close grip bench press",
+          "close-grip bench press",
+          "narrow grip bench press"
+        ]
       }
     ],
     "evidence": {

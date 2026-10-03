@@ -1283,6 +1283,249 @@
           "lat pulldown",
           "back_jalon_pecho"
         ]
+      },
+      {
+        "canonicalName": "Jalón al Pecho con Agarre Cerrado",
+        "configurations": [
+          {
+            "displaySummary": "Polea",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:catalog-v7.2-human-editorial-2026-08-10",
+                "editorial:curaduria-programas-2026-10-03#M4"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "close_grip_lat_pulldown__cable",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.0,
+              "description": "El cable cae casi vertical desde la polea alta hasta el asa y, con las manos juntas, el asa sube y baja justo delante de la cara hasta rozar la parte alta del pecho. La resistencia del cable no cambia a lo largo del recorrido.",
+              "efc": 2.5,
+              "equipmentId": "cable",
+              "executionCues": [
+                "Lleva los codos hacia abajo y hacia las costillas hasta que el asa toque la parte alta del pecho.",
+                "Baja las escápulas al terminar, sin encoger los hombros hacia las orejas.",
+                "Sube el asa despacio hasta estirar los brazos del todo."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Aducción del hombro",
+                    "Extensión del hombro"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Depresión escapular",
+                    "Rotación escapular inferior"
+                  ],
+                  "jointId": "escapulotoracica",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "continuous_cable",
+              "movementPatternId": "vertical_pull",
+              "performanceProfileId": "close_grip_lat_pulldown__cable__jalon_al_pecho_con_agarre_cerrado",
+              "primaryMuscles": [
+                "latissimus_dorsi"
+              ],
+              "replacementGroup": "back_pulldown_pronated",
+              "replacementPriority": 2,
+              "resistanceProfile": "continuous_cable",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Aducción del hombro",
+                    "Extensión del hombro",
+                    "Depresión escapular",
+                    "Rotación escapular inferior",
+                    "Flexión del codo",
+                    "Sostén del agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Aducción del hombro",
+                        "Extensión del hombro"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Depresión escapular",
+                        "Rotación escapular inferior"
+                      ],
+                      "jointId": "escapulotoracica",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "latissimus_dorsi"
+                  ],
+                  "secondaryMuscles": [
+                    "biceps",
+                    "trapezius",
+                    "deltoid"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "cable",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "continuous_cable",
+                  "movementPatternId": "vertical_pull",
+                  "relevantJoints": [
+                    "glenohumeral",
+                    "escapulotoracica",
+                    "codo",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "continuous_cable",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Jalón al Pecho con Agarre Cerrado",
+                  "displaySummary": "Polea",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 2.0,
+                  "efc": 2.5,
+                  "ssc": 0.4,
+                  "technicalDifficulty": 4.0,
+                  "ttc": 1.8
+                },
+                "identity": {
+                  "canonicalName": "Jalón al Pecho con Agarre Cerrado",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "close_grip_lat_pulldown__cable",
+                  "definitionId": "close_grip_lat_pulldown",
+                  "familyId": "upper_vertical_pull_lat_pulldown",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "close_grip_lat_pulldown__cable__jalon_al_pecho_con_agarre_cerrado",
+                  "searchTerms": [
+                    "jalón al pecho con agarre cerrado",
+                    "jalon al pecho agarre cerrado",
+                    "jalón agarre estrecho",
+                    "jalón con triángulo",
+                    "close grip lat pulldown",
+                    "close-grip lat pulldown",
+                    "narrow grip pulldown"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "cable"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "cable"
+                  ],
+                  "preservesIntent": [
+                    "vertical_pull:latissimus_dorsi"
+                  ],
+                  "replacementGroup": "back_pulldown_pronated",
+                  "replacementPriority": 2
+                }
+              },
+              "secondaryMuscles": [
+                "biceps",
+                "trapezius",
+                "deltoid"
+              ],
+              "setupCues": [
+                "Siéntate de cara a la polea y ajusta los apoyos para que los muslos queden fijos.",
+                "Agarra el asa en V con las palmas enfrentadas, o la barra recta con las manos a la anchura de los hombros.",
+                "Inclina el tronco un poco hacia atrás, con el pecho alto y los brazos estirados hacia arriba."
+              ],
+              "setupTimeSeconds": 35,
+              "ssc": 0.4,
+              "stabilizerMuscles": [
+                "erector_spinae"
+              ],
+              "technicalDifficulty": 4.0,
+              "ttc": 1.8
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "close_grip_lat_pulldown__cable",
+        "description": "El Jalón al Pecho con Agarre Cerrado es una tracción vertical en polea, conocida en inglés como close-grip lat pulldown, con las manos a la anchura de los hombros o más juntas, en asa neutra o con barra recta. Sentado con los muslos bajo los apoyos y el tronco algo inclinado hacia atrás, el dorsal ancho lleva el codo hacia el costado hasta que el asa llega a la parte alta del pecho. El bíceps flexiona el codo durante el tirón y el trapecio baja la escápula. Frente al agarre ancho se mueve algo más de carga con una activación del dorsal parecida en el conjunto del recorrido, y el bíceps trabaja algo menos que con el agarre medio. Es el jalón para quien quiere cargar más que con el agarre ancho sin perder trabajo de dorsal.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10",
+            "editorial:curaduria-programas-2026-10-03#M4"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "upper_vertical_pull_lat_pulldown",
+        "id": "close_grip_lat_pulldown",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "jalón al pecho con agarre cerrado",
+          "jalon al pecho agarre cerrado",
+          "jalón agarre estrecho",
+          "jalón con triángulo",
+          "close grip lat pulldown",
+          "close-grip lat pulldown",
+          "narrow grip pulldown"
+        ]
       }
     ],
     "evidence": {

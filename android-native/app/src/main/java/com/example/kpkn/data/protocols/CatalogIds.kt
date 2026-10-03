@@ -102,4 +102,16 @@ object CatalogIds {
     const val SEATED_PRESS_DB = "seated_shoulder_press__dumbbells"
     const val UPRIGHT_ROW = "deltoides_remo_menton__default"
     const val HAMMER_CHEST_PRESS = "tren_superior_press_pecho_maquina_convergente__default"
+
+    // ─── Altas M1–M5 (2026-10-03, paquete D): configuraciones nuevas del catálogo, sin consumidores aún ───
+    /** Press de banca con agarre cerrado: especialidad nueva que sustituirá `BP` + `TechniqueModifier.CLOSE_GRIP`. */
+    const val BP_CLOSE_GRIP = "close_grip_bench_press__barbell"
+    /** Sentadilla trasera con pausa: sustituirá `SQ_HIGH`/`SQ_LOW` + `TechniqueModifier.PAUSE_2S`. */
+    const val SQ_PAUSED = "paused_back_squat__barbell"
+    /** Peso muerto hasta la rodilla: sustituirá `DL` + `TechniqueModifier.TO_KNEES`. */
+    const val DL_TO_KNEES = "deadlift_to_knees__barbell"
+    /** Jalón al pecho con agarre cerrado en polea: sustituirá `LAT` + `TechniqueModifier.CLOSE_GRIP`. */
+    const val LAT_CLOSE_GRIP = "close_grip_lat_pulldown__cable"
+    /** Curl de bíceps inclinado con mancuernas: sustituirá la aproximación `CURL_SEATED_DB` de PHUL. */
+    const val CURL_INCLINE = "incline_biceps_curl__dumbbells"
 }

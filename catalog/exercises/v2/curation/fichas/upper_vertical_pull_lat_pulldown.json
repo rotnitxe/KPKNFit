@@ -1,5 +1,246 @@
 {
   "definitions": {
+    "close_grip_lat_pulldown": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Aducción del hombro",
+              "Extensión del hombro"
+            ],
+            "id": "glenohumeral",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "andersen2014"
+            ],
+            "why": "El húmero baja desde la elevación completa hasta quedar junto al costado: esa aducción y extensión es el movimiento que lleva el asa al pecho. Con el agarre estrecho los codos bajan más cerca del torso."
+          },
+          {
+            "actions": [
+              "Depresión escapular",
+              "Rotación escapular inferior"
+            ],
+            "id": "escapulotoracica",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_extrinsic_back",
+              "lehman2004"
+            ],
+            "why": "La escápula baja y rota hacia abajo mientras el brazo desciende, acompañando al húmero; es una parte del gesto, no solo una fijación. Dorsal y trapecio inferior gobiernan ese deslizamiento."
+          },
+          {
+            "actions": [
+              "Flexión del codo"
+            ],
+            "id": "codo",
+            "role": "SECONDARY",
+            "sources": [
+              "andersen2014",
+              "statpearls_biceps"
+            ],
+            "why": "El codo se flexiona durante el tirón y se extiende en el retorno, pero el movimiento lo define el hombro y la escápula; con el agarre estrecho el bíceps trabajó algo menos que con el medio (Andersen 2014)."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca se queda neutra mientras los flexores de los dedos sostienen el asa durante toda la serie, sin mover la carga por sí misma."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "latissimus_dorsi",
+            "role": "PRIMARY",
+            "sources": [
+              "andersen2014",
+              "lusk2010",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Extiende y aduce el húmero para llevar el codo hacia el costado, y es el motor del jalón con cualquier anchura de agarre: entre una y dos veces la distancia biacromial su actividad fue similar (Andersen 2014) y con el agarre prono fue mayor que con el supino con ambas anchuras (Lusk 2010)."
+          },
+          {
+            "id": "biceps",
+            "role": "SECONDARY",
+            "sources": [
+              "andersen2014",
+              "lusk2010",
+              "statpearls_biceps"
+            ],
+            "why": "Flexiona el codo durante todo el tirón. Con el agarre estrecho se activó menos en la fase concéntrica que con el medio (Andersen 2014) y el tipo de agarre no cambió su actividad (Lusk 2010); sigue siendo secundario porque flexiona el codo contra carga, pero quien manda es el dorsal."
+          },
+          {
+            "id": "trapezius",
+            "role": "SECONDARY",
+            "sources": [
+              "lehman2004",
+              "andersen2014",
+              "lusk2010",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Sus fibras medias e inferiores bajan y juntan la escápula mientras el codo desciende. En los jalones la actividad del trapecio medio y los romboides fue menor que en el remo sentado (Lehman 2004) y no cambió con la anchura del agarre (Andersen 2014; Lusk 2010), así que acompaña la tracción sin liderarla."
+          },
+          {
+            "id": "deltoid",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_deltoid"
+            ],
+            "why": "Su porción posterior extiende el hombro y acompaña al dorsal cuando el codo baja hacia el costado, con los codos cerca del torso por el agarre estrecho."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_back"
+            ],
+            "why": "Sostienen el tronco inclinado unos grados hacia atrás mientras el asa baja, con los muslos fijos bajo los apoyos. Su trabajo es isométrico, de modo que suman como estabilizador y no como motor."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "close_grip_lat_pulldown__cable": {
+            "description": "El cable cae casi vertical desde la polea alta hasta el asa y, con las manos juntas, el asa sube y baja justo delante de la cara hasta rozar la parte alta del pecho. La resistencia del cable no cambia a lo largo del recorrido.",
+            "executionCues": [
+              "Lleva los codos hacia abajo y hacia las costillas hasta que el asa toque la parte alta del pecho.",
+              "Baja las escápulas al terminar, sin encoger los hombros hacia las orejas.",
+              "Sube el asa despacio hasta estirar los brazos del todo."
+            ],
+            "setupCues": [
+              "Siéntate de cara a la polea y ajusta los apoyos para que los muslos queden fijos.",
+              "Agarra el asa en V con las palmas enfrentadas, o la barra recta con las manos a la anchura de los hombros.",
+              "Inclina el tronco un poco hacia atrás, con el pecho alto y los brazos estirados hacia arriba."
+            ]
+          }
+        },
+        "description": "El Jalón al Pecho con Agarre Cerrado es una tracción vertical en polea, conocida en inglés como close-grip lat pulldown, con las manos a la anchura de los hombros o más juntas, en asa neutra o con barra recta. Sentado con los muslos bajo los apoyos y el tronco algo inclinado hacia atrás, el dorsal ancho lleva el codo hacia el costado hasta que el asa llega a la parte alta del pecho. El bíceps flexiona el codo durante el tirón y el trapecio baja la escápula. Frente al agarre ancho se mueve algo más de carga con una activación del dorsal parecida en el conjunto del recorrido, y el bíceps trabaja algo menos que con el agarre medio. Es el jalón para quien quiere cargar más que con el agarre ancho sin perder trabajo de dorsal."
+      },
+      "sources": [
+        {
+          "claim": "En el jalón prono, el ancho del agarre entre una y dos veces la distancia biacromial apenas cambió la activación del dorsal, el trapecio y el infraespinoso. El agarre ancho bajó la carga de 6 repeticiones y, en la fase concéntrica, el bíceps se activó más con el agarre medio que con el estrecho.",
+          "id": "andersen2014",
+          "title": "Effects of grip width on muscle strength and activation in the lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24662157/"
+        },
+        {
+          "claim": "En el jalón frontal, el agarre prono activó más el dorsal que el supino con el agarre ancho y con el estrecho, sin que el tipo de agarre cambiara la actividad del trapecio medio ni del bíceps.",
+          "id": "lusk2010",
+          "title": "Grip width and forearm orientation effects on muscle activity during the lat pull-down",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/20543740/"
+        },
+        {
+          "claim": "Entre el jalón de agarre ancho, el jalón inverso y el remo sentado, la actividad del bíceps no cambió y la del grupo trapecio medio y romboides fue la más alta en el remo sentado.",
+          "id": "lehman2004",
+          "title": "Variations in muscle activation levels during traditional latissimus dorsi weight training exercises: An experimental study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15228624/"
+        },
+        {
+          "claim": "Describe la acción del dorsal ancho (extensión, aducción y rotación interna del hombro) y de los músculos extrínsecos de la espalda sobre la escápula.",
+          "id": "statpearls_extrinsic_back",
+          "title": "Anatomy, Back, Extrinsic Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725901/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del codo y supinador del antebrazo.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe las porciones del deltoides; la posterior extiende y abduce horizontalmente el hombro.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "Clasifica los músculos de la espalda y señala que solo los intrínsecos o profundos, unidos a la columna, son músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Tracción vertical sentado en polea alta con un agarre cerrado: las manos van a la anchura de los hombros o más juntas, en asa neutra o con barra recta, y el asa baja hasta la parte alta del pecho con los codos pegados al torso. El agarre estrecho lo separa del jalón de agarre medio o ancho, y estar sentado con los muslos fijos lo separa de la dominada.",
+        "keyPositions": [
+          "Arriba: brazos estirados sobre la cabeza, escápulas elevadas y el cable en línea con el asa.",
+          "Punto bajo: asa en contacto con la parte alta del pecho, codos hacia abajo y pegados al torso, escápulas bajas y juntas, tronco algo inclinado hacia atrás."
+        ],
+        "mistakes": [
+          "Echar el tronco atrás para bajar más peso con el impulso.",
+          "Subir los hombros hacia las orejas al arrancar en vez de bajar las escápulas.",
+          "Llevar el asa por detrás de la cabeza o a la altura del cuello.",
+          "Abrir los codos hacia fuera y perder el agarre cerrado.",
+          "Soltar el cable en la subida y dejar que el peso estire los hombros de golpe."
+        ],
+        "phases": [
+          {
+            "description": "Los brazos quedan estirados sobre la cabeza con las escápulas elevadas y el cable tenso, antes de empezar a tirar.",
+            "name": "Estiramiento"
+          },
+          {
+            "description": "Las escápulas bajan primero y los codos descienden hacia las costillas, con el asa viajando delante de la cara.",
+            "name": "Tracción"
+          },
+          {
+            "description": "El asa toca la parte alta del pecho con los codos pegados al torso y las escápulas bajas y juntas.",
+            "name": "Contracción"
+          },
+          {
+            "description": "Los brazos vuelven a estirarse despacio, sin dejar que el peso tire de los hombros ni despegue los muslos de los apoyos.",
+            "name": "Retorno"
+          }
+        ],
+        "setup": [
+          "Asiento y apoyos de muslos ajustados para que las piernas queden fijas y los brazos puedan extenderse del todo arriba.",
+          "Agarre estrecho: asa en V con las palmas enfrentadas, o barra recta con las manos a la anchura de los hombros o menos.",
+          "Tronco inclinado unos diez a quince grados hacia atrás, con el pecho alto y la mirada al frente."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del asiento, con el atleta de perfil, el cable subiendo hacia la polea alta y la pila de placas dentro del encuadre.",
+          "contacts": "Glúteos en el asiento, muslos bajo los apoyos, pies planos en el suelo, manos cerradas sobre el asa y el asa junto al pecho.",
+          "load": "Asa sujeta por las dos manos junto a la parte alta del pecho, unida por el cable a la polea alta; la pila de placas queda en la máquina, separada del suelo.",
+          "orientation": "Atleta sentado de perfil, con la cara hacia el lado derecho del encuadre y el tronco algo inclinado hacia atrás.",
+          "phase": "Punto bajo de la tracción: el asa toca la parte alta del pecho, con los codos hacia abajo y pegados al torso.",
+          "posture": "Pecho alto, tronco inclinado unos diez a quince grados hacia atrás, escápulas bajas y juntas, codos pegados al torso y cuello neutro."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Estación de jalón con asiento, apoyos de muslos y polea alta; asa en V unida por un cable a la polea, manos juntas con las palmas enfrentadas, y el cable subiendo casi vertical desde el asa hasta la polea."
+          }
+        },
+        "forbidden": [
+          "Manos muy separadas y codos abiertos en cruz: eso es el jalón de agarre ancho, no el agarre cerrado.",
+          "Asa por detrás de la nuca o a la altura del cuello.",
+          "Atleta colgado de una barra fija o de pie: eso es una dominada, no un jalón.",
+          "Tronco muy inclinado hacia atrás, como en un remo sentado.",
+          "Asa flotando sin que las manos la agarren, o cable flojo."
+        ],
+        "promptCore": {
+          "cable": "Side view of an athlete seated at a lat pulldown station with the thighs locked under the pads, frozen at the BOTTOM of a close-grip cable lat pulldown. Both hands grip a narrow V-handle with the palms facing each other, hands close together in front of the upper chest, and the handle touches the upper chest. Elbows point down and are pressed close to the ribs, the torso leans back slightly, the chest is up and the shoulder blades are pulled down and together. A steel cable runs straight up from the handle to the high pulley, and the weight stack sits above on the machine."
+        },
+        "qa": [
+          "¿Las dos manos agarran el asa y el cable sale del asa hacia la polea alta?",
+          "¿Las manos están juntas, a la anchura de los hombros o menos?",
+          "¿El asa está junto a la parte alta del pecho con los codos hacia abajo y pegados al torso?",
+          "¿El atleta está sentado con los muslos bajo los apoyos y el tronco apenas inclinado?"
+        ]
+      }
+    },
     "lat_pulldown": {
       "public": {
         "configurations": {

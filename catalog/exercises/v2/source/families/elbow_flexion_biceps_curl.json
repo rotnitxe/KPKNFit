@@ -8728,6 +8728,236 @@
           "curl prono",
           "antebrazo"
         ]
+      },
+      {
+        "canonicalName": "Curl de Bíceps Inclinado",
+        "configurations": [
+          {
+            "displaySummary": "Mancuerna",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:catalog-v7.2-human-editorial-2026-08-10",
+                "editorial:curaduria-programas-2026-10-03#M5"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "incline_biceps_curl__dumbbells",
+            "profile": {
+              "articulationType": "AISLADO",
+              "automationEligible": true,
+              "axialLoadFactor": 0.0,
+              "bodyRegion": "UPPER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 1.6,
+              "description": "Cada mancuerna cuelga por su lado del banco y la muñeca puede girar hasta dejar la palma hacia arriba mientras sube. Las dos manos trabajan por separado, así que el brazo más débil no recibe ayuda del otro.",
+              "efc": 2.0,
+              "equipmentId": "dumbbells",
+              "executionCues": [
+                "Sube las dos mancuernas doblando solo los codos, sin adelantar los hombros.",
+                "Aprieta arriba un instante, con las mancuernas junto a los hombros.",
+                "Baja despacio hasta estirar los brazos del todo por detrás del tronco."
+              ],
+              "fatigueTier": "BAJA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión del codo",
+                    "Extensión del codo"
+                  ],
+                  "jointId": "codo",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Supinación del antebrazo"
+                  ],
+                  "jointId": "radiocubital-proximal",
+                  "role": "SECONDARY"
+                },
+                {
+                  "actions": [
+                    "Posición de hombro extendido"
+                  ],
+                  "jointId": "glenohumeral",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Sostén del agarre"
+                  ],
+                  "jointId": "muñeca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "FULL",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "elbow_flexion",
+              "performanceProfileId": "incline_biceps_curl__dumbbells__curl_de_biceps_inclinado",
+              "primaryMuscles": [
+                "biceps"
+              ],
+              "replacementGroup": null,
+              "replacementPriority": null,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión del codo",
+                    "Extensión del codo",
+                    "Supinación del antebrazo",
+                    "Posición de hombro extendido",
+                    "Sostén del agarre"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión del codo",
+                        "Extensión del codo"
+                      ],
+                      "jointId": "codo",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Supinación del antebrazo"
+                      ],
+                      "jointId": "radiocubital-proximal",
+                      "role": "SECONDARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición de hombro extendido"
+                      ],
+                      "jointId": "glenohumeral",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Sostén del agarre"
+                      ],
+                      "jointId": "muñeca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "biceps"
+                  ],
+                  "secondaryMuscles": [
+                    "forearm"
+                  ],
+                  "stabilizerMuscles": [],
+                  "volumeContribution": "direct"
+                },
+                "biomechanics": {
+                  "bodyRegion": "UPPER",
+                  "equipmentId": "dumbbells",
+                  "kineticChain": "FULL",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "elbow_flexion",
+                  "relevantJoints": [
+                    "codo",
+                    "radiocubital-proximal",
+                    "glenohumeral",
+                    "muñeca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Curl de Bíceps Inclinado",
+                  "displaySummary": "Mancuerna",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.0,
+                  "cnc": 1.6,
+                  "efc": 2.0,
+                  "ssc": 0.1,
+                  "technicalDifficulty": 4.6,
+                  "ttc": 1.5
+                },
+                "identity": {
+                  "canonicalName": "Curl de Bíceps Inclinado",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "incline_biceps_curl__dumbbells",
+                  "definitionId": "incline_biceps_curl",
+                  "familyId": "elbow_flexion_biceps_curl",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "incline_biceps_curl__dumbbells__curl_de_biceps_inclinado",
+                  "searchTerms": [
+                    "curl de bíceps inclinado",
+                    "curl de biceps inclinado",
+                    "curl inclinado con mancuernas",
+                    "curl en banco inclinado",
+                    "incline biceps curl",
+                    "incline dumbbell curl"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 90,
+                    "min": 30
+                  },
+                  "requiredEquipment": [
+                    "dumbbells"
+                  ],
+                  "role": "accessory_isolation"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "dumbbells"
+                  ],
+                  "preservesIntent": [
+                    "elbow_flexion:biceps"
+                  ],
+                  "replacementGroup": null,
+                  "replacementPriority": null
+                }
+              },
+              "secondaryMuscles": [
+                "forearm"
+              ],
+              "setupCues": [
+                "Inclina el respaldo del banco unos cuarenta y cinco grados y apoya la espalda y la cabeza.",
+                "Toma una mancuerna en cada mano y deja los brazos colgando, estirados y por detrás del tronco.",
+                "Gira las palmas hacia delante antes de empezar."
+              ],
+              "setupTimeSeconds": 20,
+              "ssc": 0.1,
+              "stabilizerMuscles": [],
+              "technicalDifficulty": 4.6,
+              "ttc": 1.5
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "incline_biceps_curl__dumbbells",
+        "description": "El Curl de Bíceps Inclinado (incline biceps curl) es un curl con mancuernas sentado contra un banco inclinado, con los brazos colgando por detrás de la línea del tronco. El bíceps flexiona el codo desde esa posición alargada y sube cada mancuerna hacia el hombro, con el antebrazo ayudando en la flexión. El respaldo sostiene la espalda y la cabeza, así que el tronco no puede balancearse para sacar la repetición. En un estudio con electromiografía, el curl inclinado dejó al bíceps muy activo durante todo el recorrido del codo, igual que el curl de pie y a diferencia del predicador, que lo activa mucho solo en un tramo corto. Es el curl para trabajar el bíceps desde una posición más estirada que de pie y sin ayuda del tronco.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10",
+            "editorial:curaduria-programas-2026-10-03#M5"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "elbow_flexion_biceps_curl",
+        "id": "incline_biceps_curl",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "curl de bíceps inclinado",
+          "curl de biceps inclinado",
+          "curl inclinado con mancuernas",
+          "curl en banco inclinado",
+          "incline biceps curl",
+          "incline dumbbell curl"
+        ]
       }
     ],
     "evidence": {

@@ -15,6 +15,13 @@
       "title": "Variation of rotation moment arms with hip flexion",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/10912892/": {
+      "foundTitle": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "A three-dimensional biomechanical analysis of sumo and conventional style deadlifts",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/11404665/": {
       "foundTitle": "A three-dimensional biomechanical analysis of the squat during varying stance widths.",
       "method": "pubmed-esummary",
@@ -27,6 +34,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Effects of technique variations on knee biomechanics during the squat and leg press",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/11932579/": {
+      "foundTitle": "An electromyographic analysis of sumo and conventional style deadlifts.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "An electromyographic analysis of sumo and conventional style deadlifts",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/12173958/": {
@@ -78,6 +92,13 @@
       "title": "Electromyographic activity of the pectoralis major and anterior deltoid muscles during three upper-body lifts",
       "verifiedAt": "2026-10-02"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/16095407/": {
+      "foundTitle": "The influence of grip width and forearm pronation/supination on upper-body myoelectric activity during the flat bench press.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The influence of grip width and forearm pronation/supination on upper-body myoelectric activity during the flat bench press",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/16095413/": {
       "foundTitle": "Comparison of muscle activation using various hand positions during the push-up exercise.",
       "method": "pubmed-esummary",
@@ -97,6 +118,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Kinematic, kinetic and EMG patterns during downward squatting",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/17375882/": {
+      "foundTitle": "Electromyographic study of the flexor muscles of the elbow articulation in weightlifting trained subjects.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic study of the flexor muscles of the elbow articulation in weightlifting trained subjects",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/18076231/": {
@@ -330,6 +358,20 @@
       "title": "Muscle activation during various hamstring exercises",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/24150552/": {
+      "foundTitle": "Effect of the shoulder position on the biceps brachii emg in different dumbbell curls.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of the shoulder position on the biceps brachii emg in different dumbbell curls",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/24575723/": {
+      "foundTitle": "Imposing a pause between the eccentric and concentric phases increases the reliability of isoinertial strength assessments.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Imposing a pause between the eccentric and concentric phases increases the reliability of isoinertial strength assessments",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/24662157/": {
       "foundTitle": "Effects of grip width on muscle strength and activation in the lat pull-down.",
       "method": "pubmed-esummary",
@@ -477,6 +519,13 @@
       "title": "Electromyographic analysis of muscle activation during pull-up variations",
       "verifiedAt": "2026-10-01"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/28151780/": {
+      "foundTitle": "Electromyographic Comparison of Barbell Deadlift, Hex Bar Deadlift, and Hip Thrust Exercises: A Cross-Over Study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic Comparison of Barbell Deadlift, Hex Bar Deadlift, and Hip Thrust Exercises: A Cross-Over Study",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/28570490/": {
       "foundTitle": "A Review of the Biomechanical Differences Between the High-Bar and Low-Bar Back-Squat.",
       "method": "pubmed-esummary",
@@ -505,6 +554,13 @@
       "title": "Trunk Muscle Activation in the Back and Hack Squat at the Same Relative Loads",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/28713459/": {
+      "foundTitle": "The Effects of Bench Press Variations in Competitive Athletes on Muscle Activity and Performance.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Effects of Bench Press Variations in Competitive Athletes on Muscle Activity and Performance",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/29076958/": {
       "foundTitle": "Gluteus Maximus and Hamstring Activation During Selected Weight-Bearing Resistance Exercises.",
       "method": "pubmed-esummary",
@@ -524,6 +580,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Analysis of the Hamstring Muscle Activation During two Injury Prevention Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/29409427/": {
+      "foundTitle": "The Role of the Muscle Brachioradialis in Elbow Flexion: An Electromyographic Study.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Role of the Muscle Brachioradialis in Elbow Flexion: An Electromyographic Study",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/29520841/": {
@@ -687,6 +750,13 @@
       "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Maximus Muscle",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/30860758/": {
+      "foundTitle": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Anatomy, Bony Pelvis and Lower Limb: Pelvic Joints",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/30913969/": {
       "foundTitle": "Impact of Hip Flexion Angle on Unilateral and Bilateral Nordic Hamstring Exercise Torque and High-Density Electromyography Activity.",
       "method": "pubmed-esummary",
@@ -771,6 +841,13 @@
       "title": "Core Muscle Activation in Three Lower Extremity Exercises With Different Stability Requirements",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/32107499/": {
+      "foundTitle": "Electromyographic activity in deadlift exercise and its variants. A systematic review.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Electromyographic activity in deadlift exercise and its variants. A systematic review",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/32132843/": {
       "foundTitle": "Gluteus Maximus Activation during Common Strength and Hypertrophy Exercises: A Systematic Review.",
       "method": "pubmed-esummary",
@@ -827,6 +904,13 @@
       "title": "The Activation of Gluteal, Thigh, and Lower Back Muscles in Different Squat Variations Performed by Competitive Bodybuilders: Implications for Resistance Training",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/33561819/": {
+      "foundTitle": "Effect of Pause Versus Rebound Techniques on Neuromuscular and Functional Performance After a Prolonged Velocity-Based Training.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Effect of Pause Versus Rebound Techniques on Neuromuscular and Functional Performance After a Prolonged Velocity-Based Training",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/33707987/": {
       "foundTitle": "Electromyographic Comparison of Five Lower-Limb Muscles between Single- and Multi-Joint Exercises among Trained Men.",
       "method": "pubmed-esummary",
@@ -846,6 +930,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Biomechanical Differences Between the Bulgarian Split-Squat and Back Squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/34198674/": {
+      "foundTitle": "The Effect of Grip Width on Muscle Strength and Electromyographic Activity in Bench Press among Novice- and Resistance-Trained Men.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The Effect of Grip Width on Muscle Strength and Electromyographic Activity in Bench Press among Novice- and Resistance-Trained Men",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/34279126/": {
@@ -967,6 +1058,13 @@
       "title": "Backseat Inclination Affects the Myoelectric Activation During the Inclined Leg Press Exercise in Recreationally Trained Men",
       "verifiedAt": "2026-10-03"
     },
+    "https://pubmed.ncbi.nlm.nih.gov/37624134/": {
+      "foundTitle": "Lateral Force and EMG Activity in Wide- and Narrow-Grip Bench Press in Various Conditions.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Lateral Force and EMG Activity in Wide- and Narrow-Grip Bench Press in Various Conditions",
+      "verifiedAt": "2026-10-03"
+    },
     "https://pubmed.ncbi.nlm.nih.gov/37877099/": {
       "foundTitle": "Hip thrust and back squat training elicit similar gluteus muscle hypertrophy and transfer similarly to the deadlift.",
       "method": "pubmed-esummary",
@@ -986,6 +1084,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "A Biomechanical Comparison Between the Safety-Squat Bar and Traditional Barbell Back Squat",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/38689586/": {
+      "foundTitle": "Are Diminishing Potentiation and Large Extensor Moments the Cause for the Occurrence of the Sticking Region in Maximum Free-Weight Barbell Back Squats among Resistance-Trained Males?",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Are Diminishing Potentiation and Large Extensor Moments the Cause for the Occurrence of the Sticking Region in Maximum Free-Weight Barbell Back Squats among Resistance-Trained Males?",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/39084328/": {
@@ -1021,6 +1126,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "In vivo moment arm lengths for hip extensor muscles at different angles of hip flexion",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/40082069/": {
+      "foundTitle": "Comparison Between Shoulder Flexed and Extended Positions in Elbow Flexion Resistance Training on Regional Hypertrophy and Maximum Strength: Preacher versus Bayesian Cable Curls.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "Comparison Between Shoulder Flexed and Extended Positions in Elbow Flexion Resistance Training on Regional Hypertrophy and Maximum Strength: Preacher versus Bayesian Cable Curls",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/40269203/": {
@@ -1084,6 +1196,13 @@
       "method": "pubmed-esummary",
       "similarity": 1.0,
       "title": "Hip Adductor Muscle Forces during Strength Training and Rehabilitation Exercises",
+      "verifiedAt": "2026-10-03"
+    },
+    "https://pubmed.ncbi.nlm.nih.gov/41988507/": {
+      "foundTitle": "The effects of shoulder extension angle on elbow flexor hypertrophy in the cable curl exercise.",
+      "method": "pubmed-esummary",
+      "similarity": 1.0,
+      "title": "The effects of shoulder extension angle on elbow flexor hypertrophy in the cable curl exercise",
       "verifiedAt": "2026-10-03"
     },
     "https://pubmed.ncbi.nlm.nih.gov/42211804/": {

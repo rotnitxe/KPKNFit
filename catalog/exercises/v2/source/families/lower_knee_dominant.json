@@ -6758,6 +6758,250 @@
           "air squat",
           "bodyweight squat"
         ]
+      },
+      {
+        "canonicalName": "Sentadilla Trasera con Pausa",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:catalog-v7.2-human-editorial-2026-08-10",
+                "editorial:curaduria-programas-2026-10-03#M2"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "paused_back_squat__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 0.7,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra olímpica reposa libre sobre los hombros, sin rieles ni topes, y durante la parada el torso sostiene toda la carga quieta. Esa espera quita el rebote que ayuda a salir del fondo en la sentadilla continua.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Flexiona rodillas y cadera a la vez hasta que la cadera quede más baja que las rodillas.",
+                "Haz una pausa de dos segundos abajo con la barra quieta, sin rebotar ni relajar la espalda.",
+                "Arranca empujando el suelo con todo el pie y sube con el pecho y la cadera a la vez."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión de la cadera",
+                    "Extensión de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad del tronco"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "ANTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "knee_dominant",
+              "performanceProfileId": "paused_back_squat__barbell__sentadilla_trasera_con_pausa",
+              "primaryMuscles": [
+                "quadriceps",
+                "gluteus_maximus"
+              ],
+              "replacementGroup": "quad_squat",
+              "replacementPriority": 2,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Flexión de la cadera",
+                    "Extensión de la cadera",
+                    "Dorsiflexión del tobillo",
+                    "Flexión plantar del tobillo",
+                    "Estabilidad del tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión de la cadera",
+                        "Extensión de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Dorsiflexión del tobillo",
+                        "Flexión plantar del tobillo"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad del tronco"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "quadriceps",
+                    "gluteus_maximus"
+                  ],
+                  "secondaryMuscles": [
+                    "adductors"
+                  ],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "ANTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "knee_dominant",
+                  "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
+                    "columna-lumbar"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Sentadilla Trasera con Pausa",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 0.7,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 0.5,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Sentadilla Trasera con Pausa",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "paused_back_squat__barbell",
+                  "definitionId": "paused_back_squat",
+                  "familyId": "lower_knee_dominant",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "paused_back_squat__barbell__sentadilla_trasera_con_pausa",
+                  "searchTerms": [
+                    "sentadilla trasera con pausa",
+                    "sentadilla con pausa",
+                    "sentadilla pausada",
+                    "paused back squat",
+                    "paused squat",
+                    "pause squat"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "knee_dominant:quadriceps",
+                    "knee_dominant:gluteus_maximus"
+                  ],
+                  "replacementGroup": "quad_squat",
+                  "replacementPriority": 2
+                }
+              },
+              "secondaryMuscles": [
+                "adductors"
+              ],
+              "setupCues": [
+                "Ajusta el soporte a media altura del pecho y apoya la barra en lo alto de la espalda, bajo la base del cuello.",
+                "Retrocede dos pasos con la barra y coloca los pies a la anchura de los hombros, con las puntas algo abiertas."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 0.5,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "paused_back_squat__barbell",
+        "description": "La Sentadilla Trasera con Pausa (paused back squat) es una sentadilla con barra a la espalda con una parada de unos dos segundos abajo, sin rebote, antes de subir. Con la barra en lo alto de la espalda y el torso bastante vertical, la cadera baja bajo las rodillas y allí queda quieta. Al subir trabajan el cuádriceps, que estira las rodillas, el glúteo mayor, que lleva la cadera hacia delante, y los aductores, que ayudan desde el fondo: los mismos que sin pausa. Cambia el arranque: sin el impulso de la bajada, la salida parte del punto donde menos fuerza se produce en isometría, y con la misma carga se rinde algo menos que con rebote. A cambio, la velocidad que alcanza la barra con cada carga varía menos de un intento a otro.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10",
+            "editorial:curaduria-programas-2026-10-03#M2"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "lower_knee_dominant",
+        "id": "paused_back_squat",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "sentadilla trasera con pausa",
+          "sentadilla con pausa",
+          "sentadilla pausada",
+          "paused back squat",
+          "paused squat",
+          "pause squat"
+        ]
       }
     ],
     "evidence": {

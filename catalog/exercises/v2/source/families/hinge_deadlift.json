@@ -2144,6 +2144,247 @@
           "sumo deadlift",
           "hams peso muerto sumo"
         ]
+      },
+      {
+        "canonicalName": "Peso Muerto hasta la Rodilla",
+        "configurations": [
+          {
+            "displaySummary": "Barra",
+            "evidence": {
+              "confidence": "MEDIUM",
+              "evidenceRefs": [
+                "editorial:catalog-v7.2-human-editorial-2026-08-10",
+                "editorial:curaduria-programas-2026-10-03#M3"
+              ],
+              "reviewStatus": "APPROVED"
+            },
+            "id": "deadlift_to_knees__barbell",
+            "profile": {
+              "articulationType": "MULTIARTICULAR",
+              "automationEligible": true,
+              "axialLoadFactor": 1.0,
+              "bodyRegion": "LOWER",
+              "catalogRevision": "v2-approved-2026-09-29-a",
+              "cnc": 2.2,
+              "description": "La barra olímpica empieza con los discos apoyados en el suelo y sube pegada a las piernas hasta la altura de la rodilla. Como arriba no hay bloqueo, la bajada parte de esa altura y también cuenta como trabajo.",
+              "efc": 2.8,
+              "equipmentId": "barbell",
+              "executionCues": [
+                "Empuja el suelo con los pies y sube la barra pegada a las piernas hasta la altura de las rodillas.",
+                "Detente al llegar a la rodilla, sin estirar del todo la cadera.",
+                "Baja la barra despacio por el mismo camino hasta dejarla en el suelo."
+              ],
+              "fatigueTier": "MEDIA",
+              "jointInvolvement": [
+                {
+                  "actions": [
+                    "Extensión de la cadera",
+                    "Flexión de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Estabilidad de la columna"
+                  ],
+                  "jointId": "columna-lumbar",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Transferencia entre pelvis y tronco"
+                  ],
+                  "jointId": "sacroiliaca",
+                  "role": "STABILIZER"
+                }
+              ],
+              "kineticChain": "POSTERIOR",
+              "laterality": "BILATERAL",
+              "loadMode": "free_external_load",
+              "movementPatternId": "deadlift",
+              "performanceProfileId": "deadlift_to_knees__barbell__peso_muerto_hasta_la_rodilla",
+              "primaryMuscles": [
+                "gluteus_maximus",
+                "hamstrings",
+                "quadriceps"
+              ],
+              "replacementGroup": "ham_deadlift",
+              "replacementPriority": 3,
+              "resistanceProfile": "gravity_arc",
+              "richMetadata": {
+                "anatomy": {
+                  "jointActions": [
+                    "Extensión de la cadera",
+                    "Flexión de la cadera",
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Estabilidad de la columna",
+                    "Transferencia entre pelvis y tronco"
+                  ],
+                  "jointInvolvement": [
+                    {
+                      "actions": [
+                        "Extensión de la cadera",
+                        "Flexión de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad de la columna"
+                      ],
+                      "jointId": "columna-lumbar",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Transferencia entre pelvis y tronco"
+                      ],
+                      "jointId": "sacroiliaca",
+                      "role": "STABILIZER"
+                    }
+                  ],
+                  "primaryMuscles": [
+                    "gluteus_maximus",
+                    "hamstrings",
+                    "quadriceps"
+                  ],
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
+                  "volumeContribution": "indirect"
+                },
+                "biomechanics": {
+                  "bodyRegion": "LOWER",
+                  "equipmentId": "barbell",
+                  "kineticChain": "POSTERIOR",
+                  "laterality": "BILATERAL",
+                  "loadMode": "free_external_load",
+                  "movementPatternId": "deadlift",
+                  "relevantJoints": [
+                    "cadera",
+                    "rodilla",
+                    "columna-lumbar",
+                    "sacroiliaca"
+                  ],
+                  "resistanceProfile": "gravity_arc",
+                  "stability": "self_stabilized"
+                },
+                "display": {
+                  "displayName": "Peso Muerto hasta la Rodilla",
+                  "displaySummary": "Barra",
+                  "selectedOptions": {}
+                },
+                "evidenceConfidence": "MEDIUM",
+                "fatigue": {
+                  "axialLoadFactor": 1.0,
+                  "cnc": 2.2,
+                  "efc": 2.8,
+                  "ssc": 1.0,
+                  "technicalDifficulty": 4.2,
+                  "ttc": 2.0
+                },
+                "identity": {
+                  "canonicalName": "Peso Muerto hasta la Rodilla",
+                  "catalogRevision": "v2-approved-2026-09-29-a",
+                  "configurationId": "deadlift_to_knees__barbell",
+                  "definitionId": "deadlift_to_knees",
+                  "familyId": "hinge_deadlift",
+                  "kind": "SPECIALTY",
+                  "performanceProfileId": "deadlift_to_knees__barbell__peso_muerto_hasta_la_rodilla",
+                  "searchTerms": [
+                    "peso muerto hasta la rodilla",
+                    "peso muerto hasta rodillas",
+                    "peso muerto parcial desde el suelo",
+                    "deadlift to knees",
+                    "deadlift to the knees",
+                    "partial deadlift floor to knee"
+                  ]
+                },
+                "programming": {
+                  "fatigueCost": "moderate",
+                  "indicativeRestSeconds": {
+                    "max": 120,
+                    "min": 60
+                  },
+                  "requiredEquipment": [
+                    "barbell"
+                  ],
+                  "role": "accessory_compound"
+                },
+                "replacement": {
+                  "compatibleEquipmentIds": [
+                    "barbell"
+                  ],
+                  "preservesIntent": [
+                    "deadlift:gluteus_maximus",
+                    "deadlift:hamstrings",
+                    "deadlift:quadriceps"
+                  ],
+                  "replacementGroup": "ham_deadlift",
+                  "replacementPriority": 3
+                }
+              },
+              "secondaryMuscles": [],
+              "setupCues": [
+                "Coloca los pies bajo la barra, con la barra sobre la mitad del pie y pegada a las espinillas.",
+                "Agarra la barra por fuera de las rodillas, con los brazos estirados y la espalda recta.",
+                "Fija antes de empezar la altura final: la barra no pasa de la rodilla."
+              ],
+              "setupTimeSeconds": 45,
+              "ssc": 1.0,
+              "stabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
+              "technicalDifficulty": 4.2,
+              "ttc": 2.0
+            },
+            "selectedOptions": {}
+          }
+        ],
+        "defaultConfigurationId": "deadlift_to_knees__barbell",
+        "description": "El Peso Muerto hasta la Rodilla (deadlift to the knees) es un tirón desde el suelo que se detiene cuando la barra llega a la altura de las rodillas, sin llegar a bloquear la cadera. Con la barra pegada a las espinillas, las piernas empujan el suelo, el glúteo mayor y los isquiosurales extienden la cadera y los erectores sostienen la espalda recta mientras el torso sigue inclinado. Al llegar a la rodilla la barra baja despacio hasta el suelo, sin soltarla. Es el peso muerto sin su final: en este arranque el cuádriceps y el glúteo mayor se activan más que cerca del bloqueo, donde los isquiosurales toman el relevo.",
+        "evidence": {
+          "confidence": "MEDIUM",
+          "evidenceRefs": [
+            "editorial:catalog-v7.2-human-editorial-2026-08-10",
+            "editorial:curaduria-programas-2026-10-03#M3"
+          ],
+          "reviewStatus": "APPROVED"
+        },
+        "familyId": "hinge_deadlift",
+        "id": "deadlift_to_knees",
+        "kind": "SPECIALTY",
+        "optionAxes": [],
+        "searchTerms": [
+          "peso muerto hasta la rodilla",
+          "peso muerto hasta rodillas",
+          "peso muerto parcial desde el suelo",
+          "deadlift to knees",
+          "deadlift to the knees",
+          "partial deadlift floor to knee"
+        ]
       }
     ],
     "evidence": {

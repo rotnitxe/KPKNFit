@@ -1,8 +1,8 @@
 # Índice del catálogo de ejercicios v2
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
-96 familias · 201 definiciones · 522 configuraciones
-Hash canónico: `7055e39e60b39bf2…`
+96 familias · 206 definiciones · 527 configuraciones
+Hash canónico: `b2a652bb4f654f32…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.
@@ -24,6 +24,7 @@ No editar a mano: se regenera en cada merge.
 | chest_press | decline_bench_press | Press de Banca Declinado | implement | 4 |
 | chest_press | incline_bench_press | Press de Banca Inclinado | implement | 6 |
 | chest_press | paused_bench_press | Press de Banca con Pausa |  | 1 |
+| chest_press | close_grip_bench_press | Press de Banca con Agarre Cerrado |  | 1 |
 | core_anti_extension_isometric | core_plancha | Plancha Abdominal |  | 1 |
 | core_anti_extension_pelvic_control | core_dragon_flag_banco_plano | Dragon Flag |  | 1 |
 | core_anti_extension_trunk | core_rueda_abdominal | Rueda Abdominal |  | 1 |
@@ -49,8 +50,10 @@ No editar a mano: se regenera en cada merge.
 | elbow_flexion_biceps_curl | standing_biceps_curl | Curl de Bíceps de Pie | implement | 4 |
 | elbow_flexion_biceps_curl | hammer_curl | Curl Martillo | implement | 5 |
 | elbow_flexion_biceps_curl | reverse_curl | Curl Invertido | implement | 4 |
+| elbow_flexion_biceps_curl | incline_biceps_curl | Curl de Bíceps Inclinado |  | 1 |
 | hinge_deadlift | conventional_deadlift | Peso Muerto Convencional | implement, laterality | 8 |
 | hinge_deadlift | sumo_deadlift | Peso Muerto Sumo | implement | 2 |
+| hinge_deadlift | deadlift_to_knees | Peso Muerto hasta la Rodilla |  | 1 |
 | hinge_good_morning | good_morning | Buenos Días | implement, laterality | 8 |
 | hinge_good_morning | good_morning_seated | Buenos Días Sentado | implement | 3 |
 | hinge_good_morning | good_morning_zercher | Buenos Días/RDL Zercher |  | 1 |
@@ -100,6 +103,7 @@ No editar a mano: se regenera en cada merge.
 | lower_knee_dominant | quads_sentadilla_zercher_barra_recta | Sentadilla Zercher con Barra Recta |  | 1 |
 | lower_knee_dominant | sumo_squat | Sentadilla Sumo | implement | 3 |
 | lower_knee_dominant | quads_sentadilla_sin_carga | Sentadilla Sin Carga |  | 1 |
+| lower_knee_dominant | paused_back_squat | Sentadilla Trasera con Pausa |  | 1 |
 | lower_knee_dominant_asymmetric | quads_sentadilla_jefferson | Sentadilla Jefferson |  | 1 |
 | lower_knee_dominant_belt_squat | belt_squat | Sentadilla "Belt Squat" | laterality | 2 |
 | lower_knee_dominant_pendulum | pendulum_squat | Sentadilla en Máquina Pendular | laterality | 2 |
@@ -202,6 +206,7 @@ No editar a mano: se regenera en cada merge.
 | upper_shoulder_flexion | deltoides_elevaciones_frontales | Elevaciones Frontales | implement | 4 |
 | upper_vertical_pull_abduction | deltoides_remo_menton | Remo al Mentón |  | 1 |
 | upper_vertical_pull_lat_pulldown | lat_pulldown | Jalón al Pecho | implement, laterality | 6 |
+| upper_vertical_pull_lat_pulldown | close_grip_lat_pulldown | Jalón al Pecho con Agarre Cerrado |  | 1 |
 | upper_vertical_pull_pull_up | pull_up | Dominadas | grip_type, grip_width | 9 |
 | upper_vertical_pull_pull_up | rack_chin | Dominada en Rack |  | 1 |
 | upper_vertical_pull_pullover | lying_pullover | Pull Over en Banca | implement | 4 |

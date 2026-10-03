@@ -10,15 +10,16 @@ vigente es esto:
 - Revisión del catálogo `v2-approved-2026-09-29-a` (sin cambio; los ids tampoco
   cambian, el resolver rechaza ejercicios guardados con otra revisión) y
   ontología `wikilab-v3-2026-08-08`.
-- 96 familias, 201 definiciones, 522 configuraciones, 410 pares definición ×
+- 96 familias, 206 definiciones, 527 configuraciones, 415 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
-  guardadas se remapean a `sissy_squat__smith_machine`). SHA-256 canónico compartido
-  `7055e39e60b39bf26185b9f13f1dc89b227db97a39604cb6420542b957512d9d`.
+  guardadas se remapean a `sissy_squat__smith_machine`; el 2026-10-03 se dieron de
+  alta las cinco especialidades M1-M5, ver más abajo). SHA-256 canónico compartido
+  `b2a652bb4f654f32e2925593858b3110e6c06a95637e7a2a4bad19d20cc6734a`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 143 definiciones `LEGACY` y **58 `CURATED`**. Piloto
+- Estado de las fichas: 143 definiciones `LEGACY` y **63 `CURATED`**. Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
@@ -32,7 +33,14 @@ vigente es esto:
   patrones que quedaron sin uso (`knee_hip_extension` y `knee_hip_flexion`, que
   también salen de la ontología: quedan 62) y cubre `biarticular_lengthened`; y
   `CompositionTaxonomy.kt` cuenta el nórdico inverso como extensión de rodilla y no
-  como flexión de codo. El paso a `CURATED` se hace por lotes y queda registrado aquí.
+  como flexión de codo. Altas M1-M5 (2026-10-03, paquete D de la curaduría de programas,
+  ya `CURATED`): `close_grip_bench_press`, `paused_back_squat`, `deadlift_to_knees`,
+  `close_grip_lat_pulldown` e `incline_biceps_curl`, cada una una especialidad de una
+  sola configuración (`close_grip_bench_press__barbell`, `paused_back_squat__barbell`,
+  `deadlift_to_knees__barbell`, `close_grip_lat_pulldown__cable`,
+  `incline_biceps_curl__dumbbells`), sin eje nuevo ni cambio de revisión; el cableado en
+  recetas, soportes y remaps es un paso posterior. El paso a `CURATED` se hace por
+  lotes y queda registrado aquí.
 - `editorial_briefs.json` y su copia `.bak.2026-08-08` se eliminaron: sus 201
   definiciones eran idénticas al contenido de las fichas esqueleto.
 - Los 8 generadores por plantilla (`build_catalog_v2_*`, `curaduria_v3` a `v6`,

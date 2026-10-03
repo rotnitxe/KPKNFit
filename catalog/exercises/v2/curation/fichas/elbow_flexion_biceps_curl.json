@@ -269,6 +269,213 @@
       },
       "status": "LEGACY"
     },
+    "incline_biceps_curl": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión del codo",
+              "Extensión del codo"
+            ],
+            "id": "codo",
+            "role": "PRIMARY",
+            "sources": [
+              "oliveira2009",
+              "caufriez2018"
+            ],
+            "why": "El codo recorre todo su rango, de extendido con el brazo colgando a flexionado con la mancuerna junto al hombro. Es la articulación que produce el gesto, y con el respaldo el tronco no puede ayudar."
+          },
+          {
+            "actions": [
+              "Supinación del antebrazo"
+            ],
+            "id": "radiocubital-proximal",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_biceps"
+            ],
+            "why": "Con las palmas hacia delante o girando hacia arriba, el antebrazo se supina mientras sube la mancuerna; el bíceps es además el supinador más potente del antebrazo cuando el codo está flexionado."
+          },
+          {
+            "actions": [
+              "Posición de hombro extendido"
+            ],
+            "id": "glenohumeral",
+            "role": "STABILIZER",
+            "sources": [
+              "oliveira2009",
+              "attarieh2025"
+            ],
+            "why": "El hombro se queda quieto con el brazo colgando por detrás de la línea del tronco, apoyado en el respaldo inclinado, y no se flexiona durante la repetición. Es la posición que distingue este curl: la fijan los músculos del hombro, sin mover la carga."
+          },
+          {
+            "actions": [
+              "Sostén del agarre"
+            ],
+            "id": "muñeca",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_forearm_compartments"
+            ],
+            "why": "La muñeca se queda alineada mientras los flexores de los dedos sostienen la mancuerna durante toda la serie, sin mover la carga por sí misma."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "biceps",
+            "role": "PRIMARY",
+            "sources": [
+              "oliveira2009",
+              "attarieh2025",
+              "larsen2026",
+              "statpearls_biceps"
+            ],
+            "why": "Flexiona el codo contra la mancuerna y es el motor del curl. En el curl inclinado alcanzó hasta el 95 % de su actividad máxima en la fase final de la subida y mantuvo un patrón parecido al del curl de pie en todo el rango del codo (Oliveira 2009). Su cabeza larga cruza el hombro, así que con el brazo detrás del tronco empieza más alargado. Eso no garantiza más crecimiento: con el perfil de resistencia igualado, cambiar el ángulo del hombro no cambió el crecimiento de los flexores del codo (Attarieh 2025; Larsen 2026)."
+          },
+          {
+            "id": "forearm",
+            "role": "SECONDARY",
+            "sources": [
+              "caufriez2018",
+              "bankoff2007",
+              "statpearls_forearm_compartments"
+            ],
+            "why": "El braquiorradial, del antebrazo, flexiona el codo junto al bíceps y al braquial, que la ontología no incluye: los tres estuvieron muy activos durante toda la flexión resistida, con algo más de actividad del braquiorradial con la mano en supinación (Caufriez 2018; Bankoff 2007). Asiste con una contribución real, pero no manda."
+          }
+        ]
+      },
+      "public": {
+        "configurations": {
+          "incline_biceps_curl__dumbbells": {
+            "description": "Cada mancuerna cuelga por su lado del banco y la muñeca puede girar hasta dejar la palma hacia arriba mientras sube. Las dos manos trabajan por separado, así que el brazo más débil no recibe ayuda del otro.",
+            "executionCues": [
+              "Sube las dos mancuernas doblando solo los codos, sin adelantar los hombros.",
+              "Aprieta arriba un instante, con las mancuernas junto a los hombros.",
+              "Baja despacio hasta estirar los brazos del todo por detrás del tronco."
+            ],
+            "setupCues": [
+              "Inclina el respaldo del banco unos cuarenta y cinco grados y apoya la espalda y la cabeza.",
+              "Toma una mancuerna en cada mano y deja los brazos colgando, estirados y por detrás del tronco.",
+              "Gira las palmas hacia delante antes de empezar."
+            ]
+          }
+        },
+        "description": "El Curl de Bíceps Inclinado (incline biceps curl) es un curl con mancuernas sentado contra un banco inclinado, con los brazos colgando por detrás de la línea del tronco. El bíceps flexiona el codo desde esa posición alargada y sube cada mancuerna hacia el hombro, con el antebrazo ayudando en la flexión. El respaldo sostiene la espalda y la cabeza, así que el tronco no puede balancearse para sacar la repetición. En un estudio con electromiografía, el curl inclinado dejó al bíceps muy activo durante todo el recorrido del codo, igual que el curl de pie y a diferencia del predicador, que lo activa mucho solo en un tramo corto. Es el curl para trabajar el bíceps desde una posición más estirada que de pie y sin ayuda del tronco."
+      },
+      "sources": [
+        {
+          "claim": "En 22 sujetos con un 40 % de la contracción máxima, el curl inclinado y el curl de pie con mancuernas dieron un patrón parecido de activación del bíceps en todo el rango, hasta el 95 % del máximo en la fase final de la subida, y el curl predicador solo una activación alta en un tramo corto.",
+          "id": "oliveira2009",
+          "title": "Effect of the shoulder position on the biceps brachii emg in different dumbbell curls",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24150552/"
+        },
+        {
+          "claim": "En 15 hombres, diez semanas de curl con el hombro flexionado o extendido, con el perfil de resistencia igualado, aumentaron por igual el grosor del bíceps y del braquial y la fuerza máxima, sin diferencias entre posiciones.",
+          "id": "attarieh2025",
+          "title": "Comparison Between Shoulder Flexed and Extended Positions in Elbow Flexion Resistance Training on Regional Hypertrophy and Maximum Strength: Preacher versus Bayesian Cable Curls",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/40082069/"
+        },
+        {
+          "claim": "En 24 hombres no entrenados, diez semanas de curl en polea con el hombro neutro o en extensión máxima, con perfil de resistencia y recorrido igualados, aumentaron el grosor de los flexores del codo en torno a un 7-9 % sin diferencias entre posiciones.",
+          "id": "larsen2026",
+          "title": "The effects of shoulder extension angle on elbow flexor hypertrophy in the cable curl exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41988507/"
+        },
+        {
+          "claim": "En 15 hombres, bíceps, braquial y braquiorradial estuvieron muy activos durante toda la flexión resistida del codo con el antebrazo en neutro, pronación y supinación, con el braquiorradial algo más activo en supinación.",
+          "id": "caufriez2018",
+          "title": "The Role of the Muscle Brachioradialis in Elbow Flexion: An Electromyographic Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29409427/"
+        },
+        {
+          "claim": "En 10 hombres entrenados, en el banco Scott con el antebrazo supinado y pronado, braquial, ambas cabezas del bíceps y braquiorradial mostraron una activación similar, sin diferencias significativas entre ellos.",
+          "id": "bankoff2007",
+          "title": "Electromyographic study of the flexor muscles of the elbow articulation in weightlifting trained subjects",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/17375882/"
+        },
+        {
+          "claim": "Describe al bíceps braquial como flexor del antebrazo cuando está extendido y como su supinador más potente cuando está flexionado, con dos cabezas proximales.",
+          "id": "statpearls_biceps",
+          "title": "Anatomy, Shoulder and Upper Limb, Biceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30137823/"
+        },
+        {
+          "claim": "Describe los compartimentos del antebrazo, el grupo móvil con el braquiorradial y los flexores de dedos y muñeca que sostienen el agarre.",
+          "id": "statpearls_forearm_compartments",
+          "title": "Anatomy, Shoulder and Upper Limb, Forearm Compartments",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30969606/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Curl de bíceps sentado contra un banco inclinado: la espalda y la cabeza apoyadas en el respaldo, los brazos cuelgan estirados por detrás de la línea del tronco y los codos se flexionan para subir las mancuernas hasta los hombros. La inclinación del respaldo y el brazo detrás del tronco lo separan del curl de pie y del curl sentado en banco plano, y el tronco inclinado hacia atrás en lugar de boca abajo lo separa del curl araña.",
+        "keyPositions": [
+          "Inicio: brazos estirados colgando por detrás de la línea del tronco, palmas al frente y bíceps alargado.",
+          "Punto alto: mancuernas junto a los hombros, codos aún detrás o a la altura del tronco y espalda pegada al respaldo."
+        ],
+        "mistakes": [
+          "Adelantar los codos al subir y convertir el curl en uno de pie con el hombro flexionado.",
+          "Despegar la espalda del respaldo para impulsar la mancuerna.",
+          "Acortar el recorrido abajo sin llegar a estirar del todo los codos.",
+          "Dejar caer las mancuernas en la bajada y perder el control de la repetición.",
+          "Encoger los hombros hacia las orejas al subir."
+        ],
+        "phases": [
+          {
+            "description": "Los brazos cuelgan estirados por detrás de la línea del tronco, con las palmas al frente y el bíceps en su posición más alargada.",
+            "name": "Inicio"
+          },
+          {
+            "description": "Los codos se flexionan y las mancuernas suben hacia los hombros sin que los codos se adelanten ni la espalda se despegue.",
+            "name": "Subida"
+          },
+          {
+            "description": "Las mancuernas llegan junto a los hombros con el bíceps acortado y la espalda aún pegada al respaldo.",
+            "name": "Contracción"
+          },
+          {
+            "description": "Los codos se extienden despacio hasta que los brazos vuelven a colgar estirados detrás del tronco.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Respaldo inclinado unos cuarenta y cinco grados, con la espalda y la cabeza apoyadas y los pies firmes en el suelo.",
+          "Una mancuerna en cada mano con las palmas hacia delante y los brazos colgando estirados, por detrás de la línea del tronco.",
+          "Los codos quedan pegados a los costados y no se adelantan al subir."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral a la altura del banco, con el atleta de perfil, los brazos colgando por detrás del tronco y las dos mancuernas dentro del encuadre.",
+          "contacts": "Espalda y cabeza contra el respaldo inclinado, glúteos en el asiento, pies planos en el suelo y manos cerradas sobre las mancuernas.",
+          "load": "Una mancuerna en cada mano colgando junto a las caderas, por detrás de la línea del tronco y separadas del suelo.",
+          "orientation": "Atleta sentado de perfil, con la cara hacia el lado derecho del encuadre y la espalda apoyada en el respaldo inclinado.",
+          "phase": "Posición inicial estirada: brazos colgando estirados por detrás de la línea del tronco, antes de empezar a subir las mancuernas.",
+          "posture": "Tronco inclinado hacia atrás unos cuarenta y cinco grados, hombros abajo y atrás, codos estirados pegados a los costados y palmas hacia delante."
+        },
+        "byImplement": {
+          "dumbbells": {
+            "geometry": "Banco regulable con el respaldo a unos cuarenta y cinco grados; una mancuerna en cada mano colgando a los lados del banco, con los brazos estirados por detrás de la línea del tronco y las palmas hacia delante."
+          }
+        },
+        "forbidden": [
+          "Atleta de pie o sentado en un banco plano: eso es el curl de pie o el curl sentado, no el inclinado.",
+          "Tumbado boca abajo con el pecho sobre el respaldo: eso es el curl araña.",
+          "Respaldo casi vertical o casi plano, sin la inclinación de unos cuarenta y cinco grados.",
+          "Mancuernas ya junto a los hombros en la imagen de inicio.",
+          "Mancuernas flotando sin que las manos las agarren."
+        ],
+        "promptCore": {
+          "dumbbells": "Side view of a muscular athlete seated against an incline bench set to about 45 degrees, frozen at the BOTTOM of an incline dumbbell curl. Back and head rest on the bench pad and both feet are flat on the floor. Both arms hang straight down, fully extended, behind the line of the torso, each hand gripping one dumbbell with the palm facing forward. Elbows are locked out and close to the sides, shoulders down and back. The dumbbells hang clear of the floor beside the hips."
+        },
+        "qa": [
+          "¿Las manos agarran las mancuernas y estas no flotan sueltas?",
+          "¿Los brazos cuelgan estirados por detrás de la línea del tronco?",
+          "¿La espalda y la cabeza están apoyadas en un respaldo inclinado, ni vertical ni plano?",
+          "¿Las palmas miran hacia delante y las mancuernas quedan separadas del suelo?"
+        ]
+      }
+    },
     "preacher_curl": {
       "public": {
         "configurations": {
