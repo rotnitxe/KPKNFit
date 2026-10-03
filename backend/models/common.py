@@ -1,6 +1,6 @@
 """Shared Pydantic models mirroring the TypeScript types."""
 from __future__ import annotations
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, Literal
 from enum import Enum
 
@@ -74,6 +74,8 @@ class ExerciseMuscleInfo(BaseModel):
 
 
 class ExerciseSet(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str = ""
     targetReps: Optional[int] = None
     targetDuration: Optional[float] = None
@@ -101,6 +103,8 @@ class ExerciseSet(BaseModel):
 
 
 class Exercise(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str
     name: str
     exerciseDbId: Optional[str] = None
@@ -110,12 +114,16 @@ class Exercise(BaseModel):
 
 
 class SessionPart(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str
     name: str
     exercises: list[Exercise] = []
 
 
 class Session(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str
     name: str
     exercises: list[Exercise] = []
@@ -323,6 +331,8 @@ class MuscleHierarchy(BaseModel):
 
 
 class ProgramWeek(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str
     name: str = ""
     sessions: list[Session] = []
@@ -330,11 +340,15 @@ class ProgramWeek(BaseModel):
 
 
 class Mesocycle(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     goal: str = "Acumulación"
     weeks: list[ProgramWeek] = []
 
 
 class Block(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str | None = None
     name: str | None = None
     description: str | None = None
@@ -346,10 +360,14 @@ class Block(BaseModel):
 
 
 class Macrocycle(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     blocks: list[Block] = []
 
 
 class Program(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: str
     name: str = ""
     macrocycles: list[Macrocycle] = []

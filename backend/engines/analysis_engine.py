@@ -4,7 +4,7 @@ import math
 from datetime import datetime, timezone, timedelta
 from models.common import (
     Program, ExerciseMuscleInfo, Settings, Session, MuscleHierarchy,
-    WorkoutLog, ProgramWeek, NutritionLog, BodyProgressLog,
+    WorkoutLog, ProgramWeek, NutritionLog,
 )
 from engines.exercise_index import ExerciseIndex
 from engines.fatigue_engine import is_set_effective, calculate_completed_session_stress
