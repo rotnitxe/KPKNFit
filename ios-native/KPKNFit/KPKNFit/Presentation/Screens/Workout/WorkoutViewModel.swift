@@ -1433,10 +1433,13 @@ import SwiftUI
         guard !uiState.weekId.isEmpty else { return }
         guard let program = repository.getProgramById(programId) else { return }
         guard WorkoutEditingRules.canPersistLiveStructuralChanges(program) else { return }
-        let updated = program.updateWeekSessions(uiState.macroIndex, mesoIndex: uiState.mesoIndex, weekId: uiState.weekId) { sessions in
-            sessions.map { $0.id == sessionId ? updatedSession : $0 }
-        }
-        if updated != program { repository.updateProgram(updated) }
+        _ = repository.upsertSessionInProgram(
+            programId: programId,
+            weekId: uiState.weekId,
+            macroIndex: uiState.macroIndex,
+            mesoIndex: uiState.mesoIndex,
+            session: updatedSession
+        )
     }
 
     // MARK: - Exercise Replacement
@@ -3934,16 +3937,16 @@ extension PostExerciseFeedbackTarget {
 // MARK: - Session copy helpers (immutable)
 extension Session {
     func withExercises(_ exercises: [Exercise]) -> Session {
-        Session(id: id, name: name, description: description, exercises: exercises, parts: parts, targetDurationMinutes: targetDurationMinutes, sessionB: sessionB, sessionC: sessionC, sessionD: sessionD, trainingBackup: trainingBackup, supersetGroups: supersetGroups)
+        copy(exercises: exercises)
     }
     func withParts(_ parts: [SessionPart]) -> Session {
-        Session(id: id, name: name, description: description, exercises: exercises, parts: parts, targetDurationMinutes: targetDurationMinutes, sessionB: sessionB, sessionC: sessionC, sessionD: sessionD, trainingBackup: trainingBackup, supersetGroups: supersetGroups)
+        copy(parts: parts)
     }
 }
 
 extension SessionPart {
     func withExercises(_ exercises: [Exercise]) -> SessionPart {
-        SessionPart(id: id, name: name, exercises: exercises, color: color, targetDurationMinutes: targetDurationMinutes)
+        SessionPart(id: id, name: name, exercises: exercises, color: color, targetDurationMinutes: targetDurationMinutes, opaqueFields: opaqueFields)
     }
 }
 

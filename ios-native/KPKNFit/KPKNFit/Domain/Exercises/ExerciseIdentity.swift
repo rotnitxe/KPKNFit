@@ -182,7 +182,9 @@ extension Session {
                 SessionPart(
                     id: part.id, name: part.name,
                     exercises: part.exercises.map { $0.normalizedIdentityFields() },
-                    color: part.color
+                    color: part.color,
+                    targetDurationMinutes: part.targetDurationMinutes,
+                    opaqueFields: part.opaqueFields
                 )
             },
             sessionB: sessionB?.normalizedIdentityFields(),
@@ -192,7 +194,14 @@ extension Session {
                 backup.copy(
                     exercises: backup.exercises.map { $0.normalizedIdentityFields() },
                     parts: backup.parts.map { bp in
-                        SessionPart(id: bp.id, name: bp.name, exercises: bp.exercises.map { $0.normalizedIdentityFields() }, color: bp.color)
+                        SessionPart(
+                            id: bp.id,
+                            name: bp.name,
+                            exercises: bp.exercises.map { $0.normalizedIdentityFields() },
+                            color: bp.color,
+                            targetDurationMinutes: bp.targetDurationMinutes,
+                            opaqueFields: bp.opaqueFields
+                        )
                     }
                 )
             }
@@ -342,45 +351,72 @@ extension ExerciseDiscomfortReport {
 
 extension Session {
     public func copy(
+        id: String? = nil,
+        name: String? = nil,
+        description: String?? = nil,
         exercises: [Exercise]? = nil,
+        warmup: [WarmupExercise]? = nil,
         parts: [SessionPart]? = nil,
+        background: SessionBackground?? = nil,
+        coverStyle: CoverStyle?? = nil,
+        dayOfWeek: Int?? = nil,
+        scheduleLabel: String?? = nil,
+        assignedDays: [Int]? = nil,
         sessionB: Session?? = nil,
         sessionC: Session?? = nil,
         sessionD: Session?? = nil,
-        trainingBackup: TrainingBackup?? = nil
+        isMeetDay: Bool? = nil,
+        isCompetitionSession: Bool? = nil,
+        isMainSession: Bool? = nil,
+        focus: String?? = nil,
+        microProgram: SessionMicroProgram?? = nil,
+        meetBodyweight: Double?? = nil,
+        meetResults: MeetResults?? = nil,
+        competitionDetails: CompetitionDetails?? = nil,
+        competitionRecordId: String?? = nil,
+        competitionKeyDateId: String?? = nil,
+        competitionSportType: CompetitionTemplateType?? = nil,
+        competitionRecordMode: CompetitionRecordMode?? = nil,
+        trainingBackup: TrainingBackup?? = nil,
+        supersetGroups: [SupersetGroup]? = nil,
+        lastModifiedAtMs: Int64? = nil,
+        targetDurationMinutes: Int?? = nil,
+        volumeAdvances: [VolumeAdvance]? = nil,
+        opaqueFields: [String: JSONValue]? = nil
     ) -> Session {
         Session(
-            id: id,
-            name: name,
-            description: description,
+            id: id ?? self.id,
+            name: name ?? self.name,
+            description: description != nil ? description! : self.description,
             exercises: exercises ?? self.exercises,
-            warmup: warmup,
+            warmup: warmup ?? self.warmup,
             parts: parts ?? self.parts,
-            background: background,
-            coverStyle: coverStyle,
-            dayOfWeek: dayOfWeek,
-            scheduleLabel: scheduleLabel,
-            assignedDays: assignedDays,
+            background: background != nil ? background! : self.background,
+            coverStyle: coverStyle != nil ? coverStyle! : self.coverStyle,
+            dayOfWeek: dayOfWeek != nil ? dayOfWeek! : self.dayOfWeek,
+            scheduleLabel: scheduleLabel != nil ? scheduleLabel! : self.scheduleLabel,
+            assignedDays: assignedDays ?? self.assignedDays,
             sessionB: (sessionB != nil) ? sessionB! : self.sessionB,
             sessionC: (sessionC != nil) ? sessionC! : self.sessionC,
             sessionD: (sessionD != nil) ? sessionD! : self.sessionD,
-            isMeetDay: isMeetDay,
-            isCompetitionSession: isCompetitionSession,
-            isMainSession: isMainSession,
-            focus: focus,
-            microProgram: microProgram,
-            meetBodyweight: meetBodyweight,
-            meetResults: meetResults,
-            competitionDetails: competitionDetails,
-            competitionRecordId: competitionRecordId,
-            competitionKeyDateId: competitionKeyDateId,
-            competitionSportType: competitionSportType,
-            competitionRecordMode: competitionRecordMode,
+            isMeetDay: isMeetDay ?? self.isMeetDay,
+            isCompetitionSession: isCompetitionSession ?? self.isCompetitionSession,
+            isMainSession: isMainSession ?? self.isMainSession,
+            focus: focus != nil ? focus! : self.focus,
+            microProgram: microProgram != nil ? microProgram! : self.microProgram,
+            meetBodyweight: meetBodyweight != nil ? meetBodyweight! : self.meetBodyweight,
+            meetResults: meetResults != nil ? meetResults! : self.meetResults,
+            competitionDetails: competitionDetails != nil ? competitionDetails! : self.competitionDetails,
+            competitionRecordId: competitionRecordId != nil ? competitionRecordId! : self.competitionRecordId,
+            competitionKeyDateId: competitionKeyDateId != nil ? competitionKeyDateId! : self.competitionKeyDateId,
+            competitionSportType: competitionSportType != nil ? competitionSportType! : self.competitionSportType,
+            competitionRecordMode: competitionRecordMode != nil ? competitionRecordMode! : self.competitionRecordMode,
             trainingBackup: (trainingBackup != nil) ? trainingBackup! : self.trainingBackup,
-            supersetGroups: supersetGroups,
-            lastModifiedAtMs: lastModifiedAtMs,
-            targetDurationMinutes: targetDurationMinutes,
-            volumeAdvances: volumeAdvances
+            supersetGroups: supersetGroups ?? self.supersetGroups,
+            lastModifiedAtMs: lastModifiedAtMs ?? self.lastModifiedAtMs,
+            targetDurationMinutes: targetDurationMinutes != nil ? targetDurationMinutes! : self.targetDurationMinutes,
+            volumeAdvances: volumeAdvances ?? self.volumeAdvances,
+            opaqueFields: opaqueFields ?? self.opaqueFields
         )
     }
 }
@@ -413,7 +449,9 @@ extension ProgramWeek {
             loopId: loopId,
             startDate: startDate,
             endDate: endDate,
-            trainingDayDates: trainingDayDates
+            trainingDayDates: trainingDayDates,
+            progressionIndex: progressionIndex,
+            opaqueFields: opaqueFields
         )
     }
 }

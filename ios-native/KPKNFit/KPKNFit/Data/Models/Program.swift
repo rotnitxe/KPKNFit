@@ -1,5 +1,81 @@
 import Foundation
 
+/// JSON-compatible value used only for bounded cross-platform transport fields.
+public indirect enum JSONValue: Codable, Equatable {
+    case object([String: JSONValue])
+    case array([JSONValue])
+    case string(String)
+    case integer(Int64)
+    case number(Double)
+    case bool(Bool)
+    case null
+
+    public init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer()
+        if value.decodeNil() { self = .null; return }
+        if let bool = try? value.decode(Bool.self) { self = .bool(bool); return }
+        if let integer = try? value.decode(Int64.self) { self = .integer(integer); return }
+        if let number = try? value.decode(Double.self) { self = .number(number); return }
+        if let string = try? value.decode(String.self) { self = .string(string); return }
+        if let array = try? value.decode([JSONValue].self) { self = .array(array); return }
+        if let object = try? value.decode([String: JSONValue].self) { self = .object(object); return }
+        throw DecodingError.dataCorruptedError(in: value, debugDescription: "Unsupported JSON value")
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var value = encoder.singleValueContainer()
+        switch self {
+        case .object(let object): try value.encode(object)
+        case .array(let array): try value.encode(array)
+        case .string(let string): try value.encode(string)
+        case .integer(let integer): try value.encode(integer)
+        case .number(let number): try value.encode(number)
+        case .bool(let bool): try value.encode(bool)
+        case .null: try value.encodeNil()
+        }
+    }
+}
+
+struct DynamicCodingKey: CodingKey, Hashable {
+    let stringValue: String
+    let intValue: Int?
+
+    init(_ value: String) { stringValue = value; intValue = nil }
+    init?(stringValue: String) { self.init(stringValue) }
+    init?(intValue: Int) { stringValue = String(intValue); self.intValue = intValue }
+}
+
+func decodeOpaqueFields(
+    from container: KeyedDecodingContainer<DynamicCodingKey>,
+    excluding knownKeys: Set<String>
+) throws -> [String: JSONValue] {
+    var fields: [String: JSONValue] = [:]
+    for key in container.allKeys where !knownKeys.contains(key.stringValue) {
+        fields[key.stringValue] = try container.decode(JSONValue.self, forKey: key)
+    }
+    return fields
+}
+
+func encodeOpaqueFields(
+    _ fields: [String: JSONValue],
+    to container: inout KeyedEncodingContainer<DynamicCodingKey>,
+    excluding knownKeys: Set<String>
+) throws {
+    for (name, value) in fields where !knownKeys.contains(name) {
+        try container.encode(value, forKey: DynamicCodingKey(name))
+    }
+}
+
+extension KeyedDecodingContainer where Key == DynamicCodingKey {
+    func decode<T: Decodable>(_ type: T.Type, _ name: String, default defaultValue: T) throws -> T {
+        try decodeIfPresent(type, forKey: DynamicCodingKey(name)) ?? defaultValue
+    }
+
+    func decodeOptional<T: Decodable>(_ type: T.Type, _ name: String) throws -> T? {
+        try decodeIfPresent(type, forKey: DynamicCodingKey(name))
+    }
+}
+
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 public enum ProgramMode: String, Codable {
@@ -24,6 +100,7 @@ public enum ProgramCalendarizationMode: String, Codable {
 
 public enum SimpleProgramKind: String, Codable {
     case cyclic = "CYCLIC", calendarized = "CALENDARIZED"
+    case linear = "LINEAR"
 }
 
 public enum MesocycleGoal: String, Codable {
@@ -109,11 +186,31 @@ public struct LoopState: Codable {
     public let currentCycle: Int
     public let postponed: [PostponedLoop]
     public let cancelled: [String]
+    public let opaqueFields: [String: JSONValue]
 
-    public init(currentCycle: Int = 0, postponed: [PostponedLoop] = [], cancelled: [String] = []) {
+    public init(currentCycle: Int = 0, postponed: [PostponedLoop] = [], cancelled: [String] = [], opaqueFields: [String: JSONValue] = [:]) {
         self.currentCycle = currentCycle
         self.postponed = postponed
         self.cancelled = cancelled
+        self.opaqueFields = opaqueFields
+    }
+
+    private static let knownCodingKeys: Set<String> = ["currentCycle", "postponed", "cancelled"]
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        currentCycle = try c.decode(Int.self, "currentCycle", default: 0)
+        postponed = try c.decode([PostponedLoop].self, "postponed", default: [])
+        cancelled = try c.decode([String].self, "cancelled", default: [])
+        opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: DynamicCodingKey.self)
+        try c.encode(currentCycle, forKey: DynamicCodingKey("currentCycle"))
+        try c.encode(postponed, forKey: DynamicCodingKey("postponed"))
+        try c.encode(cancelled, forKey: DynamicCodingKey("cancelled"))
+        try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 }
 
@@ -138,6 +235,7 @@ public struct Block: Identifiable, Codable {
     public let mesocycles: [Mesocycle]
     public let goal: BlockGoal?
     public let progressionScheme: BlockProgressionScheme?
+    public let opaqueFields: [String: JSONValue]
 
     public init(
         id: String,
@@ -145,7 +243,8 @@ public struct Block: Identifiable, Codable {
         description: String? = nil,
         mesocycles: [Mesocycle] = [],
         goal: BlockGoal? = nil,
-        progressionScheme: BlockProgressionScheme? = nil
+        progressionScheme: BlockProgressionScheme? = nil,
+        opaqueFields: [String: JSONValue] = [:]
     ) {
         self.id = id
         self.name = name
@@ -153,6 +252,31 @@ public struct Block: Identifiable, Codable {
         self.mesocycles = mesocycles
         self.goal = goal
         self.progressionScheme = progressionScheme
+        self.opaqueFields = opaqueFields
+    }
+
+    private static let knownCodingKeys: Set<String> = ["id", "name", "description", "mesocycles", "goal", "progressionScheme"]
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        id = try c.decode(String.self, "id")
+        name = try c.decode(String.self, "name")
+        description = try c.decodeOptional(String.self, "description")
+        mesocycles = try c.decode([Mesocycle].self, "mesocycles", default: [])
+        goal = try c.decodeOptional(BlockGoal.self, "goal")
+        progressionScheme = try c.decodeOptional(BlockProgressionScheme.self, "progressionScheme")
+        opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: DynamicCodingKey.self)
+        try c.encode(id, forKey: DynamicCodingKey("id"))
+        try c.encode(name, forKey: DynamicCodingKey("name"))
+        try c.encodeIfPresent(description, forKey: DynamicCodingKey("description"))
+        try c.encode(mesocycles, forKey: DynamicCodingKey("mesocycles"))
+        try c.encodeIfPresent(goal, forKey: DynamicCodingKey("goal"))
+        try c.encodeIfPresent(progressionScheme, forKey: DynamicCodingKey("progressionScheme"))
+        try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 }
 
@@ -190,6 +314,7 @@ public struct ProgramWeek: Identifiable, Codable {
     public let endDate: String?
     public let trainingDayDates: [Int: String]
     public let progressionIndex: Int?
+    public let opaqueFields: [String: JSONValue]
 
     public init(
         id: String,
@@ -202,7 +327,8 @@ public struct ProgramWeek: Identifiable, Codable {
         startDate: String? = nil,
         endDate: String? = nil,
         trainingDayDates: [Int: String] = [:],
-        progressionIndex: Int? = nil
+        progressionIndex: Int? = nil,
+        opaqueFields: [String: JSONValue] = [:]
     ) {
         self.id = id
         self.name = name
@@ -215,6 +341,41 @@ public struct ProgramWeek: Identifiable, Codable {
         self.endDate = endDate
         self.trainingDayDates = trainingDayDates
         self.progressionIndex = progressionIndex
+        self.opaqueFields = opaqueFields
+    }
+
+    private static let knownCodingKeys: Set<String> = ["id", "name", "description", "sessions", "variant", "isLoopWeek", "loopId", "startDate", "endDate", "trainingDayDates", "progressionIndex"]
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        id = try c.decode(String.self, "id")
+        name = try c.decode(String.self, "name")
+        description = try c.decodeOptional(String.self, "description")
+        sessions = try c.decode([Session].self, "sessions", default: [])
+        variant = try c.decodeOptional(WeekVariant.self, "variant")
+        isLoopWeek = try c.decode(Bool.self, "isLoopWeek", default: false)
+        loopId = try c.decodeOptional(String.self, "loopId")
+        startDate = try c.decodeOptional(String.self, "startDate")
+        endDate = try c.decodeOptional(String.self, "endDate")
+        trainingDayDates = try c.decode([Int: String].self, "trainingDayDates", default: [:])
+        progressionIndex = try c.decodeOptional(Int.self, "progressionIndex")
+        opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: DynamicCodingKey.self)
+        try c.encode(id, forKey: DynamicCodingKey("id"))
+        try c.encode(name, forKey: DynamicCodingKey("name"))
+        try c.encodeIfPresent(description, forKey: DynamicCodingKey("description"))
+        try c.encode(sessions, forKey: DynamicCodingKey("sessions"))
+        try c.encodeIfPresent(variant, forKey: DynamicCodingKey("variant"))
+        try c.encode(isLoopWeek, forKey: DynamicCodingKey("isLoopWeek"))
+        try c.encodeIfPresent(loopId, forKey: DynamicCodingKey("loopId"))
+        try c.encodeIfPresent(startDate, forKey: DynamicCodingKey("startDate"))
+        try c.encodeIfPresent(endDate, forKey: DynamicCodingKey("endDate"))
+        try c.encode(trainingDayDates, forKey: DynamicCodingKey("trainingDayDates"))
+        try c.encodeIfPresent(progressionIndex, forKey: DynamicCodingKey("progressionIndex"))
+        try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 }
 
@@ -303,6 +464,7 @@ public struct SimpleProgramSnapshot: Codable {
     public let customSplitDescription: String?
     public let blockSplitSelections: [String: String]
     public let savedAtMs: Int64
+    public let opaqueFields: [String: JSONValue]
 
     public init(
         macrocycles: [Macrocycle] = [],
@@ -314,7 +476,8 @@ public struct SimpleProgramSnapshot: Codable {
         customSplitName: String? = nil,
         customSplitDescription: String? = nil,
         blockSplitSelections: [String: String] = [:],
-        savedAtMs: Int64 = 0
+        savedAtMs: Int64 = 0,
+        opaqueFields: [String: JSONValue] = [:]
     ) {
         self.macrocycles = macrocycles
         self.loops = loops
@@ -326,6 +489,39 @@ public struct SimpleProgramSnapshot: Codable {
         self.customSplitDescription = customSplitDescription
         self.blockSplitSelections = blockSplitSelections
         self.savedAtMs = savedAtMs
+        self.opaqueFields = opaqueFields
+    }
+
+    private static let knownCodingKeys: Set<String> = ["macrocycles", "loops", "loopState", "events", "selectedSplitId", "customSplitPattern", "customSplitName", "customSplitDescription", "blockSplitSelections", "savedAtMs"]
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        macrocycles = try c.decode([Macrocycle].self, "macrocycles", default: [])
+        loops = try c.decode([Loop].self, "loops", default: [])
+        loopState = try c.decodeOptional(LoopState.self, "loopState")
+        events = try c.decode([ProgramEvent].self, "events", default: [])
+        selectedSplitId = try c.decodeOptional(String.self, "selectedSplitId")
+        customSplitPattern = try c.decode([String].self, "customSplitPattern", default: [])
+        customSplitName = try c.decodeOptional(String.self, "customSplitName")
+        customSplitDescription = try c.decodeOptional(String.self, "customSplitDescription")
+        blockSplitSelections = try c.decode([String: String].self, "blockSplitSelections", default: [:])
+        savedAtMs = try c.decode(Int64.self, "savedAtMs", default: 0)
+        opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: DynamicCodingKey.self)
+        try c.encode(macrocycles, forKey: DynamicCodingKey("macrocycles"))
+        try c.encode(loops, forKey: DynamicCodingKey("loops"))
+        try c.encodeIfPresent(loopState, forKey: DynamicCodingKey("loopState"))
+        try c.encode(events, forKey: DynamicCodingKey("events"))
+        try c.encodeIfPresent(selectedSplitId, forKey: DynamicCodingKey("selectedSplitId"))
+        try c.encode(customSplitPattern, forKey: DynamicCodingKey("customSplitPattern"))
+        try c.encodeIfPresent(customSplitName, forKey: DynamicCodingKey("customSplitName"))
+        try c.encodeIfPresent(customSplitDescription, forKey: DynamicCodingKey("customSplitDescription"))
+        try c.encode(blockSplitSelections, forKey: DynamicCodingKey("blockSplitSelections"))
+        try c.encode(savedAtMs, forKey: DynamicCodingKey("savedAtMs"))
+        try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 }
 
@@ -513,6 +709,7 @@ public struct Program: Identifiable, Codable {
     public let volumeSetupPromptSeen: Bool
     public let splitTrialSeen: Bool
     public let isDraft: Bool
+    public let opaqueFields: [String: JSONValue]
 
     public init(
         id: String,
@@ -552,7 +749,8 @@ public struct Program: Identifiable, Codable {
         volumeAlertsEnabled: Bool = true,
         volumeSetupPromptSeen: Bool = false,
         splitTrialSeen: Bool = false,
-        isDraft: Bool = false
+        isDraft: Bool = false,
+        opaqueFields: [String: JSONValue] = [:]
     ) {
         self.id = id
         self.name = name
@@ -592,6 +790,102 @@ public struct Program: Identifiable, Codable {
         self.volumeSetupPromptSeen = volumeSetupPromptSeen
         self.splitTrialSeen = splitTrialSeen
         self.isDraft = isDraft
+        self.opaqueFields = opaqueFields
+    }
+
+    private static let knownCodingKeys: Set<String> = [
+        "id", "name", "description", "coverImage", "mode", "structure", "blockLabel", "macrocycles", "author",
+        "isPublic", "tags", "events", "loops", "loopState", "exerciseGoals", "goals", "trainingPhase", "volumeSystem",
+        "autoVolumeEnabled", "startDay", "weekDays", "selectedSplitId", "customSplitPattern", "customSplitName",
+        "customSplitDescription", "blockSplitSelections", "structureTemplateId", "timelineStartDate", "calendarization",
+        "simpleProgramKind", "pausedCyclicSnapshot", "keyDates", "volumeRecommendations", "athleteProfileScore",
+        "volumeAlertsEnabled", "volumeSetupPromptSeen", "splitTrialSeen", "isDraft",
+    ]
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: DynamicCodingKey.self)
+        id = try c.decode(String.self, "id")
+        name = try c.decode(String.self, "name")
+        description = try c.decodeOptional(String.self, "description")
+        coverImage = try c.decodeOptional(String.self, "coverImage")
+        mode = try c.decode(ProgramMode.self, "mode", default: .HYPERTROPHY)
+        structure = try c.decode(ProgramStructure.self, "structure", default: .SIMPLE)
+        blockLabel = try c.decodeOptional(String.self, "blockLabel")
+        macrocycles = try c.decode([Macrocycle].self, "macrocycles", default: [])
+        author = try c.decodeOptional(String.self, "author")
+        isPublic = try c.decode(Bool.self, "isPublic", default: false)
+        tags = try c.decode([String].self, "tags", default: [])
+        events = try c.decode([ProgramEvent].self, "events", default: [])
+        loops = try c.decode([Loop].self, "loops", default: [])
+        loopState = try c.decodeOptional(LoopState.self, "loopState")
+        exerciseGoals = try c.decode([String: Double].self, "exerciseGoals", default: [:])
+        goals = try c.decodeOptional(ProgramGoals.self, "goals")
+        trainingPhase = try c.decodeOptional(TrainingPhase.self, "trainingPhase")
+        volumeSystem = try c.decodeOptional(VolumeSystem.self, "volumeSystem")
+        autoVolumeEnabled = try c.decode(Bool.self, "autoVolumeEnabled", default: false)
+        startDay = try c.decodeOptional(Int.self, "startDay")
+        weekDays = try c.decodeOptional(Int.self, "weekDays")
+        selectedSplitId = try c.decodeOptional(String.self, "selectedSplitId")
+        customSplitPattern = try c.decode([String].self, "customSplitPattern", default: [])
+        customSplitName = try c.decodeOptional(String.self, "customSplitName")
+        customSplitDescription = try c.decodeOptional(String.self, "customSplitDescription")
+        blockSplitSelections = try c.decode([String: String].self, "blockSplitSelections", default: [:])
+        structureTemplateId = try c.decodeOptional(String.self, "structureTemplateId")
+        timelineStartDate = try c.decodeOptional(String.self, "timelineStartDate")
+        calendarization = try c.decodeOptional(ProgramCalendarization.self, "calendarization")
+        simpleProgramKind = try c.decode(SimpleProgramKind.self, "simpleProgramKind", default: .cyclic)
+        pausedCyclicSnapshot = try c.decodeOptional(SimpleProgramSnapshot.self, "pausedCyclicSnapshot")
+        keyDates = try c.decode([ProgramKeyDate].self, "keyDates", default: [])
+        volumeRecommendations = try c.decode([VolumeRecommendation].self, "volumeRecommendations", default: [])
+        athleteProfileScore = try c.decodeOptional(AthleteProfileScore.self, "athleteProfileScore")
+        volumeAlertsEnabled = try c.decode(Bool.self, "volumeAlertsEnabled", default: true)
+        volumeSetupPromptSeen = try c.decode(Bool.self, "volumeSetupPromptSeen", default: false)
+        splitTrialSeen = try c.decode(Bool.self, "splitTrialSeen", default: false)
+        isDraft = try c.decode(Bool.self, "isDraft", default: false)
+        opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: DynamicCodingKey.self)
+        try c.encode(id, forKey: DynamicCodingKey("id"))
+        try c.encode(name, forKey: DynamicCodingKey("name"))
+        try c.encodeIfPresent(description, forKey: DynamicCodingKey("description"))
+        try c.encodeIfPresent(coverImage, forKey: DynamicCodingKey("coverImage"))
+        try c.encode(mode, forKey: DynamicCodingKey("mode"))
+        try c.encode(structure, forKey: DynamicCodingKey("structure"))
+        try c.encodeIfPresent(blockLabel, forKey: DynamicCodingKey("blockLabel"))
+        try c.encode(macrocycles, forKey: DynamicCodingKey("macrocycles"))
+        try c.encodeIfPresent(author, forKey: DynamicCodingKey("author"))
+        try c.encode(isPublic, forKey: DynamicCodingKey("isPublic"))
+        try c.encode(tags, forKey: DynamicCodingKey("tags"))
+        try c.encode(events, forKey: DynamicCodingKey("events"))
+        try c.encode(loops, forKey: DynamicCodingKey("loops"))
+        try c.encodeIfPresent(loopState, forKey: DynamicCodingKey("loopState"))
+        try c.encode(exerciseGoals, forKey: DynamicCodingKey("exerciseGoals"))
+        try c.encodeIfPresent(goals, forKey: DynamicCodingKey("goals"))
+        try c.encodeIfPresent(trainingPhase, forKey: DynamicCodingKey("trainingPhase"))
+        try c.encodeIfPresent(volumeSystem, forKey: DynamicCodingKey("volumeSystem"))
+        try c.encode(autoVolumeEnabled, forKey: DynamicCodingKey("autoVolumeEnabled"))
+        try c.encodeIfPresent(startDay, forKey: DynamicCodingKey("startDay"))
+        try c.encodeIfPresent(weekDays, forKey: DynamicCodingKey("weekDays"))
+        try c.encodeIfPresent(selectedSplitId, forKey: DynamicCodingKey("selectedSplitId"))
+        try c.encode(customSplitPattern, forKey: DynamicCodingKey("customSplitPattern"))
+        try c.encodeIfPresent(customSplitName, forKey: DynamicCodingKey("customSplitName"))
+        try c.encodeIfPresent(customSplitDescription, forKey: DynamicCodingKey("customSplitDescription"))
+        try c.encode(blockSplitSelections, forKey: DynamicCodingKey("blockSplitSelections"))
+        try c.encodeIfPresent(structureTemplateId, forKey: DynamicCodingKey("structureTemplateId"))
+        try c.encodeIfPresent(timelineStartDate, forKey: DynamicCodingKey("timelineStartDate"))
+        try c.encodeIfPresent(calendarization, forKey: DynamicCodingKey("calendarization"))
+        try c.encode(simpleProgramKind, forKey: DynamicCodingKey("simpleProgramKind"))
+        try c.encodeIfPresent(pausedCyclicSnapshot, forKey: DynamicCodingKey("pausedCyclicSnapshot"))
+        try c.encode(keyDates, forKey: DynamicCodingKey("keyDates"))
+        try c.encode(volumeRecommendations, forKey: DynamicCodingKey("volumeRecommendations"))
+        try c.encodeIfPresent(athleteProfileScore, forKey: DynamicCodingKey("athleteProfileScore"))
+        try c.encode(volumeAlertsEnabled, forKey: DynamicCodingKey("volumeAlertsEnabled"))
+        try c.encode(volumeSetupPromptSeen, forKey: DynamicCodingKey("volumeSetupPromptSeen"))
+        try c.encode(splitTrialSeen, forKey: DynamicCodingKey("splitTrialSeen"))
+        try c.encode(isDraft, forKey: DynamicCodingKey("isDraft"))
+        try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 
     public func copy(
@@ -632,7 +926,8 @@ public struct Program: Identifiable, Codable {
         volumeAlertsEnabled: Bool? = nil,
         volumeSetupPromptSeen: Bool? = nil,
         splitTrialSeen: Bool? = nil,
-        isDraft: Bool? = nil
+        isDraft: Bool? = nil,
+        opaqueFields: [String: JSONValue]? = nil
     ) -> Program {
         Program(
             id: id ?? self.id,
@@ -672,7 +967,8 @@ public struct Program: Identifiable, Codable {
             volumeAlertsEnabled: volumeAlertsEnabled ?? self.volumeAlertsEnabled,
             volumeSetupPromptSeen: volumeSetupPromptSeen ?? self.volumeSetupPromptSeen,
             splitTrialSeen: splitTrialSeen ?? self.splitTrialSeen,
-            isDraft: isDraft ?? self.isDraft
+            isDraft: isDraft ?? self.isDraft,
+            opaqueFields: opaqueFields ?? self.opaqueFields
         )
     }
 
@@ -692,6 +988,80 @@ public struct Program: Identifiable, Codable {
 // ─── Program Computed Properties ──────────────────────────────────────────────
 
 public extension Program {
+    /// Keeps the recipe snapshot authoritative while marking a locally edited
+    /// recipe-backed session as an occurrence-scoped override for Android.
+    func recordingManualSessionOverride(
+        session: Session,
+        weekId: String,
+        weekOccurrence: Int? = nil,
+        createdAtMs: Int64 = Int64(Date().timeIntervalSince1970 * 1000)
+    ) -> Program {
+        guard let sourceRecipe = opaqueFields["sourceRecipe"], sourceRecipe != .null else { return self }
+
+        var fields = opaqueFields
+        var overrides: [JSONValue]
+        switch fields["manualSessionOverrides"] {
+        case .some(.array(let existing)):
+            overrides = existing
+        case nil, .some(.null):
+            overrides = []
+        default:
+            // Do not overwrite an unexpected future representation.
+            return self
+        }
+
+        let recipeDayId: JSONValue? = {
+            guard let value = session.opaqueFields["recipeDayId"], case .string = value else { return nil }
+            return value
+        }()
+        let cycleNumber: Int64? = {
+            guard case .some(.object(let runState)) = fields["runState"],
+                  case .some(.integer(let value)) = runState["cycleNumber"] else { return nil }
+            return value
+        }()
+        if let index = overrides.firstIndex(where: { value in
+            guard case .object(let object) = value,
+                  object["sessionId"] == .string(session.id) else { return false }
+            return object["scope"] == nil || object["scope"] == .string("SESSION")
+        }), case .object(var existing) = overrides[index] {
+            if existing["weekId"] == nil || existing["weekId"] == .null {
+                existing["weekId"] = .string(weekId)
+            }
+            if (existing["weekOccurrence"] == nil || existing["weekOccurrence"] == .null), let weekOccurrence {
+                existing["weekOccurrence"] = .integer(Int64(weekOccurrence))
+            }
+            if (existing["cycleNumber"] == nil || existing["cycleNumber"] == .null), let cycleNumber {
+                existing["cycleNumber"] = .integer(cycleNumber)
+            }
+            if (existing["recipeDayId"] == nil || existing["recipeDayId"] == .null),
+               let recipeDayId {
+                existing["recipeDayId"] = recipeDayId
+            }
+            overrides[index] = .object(existing)
+        } else {
+            var marker: [String: JSONValue] = [
+                "sessionId": .string(session.id),
+                "weekId": .string(weekId),
+                "scope": .string("SESSION"),
+                "reason": .string("Edición local; receta fuente conservada"),
+                "createdAtMs": .integer(createdAtMs),
+            ]
+            if let weekOccurrence {
+                marker["weekOccurrence"] = .integer(Int64(weekOccurrence))
+            }
+            if let cycleNumber {
+                marker["cycleNumber"] = .integer(cycleNumber)
+            }
+            if let recipeDayId {
+                marker["recipeDayId"] = recipeDayId
+            }
+            overrides.append(.object(marker))
+        }
+
+        fields["manualSessionOverrides"] = .array(overrides)
+        return copy(opaqueFields: fields)
+    }
+
     var totalBlockCount: Int {
         macrocycles.reduce(0) { $0 + $1.blocks.count }
     }
@@ -769,7 +1139,9 @@ public extension Program {
                                             loopId: nil,
                                             startDate: week.startDate,
                                             endDate: week.endDate,
-                                            trainingDayDates: week.trainingDayDates
+                                            trainingDayDates: week.trainingDayDates,
+                                            progressionIndex: week.progressionIndex,
+                                            opaqueFields: week.opaqueFields
                                         )
                                     }
                                     return week
@@ -1042,13 +1414,21 @@ extension Macrocycle {
 
 extension Block {
     public func copy(id: String? = nil, name: String? = nil, mesocycles: [Mesocycle]? = nil) -> Block {
-        Block(id: id ?? self.id, name: name ?? self.name, mesocycles: mesocycles ?? self.mesocycles)
+        Block(
+            id: id ?? self.id,
+            name: name ?? self.name,
+            description: description,
+            mesocycles: mesocycles ?? self.mesocycles,
+            goal: goal,
+            progressionScheme: progressionScheme,
+            opaqueFields: opaqueFields
+        )
     }
 }
 
 extension Mesocycle {
     public func copy(id: String? = nil, name: String? = nil, goal: MesocycleGoal? = nil, weeks: [ProgramWeek]? = nil) -> Mesocycle {
-        Mesocycle(id: id ?? self.id, name: name ?? self.name, goal: goal ?? self.goal, weeks: weeks ?? self.weeks)
+        Mesocycle(id: id ?? self.id, name: name ?? self.name, goal: goal ?? self.goal, customGoal: customGoal, weeks: weeks ?? self.weeks)
     }
 }
 

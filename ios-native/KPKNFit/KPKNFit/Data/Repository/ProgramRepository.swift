@@ -774,43 +774,26 @@ private func currentDayOfWeek() -> Int {
 
 // ─── Program Extensions scoped to repo ────────────────────────────────────────
 
-private extension Program {
+extension Program {
     func upsertSessionInWeek(
         weekId: String,
         macroIndex: Int,
         mesoIndex: Int,
-        session: Session
+        session: Session,
+        createdAtMs: Int64 = Int64(Date().timeIntervalSince1970 * 1000)
     ) -> Program? {
         var changed = false
-        var globalMesoIndex = 0
+        var targetWeekOccurrence: Int?
         let updatedMacrocycles = macrocycles.enumerated().map { currentMacroIndex, macro in
-            let updatedBlocks = macro.blocks.enumerated().map { _, block in
+            var mesoOffset = 0
+            let updatedBlocks = macro.blocks.map { block in
                 let updatedMesocycles = block.mesocycles.enumerated().map { currentMesoIndex, meso in
-                    if currentMacroIndex != macroIndex || currentMesoIndex != mesoIndex {
-                        return Mesocycle(
-                            id: meso.id,
-                            name: meso.name,
-                            goal: meso.goal,
-                            customGoal: meso.customGoal,
-                            weeks: meso.weeks
-                        )
-                    }
+                    guard currentMacroIndex == macroIndex,
+                          mesoOffset + currentMesoIndex == mesoIndex else { return meso }
                     let updatedWeeks = meso.weeks.map { week in
-                        if week.id != weekId {
-                            return ProgramWeek(
-                                id: week.id,
-                                name: week.name,
-                                description: week.description,
-                                sessions: week.sessions,
-                                variant: week.variant,
-                                isLoopWeek: week.isLoopWeek,
-                                loopId: week.loopId,
-                                startDate: week.startDate,
-                                endDate: week.endDate,
-                                trainingDayDates: week.trainingDayDates
-                            )
-                        }
+                        guard week.id == weekId else { return week }
                         changed = true
+                        targetWeekOccurrence = week.progressionIndex
                         let replaced = week.sessions.map { existing in
                             if existing.id == session.id { return session }
                             return existing
@@ -831,74 +814,29 @@ private extension Program {
                             loopId: week.loopId,
                             startDate: week.startDate,
                             endDate: week.endDate,
-                            trainingDayDates: week.trainingDayDates
+                            trainingDayDates: week.trainingDayDates,
+                            progressionIndex: week.progressionIndex,
+                            opaqueFields: week.opaqueFields
                         )
                     }
-                    globalMesoIndex += 1
-                    return Mesocycle(
-                        id: meso.id,
-                        name: meso.name,
-                        goal: meso.goal,
-                        customGoal: meso.customGoal,
-                        weeks: updatedWeeks
-                    )
+                    return meso.copy(weeks: updatedWeeks)
                 }
-                return Block(
-                    id: block.id,
-                    name: block.name,
-                    description: block.description,
-                    mesocycles: updatedMesocycles
-                )
+                mesoOffset += block.mesocycles.count
+                return block.copy(mesocycles: updatedMesocycles)
             }
-            return Macrocycle(
-                id: macro.id,
-                name: macro.name,
-                blocks: updatedBlocks
-            )
+            return macro.copy(blocks: updatedBlocks)
         }
-        return changed ? Program(
-            id: self.id,
-            name: self.name,
-            description: self.description,
-            coverImage: self.coverImage,
-            mode: self.mode,
-            structure: self.structure,
-            blockLabel: self.blockLabel,
-            macrocycles: updatedMacrocycles,
-            author: self.author,
-            isPublic: self.isPublic,
-            tags: self.tags,
-            events: self.events,
-            loops: self.loops,
-            loopState: self.loopState,
-            exerciseGoals: self.exerciseGoals,
-            goals: self.goals,
-            trainingPhase: self.trainingPhase,
-            volumeSystem: self.volumeSystem,
-            autoVolumeEnabled: self.autoVolumeEnabled,
-            startDay: self.startDay,
-            weekDays: self.weekDays,
-            selectedSplitId: self.selectedSplitId,
-            customSplitPattern: self.customSplitPattern,
-            customSplitName: self.customSplitName,
-            customSplitDescription: self.customSplitDescription,
-            blockSplitSelections: self.blockSplitSelections,
-            structureTemplateId: self.structureTemplateId,
-            timelineStartDate: self.timelineStartDate,
-            calendarization: self.calendarization,
-            simpleProgramKind: self.simpleProgramKind,
-            pausedCyclicSnapshot: self.pausedCyclicSnapshot,
-            keyDates: self.keyDates,
-            volumeRecommendations: self.volumeRecommendations,
-            athleteProfileScore: self.athleteProfileScore,
-            volumeAlertsEnabled: self.volumeAlertsEnabled,
-            volumeSetupPromptSeen: self.volumeSetupPromptSeen,
-            splitTrialSeen: self.splitTrialSeen,
-            isDraft: self.isDraft
-        ) : nil
+        guard changed else { return nil }
+        let updated = copy(macrocycles: updatedMacrocycles)
+        return updated.recordingManualSessionOverride(
+            session: session,
+            weekId: weekId,
+            weekOccurrence: targetWeekOccurrence,
+            createdAtMs: createdAtMs
+        )
     }
 
-    func normalizeMainSessions(_ sessions: [Session]) -> [Session] {
+    private func normalizeMainSessions(_ sessions: [Session]) -> [Session] {
         var seenIds = Set<String>()
         let distinct = sessions.filter { seenIds.insert($0.id).inserted }
         var mainByDay = [Int: String]()
@@ -953,7 +891,8 @@ private extension Program {
                 supersetGroups: session.supersetGroups,
                 lastModifiedAtMs: session.lastModifiedAtMs,
                 targetDurationMinutes: session.targetDurationMinutes,
-                volumeAdvances: session.volumeAdvances
+                volumeAdvances: session.volumeAdvances,
+                opaqueFields: session.opaqueFields
             )
         }
     }

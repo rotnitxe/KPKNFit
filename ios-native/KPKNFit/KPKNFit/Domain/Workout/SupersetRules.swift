@@ -59,7 +59,8 @@ extension Exercise {
             defaultContextProfileIdV3: defaultContextProfileIdV3,
             mobilitySeries: mobilitySeries,
             timeStrategy: timeStrategy,
-            targetDurationMinutes: targetDurationMinutes
+            targetDurationMinutes: targetDurationMinutes,
+            opaqueFields: opaqueFields
         )
     }
 }
@@ -141,7 +142,7 @@ public enum SupersetRules {
 
         return session.copy(
             exercises: session.exercises.map(updateExercise),
-            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes) },
+            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes, opaqueFields: $0.opaqueFields) },
             supersetGroups: normalizedGroups.filter { validGroupIds.contains($0.id) }
         )
     }
@@ -199,7 +200,7 @@ public enum SupersetRules {
 
         var resultSession = session.copy(
             exercises: session.exercises.filter { !targetIds.contains($0.id) },
-            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.filter { !targetIds.contains($0.id) }, color: $0.color, targetDurationMinutes: $0.targetDurationMinutes) }
+            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.filter { !targetIds.contains($0.id) }, color: $0.color, targetDurationMinutes: $0.targetDurationMinutes, opaqueFields: $0.opaqueFields) }
         )
 
         let requestedAnchorPartId = anchorPartId.flatMap { requestedId in
@@ -234,7 +235,7 @@ public enum SupersetRules {
                         safeIdx = mutableP.count
                     }
                     mutableP.insert(contentsOf: updatedMembers, at: safeIdx)
-                    return SessionPart(id: part.id, name: part.name, exercises: mutableP, color: part.color, targetDurationMinutes: part.targetDurationMinutes)
+                    return SessionPart(id: part.id, name: part.name, exercises: mutableP, color: part.color, targetDurationMinutes: part.targetDurationMinutes, opaqueFields: part.opaqueFields)
                 }
             )
         }
@@ -337,7 +338,7 @@ public enum SupersetRules {
 
         return normalizeSession(session: session.copy(
             exercises: session.exercises.map(updateExercise),
-            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes) },
+            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes, opaqueFields: $0.opaqueFields) },
             supersetGroups: session.supersetGroups.map { group in
                 guard group.id == groupId else { return group }
                 return SupersetGroup(
@@ -426,7 +427,7 @@ public enum SupersetRules {
 
         return normalizeSession(session: session.copy(
             exercises: session.exercises.map(updateExercise),
-            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes) },
+            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes, opaqueFields: $0.opaqueFields) },
             supersetGroups: updatedGroups
         ))
     }
@@ -448,7 +449,7 @@ public enum SupersetRules {
 
         return session.copy(
             exercises: session.exercises.map(updateExercise),
-            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes) },
+            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: $0.exercises.map(updateExercise), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes, opaqueFields: $0.opaqueFields) },
             supersetGroups: session.supersetGroups.filter { $0.id != groupId }
         )
     }
@@ -469,7 +470,7 @@ public enum SupersetRules {
 
         let sessionWithout = session.copy(
             exercises: withoutGroup(exercises: session.exercises),
-            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: withoutGroup(exercises: $0.exercises), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes) }
+            parts: session.parts.map { SessionPart(id: $0.id, name: $0.name, exercises: withoutGroup(exercises: $0.exercises), color: $0.color, targetDurationMinutes: $0.targetDurationMinutes, opaqueFields: $0.opaqueFields) }
         )
 
         func insertInto(exercises: [Exercise]) -> [Exercise] {
@@ -485,7 +486,7 @@ public enum SupersetRules {
             return sessionWithout.copy(
                 parts: sessionWithout.parts.map { part in
                     guard part.id == targetPartId else { return part }
-                    return SessionPart(id: part.id, name: part.name, exercises: insertInto(exercises: part.exercises), color: part.color, targetDurationMinutes: part.targetDurationMinutes)
+                    return SessionPart(id: part.id, name: part.name, exercises: insertInto(exercises: part.exercises), color: part.color, targetDurationMinutes: part.targetDurationMinutes, opaqueFields: part.opaqueFields)
                 }
             )
         }

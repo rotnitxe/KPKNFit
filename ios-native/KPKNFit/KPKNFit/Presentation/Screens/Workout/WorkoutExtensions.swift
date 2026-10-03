@@ -488,7 +488,8 @@ extension Exercise {
         defaultContextProfileIdV3: String? = nil,
         mobilitySeries: [MobilitySeries]? = nil,
         timeStrategy: TimeStrategy? = nil,
-        targetDurationMinutes: Int? = nil
+        targetDurationMinutes: Int? = nil,
+        opaqueFields: [String: JSONValue]? = nil
     ) -> Exercise {
         Exercise(
             id: id ?? self.id,
@@ -539,7 +540,8 @@ extension Exercise {
             defaultContextProfileIdV3: defaultContextProfileIdV3 ?? self.defaultContextProfileIdV3,
             mobilitySeries: mobilitySeries ?? self.mobilitySeries,
             timeStrategy: timeStrategy ?? self.timeStrategy,
-            targetDurationMinutes: targetDurationMinutes ?? self.targetDurationMinutes
+            targetDurationMinutes: targetDurationMinutes ?? self.targetDurationMinutes,
+            opaqueFields: opaqueFields ?? self.opaqueFields
         )
     }
 
@@ -685,7 +687,8 @@ extension ExerciseSet {
         leftTarget: UnilateralTarget? = nil,
         rightTarget: UnilateralTarget? = nil,
         restBetweenSides: Int? = nil,
-        plannedIntensityTechniques: [PlannedTechnique]? = nil
+        plannedIntensityTechniques: [PlannedTechnique]? = nil,
+        opaqueFields: [String: JSONValue]? = nil
     ) -> ExerciseSet {
         ExerciseSet(
             id: id ?? self.id,
@@ -734,7 +737,8 @@ extension ExerciseSet {
             leftTarget: leftTarget ?? self.leftTarget,
             rightTarget: rightTarget ?? self.rightTarget,
             restBetweenSides: restBetweenSides ?? self.restBetweenSides,
-            plannedIntensityTechniques: plannedIntensityTechniques ?? self.plannedIntensityTechniques
+            plannedIntensityTechniques: plannedIntensityTechniques ?? self.plannedIntensityTechniques,
+            opaqueFields: opaqueFields ?? self.opaqueFields
         )
     }
 }
@@ -787,14 +791,16 @@ extension SessionPart {
         name: String? = nil,
         exercises: [Exercise]? = nil,
         color: String? = nil,
-        targetDurationMinutes: Int? = nil
+        targetDurationMinutes: Int? = nil,
+        opaqueFields: [String: JSONValue]? = nil
     ) -> SessionPart {
         SessionPart(
             id: id ?? self.id,
             name: name ?? self.name,
             exercises: exercises ?? self.exercises,
             color: color ?? self.color,
-            targetDurationMinutes: targetDurationMinutes ?? self.targetDurationMinutes
+            targetDurationMinutes: targetDurationMinutes ?? self.targetDurationMinutes,
+            opaqueFields: opaqueFields ?? self.opaqueFields
         )
     }
 }

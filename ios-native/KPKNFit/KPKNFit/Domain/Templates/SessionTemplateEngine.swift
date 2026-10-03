@@ -276,7 +276,8 @@ fileprivate extension SessionPart {
             name: name,
             exercises: exercises,
             color: color,
-            targetDurationMinutes: targetDurationMinutes
+            targetDurationMinutes: targetDurationMinutes,
+            opaqueFields: opaqueFields
         )
     }
 }
@@ -358,7 +359,8 @@ fileprivate extension Exercise {
             defaultContextProfileIdV3: defaultContextProfileIdV3,
             mobilitySeries: mobilitySeries,
             timeStrategy: timeStrategy,
-            targetDurationMinutes: targetDurationMinutes
+            targetDurationMinutes: targetDurationMinutes,
+            opaqueFields: opaqueFields
         )
     }
 }
