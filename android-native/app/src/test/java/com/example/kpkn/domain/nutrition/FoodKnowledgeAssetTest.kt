@@ -1,6 +1,8 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.data.food.CHILEAN_FOODS
 import com.example.kpkn.data.food.FoodKnowledgeStore
+import com.example.kpkn.data.food.GENERIC_FOODS
 import com.example.kpkn.data.food.findStaticFoodById
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -36,7 +38,7 @@ class FoodKnowledgeAssetTest {
     fun `the asset is version 1 with exactly the sections this build reads`() {
         assertEquals(FOOD_KNOWLEDGE_VERSION, root.getValue("version").jsonPrimitive.int)
         assertEquals(
-            setOf("protectedPhrases", "typos", "synonyms", "householdUnits", "containers", "utensils", "densities"),
+            setOf("protectedPhrases", "typos", "synonyms", "householdUnits", "containers", "utensils", "densities", "dishCompositions"),
             root.getValue("sections").jsonObject.keys,
         )
         assertEquals(setOf("version", "sections"), root.keys)
@@ -163,12 +165,99 @@ class FoodKnowledgeAssetTest {
         assertTrue(snapshot.densities.fallbackCategory in snapshot.densities.gramsPerMl)
     }
 
+    // ─── dishCompositions ───────────────────────────────────────────────────────────────────────────────────────────
+
+    private val dishes get() = snapshot.dishCompositions.dishes
+
+    private fun tidy(text: String) = text.trim().lowercase().replace(Regex("""\s+"""), " ")
+
+    @Test
+    fun `dish names and foods are lower case with single spaces, and no dish name repeats`() {
+        dishes.forEach { dish ->
+            assertEquals("dish '${dish.name}'", tidy(dish.name), dish.name)
+            dish.components.forEach { assertEquals("${dish.name}: food '${it.food}'", tidy(it.food), it.food) }
+        }
+        val names = dishes.map { it.name }
+        assertEquals("a repeated name is a dish the parser never reaches", names.distinct(), names)
+    }
+
+    @Test
+    fun `every dish has a base and an accompaniment, and its proportions add up to 1`() {
+        dishes.forEach { dish ->
+            assertTrue("${dish.name}: a base and at least one accompaniment", dish.components.size >= 2)
+            dish.components.forEach {
+                assertTrue("${dish.name}: ${it.food} ${it.proportion}", it.proportion > 0.0 && it.proportion <= 1.0)
+            }
+            val total = dish.components.sumOf { it.proportion }
+            assertEquals("${dish.name}: the proportions", 1.0, total, DishCompositionsKnowledge.PROPORTION_TOLERANCE)
+        }
+    }
+
+    @Test
+    fun `the parser finds every dish by its own name and reads the components of the table`() {
+        // The snapshot the loader installs, so that it is the asset's table that the parser reads (an equal default stays in force).
+        FoodKnowledge.install(snapshot)
+        try {
+            dishes.forEach { dish ->
+                val found = FoodCombinationParser.parse(dish.name)
+                assertTrue("${dish.name} is not found as a known dish", found.isKnownDish)
+                assertEquals(dish.name, found.dishName)
+                val base = dish.components.first()
+                assertEquals("${dish.name}: base", base.food, found.baseFood)
+                assertEquals("${dish.name}: base proportion", base.proportion, found.baseProportion, 0.0)
+                assertEquals(
+                    "${dish.name}: accompaniments",
+                    dish.components.drop(1).map { Triple(it.food, it.proportion, it.role) },
+                    found.accompaniments.map { Triple(it.food, it.proportion, it.role) },
+                )
+            }
+        } finally {
+            FoodKnowledge.reset()
+        }
+    }
+
+    /** The share as the `sourceRecordId` of a catalog row writes it: "37 %" and "31,5 %". */
+    private fun percentText(percent: Double): String =
+        if (percent == Math.floor(percent)) percent.toLong().toString() else percent.toString().replace('.', ',')
+
+    @Test
+    fun `recipe notes say what the catalog rows say, word for word`() {
+        val notes = snapshot.dishCompositions.recipeNotes
+        assertTrue("there are recipe notes", notes.isNotEmpty())
+        notes.forEach { note ->
+            val row = checkNotNull(findStaticFoodById(note.foodId)) { "${note.foodId} is not a row of the catalog" }
+            assertEquals("${note.foodId}: a recipe estimate", "RECIPE_ESTIMATE", row.source)
+            val record = "receta: " + note.ingredients.joinToString(" + ") { "${it.profile} ${percentText(it.percent)} %" }
+            assertEquals("${note.foodId}: the record id is the note", record, row.sourceRecordId)
+            assertEquals("${note.foodId}: the shares add up to 100 %", 100.0, note.ingredients.sumOf { it.percent }, 0.11)
+            note.ingredients.forEach { ingredient ->
+                val profile = ingredient.profile
+                val kind = when {
+                    profile == "agua" -> "water"
+                    Regex("""FDC \d+""").matches(profile) -> "FDC record"
+                    findStaticFoodById(profile) != null -> "catalog row"
+                    else -> "nothing"
+                }
+                assertTrue("${note.foodId}: profile '$profile' is a catalog row, an FDC record or water", kind != "nothing")
+            }
+        }
+    }
+
+    @Test
+    fun `every recipe estimate of the static catalog has a note`() {
+        val estimates = (GENERIC_FOODS + CHILEAN_FOODS).filter { it.source == "RECIPE_ESTIMATE" }.map { it.id }
+        assertTrue("the catalog has recipe estimates", estimates.isNotEmpty())
+        assertEquals(estimates.sorted(), snapshot.dishCompositions.recipeNotes.map { it.foodId }.sorted())
+    }
+
     @Test
     fun `every food id the asset names is a row of the static catalog`() {
-        // The sections of this version name no food: the rule is for the sections that will (dish compositions, aliases, profiles).
+        // Only the recipe notes name a catalog row by its id so far (a dish names its foods in words and the resolver finds the row): the
+        // rule is for every section that will (aliases, profiles).
         val named = foodIdsIn(root)
         val unknown = named.filter { findStaticFoodById(it) == null }
         assertTrue("unknown food ids in the asset: $unknown", unknown.isEmpty())
+        assertTrue("the walker sees the recipe notes", named.containsAll(snapshot.dishCompositions.recipeNotes.map { it.foodId }))
         // The walker itself: a `foodId` and each entry of a `foodIds` are collected wherever they sit.
         val sample = Json.parseToJsonElement("""{"a": [{"foodId": "gen005"}, {"b": {"foodIds": ["gen001", "no_such_food"]}}]}""")
         assertEquals(listOf("gen005", "gen001", "no_such_food"), foodIdsIn(sample))
@@ -236,7 +325,8 @@ class FoodKnowledgeAssetTest {
     @Test
     fun `parse rejects a missing, an unknown or a misspelt key`() {
         assertRejected("missing section", withoutSection("densities"), "densities")
-        assertRejected("unknown section", withSection("dishCompositions", obj()), "dishCompositions")
+        assertRejected("missing dish section", withoutSection("dishCompositions"), "dishCompositions")
+        assertRejected("unknown section", withSection("notASection", obj()), "notASection")
         assertRejected("misspelt key", withSection("utensils", section("utensils").with("defaultMls", obj())), "utensils")
         val units = section("householdUnits")
         assertRejected("missing field", withSection("householdUnits", JsonObject(units - "familyDefaultGrams")), "familyDefaultGrams")
@@ -288,6 +378,67 @@ class FoodKnowledgeAssetTest {
         assertRejected("unknown fallback", withDensities("fallbackCategory", str("PLASMA")), "fallbackCategory")
         assertRejected("a category is missing", withDensities("gramsPerMl", JsonObject(gramsPerMl - "FAT")), "gramsPerMl")
         assertRejected("a category too many", withDensities("gramsPerMl", gramsPerMl.with("PLASMA", num(1.0))), "gramsPerMl")
+    }
+
+    @Test
+    fun `parse rejects dishes that repeat a name, have no component, name no role or do not add up to 1`() {
+        val section = section("dishCompositions")
+        fun component(food: String = "pan", proportion: Number = 1.0, role: String = "STARCH") =
+            obj("food" to str(food), "proportion" to num(proportion), "role" to str(role))
+        fun dish(name: String, vararg components: JsonObject) = obj("name" to str(name), "components" to arr(*components))
+        fun withDishes(vararg dishes: JsonObject) = withSection("dishCompositions", section.with("dishes", JsonArray(dishes.toList())))
+
+        val bread = dish("pan con palta", component("pan", 0.4), component("palta", 0.6, "SIDE"))
+        assertEquals(listOf("pan con palta"), parseFoodKnowledge(withDishes(bread)).dishCompositions.dishes.map { it.name })
+        assertRejected("repeated name", withDishes(bread, bread), "dishes[1].name")
+        assertRejected("blank name", withDishes(dish("  ", component())), "dishes[0].name")
+        assertRejected("no component", withDishes(dish("pan")), "dishes[0].components")
+        assertRejected("unknown role", withDishes(dish("pan", component(role = "BASE"))), "components[0].role")
+        assertRejected("role in lower case", withDishes(dish("pan", component(role = "starch"))), "components[0].role")
+        assertRejected("zero proportion", withDishes(dish("pan", component(proportion = 0))), "components[0].proportion")
+        assertRejected("negative proportion", withDishes(dish("pan", component(proportion = -1))), "components[0].proportion")
+        val asString = obj("food" to str("pan"), "proportion" to str("1"), "role" to str("SIDE"))
+        assertRejected("proportion as a string", withDishes(dish("pan", asString)), "proportion")
+        assertRejected("blank food", withDishes(dish("pan", component(food = " "))), "components[0].food")
+        val short = dish("pan", component(proportion = 0.5), component("palta", 0.4))
+        val over = dish("pan", component(proportion = 0.6), component("palta", 0.5))
+        assertRejected("proportions that fall short", withDishes(short), "add up to 1")
+        assertRejected("proportions that overshoot", withDishes(over), "add up to 1")
+        // The tolerance is 0.01 on either side of 1.
+        parseFoodKnowledge(withDishes(dish("pan", component(proportion = 0.5), component("palta", 0.49))))
+        parseFoodKnowledge(withDishes(dish("pan", component(proportion = 0.5), component("palta", 0.51))))
+        assertRejected("a misspelt key", withDishes(obj("name" to str("pan"), "component" to arr(component()))), "dishes[0]")
+        val noted = obj("name" to str("pan"), "components" to arr(component()), "note" to str("x"))
+        assertRejected("an extra key of a dish", withDishes(noted), "note")
+        val shared = obj("food" to str("pan"), "proportion" to num(1), "role" to str("SIDE"), "share" to num(1))
+        assertRejected("an extra key of a component", withDishes(dish("pan", shared)), "share")
+        val roleless = obj("food" to str("pan"), "proportion" to num(1))
+        assertRejected("a missing key of a component", withDishes(dish("pan", roleless)), "role")
+        assertRejected("no dishes key", withSection("dishCompositions", JsonObject(section - "dishes")), "dishes")
+        assertRejected("dishes that are not a list", withSection("dishCompositions", section.with("dishes", obj())), "dishes")
+    }
+
+    @Test
+    fun `parse rejects recipe notes that repeat a row, have no ingredient or hold a share out of range`() {
+        val section = section("dishCompositions")
+        fun ingredient(name: String = "caldo", profile: String = "agua", percent: Number = 100) =
+            obj("name" to str(name), "profile" to str(profile), "percent" to num(percent))
+        fun note(foodId: String, vararg ingredients: JsonObject) = obj("foodId" to str(foodId), "ingredients" to arr(*ingredients))
+        fun withNotes(vararg notes: JsonObject) = withSection("dishCompositions", section.with("recipeNotes", JsonArray(notes.toList())))
+
+        val parsed = parseFoodKnowledge(withNotes(note("gen186", ingredient())))
+        assertEquals(listOf("gen186"), parsed.dishCompositions.recipeNotes.map { it.foodId })
+        assertEquals(emptyList<RecipeNote>(), parseFoodKnowledge(withNotes()).dishCompositions.recipeNotes)
+        assertRejected("repeated row", withNotes(note("gen186", ingredient()), note("gen186", ingredient())), "recipeNotes[1].foodId")
+        assertRejected("blank row", withNotes(note(" ", ingredient())), "recipeNotes[0].foodId")
+        assertRejected("no ingredient", withNotes(note("gen186")), "recipeNotes[0].ingredients")
+        assertRejected("zero share", withNotes(note("gen186", ingredient(percent = 0))), "ingredients[0].percent")
+        assertRejected("share above 100", withNotes(note("gen186", ingredient(percent = 101))), "ingredients[0].percent")
+        assertRejected("blank profile", withNotes(note("gen186", ingredient(profile = ""))), "ingredients[0].profile")
+        assertRejected("blank name", withNotes(note("gen186", ingredient(name = " "))), "ingredients[0].name")
+        val grams = obj("name" to str("a"), "profile" to str("agua"), "percent" to num(1), "grams" to num(1))
+        assertRejected("an extra key", withNotes(note("gen186", grams)), "grams")
+        assertRejected("no recipeNotes key", withSection("dishCompositions", JsonObject(section - "recipeNotes")), "recipeNotes")
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────────────────────────────────────────────

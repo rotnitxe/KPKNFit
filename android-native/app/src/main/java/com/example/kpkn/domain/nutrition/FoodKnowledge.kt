@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import java.util.regex.PatternSyntaxException
+import kotlin.math.abs
 
 /**
  * Version of the knowledge asset (`assets/food_data/food_knowledge_v1.json`) this build reads. A newer or older file is rejected whole
@@ -111,6 +112,49 @@ data class DensitiesKnowledge(
 )
 
 /**
+ * One food of a known dish (section `dishCompositions`): [proportion] is its share of the plate (the shares of a dish add up to 1) and
+ * [role] what it is on the plate. The first component of a dish is its base: [FoodCombinationParser] reads its food and its share, and
+ * every other component as an accompaniment, with its role. The role of a base is kept as the table had it; nothing reads it.
+ */
+data class DishComponent(val food: String, val proportion: Double, val role: FoodCombinationParser.Role)
+
+/** A dish the parser knows by name and the foods it is made of: the first component is the base, the rest are its accompaniments. */
+data class DishComposition(val name: String, val components: List<DishComponent>)
+
+/**
+ * One ingredient of a recipe note: [profile] is where its nutrient profile comes from, written as the `sourceRecordId` of the catalog row
+ * writes it (a catalog id such as "cl010", "FDC 173713", or "agua" for water), [name] says in words what the ingredient is and [percent]
+ * is its share of the weight of the dish, from 0 to 100.
+ */
+data class RecipeIngredient(val name: String, val profile: String, val percent: Double)
+
+/**
+ * The recipe behind a row of the static catalog that is a recipe estimate (its `source` is "RECIPE_ESTIMATE"), written out so that the
+ * assumption can be shown where the row is shown: [foodId] is the row and [ingredients] are the named profiles it was added up from, in
+ * the order of its `sourceRecordId`.
+ */
+data class RecipeNote(val foodId: String, val ingredients: List<RecipeIngredient>)
+
+/**
+ * The dishes [FoodCombinationParser] knows by name and what each is made of, and the notes of the catalog recipes (section
+ * `dishCompositions`).
+ *
+ * @property dishes the known dishes, in the order the parser tries them: a text takes the longest dish it holds and, between two dishes of
+ *   the same length, the one listed first. A name is matched as a whole phrase and without folding accents, so "pan con jamon" and
+ *   "pan con jamón" are two entries. The names that start with "sandwich" or "sándwich" are the known sandwiches.
+ * @property recipeNotes the recipes of the recipe estimates of the static catalog, for the UI to show later; nothing reads them yet.
+ */
+data class DishCompositionsKnowledge(
+    val dishes: List<DishComposition>,
+    val recipeNotes: List<RecipeNote>,
+) {
+    companion object {
+        /** The proportions of a dish add up to 1 within this tolerance. */
+        const val PROPORTION_TOLERANCE = 0.01
+    }
+}
+
+/**
  * The raw food knowledge of the description pipeline, immutable (WP-N13). The data lives in `assets/food_data/food_knowledge_v1.json`;
  * the Kotlin code keeps the logic and the structures derived from it (spellings, regexes, lookup sets). Every property after [version]
  * is a section of the asset, with the same name.
@@ -124,6 +168,7 @@ data class FoodKnowledgeSnapshot(
     val containers: ContainersKnowledge,
     val utensils: UtensilsKnowledge,
     val densities: DensitiesKnowledge,
+    val dishCompositions: DishCompositionsKnowledge,
 )
 
 /**
@@ -194,8 +239,10 @@ internal class KnowledgeCache<T : Any>(private val build: (FoodKnowledgeSnapshot
 /**
  * Reads the knowledge asset. Strict: an unknown [FOOD_KNOWLEDGE_VERSION], malformed JSON, a missing or unknown key, a value of the
  * wrong type, a blank string, a duplicate list entry, or a number that is not finite and greater than 0, throws
- * [IllegalArgumentException] naming the JSON path. The loader catches it and keeps the Kotlin default, so a bad asset can never
- * install half a table. (Plausible ranges, such as a density between 0.2 and 1.2, are checked by FoodKnowledgeAssetTest.)
+ * [IllegalArgumentException] naming the JSON path. So does a dish that repeats a name, has no component, names a role that is not a
+ * [FoodCombinationParser.Role] or whose proportions do not add up to 1 ([DishCompositionsKnowledge.PROPORTION_TOLERANCE]). The loader
+ * catches it and keeps the Kotlin default, so a bad asset can never install half a table. (Plausible ranges, such as a density between
+ * 0.2 and 1.2, are checked by FoodKnowledgeAssetTest.)
  */
 fun parseFoodKnowledge(json: String): FoodKnowledgeSnapshot {
     val parsed = try {
@@ -209,7 +256,9 @@ fun parseFoodKnowledge(json: String): FoodKnowledgeSnapshot {
         ?: fail("$.version", "an integer")
     require(version == FOOD_KNOWLEDGE_VERSION) { "food knowledge: unsupported version $version (this build reads $FOOD_KNOWLEDGE_VERSION)" }
     val sections = root.getValue("sections").asObject("$.sections")
-    sections.exactKeys("$.sections", "protectedPhrases", "typos", "synonyms", "householdUnits", "containers", "utensils", "densities")
+    sections.exactKeys(
+        "$.sections", "protectedPhrases", "typos", "synonyms", "householdUnits", "containers", "utensils", "densities", "dishCompositions",
+    )
     return FoodKnowledgeSnapshot(
         version = version,
         protectedPhrases = parseProtectedPhrases(sections.getValue("protectedPhrases"), "$.sections.protectedPhrases"),
@@ -219,6 +268,7 @@ fun parseFoodKnowledge(json: String): FoodKnowledgeSnapshot {
         containers = parseContainers(sections.getValue("containers"), "$.sections.containers"),
         utensils = parseUtensils(sections.getValue("utensils"), "$.sections.utensils"),
         densities = parseDensities(sections.getValue("densities"), "$.sections.densities"),
+        dishCompositions = parseDishCompositions(sections.getValue("dishCompositions"), "$.sections.dishCompositions"),
     )
 }
 
@@ -324,6 +374,62 @@ private fun parseDensities(element: JsonElement, path: String): DensitiesKnowled
         DensityRule(category(entry.getValue("category"), "$itemPath.category"), contains, words)
     }
     return DensitiesKnowledge(gramsPerMl, rules, category(obj.getValue("fallbackCategory"), "$path.fallbackCategory"))
+}
+
+private fun parseDishCompositions(element: JsonElement, path: String): DishCompositionsKnowledge {
+    val obj = element.asObject(path)
+    obj.exactKeys(path, "dishes", "recipeNotes")
+    val roles = FoodCombinationParser.Role.values()
+    val names = HashSet<String>()
+    val dishes = obj.getValue("dishes").asArray("$path.dishes").mapIndexed { index, item ->
+        val itemPath = "$path.dishes[$index]"
+        val entry = item.asObject(itemPath)
+        entry.exactKeys(itemPath, "name", "components")
+        val name = entry.getValue("name").asString("$itemPath.name")
+        if (!names.add(name)) fail("$itemPath.name", "unique (duplicate \"$name\")")
+        val componentsPath = "$itemPath.components"
+        val components = entry.getValue("components").asArray(componentsPath).mapIndexed { position, part ->
+            val partPath = "$componentsPath[$position]"
+            val component = part.asObject(partPath)
+            component.exactKeys(partPath, "food", "proportion", "role")
+            val roleName = component.getValue("role").asString("$partPath.role")
+            DishComponent(
+                food = component.getValue("food").asString("$partPath.food"),
+                proportion = component.getValue("proportion").asPositive("$partPath.proportion"),
+                role = roles.firstOrNull { it.name == roleName }
+                    ?: fail("$partPath.role", "one of ${roles.map { it.name }} (got \"$roleName\")"),
+            )
+        }
+        if (components.isEmpty()) fail(componentsPath, "a non-empty list (its first component is the base)")
+        val total = components.sumOf { it.proportion }
+        if (abs(total - 1.0) > DishCompositionsKnowledge.PROPORTION_TOLERANCE + 1e-9) {
+            fail(componentsPath, "proportions that add up to 1 (within ${DishCompositionsKnowledge.PROPORTION_TOLERANCE}; got $total)")
+        }
+        DishComposition(name, components)
+    }
+    val noted = HashSet<String>()
+    val notes = obj.getValue("recipeNotes").asArray("$path.recipeNotes").mapIndexed { index, item ->
+        val itemPath = "$path.recipeNotes[$index]"
+        val entry = item.asObject(itemPath)
+        entry.exactKeys(itemPath, "foodId", "ingredients")
+        val foodId = entry.getValue("foodId").asString("$itemPath.foodId")
+        if (!noted.add(foodId)) fail("$itemPath.foodId", "unique (duplicate \"$foodId\")")
+        val ingredients = entry.getValue("ingredients").asArray("$itemPath.ingredients").mapIndexed { position, part ->
+            val partPath = "$itemPath.ingredients[$position]"
+            val ingredient = part.asObject(partPath)
+            ingredient.exactKeys(partPath, "name", "profile", "percent")
+            val percent = ingredient.getValue("percent").asPositive("$partPath.percent")
+            if (percent > 100.0) fail("$partPath.percent", "a share of the weight, 100 at most (got $percent)")
+            RecipeIngredient(
+                name = ingredient.getValue("name").asString("$partPath.name"),
+                profile = ingredient.getValue("profile").asString("$partPath.profile"),
+                percent = percent,
+            )
+        }
+        if (ingredients.isEmpty()) fail("$itemPath.ingredients", "a non-empty list")
+        RecipeNote(foodId, ingredients)
+    }
+    return DishCompositionsKnowledge(dishes, notes)
 }
 
 private fun fail(path: String, expected: String): Nothing = throw IllegalArgumentException("food knowledge: $path must be $expected")

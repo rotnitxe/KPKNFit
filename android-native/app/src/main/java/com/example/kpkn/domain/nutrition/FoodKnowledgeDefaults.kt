@@ -1,14 +1,17 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.domain.nutrition.FoodCombinationParser.Role
+
 /**
  * The Kotlin copy of the food knowledge (WP-N13): the tables of the `protectedPhrases`, `typos`, `synonyms`, `householdUnits`, `containers`,
- * `utensils` and `densities` sections, moved here as they were from [ProtectedPhrases], [TextNormalizer], [HouseholdPortions] and
- * [SubjectivePortionEngine]. [FoodKnowledge] serves it until the loader installs `assets/food_data/food_knowledge_v1.json`, and
- * FoodKnowledgeParityTest keeps the two equal, entry by entry and in the same order, so that nothing changes whichever is in force.
- * A later increment deletes this file and the asset becomes the only copy.
+ * `utensils`, `densities` and `dishCompositions` sections, moved here as they were from [ProtectedPhrases], [TextNormalizer],
+ * [HouseholdPortions], [SubjectivePortionEngine] and [FoodCombinationParser]. [FoodKnowledge] serves it until the loader installs
+ * `assets/food_data/food_knowledge_v1.json`, and FoodKnowledgeParityTest keeps the two equal, entry by entry and in the same order, so that
+ * nothing changes whichever is in force. A later increment deletes this file and the asset becomes the only copy.
  *
- * A leaf on purpose: it reads nothing but the standard library, so building the default snapshot can never start an object that is
- * itself waiting for [FoodKnowledge]. Pure Kotlin / JVM: no Android dependency.
+ * A leaf on purpose: it reads nothing but the standard library and the roles of [FoodCombinationParser] (a plain enum: naming one starts no
+ * object), so building the default snapshot can never start an object that is itself waiting for [FoodKnowledge]. Pure Kotlin / JVM: no
+ * Android dependency.
  */
 internal object FoodKnowledgeDefaults {
 
@@ -353,6 +356,394 @@ internal object FoodKnowledgeDefaults {
 
     const val DENSITY_FALLBACK: String = "MIXED"
 
+    // ─── dishCompositions (FoodCombinationParser) ──────────────────────────────────────────────────────────────────
+
+    private fun dish(name: String, vararg components: DishComponent) = DishComposition(name, components.toList())
+
+    /**
+     * The dishes the parser knows by name, as `FoodCombinationParser.KNOWN_DISHES` had them: the first component of a dish is its base and
+     * the order is the order the parser tries them (the longest name wins and, between two of the same length, the first). The foods are the
+     * words of a person ("papa", "jamón", "puré"): the resolver reads them like any other mention. A spelling with and without accents is
+     * an entry of its own, and the proportions of a dish add up to 1.
+     */
+    val DISH_COMPOSITIONS: List<DishComposition> = listOf(
+        dish("pan con palta", DishComponent("pan", 0.4, Role.STARCH), DishComponent("palta", 0.6, Role.SIDE)),
+        dish("pan con mantequilla", DishComponent("pan", 0.7, Role.STARCH), DishComponent("mantequilla", 0.3, Role.SAUCE)),
+        dish("pan con tomate", DishComponent("pan", 0.6, Role.STARCH), DishComponent("tomate", 0.4, Role.SIDE)),
+        dish("pan con queso", DishComponent("pan", 0.5, Role.STARCH), DishComponent("queso", 0.5, Role.TOPPING)),
+        dish("pan con jamon", DishComponent("pan", 0.5, Role.STARCH), DishComponent("jamón", 0.5, Role.TOPPING)),
+        dish("pan con jamón", DishComponent("pan", 0.5, Role.STARCH), DishComponent("jamón", 0.5, Role.TOPPING)),
+        dish("pan con huevo", DishComponent("pan", 0.5, Role.STARCH), DishComponent("huevo", 0.5, Role.TOPPING)),
+        dish("pan con atun", DishComponent("pan", 0.5, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING)),
+        dish("pan con atún", DishComponent("pan", 0.5, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING)),
+        dish("pan con pollo", DishComponent("pan", 0.5, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING)),
+        dish("pan con salmon", DishComponent("pan", 0.5, Role.STARCH), DishComponent("salmón", 0.5, Role.TOPPING)),
+        dish("pan con palta y huevo", DishComponent("pan", 0.35, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("huevo", 0.3, Role.TOPPING)),
+        dish("pan con palta y jamon", DishComponent("pan", 0.4, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("jamón", 0.25, Role.TOPPING)),
+        dish("pan con palta y jamón", DishComponent("pan", 0.4, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("jamón", 0.25, Role.TOPPING)),
+        dish("pan con tomate y aceite", DishComponent("pan", 0.6, Role.STARCH), DishComponent("tomate", 0.3, Role.SIDE), DishComponent("aceite", 0.1, Role.SAUCE)),
+        dish("pan con tomate y jamon", DishComponent("pan", 0.4, Role.STARCH), DishComponent("tomate", 0.3, Role.SIDE), DishComponent("jamón", 0.3, Role.TOPPING)),
+        dish("pan con tomate y jamón", DishComponent("pan", 0.4, Role.STARCH), DishComponent("tomate", 0.3, Role.SIDE), DishComponent("jamón", 0.3, Role.TOPPING)),
+        dish("pan con mantequilla y mermelada", DishComponent("pan", 0.5, Role.STARCH), DishComponent("mantequilla", 0.25, Role.SAUCE), DishComponent("mermelada", 0.25, Role.SAUCE)),
+        dish("pan con palta y huevo duro", DishComponent("pan", 0.35, Role.STARCH), DishComponent("palta", 0.35, Role.SIDE), DishComponent("huevo", 0.3, Role.TOPPING)),
+
+        dish("arroz con pollo", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING)),
+        dish("arroz con huevo", DishComponent("arroz", 0.6, Role.STARCH), DishComponent("huevo", 0.4, Role.TOPPING)),
+        dish("arroz con huevo frito", DishComponent("arroz", 0.55, Role.STARCH), DishComponent("huevo", 0.45, Role.TOPPING)),
+        dish("arroz con atun", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING)),
+        dish("arroz con atún", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING)),
+        dish("arroz con verduras", DishComponent("arroz", 0.6, Role.STARCH), DishComponent("verduras", 0.4, Role.SIDE)),
+        dish("arroz con frijoles", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("frijoles", 0.5, Role.SIDE)),
+        dish("arroz con porotos", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("porotos", 0.5, Role.SIDE)),
+        dish("arroz con lentejas", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("lentejas", 0.5, Role.SIDE)),
+        dish("arroz con garbanzos", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("garbanzos", 0.5, Role.SIDE)),
+        dish("arroz con carne", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("carne", 0.5, Role.TOPPING)),
+        dish("arroz con pescado", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("pescado", 0.5, Role.TOPPING)),
+        dish("arroz con camaron", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("camarón", 0.5, Role.TOPPING)),
+        dish("arroz con camarones", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("camarón", 0.5, Role.TOPPING)),
+        dish("arroz con mariscos", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("mariscos", 0.5, Role.TOPPING)),
+        dish("arroz con chorizo", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("chorizo", 0.5, Role.TOPPING)),
+        dish("arroz con tocino", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("tocino", 0.5, Role.TOPPING)),
+        dish("arroz con leche", DishComponent("arroz", 0.4, Role.STARCH), DishComponent("leche", 0.6, Role.SIDE)),
+        dish("arroz con coco", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("coco", 0.5, Role.SIDE)),
+        dish("arroz con curry", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("curry", 0.5, Role.SAUCE)),
+        dish("arroz chaufa", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("verduras", 0.2, Role.SIDE)),
+        dish("arroz chaufa de pollo", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("verduras", 0.2, Role.SIDE)),
+        dish("arroz a la cubana", DishComponent("arroz", 0.4, Role.STARCH), DishComponent("huevo frito", 0.3, Role.TOPPING), DishComponent("platano frito", 0.3, Role.SIDE)),
+        dish("arroz tres delicias", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("pollo", 0.2, Role.TOPPING), DishComponent("camarón", 0.15, Role.TOPPING), DishComponent("verduras", 0.15, Role.SIDE)),
+        dish("arroz frito con verduras", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("verduras", 0.3, Role.SIDE), DishComponent("huevo", 0.2, Role.TOPPING)),
+        dish("arroz frito con pollo", DishComponent("arroz", 0.5, Role.STARCH), DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("verduras", 0.2, Role.SIDE)),
+
+        dish("pasta con salsa de tomate", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("salsa de tomate", 0.4, Role.SAUCE)),
+        dish("pasta con boloñesa", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("carne molida", 0.3, Role.TOPPING), DishComponent("salsa de tomate", 0.2, Role.SAUCE)),
+        dish("pasta con salsa bolonesa", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("carne molida", 0.3, Role.TOPPING), DishComponent("salsa de tomate", 0.2, Role.SAUCE)),
+        dish("pasta con pesto", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("pesto", 0.4, Role.SAUCE)),
+        dish("pasta con carbonara", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("huevo", 0.2, Role.SAUCE), DishComponent("tocino", 0.2, Role.TOPPING), DishComponent("queso", 0.1, Role.TOPPING)),
+        dish("pasta con atun", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING)),
+        dish("pasta con atún", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING)),
+        dish("pasta con pollo", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING)),
+        dish("pasta con carne", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("carne", 0.5, Role.TOPPING)),
+        dish("pasta con verduras", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("verduras", 0.4, Role.SIDE)),
+        dish("pasta con salmon", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("salmón", 0.5, Role.TOPPING)),
+        dish("pasta con camaron", DishComponent("pasta", 0.5, Role.STARCH), DishComponent("camarón", 0.5, Role.TOPPING)),
+        dish("pasta con champinones", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("champiñones", 0.4, Role.SIDE)),
+        dish("pasta con champiñones", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("champiñones", 0.4, Role.SIDE)),
+        dish("pasta con crema", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("crema", 0.4, Role.SAUCE)),
+        dish("pasta con queso", DishComponent("pasta", 0.6, Role.STARCH), DishComponent("queso", 0.4, Role.TOPPING)),
+        dish("pasta con mantequilla", DishComponent("pasta", 0.7, Role.STARCH), DishComponent("mantequilla", 0.3, Role.SAUCE)),
+
+        dish("huevos fritos con papas", DishComponent("huevo", 0.4, Role.TOPPING), DishComponent("papa", 0.6, Role.STARCH)),
+        dish("huevos fritos con patatas", DishComponent("huevo", 0.4, Role.TOPPING), DishComponent("papa", 0.6, Role.STARCH)),
+        dish("huevos fritos con chorizo", DishComponent("huevo", 0.5, Role.TOPPING), DishComponent("chorizo", 0.5, Role.TOPPING)),
+        dish("huevos fritos con jamon", DishComponent("huevo", 0.5, Role.TOPPING), DishComponent("jamón", 0.5, Role.TOPPING)),
+        dish("huevos fritos con jamón", DishComponent("huevo", 0.5, Role.TOPPING), DishComponent("jamón", 0.5, Role.TOPPING)),
+        dish("huevos fritos con tocino", DishComponent("huevo", 0.5, Role.TOPPING), DishComponent("tocino", 0.5, Role.TOPPING)),
+        dish("huevos fritos con arroz", DishComponent("huevo", 0.4, Role.TOPPING), DishComponent("arroz", 0.6, Role.STARCH)),
+        dish("huevos revueltos con jamon", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("jamón", 0.4, Role.TOPPING)),
+        dish("huevos revueltos con jamón", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("jamón", 0.4, Role.TOPPING)),
+        dish("huevos revueltos con queso", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("queso", 0.4, Role.TOPPING)),
+        dish("huevos revueltos con chorizo", DishComponent("huevo", 0.5, Role.TOPPING), DishComponent("chorizo", 0.5, Role.TOPPING)),
+        dish("huevos revueltos con tocino", DishComponent("huevo", 0.5, Role.TOPPING), DishComponent("tocino", 0.5, Role.TOPPING)),
+        dish("huevos revueltos con verduras", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("verduras", 0.4, Role.SIDE)),
+        dish("huevos revueltos con tomate", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("tomate", 0.4, Role.SIDE)),
+        dish("huevos revueltos con champinones", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("champiñones", 0.4, Role.SIDE)),
+        dish("huevos revueltos con champiñones", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("champiñones", 0.4, Role.SIDE)),
+        dish("huevos revueltos con espinaca", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("espinaca", 0.4, Role.SIDE)),
+        dish("huevos revueltos con espinacas", DishComponent("huevo", 0.6, Role.TOPPING), DishComponent("espinacas", 0.4, Role.SIDE)),
+
+        dish("pollo con papas", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("pollo con patatas", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("pollo con arroz", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("pollo con ensalada", DishComponent("pollo", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("pollo con verduras", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("verduras", 0.5, Role.SIDE)),
+        dish("pollo con pure", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("puré", 0.5, Role.STARCH)),
+        dish("pollo con pasta", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("pasta", 0.5, Role.STARCH)),
+        dish("pollo con frijoles", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("frijoles", 0.5, Role.SIDE)),
+        dish("pollo con lentejas", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("lentejas", 0.5, Role.SIDE)),
+        dish("pollo con champinones", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("champiñones", 0.5, Role.SIDE)),
+        dish("pollo con champiñones", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("champiñones", 0.5, Role.SIDE)),
+        dish("pollo con curry", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("curry", 0.3, Role.SAUCE), DishComponent("arroz", 0.2, Role.STARCH)),
+        dish("pollo con arroz y ensalada", DishComponent("pollo", 0.4, Role.TOPPING), DishComponent("arroz", 0.35, Role.STARCH), DishComponent("ensalada", 0.25, Role.SIDE)),
+        dish("pollo a la plancha con verduras", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("verduras", 0.5, Role.SIDE)),
+        dish("pollo a la plancha con ensalada", DishComponent("pollo", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("pollo a la plancha con arroz", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("pollo al horno con papas", DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("pollo guisado con arroz", DishComponent("pollo", 0.4, Role.TOPPING), DishComponent("arroz", 0.4, Role.STARCH), DishComponent("salsa", 0.2, Role.SAUCE)),
+        dish("pollo al curry con arroz", DishComponent("pollo", 0.4, Role.TOPPING), DishComponent("arroz", 0.4, Role.STARCH), DishComponent("curry", 0.2, Role.SAUCE)),
+        dish("milanesa de pollo con papas fritas", DishComponent("pollo empanizado", 0.4, Role.TOPPING), DishComponent("papa frita", 0.6, Role.STARCH)),
+        dish("milanesa de pollo con pure", DishComponent("pollo empanizado", 0.5, Role.TOPPING), DishComponent("puré", 0.5, Role.STARCH)),
+        dish("milanesa de pollo con arroz", DishComponent("pollo empanizado", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("milanesa de pollo con ensalada", DishComponent("pollo empanizado", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("milanesa napolitana", DishComponent("pollo empanizado", 0.4, Role.TOPPING), DishComponent("salsa de tomate", 0.2, Role.SAUCE), DishComponent("queso", 0.2, Role.TOPPING), DishComponent("jamon", 0.2, Role.TOPPING)),
+        dish("milanesa napolitana con papas", DishComponent("pollo empanizado", 0.3, Role.TOPPING), DishComponent("salsa de tomate", 0.15, Role.SAUCE), DishComponent("queso", 0.15, Role.TOPPING), DishComponent("papa", 0.4, Role.STARCH)),
+
+        dish("bistec con papas", DishComponent("bistec", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("bistec con patatas", DishComponent("bistec", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("bistec con arroz", DishComponent("bistec", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("bistec con ensalada", DishComponent("bistec", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("bistec con pure", DishComponent("bistec", 0.5, Role.TOPPING), DishComponent("puré", 0.5, Role.STARCH)),
+        dish("bistec con verduras", DishComponent("bistec", 0.5, Role.TOPPING), DishComponent("verduras", 0.5, Role.SIDE)),
+        dish("bistec con frijoles", DishComponent("bistec", 0.5, Role.TOPPING), DishComponent("frijoles", 0.5, Role.SIDE)),
+        dish("bistec a la plancha con ensalada", DishComponent("bistec", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("hamburguesa con papas fritas", DishComponent("hamburguesa", 0.5, Role.TOPPING), DishComponent("papa frita", 0.5, Role.STARCH)),
+        dish("hamburguesa con queso", DishComponent("hamburguesa", 0.7, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("hamburguesa con tocino", DishComponent("hamburguesa", 0.7, Role.TOPPING), DishComponent("tocino", 0.3, Role.TOPPING)),
+        dish("hamburguesa con huevo", DishComponent("hamburguesa", 0.7, Role.TOPPING), DishComponent("huevo", 0.3, Role.TOPPING)),
+        dish("hamburguesa completa", DishComponent("hamburguesa", 0.5, Role.TOPPING), DishComponent("papa frita", 0.3, Role.STARCH), DishComponent("bebida", 0.2, Role.SIDE)),
+
+        dish("pescado con arroz", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("pescado con papas", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("pescado con patatas", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("pescado con pure", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("puré", 0.5, Role.STARCH)),
+        dish("pescado con ensalada", DishComponent("pescado", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("pescado con verduras", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("verduras", 0.5, Role.SIDE)),
+        dish("pescado a la plancha con ensalada", DishComponent("pescado", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("pescado al horno con papas", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("papa", 0.5, Role.STARCH)),
+        dish("pescado frito con arroz", DishComponent("pescado frito", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("salmon con verduras", DishComponent("salmón", 0.5, Role.TOPPING), DishComponent("verduras", 0.5, Role.SIDE)),
+        dish("salmon con arroz", DishComponent("salmón", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("salmon con pure", DishComponent("salmón", 0.5, Role.TOPPING), DishComponent("puré", 0.5, Role.STARCH)),
+        dish("salmon con ensalada", DishComponent("salmón", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("salmon a la plancha con verduras", DishComponent("salmón", 0.5, Role.TOPPING), DishComponent("verduras", 0.5, Role.SIDE)),
+        dish("camarones con arroz", DishComponent("camarón", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+        dish("camarones con pasta", DishComponent("camarón", 0.5, Role.TOPPING), DishComponent("pasta", 0.5, Role.STARCH)),
+        dish("camarones con ensalada", DishComponent("camarón", 0.6, Role.TOPPING), DishComponent("ensalada", 0.4, Role.SIDE)),
+        dish("camarones al ajillo con arroz", DishComponent("camarón", 0.5, Role.TOPPING), DishComponent("arroz", 0.5, Role.STARCH)),
+
+        dish("ensalada de lechuga y tomate", DishComponent("lechuga", 0.5, Role.SIDE), DishComponent("tomate", 0.5, Role.SIDE)),
+        dish("ensalada de lechuga, tomate y cebolla", DishComponent("lechuga", 0.4, Role.SIDE), DishComponent("tomate", 0.35, Role.SIDE), DishComponent("cebolla", 0.25, Role.SIDE)),
+        dish("ensalada cesar con pollo", DishComponent("lechuga", 0.4, Role.SIDE), DishComponent("pollo", 0.4, Role.TOPPING), DishComponent("aderezo cesar", 0.2, Role.SAUCE)),
+        dish("ensalada griega con queso feta", DishComponent("lechuga", 0.3, Role.SIDE), DishComponent("tomate", 0.2, Role.SIDE), DishComponent("pepino", 0.2, Role.SIDE), DishComponent("queso feta", 0.3, Role.TOPPING)),
+        dish("ensalada de atun con aceitunas", DishComponent("atún", 0.4, Role.TOPPING), DishComponent("lechuga", 0.3, Role.SIDE), DishComponent("aceitunas", 0.3, Role.SIDE)),
+        dish("ensalada de papa con mayonesa", DishComponent("papa", 0.7, Role.STARCH), DishComponent("mayonesa", 0.3, Role.SAUCE)),
+        dish("ensalada rusa", DishComponent("papa", 0.3, Role.STARCH), DishComponent("zanahoria", 0.2, Role.SIDE), DishComponent("arveja", 0.2, Role.SIDE), DishComponent("mayonesa", 0.3, Role.SAUCE)),
+        dish("ensaladilla rusa", DishComponent("papa", 0.3, Role.STARCH), DishComponent("zanahoria", 0.2, Role.SIDE), DishComponent("arveja", 0.2, Role.SIDE), DishComponent("mayonesa", 0.3, Role.SAUCE)),
+
+        dish("sopa de pollo con fideos", DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("fideos", 0.3, Role.STARCH), DishComponent("caldo", 0.4, Role.SAUCE)),
+        dish("sopa de pollo con verduras", DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("verduras", 0.3, Role.SIDE), DishComponent("caldo", 0.4, Role.SAUCE)),
+        dish("sopa de pollo con arroz", DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("arroz", 0.3, Role.STARCH), DishComponent("caldo", 0.4, Role.SAUCE)),
+        dish("caldo de pollo con verduras", DishComponent("pollo", 0.25, Role.TOPPING), DishComponent("verduras", 0.35, Role.SIDE), DishComponent("caldo", 0.4, Role.SAUCE)),
+        dish("sopa de lentejas con verduras", DishComponent("lentejas", 0.5, Role.SIDE), DishComponent("verduras", 0.3, Role.SIDE), DishComponent("caldo", 0.2, Role.SAUCE)),
+        dish("sopa de lentejas con chorizo", DishComponent("lentejas", 0.5, Role.SIDE), DishComponent("chorizo", 0.3, Role.TOPPING), DishComponent("caldo", 0.2, Role.SAUCE)),
+        dish("cazuela de vacuno", DishComponent("carne", 0.25, Role.TOPPING), DishComponent("papa", 0.2, Role.STARCH), DishComponent("zapallo", 0.15, Role.SIDE), DishComponent("choclo", 0.1, Role.SIDE), DishComponent("caldo", 0.3, Role.SAUCE)),
+        dish("cazuela de pollo", DishComponent("pollo", 0.25, Role.TOPPING), DishComponent("papa", 0.2, Role.STARCH), DishComponent("zapallo", 0.15, Role.SIDE), DishComponent("choclo", 0.1, Role.SIDE), DishComponent("caldo", 0.3, Role.SAUCE)),
+
+        dish("tortilla de patatas", DishComponent("papa", 0.6, Role.STARCH), DishComponent("huevo", 0.4, Role.TOPPING)),
+        dish("tortilla de papas", DishComponent("papa", 0.6, Role.STARCH), DishComponent("huevo", 0.4, Role.TOPPING)),
+        dish("tortilla de patatas con cebolla", DishComponent("papa", 0.5, Role.STARCH), DishComponent("huevo", 0.35, Role.TOPPING), DishComponent("cebolla", 0.15, Role.SIDE)),
+        dish("tortilla de papas con cebolla", DishComponent("papa", 0.5, Role.STARCH), DishComponent("huevo", 0.35, Role.TOPPING), DishComponent("cebolla", 0.15, Role.SIDE)),
+        dish("tortilla de espinaca", DishComponent("espinaca", 0.5, Role.SIDE), DishComponent("huevo", 0.5, Role.TOPPING)),
+        dish("tortilla de espinacas", DishComponent("espinaca", 0.5, Role.SIDE), DishComponent("huevo", 0.5, Role.TOPPING)),
+        dish("tortilla de atun", DishComponent("atún", 0.5, Role.TOPPING), DishComponent("huevo", 0.5, Role.TOPPING)),
+        dish("tortilla de atún", DishComponent("atún", 0.5, Role.TOPPING), DishComponent("huevo", 0.5, Role.TOPPING)),
+        dish("tortilla de jamon y queso", DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING), DishComponent("huevo", 0.4, Role.TOPPING)),
+        dish("tortilla de jamón y queso", DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING), DishComponent("huevo", 0.4, Role.TOPPING)),
+
+        dish("porotos con riendas", DishComponent("porotos", 0.5, Role.SIDE), DishComponent("fideos", 0.3, Role.STARCH), DishComponent("caldo", 0.2, Role.SAUCE)),
+        dish("porotos granados", DishComponent("porotos", 0.4, Role.SIDE), DishComponent("choclo", 0.3, Role.SIDE), DishComponent("zapallo", 0.2, Role.SIDE), DishComponent("caldo", 0.1, Role.SAUCE)),
+        dish("charquican", DishComponent("carne", 0.2, Role.TOPPING), DishComponent("papa", 0.2, Role.STARCH), DishComponent("zapallo", 0.15, Role.SIDE), DishComponent("choclo", 0.15, Role.SIDE), DishComponent("caldo", 0.3, Role.SAUCE)),
+        dish("pastel de choclo", DishComponent("choclo", 0.5, Role.STARCH), DishComponent("carne", 0.3, Role.TOPPING), DishComponent("huevo", 0.1, Role.TOPPING), DishComponent("aceituna", 0.1, Role.SIDE)),
+        dish("humitas", DishComponent("choclo", 0.8, Role.STARCH), DishComponent("cebolla", 0.1, Role.SIDE), DishComponent("albahaca", 0.1, Role.GARNISH)),
+        dish("empanada de pino", DishComponent("masa", 0.4, Role.STARCH), DishComponent("carne molida", 0.3, Role.TOPPING), DishComponent("cebolla", 0.15, Role.SIDE), DishComponent("huevo", 0.1, Role.TOPPING), DishComponent("aceituna", 0.05, Role.SIDE)),
+
+        dish("cafe con leche", DishComponent("café", 0.3, Role.SIDE), DishComponent("leche", 0.7, Role.SIDE)),
+        dish("café con leche", DishComponent("café", 0.3, Role.SIDE), DishComponent("leche", 0.7, Role.SIDE)),
+        dish("cafe con azucar", DishComponent("café", 0.8, Role.SIDE), DishComponent("azúcar", 0.2, Role.SAUCE)),
+        dish("café con azúcar", DishComponent("café", 0.8, Role.SIDE), DishComponent("azúcar", 0.2, Role.SAUCE)),
+        dish("leche con chocolate", DishComponent("leche", 0.7, Role.SIDE), DishComponent("chocolate", 0.3, Role.SAUCE)),
+        dish("yogurt con fruta", DishComponent("yogurt", 0.6, Role.SIDE), DishComponent("fruta", 0.4, Role.SIDE)),
+        dish("yogurt con granola", DishComponent("yogurt", 0.5, Role.SIDE), DishComponent("granola", 0.5, Role.TOPPING)),
+        dish("avena con leche", DishComponent("avena", 0.4, Role.STARCH), DishComponent("leche", 0.6, Role.SIDE)),
+        dish("avena con frutas", DishComponent("avena", 0.5, Role.STARCH), DishComponent("fruta", 0.5, Role.SIDE)),
+        dish("avena con platano", DishComponent("avena", 0.5, Role.STARCH), DishComponent("plátano", 0.5, Role.SIDE)),
+        dish("avena con banana", DishComponent("avena", 0.5, Role.STARCH), DishComponent("plátano", 0.5, Role.SIDE)),
+        dish("avena con manzana", DishComponent("avena", 0.5, Role.STARCH), DishComponent("manzana", 0.5, Role.SIDE)),
+        dish("avena con miel", DishComponent("avena", 0.7, Role.STARCH), DishComponent("miel", 0.3, Role.SAUCE)),
+        dish("avena con canela", DishComponent("avena", 0.9, Role.STARCH), DishComponent("canela", 0.1, Role.GARNISH)),
+        dish("avena con nueces", DishComponent("avena", 0.6, Role.STARCH), DishComponent("nueces", 0.4, Role.TOPPING)),
+        dish("avena con almendras", DishComponent("avena", 0.6, Role.STARCH), DishComponent("almendras", 0.4, Role.TOPPING)),
+        dish("avena con chia", DishComponent("avena", 0.7, Role.STARCH), DishComponent("chía", 0.3, Role.TOPPING)),
+        dish("avena con chía", DishComponent("avena", 0.7, Role.STARCH), DishComponent("chía", 0.3, Role.TOPPING)),
+        dish("avena con yogurt", DishComponent("avena", 0.5, Role.STARCH), DishComponent("yogurt", 0.5, Role.SIDE)),
+        dish("avena con chocolate", DishComponent("avena", 0.6, Role.STARCH), DishComponent("chocolate", 0.4, Role.SAUCE)),
+        dish("granola con yogurt", DishComponent("granola", 0.4, Role.TOPPING), DishComponent("yogurt", 0.6, Role.SIDE)),
+        dish("granola con leche", DishComponent("granola", 0.4, Role.TOPPING), DishComponent("leche", 0.6, Role.SIDE)),
+        dish("cereal con leche", DishComponent("cereal", 0.3, Role.TOPPING), DishComponent("leche", 0.7, Role.SIDE)),
+
+        dish("fruta con yogurt", DishComponent("fruta", 0.5, Role.SIDE), DishComponent("yogurt", 0.5, Role.SIDE)),
+        dish("fruta con crema", DishComponent("fruta", 0.6, Role.SIDE), DishComponent("crema", 0.4, Role.SAUCE)),
+        dish("fruta con miel", DishComponent("fruta", 0.8, Role.SIDE), DishComponent("miel", 0.2, Role.SAUCE)),
+        dish("fruta con chocolate", DishComponent("fruta", 0.6, Role.SIDE), DishComponent("chocolate", 0.4, Role.SAUCE)),
+        dish("fruta con granola", DishComponent("fruta", 0.5, Role.SIDE), DishComponent("granola", 0.5, Role.TOPPING)),
+        dish("fresas con crema", DishComponent("fresa", 0.6, Role.SIDE), DishComponent("crema", 0.4, Role.SAUCE)),
+        dish("frutillas con crema", DishComponent("frutilla", 0.6, Role.SIDE), DishComponent("crema", 0.4, Role.SAUCE)),
+        dish("platano con dulce de leche", DishComponent("plátano", 0.6, Role.SIDE), DishComponent("dulce de leche", 0.4, Role.SAUCE)),
+        dish("banana con dulce de leche", DishComponent("plátano", 0.6, Role.SIDE), DishComponent("dulce de leche", 0.4, Role.SAUCE)),
+        dish("manzana con canela", DishComponent("manzana", 0.9, Role.SIDE), DishComponent("canela", 0.1, Role.GARNISH)),
+        dish("manzana con miel", DishComponent("manzana", 0.8, Role.SIDE), DishComponent("miel", 0.2, Role.SAUCE)),
+        dish("melon con jamon", DishComponent("melón", 0.6, Role.SIDE), DishComponent("jamón", 0.4, Role.TOPPING)),
+        dish("melon con jamón", DishComponent("melón", 0.6, Role.SIDE), DishComponent("jamón", 0.4, Role.TOPPING)),
+        dish("sandia con queso", DishComponent("sandía", 0.7, Role.SIDE), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("sandía con queso", DishComponent("sandía", 0.7, Role.SIDE), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("mango con yogurt", DishComponent("mango", 0.5, Role.SIDE), DishComponent("yogurt", 0.5, Role.SIDE)),
+
+        dish("arroz con leche y canela", DishComponent("arroz", 0.4, Role.STARCH), DishComponent("leche", 0.5, Role.SIDE), DishComponent("canela", 0.1, Role.GARNISH)),
+        dish("arroz con leche con pasas", DishComponent("arroz", 0.4, Role.STARCH), DishComponent("leche", 0.45, Role.SIDE), DishComponent("pasas", 0.15, Role.TOPPING)),
+        dish("flan con dulce de leche", DishComponent("flan", 0.6, Role.SIDE), DishComponent("dulce de leche", 0.4, Role.SAUCE)),
+        dish("flan con crema", DishComponent("flan", 0.6, Role.SIDE), DishComponent("crema", 0.4, Role.SAUCE)),
+        dish("helado con chocolate", DishComponent("helado", 0.6, Role.SIDE), DishComponent("chocolate", 0.4, Role.SAUCE)),
+        dish("helado con frutas", DishComponent("helado", 0.5, Role.SIDE), DishComponent("fruta", 0.5, Role.TOPPING)),
+        dish("helado con nueces", DishComponent("helado", 0.6, Role.SIDE), DishComponent("nueces", 0.4, Role.TOPPING)),
+        dish("brownie con helado", DishComponent("brownie", 0.5, Role.SIDE), DishComponent("helado", 0.5, Role.TOPPING)),
+        dish("churros con chocolate", DishComponent("churros", 0.5, Role.SIDE), DishComponent("chocolate", 0.5, Role.SAUCE)),
+        dish("churros con dulce de leche", DishComponent("churros", 0.5, Role.SIDE), DishComponent("dulce de leche", 0.5, Role.SAUCE)),
+        dish("tres leches con crema", DishComponent("tres leches", 0.6, Role.SIDE), DishComponent("crema", 0.4, Role.SAUCE)),
+        dish("cheesecake con mermelada", DishComponent("cheesecake", 0.7, Role.SIDE), DishComponent("mermelada", 0.3, Role.SAUCE)),
+        dish("cheesecake con frutos rojos", DishComponent("cheesecake", 0.6, Role.SIDE), DishComponent("frutos rojos", 0.4, Role.TOPPING)),
+
+        dish("arepa con queso", DishComponent("arepa", 0.5, Role.STARCH), DishComponent("queso", 0.5, Role.TOPPING)),
+        dish("arepa con jamon y queso", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("arepa con jamón y queso", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("arepa con carne mechada", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("carne mechada", 0.6, Role.TOPPING)),
+        dish("arepa reina pepiada", DishComponent("arepa", 0.3, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING), DishComponent("palta", 0.35, Role.TOPPING)),
+        dish("arepa con pollo y aguacate", DishComponent("arepa", 0.3, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING), DishComponent("palta", 0.35, Role.TOPPING)),
+        dish("arepa con huevo", DishComponent("arepa", 0.5, Role.STARCH), DishComponent("huevo", 0.5, Role.TOPPING)),
+        dish("arepa con mantequilla", DishComponent("arepa", 0.7, Role.STARCH), DishComponent("mantequilla", 0.3, Role.SAUCE)),
+        dish("arepa con pernil", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("pernil", 0.6, Role.TOPPING)),
+        dish("arepa con chorizo", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("chorizo", 0.6, Role.TOPPING)),
+        dish("arepa con chicharron", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("chicharrón", 0.6, Role.TOPPING)),
+        dish("arepa con chicharrón", DishComponent("arepa", 0.4, Role.STARCH), DishComponent("chicharrón", 0.6, Role.TOPPING)),
+
+        dish("taco de carne asada", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("carne", 0.5, Role.TOPPING), DishComponent("salsa", 0.2, Role.SAUCE)),
+        dish("taco de pastor", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("cerdo", 0.5, Role.TOPPING), DishComponent("pina", 0.2, Role.SIDE)),
+        dish("taco de carnitas", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("cerdo", 0.5, Role.TOPPING), DishComponent("salsa", 0.2, Role.SAUCE)),
+        dish("taco de pollo", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("salsa", 0.2, Role.SAUCE)),
+        dish("taco de pescado", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("salsa", 0.2, Role.SAUCE)),
+        dish("taco de camaron", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("camarón", 0.5, Role.TOPPING), DishComponent("salsa", 0.2, Role.SAUCE)),
+        dish("taco de frijoles", DishComponent("tortilla", 0.4, Role.STARCH), DishComponent("frijoles", 0.6, Role.TOPPING)),
+        dish("quesadilla con queso", DishComponent("tortilla", 0.4, Role.STARCH), DishComponent("queso", 0.6, Role.TOPPING)),
+        dish("quesadilla con pollo", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("queso", 0.2, Role.TOPPING)),
+        dish("burrito de carne", DishComponent("tortilla", 0.2, Role.STARCH), DishComponent("carne", 0.3, Role.TOPPING), DishComponent("arroz", 0.2, Role.STARCH), DishComponent("frijoles", 0.2, Role.SIDE), DishComponent("salsa", 0.1, Role.SAUCE)),
+        dish("burrito de pollo", DishComponent("tortilla", 0.2, Role.STARCH), DishComponent("pollo", 0.3, Role.TOPPING), DishComponent("arroz", 0.2, Role.STARCH), DishComponent("frijoles", 0.2, Role.SIDE), DishComponent("salsa", 0.1, Role.SAUCE)),
+        dish("enchiladas con pollo", DishComponent("tortilla", 0.3, Role.STARCH), DishComponent("pollo", 0.4, Role.TOPPING), DishComponent("salsa", 0.3, Role.SAUCE)),
+        dish("tamal de pollo", DishComponent("masa", 0.5, Role.STARCH), DishComponent("pollo", 0.4, Role.TOPPING), DishComponent("salsa", 0.1, Role.SAUCE)),
+        dish("tamal de cerdo", DishComponent("masa", 0.5, Role.STARCH), DishComponent("cerdo", 0.4, Role.TOPPING), DishComponent("salsa", 0.1, Role.SAUCE)),
+
+        dish("sándwich de jamon y queso", DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("sándwich de jamón y queso", DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("sandwich de jamon y queso", DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("sandwich de jamón y queso", DishComponent("pan", 0.4, Role.STARCH), DishComponent("jamón", 0.3, Role.TOPPING), DishComponent("queso", 0.3, Role.TOPPING)),
+        dish("sándwich de pavo", DishComponent("pan", 0.5, Role.STARCH), DishComponent("pavo", 0.5, Role.TOPPING)),
+        dish("sándwich de pollo", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.6, Role.TOPPING)),
+        dish("sándwich de atun", DishComponent("pan", 0.4, Role.STARCH), DishComponent("atún", 0.6, Role.TOPPING)),
+        dish("sándwich de atún", DishComponent("pan", 0.4, Role.STARCH), DishComponent("atún", 0.6, Role.TOPPING)),
+        dish("sándwich de vegetales", DishComponent("pan", 0.5, Role.STARCH), DishComponent("verduras", 0.5, Role.SIDE)),
+
+        dish("sándwich de pollo con mayonesa", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.1, Role.SAUCE)),
+        dish("sándwich de pollo con mayo", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.1, Role.SAUCE)),
+        dish("sándwich de pollo con palta", DishComponent("pan", 0.3, Role.STARCH), DishComponent("pollo", 0.45, Role.TOPPING), DishComponent("palta", 0.25, Role.SIDE)),
+        dish("sándwich de pollo con lechuga", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("lechuga", 0.15, Role.SIDE)),
+        dish("sándwich de pollo con lechuga y tomate", DishComponent("pan", 0.3, Role.STARCH), DishComponent("pollo", 0.45, Role.TOPPING), DishComponent("lechuga", 0.1, Role.SIDE), DishComponent("tomate", 0.15, Role.SIDE)),
+        dish("sándwich de pollo con ketchup", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("ketchup", 0.1, Role.SAUCE)),
+        dish("sándwich de pollo con mostaza", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("mostaza", 0.1, Role.SAUCE)),
+        dish("sándwich de pollo con queso", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.45, Role.TOPPING), DishComponent("queso", 0.2, Role.TOPPING)),
+        dish("sándwich de pollo con jamon", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING), DishComponent("jamón", 0.3, Role.TOPPING)),
+        dish("sándwich de pollo con jamón", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING), DishComponent("jamón", 0.3, Role.TOPPING)),
+
+        dish("sándwich de jamon con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("jamón", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sándwich de jamón con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("jamón", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sándwich de atun con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sándwich de atún con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sándwich de palta con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("palta", 0.5, Role.SIDE), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+
+        dish("sandwich de pollo con mayonesa", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.1, Role.SAUCE)),
+        dish("sandwich de pollo con mayo", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.1, Role.SAUCE)),
+        dish("sandwich de pollo con palta", DishComponent("pan", 0.3, Role.STARCH), DishComponent("pollo", 0.45, Role.TOPPING), DishComponent("palta", 0.25, Role.SIDE)),
+        dish("sandwich de pollo con lechuga", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("lechuga", 0.15, Role.SIDE)),
+        dish("sandwich de pollo con lechuga y tomate", DishComponent("pan", 0.3, Role.STARCH), DishComponent("pollo", 0.45, Role.TOPPING), DishComponent("lechuga", 0.1, Role.SIDE), DishComponent("tomate", 0.15, Role.SIDE)),
+        dish("sandwich de pollo con ketchup", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("ketchup", 0.1, Role.SAUCE)),
+        dish("sandwich de pollo con mostaza", DishComponent("pan", 0.4, Role.STARCH), DishComponent("pollo", 0.5, Role.TOPPING), DishComponent("mostaza", 0.1, Role.SAUCE)),
+        dish("sandwich de pollo con queso", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.45, Role.TOPPING), DishComponent("queso", 0.2, Role.TOPPING)),
+        dish("sandwich de pollo con jamon", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING), DishComponent("jamón", 0.3, Role.TOPPING)),
+        dish("sandwich de pollo con jamón", DishComponent("pan", 0.35, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING), DishComponent("jamón", 0.3, Role.TOPPING)),
+
+        dish("sandwich de jamon con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("jamón", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sandwich de jamón con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("jamón", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sandwich de atun con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sandwich de atún con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("atún", 0.5, Role.TOPPING), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+        dish("sandwich de palta con mayonesa", DishComponent("pan", 0.35, Role.STARCH), DishComponent("palta", 0.5, Role.SIDE), DishComponent("mayonesa", 0.15, Role.SAUCE)),
+
+        dish("hamburguesa con mayonesa", DishComponent("hamburguesa", 0.75, Role.TOPPING), DishComponent("mayonesa", 0.25, Role.SAUCE)),
+        dish("hamburguesa con ketchup", DishComponent("hamburguesa", 0.75, Role.TOPPING), DishComponent("ketchup", 0.25, Role.SAUCE)),
+        dish("hamburguesa con mostaza", DishComponent("hamburguesa", 0.75, Role.TOPPING), DishComponent("mostaza", 0.25, Role.SAUCE)),
+        dish("hamburguesa con queso y tocino", DishComponent("hamburguesa", 0.5, Role.TOPPING), DishComponent("queso", 0.25, Role.TOPPING), DishComponent("tocino", 0.25, Role.TOPPING)),
+        dish("hamburguesa con lechuga y tomate", DishComponent("hamburguesa", 0.65, Role.TOPPING), DishComponent("lechuga", 0.15, Role.SIDE), DishComponent("tomate", 0.2, Role.SIDE)),
+
+        dish("papas fritas con mayonesa", DishComponent("papa frita", 0.75, Role.STARCH), DishComponent("mayonesa", 0.25, Role.SAUCE)),
+        dish("papas fritas con ketchup", DishComponent("papa frita", 0.75, Role.STARCH), DishComponent("ketchup", 0.25, Role.SAUCE)),
+        dish("papas fritas con salsa", DishComponent("papa frita", 0.7, Role.STARCH), DishComponent("salsa", 0.3, Role.SAUCE)),
+        dish("papas con mayonesa", DishComponent("papa", 0.7, Role.STARCH), DishComponent("mayonesa", 0.3, Role.SAUCE)),
+        dish("papas con salsa", DishComponent("papa", 0.7, Role.STARCH), DishComponent("salsa", 0.3, Role.SAUCE)),
+
+        dish("ceviche con maiz", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("maiz", 0.3, Role.SIDE), DishComponent("limon", 0.2, Role.SAUCE)),
+        dish("ceviche con maiz tostado", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("maiz tostado", 0.3, Role.SIDE), DishComponent("limon", 0.2, Role.SAUCE)),
+        dish("ceviche con camote", DishComponent("pescado", 0.5, Role.TOPPING), DishComponent("camote", 0.3, Role.SIDE), DishComponent("limon", 0.2, Role.SAUCE)),
+        dish("ceviche con palta", DishComponent("pescado", 0.4, Role.TOPPING), DishComponent("palta", 0.3, Role.SIDE), DishComponent("limon", 0.2, Role.SAUCE), DishComponent("cebolla", 0.1, Role.SIDE)),
+        dish("ceviche con chifles", DishComponent("pescado", 0.4, Role.TOPPING), DishComponent("platano frito", 0.4, Role.STARCH), DishComponent("limon", 0.2, Role.SAUCE)),
+
+        dish("lomo saltado con arroz", DishComponent("lomo", 0.35, Role.TOPPING), DishComponent("arroz", 0.35, Role.STARCH), DishComponent("papa frita", 0.3, Role.STARCH)),
+        dish("lomo saltado con papas fritas", DishComponent("lomo", 0.4, Role.TOPPING), DishComponent("papa frita", 0.6, Role.STARCH)),
+    )
+
+    private fun recipe(foodId: String, vararg ingredients: RecipeIngredient) = RecipeNote(foodId, ingredients.toList())
+
+    /**
+     * The recipes of the RECIPE_ESTIMATE rows of the static catalog (WP-D1: gen183-gen188 and gen196), as the `sourceRecordId` and the comment
+     * of each row write them: the named profile of every ingredient and its share of the weight, in the order of the record. A note is
+     * documentation for the UI to show later; nothing reads it.
+     */
+    val RECIPE_NOTES: List<RecipeNote> = listOf(
+        recipe(
+            "gen183",
+            RecipeIngredient("marraqueta", "cl010", 37.0), RecipeIngredient("churrasco cocido", "gen093", 31.5),
+            RecipeIngredient("tomate", "gen026", 18.5), RecipeIngredient("porotos verdes", "gen173", 11.0),
+            RecipeIngredient("ají verde", "gen175", 2.0),
+        ),
+        recipe(
+            "gen184",
+            RecipeIngredient("marraqueta", "cl010", 43.5), RecipeIngredient("churrasco cocido", "gen093", 39.1),
+            RecipeIngredient("queso gauda", "gen157", 17.4),
+        ),
+        recipe(
+            "gen185",
+            RecipeIngredient("marraqueta", "cl010", 44.4), RecipeIngredient("pollo cocido deshilachado", "gen004", 38.9),
+            RecipeIngredient("mayonesa", "gen065", 16.7),
+        ),
+        recipe(
+            "gen186",
+            RecipeIngredient("caldo", "agua", 45.0), RecipeIngredient("carne de vacuno", "gen093", 12.0),
+            RecipeIngredient("papa", "gen021", 20.0), RecipeIngredient("zapallo", "gen072", 6.0),
+            RecipeIngredient("choclo", "gen071", 5.0), RecipeIngredient("arroz", "gen005", 5.0),
+            RecipeIngredient("zanahoria", "gen024", 3.0), RecipeIngredient("arvejas", "gen055", 3.0),
+            RecipeIngredient("cebolla", "gen027", 1.0),
+        ),
+        recipe(
+            "gen187",
+            RecipeIngredient("carne", "gen093", 25.0), RecipeIngredient("papa", "gen021", 40.0),
+            RecipeIngredient("cebolla", "gen027", 12.0), RecipeIngredient("caldo", "agua", 17.0),
+            RecipeIngredient("aceite", "gen099", 3.0), RecipeIngredient("pimentón", "gen036", 3.0),
+        ),
+        recipe(
+            "gen188",
+            RecipeIngredient("pescado blanco crudo", "FDC 173713", 68.0), RecipeIngredient("cebolla", "gen027", 18.0),
+            RecipeIngredient("jugo de limón", "FDC 167747", 12.0), RecipeIngredient("cilantro y ají", "agua", 2.0),
+        ),
+        recipe(
+            "gen196",
+            RecipeIngredient("pisco", "FDC 174815", 22.0), RecipeIngredient("bebida cola", "gen146", 78.0),
+        ),
+    )
+
     /** The Kotlin default snapshot, built from the tables above. */
     fun snapshot(): FoodKnowledgeSnapshot = FoodKnowledgeSnapshot(
         version = FOOD_KNOWLEDGE_VERSION,
@@ -382,5 +773,6 @@ internal object FoodKnowledgeDefaults {
         ),
         utensils = UtensilsKnowledge(defaultMl = UTENSIL_DEFAULT_ML),
         densities = DensitiesKnowledge(gramsPerMl = DENSITY_G_PER_ML, rules = DENSITY_RULES, fallbackCategory = DENSITY_FALLBACK),
+        dishCompositions = DishCompositionsKnowledge(dishes = DISH_COMPOSITIONS, recipeNotes = RECIPE_NOTES),
     )
 }

@@ -20,8 +20,9 @@ class FoodKnowledgeParityTest {
     private val parsed = parseFoodKnowledge(File("src/main/assets/food_data/food_knowledge_v1.json").readText(Charsets.UTF_8))
 
     /** The properties of [FoodKnowledgeSnapshot]: the version and one per section of the asset. */
-    private val sections =
-        listOf("version", "protectedPhrases", "typos", "synonyms", "householdUnits", "containers", "utensils", "densities")
+    private val sections = listOf(
+        "version", "protectedPhrases", "typos", "synonyms", "householdUnits", "containers", "utensils", "densities", "dishCompositions",
+    )
 
     @Test
     fun `the asset parses to exactly the Kotlin default`() {
@@ -62,6 +63,17 @@ class FoodKnowledgeParityTest {
     fun `densities are the same grams per ml, rules and fallback`() = assertSameField("densities", default.densities, parsed.densities)
 
     @Test
+    fun `dish compositions are the same dishes in the same order, with the same components and the same recipe notes`() =
+        assertSameField("dishCompositions", default.dishCompositions, parsed.dishCompositions)
+
+    @Test
+    fun `the dishes keep the order of the table, which decides a tie between two names of the same length`() {
+        val names = default.dishCompositions.dishes.map { it.name }
+        assertEquals(names, parsed.dishCompositions.dishes.map { it.name })
+        assertEquals("a name is listed once", names.size, names.toSet().size)
+    }
+
+    @Test
     fun `the density categories of the default are the constants of the enum, in order`() {
         assertEquals(SubjectivePortionEngine.FoodDensityCategory.values().map { it.name }, FoodKnowledgeDefaults.DENSITY_CATEGORIES)
         assertEquals(FoodKnowledgeDefaults.DENSITY_CATEGORIES, default.densities.gramsPerMl.keys.toList())
@@ -72,7 +84,10 @@ class FoodKnowledgeParityTest {
     private fun instanceFields(type: Class<*>) =
         type.declaredFields.filterNot { Modifier.isStatic(it.modifiers) || it.isSynthetic }.onEach { it.isAccessible = true }
 
-    /** Maps, sets and lists are compared in order (a map by its keys first), numbers exactly, and every other object field by field. */
+    /**
+     * Maps, sets and lists are compared in order (a map by its keys first), numbers exactly, an enum constant by identity and every other
+     * object field by field.
+     */
     private fun assertSameField(path: String, expected: Any?, actual: Any?) {
         when {
             expected == null || actual == null -> assertEquals(path, expected, actual)
@@ -88,6 +103,7 @@ class FoodKnowledgeParityTest {
                 expected.indices.forEach { assertSameField("$path[$it]", expected[it], got[it]) }
             }
             expected is Double -> assertEquals(path, expected, actual as Double, 0.0)
+            expected is Enum<*> -> assertEquals(path, expected, actual)
             expected.javaClass.name.startsWith("com.example.kpkn.") -> {
                 assertEquals("$path: type", expected.javaClass, actual.javaClass)
                 val fields = instanceFields(expected.javaClass)

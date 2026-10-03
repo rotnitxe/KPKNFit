@@ -84,7 +84,12 @@ internal object MassBoundDish {
     private class Dish(val foods: List<String>, val shares: List<Double>)
 
     private val NOT_A_DISH = Any()
-    private val dishes = ConcurrentHashMap<String, Any>()
+
+    /**
+     * What each key is, remembered once: a [Dish] or [NOT_A_DISH]. The answer is read from the knowledge ([FoodCombinationParser] and
+     * [ProtectedPhrases]), so the memory is per snapshot: an install that changes the knowledge starts it empty (WP-N13).
+     */
+    private val dishes = KnowledgeCache { ConcurrentHashMap<String, Any>() }
 
     private fun stripAccents(text: String): String =
         if (text.all { it.code < 128 }) text else Normalizer.normalize(text, Normalizer.Form.NFD).replace(TextKeys.MARKS, "")
@@ -176,7 +181,7 @@ internal object MassBoundDish {
 
     private fun dishOf(candidate: String): Dish? {
         val key = candidate.trim().lowercase().replace(SPACES, " ")
-        return dishes.getOrPut(key) { lookup(key) ?: NOT_A_DISH } as? Dish
+        return dishes.get().getOrPut(key) { lookup(key) ?: NOT_A_DISH } as? Dish
     }
 
     private fun lookup(key: String): Dish? {

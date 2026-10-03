@@ -1,5 +1,7 @@
 package com.example.kpkn.domain.nutrition
 
+import com.example.kpkn.domain.nutrition.FoodCombinationParser.Accompaniment
+import com.example.kpkn.domain.nutrition.FoodCombinationParser.Role
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine.FoodDensityCategory.GRAIN
 import com.example.kpkn.domain.nutrition.SubjectivePortionEngine.FoodDensityCategory.NUTS
 import org.junit.After
@@ -249,19 +251,126 @@ class FoodKnowledgeInstallTest {
         assertNull(SubjectivePortionEngine.UTENSIL_DEFAULTS["tarro"])
     }
 
-    // ─── Concurrency ────────────────────────────────────────────────────────────────────────────────────────────────
+    // ─── Dish compositions ──────────────────────────────────────────────────────────────────────────────────────────
+
+    private val ostras = DishComposition(
+        "arroz con ostras",
+        listOf(DishComponent("arroz", 0.7, Role.STARCH), DishComponent("ostras", 0.3, Role.TOPPING)),
+    )
+
+    private fun withDishes(dishes: List<DishComposition>): FoodKnowledgeSnapshot =
+        default.copy(dishCompositions = default.dishCompositions.copy(dishes = dishes))
 
     @Test
-    fun `readers racing installs and resets only ever see one snapshot or the other`() {
-        val changed = default.copy(typos = default.typos + ("pyollo" to "pollo"))
+    fun `an installed dish is read by the combination parser and gone after reset`() {
+        assertFalse("not a known dish yet", FoodCombinationParser.parse("arroz con ostras").isKnownDish)
+        assertEquals(listOf("arroz", "ostras"), FoodCombinationParser.splitFoods("arroz con ostras"))
+        FoodKnowledge.install(withDishes(default.dishCompositions.dishes + ostras))
+        val known = FoodCombinationParser.parse("arroz con ostras")
+        assertTrue(known.isKnownDish)
+        assertEquals("arroz con ostras", known.dishName)
+        assertEquals("arroz", known.baseFood)
+        assertEquals(0.7, known.baseProportion, 0.0)
+        assertEquals(listOf(Accompaniment("ostras", 0.3, Role.TOPPING)), known.accompaniments)
+        assertEquals(0.95, known.confidence, 0.0)
+        assertEquals("the splitter keeps the dish whole", listOf("arroz con ostras"), FoodCombinationParser.splitFoods("arroz con ostras"))
+        assertEquals("the dishes that were there still work", "arroz con pollo", FoodCombinationParser.parse("arroz con pollo").dishName)
+        FoodKnowledge.reset()
+        assertFalse(FoodCombinationParser.parse("arroz con ostras").isKnownDish)
+        assertEquals(listOf("arroz", "ostras"), FoodCombinationParser.splitFoods("arroz con ostras"))
+    }
+
+    @Test
+    fun `an installed table that changes the proportions of a dish or drops it is what the parser follows`() {
+        val pollo = default.dishCompositions.dishes.single { it.name == "arroz con pollo" }
+        assertEquals(0.5, FoodCombinationParser.parse("arroz con pollo").baseProportion, 0.0)
+        val reshaped = DishComposition(
+            pollo.name,
+            listOf(DishComponent("arroz", 0.65, Role.STARCH), DishComponent("pollo", 0.35, Role.TOPPING)),
+        )
+        FoodKnowledge.install(withDishes(default.dishCompositions.dishes.map { if (it.name == pollo.name) reshaped else it }))
+        val changed = FoodCombinationParser.parse("arroz con pollo")
+        assertEquals(0.65, changed.baseProportion, 0.0)
+        assertEquals(0.35, changed.accompaniments.single().proportion, 0.0)
+        FoodKnowledge.install(withDishes(default.dishCompositions.dishes.filterNot { it.name == pollo.name }))
+        val dropped = FoodCombinationParser.parse("arroz con pollo")
+        assertFalse("a dish the installed knowledge does not list is not known", dropped.isKnownDish)
+        assertNull(dropped.dishName)
+        FoodKnowledge.reset()
+        assertEquals(0.5, FoodCombinationParser.parse("arroz con pollo").baseProportion, 0.0)
+        assertEquals("arroz con pollo", FoodCombinationParser.parse("arroz con pollo").dishName)
+    }
+
+    @Test
+    fun `the order of the installed dishes decides a tie between two names of the same length`() {
+        // "pan con palta" and "pan con jamon" are 13 letters each and the text holds both: the one listed first wins.
+        val text = "pan con palta y pan con jamon"
+        assertEquals("pan con palta", FoodCombinationParser.parse(text).dishName)
+        FoodKnowledge.install(withDishes(default.dishCompositions.dishes.reversed()))
+        assertEquals("pan con jamon", FoodCombinationParser.parse(text).dishName)
+        FoodKnowledge.reset()
+        assertEquals("pan con palta", FoodCombinationParser.parse(text).dishName)
+    }
+
+    @Test
+    fun `an installed sandwich is a known sandwich mention and is gone after reset`() {
+        val text = "un sandwich de queso y café"
+        assertEquals("the clause stops before the drink", "sandwich de queso", FoodCombinationParser.sandwichMention(text))
+        assertEquals(0.85, FoodCombinationParser.parse("sandwich de queso y café").confidence, 0.0)
+        val withCoffee = DishComposition(
+            "sandwich de queso y café",
+            listOf(
+                DishComponent("pan", 0.4, Role.STARCH),
+                DishComponent("queso", 0.5, Role.TOPPING),
+                DishComponent("café", 0.1, Role.SIDE),
+            ),
+        )
+        FoodKnowledge.install(withDishes(default.dishCompositions.dishes + withCoffee))
+        assertEquals("the known dish is the whole mention", "sandwich de queso y café", FoodCombinationParser.sandwichMention(text))
+        assertEquals(0.95, FoodCombinationParser.parse("sandwich de queso y café").confidence, 0.0)
+        FoodKnowledge.reset()
+        assertEquals("sandwich de queso", FoodCombinationParser.sandwichMention(text))
+    }
+
+    @Test
+    fun `an installed table that adds or drops a dish reaches MassBoundDish, which forgets what it remembered`() {
+        assertNull("not a dish yet", MassBoundDish.whole("200 g de arroz con ostras"))
+        assertNotNull("a dish of the table", MassBoundDish.whole("200 g de arroz con pollo"))
+        FoodKnowledge.install(withDishes(default.dishCompositions.dishes.filterNot { it.name == "arroz con pollo" } + ostras))
+        val match = requireNotNull(MassBoundDish.whole("200 g de arroz con ostras"))
+        assertEquals("arroz con ostras", match.dish)
+        assertEquals(listOf("arroz", "ostras"), match.parts)
+        assertEquals(listOf("140 g de arroz", "60 g de ostras"), MassBoundDish.fragments(match))
+        assertNull("a dish the installed table dropped", MassBoundDish.whole("200 g de arroz con pollo"))
+        FoodKnowledge.reset()
+        assertNull(MassBoundDish.whole("200 g de arroz con ostras"))
+        assertNotNull(MassBoundDish.whole("200 g de arroz con pollo"))
+    }
+
+    @Test
+    fun `an installed protected phrase that names a dish keeps MassBoundDish from binding a mass to it`() {
+        assertNotNull(MassBoundDish.whole("200 g de arroz con pollo"))
+        val lists = default.protectedPhrases
+        FoodKnowledge.install(default.copy(protectedPhrases = lists.copy(entityLiterals = lists.entityLiterals + "arroz con pollo")))
+        assertNull("a protected phrase names the dish already", MassBoundDish.whole("200 g de arroz con pollo"))
+        FoodKnowledge.reset()
+        assertNotNull(MassBoundDish.whole("200 g de arroz con pollo"))
+    }
+
+    // ─── Concurrency ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Three readers call [read] in a loop while the writer installs [changed] and resets for a quarter of a second; [read] says whether it
+     * saw something that is neither snapshot. Returns the number of surprises, of reads and of swaps.
+     */
+    private fun raceReadersAgainstSwaps(changed: FoodKnowledgeSnapshot, read: () -> Boolean): Triple<Int, Int, Int> {
         val stop = AtomicBoolean(false)
         val surprises = AtomicInteger()
         val reads = AtomicInteger()
         val readers = List(3) {
             thread(isDaemon = true) {
                 while (!stop.get()) {
-                    val result = TextNormalizer.normalize("2 pyollo")
-                    if (result != "2 pyollo" && result != "2 pollo") surprises.incrementAndGet()
+                    if (read()) surprises.incrementAndGet()
                     reads.incrementAndGet()
                 }
             }
@@ -278,8 +387,37 @@ class FoodKnowledgeInstallTest {
         }
         stop.set(true)
         readers.forEach { it.join(10_000) }
-        assertEquals("a reader saw something that is neither snapshot", 0, surprises.get())
-        assertTrue("the readers ran (${reads.get()} reads)", reads.get() >= readers.size)
+        return Triple(surprises.get(), reads.get(), swaps)
+    }
+
+    @Test
+    fun `readers racing installs and resets only ever see one snapshot or the other`() {
+        val changed = default.copy(typos = default.typos + ("pyollo" to "pollo"))
+        val (surprises, reads, swaps) = raceReadersAgainstSwaps(changed) {
+            val result = TextNormalizer.normalize("2 pyollo")
+            result != "2 pyollo" && result != "2 pollo"
+        }
+        assertEquals("a reader saw something that is neither snapshot", 0, surprises)
+        assertTrue("the readers ran ($reads reads)", reads >= 3)
+        assertTrue("the writer swapped ($swaps swaps)", swaps > 0)
+        assertSame(default, FoodKnowledge.current())
+    }
+
+    @Test
+    fun `parsers racing installs and resets only ever see the dishes of one snapshot`() {
+        val changed = withDishes(default.dishCompositions.dishes + ostras)
+        val (surprises, reads, swaps) = raceReadersAgainstSwaps(changed) {
+            val parsed = FoodCombinationParser.parse("arroz con ostras")
+            val reading = when {
+                parsed.isKnownDish && parsed.dishName == "arroz con ostras" && parsed.baseProportion == 0.7 &&
+                    parsed.accompaniments == listOf(Accompaniment("ostras", 0.3, Role.TOPPING)) -> "the installed dish"
+                !parsed.isKnownDish && parsed.dishName == null -> "the generic reading"
+                else -> "a mix of both"
+            }
+            reading == "a mix of both"
+        }
+        assertEquals("a reader saw something that is neither snapshot", 0, surprises)
+        assertTrue("the readers ran ($reads reads)", reads >= 3)
         assertTrue("the writer swapped ($swaps swaps)", swaps > 0)
         assertSame(default, FoodKnowledge.current())
     }
