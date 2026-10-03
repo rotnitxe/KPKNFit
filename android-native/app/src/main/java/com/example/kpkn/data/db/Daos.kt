@@ -379,9 +379,6 @@ interface NutritionDao {
 
     // ─── Global Food Database (USDA) ───
     
-    @Query("SELECT * FROM global_foods WHERE name LIKE '%' || :query || '%' LIMIT 100")
-    suspend fun searchGlobalFoods(query: String): List<GlobalFoodEntity>
-
     @Query("SELECT * FROM global_foods WHERE foodId = :foodId LIMIT 1")
     suspend fun getGlobalFoodById(foodId: String): GlobalFoodEntity?
 
@@ -391,7 +388,7 @@ interface NutritionDao {
         WHERE normalizedName LIKE '%' || :normalizedQuery || '%'
            OR IFNULL(normalizedBrand, '') LIKE '%' || :normalizedQuery || '%'
            OR aliasesJson LIKE '%' || :normalizedQuery || '%'
-        ORDER BY usageCount DESC, verifiedScore DESC, sourcePriority DESC
+        ORDER BY usageCount DESC, verifiedScore DESC, sourcePriority DESC, foodId ASC
         LIMIT :limit
         """
     )

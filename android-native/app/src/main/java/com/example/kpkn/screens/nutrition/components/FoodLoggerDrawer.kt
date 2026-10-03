@@ -89,6 +89,7 @@ import com.example.kpkn.ui.components.KpknSheet
 import java.util.UUID
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -182,6 +183,8 @@ fun FoodLoggerDrawer(
     var detectedContext by remember { mutableStateOf<ContextDetector.ContextResult?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf(emptyList<FoodCandidate>()) }
+    // The search in flight: a newer search (or an emptied box) cancels it instead of letting it finish for nothing.
+    var searchJob by remember { mutableStateOf<Job?>(null) }
     var activeTab by remember { mutableIntStateOf(initialTab.coerceIn(0, 1)) }
     var isSaving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
@@ -1145,15 +1148,17 @@ fun FoodLoggerDrawer(
     }
 
     fun performSearch() {
+        searchJob?.cancel()
         if (searchQuery.isBlank()) {
             searchResults = emptyList()
             return
         }
         val query = searchQuery
-        scope.launch {
-            val results = nutritionRepo.searchFoodCandidates(query, limit = 15).filter {
-                NutrientBasis.isVerified(it.food) && FoodIdentity.matchesDeclaredIdentity(query, it.food)
-            }.distinctBy { it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } } // C13: una ficha por id (keys únicas)
+        searchJob = scope.launch {
+            // The repository applies the verified-nutrients and declared-identity filter BEFORE the limit (WP-S2), so all
+            // 15 rows are usable ones.
+            val results = nutritionRepo.searchFoodCandidates(query, limit = 15, loggerFilter = true)
+                .distinctBy { it.foodId.ifBlank { "${it.food.name}_${it.food.brand.orEmpty()}" } } // C13: una ficha por id (keys únicas)
             if (searchQuery == query) searchResults = results
         }
     }
@@ -2569,23 +2574,27 @@ private fun TagCard(
                             ),
                         )
                         val lookup = correctionQuery.ifBlank { tag.tag }
+                        // null while the search runs: "No se encontraron coincidencias" must not flash before it answers.
                         var suggestions by remember(lookup, foodDatabase.size) {
-                            mutableStateOf<List<FoodCandidate>>(emptyList())
+                            mutableStateOf<List<FoodCandidate>?>(null)
                         }
-                        LaunchedEffect(lookup) {
-                            suggestions = nutritionRepo.searchFoodCandidates(lookup, limit = 15).filter {
-                                NutrientBasis.isVerified(it.food) && FoodIdentity.matchesDeclaredIdentity(lookup, it.food) &&
-                                    FoodIdentity.matchesExclusions(it.food, tag.excludedIngredients)
-                            }.take(5)
+                        LaunchedEffect(lookup, foodDatabase.size) {
+                            delay(250) // debounce: the next keystroke cancels this effect before it searches
+                            suggestions = nutritionRepo.searchFoodCandidates(lookup, limit = 15, loggerFilter = true)
+                                .filter { FoodIdentity.matchesExclusions(it.food, tag.excludedIngredients) }
+                                .take(5)
                         }
-                        if (suggestions.isEmpty()) {
+                        val found = suggestions
+                        if (found == null) {
+                            // still searching
+                        } else if (found.isEmpty()) {
                             Text(
                                 "No se encontraron coincidencias.",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         } else {
-                            suggestions.forEach { candidate ->
+                            found.forEach { candidate ->
                                 val food = candidate.food
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),

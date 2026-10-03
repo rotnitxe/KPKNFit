@@ -357,15 +357,7 @@ object FoodIdentity {
         if (isCompoundProduct(q) && !isCompoundProduct(n) && contentTokens(q).size > contentTokens(n).size) return false
         if (!isCompoundProduct(q) && (queryFamily != null || contentTokens(q).size == 1)) {
             val exactAlias = identityAliases.any { normalize(it) == q }
-            val queryHead = headToken(q)
-            val brandTokens = contentTokens(brand.orEmpty()).toSet()
-            val head = contentTokens(n).dropWhile { it != queryHead && it in brandTokens }.firstOrNull()
-            val sameHead = head?.removeSuffix("s") == queryHead?.removeSuffix("s")
-            val headFamily = familyFor(head.orEmpty())
-            val compatibleFamilyHead = queryFamily != null && headFamily == queryFamily
-            // Attributes such as "sin lactosa" do not relax the head-noun constraint.
-            if (queryFamily != null && headFamily != null && queryFamily != headFamily && head !in PLAIN_FOOD_EXTRA_TOKENS) return false
-            if (!exactAlias && !sameHead && !compatibleFamilyHead && head !in PLAIN_FOOD_EXTRA_TOKENS) return false
+            if (!headNounAccepted(q, queryFamily, n, brand, exactAlias)) return false
             if (isCompoundProduct(n) && !exactAlias) return false
         }
         // A transformed or flavoured product cannot silently stand in for its plain ingredient.
@@ -373,10 +365,7 @@ object FoodIdentity {
         val impliedPowder = FoodStapleOntology.isProteinSupplementContext(q)
         if (materialForms.any { form -> n.contains(form) && !q.contains(form) && !(form == "en polvo" && impliedPowder) }) return false
         val candidateTokens = contentTokens(searchable + " " + brand.orEmpty()).toSet()
-        val required = contentTokens(q).filterNot { token ->
-            token.toDoubleOrNull() != null || stateFor(token) != FoodState.UNKNOWN ||
-                token in setOf("sin", "g", "gr", "kg", "ml", "litro", "litros", "unidad", "unidades")
-        }
+        val required = requiredTokens(q)
         if (required.any { token -> candidateTokens.none { candidate ->
             candidate == token || candidate.removeSuffix("s") == token.removeSuffix("s") ||
                 (candidate.length >= 4 && token.length >= 4 && PhoneticEs.encode(candidate) == PhoneticEs.encode(token))
@@ -386,6 +375,50 @@ object FoodIdentity {
 
     fun matchesDeclaredIdentity(query: String, food: FoodItem, brandHint: String? = null): Boolean =
         matchesDeclaredIdentity(query, food.name, food.searchAliases + aliasesForFood(food), brandHint, food.brand)
+
+    /**
+     * Head noun of a product [name]: Spanish puts the noun first and the qualifiers after it ("leche descremada",
+     * "pan integral"), so it is the first content word, and "dulce de leche" or "arroz con leche" are NOT milk: their
+     * head is "dulce" / "arroz". Words that only name the [brand] and come first ("Colun leche entera", "LONCO LECHE SIN
+     * LACTOSA" by "Lonco Leche") are looked past, up to the [sought] noun itself. A name made ONLY of brand words says
+     * nothing beyond the brand, so nothing is looked past: OFF's "DULCE DE LECHE CO" by "DULCE DE LECHE & CO." is a
+     * dulce de leche, not the milk the brand words would make of it. Known limit: a name that starts with such a brand
+     * and then adds product words is still read by its sought noun. [name] may be raw; null when no word is left.
+     */
+    fun headNoun(name: String, brand: String? = null, sought: String? = null): String? {
+        val words = contentTokens(name)
+        val brandWords = contentTokens(brand.orEmpty()).toSet()
+        if (words.all { it in brandWords }) return words.firstOrNull()
+        return words.dropWhile { it != sought && it in brandWords }.firstOrNull()
+    }
+
+    /**
+     * The head-noun gate of [matchesDeclaredIdentity] for a normalized single-head query [q] (a known family or one
+     * content word): the candidate is headed by the sought noun, by a noun of the same family ("pechuga" for "pollo"), by
+     * a plain qualifier word, or declares the query as an exact alias.
+     */
+    private fun headNounAccepted(q: String, queryFamily: String?, n: String, brand: String?, exactAlias: Boolean): Boolean {
+        val queryHead = headToken(q)
+        val head = headNoun(n, brand, queryHead)
+        val sameHead = head?.removeSuffix("s") == queryHead?.removeSuffix("s")
+        val headFamily = familyFor(head.orEmpty())
+        val compatibleFamilyHead = queryFamily != null && headFamily == queryFamily
+        // Attributes such as "sin lactosa" do not relax the head-noun constraint.
+        if (queryFamily != null && headFamily != null && queryFamily != headFamily && head !in PLAIN_FOOD_EXTRA_TOKENS) return false
+        return exactAlias || sameHead || compatibleFamilyHead || head in PLAIN_FOOD_EXTRA_TOKENS
+    }
+
+    private val NON_REQUIRED_TOKENS = setOf("sin", "g", "gr", "kg", "ml", "litro", "litros", "unidad", "unidades")
+
+    /**
+     * The words of [query] that [matchesDeclaredIdentity] needs in the candidate: every content word except numbers,
+     * states ("cruda") and "sin"/units. The ranker also uses it as the cheap necessary condition to check before running
+     * the full identity rules on a row.
+     */
+    internal fun requiredTokens(query: String): List<String> =
+        contentTokens(query).filterNot { token ->
+            token.toDoubleOrNull() != null || stateFor(token) != FoodState.UNKNOWN || token in NON_REQUIRED_TOKENS
+        }
 
     /** Reject obviously broken rows before they become a nutrition authority. */
     fun hasPlausibleMacros(food: FoodItem): Boolean {
