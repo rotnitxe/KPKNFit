@@ -96,7 +96,8 @@ Located in `android-native/app/src/main/assets/`:
 2.  **`wikilab/` (`joints.json`, `kinetic_chains.json`, `movement_patterns.json`, `muscles.json`, `tendons.json` — ~104 KB):** Full relational catalog representing the anatomical connectivity of the human body (imported by `data/WikiLabPrepopulate.kt`).
 3.  **`food_data/` (`food.csv`, `food_nutrient.csv`, `food_portion.csv`, `food_category.csv`, `measure_unit.csv`, `usda_es_aliases.csv`):** USDA FoodData Central tables read by `FoodImporter`. WP-S11 trimmed the folder to the files the app reads; the 20 unused FDC CSV/XLSX tables now live in `android-native/datasets/usda_fdc_raw/` and are not bundled.
 4.  **`food_data/off_chile.csv`:** OpenFoodFacts Chile TSV dataset (~54 MB; the whole `food_data/` folder, with `dataset_knowledge.bin` and a few small JSON files, is ~72 MB).
-5.  **`food_data/manifest.json` (generated):** Not under `src/main/assets/`: the Gradle task `generateFoodDataManifest` (WP-S10) writes it to `android-native/app/build/generated/foodDataManifest/food_data/manifest.json` (sha256 and size per CSV plus one fingerprint) and registers that folder as an assets source, so it ships in every variant. `FoodImporter.expectedFingerprint` reads it at start.
+5.  **`food_data/food_knowledge_v1.json`:** Hand-maintained knowledge asset (~12 KB) with the raw tables of the description pipeline: protected phrases, typos and synonyms, household unit weights, containers, utensil volumes and liquid densities ([contract](contracts/food_knowledge_v1.md), WP-N13). `FoodKnowledgeStore.kt` reads it and `NutritionRepository` installs it once at startup.
+6.  **`food_data/manifest.json` (generated):** Not under `src/main/assets/`: the Gradle task `generateFoodDataManifest` (WP-S10) writes it to `android-native/app/build/generated/foodDataManifest/food_data/manifest.json` (sha256 and size per CSV plus one fingerprint) and registers that folder as an assets source, so it ships in every variant. `FoodImporter.expectedFingerprint` reads it at start.
 
 ### 2.5 Food Database Import Flow (`data/food/FoodImporter.kt`)
 
@@ -195,6 +196,7 @@ for regression evidence and validation status.
     *   Extracts quantities and maps household measures ("taza", "unidad", "rebanada", "plato") to consumed grams using `SubjectivePortionEngine.kt` and `HouseholdPortions.kt`, preserving declared raw/cooked state. The semantic retriever does not supply authoritative eaten weights.
     *   Fuzzy match database queries using phonetic index codes in Spanish (`PhoneticEs.kt`), `TextNormalizer.kt`, `FoodIndex.kt`, `SmartFoodResolver.kt`, `FoodCombinationParser.kt`.
     *   Offline semantic dataset: compiled asset `food_data/dataset_knowledge.bin` (19,405 examples) loaded by `DatasetKnowledgeStore.kt` into `SemanticPortionRetriever.kt`; context priors via `ContextDetector.kt`. Fallback: `NutritionHeuristicEstimator.kt`. Dataset never overwrites verified USDA/OFF macros.
+    *   Knowledge tables: the protected phrases, typos/synonyms, household unit weights, container words, utensil volumes and densities live in `food_data/food_knowledge_v1.json`, installed once at startup into `FoodKnowledge.kt` (strict `parseFoodKnowledge`); `ProtectedPhrases.kt`, `TextNormalizer.kt`, `HouseholdPortions.kt`, `SubjectivePortionEngine.kt` and the singularizer of `FoodParser.kt` read the installed snapshot. The Kotlin copy in `FoodKnowledgeDefaults.kt` is the default and the fallback until the parity test lets it go.
 
 ### 3.3 Training Engine (`domain/training/`)
 
