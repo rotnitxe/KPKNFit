@@ -271,22 +271,9 @@ class SmartFoodResolver(
      */
     private fun singularizeQuery(query: String): String? {
         val lower = query.trim().lowercase()
-        if (lower.length <= 4) return null
-        val singular = when {
-            lower.endsWith("ces") && lower.length > 5 -> lower.dropLast(3) + "z"
-            lower.endsWith("es") && lower.length > 4 -> lower.dropLast(2)
-            lower.endsWith("s") && lower.length > 4 -> {
-                val stem = lower.dropLast(1)
-                // "anís" — palabras tónicas en vocal con tilde son ya singulares
-                if (ACCENTED_VOWEL_S.containsMatchIn(stem)) return null
-                stem
-            }
-            else -> return null
-        }
-        return singular.takeIf { it.length >= 3 && it != lower }
+        // "anís", "tenis", "chips" and "lunes" are already singular; "limones" -> "limon" but "tomates" -> "tomate".
+        return SpanishSingularizer.singularize(lower).takeIf { it.length >= 3 && it != lower }
     }
-
-    private val ACCENTED_VOWEL_S = Regex("[áéíóú]s$")
 
     /**
      * Resolve multiple queries in batch.

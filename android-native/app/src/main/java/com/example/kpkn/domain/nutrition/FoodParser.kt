@@ -18,7 +18,9 @@ private const val GRAM_UNITS = "g|gr|gramos?|kg|kilos?|ml|mililitros?|l|litros?|
 
 private val GRAM_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*(?:$GRAM_UNITS)\b(?:\s+de)?\s*""", RegexOption.IGNORE_CASE)
 
-private val COMMA_OR_PLUS = Regex("""(?:(?<!\d),\s*|,(?!\d)\s*|;\s*|\s*\+\s*|\s*[\r\n]+\s*)""")
+// A sentence ("2 huevos. Arroz") or a label ("Desayuno: 2 huevos") ends like a comma does; a period or colon
+// inside a number ("1.5 kg", "a las 13:30") does not.
+private val COMMA_OR_PLUS = Regex("""(?:(?<!\d),\s*|,(?!\d)\s*|;\s*|\s*\+\s*|\s*[\r\n]+\s*|(?<!\d)\.(?!\d)\s*|(?<!\d):(?!\d)\s*)""")
 private val CONNECTOR_Y = Regex("""\s+(?:y|e|mas|más)\s+""", RegexOption.IGNORE_CASE)
 private val CONNECTOR_CON = Regex("""\s+con\s+""", RegexOption.IGNORE_CASE)
 
@@ -40,6 +42,12 @@ private val PROTECTED_ENTITIES = listOf(
     "papas fritas con mayonesa", "papa fritas con mayonesa",
     "papas con mayo",
 ) + TextNormalizer.numberWordFoodNames
+
+// Dishes the parser protects from splitting ("empanadas de pino", "pasteles de choclo") keep their plural, like
+// catalog names do: the singularizer only changes a phrase into another known phrase.
+private val SINGULARIZER_LEXICON: SpanishSingularizer.Lexicon by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    SpanishSingularizer.defaultLexicon.withPhrases(PROTECTED_ENTITIES)
+}
 
 private val LITERAL_QUANTITIES = mapOf(
     "un" to 1.0, "una" to 1.0, "uno" to 1.0, "dos" to 2.0, "tres" to 3.0,
@@ -78,7 +86,7 @@ private val COOKING_PATTERNS = listOf(
     Pair(Regex("""\b(?:al\s+)?horno\b|\bhorn(?:ead[oa]s?|er[oa]?)\b|\b(?:baked|airfryer|air\s*fryer|frito\s+al\s+aire)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
     
     // 4. FRITO + SALTEADO + REVUELTO (unificados como PWA)
-    Pair(Regex("""\b(?:frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|fried)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
+    Pair(Regex(RegexEs.bounded("""frit[oa]s?|fre[ií]d[oa]s?|revuelt[oa]s?|saltead[oa]s?|saltear|sofrit[oa]s?|soffrit[oa]s?|fried"""), RegexOption.IGNORE_CASE), CookingMethod.FRITO),
     
     // 5. COCIDO / HERVIDO / SANCOCHADO (incluye "duro": "huevo duro" es cocido, IT3;
     //     "cocinado/cocinada" son sinónimos cotidianos de cocido y antes quedaban
@@ -95,20 +103,22 @@ private val COOKING_PATTERNS = listOf(
     Pair(Regex("""\b(?:a\s+la\s+)?olla\b""", RegexOption.IGNORE_CASE), CookingMethod.OLLA),
     
     // 9. ASADO_PARRILLA (ahora separado de plancha)
-    Pair(Regex("""\b(?:a\s+la\s+)?parrilla\b|\bparrill[ae]r[oa]s?\b|\b(?:grilled|asad[oa]s?|al\s+carb[oó]n)\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
+    Pair(Regex(RegexEs.bounded("""(?:a\s+la\s+)?parrilla|parrill[ae]r[oa]s?|grilled|asad[oa]s?|al\s+carb[oó]n"""), RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
     
     // 10. GUISADO (incluye "guiso"/"guisito"/"guisote", IT3)
     Pair(Regex("""\bguis(?:ad)?[oa]s?\b|\bguisit[oa]s?\b|\bguisote\b|\bcazuel[ae]d[oa]s?\b""", RegexOption.IGNORE_CASE), CookingMethod.GUISADO),
     
     // 11. AHUMADO
     Pair(Regex("""\bahumad[oa]s?\b|\bhumad[oa]s?\b|\bsmoked\b""", RegexOption.IGNORE_CASE), CookingMethod.AHUMADO),
-    Pair(Regex("""\b(?:sous\s+vide|al\s+vac[ií]o|en\s+bolsa\s+sellada)\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
-    Pair(Regex("""\b(?:escalfad[oa]s?|pochad[oa]s?|poch[eé]|huevo\s+poch[eé])\b""", RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
-    Pair(Regex("""\b(?:olla\s+(?:de\s+)?presi[oó]n|olla\s+expr[eé]s)\b""", RegexOption.IGNORE_CASE), CookingMethod.OLLA),
+    Pair(Regex(RegexEs.bounded("""sous\s+vide|al\s+vac[ií]o|en\s+bolsa\s+sellada"""), RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    // "poché" is the method only: "huevo poché" keeps its "huevo" (the alternative that swallowed both words
+    // matched on Android alone and left an empty food name).
+    Pair(Regex(RegexEs.bounded("""escalfad[oa]s?|pochad[oa]s?|poch[eé]"""), RegexOption.IGNORE_CASE), CookingMethod.COCIDO),
+    Pair(Regex(RegexEs.bounded("""olla\s+(?:de\s+)?presi[oó]n|olla\s+expr[eé]s"""), RegexOption.IGNORE_CASE), CookingMethod.OLLA),
     Pair(Regex("""\b(?:en\s+ceviche|estilo\s+ceviche|aguachile)\b""", RegexOption.IGNORE_CASE), CookingMethod.CRUDO),
     Pair(Regex("""\b(?:papillote|en\s+papillote|empapelad[oa]s?)\b""", RegexOption.IGNORE_CASE), CookingMethod.HORNO),
     Pair(Regex("""\b(?:al\s+wok|wok-wok)\b""", RegexOption.IGNORE_CASE), CookingMethod.FRITO),
-    Pair(Regex("""\b(?:a\s+la\s+brasa|al\s+carb[oó]n|a\s+la\s+le[nñ]a)\b""", RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
+    Pair(Regex(RegexEs.bounded("""a\s+la\s+brasa|al\s+carb[oó]n|a\s+la\s+le[nñ]a"""), RegexOption.IGNORE_CASE), CookingMethod.ASADO_PARRILLA),
 )
 
 private val REFERENCE_PATTERNS = listOf(
@@ -144,7 +154,7 @@ private val REFERENCE_PATTERNS = listOf(
 // Precompiled Regex patterns for optimization
 private val GROUP_PATTERN = Regex("^(.+?)\\s*\\((.+)\\)\\s*$")
 private val STARTS_WITH_DIGIT = Regex("""^\d""")
-private val NEGATION_PATTERN = Regex("""\b(?:sin|menos|no|ni)\b""", RegexOption.IGNORE_CASE)
+private val NEGATION_PATTERN = Regex("""\b(?:sin|no|ni)\b""", RegexOption.IGNORE_CASE)
 private val GRAM_UNIT_PATTERN = Regex("""(\d+(?:[.,]\d+)?)\s*($GRAM_UNITS)\b""", RegexOption.IGNORE_CASE)
 private val KG_LITER_PATTERN = Regex("kg|kilos?|l$|litros?")
 private val OZ_PATTERN = Regex("oz|onzas?")
@@ -189,12 +199,46 @@ private val REPAIR_MARKER_PATTERN = Regex("""(?:perd[oó]n|digo|mejor dicho)""",
 private val LEADING_SINO_PATTERN = Regex("""^sino\s+""", RegexOption.IGNORE_CASE)
 private val TRAILING_NO_PATTERN = Regex("""^(.+?)\s+no$""", RegexOption.IGNORE_CASE)
 
+// A meal or time-of-day label ("Desayuno: ", "Almuerzo: ", "Tarde: ") introduces a list: it is not a food and
+// becomes a separator. Only with its colon: "once huevos" is still eleven eggs.
+private val MEAL_LABEL_PATTERN = Regex(
+    """(?<![\p{L}\p{N}_])(?:desayuno|almuerzo|once|cena|colaci[oó]n|merienda|snack|comida|postre|""" +
+        """media\s+ma[ñn]ana|media\s+tarde|ma[ñn]ana|tarde|noche|mediod[ií]a)\s*:\s*""",
+    RegexOption.IGNORE_CASE,
+)
+// "pollo: 150 g" or "leche: un vaso" is a food and its amount, not two sentences: the colon becomes a space.
+private val AMOUNT_COLON_PATTERN = Regex(
+    """(?<=\p{L}):[ \t]*(?=\d|(?:un|una|uno|medio|media|poco|poca)(?![\p{L}\p{N}_]))""",
+    RegexOption.IGNORE_CASE,
+)
+// "100 gr. de arroz": the period closes a unit abbreviation; it ends a sentence only before a capital letter.
+private val UNIT_ABBREVIATION_PERIOD = Regex(
+    """(\d\s*(?:kg|g|ml|l|lt|lts|cc|oz|lb|lbs|cucharadas?|cucharaditas?))\.(?=\s+\p{Ll})""",
+)
+
+// Narration that frames a mention without naming a food: "hoy almorcé", "después un café", "a las 13:30 comí".
+// A leading "no" survives ("no comí pan" -> "no pan") so the negation is still read.
+private const val NARRATIVE_CLOCK = """a\s+las?\s+\d{1,2}(?:[:.]\d{2})?(?:\s*(?:h|hs|hrs?|horas?))?"""
+private const val NARRATIVE_ADVERBS =
+    """hoy|ayer|anteayer|anoche|reci[eé]n|despu[eé]s|luego|m[aá]s\s+tarde|tambi[eé]n|adem[aá]s|""" +
+        """(?:esta|en\s+la)\s+(?:ma[ñn]ana|tarde|noche)|al\s+(?:desayuno|almuerzo|mediod[ií]a)|""" +
+        """de\s+(?:desayuno|almuerzo|once|cena|postre)|""" + NARRATIVE_CLOCK
+private const val NARRATIVE_VERBS =
+    """com[ií]|comimos|he\s+comido|hemos\s+comido|almorc[eé]|almorzamos|cen[eé]|cenamos|desayun[eé]|""" +
+        """desayunamos|tom[eé]|tomamos|piqu[eé]|picamos|merend[eé]|merendamos"""
+private val NARRATIVE_PREFIX = Regex(
+    """^(?:(?:$NARRATIVE_ADVERBS)(?:\s+|$))*(no\s+)?(?:me\s+)?(?:$NARRATIVE_VERBS)(?:\s+|$)""" +
+        """|^(?:(?:$NARRATIVE_ADVERBS)(?:\s+|$))+(?!de\s)""",
+    RegexOption.IGNORE_CASE,
+)
+
 private val PROTECTED_ENTITY_PHRASES = (PROTECTED_ENTITIES + staticFoodPhrases() + listOf("salsa de tomate"))
     .distinct()
     .sortedByDescending { it.length }
 
+// Catalog names such as "castañas de cajú", "mantequilla de maní" or "ñame (cocido)" start or end in an accented letter.
 private val PROTECTED_ENTITIES_REGEX = Regex(
-    PROTECTED_ENTITY_PHRASES.joinToString("|") { "\\b${Regex.escape(it)}\\b" },
+    RegexEs.bounded(PROTECTED_ENTITY_PHRASES.joinToString("|") { Regex.escape(it) }),
     RegexOption.IGNORE_CASE,
 )
 
@@ -393,8 +437,9 @@ private fun parseFragment(
     if (foodName.length < 2) return null
 
     // Canonical resolution
+    // A count in front of the food ("3 tomates", "huevos x2", "un par de huevos") counts units of the singular.
     val shouldSingularize = !catalogPhrase && !TextNormalizer.startsWithNumberWordFoodName(foodName) &&
-        STARTS_WITH_DIGIT.containsMatchIn(working.trim())
+        (STARTS_WITH_DIGIT.containsMatchIn(working.trim()) || quantity != 1.0)
     val canonical = normalizeFoodName(foodName, singularize = shouldSingularize)
     val knownFood = findFoodExactByNormalized(canonical) ?: findFoodByNormalized(canonical)
     val repaired = if (knownFood == null) SemanticPortionRetriever.repairQuery(canonical) else canonical
@@ -469,6 +514,9 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
     // "completo, sin mayonesa" has the same ingredient scope as the inline form.
     // Keep sentence/line boundaries and conversational "no" repairs distinct.
     var trimmed = description.trim().replace(COMMA_BEFORE_EXCLUSION_PATTERN, " ")
+        .replace(MEAL_LABEL_PATTERN, ", ")
+        .replace(AMOUNT_COLON_PATTERN, " ")
+        .replace(UNIT_ABBREVIATION_PERIOD) { it.groupValues[1] }
     if (trimmed.isEmpty()) return emptyList()
 
     // Mask protected entities
@@ -491,6 +539,9 @@ private fun splitMentionFragments(description: String): List<MentionFragment> {
     splitBy(CONNECTOR_Y)
     splitBy(CONNECTOR_CON)
     splitBy(CONNECTOR_SINO)
+    // Each sentence may open with its own narration ("Desayuné 2 huevos. Almorcé arroz con pollo").
+    parts = parts.map { it.replace(NARRATIVE_PREFIX) { match -> match.groupValues[1] }.trim() }
+        .filter { it.isNotEmpty() }
 
     // Conversational repairs replace the preceding mention, after food-list
     // segmentation, so "pollo con arroz, perdón, fideos" keeps the chicken.
@@ -875,16 +926,8 @@ private fun stripAccents(text: String): String =
  * "huevo", "huevos", "Huevo" y "2 huevos" + "1 huevo" se fusionan como el mismo alimento.
  * Solo afecta la fusión de items; el tag visible se conserva tal cual.
  */
-private fun canonicalTagKey(tag: String): String {
-    val stripped = stripAccents(tag.lowercase())
-    if (stripped.length <= 4) return stripped
-    return when {
-        stripped.endsWith("ces") && stripped.length > 5 -> stripped.dropLast(3) + "z"
-        stripped.endsWith("es") && stripped.length > 4 -> stripped.dropLast(2)
-        stripped.endsWith("s") && stripped.length > 4 -> stripped.dropLast(1)
-        else -> stripped
-    }
-}
+private fun canonicalTagKey(tag: String): String =
+    SpanishSingularizer.singularize(stripAccents(tag.lowercase()), SINGULARIZER_LEXICON)
 
 private fun extractGlobalPortion(description: String): PortionPreset {
     for ((pattern, preset, _) in PORTION_PATTERNS) {
@@ -921,14 +964,7 @@ private fun normalizeFoodName(name: String, singularize: Boolean = false): Strin
     // Diminutivos con validación de raíz: "huevito"→"huevo" pero "mantequilla" NO se rompe
     normalized = TextNormalizer.canonicalizeDiminutives(normalized)
 
-    if (singularize) {
-        normalized = when {
-            normalized.endsWith("ces") && normalized.length > 4 -> normalized.dropLast(3) + "z"
-            normalized.endsWith("es") && normalized.length > 4 -> normalized.dropLast(2)
-            normalized.endsWith("s") && normalized.length > 3 -> normalized.dropLast(1)
-            else -> normalized
-        }
-    }
+    if (singularize) normalized = SpanishSingularizer.singularize(normalized, SINGULARIZER_LEXICON)
 
     return normalized
 }

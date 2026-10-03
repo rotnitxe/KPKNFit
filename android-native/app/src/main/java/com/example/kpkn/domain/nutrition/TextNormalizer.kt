@@ -67,14 +67,17 @@ object TextNormalizer {
     )
 
     // ─── Voice fillers ────────────────────────────────────────────────────
+    // Edges come from RegexEs: "ajá", "por ahí" and "no sé" end in an accented letter, where a plain
+    // \b only matches on Android (WP-N4).
     private val FILLER_PATTERN = Regex(
-        """\b(eh{1,}|este|osea|o\s+sea|como\s+que|m{3,}|aj[aá]|a\s+ver|por\s+a[hí]|no\s+s[eé]|ps|pe)\b""",
+        RegexEs.bounded("""eh{1,}|este|osea|o\s+sea|como\s+que|m{3,}|aj[aá]|a\s+ver|por\s+a[hí]|no\s+s[eé]|ps|pe"""),
         RegexOption.IGNORE_CASE
     )
 
     // ─── Quantity hedges ──────────────────────────────────────────────────
+    // "al menos 2 huevos" states a lower bound, not an exclusion: the hedge goes and the number stays.
     private val HEDGE_PATTERN = Regex(
-        """\b(creo\s+que\s+(?:fue|era)|me\s+parece|m[aá]s\s+o\s+menos|como\s+unos|casi|alrededor\s+de|cerca\s+de|aprox(?:imadamente)?|tipo|unos|unas|lo\s+que\s+(?:sobr[oó]|qued[oó])\s+de|el\s+resto\s+de)\s*""",
+        RegexEs.bounded("""creo\s+que\s+(?:fue|era)|me\s+parece|m[aá]s\s+o\s+menos|como\s+unos|casi|alrededor\s+de|cerca\s+de|aprox(?:imadamente)?|tipo|unos|unas|lo\s+que\s+(?:sobr[oó]|qued[oó])\s+de|el\s+resto\s+de|al\s+menos|por\s+lo\s+menos|a\s+lo\s+menos|como\s+m[ií]nimo|m[aá]s\s+de|menos\s+de""") + """\s*""",
         RegexOption.IGNORE_CASE
     )
 
@@ -192,8 +195,8 @@ object TextNormalizer {
         "mil" to 1000,
     )
 
-    // Common food roots for augmentative validation
-    private val COMMON_FOOD_ROOTS = setOf(
+    // Common food roots for augmentative validation (and the singularizer's vocabulary)
+    internal val COMMON_FOOD_ROOTS = setOf(
         "pan", "carne", "pollo", "pescado", "huevo", "arroz", "papa", "pasta",
         "leche", "agua", "jugo", "cafe", "te", "vino", "cerveza", "queso",
         "yogurt", "crema", "mantequilla", "azucar", "sal", "aceite", "ajo",
@@ -240,6 +243,7 @@ object TextNormalizer {
 
     private val SPACES_PATTERN = Regex("\\s+")
     private val MULTISPACE_PATTERN = Regex("\\s{2,}")
+    private val LEADING_SEPARATOR_PATTERN = Regex("""^[,;\s]+""")
 
     // normalize(): compiled once instead of on every call.
     private val DECIMAL_COMMA_PATTERN = Regex("""(?<=\d),(?=\d)""")
@@ -256,7 +260,8 @@ object TextNormalizer {
         TYPO_MAP.entries
             .sortedByDescending { it.key.length }
             .map { (typo, correction) ->
-                Regex("""\b${Regex.escape(typo)}\b""", RegexOption.IGNORE_CASE) to correction
+                // The pattern keeps a literal space for multi-word keys (see applyTypos): RegexEs edges have none.
+                Regex(RegexEs.boundedLiteral(typo), RegexOption.IGNORE_CASE) to correction
             }
     }
 
@@ -267,7 +272,7 @@ object TextNormalizer {
 
     private val EN_ES_REGEX_LIST: List<Pair<Regex, String>> by lazy {
         EN_ES_MAP.map { (en, es) ->
-            Regex("""\b${Regex.escape(en)}\b""", RegexOption.IGNORE_CASE) to es
+            Regex(RegexEs.boundedLiteral(en), RegexOption.IGNORE_CASE) to es
         }
     }
 
@@ -317,30 +322,46 @@ object TextNormalizer {
         }
     }
 
-    /** Palabras señal de inglés — un texto con ≥2 de ellas se traduce estructuralmente. */
-    private val EN_SIGNAL_WORDS: Set<String> = buildSet {
-        addAll(EN_ES_MAP.keys)
+    /**
+     * English words that are also Spanish: they never count as evidence of English
+     * ("una banana a la plancha" is Spanish; "manzana golden" too).
+     */
+    private val SPANISH_HOMOGRAPHS = setOf("banana", "bananas", "golden")
+
+    /**
+     * Words only English uses: one of them is real evidence. The identity entries of [EN_ES_MAP]
+     * ("pasta", "cereal", "yogurt") are Spanish words too and never count.
+     */
+    private val EN_STRONG_WORDS: Set<String> = buildSet {
+        EN_ES_MAP.forEach { (en, es) -> if (en != es && ' ' !in en && en !in SPANISH_HOMOGRAPHS) add(en) }
         addAll(
             listOf(
-                "and", "with", "plus", "without", "no", "of", "a", "an", "half", "quarter",
-                "cup", "glass", "tablespoon", "teaspoon", "handful", "slice", "bowl",
-                "can", "scoop", "grams", "gram", "gr", "ml", "kg", "breast", "thigh",
-                "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-                "ten", "eleven", "twelve", "fifteen", "twenty",
+                "and", "with", "without", "of", "cup", "glass", "tablespoon", "teaspoon",
+                "handful", "slice", "bowl", "scoop", "half", "quarter", "grams",
             ),
         )
     }
 
+    /** Words that are English only in company: Spanish also says "a" and "no" (and "can", "ten"). */
+    private val EN_WEAK_WORDS: Set<String> = setOf(
+        "a", "an", "no", "can",
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+        "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+        "nineteen", "twenty",
+    )
+
+    /**
+     * English only with at least one strong word and two signals in all: "pasta a la bolognesa" and
+     * "pollo a la plancha, no frito" are Spanish ("a" and "no" alone prove nothing).
+     */
     private fun isLikelyEnglish(text: String): Boolean {
-        val tokens = text.lowercase().split(SPACES_PATTERN)
-        var hits = 0
-        for (token in tokens) {
-            if (token in EN_SIGNAL_WORDS) {
-                hits++
-                if (hits >= 2) return true
-            }
+        var strong = 0
+        var weak = 0
+        for (raw in text.lowercase().split(SPACES_PATTERN)) {
+            val token = raw.trim { !it.isLetter() }
+            if (token in EN_STRONG_WORDS) strong++ else if (token in EN_WEAK_WORDS) weak++
         }
-        return false
+        return strong >= 1 && strong + weak >= 2
     }
 
     private fun applyEnglishStructure(text: String): String {
@@ -365,7 +386,7 @@ object TextNormalizer {
     // tampoco matchearía los patrones del motor con "1 marraqueta".
     // OJO: debe ser UNA sola línea — los saltos de línea en raw strings son literales.
     private val NUMBER_WORD_EXCLUDE_NEXT = Regex(
-        """\s+(?:poc[oa]|poquit\w*|pizca\w*|chorrit\w*|par|mont[oó]n\w*|tantico|chin\b|pel[ií]n\b|miaja\w*|gotit\w*|gota\w*|hilito|hilo\b|velo\b|chorret[oó]n\w*|chorro\w*|cul[ií]n\w*|culillo|fondo\w*|capit\w*|capa\w*|raci[oó]n\w*|cerro\w*|barbaridad\w*|bestialidad\w*|exageraci[oó]n\w*|disparate\w*|porr[oó]n\w*|cuchar[oó]n\w*|tacit\w*|pocill\w*|taz[oó]n\w*|fuente\w*|vaso\w*|copa\w*|caballit\w*|dedal\w*|plato\w*|bol(?:es)?\b|bowl\w*|botell\w*|bot[ée]\b|frasco\w*|caja\w*|bolsa\w*|paquet\w*|sobre\b|marraquet\w*|hallull\w*|empanad\w*|gallet\w*|tortill\w*|boll\w*|tamal\w*|pastel\w*|bizcoch\w*|panecill\w*|mollet\w*|arep\w*|rebanad\w*|hogaza\w*|puñad\w*|pu[ñn]o\w*|rodaja\w*|tajad\w*|trozo\w*|pedaz\w*|lonch\w*|lonja\w*|l[aá]mina\w*|tira\w*|gajo\w*|raja\w*|cu[ñn]a\w*|esquina\w*|punta\w*|tri[aá]ngulo\w*|dado\b|cubito\w*|cuadrit\w*|feta\w*|torraj\w*|torrej\w*|cacho\w*|palito\w*|ramita\w*|hojuela\w*|bolsit\w*|jarro\w*|jarra\w*|chupito\w*|ca[ñn]a\w*|platito\w*|pastilla\w*|tableta\w*|barra\w*|onza\w*|nuez\b|avellana\w*|aceituna\w*|garbanzo\w*|grano\w*|hoja\w*|ram[ao]\w*|ramillet\w*|tallo\w*|cabeza\w*|diente\w*|cogollo\w*|vara\w*|astilla\w*|pellizc\w*|dedo\w*|palma\w*|nudillo\w*|scoop\w*|medida\w*)\b""",
+        """\s+""" + RegexEs.bounded("""poc[oa]|poquit\w*|pizca\w*|chorrit\w*|par|mont[oó]n\w*|tantico|chin\b|pel[ií]n\b|miaja\w*|gotit\w*|gota\w*|hilito|hilo\b|velo\b|chorret[oó]n\w*|chorro\w*|cul[ií]n\w*|culillo|fondo\w*|capit\w*|capa\w*|raci[oó]n\w*|cerro\w*|barbaridad\w*|bestialidad\w*|exageraci[oó]n\w*|disparate\w*|porr[oó]n\w*|cuchar[oó]n\w*|tacit\w*|pocill\w*|taz[oó]n\w*|fuente\w*|vaso\w*|copa\w*|caballit\w*|dedal\w*|plato\w*|bol(?:es)?\b|bowl\w*|botell\w*|bot[ée]|frasco\w*|caja\w*|bolsa\w*|paquet\w*|sobre\b|marraquet\w*|hallull\w*|empanad\w*|gallet\w*|tortill\w*|boll\w*|tamal\w*|pastel\w*|bizcoch\w*|panecill\w*|mollet\w*|arep\w*|rebanad\w*|hogaza\w*|puñad\w*|pu[ñn]o\w*|rodaja\w*|tajad\w*|trozo\w*|pedaz\w*|lonch\w*|lonja\w*|l[aá]mina\w*|tira\w*|gajo\w*|raja\w*|cu[ñn]a\w*|esquina\w*|punta\w*|tri[aá]ngulo\w*|dado\b|cubito\w*|cuadrit\w*|feta\w*|torraj\w*|torrej\w*|cacho\w*|palito\w*|ramita\w*|hojuela\w*|bolsit\w*|jarro\w*|jarra\w*|chupito\w*|ca[ñn]a\w*|platito\w*|pastilla\w*|tableta\w*|barra\w*|onza\w*|nuez\b|avellana\w*|aceituna\w*|garbanzo\w*|grano\w*|hoja\w*|ram[ao]\w*|ramillet\w*|tallo\w*|cabeza\w*|diente\w*|cogollo\w*|vara\w*|astilla\w*|pellizc\w*|dedo\w*|palma\w*|nudillo\w*|scoop\w*|medida\w*"""),
         RegexOption.IGNORE_CASE,
     )
 
@@ -472,8 +493,9 @@ object TextNormalizer {
         //     como "tres leches" o "mil hojas" que contienen números-palabra).
         text = convertNumberWordsProtectingPlates(text)
 
-        // 11. Final cleanup: collapse multiple spaces
-        text = text.replace(MULTISPACE_PATTERN, " ").trim()
+        // 11. Final cleanup: collapse multiple spaces; a filler removed from the start of a list
+        //     ("ajá, un café") must not leave its comma behind.
+        text = text.replace(MULTISPACE_PATTERN, " ").trim().replace(LEADING_SEPARATOR_PATTERN, "")
 
         return text
     }

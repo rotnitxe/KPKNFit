@@ -93,7 +93,7 @@ object SubjectivePortionEngine {
         Triple(Regex("""\bmedia\s+taza\b""", RegexOption.IGNORE_CASE), 120.0, "media_taza"),
         Triple(Regex("""\bun\s+cuarto\s+de\s+taza\b""", RegexOption.IGNORE_CASE), 60.0, "cuarto_taza"),
         Triple(Regex("""\bun\s+tercio\s+de\s+taza\b""", RegexOption.IGNORE_CASE), 80.0, "tercio_taza"),
-        Triple(Regex("""\b(un|una|1)\s+tacitas?\s+de\s+caf[ée]\b""", RegexOption.IGNORE_CASE), 60.0, "tacita_cafe"),
+        Triple(Regex("""\b(un|una|1)\s+tacitas?\s+de\s+caf[ée]""" + RegexEs.RIGHT_EDGE, RegexOption.IGNORE_CASE), 60.0, "tacita_cafe"),
 
         // Vasos y copas
         Triple(Regex("""\b(un|una|1)\s+vasos?\b""", RegexOption.IGNORE_CASE), 250.0, "vaso"),

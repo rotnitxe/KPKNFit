@@ -69,10 +69,10 @@ class GoldenCorpusTest {
 
         // ─── Cantidades ────────────────────────────────────────────────────
         GoldenCase("2 huevos", listOf(Expectation("huevo", quantity = 2.0, grams = 100.0))),
-        GoldenCase("huevos x2", listOf(Expectation("huevos", quantity = 2.0))),
+        GoldenCase("huevos x2", listOf(Expectation("huevo", quantity = 2.0))),
         GoldenCase("3 huevos x2", listOf(Expectation("huevo", quantity = 6.0))),
         GoldenCase("1-2 huevos", listOf(Expectation("huevo", quantity = 1.5))),
-        GoldenCase("un par de huevos", listOf(Expectation("huevos", quantity = 2.0))),
+        GoldenCase("un par de huevos", listOf(Expectation("huevo", quantity = 2.0))),
         GoldenCase("media marraqueta", listOf(Expectation("marraqueta", quantity = 0.5))),
 
         // ─── G3: múltiples medidas por fragmento ───────────────────────────
@@ -458,7 +458,7 @@ class GoldenCorpusTest {
         // ─── E15 · Cocción y estados ────────────────────────────────────────
         GoldenCase("huevo duro", listOf(Expectation("huevo", cooking = CookingMethod.COCIDO))),
         GoldenCase("huevo pasado por agua", listOf(Expectation("huevo pasado por agua"))),
-        GoldenCase("huevo poché", listOf(Expectation("huevo poché"))),
+        GoldenCase("huevo poché", listOf(Expectation("huevo", cooking = CookingMethod.COCIDO))),
         GoldenCase("huevos a la copa", listOf(Expectation("huevos a la copa"))),
         GoldenCase("pollo sancochado", listOf(Expectation("pollo", cooking = CookingMethod.COCIDO))),
         GoldenCase("pollo hervido", listOf(Expectation("pollo", cooking = CookingMethod.COCIDO))),
@@ -548,7 +548,7 @@ class GoldenCorpusTest {
         // ─── E15 · Cantidades con números-palabra y más medidas ─────────────
         GoldenCase("un huevo", listOf(Expectation("huevo", quantity = 1.0))),
         GoldenCase("dos plátanos", listOf(Expectation("platano", quantity = 2.0))),
-        GoldenCase("tres tomates", listOf(Expectation("tomat", quantity = 3.0))),
+        GoldenCase("tres tomates", listOf(Expectation("tomate", quantity = 3.0))),
         GoldenCase("cuatro zanahorias", listOf(Expectation("zanahoria", quantity = 4.0))),
         GoldenCase("cinco almendras", listOf(Expectation("almendra", quantity = 5.0))),
         GoldenCase("seis galletas", listOf(Expectation("galleta", quantity = 6.0))),

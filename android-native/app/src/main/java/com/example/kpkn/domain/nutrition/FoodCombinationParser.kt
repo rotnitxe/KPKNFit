@@ -405,7 +405,7 @@ object FoodCombinationParser {
         for ((dishName, _) in KNOWN_DISHES) {
             val regex = dishRegexCache.getOrPut(dishName) {
                 Regex(
-                    """\b${Regex.escape(dishName)}\b(?=$|\s+(?:con|y|e|mas|más|sin|a|al|de|,)\b)""",
+                    RegexEs.boundedLiteral(dishName) + """(?=$|\s+(?:con|y|e|mas|más|sin|a|al|de|,)\b)""",
                     RegexOption.IGNORE_CASE,
                 )
             }

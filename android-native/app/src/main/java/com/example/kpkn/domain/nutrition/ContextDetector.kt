@@ -99,7 +99,7 @@ object ContextDetector {
      */
     private val CONTEXT_REGEXES: Map<MealContext, List<Regex>> by lazy {
         CONTEXT_PATTERNS.mapValues { (_, keywords) ->
-            keywords.map { keyword -> Regex("""\b${Regex.escape(keyword)}\b""", RegexOption.IGNORE_CASE) }
+            keywords.map { keyword -> Regex(RegexEs.boundedLiteral(keyword), RegexOption.IGNORE_CASE) }
         }
     }
 
