@@ -24,38 +24,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con GHD, con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa con la cadena posterior. Los isquiosurales trabajan en el GHD, que fija los pies y concentra todo el esfuerzo.",
+              "description": "La plataforma y los rodillos fijan los pies, y el cojín curvo sostiene la parte baja de los muslos: al doblar las rodillas, los muslos ruedan sobre él y el cuerpo sube recto hasta la vertical. El empuje de las puntas contra la plataforma suma a los gemelos a la flexión de rodilla.",
               "efc": 2.8,
               "equipmentId": "ghd",
               "executionCues": [
-                "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Empieza con el cuerpo horizontal y recto de las rodillas a la cabeza, con los glúteos apretados.",
+                "Empuja la plataforma con la punta de los pies y dobla las rodillas hasta quedar vertical, sin doblar la cadera.",
+                "Baja despacio estirando las rodillas hasta volver a la horizontal, con la cadera extendida."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Apoyo de los pies contra la plataforma"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -64,7 +67,7 @@
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
               "loadMode": "bodyweight",
-              "movementPatternId": "knee_hip_extension",
+              "movementPatternId": "knee_flexion",
               "performanceProfileId": "glute_ham_raise",
               "primaryMuscles": [
                 "hamstrings"
@@ -75,35 +78,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Apoyo de los pies contra la plataforma",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Apoyo de los pies contra la plataforma"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -113,9 +119,10 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus"
+                    "calves"
                   ],
                   "stabilizerMuscles": [
+                    "gluteus_maximus",
                     "erector_spinae"
                   ],
                   "volumeContribution": "direct"
@@ -126,7 +133,7 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "NOT_APPLICABLE",
                   "loadMode": "bodyweight",
-                  "movementPatternId": "knee_hip_extension",
+                  "movementPatternId": "knee_flexion",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -180,21 +187,23 @@
                     "ghd"
                   ],
                   "preservesIntent": [
-                    "knee_hip_extension:hamstrings"
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso."
+                "Ajusta la plataforma para que la parte baja de los muslos, justo encima de las rodillas, quede sobre el cojín.",
+                "Apoya las plantas contra la plataforma con los tobillos bajo los rodillos y cruza los brazos sobre el pecho."
               ],
               "setupTimeSeconds": 55,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_maximus",
                 "erector_spinae"
               ],
               "technicalDifficulty": 5.2,
@@ -204,7 +213,7 @@
           }
         ],
         "defaultConfigurationId": "glute_ham_raise__default",
-        "description": "El Glute Ham Raise es la reverencia a la cadena posterior: con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa usando isquiosurales y glúteos como bisagra. Se ejecuta bajando el torso con la espalda neutra hasta casi tocar el suelo y subiendo sin empujar con las manos si se puede. Pocos ejercicios exponen tan rápido la debilidad de los isquiosurales. El rito de paso de los que entrenan la parte trasera en serio.",
+        "description": "El Glute Ham Raise (GHR) se hace en un banco GHD y sube el cuerpo desde la horizontal hasta la vertical solo doblando las rodillas, con la cadera estirada durante toda la subida. Con las plantas contra la plataforma, los tobillos bajo los rodillos y la parte baja de los muslos sobre el cojín curvo, los muslos ruedan sobre él mientras la rodilla se dobla. Los isquiosurales hacen ese trabajo con ayuda de los gemelos, que empujan la plataforma; el glúteo mayor y los lumbares sostienen la línea recta de las rodillas a la cabeza. En hombres entrenados que lo hicieron con carga al pecho, fue con el peso muerto rumano el que más activó los isquiosurales entre cuatro ejercicios.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

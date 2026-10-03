@@ -13,20 +13,26 @@ vigente es esto:
 - 96 familias, 201 definiciones, 522 configuraciones, 410 pares definición ×
   implemento (el 2026-10-02 se retiró `sissy_squat__barbell`; las selecciones
   guardadas se remapean a `sissy_squat__smith_machine`). SHA-256 canónico compartido
-  `50dcc775108cf110d0da9e7aee73346a5305528c220231ce0f4fdaadd68e3375`.
+  `7055e39e60b39bf26185b9f13f1dc89b227db97a39604cb6420542b957512d9d`.
 - Fuente única de autoría: `curation/fichas/<familyId>.json` (una por familia,
   96). Se copia con `scripts/catalog_v2_apply_fichas.py`; el flujo completo y las
   reglas están en `EDITORIAL_GUIDE.md`. El gate falla si `source/` difiere de lo
   que producen las fichas.
-- Estado de las fichas: 153 definiciones `LEGACY` y **48 `CURATED`**. Piloto
+- Estado de las fichas: 143 definiciones `LEGACY` y **58 `CURATED`**. Piloto
   (2026-10-01): `seal_row`, `pull_up` y `glutes_clamshells_banda`. Lote 1, pecho
   (2026-10-02, 20 definiciones, aplicado): `floor_press`, las aperturas
   (`decline_chest_fly`, `flat_chest_fly`, `incline_chest_fly`, `reverse_pec_fly`),
   los presses (`bench_press`, `decline_bench_press`, `incline_bench_press`,
   `paused_bench_press`) y los empujes de `upper_horizontal_push`. Lote 2,
   sentadillas (2026-10-03, 25 definiciones, aplicado; informe en
-  `curation/lotes/LOTE_02_SENTADILLAS.md`). El paso a `CURATED` se hace por lotes y
-  queda registrado aquí.
+  `curation/lotes/LOTE_02_SENTADILLAS.md`). Lote 3, rodilla aislada (2026-10-03, 10
+  definiciones, aplicado; informe en `curation/lotes/LOTE_03_RODILLA.md`). Con el
+  OK del usuario: balón, sliders y GHR pasan al patrón `knee_flexion` (bloque
+  `pattern` de sus fichas); la regla `joint.knee-in-knee-patterns` deja los dos
+  patrones que quedaron sin uso (`knee_hip_extension` y `knee_hip_flexion`, que
+  también salen de la ontología: quedan 62) y cubre `biarticular_lengthened`; y
+  `CompositionTaxonomy.kt` cuenta el nórdico inverso como extensión de rodilla y no
+  como flexión de codo. El paso a `CURATED` se hace por lotes y queda registrado aquí.
 - `editorial_briefs.json` y su copia `.bak.2026-08-08` se eliminaron: sus 201
   definiciones eran idénticas al contenido de las fichas esqueleto.
 - Los 8 generadores por plantilla (`build_catalog_v2_*`, `curaduria_v3` a `v6`,
@@ -133,6 +139,10 @@ pierna baja, 8 hombro, 9 bíceps, 10 tríceps, 11 core, cuello y antebrazo.
   - `searchTerms` de press que apuntan a otros ángulos.
   - `CompositionTaxonomy` asigna a lateral el deltoides del empuje horizontal.
   - Peso 0.25 de los estabilizadores en `WorkoutContextComponents.kt`.
+  - `articulationType` MULTIARTICULAR en el nórdico, el nórdico inverso y el GHR, que con
+    la cadera inmóvil son de una sola articulación (lote 3; necesita un script estructural).
+  - Nombres con doble nombre entre paréntesis: «Curl Nórdico (Nordic Hamstring Curl)» y
+    «Curl Nórdico Inverso (Reverse Nordic Curl)» (regla R6).
 
 ---
 

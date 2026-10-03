@@ -24,38 +24,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+              "description": "El balón solo toca los pies y puede rodar hacia cualquier lado: si una pierna tira más que la otra, se desvía y la pelvis tiene que corregirlo. Al cerrar la flexión, el apoyo pasa del talón a la planta, que queda encima del balón junto a los glúteos.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Dobla las rodillas y haz rodar el balón hacia los glúteos sin dejar caer la pelvis.",
+                "Termina con las plantas sobre el balón y la cadera alineada con hombros y rodillas.",
+                "Estira las piernas despacio y vuelve a la línea recta sin apoyar la pelvis en el suelo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Apoyo del talón y de la planta"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -64,7 +67,7 @@
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight",
-              "movementPatternId": "knee_hip_flexion",
+              "movementPatternId": "knee_flexion",
               "performanceProfileId": "curl_isquios_con_balon__bodyweight__curl_de_isquiosurales_con_balón",
               "primaryMuscles": [
                 "hamstrings"
@@ -75,35 +78,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Apoyo del talón y de la planta",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Apoyo del talón y de la planta"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -112,10 +118,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "gluteus_maximus"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "gluteus_maximus",
                     "core"
                   ],
                   "volumeContribution": "direct"
@@ -126,7 +131,7 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight",
-                  "movementPatternId": "knee_hip_flexion",
+                  "movementPatternId": "knee_flexion",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -180,21 +185,21 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "knee_hip_flexion:hamstrings"
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "gluteus_maximus"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas."
+                "Túmbate boca arriba con los brazos en el suelo, palmas abajo, y apoya los talones en lo alto del balón.",
+                "Aprieta los glúteos y sube la pelvis hasta que hombros, cadera y talones queden en línea."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_maximus",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -204,7 +209,7 @@
           }
         ],
         "defaultConfigurationId": "curl_isquios_con_balon__default",
-        "description": "El Curl de Isquiosurales con Balón traslada el curl tumbado a la pelota de fitness: boca arriba con las pantorrillas sobre el balón, los talones la acercan al glúteo mientras la cadera se mantiene en puente. Se ejecuta con la espalda en el suelo, flexionando las rodillas para traer la pelota y estirando con calma. Los isquiosurales frenan y tiran con el cuerpo como única resistencia. La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano.",
+        "description": "El Curl de Isquiosurales con Balón (stability ball leg curl) flexiona las rodillas tumbado boca arriba, con la pelvis en el aire y los talones sobre un balón suizo. Los isquiosurales lo hacen rodar hasta cerca de los glúteos y lo devuelven despacio, mientras el glúteo mayor y la zona media sostienen el puente para que la cadera no se doble. Al final de la flexión, las plantas descansan sobre el balón y hombros, cadera y rodillas forman una sola línea. Como el balón rueda en cualquier dirección, cada repetición pide además que la pelvis no se tuerza. Un balón y un hueco en el suelo bastan para cargar la flexión de rodilla con el peso del cuerpo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -243,38 +248,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
+              "description": "Los discos resbalan en línea recta bajo los talones sobre un suelo liso, con muy poco roce, de modo que el freno lo ponen las piernas y no el suelo. Cuanto más se alejan los pies de la cadera, más larga es la palanca y más cuesta que la pelvis no toque el suelo.",
               "efc": 2.8,
               "equipmentId": "sliders",
               "executionCues": [
-                "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Desliza los talones hacia delante despacio, sin que la cadera se doble ni la pelvis toque el suelo.",
+                "Llega hasta casi estirar las rodillas con el peso sobre los talones.",
+                "Arrastra los talones de vuelta bajo las rodillas con la cadera arriba."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Apoyo del talón en flexión dorsal"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -283,7 +291,7 @@
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
               "loadMode": "bodyweight_with_sliding_resistance",
-              "movementPatternId": "knee_hip_flexion",
+              "movementPatternId": "knee_flexion",
               "performanceProfileId": "curl_isquios_con_sliders__sliders__curl_de_isquiosurales_con_sliders",
               "primaryMuscles": [
                 "hamstrings"
@@ -294,35 +302,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Apoyo del talón en flexión dorsal",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Apoyo del talón en flexión dorsal"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -331,10 +342,11 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "gluteus_maximus"
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "gluteus_maximus",
+                    "core"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -343,7 +355,7 @@
                   "kineticChain": "POSTERIOR",
                   "laterality": "BILATERAL",
                   "loadMode": "bodyweight_with_sliding_resistance",
-                  "movementPatternId": "knee_hip_flexion",
+                  "movementPatternId": "knee_flexion",
                   "relevantJoints": [
                     "rodilla",
                     "cadera",
@@ -397,21 +409,23 @@
                     "sliders"
                   ],
                   "preservesIntent": [
-                    "knee_hip_flexion:hamstrings"
+                    "knee_flexion:hamstrings"
                   ],
                   "replacementGroup": "ham_leg_curl",
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "gluteus_maximus"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti."
+                "Túmbate boca arriba en un suelo liso con un disco bajo cada talón y los brazos en el suelo.",
+                "Dobla las rodillas, levanta las puntas de los pies y sube la pelvis hasta alinear hombros, cadera y rodillas."
               ],
               "setupTimeSeconds": 10,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_maximus",
+                "core"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -419,7 +433,7 @@
           }
         ],
         "defaultConfigurationId": "curl_isquios_con_sliders__default",
-        "description": "El Curl de Isquiosurales con Sliders usa discos deslizantes bajo los talones para un curl tumbado sin aparatos: los pies resbalan hacia el glúteo y regresan mientras la cadera queda elevada. Se ejecuta con la espalda apoyada y el puente alto, deslizando con control en ambas direcciones. Los isquiosurales y el glúteo comparten un trabajo continuo y engañosamente duro. La alternativa de suelo más exigente para la cadena posterior.",
+        "description": "El Curl de Isquiosurales con Sliders (slider leg curl) es una flexión de rodilla en el suelo, boca arriba y con la pelvis elevada: cada talón descansa sobre un disco que se desliza por el suelo liso. Las piernas se alejan hasta quedar casi rectas y vuelven bajo las rodillas sin que la pelvis toque el suelo. En la ida los isquiosurales frenan el deslizamiento y en la vuelta lo arrastran; el puente lo aguantan el glúteo mayor y la zona media. El tramo más duro llega con las piernas casi estiradas, cuando la palanca es más larga y cuesta más sostener la cadera. Ocupa poco más que una esterilla y permite alargar la fase de frenado tanto como se quiera.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -458,19 +472,36 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+              "description": "El rodillo acolchado descansa sobre las dos piernas, encima de los talones, y gira con un eje alineado con las rodillas, así que la carga empuja en todo el arco. El banco suele formar ángulo y deja la cadera algo flexionada, mientras los asideros anclan el tronco.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Dobla las rodillas hasta acercar los talones a las nalgas, sin levantar la cadera.",
+                "Lleva las puntas de los pies hacia las espinillas durante toda la serie.",
+                "Baja despacio hasta casi estirar las piernas, sin que las placas choquen."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión ligera sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -488,14 +519,32 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión ligera sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión ligera sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
@@ -503,12 +552,9 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -519,7 +565,9 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -579,17 +627,16 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia."
+                "Ajusta el rodillo para que quede sobre la parte baja de las pantorrillas, justo encima de los talones.",
+                "Túmbate boca abajo con las rodillas en el borde del banco, a la altura del eje de la máquina.",
+                "Agarra los asideros y apoya bien la pelvis en el banco."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -616,19 +663,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+              "description": "Solo una pierna empuja el rodillo y la otra queda estirada sobre el banco, así que ningún lado puede apoyarse en la fuerza del contrario. Al subir una sola pierna, la cadera de ese lado tiende a despegarse del banco, y las manos en los asideros la sujetan.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Lleva un talón hacia las nalgas sin que esa cadera se despegue del banco.",
+                "Detén la bajada con la rodilla casi recta y comprueba que la pierna libre sigue quieta sobre el banco."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión ligera sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -646,14 +709,32 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión ligera sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión ligera sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
@@ -661,12 +742,9 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -677,7 +755,9 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -737,17 +817,16 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios."
+                "Coloca el rodillo sobre la parte baja de la pantorrilla que va a trabajar.",
+                "Deja la otra pierna estirada sobre el banco, por fuera del rodillo.",
+                "Agarra los asideros con las rodillas en el borde del banco."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -774,19 +853,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+              "description": "Una tobillera en cada tobillo se engancha a la misma polea baja, colocada más allá de los pies y alineada con el banco. El cable tira poco con las piernas estiradas y cada vez más conforme las espinillas se acercan a la vertical.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Dobla las dos rodillas a la vez hasta pasar la vertical con las espinillas.",
+                "Vuelve despacio sin dejar que las placas descansen entre repeticiones."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -804,14 +899,32 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
@@ -819,12 +932,9 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -835,7 +945,9 @@
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -895,17 +1007,16 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados."
+                "Baja la polea a la altura del banco o algo más abajo y alinea el banco con ella, con los pies hacia la columna.",
+                "Abrocha una tobillera en cada tobillo y engancha las dos al mismo mosquetón.",
+                "Túmbate boca abajo con las rodillas en el extremo del banco y agárralo por delante."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -932,19 +1043,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+              "description": "Solo el tobillo que trabaja lleva la tobillera, y la otra pierna descansa estirada sobre el banco. Si la polea queda alineada con esa pierna, el cable tira en línea recta y la cadera no se ve arrastrada hacia un lado.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Lleva el talón hacia las nalgas hasta pasar la vertical, con la pelvis quieta.",
+                "Baja hasta casi estirar la pierna y pasa la tobillera al otro tobillo cuando acabes la serie."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -962,14 +1089,32 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
@@ -977,12 +1122,9 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
                     "calves"
                   ],
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -993,7 +1135,9 @@
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -1053,17 +1197,15 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Polea tumbado con una pierna: tensión continua en un isquio a la vez."
+                "Baja la polea a la altura del banco o algo más abajo y alinéala con la pierna que va a trabajar.",
+                "Abrocha la tobillera en ese tobillo y túmbate con las rodillas en el extremo del banco."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1090,19 +1232,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+              "description": "Una mancuerna en vertical queda apretada entre los pies, con el asa entre los arcos y el disco de arriba sobre las plantas. Pesa más con las rodillas casi rectas y apenas nada con las espinillas verticales, y pasado ese punto cae hacia las nalgas.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Sube la mancuerna hasta que las espinillas queden verticales, y no más.",
+                "Baja despacio sin estirar del todo las rodillas, apretando los pies para que no resbale."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1120,14 +1278,32 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1135,11 +1311,9 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus"
+                    "calves"
                   ],
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1150,7 +1324,9 @@
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -1210,16 +1386,15 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona."
+                "Túmbate boca abajo con las rodillas en el extremo del banco y pide que te coloquen la mancuerna.",
+                "Aprieta el asa entre los arcos de los pies y apoya el disco de arriba en las plantas."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1246,19 +1421,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+              "description": "Un solo pie no puede apretar el asa como lo hacen los dos, así que la mancuerna queda apoyada sobre una planta, sin nada que la sujete por los lados. Solo se sostiene cerca de la vertical, justo donde casi no frena la rodilla, de modo que el estímulo para los isquiosurales es mínimo.",
               "efc": 2.8,
               "equipmentId": "dumbbells",
               "executionCues": [
-                "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Baja la espinilla solo un poco desde la vertical, sin que la mancuerna se incline.",
+                "Vuelve a la vertical despacio y no la pases."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Extensión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1276,14 +1467,32 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Extensión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
@@ -1291,11 +1500,9 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus"
+                    "calves"
                   ],
-                  "stabilizerMuscles": [
-                    "core"
-                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1306,7 +1513,9 @@
                   "loadMode": "free_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "guided"
@@ -1366,16 +1575,15 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "calves"
               ],
               "setupCues": [
-                "Preparación: Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga."
+                "Usa una mancuerna ligera y pide que te la apoyen en la planta con la rodilla doblada en ángulo recto.",
+                "Deja la otra pierna estirada sobre el banco."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1386,7 +1594,7 @@
           }
         ],
         "defaultConfigurationId": "lying_leg_curl__bilateral__machine",
-        "description": "El Curl de Isquiosurales Tumbado es el aislamiento clásico de la parte trasera del muslo: boca abajo en la máquina, los talones suben hacia el glúteo contra la almohadilla. Se ejecuta con la cadera pegada al banco, flexionando las rodillas hasta el tope y bajando sin que la pelvis despegue. Con polea o una mancuerna entre los pies el mismo gesto se monta sin máquina. El constructor básico de isquiosurales, cómodo y medible.",
+        "description": "El Curl de Isquiosurales Tumbado (lying leg curl) dobla las rodillas boca abajo: los talones suben hacia las nalgas contra una carga situada a la altura de los tobillos. La cadera queda recta en un banco plano, o algo flexionada si el banco forma ángulo, así que los isquiosurales parten acortados desde la pelvis y la rodilla los acorta aún más; los gemelos ayudan, sobre todo con la punta del pie hacia la espinilla. La pelvis, pegada al banco, no deja que la cadera se doble más para ayudar. En esa posición los isquiosurales rinden menos fuerza que con la cadera en ángulo recto, así que se mueve menos peso, y la zona cercana a la rodilla se activa más que en el peso muerto con piernas rígidas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1429,19 +1637,36 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+              "description": "La almohadilla superior baja sobre los muslos justo encima de las rodillas y los fija al asiento, mientras el rodillo inferior empuja contra la parte baja de las pantorrillas. Con los muslos trabados, la cadera no puede abrirse para ayudar y las dos piernas recorren el arco juntas.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Empuja el rodillo hacia abajo y atrás hasta llevar los talones bajo el asiento.",
+                "Deja la espalda pegada al respaldo durante toda la serie.",
+                "Regresa despacio hacia delante y frena antes de que las placas toquen abajo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1459,24 +1684,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizerMuscles": [
-                    "core"
+                  "secondaryMuscles": [
+                    "calves"
                   ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1487,7 +1730,9 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1546,15 +1791,17 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda."
+                "Ajusta el respaldo hasta que las rodillas queden a la altura del eje de la máquina.",
+                "Baja la almohadilla superior hasta que apriete los muslos justo encima de las rodillas.",
+                "Apoya la parte baja de las pantorrillas en el rodillo, por encima de los talones."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1581,19 +1828,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+              "description": "Una sola pierna empuja el rodillo mientras la otra se recoge fuera de él, de modo que cada lado mueve su carga sin que el más fuerte compense. La almohadilla queda cerrada sobre los dos muslos y la pelvis no se ladea.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Lleva el talón bajo el asiento con una pierna, sin girar la pelvis.",
+                "Al volver, frena antes de estirar la rodilla del todo y revisa que la pelvis siga centrada en el asiento."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1611,24 +1874,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizerMuscles": [
-                    "core"
+                  "secondaryMuscles": [
+                    "calves"
                   ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1639,7 +1920,9 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -1698,15 +1981,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Máquina sentado con una pierna: cada isquio trabaja por separado."
+                "Ajusta el respaldo y baja la almohadilla sobre los dos muslos.",
+                "Pon solo la pierna que trabaja sobre el rodillo y recoge la otra por fuera."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1733,19 +2017,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+              "description": "Frente a la polea baja, con una tobillera en cada tobillo enganchada al mismo cable, los dos talones viajan hacia atrás por debajo del asiento. Nada sujeta los muslos salvo su peso y las manos; al principio el cable incluso ayuda a doblar la rodilla, y pesa más con las espinillas verticales.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Lleva los dos talones hacia atrás, por debajo del banco, sin levantar los muslos.",
+                "Sujeta el borde del banco y vuelve despacio hasta que las espinillas apunten en diagonal hacia la polea, sin estirar las piernas."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1763,24 +2063,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizerMuscles": [
-                    "core"
+                  "secondaryMuscles": [
+                    "calves"
                   ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1791,7 +2109,9 @@
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -1850,15 +2170,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Polea sentado con ambas piernas: la tensión constante acompaña la flexión."
+                "Coloca un banco plano frente a la polea y baja la polea al mínimo.",
+                "Abrocha una tobillera en cada tobillo, engánchalas al mismo mosquetón y siéntate con las rodillas en el borde."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -1885,19 +2206,35 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+              "description": "La tobillera va en una sola pierna y el otro pie queda apoyado delante, en el suelo, como punto fijo. El muslo que trabaja reposa en el banco sin nada encima, y el talón pasa bajo el asiento con el cable tirando hacia la polea.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Lleva el talón hacia atrás por debajo del banco sin despegar el muslo.",
+                "Detén la vuelta cuando la espinilla apunte en diagonal hacia la polea, antes de que el cable deje de resistir."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
                   ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión sostenida de la cadera"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo"
+                  ],
+                  "jointId": "tobillo",
                   "role": "STABILIZER"
                 }
               ],
@@ -1915,24 +2252,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión sostenida de la cadera",
+                    "Flexión dorsal sostenida del tobillo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
                       ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión sostenida de la cadera"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo"
+                      ],
+                      "jointId": "tobillo",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [],
-                  "stabilizerMuscles": [
-                    "core"
+                  "secondaryMuscles": [
+                    "calves"
                   ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1943,7 +2298,9 @@
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
-                    "columna-lumbar"
+                    "rodilla",
+                    "cadera",
+                    "tobillo"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -2002,15 +2359,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "calves"
+              ],
               "setupCues": [
-                "Preparación: Polea sentado con una pierna: tensión continua en un isquio a la vez."
+                "Siéntate en el banco frente a la polea baja con la tobillera en el tobillo que va a trabajar.",
+                "Apoya el otro pie en el suelo, por delante, y agarra el borde del banco."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -2021,7 +2379,7 @@
           }
         ],
         "defaultConfigurationId": "seated_leg_curl__bilateral__machine",
-        "description": "El Curl de Isquiosurales Sentado trabaja el isquio desde una cadera flexionada, una posición que alarga el músculo antes de empezar y cambia el estímulo respecto al tumbado. Se ejecuta en la máquina sentada, llevando los talones por debajo del asiento contra la almohadilla y regresando sin rebote. Con polea se monta una versión casera igual de válida. La postura cómoda para la espalda y dura para la parte trasera.",
+        "description": "En el Curl de Isquiosurales Sentado (seated leg curl), la cadera queda doblada cerca del ángulo recto mientras las rodillas se flexionan y llevan la resistencia hacia abajo y atrás, por debajo del asiento. Esa postura estira los isquiosurales desde la pelvis durante todo el recorrido, y con la cadera así la rodilla genera más fuerza. Los gemelos acompañan la flexión de la rodilla, porque también la cruzan. Con el tronco quieto y los muslos sobre el asiento, todo el trabajo recae en la parte trasera de las piernas. En el único ensayo que lo comparó con el curl tumbado, con la cadera a unos 30 grados, hizo crecer más los isquiosurales.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2064,17 +2422,42 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
+              "description": "De pie no hay curl a dos piernas: una siempre sostiene el cuerpo sobre la plataforma. Esta opción equivale a pasar las dos piernas por el rodillo dentro de la misma serie, primero una y después la otra, con el pecho apoyado en el soporte.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Dobla la rodilla hasta pasar el ángulo recto con el muslo quieto contra la almohadilla.",
+                "Al terminar las repeticiones de esa pierna, cambia de pie y repite con la otra."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión ligera sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -2094,12 +2477,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión ligera sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna",
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie",
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión ligera sostenida de la cadera",
+                        "Sostén de la pelvis sobre una pierna"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo",
+                        "Apoyo sobre un pie"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lumbar sin arqueo"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -2112,6 +2525,7 @@
                     "calves"
                   ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "core"
                   ],
                   "volumeContribution": "direct"
@@ -2124,6 +2538,9 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
@@ -2187,11 +2604,13 @@
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie."
+                "Recuesta el pecho en el soporte, agarra los asideros y pisa la plataforma con un pie.",
+                "Coloca el rodillo detrás de la otra pierna, justo encima del talón, con el muslo contra su almohadilla."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -2220,17 +2639,42 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+              "description": "El rodillo se apoya detrás del tobillo y el pecho se recuesta en el soporte. La almohadilla hace de tope delante del muslo, y el talón sube solo por la rodilla mientras el muslo no se separe de ella.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Sube el talón hasta que la rodilla pase el ángulo recto, sin separar el muslo de la almohadilla.",
+                "Baja despacio con la rodilla de apoyo un poco flexionada."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Flexión ligera sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -2250,12 +2694,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Flexión ligera sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna",
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie",
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Flexión ligera sostenida de la cadera",
+                        "Sostén de la pelvis sobre una pierna"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo",
+                        "Apoyo sobre un pie"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lumbar sin arqueo"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -2268,6 +2742,7 @@
                     "calves"
                   ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "core"
                   ],
                   "volumeContribution": "direct"
@@ -2280,6 +2755,9 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "guided_constant",
@@ -2343,11 +2821,13 @@
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Máquina de pie con una pierna: un aislamiento mayor de un isquio."
+                "Ajusta el rodillo a la altura del tobillo, justo por encima del talón.",
+                "Apoya el muslo contra su almohadilla y el pecho en el soporte, con las manos en los asideros."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -2376,17 +2856,42 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
+              "description": "Estando de pie, una pierna siempre sostiene el cuerpo, así que la tobillera pasa de un tobillo al otro dentro de la misma serie. Cada lado hace su tanda de cara a la columna, con una mano apoyada en ella.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Dobla la rodilla con el muslo vertical hasta que la espinilla quede horizontal.",
+                "Al acabar las repeticiones, pasa la tobillera al otro tobillo y repite."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición neutra sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -2406,12 +2911,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Posición neutra sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna",
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie",
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición neutra sostenida de la cadera",
+                        "Sostén de la pelvis sobre una pierna"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo",
+                        "Apoyo sobre un pie"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lumbar sin arqueo"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -2424,6 +2959,7 @@
                     "calves"
                   ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "core"
                   ],
                   "volumeContribution": "direct"
@@ -2436,6 +2972,9 @@
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
@@ -2499,11 +3038,13 @@
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión."
+                "Pon la polea abajo del todo y abrocha la tobillera en el primer tobillo.",
+                "Ponte de cara a la columna, a un paso, con una mano apoyada en ella."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -2532,17 +3073,42 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+              "description": "Una tobillera une el tobillo a la polea baja, delante del cuerpo, y ninguna almohadilla sujeta el muslo: la propia cadera lo deja vertical. El cable pesa más al arrancar, con la pierna estirada, y menos cuando la espinilla llega a horizontal.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+                "Sube el talón por detrás hasta que la espinilla quede horizontal, con el muslo quieto.",
+                "Baja despacio sin que el pie toque el suelo entre repeticiones."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla"
+                  ],
+                  "jointId": "rodilla",
+                  "role": "PRIMARY"
+                },
+                {
+                  "actions": [
+                    "Posición neutra sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna"
+                  ],
+                  "jointId": "cadera",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie"
+                  ],
+                  "jointId": "tobillo",
+                  "role": "STABILIZER"
+                },
+                {
+                  "actions": [
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -2562,12 +3128,42 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Estabilidad Del Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión frenada de la rodilla",
+                    "Posición neutra sostenida de la cadera",
+                    "Sostén de la pelvis sobre una pierna",
+                    "Flexión dorsal sostenida del tobillo",
+                    "Apoyo sobre un pie",
+                    "Estabilidad lumbar sin arqueo"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Flexión de la rodilla",
+                        "Extensión frenada de la rodilla"
+                      ],
+                      "jointId": "rodilla",
+                      "role": "PRIMARY"
+                    },
+                    {
+                      "actions": [
+                        "Posición neutra sostenida de la cadera",
+                        "Sostén de la pelvis sobre una pierna"
+                      ],
+                      "jointId": "cadera",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Flexión dorsal sostenida del tobillo",
+                        "Apoyo sobre un pie"
+                      ],
+                      "jointId": "tobillo",
+                      "role": "STABILIZER"
+                    },
+                    {
+                      "actions": [
+                        "Estabilidad lumbar sin arqueo"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -2580,6 +3176,7 @@
                     "calves"
                   ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "core"
                   ],
                   "volumeContribution": "direct"
@@ -2592,6 +3189,9 @@
                   "loadMode": "continuous_cable",
                   "movementPatternId": "knee_flexion",
                   "relevantJoints": [
+                    "rodilla",
+                    "cadera",
+                    "tobillo",
                     "columna-lumbar"
                   ],
                   "resistanceProfile": "continuous_cable",
@@ -2655,11 +3255,13 @@
                 "calves"
               ],
               "setupCues": [
-                "Preparación: Polea de pie con una pierna: tensión continua en un isquio a la vez."
+                "Baja la polea al mínimo y abrocha la tobillera en el tobillo que va a trabajar.",
+                "Ponte de cara a la columna, a un paso de ella, y apoya una mano en ella."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "core"
               ],
               "technicalDifficulty": 4.2,
@@ -2672,7 +3274,7 @@
           }
         ],
         "defaultConfigurationId": "standing_leg_curl__bilateral__machine",
-        "description": "El Curl de Isquiosurales de Pie aísla una pierna cada vez: de pie en la máquina, la rodilla flexiona llevando el talón hacia atrás contra la resistencia. Se ejecuta con el muslo apoyado y el movimiento limpio, sin balancear la cadera. Trabajar a una pierna deja al descubierto diferencias entre lados que las máquinas bilaterales esconden. El detector y corrector de desequilibrios en los isquiosurales.",
+        "description": "El Curl de Isquiosurales de Pie (standing leg curl) se hace sobre una sola pierna: una sostiene el cuerpo y la otra dobla la rodilla llevando el talón hacia atrás y arriba, con el muslo vertical o algo adelantado. Los isquiosurales mueven la carga con ayuda de los gemelos, mientras el glúteo medio de la pierna de apoyo sujeta la pelvis para que no caiga hacia el lado libre. La cadera queda recta con la polea, o flexionada unos 20 a 30 grados con el pecho en el soporte de la máquina, así que los isquiosurales trabajan acortados y la carga es menor que con la cadera muy flexionada. Cada pierna carga sola con su serie, así que una diferencia de fuerza entre lados aparece enseguida.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

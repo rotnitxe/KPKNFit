@@ -24,41 +24,22 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+              "description": "Ambas tibias empujan el mismo rodillo y la pila sube con la fuerza sumada de las dos piernas, lo que permite cargar más kilos. Si una pierna es más fuerte, puede asumir más parte del esfuerzo sin que el peso lo delate.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Estira las dos rodillas hasta dejar las piernas rectas, sin despegar la cadera del asiento.",
+                "Aguanta un instante arriba y baja despacio hasta que las placas casi toquen la pila."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Flexión Y Extensión"
-                  ],
-                  "jointId": "cadera",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Dorsiflexión Y Control"
-                  ],
-                  "jointId": "tobillo",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Estabilidad Del Tronco"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -75,38 +56,17 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Flexión Y Extensión"
-                      ],
-                      "jointId": "cadera",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Dorsiflexión Y Control"
-                      ],
-                      "jointId": "tobillo",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Estabilidad Del Tronco"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -124,10 +84,7 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_extension",
                   "relevantJoints": [
-                    "rodilla",
-                    "cadera",
-                    "tobillo",
-                    "columna-lumbar"
+                    "rodilla"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -186,7 +143,8 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Máquina con ambas piernas: estiras las rodillas contra la resistencia."
+                "Ajusta el respaldo hasta que el eje de la máquina quede a la altura de tus rodillas.",
+                "Mete los pies bajo el rodillo, que debe quedar justo encima de los tobillos, y agarra las asas del asiento."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
@@ -216,41 +174,22 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
+              "description": "El rodillo lo sube una sola tibia mientras la otra pierna espera doblada detrás, así que ninguna puede cubrir a la otra. En mujeres poco entrenadas, trabajar así subió más la fuerza isométrica de cada pierna que hacerlo con ambas, con un crecimiento muscular parecido.",
               "efc": 2.8,
               "equipmentId": "machine",
               "executionCues": [
-                "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Extiende esa rodilla hasta que la pierna quede casi horizontal, con la cadera pegada al asiento y las manos en las asas.",
+                "Baja despacio y no cambies de pierna hasta acabar la serie con esta."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
-                },
-                {
-                  "actions": [
-                    "Flexión Y Extensión"
-                  ],
-                  "jointId": "cadera",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Dorsiflexión Y Control"
-                  ],
-                  "jointId": "tobillo",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Estabilidad Del Tronco"
-                  ],
-                  "jointId": "columna-lumbar",
-                  "role": "STABILIZER"
                 }
               ],
               "kineticChain": "ANTERIOR",
@@ -267,38 +206,17 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
-                    },
-                    {
-                      "actions": [
-                        "Flexión Y Extensión"
-                      ],
-                      "jointId": "cadera",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Dorsiflexión Y Control"
-                      ],
-                      "jointId": "tobillo",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Estabilidad Del Tronco"
-                      ],
-                      "jointId": "columna-lumbar",
-                      "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
@@ -316,10 +234,7 @@
                   "loadMode": "guided_external_load",
                   "movementPatternId": "knee_extension",
                   "relevantJoints": [
-                    "rodilla",
-                    "cadera",
-                    "tobillo",
-                    "columna-lumbar"
+                    "rodilla"
                   ],
                   "resistanceProfile": "guided_constant",
                   "stability": "guided"
@@ -378,7 +293,8 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios."
+                "Ajusta el respaldo para que el eje de la máquina quede a la altura de la rodilla que vas a trabajar.",
+                "Engancha esa pierna bajo el rodillo, justo encima del tobillo, y deja la otra doblada por detrás sin tocarlo."
               ],
               "setupTimeSeconds": 45,
               "ssc": 0.5,
@@ -392,7 +308,7 @@
           }
         ],
         "defaultConfigurationId": "quads_extension_cuadriceps__machine__bilateral",
-        "description": "La Extensión de Cuádriceps en Máquina aísla el muslo frontal sin distracciones: sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. Se ejecuta con la espalda contra el respaldo, subiendo con pausa arriba y bajando sin soltar la tensión. A una pierna iguala fuerzas entre lados. El remate clásico para dejar el cuádriceps congestionado al final de la sesión.",
+        "description": "En la Extensión de Cuádriceps en Máquina (leg extension), la rodilla es la única articulación que se mueve y el cuádriceps, el único músculo que levanta el peso. Sentado contra el respaldo, con el rodillo sobre la parte baja de las tibias, las piernas suben desde la flexión hasta quedar rectas y vuelven despacio sin soltar la carga. Admite las dos piernas a la vez o una sola. Trabajan sus cuatro vientres, recto femoral incluido, y por eso conviene sumarla a la prensa y a las sentadillas, que apenas estimulan ese músculo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -433,40 +349,29 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+              "description": "De pie no se pueden estirar las dos rodillas a la vez contra la tobillera: una pierna tiene que sostener el cuerpo. Por eso, aquí las dos piernas hacen la serie por turnos, primero una y después la otra, pasando la tobillera de tobillo.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Estira y dobla la rodilla con el muslo quieto hasta completar las repeticiones de esa pierna.",
+                "Cambia la tobillera de tobillo y haz el mismo número de repeticiones con la otra pierna."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión sostenida de la cadera",
+                    "Estabilidad de la pelvis sobre un pie"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Dorsiflexión Y Control"
-                  ],
-                  "jointId": "tobillo",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Estabilidad Del Tronco"
-                  ],
-                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -484,37 +389,26 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Flexión sostenida de la cadera",
+                    "Estabilidad de la pelvis sobre un pie"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión sostenida de la cadera",
+                        "Estabilidad de la pelvis sobre un pie"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Dorsiflexión Y Control"
-                      ],
-                      "jointId": "tobillo",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Estabilidad Del Tronco"
-                      ],
-                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -522,7 +416,10 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "gluteus_medius"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -534,9 +431,7 @@
                   "movementPatternId": "knee_extension",
                   "relevantJoints": [
                     "rodilla",
-                    "cadera",
-                    "tobillo",
-                    "columna-lumbar"
+                    "cadera"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -595,11 +490,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión."
+                "Abrocha la tobillera a un tobillo y quédate de espaldas a la polea baja, a un paso de ella.",
+                "Sujétate a la estructura y eleva el muslo de esa pierna hacia delante, a medio camino de la horizontal."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "gluteus_medius"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -625,40 +524,29 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+              "description": "La tobillera va en un solo tobillo y esa pierna hace la serie entera mientras la otra soporta todo el peso del cuerpo. Al terminar se cambia la tobillera de lado, así que cada pierna tiene sus propias series y su propio peso en la pila.",
               "efc": 2.8,
               "equipmentId": "cable",
               "executionCues": [
-                "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Estira la rodilla hasta dejar la pierna recta, sin bajar el muslo ni echar el tronco atrás.",
+                "Dobla la rodilla despacio hasta que el pie vuelva bajo la cadera, con el cable siempre tenso."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión sostenida de la cadera",
+                    "Estabilidad de la pelvis sobre un pie"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Dorsiflexión Y Control"
-                  ],
-                  "jointId": "tobillo",
-                  "role": "STABILIZER"
-                },
-                {
-                  "actions": [
-                    "Estabilidad Del Tronco"
-                  ],
-                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -676,37 +564,26 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión de la rodilla",
+                    "Flexión de la rodilla",
+                    "Flexión sostenida de la cadera",
+                    "Estabilidad de la pelvis sobre un pie"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión sostenida de la cadera",
+                        "Estabilidad de la pelvis sobre un pie"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Dorsiflexión Y Control"
-                      ],
-                      "jointId": "tobillo",
-                      "role": "STABILIZER"
-                    },
-                    {
-                      "actions": [
-                        "Estabilidad Del Tronco"
-                      ],
-                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
@@ -714,7 +591,10 @@
                     "quadriceps"
                   ],
                   "secondaryMuscles": [],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
+                    "gluteus_medius"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -726,9 +606,7 @@
                   "movementPatternId": "knee_extension",
                   "relevantJoints": [
                     "rodilla",
-                    "cadera",
-                    "tobillo",
-                    "columna-lumbar"
+                    "cadera"
                   ],
                   "resistanceProfile": "continuous_cable",
                   "stability": "guided"
@@ -787,11 +665,15 @@
               },
               "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: Polea con una pierna: extensión unilateral con tensión continua."
+                "Ajusta la tobillera al tobillo de la pierna que trabaja y sitúate de espaldas a la polea baja.",
+                "Agárrate a la estructura con una mano y eleva ese muslo hacia delante, a medio camino de la horizontal."
               ],
               "setupTimeSeconds": 25,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "gluteus_medius"
+              ],
               "technicalDifficulty": 4.2,
               "ttc": 2.0
             },
@@ -801,7 +683,7 @@
           }
         ],
         "defaultConfigurationId": "quads_extension_cuadriceps_pie_polea__bilateral",
-        "description": "La Extensión de Cuádriceps de Pie en Polea lleva el aislamiento a una posición vertical: con el tobillo enganchado al cable, la rodilla se extiende hacia atrás contra la tensión constante. Se ejecuta de pie, sujeto al soporte, extendiendo una pierna cada vez con el muslo quieto. La polea mantiene la resistencia viva en todo el recorrido. Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo.",
+        "description": "La Extensión de Cuádriceps de Pie en Polea lleva el aislamiento de rodilla a la postura erguida y a una pierna: de espaldas a una polea baja, el muslo se eleva hacia delante y se queda quieto mientras la rodilla se estira. La tobillera tira del pie hacia atrás, la otra pierna sostiene el cuerpo y una mano se agarra al marco. El cuádriceps mueve la carga; los flexores de la cadera sujetan el muslo y el glúteo medio del lado que pisa nivela la pelvis. La altura de la polea decide dónde pesa más: baja, cerca de la extensión; a la altura de la cintura, con la rodilla doblada. Sirve cuando no hay máquina de extensiones, y con la cadera flexionada unos 45 grados el recto femoral trabaja más largo que con el muslo a 90.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

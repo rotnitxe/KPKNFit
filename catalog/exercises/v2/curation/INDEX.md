@@ -2,7 +2,7 @@
 
 Revisión: `v2-approved-2026-09-29-a` · Ontología: `wikilab-v3-2026-08-08`
 96 familias · 201 definiciones · 522 configuraciones
-Hash canónico: `50dcc775108cf110…`
+Hash canónico: `7055e39e60b39bf2…`
 
 Artefacto informativo generado por `scripts/merge_catalog_v2_families.py`.
 No editar a mano: se regenera en cada merge.

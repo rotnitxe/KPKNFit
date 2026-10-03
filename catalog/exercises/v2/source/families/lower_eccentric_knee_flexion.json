@@ -24,38 +24,41 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con peso corporal, de rodillas con los tobillos anclados, el cuerpo cae hacia delante frenado por los isquiosurales. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+              "description": "El único lastre es el cuerpo, así que la dificultad depende de hasta dónde se aguanta la bajada antes de que las manos recojan la caída. Los tobillos necesitan un anclaje firme: un compañero que los sujete, una barra baja acolchada o los rodillos de un banco nórdico.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Inclínate hacia delante muy despacio, sin doblar la cadera, frenando con la parte de atrás de los muslos.",
+                "Cuando ya no puedas frenar, recoge la caída con las manos como en una flexión.",
+                "Empuja con los brazos lo justo para volver arriba y vuelve a alinear el cuerpo."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión frenada de la rodilla",
+                    "Flexión de la rodilla"
                   ],
                   "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Extensión sostenida de la cadera"
                   ],
                   "jointId": "cadera",
-                  "role": "SECONDARY"
+                  "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Dorsiflexión Y Control"
+                    "Anclaje del tobillo"
                   ],
                   "jointId": "tobillo",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Estabilidad Del Tronco"
+                    "Estabilidad del tronco"
                   ],
                   "jointId": "columna-lumbar",
                   "role": "STABILIZER"
@@ -75,35 +78,38 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Dorsiflexión Y Control",
-                    "Estabilidad Del Tronco"
+                    "Extensión frenada de la rodilla",
+                    "Flexión de la rodilla",
+                    "Extensión sostenida de la cadera",
+                    "Anclaje del tobillo",
+                    "Estabilidad del tronco"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión frenada de la rodilla",
+                        "Flexión de la rodilla"
                       ],
                       "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Extensión sostenida de la cadera"
                       ],
                       "jointId": "cadera",
-                      "role": "SECONDARY"
+                      "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Dorsiflexión Y Control"
+                        "Anclaje del tobillo"
                       ],
                       "jointId": "tobillo",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Estabilidad Del Tronco"
+                        "Estabilidad del tronco"
                       ],
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
@@ -113,9 +119,13 @@
                     "hamstrings"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus"
+                    "calves"
                   ],
-                  "stabilizerMuscles": [],
+                  "stabilizerMuscles": [
+                    "gluteus_maximus",
+                    "erector_spinae",
+                    "core"
+                  ],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -183,14 +193,19 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus"
+                "calves"
               ],
               "setupCues": [
-                "Preparación: De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios."
+                "Arrodíllate sobre una superficie acolchada y fija los tobillos bajo un anclaje firme o pide a un compañero que los sujete.",
+                "Endereza el cuerpo de las rodillas a la cabeza, aprieta los glúteos y lleva las manos delante del pecho."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "gluteus_maximus",
+                "erector_spinae",
+                "core"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -198,7 +213,7 @@
           }
         ],
         "defaultConfigurationId": "hams_curl_nordic_peso_corporal__default",
-        "description": "El Curl Nórdico es el ejercicio de isquiosurales más temido con razón: de rodillas y con los tobillos anclados, el cuerpo cae hacia delante y los isquiosurales frenan el descenso hasta donde aguanten. Se ejecuta bajando lento con la cadera extendida y empujando con las manos lo justo para volver. El peso corporal basta y sobra. La referencia mundial para proteger los isquiosurales de lesiones.",
+        "description": "El Curl Nórdico (Nordic hamstring curl) trabaja los isquiosurales en excéntrico con el peso del cuerpo: de rodillas y con los tobillos anclados, el cuerpo bascula hacia delante, rígido desde las rodillas hasta la coronilla, mientras las rodillas se abren despacio. Esa caída la frenan los isquiosurales, sobre todo el semitendinoso, con ayuda de los gemelos; los glúteos, los lumbares y la zona media solo sujetan la línea de cadera y tronco para que el cuerpo no se pliegue. Llega un punto en que la caída se acelera y las manos la recogen en el suelo; la vuelta suele hacerse con un empujón de los brazos. En un ensayo de diez semanas, este ejercicio alargó los fascículos de la porción larga del isquiosural externo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

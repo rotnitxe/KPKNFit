@@ -79,13 +79,13 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("50dcc775108cf110d0da9e7aee73346a5305528c220231ce0f4fdaadd68e3375", report.sourceSha256)
+        assertEquals("7055e39e60b39bf26185b9f13f1dc89b227db97a39604cb6420542b957512d9d", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())
         assertTrue(report.invalidLegacyMappings.isEmpty())
         assertEquals(21, AprendeOntology.catalogMuscleToWikiLab.size)
-        assertEquals(64, AprendeOntology.catalogPatternToWikiLab.size)
+        assertEquals(62, AprendeOntology.catalogPatternToWikiLab.size)
         assertEquals(
             catalogMuscleIds(),
             AprendeOntology.catalogMuscleToWikiLab.keys,

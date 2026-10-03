@@ -24,40 +24,36 @@
               "bodyRegion": "LOWER",
               "catalogRevision": "v2-approved-2026-09-29-a",
               "cnc": 2.2,
-              "description": "Con peso corporal, desde las rodillas, el cuerpo se inclina hacia atrás con el cuádriceps frenando la caída. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+              "description": "Sin más carga que el cuerpo, la dificultad se regula con la profundidad de la inclinación y con los brazos: estirados al frente la facilitan y por encima de la cabeza la endurecen, porque así su peso queda más lejos de las rodillas.",
               "efc": 2.8,
               "equipmentId": "bodyweight",
               "executionCues": [
-                "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+                "Échate atrás despacio doblando solo las rodillas, sin que la cadera se flexione ni la espalda se arquee.",
+                "Baja solo hasta donde puedas frenar sin romper la línea recta del cuerpo.",
+                "Vuelve a la vertical estirando las rodillas, con el cuerpo en bloque."
               ],
               "fatigueTier": "MEDIA",
               "jointInvolvement": [
                 {
                   "actions": [
-                    "Flexión Y Extensión"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla"
                   ],
-                  "jointId": "cadera",
+                  "jointId": "rodilla",
                   "role": "PRIMARY"
                 },
                 {
                   "actions": [
-                    "Flexión Ligera Y Estabilidad"
+                    "Sostén de la cadera extendida"
                   ],
-                  "jointId": "rodilla",
-                  "role": "SECONDARY"
-                },
-                {
-                  "actions": [
-                    "Resistencia A La Flexión"
-                  ],
-                  "jointId": "columna-lumbar",
+                  "jointId": "cadera",
                   "role": "STABILIZER"
                 },
                 {
                   "actions": [
-                    "Transferencia Pelvis-Tronco"
+                    "Resistencia a la extensión lumbar"
                   ],
-                  "jointId": "sacroiliaca",
+                  "jointId": "columna-lumbar",
                   "role": "STABILIZER"
                 }
               ],
@@ -75,48 +71,43 @@
               "richMetadata": {
                 "anatomy": {
                   "jointActions": [
-                    "Flexión Y Extensión",
-                    "Flexión Ligera Y Estabilidad",
-                    "Resistencia A La Flexión",
-                    "Transferencia Pelvis-Tronco"
+                    "Flexión de la rodilla",
+                    "Extensión de la rodilla",
+                    "Sostén de la cadera extendida",
+                    "Resistencia a la extensión lumbar"
                   ],
                   "jointInvolvement": [
                     {
                       "actions": [
-                        "Flexión Y Extensión"
+                        "Flexión de la rodilla",
+                        "Extensión de la rodilla"
                       ],
-                      "jointId": "cadera",
+                      "jointId": "rodilla",
                       "role": "PRIMARY"
                     },
                     {
                       "actions": [
-                        "Flexión Ligera Y Estabilidad"
+                        "Sostén de la cadera extendida"
                       ],
-                      "jointId": "rodilla",
-                      "role": "SECONDARY"
-                    },
-                    {
-                      "actions": [
-                        "Resistencia A La Flexión"
-                      ],
-                      "jointId": "columna-lumbar",
+                      "jointId": "cadera",
                       "role": "STABILIZER"
                     },
                     {
                       "actions": [
-                        "Transferencia Pelvis-Tronco"
+                        "Resistencia a la extensión lumbar"
                       ],
-                      "jointId": "sacroiliaca",
+                      "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
                   ],
                   "primaryMuscles": [
                     "quadriceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "hip_flexors",
                     "core"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -127,10 +118,9 @@
                   "loadMode": "bodyweight",
                   "movementPatternId": "biarticular_lengthened",
                   "relevantJoints": [
-                    "cadera",
                     "rodilla",
-                    "columna-lumbar",
-                    "sacroiliaca"
+                    "cadera",
+                    "columna-lumbar"
                   ],
                   "resistanceProfile": "gravity_arc",
                   "stability": "self_stabilized"
@@ -183,15 +173,17 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "core"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
-                "Preparación: De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves."
+                "Arrodíllate sobre una colchoneta con las rodillas a la anchura de la cadera y los empeines apoyados en el suelo.",
+                "Cruza los brazos sobre el pecho y alinea rodillas, cadera y hombros en vertical."
               ],
               "setupTimeSeconds": 20,
               "ssc": 0.5,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors",
+                "core"
+              ],
               "technicalDifficulty": 5.2,
               "ttc": 2.0
             },
@@ -199,7 +191,7 @@
           }
         ],
         "defaultConfigurationId": "quads_reverse_nordic_peso_corporal__default",
-        "description": "El Curl Nórdico Inverso, o Reverse Nordic Curl, inclina el cuerpo hacia atrás desde las rodillas: el cuádriceps frena la caída con el tronco rígido y los pies anclados. Se ejecuta bajando hacia el suelo sin doblar la cadera y regresando con la fuerza del muslo frontal. Solo el peso corporal y una superficie blanda bajo las rodillas. El estiramiento cargado del cuádriceps que nadie hace y todos deberían.",
+        "description": "El Curl Nórdico Inverso (reverse Nordic curl) trabaja el cuádriceps con el propio peso y con el recto femoral alargado por la cadera extendida. De rodillas sobre una colchoneta, con el cuerpo recto de las rodillas a la cabeza, muslos y tronco se echan atrás en bloque mientras las rodillas se doblan; después, los muslos devuelven el cuerpo a la vertical. La cadera no se flexiona en ningún momento: el iliopsoas impide que se extienda de más y la pared abdominal, que la zona lumbar se arquee. Su activación no superó a la de las sentadillas con peso corporal, pero en ocho semanas de práctica el recto femoral alargó sus fascículos y ganó grosor: su aporte es el estiramiento bajo carga.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

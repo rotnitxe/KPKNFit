@@ -1,188 +1,1645 @@
 {
   "definitions": {
     "curl_isquios_con_balon": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "monajati2017"
+            ],
+            "why": "Es la única articulación que recorre un arco: pasa de casi recta a doblada unos noventa grados al traer el balón y vuelve a estirarse al alejarlo. Toda la resistencia del ejercicio se vence o se frena en este giro."
+          },
+          {
+            "actions": [
+              "Extensión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "youdas2015"
+            ],
+            "why": "Se queda extendida, con el muslo en la prolongación del tronco, de principio a fin: la pelvis sube cuando las rodillas se doblan precisamente para que su ángulo no cambie. Sostiene el puente sin recorrer ningún arco."
+          },
+          {
+            "actions": [
+              "Apoyo del talón y de la planta"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_ankle",
+              "monajati2017"
+            ],
+            "why": "No impulsa: transmite la fuerza de la pierna al balón, primero por el talón y al final por la planta, y lo orienta para que no ruede de lado."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_back",
+              "youdas2015"
+            ],
+            "why": "La zona lumbar se queda neutra entre la espalda alta apoyada y la pelvis elevada; si se arquea para subir la cadera, el puente lo hace la columna y no la cadera."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "youdas2015",
+              "monajati2017",
+              "statpearls_hamstring"
+            ],
+            "why": "Doblan la rodilla para traer el balón y frenan su vuelta; como cruzan también la cadera, ayudan a sostenerla extendida. En curls a dos piernas hechos desde el puente boca arriba trabajaron entre el 52 y el 60 % de su máximo isométrico, más que en los puentes simples (Youdas et al. 2015). En deportistas, un curl con balón en el que la pelvis subía al doblar las rodillas activó el bíceps femoral y el semitendinoso sin diferencias entre ellos (Monajati et al. 2017); aquí la pelvis ya está arriba desde el inicio."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2015",
+              "neto2020"
+            ],
+            "why": "Sostiene la cadera extendida para que el puente no se hunda mientras las rodillas se doblan; la cadera no cambia de ángulo, así que su trabajo es isométrico. En los puentes boca arriba estudiados por Youdas et al. (2015) su pico fue del 32,6 % del máximo, en el puente a una pierna, por debajo de lo que alcanzaron los isquiosurales en los curls."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2015",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El multífido lumbar y la pared abdominal sujetan la línea entre la espalda alta apoyada y la pelvis en el aire, y frenan el giro de la pelvis cuando el balón rueda de lado. El multífido trabajó entre el 29 y el 36 % de su máximo en todos los puentes del estudio de Youdas et al. (2015), con apoyo estable o inestable: sostiene la postura y no mueve ninguna articulación del gesto."
+          }
+        ]
+      },
+      "pattern": {
+        "movementPatternId": "knee_flexion",
+        "why": "La cadera queda extendida en puente durante toda la serie y solo se mueve la rodilla: el patrón es flexión de rodilla, no flexión de rodilla y cadera. Decisión del usuario, lote 3 (2026-10-03)."
+      },
       "public": {
         "configurations": {
           "curl_isquios_con_balon__default": {
-            "description": "Con peso corporal, boca arriba con las pantorrillas sobre la pelota, los talones la acercan al glúteo. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+            "description": "El balón solo toca los pies y puede rodar hacia cualquier lado: si una pierna tira más que la otra, se desvía y la pelvis tiene que corregirlo. Al cerrar la flexión, el apoyo pasa del talón a la planta, que queda encima del balón junto a los glúteos.",
             "executionCues": [
-              "Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Dobla las rodillas y haz rodar el balón hacia los glúteos sin dejar caer la pelvis.",
+              "Termina con las plantas sobre el balón y la cadera alineada con hombros y rodillas.",
+              "Estira las piernas despacio y vuelve a la línea recta sin apoyar la pelvis en el suelo."
             ],
             "setupCues": [
-              "Preparación: Acostado con el balón entre los pies: llevas el balón hacia el glúteo flexionando las rodillas."
+              "Túmbate boca arriba con los brazos en el suelo, palmas abajo, y apoya los talones en lo alto del balón.",
+              "Aprieta los glúteos y sube la pelvis hasta que hombros, cadera y talones queden en línea."
             ]
           }
         },
-        "description": "El Curl de Isquiosurales con Balón traslada el curl tumbado a la pelota de fitness: boca arriba con las pantorrillas sobre el balón, los talones la acercan al glúteo mientras la cadera se mantiene en puente. Se ejecuta con la espalda en el suelo, flexionando las rodillas para traer la pelota y estirando con calma. Los isquiosurales frenan y tiran con el cuerpo como única resistencia. La opción casera para la parte trasera de la pierna cuando no hay gimnasio a mano."
+        "description": "El Curl de Isquiosurales con Balón (stability ball leg curl) flexiona las rodillas tumbado boca arriba, con la pelvis en el aire y los talones sobre un balón suizo. Los isquiosurales lo hacen rodar hasta cerca de los glúteos y lo devuelven despacio, mientras el glúteo mayor y la zona media sostienen el puente para que la cadera no se doble. Al final de la flexión, las plantas descansan sobre el balón y hombros, cadera y rodillas forman una sola línea. Como el balón rueda en cualquier dirección, cada repetición pide además que la pelvis no se tuerza. Un balón y un hueco en el suelo bastan para cargar la flexión de rodilla con el peso del cuerpo."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En diez deportistas, el curl con balón (talones sobre el balón y pelvis que sube al doblar las rodillas) activó por igual el bíceps femoral y el semitendinoso; entre 60 y 40 grados de flexión la activación fue menor que en el curl nórdico.",
+          "id": "monajati2017",
+          "title": "Analysis of the Hamstring Muscle Activation During two Injury Prevention Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29339983/"
+        },
+        {
+          "claim": "En puentes boca arriba sobre apoyo estable e inestable, los curls de isquiosurales a dos piernas activaron los isquiosurales al 51,9-59,6 % de la contracción máxima, más que los puentes; el glúteo mayor llegó como máximo al 32,6 % (puente a una pierna) y el multífido lumbar quedó entre 29,2 y 35,9 % en todos.",
+          "id": "youdas2015",
+          "title": "Magnitudes of muscle activation of spine stabilizers, gluteals, and hamstrings during supine bridge to neutral position",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25671354/"
+        },
+        {
+          "claim": "Los isquiosurales nacen en la tuberosidad isquiática, cruzan la rodilla y participan en la extensión de la cadera y la flexión de la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor es uno de los principales extensores de la cadera.",
+          "id": "neto2020",
+          "title": "Gluteus Maximus Activation during Common Strength and Hypertrophy Exercises: A Systematic Review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32132843/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "La rodilla es sobre todo una bisagra que permite la flexión y la extensión de la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga entre el esqueleto axial y las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El tobillo es una bisagra que permite la flexión dorsal y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión de rodillas boca arriba con la pelvis elevada y los talones sobre un balón suizo: las rodillas se doblan hasta dejar el balón cerca de los glúteos y se estiran de nuevo, con la cadera extendida de principio a fin. La pelvis sube mientras las rodillas se doblan para que el ángulo de la cadera no cambie, y el apoyo rueda sin nada que fije los tobillos.",
+        "keyPositions": [
+          "Inicio: piernas estiradas sobre el balón, pelvis en el aire y el cuerpo en una línea que baja de los talones a los hombros.",
+          "Mitad de la flexión: rodillas a medio doblar, talones en lo alto del balón y el balón a medio camino, con la pelvis más alta que al inicio.",
+          "Final de la flexión: rodillas a unos noventa grados, plantas encima del balón cerca de los glúteos y la cadera, en su punto más alto, alineada con rodillas y hombros."
+        ],
+        "mistakes": [
+          "Dejar caer la pelvis mientras las rodillas se doblan, de modo que la cadera se flexiona y el puente se pierde.",
+          "Arquear la zona lumbar para subir la pelvis en lugar de extender la cadera.",
+          "Empujar el balón con la punta de los pies o dejar que ruede hacia un lado.",
+          "Soltar el regreso y dejar que el balón se aleje de golpe."
+        ],
+        "phases": [
+          {
+            "description": "Con las piernas estiradas sobre el balón, la pelvis sube hasta que el cuerpo queda recto de los hombros a los talones.",
+            "name": "Puente"
+          },
+          {
+            "description": "Las rodillas se doblan y el balón rueda hacia los glúteos; la pelvis sube un poco más para que la cadera no se flexione.",
+            "name": "Flexión"
+          },
+          {
+            "description": "Las plantas quedan sobre el balón y la cadera, en su punto más alto, se alinea con rodillas y hombros.",
+            "name": "Cierre"
+          },
+          {
+            "description": "Las rodillas se estiran despacio y el balón rueda hacia fuera mientras la pelvis aguanta en el aire.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Espalda alta, cabeza y brazos en el suelo, con las palmas hacia abajo; talones en lo alto del balón y piernas estiradas, juntas o a la anchura de la cadera.",
+          "Antes de doblar las rodillas, la pelvis sube hasta alinear hombros, cadera y talones."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a ras de suelo, con el cuerpo entero de la cabeza a los pies y el suelo visible.",
+          "contacts": "Cabeza, hombros, espalda alta y brazos en el suelo; los talones sobre el apoyo de los pies, más alto que el suelo; glúteos y zona lumbar en el aire.",
+          "load": "Sin carga externa: el peso del cuerpo descansa entre la espalda alta y los pies, y las manos no sujetan nada.",
+          "orientation": "Atleta boca arriba y de perfil, con la cabeza hacia un extremo del encuadre y los pies hacia el otro.",
+          "phase": "Mitad de la flexión: rodillas a medio doblar, en un ángulo abierto de unos 120 a 135 grados, talones en lo alto del balón y el balón a medio camino entre la posición de piernas estiradas y los glúteos.",
+          "posture": "Hombros, cadera y rodillas en una línea recta inclinada; zona lumbar neutra; rodillas a medio doblar, en un ángulo abierto de unos 120 a 135 grados."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Balón suizo grande en el suelo, a continuación de los pies; en el fotograma los talones descansan en lo alto del balón, que está a medio camino entre la posición de piernas estiradas y los glúteos."
+          }
+        },
+        "forbidden": [
+          "Rodillas a noventa grados con las plantas sobre el balón junto a los glúteos: parece un puente de glúteo con los pies en el balón y no es el fotograma pedido.",
+          "Pelvis apoyada en el suelo o cadera doblada en V mientras las rodillas se doblan: el puente se ha perdido.",
+          "Talones sobre discos deslizantes en el suelo en lugar del balón: eso es el curl con sliders.",
+          "Atleta de rodillas con los tobillos sujetos y el cuerpo cayendo hacia delante: eso es el curl nórdico.",
+          "Atleta sobre un banco GHD con los pies contra una plataforma: eso es un Glute Ham Raise.",
+          "Atleta boca abajo con un rodillo sobre los tobillos: eso es el curl tumbado en máquina.",
+          "Espalda o hombros apoyados sobre el balón con los pies en el suelo: eso es un puente sobre balón, no un curl.",
+          "Balón sujeto con las manos o apretado entre las rodillas."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of an athlete lying on the back on the gym floor, frozen HALFWAY through a stability ball leg curl. The upper back, shoulders and head rest on the floor, both arms lie flat beside the torso with the palms pressing down, and the hands hold nothing. Both heels press on top of a large exercise ball that sits on the floor halfway between the straight-leg position and the buttocks. The knees are half bent, at an open angle of about 120 to 135 degrees. The hips are lifted so shoulders, hips and knees form one straight sloping line, with the buttocks clear of the floor."
+        },
+        "qa": [
+          "¿El atleta está boca arriba con la espalda alta y la cabeza apoyadas en el suelo?",
+          "¿Los brazos descansan en el suelo con las manos vacías y los talones se apoyan en lo alto del balón, sin que nada flote?",
+          "¿Las rodillas están a medio doblar y el balón queda a medio camino entre las piernas estiradas y los glúteos?",
+          "¿La pelvis está en el aire, en línea con rodillas y hombros, sin hundirse?"
+        ]
+      }
     },
     "curl_isquios_con_sliders": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "tsaklis2015"
+            ],
+            "why": "Se estira cuando los talones se alejan, frenada por los flexores, y se dobla al traerlos de vuelta. Recorre casi noventa grados y es la única articulación que cambia de ángulo en la repetición."
+          },
+          {
+            "actions": [
+              "Extensión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "youdas2015"
+            ],
+            "why": "Queda extendida en la ida y en la vuelta: la pelvis baja algo cuando los pies se alejan y vuelve a subir cuando regresan, pero el ángulo entre muslo y tronco no cambia si la técnica es buena."
+          },
+          {
+            "actions": [
+              "Apoyo del talón en flexión dorsal"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_ankle"
+            ],
+            "why": "El talón empuja el disco contra el suelo con la punta del pie hacia arriba, una flexión dorsal que es la posición más estable del tobillo; la articulación transmite esa presión sin moverse."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_back",
+              "youdas2015"
+            ],
+            "why": "Cuando las piernas se alargan, la tentación es arquear la zona lumbar para no perder altura; la columna tiene que quedarse neutra y dejar que sea la cadera la que sostenga la pelvis."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "tsaklis2015",
+              "gulgosteren2025",
+              "statpearls_hamstring"
+            ],
+            "why": "Frenan el deslizamiento hacia delante mientras la rodilla se estira y lo arrastran de vuelta al doblarla; además ayudan a sostener la cadera extendida. En una ida lenta a una pierna, con la pelvis elevada y el talón sobre un trapo que desliza, la actividad de los isquiosurales entró en la categoría de intensidad alta (Tsaklis et al. 2015), y en un curl deslizante a una pierna el bíceps femoral rondó el 70 % de su máximo en futbolistas sanos (Gulgosteren et al. 2025). Los dos datos son de la versión a una pierna y aquí se extrapolan a la de dos."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "gulgosteren2025",
+              "neto2020"
+            ],
+            "why": "Aguanta la cadera extendida para que no se doble ni la pelvis se hunda hasta el suelo cuando los pies se alejan y la palanca crece. En el curl deslizante a una pierna llegó al 55 % de su máximo en futbolistas sanos (Gulgosteren et al. 2025), un dato que aquí se extrapola a la versión con las dos piernas: es una activación alta, pero el papel sigue siendo isométrico porque la cadera no cambia de ángulo."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "youdas2015",
+              "statpearls_back"
+            ],
+            "why": "Los músculos profundos del tronco sostienen la línea entre la espalda alta apoyada y la pelvis elevada cuando la palanca de las piernas se alarga. En puentes boca arriba con curl de isquiosurales, el multífido lumbar trabajó en torno a un tercio de su máximo con cualquier apoyo (Youdas et al. 2015), un dato que aquí se extrapola."
+          }
+        ]
+      },
+      "pattern": {
+        "movementPatternId": "knee_flexion",
+        "why": "La cadera queda extendida en puente y solo la rodilla se flexiona y se extiende con los deslizadores: el patrón es flexión de rodilla. Decisión del usuario, lote 3 (2026-10-03)."
+      },
       "public": {
         "configurations": {
           "curl_isquios_con_sliders__default": {
-            "description": "Con deslizadores, con los pies sobre los discos, los talones resbalan hacia el glúteo y regresan con la cadera alta. Con los deslizadores, cada centímetro desliza y la tensión de los isquiosurales no perdona.",
+            "description": "Los discos resbalan en línea recta bajo los talones sobre un suelo liso, con muy poco roce, de modo que el freno lo ponen las piernas y no el suelo. Cuanto más se alejan los pies de la cadera, más larga es la palanca y más cuesta que la pelvis no toque el suelo.",
             "executionCues": [
-              "Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Desliza los talones hacia delante despacio, sin que la cadera se doble ni la pelvis toque el suelo.",
+              "Llega hasta casi estirar las rodillas con el peso sobre los talones.",
+              "Arrastra los talones de vuelta bajo las rodillas con la cadera arriba."
             ],
             "setupCues": [
-              "Preparación: Pies en los sliders y cuerpo extendido: flexionas las rodillas deslizando los pies hacia ti."
+              "Túmbate boca arriba en un suelo liso con un disco bajo cada talón y los brazos en el suelo.",
+              "Dobla las rodillas, levanta las puntas de los pies y sube la pelvis hasta alinear hombros, cadera y rodillas."
             ]
           }
         },
-        "description": "El Curl de Isquiosurales con Sliders usa discos deslizantes bajo los talones para un curl tumbado sin aparatos: los pies resbalan hacia el glúteo y regresan mientras la cadera queda elevada. Se ejecuta con la espalda apoyada y el puente alto, deslizando con control en ambas direcciones. Los isquiosurales y el glúteo comparten un trabajo continuo y engañosamente duro. La alternativa de suelo más exigente para la cadena posterior."
+        "description": "El Curl de Isquiosurales con Sliders (slider leg curl) es una flexión de rodilla en el suelo, boca arriba y con la pelvis elevada: cada talón descansa sobre un disco que se desliza por el suelo liso. Las piernas se alejan hasta quedar casi rectas y vuelven bajo las rodillas sin que la pelvis toque el suelo. En la ida los isquiosurales frenan el deslizamiento y en la vuelta lo arrastran; el puente lo aguantan el glúteo mayor y la zona media. El tramo más duro llega con las piernas casi estiradas, cuando la palanca es más larga y cuesta más sostener la cadera. Ocupa poco más que una esterilla y permite alargar la fase de frenado tanto como se quiera."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En veinte atletas de élite, la ida lenta a una pierna con la pelvis elevada y el talón sobre un trapo que desliza (slide leg) quedó, con el nórdico, entre los ejercicios de intensidad alta para los isquiosurales, medidos en el bíceps femoral y el semitendinoso.",
+          "id": "tsaklis2015",
+          "title": "Muscle and intensity based hamstring exercise classification in elite female track and field athletes: implications for exercise selection during rehabilitation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26170726/"
+        },
+        {
+          "claim": "En futbolistas sanos, el curl deslizante a una pierna activó el bíceps femoral al 70,5 % y el glúteo mayor al 55,1 % de la contracción máxima; quienes habían tenido una lesión de isquiosurales mostraron valores menores.",
+          "id": "gulgosteren2025",
+          "title": "Persistent neuromuscular deficits in the posterior kinetic chain following hamstring strain injury: EMG insights from nordic hamstring curl, kettlebell swing, and supine sliding leg curl",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41318473/"
+        },
+        {
+          "claim": "En puentes boca arriba con apoyo estable e inestable, el multífido lumbar trabajó entre el 29,2 y el 35,9 % de la contracción máxima en todos los ejercicios, y los curls de isquiosurales a dos piernas activaron los isquiosurales más que los puentes.",
+          "id": "youdas2015",
+          "title": "Magnitudes of muscle activation of spine stabilizers, gluteals, and hamstrings during supine bridge to neutral position",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/25671354/"
+        },
+        {
+          "claim": "Los isquiosurales nacen en la tuberosidad isquiática, cruzan la rodilla y participan en la extensión de la cadera y la flexión de la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El glúteo mayor es uno de los principales extensores de la cadera.",
+          "id": "neto2020",
+          "title": "Gluteus Maximus Activation during Common Strength and Hypertrophy Exercises: A Systematic Review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32132843/"
+        },
+        {
+          "claim": "La rodilla es sobre todo una bisagra que permite la flexión y la extensión de la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga entre el esqueleto axial y las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El astrágalo permite la flexión dorsal y la flexión plantar, y la flexión dorsal es la posición más estable del tobillo.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión y extensión de rodillas tumbado de espaldas, con la cadera en alto y cada talón sobre un disco que se desliza por el suelo: los pies se alejan hasta dejar las piernas casi rectas y vuelven bajo las rodillas sin que la cadera se doble ni la pelvis toque el suelo. Los discos corren en línea recta sobre un apoyo firme, y la exigencia crece con la distancia entre los pies y la cadera.",
+        "keyPositions": [
+          "Inicio: talones bajo las rodillas sobre los discos, piernas en ángulo recto y pelvis elevada en línea con tronco y muslos.",
+          "Mitad de la ida: rodillas dobladas unos cuarenta y cinco grados, talones por delante de las rodillas y la pelvis todavía en el aire.",
+          "Final de la ida: rodillas casi rectas, talones lejos de la cadera y la pelvis apenas separada del suelo, con el cuerpo recto de los hombros a los talones."
+        ],
+        "mistakes": [
+          "Dejar que la pelvis toque el suelo al llevar los pies lejos.",
+          "Cargar el peso en la punta de los pies en lugar de en los talones.",
+          "Arquear la zona lumbar para sostener la pelvis arriba.",
+          "Soltar la ida de golpe y dejar que los discos se disparen hacia delante."
+        ],
+        "phases": [
+          {
+            "description": "Los talones presionan los discos y la pelvis se despega del suelo hasta alinearse con el tronco y los muslos.",
+            "name": "Puente"
+          },
+          {
+            "description": "Los talones resbalan hacia delante despacio y las rodillas se estiran con la pelvis todavía elevada.",
+            "name": "Ida"
+          },
+          {
+            "description": "Los talones se arrastran de nuevo bajo las rodillas y la pelvis sube con ellas, sin que la cadera se doble.",
+            "name": "Vuelta"
+          }
+        ],
+        "setup": [
+          "Suelo liso y un disco deslizante bajo cada talón, con las puntas de los pies hacia arriba.",
+          "Hombros, nuca y brazos en el suelo; con las rodillas dobladas, la pelvis se eleva hasta que tronco y muslos forman una línea antes del primer deslizamiento."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura del suelo, con el cuerpo entero, de la cabeza a los talones, y el suelo visible.",
+          "contacts": "Cabeza, hombros, espalda alta y brazos en el suelo; los dos talones sobre los discos, con la punta del pie hacia arriba; la pelvis sin tocar el suelo.",
+          "load": "Sin carga externa: el cuerpo se apoya entre la espalda alta y los talones, y las manos no sujetan nada.",
+          "orientation": "Atleta tendido boca arriba de perfil, con la cabeza en un lado del encuadre y los pies en el contrario.",
+          "phase": "Mitad de la ida: rodillas a medio estirar, talones por delante de las rodillas y la pelvis todavía en el aire.",
+          "posture": "Rodillas a medio estirar, en un ángulo abierto de unos 135 grados, con los talones por delante de ellas; hombros, cadera y rodillas en una línea; zona lumbar neutra."
+        },
+        "byImplement": {
+          "sliders": {
+            "geometry": "Un disco deslizante redondo y plano bajo cada talón, sobre suelo liso; en el fotograma los discos están por delante de las rodillas, a medio camino entre la cadera y la posición de piernas estiradas."
+          }
+        },
+        "forbidden": [
+          "Rodillas a noventa grados con los pies planos bajo ellas: parece un puente de glúteo y no muestra el deslizamiento de este fotograma.",
+          "Pelvis apoyada en el suelo o cadera doblada en V.",
+          "Balón grande bajo los pies: eso es el curl con balón.",
+          "Atleta de rodillas con los tobillos sujetos inclinándose hacia delante: eso es el curl nórdico.",
+          "Atleta sobre un banco GHD con los pies contra una plataforma: eso es un Glute Ham Raise.",
+          "Atleta boca abajo con un rodillo sobre los tobillos: eso es el curl tumbado en máquina.",
+          "Discos bajo las manos o bajo la punta de los pies."
+        ],
+        "promptCore": {
+          "sliders": "Side view of an athlete lying on the back on a smooth gym floor, frozen HALFWAY through the slide-out of a slider leg curl. The upper back, shoulders and head rest on the floor, both arms lie flat beside the torso with the palms down, and the hands hold nothing. Each heel presses on a small flat round sliding disc on the floor, toes pointing up, and the discs sit well in front of the knees. The knees are half straightened, at an open angle of about 135 degrees, so the shins slant forward to the discs. The hips stay lifted so shoulders, hips and knees form one straight line, with the buttocks clear of the floor."
+        },
+        "qa": [
+          "¿El atleta está boca arriba con la espalda alta y la cabeza en el suelo?",
+          "¿Cada talón se apoya sobre un disco en el suelo y las manos descansan vacías, sin nada que flote?",
+          "¿Las rodillas están a medio estirar con los talones por delante de ellas, a mitad del deslizamiento?",
+          "¿La pelvis está en el aire, en línea con hombros y rodillas?"
+        ]
+      }
     },
     "lying_leg_curl": {
-      "public": {
-        "configurations": {
-          "lying_leg_curl__bilateral__cable": {
-            "description": "Con polea y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión frenada de la rodilla"
             ],
-            "setupCues": [
-              "Preparación: Polea tumbado con ambas piernas: la tensión constante sube los talones con los isquios cargados."
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee"
+            ],
+            "why": "Es la única articulación que recorre el arco: se dobla desde casi recta hasta pasar el ángulo recto al subir y se estira, frenada por los mismos músculos, al bajar. En la máquina, su eje queda alineado con el del brazo del rodillo para que la carga empuje en todo ese recorrido."
+          },
+          {
+            "actions": [
+              "Flexión ligera sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "guex2012",
+              "stevens2022"
+            ],
+            "why": "La cadera no se mueve: el banco en ángulo de la máquina la deja flexionada unos 20 a 30 grados, con la pelvis y los muslos apoyados, y fija el extremo superior de los isquiosurales. En dinamómetro, el par de los flexores de rodilla fue el más bajo con la cadera recta y mayor con ella flexionada (Guex et al. 2012), y en el curl tumbado en máquina el glúteo mayor tuvo la menor activación de seis ejercicios (Stevens et al. 2022): la cadera sostiene la postura sin aportar fuerza."
+          },
+          {
+            "actions": [
+              "Flexión dorsal sostenida del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_ankle",
+              "marchetti2021"
+            ],
+            "why": "El tobillo queda quieto, con la punta del pie hacia la espinilla bajo la carga. Esa postura estira el gastrocnemio por abajo y le deja ayudar a la rodilla: en el curl tumbado isométrico, con el tobillo así, la fuerza fue mayor a 90 grados que con la punta estirada (Marchetti et al. 2021)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_hamstring",
+              "schoenfeld2015",
+              "stevens2022",
+              "veeck2024",
+              "hirose2018"
+            ],
+            "why": "Son los motores del gesto: el semitendinoso, el semimembranoso y las dos porciones del bíceps femoral cruzan la rodilla por detrás y la doblan. Con la cadera recta o poco flexionada, los tres músculos que también cruzan la cadera ya parten acortados, y la porción corta del bíceps solo depende de la rodilla. Frente al peso muerto con piernas rígidas, este curl activó más las zonas de los isquiosurales cercanas a la rodilla (Schoenfeld et al. 2015); en el curl tumbado en máquina, las zonas proximal y distal del bíceps femoral se activaron más que en el peso muerto rumano y la extensión de cadera (Stevens et al. 2022). Entre cinco ejercicios de pierna, el curl tumbado dio la mayor activación de los isquiosurales (Veeck et al. 2024). En un curl isométrico, el semitendinoso se activó más a 120 grados de flexión que a 30 o 60, al contrario que el semimembranoso y la porción larga del bíceps femoral (Hirose y Tsuruike 2018)."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_gastrocnemius",
+              "li2002",
+              "marchetti2021"
+            ],
+            "why": "El gastrocnemio nace en el fémur, cruza la rodilla y ayuda a doblarla. Estimulado de forma aislada, su momento flexor en la rodilla fue máximo con la pierna recta y pequeño a partir del ángulo recto (Li et al. 2002), así que su palanca es mayor al arrancar, aunque sigue activo en todo el arco. En el curl tumbado isométrico, con el tobillo flexionado hacia la espinilla la fuerza a 90 grados fue mayor que con la punta estirada, y el gemelo lateral se activó más con la rodilla a 90 grados y el tobillo así (Marchetti et al. 2021): su ayuda es real, pero secundaria."
+          }
+        ],
+        "overrides": {
+          "lying_leg_curl__bilateral__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "La polea baja tira del tobillo hacia los pies: con la pierna estirada el cable va casi en línea con la espinilla y apenas se opone a la flexión, y con la espinilla vertical tira en perpendicular y pesa más. La rodilla recorre el mismo arco con el esfuerzo desplazado hacia el final; se deduce de la geometría del cable."
+              },
+              {
+                "actions": [
+                  "Extensión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip",
+                  "guex2012"
+                ],
+                "why": "En el banco plano la cadera queda recta, a 0 grados, y no se mueve: fija el extremo superior de los isquiosurales en la posición con el par de flexión de rodilla más bajo en dinamómetro (Guex et al. 2012). Sostiene la postura sin aportar fuerza."
+              }
             ]
           },
           "lying_leg_curl__bilateral__dumbbells": {
-            "description": "Con mancuernas y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Con mancuernas, cada lado ajusta su línea y el trabajo de los isquiosurales se equilibra solo. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-            ],
-            "setupCues": [
-              "Preparación: Mancuerna entre los pies tumbado: sujeta el peso con los pies y flexiona."
-            ]
-          },
-          "lying_leg_curl__bilateral__machine": {
-            "description": "Con máquina y a dos lados, boca abajo, los talones suben hacia el glúteo contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-            ],
-            "setupCues": [
-              "Preparación: Máquina tumbado con ambas piernas: los talones suben al glúteo contra la resistencia."
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "Con la mancuerna entre los pies, la gravedad pesa más con la espinilla horizontal y casi nada con ella vertical, así que la rodilla solo trabaja contra la carga desde casi recta hasta el ángulo recto: más allá, la mancuerna cae hacia las nalgas. Se deduce de la geometría, sin registros de este ejercicio."
+              },
+              {
+                "actions": [
+                  "Flexión dorsal sostenida del tobillo"
+                ],
+                "id": "tobillo",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_ankle"
+                ],
+                "why": "Los tobillos quedan flexionados hacia la espinilla para que las plantas sostengan el disco de arriba, y los pies se cierran sobre el asa entre los arcos durante toda la serie. El tobillo no mueve la carga, la sujeta; el cierre de los pies, que exige apretar las piernas entre sí, no se declara como músculo porque no hay registros de él en este ejercicio."
+              },
+              {
+                "actions": [
+                  "Extensión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip",
+                  "guex2012"
+                ],
+                "why": "En el banco plano la cadera queda recta, a 0 grados, y no se mueve: fija el extremo superior de los isquiosurales en la posición con el par de flexión de rodilla más bajo en dinamómetro (Guex et al. 2012). Sostiene la postura sin aportar fuerza."
+              }
             ]
           },
           "lying_leg_curl__unilateral__cable": {
-            "description": "Con polea y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Polea tumbado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-            ],
-            "setupCues": [
-              "Preparación: Polea tumbado con una pierna: tensión continua en un isquio a la vez."
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "La polea baja tira del tobillo hacia los pies: con la pierna estirada el cable va casi en línea con la espinilla y apenas se opone a la flexión, y con la espinilla vertical tira en perpendicular y pesa más. La rodilla recorre el mismo arco con el esfuerzo desplazado hacia el final; se deduce de la geometría del cable."
+              },
+              {
+                "actions": [
+                  "Extensión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip"
+                ],
+                "why": "En el banco plano la cadera queda recta, y con una sola pierna bajo la carga la cadera del lado que trabaja tiende a despegarse del banco; se queda apoyada porque las manos agarradas al banco lo impiden. Se deduce de la postura, sin registros de la variante."
+              }
             ]
           },
           "lying_leg_curl__unilateral__dumbbells": {
-            "description": "Con mancuernas y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan con mancuernas, que dejan que cada lado corrija su trayectoria. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
-            "executionCues": [
-              "Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
-            ],
-            "setupCues": [
-              "Preparación: Mancuerna con un pie: el isquio de una pierna hace la mayor parte de la carga."
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "Con un solo pie bajo la mancuerna, la carga solo se sostiene con la espinilla cerca de la vertical, y ahí la gravedad casi no se opone a la flexión: la rodilla apenas trabaja contra resistencia y el estímulo es mínimo. Si la espinilla se inclina para buscar carga, la mancuerna resbala de la planta. Se deduce de la geometría, sin registros de esta variante."
+              },
+              {
+                "actions": [
+                  "Flexión dorsal sostenida del tobillo"
+                ],
+                "id": "tobillo",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_ankle"
+                ],
+                "why": "Un solo pie sostiene la mancuerna sobre la planta, sin otro pie que apriete el asa, y el tobillo queda flexionado hacia la espinilla para que no se caiga; no mueve la carga."
+              },
+              {
+                "actions": [
+                  "Extensión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip"
+                ],
+                "why": "En el banco plano la cadera queda recta, y con una sola pierna bajo la carga la cadera del lado que trabaja tiende a despegarse del banco; se queda apoyada porque las manos agarradas al banco lo impiden. Se deduce de la postura, sin registros de la variante."
+              }
             ]
           },
           "lying_leg_curl__unilateral__machine": {
-            "description": "Con máquina y a un lado, boca abajo, los talones suben hacia el glúteo contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. Un lado cada vez: el esfuerzo de los isquiosurales se aísla y las asimetrías quedan al descubierto.",
+            "joints": [
+              {
+                "actions": [
+                  "Flexión ligera sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip"
+                ],
+                "why": "En el banco en ángulo la cadera queda algo flexionada, y con una sola pierna bajo el rodillo la cadera del lado que trabaja tiende a despegarse del banco; se queda apoyada porque las manos en los asideros lo impiden. Se deduce de la postura, sin registros de la variante."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "lying_leg_curl__bilateral__cable": {
+            "description": "Una tobillera en cada tobillo se engancha a la misma polea baja, colocada más allá de los pies y alineada con el banco. El cable tira poco con las piernas estiradas y cada vez más conforme las espinillas se acercan a la vertical.",
             "executionCues": [
-              "Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+              "Dobla las dos rodillas a la vez hasta pasar la vertical con las espinillas.",
+              "Vuelve despacio sin dejar que las placas descansen entre repeticiones."
             ],
             "setupCues": [
-              "Preparación: Máquina tumbado con una pierna: cada isquio trabaja sin ayuda del otro lado y corriges desequilibrios."
+              "Baja la polea a la altura del banco o algo más abajo y alinea el banco con ella, con los pies hacia la columna.",
+              "Abrocha una tobillera en cada tobillo y engancha las dos al mismo mosquetón.",
+              "Túmbate boca abajo con las rodillas en el extremo del banco y agárralo por delante."
+            ]
+          },
+          "lying_leg_curl__bilateral__dumbbells": {
+            "description": "Una mancuerna en vertical queda apretada entre los pies, con el asa entre los arcos y el disco de arriba sobre las plantas. Pesa más con las rodillas casi rectas y apenas nada con las espinillas verticales, y pasado ese punto cae hacia las nalgas.",
+            "executionCues": [
+              "Sube la mancuerna hasta que las espinillas queden verticales, y no más.",
+              "Baja despacio sin estirar del todo las rodillas, apretando los pies para que no resbale."
+            ],
+            "setupCues": [
+              "Túmbate boca abajo con las rodillas en el extremo del banco y pide que te coloquen la mancuerna.",
+              "Aprieta el asa entre los arcos de los pies y apoya el disco de arriba en las plantas."
+            ]
+          },
+          "lying_leg_curl__bilateral__machine": {
+            "description": "El rodillo acolchado descansa sobre las dos piernas, encima de los talones, y gira con un eje alineado con las rodillas, así que la carga empuja en todo el arco. El banco suele formar ángulo y deja la cadera algo flexionada, mientras los asideros anclan el tronco.",
+            "executionCues": [
+              "Dobla las rodillas hasta acercar los talones a las nalgas, sin levantar la cadera.",
+              "Lleva las puntas de los pies hacia las espinillas durante toda la serie.",
+              "Baja despacio hasta casi estirar las piernas, sin que las placas choquen."
+            ],
+            "setupCues": [
+              "Ajusta el rodillo para que quede sobre la parte baja de las pantorrillas, justo encima de los talones.",
+              "Túmbate boca abajo con las rodillas en el borde del banco, a la altura del eje de la máquina.",
+              "Agarra los asideros y apoya bien la pelvis en el banco."
+            ]
+          },
+          "lying_leg_curl__unilateral__cable": {
+            "description": "Solo el tobillo que trabaja lleva la tobillera, y la otra pierna descansa estirada sobre el banco. Si la polea queda alineada con esa pierna, el cable tira en línea recta y la cadera no se ve arrastrada hacia un lado.",
+            "executionCues": [
+              "Lleva el talón hacia las nalgas hasta pasar la vertical, con la pelvis quieta.",
+              "Baja hasta casi estirar la pierna y pasa la tobillera al otro tobillo cuando acabes la serie."
+            ],
+            "setupCues": [
+              "Baja la polea a la altura del banco o algo más abajo y alinéala con la pierna que va a trabajar.",
+              "Abrocha la tobillera en ese tobillo y túmbate con las rodillas en el extremo del banco."
+            ]
+          },
+          "lying_leg_curl__unilateral__dumbbells": {
+            "description": "Un solo pie no puede apretar el asa como lo hacen los dos, así que la mancuerna queda apoyada sobre una planta, sin nada que la sujete por los lados. Solo se sostiene cerca de la vertical, justo donde casi no frena la rodilla, de modo que el estímulo para los isquiosurales es mínimo.",
+            "executionCues": [
+              "Baja la espinilla solo un poco desde la vertical, sin que la mancuerna se incline.",
+              "Vuelve a la vertical despacio y no la pases."
+            ],
+            "setupCues": [
+              "Usa una mancuerna ligera y pide que te la apoyen en la planta con la rodilla doblada en ángulo recto.",
+              "Deja la otra pierna estirada sobre el banco."
+            ]
+          },
+          "lying_leg_curl__unilateral__machine": {
+            "description": "Solo una pierna empuja el rodillo y la otra queda estirada sobre el banco, así que ningún lado puede apoyarse en la fuerza del contrario. Al subir una sola pierna, la cadera de ese lado tiende a despegarse del banco, y las manos en los asideros la sujetan.",
+            "executionCues": [
+              "Lleva un talón hacia las nalgas sin que esa cadera se despegue del banco.",
+              "Detén la bajada con la rodilla casi recta y comprueba que la pierna libre sigue quieta sobre el banco."
+            ],
+            "setupCues": [
+              "Coloca el rodillo sobre la parte baja de la pantorrilla que va a trabajar.",
+              "Deja la otra pierna estirada sobre el banco, por fuera del rodillo.",
+              "Agarra los asideros con las rodillas en el borde del banco."
             ]
           }
         },
-        "description": "El Curl de Isquiosurales Tumbado es el aislamiento clásico de la parte trasera del muslo: boca abajo en la máquina, los talones suben hacia el glúteo contra la almohadilla. Se ejecuta con la cadera pegada al banco, flexionando las rodillas hasta el tope y bajando sin que la pelvis despegue. Con polea o una mancuerna entre los pies el mismo gesto se monta sin máquina. El constructor básico de isquiosurales, cómodo y medible."
+        "description": "El Curl de Isquiosurales Tumbado (lying leg curl) dobla las rodillas boca abajo: los talones suben hacia las nalgas contra una carga situada a la altura de los tobillos. La cadera queda recta en un banco plano, o algo flexionada si el banco forma ángulo, así que los isquiosurales parten acortados desde la pelvis y la rodilla los acorta aún más; los gemelos ayudan, sobre todo con la punta del pie hacia la espinilla. La pelvis, pegada al banco, no deja que la cadera se doble más para ayudar. En esa posición los isquiosurales rinden menos fuerza que con la cadera en ángulo recto, así que se mueve menos peso, y la zona cercana a la rodilla se activa más que en el peso muerto con piernas rígidas."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Los isquiosurales son el bíceps femoral, con sus porciones larga y corta, el semitendinoso y el semimembranoso; sus vientres largos nacen en la tuberosidad isquiática y sus tendones cruzan la rodilla, y su función es extender la cadera y flexionar la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "En hombres entrenados, el curl tumbado activó más las zonas inferiores, cercanas a la rodilla, de los isquiosurales laterales y mediales que el peso muerto con piernas rígidas.",
+          "id": "schoenfeld2015",
+          "title": "Regional differences in muscle activation during hamstrings exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24978835/"
+        },
+        {
+          "claim": "Entre sentadilla, peso muerto rumano, hip thrust, curl tumbado y extensión de rodilla, el curl tumbado dio la mayor activación de los isquiosurales y la mayor relación isquiosurales a cuádriceps, con un reparto lateral a medial relativamente homogéneo.",
+          "id": "veeck2024",
+          "title": "Hamstring-to-quadriceps activation ratio during lower-limb strengthening exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38006325/"
+        },
+        {
+          "claim": "En el curl isométrico, la actividad del semitendinoso fue mayor a 120 grados de flexión de rodilla que a 30 y 60, al contrario que la del semimembranoso y la porción larga del bíceps femoral.",
+          "id": "hirose2018",
+          "title": "Differences in the Electromyographic Activity of the Hamstring, Gluteus Maximus, and Erector Spinae Muscles in a Variety of Kinetic Changes",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30102684/"
+        },
+        {
+          "claim": "El gastrocnemio es biarticular: nace en los cóndilos del fémur, se inserta en el calcáneo, produce la flexión plantar del tobillo y ayuda a flexionar la rodilla.",
+          "id": "statpearls_gastrocnemius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "Con estimulación eléctrica selectiva del gastrocnemio, el momento flexor que produjo en la rodilla fue máximo con la rodilla recta, cayó sobre todo en los primeros 15 grados y fue pequeño con la rodilla en ángulo recto o más cerrada.",
+          "id": "li2002",
+          "title": "The function of gastrocnemius as a knee flexor at selected knee and ankle angles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12223171/"
+        },
+        {
+          "claim": "En el curl tumbado isométrico, la fuerza máxima fue mayor con la rodilla a 0 grados y el tobillo en flexión dorsal máxima, y a 90 grados también fue mayor con flexión dorsal que con flexión plantar; el gemelo lateral se activó más con la rodilla a 90 grados y flexión dorsal, y la actividad de los isquiosurales no cambió con la posición del tobillo.",
+          "id": "marchetti2021",
+          "title": "Different Knee and Ankle Positions Affect Force and Muscle Activation During Prone Leg Curl in Trained Subjects",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31469769/"
+        },
+        {
+          "claim": "La rodilla funciona sobre todo como una bisagra de flexión y extensión, y su principal estabilizador es la musculatura.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga del esqueleto axial a las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "En velocistas, el par máximo de los isquiosurales en la rodilla fue menor con la cadera a 0 grados que a cualquier otro ángulo y mayor a 90 grados que a 30 y 60, sin cambios en su actividad eléctrica.",
+          "id": "guex2012",
+          "title": "Influence of hip-flexion angle on hamstrings isokinetic activity in sprinters",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22889654/"
+        },
+        {
+          "claim": "En mujeres entrenadas, el glúteo mayor tuvo su menor activación en el curl de piernas entre seis ejercicios, y las zonas proximal y distal del bíceps femoral se activaron más en el curl, el kickback y el nórdico que en el peso muerto rumano, el step-up y la extensión de cadera.",
+          "id": "stevens2022",
+          "title": "Muscle Activation Patterns of the Proximal Medial and Distal Biceps Femoris and Gluteus Maximus Among 6 Hip Extension and Knee Flexion Exercises in Trained Women",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/35989703/"
+        },
+        {
+          "claim": "El tobillo es una bisagra en la que el astrágalo permite la flexión dorsal y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión de rodilla boca abajo sobre un banco: pecho, pelvis y muslos apoyados, con la cadera recta en un banco plano o flexionada unos 20 a 30 grados en el banco en ángulo de la máquina, y una carga a la altura de los tobillos que se lleva desde las piernas casi rectas hasta las espinillas verticales o más allá. El apoyo boca abajo, con la cadera recta o poco flexionada, es su seña: la pelvis no se despega y ninguna pierna sostiene el cuerpo.",
+        "keyPositions": [
+          "Inicio: rodillas casi rectas, pelvis y muslos sobre el banco, puntas de los pies hacia las espinillas y la carga ya tirando de las piernas.",
+          "Punto alto con máquina o polea: rodillas dobladas más allá del ángulo recto y talones cerca de las nalgas, con la pelvis todavía apoyada.",
+          "Punto alto con mancuerna: espinillas verticales y rodillas en ángulo recto; más arriba la mancuerna cae hacia las nalgas."
+        ],
+        "mistakes": [
+          "Despegar los glúteos del banco al subir para que la cadera ayude.",
+          "Arquear la zona lumbar o levantar el pecho del banco.",
+          "Colocar el rodillo sobre los talones o a media pantorrilla en lugar de justo encima del tobillo.",
+          "Soltar la bajada y dejar que las placas o la mancuerna caigan.",
+          "Con mancuerna, sujetar el asa con las puntas de los pies en lugar de entre los arcos, o subir más allá de la vertical hasta que resbala."
+        ],
+        "phases": [
+          {
+            "description": "Las rodillas se doblan y los talones suben mientras la pelvis no se mueve del banco.",
+            "name": "Flexión"
+          },
+          {
+            "description": "La rodilla llega a su flexión máxima y la carga se sostiene un instante, sin rebote.",
+            "name": "Punto alto"
+          },
+          {
+            "description": "Las piernas se estiran despacio hasta casi rectas sin que la carga llegue a descansar.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Máquina: banco en ángulo que deja la cadera algo flexionada; rodillo sobre la parte baja de las pantorrillas, encima de los talones; rodillas en el borde del banco, a la altura del eje del brazo; manos en los asideros.",
+          "Polea: banco plano en línea con la columna y polea baja, a la altura del banco o por debajo, más allá de los pies; tobillera en un tobillo o en los dos, enganchada al cable.",
+          "Mancuerna: en vertical entre los pies, asa apretada por los arcos y disco superior sobre las plantas; rodillas en el extremo de un banco plano."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura del banco, con el cuerpo entero de la cabeza a los pies y la carga dentro del encuadre.",
+          "contacts": "Pecho, vientre, pelvis y muslos sobre el banco; rodillas en su borde o extremo; manos agarradas a la parte delantera del banco.",
+          "load": "La resistencia actúa a la altura de los tobillos, por encima del banco, y ninguna carga toca el suelo.",
+          "orientation": "Atleta tumbado boca abajo a lo largo del banco, con la cabeza hacia un lado del encuadre y los pies hacia el otro.",
+          "phase": "Punto alto del curl: rodillas dobladas al menos en ángulo recto, con las espinillas verticales o inclinadas hacia la cabeza.",
+          "posture": "Pelvis pegada al banco sin elevar las nalgas, zona lumbar sin arquear, cuello alineado y tobillos flexionados hacia las espinillas."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Banco plano alineado con una columna de polea; la polea queda baja, a la altura del banco o por debajo, más allá de los pies; una tobillera acolchada rodea el tobillo de la pierna que trabaja y el cable va tenso desde ella hasta la polea."
+          },
+          "dumbbells": {
+            "geometry": "Banco plano con las rodillas en su extremo; una mancuerna en vertical apretada entre los pies, con el asa entre los arcos y el disco superior sobre las plantas, sostenida por encima de las rodillas."
+          },
+          "machine": {
+            "geometry": "Máquina de curl tumbado con banco acolchado en ángulo, que eleva la cadera y la deja algo flexionada; rodillo acolchado apoyado en la parte baja de ambas pantorrillas, justo encima de los talones, unido a un brazo cuyo eje queda a la altura de las rodillas; asideros bajo la parte delantera del banco y pila de placas en el bastidor."
+          }
+        },
+        "byVariant": {
+          "lying_leg_curl__bilateral__cable": {
+            "difference": "Las dos piernas dobladas a la vez, con una tobillera en cada tobillo, ambas enganchadas al mismo cable."
+          },
+          "lying_leg_curl__unilateral__dumbbells": {
+            "difference": "Una sola pierna doblada en ángulo recto con una mancuerna ligera apoyada sobre la planta del pie; la otra pierna estirada en el banco."
+          },
+          "lying_leg_curl__unilateral__machine": {
+            "difference": "Una sola pierna doblada bajo el rodillo; la otra queda estirada sobre el banco, por fuera del rodillo."
+          }
+        },
+        "forbidden": [
+          "Atleta sentado con la cadera doblada y los talones bajo el asiento: eso es el curl sentado, no el tumbado.",
+          "Atleta de pie sobre una pierna con la otra rodilla doblada: eso es el curl de pie.",
+          "Atleta boca arriba con los talones sobre un balón o unos deslizadores: eso es el curl con balón o con deslizadores.",
+          "Nalgas levantadas del banco o cadera doblada en el punto alto.",
+          "Rodillo apoyado en los pies o a media pantorrilla en lugar de justo encima de los talones.",
+          "Mancuerna flotando sin que los pies la aprieten, sujeta con las manos o pasada más allá de la vertical.",
+          "Cable flojo, polea alta por encima del atleta o tobillera sin cable.",
+          "Brazo del rodillo que pivota lejos de las rodillas o pasa por encima de los muslos.",
+          "Asa de la mancuerna en las puntas de los pies en lugar de entre los arcos."
+        ],
+        "promptCore": {
+          "cable": "Side view of an athlete lying face down on a flat bench aligned with a cable column, frozen at the TOP of a one-leg lying cable leg curl. The pulley is set low, at bench height or below, beyond the feet. A padded ankle strap is buckled around the right ankle and the cable runs taut from the strap down to the low pulley. The right knee is bent to about 90 degrees with the shin vertical, while the left leg lies straight on the bench. Hips and chest stay flat on the bench and both hands hold its front end. The weight stack is lifted.",
+          "dumbbells": "Side view of an athlete lying face down on a flat bench, frozen at the TOP of a dumbbell lying leg curl. One dumbbell stands upright between the feet: the handle is squeezed between the arches and the upper plate rests on the soles. Both knees are bent to about 90 degrees, with the shins pointing straight up, perpendicular to the bench, and the dumbbell is held high above the knees, clear of the bench and the floor. The knees are at the end of the bench, hips and chest stay flat on it, and both hands hold its front end.",
+          "machine": "Side view of an athlete lying face down on a prone leg curl machine, frozen at the TOP of a lying leg curl. The angled bench pad raises the hips slightly above the chest and knees. Both knees are bent past 90 degrees and the padded roller presses on the back of both lower legs just above the heels. Hips, belly and chest stay pressed on the pad, and the knees sit at its edge next to the lever pivot. Both hands grip the handles under the front of the bench. The roller and lever are raised high above the bench, and the weight stack is lifted in the frame."
+        },
+        "qa": [
+          "¿El atleta está tumbado boca abajo con la pelvis y el pecho apoyados en el banco?",
+          "¿La carga está sujeta a las piernas, con el rodillo sobre las pantorrillas, la tobillera unida al cable o la mancuerna apretada entre los pies, y no flota suelta?",
+          "¿Las rodillas están dobladas al menos en ángulo recto, en el punto alto del curl?",
+          "¿Las manos agarran el banco o sus asideros?",
+          "¿Las nalgas quedan sobre el banco, sin que la cadera se doble?"
+        ]
+      }
     },
     "seated_leg_curl": {
-      "public": {
-        "configurations": {
-          "seated_leg_curl__bilateral__cable": {
-            "description": "Con polea y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Polea sentado con ambas piernas: la tensión constante acompaña la flexión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión frenada de la rodilla"
             ],
-            "setupCues": [
-              "Preparación: Polea sentado con ambas piernas: la tensión constante acompaña la flexión."
-            ]
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "kellis2022"
+            ],
+            "why": "Es la articulación que se mueve: pasa de casi recta, con las piernas al frente, a doblada más allá del ángulo recto con los talones bajo el asiento, y vuelve frenada. Según la revisión de Kellis y Blazevich (2022), doblar la rodilla con la cadera entre 45 y 90 grados deja a los isquiosurales en longitudes más favorables para producir fuerza."
           },
-          "seated_leg_curl__bilateral__machine": {
-            "description": "Con máquina y a dos lados, sentado, los talones bajan por debajo del asiento contra la almohadilla. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+          {
+            "actions": [
+              "Flexión sostenida de la cadera"
             ],
-            "setupCues": [
-              "Preparación: Máquina sentado con ambas piernas: flexionas contra la almohadilla con la espalda cómoda."
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "maeo2021"
+            ],
+            "why": "La cadera queda doblada cerca de 90 grados y no se mueve: la almohadilla sobre los muslos impide que se abra para ayudar. Esa flexión fija estira el origen de los isquiosurales en la pelvis, y es la diferencia, unos 90 grados frente a unos 30 en el tumbado, a la que Maeo et al. (2021) atribuyen el mayor crecimiento muscular con este curl."
+          },
+          {
+            "actions": [
+              "Flexión dorsal sostenida del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_ankle",
+              "marchetti2021"
+            ],
+            "why": "El tobillo queda quieto, con la punta del pie hacia la espinilla, bajo el rodillo o la tobillera; así el gastrocnemio no se acorta por abajo y puede ayudar a la rodilla. Se extrapola del curl tumbado, donde esa postura del tobillo dio más fuerza a 90 grados (Marchetti et al. 2021)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_hamstring",
+              "maeo2021",
+              "guex2012"
+            ],
+            "why": "Doblan la rodilla contra el rodillo, y con la cadera flexionada el semitendinoso, el semimembranoso y la porción larga del bíceps femoral trabajan estirados desde la pelvis. Doce semanas de este curl, con la cadera a unos 90 grados, hicieron crecer más los isquiosurales que el curl tumbado con la cadera a unos 30 (14 frente a 9 por ciento en el conjunto), con ventaja en esos tres músculos y no en la porción corta del bíceps, que solo cruza la rodilla (Maeo et al. 2021). En dinamómetro, a 90 grados de cadera, el par de los flexores de rodilla fue mayor que a 30 o 60 grados, y el más bajo apareció con la cadera recta (Guex et al. 2012)."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_gastrocnemius",
+              "li2002"
+            ],
+            "why": "El gastrocnemio cruza la rodilla y ayuda a doblarla; no cruza la cadera, de modo que el asiento no cambia su papel. Su momento flexor fue máximo con la rodilla recta y pequeño desde el ángulo recto (Li et al. 2002), así que aporta sobre todo al salir. No hay registros de este músculo en el curl sentado: el rol se extrapola de su función y de pruebas en dinamómetro."
+          }
+        ],
+        "overrides": {
+          "seated_leg_curl__bilateral__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "La polea baja queda delante y a ras de suelo: con las piernas casi estiradas, el cable tira de los pies hacia abajo y, junto con el peso de las piernas, ayuda a doblar la rodilla. La resistencia aparece pasado el primer tercio del arco y es máxima con la espinilla cerca de la vertical, cuando el cable tira en perpendicular a ella. Se deduce de la geometría del cable, sin registros de la variante."
+              },
+              {
+                "actions": [
+                  "Flexión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip"
+                ],
+                "why": "Sin almohadilla sobre los muslos, la cadera doblada se sostiene con el peso del cuerpo sobre el banco y las manos en su borde: nada mecánico impide que los muslos se levanten. Se deduce del montaje, sin registros de la variante."
+              }
             ]
           },
           "seated_leg_curl__unilateral__cable": {
-            "description": "Con polea y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "La polea baja queda delante y a ras de suelo: con la pierna casi estirada, el cable tira del pie hacia abajo y, junto con el peso de la pierna, ayuda a doblar la rodilla. La resistencia aparece pasado el primer tercio del arco y es máxima con la espinilla cerca de la vertical, cuando el cable tira en perpendicular a ella. Se deduce de la geometría del cable, sin registros de la variante."
+              },
+              {
+                "actions": [
+                  "Flexión sostenida de la cadera"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip"
+                ],
+                "why": "Sin almohadilla sobre el muslo, la cadera doblada se sostiene con el peso del cuerpo, las manos en el borde del banco y el otro pie apoyado delante; nada mecánico impide que el muslo que trabaja se levante. Se deduce del montaje, sin registros de la variante."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "seated_leg_curl__bilateral__cable": {
+            "description": "Frente a la polea baja, con una tobillera en cada tobillo enganchada al mismo cable, los dos talones viajan hacia atrás por debajo del asiento. Nada sujeta los muslos salvo su peso y las manos; al principio el cable incluso ayuda a doblar la rodilla, y pesa más con las espinillas verticales.",
             "executionCues": [
-              "Polea sentado con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+              "Lleva los dos talones hacia atrás, por debajo del banco, sin levantar los muslos.",
+              "Sujeta el borde del banco y vuelve despacio hasta que las espinillas apunten en diagonal hacia la polea, sin estirar las piernas."
             ],
             "setupCues": [
-              "Preparación: Polea sentado con una pierna: tensión continua en un isquio a la vez."
+              "Coloca un banco plano frente a la polea y baja la polea al mínimo.",
+              "Abrocha una tobillera en cada tobillo, engánchalas al mismo mosquetón y siéntate con las rodillas en el borde."
+            ]
+          },
+          "seated_leg_curl__bilateral__machine": {
+            "description": "La almohadilla superior baja sobre los muslos justo encima de las rodillas y los fija al asiento, mientras el rodillo inferior empuja contra la parte baja de las pantorrillas. Con los muslos trabados, la cadera no puede abrirse para ayudar y las dos piernas recorren el arco juntas.",
+            "executionCues": [
+              "Empuja el rodillo hacia abajo y atrás hasta llevar los talones bajo el asiento.",
+              "Deja la espalda pegada al respaldo durante toda la serie.",
+              "Regresa despacio hacia delante y frena antes de que las placas toquen abajo."
+            ],
+            "setupCues": [
+              "Ajusta el respaldo hasta que las rodillas queden a la altura del eje de la máquina.",
+              "Baja la almohadilla superior hasta que apriete los muslos justo encima de las rodillas.",
+              "Apoya la parte baja de las pantorrillas en el rodillo, por encima de los talones."
+            ]
+          },
+          "seated_leg_curl__unilateral__cable": {
+            "description": "La tobillera va en una sola pierna y el otro pie queda apoyado delante, en el suelo, como punto fijo. El muslo que trabaja reposa en el banco sin nada encima, y el talón pasa bajo el asiento con el cable tirando hacia la polea.",
+            "executionCues": [
+              "Lleva el talón hacia atrás por debajo del banco sin despegar el muslo.",
+              "Detén la vuelta cuando la espinilla apunte en diagonal hacia la polea, antes de que el cable deje de resistir."
+            ],
+            "setupCues": [
+              "Siéntate en el banco frente a la polea baja con la tobillera en el tobillo que va a trabajar.",
+              "Apoya el otro pie en el suelo, por delante, y agarra el borde del banco."
             ]
           },
           "seated_leg_curl__unilateral__machine": {
-            "description": "Con máquina y a un lado, sentado, los talones bajan por debajo del asiento contra la almohadilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo de los isquiosurales. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "description": "Una sola pierna empuja el rodillo mientras la otra se recoge fuera de él, de modo que cada lado mueve su carga sin que el más fuerte compense. La almohadilla queda cerrada sobre los dos muslos y la pelvis no se ladea.",
             "executionCues": [
-              "Máquina sentado con una pierna: cada isquio trabaja por separado. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+              "Lleva el talón bajo el asiento con una pierna, sin girar la pelvis.",
+              "Al volver, frena antes de estirar la rodilla del todo y revisa que la pelvis siga centrada en el asiento."
             ],
             "setupCues": [
-              "Preparación: Máquina sentado con una pierna: cada isquio trabaja por separado."
+              "Ajusta el respaldo y baja la almohadilla sobre los dos muslos.",
+              "Pon solo la pierna que trabaja sobre el rodillo y recoge la otra por fuera."
             ]
           }
         },
-        "description": "El Curl de Isquiosurales Sentado trabaja el isquio desde una cadera flexionada, una posición que alarga el músculo antes de empezar y cambia el estímulo respecto al tumbado. Se ejecuta en la máquina sentada, llevando los talones por debajo del asiento contra la almohadilla y regresando sin rebote. Con polea se monta una versión casera igual de válida. La postura cómoda para la espalda y dura para la parte trasera."
+        "description": "En el Curl de Isquiosurales Sentado (seated leg curl), la cadera queda doblada cerca del ángulo recto mientras las rodillas se flexionan y llevan la resistencia hacia abajo y atrás, por debajo del asiento. Esa postura estira los isquiosurales desde la pelvis durante todo el recorrido, y con la cadera así la rodilla genera más fuerza. Los gemelos acompañan la flexión de la rodilla, porque también la cruzan. Con el tronco quieto y los muslos sobre el asiento, todo el trabajo recae en la parte trasera de las piernas. En el único ensayo que lo comparó con el curl tumbado, con la cadera a unos 30 grados, hizo crecer más los isquiosurales."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Doce semanas de curl sentado, con la cadera a unos 90 grados, con una pierna y de curl tumbado, con la cadera a unos 30 grados, con la otra aumentaron más el volumen de los isquiosurales en la pierna entrenada sentada (14 frente a 9 por ciento) y en cada músculo biarticular, pero no en el monoarticular; ambos protegieron por igual frente al daño muscular.",
+          "id": "maeo2021",
+          "title": "Greater Hamstrings Muscle Hypertrophy but Similar Damage Protection after Training at Long versus Short Muscle Lengths",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33009197/"
+        },
+        {
+          "claim": "En velocistas, el par máximo de los isquiosurales en la rodilla fue menor con la cadera a 0 grados que a cualquier otro ángulo y mayor a 90 grados que a 30 y 60, sin cambios en su actividad eléctrica.",
+          "id": "guex2012",
+          "title": "Influence of hip-flexion angle on hamstrings isokinetic activity in sprinters",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22889654/"
+        },
+        {
+          "claim": "Revisión: en tareas cotidianas los isquiosurales trabajan en la rama ascendente de su relación fuerza-longitud, y los ejercicios de flexión de rodilla con la cadera entre 45 y 90 grados favorecen una producción de fuerza más óptima.",
+          "id": "kellis2022",
+          "title": "Hamstrings force-length relationships and their implications for angle-specific joint torques: a narrative review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/36064431/"
+        },
+        {
+          "claim": "Los isquiosurales son el bíceps femoral, con sus porciones larga y corta, el semitendinoso y el semimembranoso; sus vientres largos nacen en la tuberosidad isquiática y sus tendones cruzan la rodilla, y su función es extender la cadera y flexionar la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El gastrocnemio es biarticular: nace en los cóndilos del fémur, se inserta en el calcáneo, produce la flexión plantar del tobillo y ayuda a flexionar la rodilla.",
+          "id": "statpearls_gastrocnemius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "Con estimulación eléctrica selectiva del gastrocnemio, el momento flexor que produjo en la rodilla fue máximo con la rodilla recta, cayó sobre todo en los primeros 15 grados y fue pequeño con la rodilla en ángulo recto o más cerrada.",
+          "id": "li2002",
+          "title": "The function of gastrocnemius as a knee flexor at selected knee and ankle angles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12223171/"
+        },
+        {
+          "claim": "En el curl tumbado isométrico, la fuerza máxima fue mayor con el tobillo en flexión dorsal que en flexión plantar con la rodilla a 90 grados, y la actividad de los isquiosurales no cambió con la posición del tobillo.",
+          "id": "marchetti2021",
+          "title": "Different Knee and Ankle Positions Affect Force and Muscle Activation During Prone Leg Curl in Trained Subjects",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31469769/"
+        },
+        {
+          "claim": "La rodilla funciona sobre todo como una bisagra de flexión y extensión, y su principal estabilizador es la musculatura.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera es una articulación esférica que sostiene el peso del tronco y transmite la carga del esqueleto axial a las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El tobillo es una bisagra en la que el astrágalo permite la flexión dorsal y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión de rodilla sentado con la cadera doblada cerca de 90 grados: los muslos quedan fijos sobre el asiento y la carga, detrás de la parte baja de las piernas, se empuja hacia abajo y atrás hasta pasar los talones bajo el asiento. Lo define la cadera doblada durante todo el arco, que trabaja los isquiosurales estirados desde la pelvis.",
+        "keyPositions": [
+          "Inicio: piernas casi rectas hacia delante, rodillas en el borde del asiento, tronco erguido o reclinado en el respaldo y cadera doblada.",
+          "Final: rodillas dobladas en ángulo recto o algo más, talones bajo el asiento, muslos todavía apoyados y espalda contra el respaldo."
+        ],
+        "mistakes": [
+          "Dejar floja la almohadilla de los muslos, de modo que se levantan y la cadera se abre para ayudar.",
+          "Despegar el tronco del respaldo o echarlo hacia delante al empujar.",
+          "Colocar las rodillas por delante o por detrás del eje de la máquina.",
+          "En la polea, sentarse tan cerca de la columna que el cable queda flojo al empezar."
+        ],
+        "phases": [
+          {
+            "description": "Desde las piernas casi rectas, las rodillas empiezan a doblarse contra el rodillo o el cable.",
+            "name": "Arranque"
+          },
+          {
+            "description": "Los talones bajan y van hacia atrás hasta pasar bajo el asiento, con los muslos quietos.",
+            "name": "Empuje"
+          },
+          {
+            "description": "Las piernas vuelven hacia delante despacio, sin que la carga golpee al final.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Máquina: respaldo regulado para que las rodillas coincidan con el eje del brazo, almohadilla superior apretando los muslos cerca de las rodillas y rodillo inferior detrás de las pantorrillas, sobre los talones.",
+          "Polea: banco plano frente a la columna, polea en su punto más bajo, tobillera en uno o en los dos tobillos y las rodillas en el borde del banco."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura del asiento, con el atleta entero, el asiento y la carga dentro del encuadre.",
+          "contacts": "Nalgas y muslos sobre el asiento, espalda contra el respaldo cuando lo hay, rodillas en el borde del asiento y manos sujetas a los lados del asiento.",
+          "load": "La resistencia actúa detrás de la parte baja de las piernas, por encima de los talones, y tiende a devolverlas hacia delante.",
+          "orientation": "Atleta sentado de perfil, con el tronco erguido o algo reclinado y las rodillas apuntando hacia un lado del encuadre.",
+          "phase": "Final del curl: rodillas dobladas en ángulo recto o más, con los talones llevados hacia abajo y atrás, bajo el asiento.",
+          "posture": "Cadera doblada cerca de 90 grados, tronco quieto y espalda sin encorvarse."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Banco plano frente a una columna de polea con la polea en la posición más baja; tobillera acolchada en el tobillo que trabaja y cable tenso desde el tobillo hacia delante, hasta la polea a ras de suelo; sin almohadilla sobre los muslos."
+          },
+          "machine": {
+            "geometry": "Máquina de curl sentado: asiento con respaldo, almohadilla superior bajada sobre los muslos justo encima de las rodillas y rodillo inferior detrás de la parte baja de las pantorrillas; el eje del brazo queda a la altura de las rodillas y la pila de placas en el bastidor."
+          }
+        },
+        "byVariant": {
+          "seated_leg_curl__bilateral__cable": {
+            "difference": "Las dos piernas dobladas a la vez, con una tobillera en cada tobillo, ambas enganchadas al mismo cable, y los dos talones bajo el banco."
+          },
+          "seated_leg_curl__unilateral__machine": {
+            "difference": "Una sola pierna doblada con el rodillo; la otra queda recogida fuera de él, bajo la almohadilla de los muslos."
+          }
+        },
+        "forbidden": [
+          "Atleta tumbado boca abajo sobre un banco: eso es el curl tumbado, no el sentado.",
+          "Atleta de pie sobre una pierna: eso es el curl de pie.",
+          "Piernas estiradas al frente como fotograma: ese es el arranque, no el final del curl.",
+          "Rodillo delante de las espinillas, empujado hacia arriba: eso es una extensión de cuádriceps.",
+          "Máquina sin almohadilla sobre los muslos o con los muslos levantados del asiento.",
+          "Cable saliendo hacia atrás o desde una polea alta.",
+          "Eje del brazo del rodillo por delante de las rodillas."
+        ],
+        "promptCore": {
+          "cable": "Side view of an athlete sitting upright on a flat bench, facing a cable column, frozen at the END of a one-leg seated cable leg curl. The pulley is at its lowest position near the floor. A padded ankle strap is buckled around the right ankle and the cable runs taut forward from the strap to the low pulley. The right knee is bent past 90 degrees with the heel pulled back under the bench, while the left foot rests flat on the floor in front. Both hands hold the edges of the bench beside the hips. The weight stack is lifted.",
+          "machine": "Side view of an athlete seated in a seated leg curl machine with the back against the backrest, frozen at the END of a seated leg curl. A padded bar is locked down on top of both thighs just above the knees. Both knees are bent past 90 degrees and the lower padded roller presses against the back of both lower legs just above the heels, pushed down and back under the seat. The hips stay flexed at about 90 degrees. Both hands grip the side handles. The weight stack is lifted in the frame."
+        },
+        "qa": [
+          "¿El atleta está sentado con la cadera doblada cerca de 90 grados?",
+          "¿Las rodillas están dobladas y los talones quedan bajo el asiento o el banco, en el final del curl?",
+          "¿La carga está sujeta, con el rodillo detrás de las piernas y la almohadilla sobre los muslos, o con la tobillera unida a un cable tenso, sin nada flotando?",
+          "¿Las manos agarran los asideros o el borde del banco?",
+          "¿La resistencia queda detrás de la parte baja de las piernas y no delante de las espinillas?"
+        ]
+      }
     },
     "standing_leg_curl": {
-      "public": {
-        "configurations": {
-          "standing_leg_curl__bilateral__cable": {
-            "description": "Con polea y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo de los isquiosurales se reparte.",
-            "executionCues": [
-              "Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión frenada de la rodilla"
             ],
-            "setupCues": [
-              "Preparación: Polea de pie con ambas piernas: los tobillos enganchados flexionan contra la tensión."
-            ]
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee"
+            ],
+            "why": "La rodilla de la pierna libre recorre el arco entero: de casi recta, con el pie junto al suelo, a doblada en ángulo recto o algo más con el talón detrás, y vuelve frenada. En la máquina, su eje coincide con el del brazo del rodillo."
           },
-          "standing_leg_curl__bilateral__machine": {
-            "description": "Con máquina y a dos lados, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A dos lados, el trabajo de los isquiosurales admite más carga total.",
-            "executionCues": [
-              "Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+          {
+            "actions": [
+              "Flexión ligera sostenida de la cadera",
+              "Sostén de la pelvis sobre una pierna"
             ],
-            "setupCues": [
-              "Preparación: Máquina de pie con ambas piernas: flexionas contra la resistencia estando de pie."
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "bolgla2005"
+            ],
+            "why": "Con el pecho en el soporte, la cadera de la pierna que trabaja queda flexionada unos 20 a 30 grados, con el muslo apoyado delante en la almohadilla, y no debe separarse de ella ni echarse atrás; la del lado de apoyo carga con el peso del tronco y lo transmite al pie, sostenida por el glúteo medio (Bolgla y Uhl 2005)."
+          },
+          {
+            "actions": [
+              "Flexión dorsal sostenida del tobillo",
+              "Apoyo sobre un pie"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_ankle"
+            ],
+            "why": "El tobillo de la pierna que trabaja queda flexionado hacia la espinilla bajo el rodillo, y el de apoyo hace pequeños ajustes sobre la plataforma durante toda la serie."
+          },
+          {
+            "actions": [
+              "Estabilidad lumbar sin arqueo"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall",
+              "saeterbakken2022"
+            ],
+            "why": "La zona lumbar no se mueve: cuando el talón sube, la tendencia es arquearla o inclinar el tronco para ayudar con la cadera, y la pared abdominal la sujeta neutra. Con el pecho en el soporte ese trabajo es menor; el dato se extrapola de la prensa frente a la sentadilla (Saeterbakken et al. 2022)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_hamstring",
+              "guex2012",
+              "maeo2021"
+            ],
+            "why": "Doblan la rodilla de la pierna libre contra la carga. Con el pecho en el soporte de la máquina, la cadera queda flexionada unos 20 a 30 grados; con el tronco erguido de la polea, cerca de 0, el ángulo con el par de flexión de rodilla más bajo en pruebas de dinamómetro (Guex et al. 2012). En ambos casos los tres músculos que cruzan la cadera trabajan bastante acortados desde la pelvis. No hay registros propios del curl de pie: su papel se extrapola de la anatomía y del curl tumbado, con la cadera a unos 30 grados, que hizo crecer los isquiosurales menos que el sentado (Maeo et al. 2021)."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "statpearls_gastrocnemius",
+              "li2002"
+            ],
+            "why": "El gastrocnemio de la pierna que trabaja cruza la rodilla y colabora en su flexión, con más momento cuanto más recta está (Li et al. 2002), es decir, cuando el pie se despega del suelo. El de la pierna de apoyo, además, sostiene el tobillo sobre un solo pie durante toda la serie."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_gluteus_medius",
+              "bolgla2005"
+            ],
+            "why": "En la pierna de apoyo, el glúteo medio impide que la pelvis caiga hacia el lado de la pierna que trabaja. De pie sobre una pierna mientras la otra se movía, el glúteo medio del lado apoyado se activó más que en los ejercicios sin carga de peso, salvo la abducción tumbado de lado (Bolgla y Uhl 2005); aquí se extrapola, porque no hay registros del curl de pie."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall",
+              "saeterbakken2022"
+            ],
+            "why": "Con el pecho recostado en el soporte y un solo pie en la plataforma, la pared abdominal sujeta la zona lumbar para que no se arquee cuando el talón sube. Que ese trabajo sea menor con apoyo se extrapola de la prensa, donde la actividad del tronco fue entre un 17 y un 59 por ciento menor que en la sentadilla libre (Saeterbakken et al. 2022); aquí el apoyo es parcial y el papel queda en estabilizador."
+          }
+        ],
+        "overrides": {
+          "standing_leg_curl__bilateral__cable": {
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "La polea baja está delante del cuerpo: con la pierna recta, el cable tira casi en perpendicular a la espinilla y pesa más, y con la espinilla horizontal tira casi a lo largo de ella y pesa menos. El esfuerzo se carga al principio del arco; se deduce de la geometría del cable."
+              },
+              {
+                "actions": [
+                  "Posición neutra sostenida de la cadera",
+                  "Sostén de la pelvis sobre una pierna"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip",
+                  "bolgla2005"
+                ],
+                "why": "Con el tronco erguido la cadera queda cerca de 0 grados y, sin almohadilla delante del muslo, es ella la que lo deja vertical mientras la rodilla se dobla y el cable tira de la rodilla hacia delante. Una mano en la columna ayuda, pero el cuerpo entero descansa en una sola pierna, sujeta por el glúteo medio (Bolgla y Uhl 2005)."
+              },
+              {
+                "actions": [
+                  "Flexión dorsal sostenida del tobillo",
+                  "Apoyo sobre un pie"
+                ],
+                "id": "tobillo",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_ankle"
+                ],
+                "why": "El tobillo de apoyo sostiene todo el cuerpo sobre el suelo, sin plataforma ni soporte para el pecho, y el de la pierna que trabaja queda flexionado dentro de la tobillera."
+              },
+              {
+                "actions": [
+                  "Estabilidad lumbar sin arqueo"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Sin pecho apoyado, la zona lumbar depende solo de la pared abdominal para no arquearse cuando el talón sube."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_abdominal_wall",
+                  "saeterbakken2022"
+                ],
+                "why": "Sin soporte para el pecho, el tronco se sostiene erguido sobre una sola pierna y la pared abdominal frena el arqueo lumbar en cada repetición. Se extrapola de la diferencia entre ejercicios con y sin apoyo de espalda (Saeterbakken et al. 2022)."
+              }
             ]
           },
           "standing_leg_curl__unilateral__cable": {
-            "description": "Con polea y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Con la polea, la tensión sobre los isquiosurales se mantiene viva de principio a fin. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "joints": [
+              {
+                "actions": [
+                  "Flexión de la rodilla",
+                  "Extensión frenada de la rodilla"
+                ],
+                "id": "rodilla",
+                "role": "PRIMARY",
+                "sources": [
+                  "statpearls_knee"
+                ],
+                "why": "La polea baja está delante del cuerpo: con la pierna recta, el cable tira casi en perpendicular a la espinilla y pesa más, y con la espinilla horizontal tira casi a lo largo de ella y pesa menos. El esfuerzo se carga al principio del arco; se deduce de la geometría del cable."
+              },
+              {
+                "actions": [
+                  "Posición neutra sostenida de la cadera",
+                  "Sostén de la pelvis sobre una pierna"
+                ],
+                "id": "cadera",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_hip",
+                  "bolgla2005"
+                ],
+                "why": "Con el tronco erguido la cadera queda cerca de 0 grados y, sin almohadilla delante del muslo, es ella la que lo deja vertical mientras la rodilla se dobla y el cable tira de la rodilla hacia delante. Una mano en la columna ayuda, pero el cuerpo entero descansa en una sola pierna, sujeta por el glúteo medio (Bolgla y Uhl 2005)."
+              },
+              {
+                "actions": [
+                  "Flexión dorsal sostenida del tobillo",
+                  "Apoyo sobre un pie"
+                ],
+                "id": "tobillo",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_ankle"
+                ],
+                "why": "El tobillo de apoyo sostiene todo el cuerpo sobre el suelo, sin plataforma ni soporte para el pecho, y el de la pierna que trabaja queda flexionado dentro de la tobillera."
+              },
+              {
+                "actions": [
+                  "Estabilidad lumbar sin arqueo"
+                ],
+                "id": "columna-lumbar",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_abdominal_wall"
+                ],
+                "why": "Sin pecho apoyado, la zona lumbar depende solo de la pared abdominal para no arquearse cuando el talón sube."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "core",
+                "role": "STABILIZER",
+                "sources": [
+                  "statpearls_abdominal_wall",
+                  "saeterbakken2022"
+                ],
+                "why": "Sin soporte para el pecho, el tronco se sostiene erguido sobre una sola pierna y la pared abdominal frena el arqueo lumbar en cada repetición. Se extrapola de la diferencia entre ejercicios con y sin apoyo de espalda (Saeterbakken et al. 2022)."
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "configurations": {
+          "standing_leg_curl__bilateral__cable": {
+            "description": "Estando de pie, una pierna siempre sostiene el cuerpo, así que la tobillera pasa de un tobillo al otro dentro de la misma serie. Cada lado hace su tanda de cara a la columna, con una mano apoyada en ella.",
             "executionCues": [
-              "Polea de pie con una pierna: tensión continua en un isquio a la vez. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+              "Dobla la rodilla con el muslo vertical hasta que la espinilla quede horizontal.",
+              "Al acabar las repeticiones, pasa la tobillera al otro tobillo y repite."
             ],
             "setupCues": [
-              "Preparación: Polea de pie con una pierna: tensión continua en un isquio a la vez."
+              "Pon la polea abajo del todo y abrocha la tobillera en el primer tobillo.",
+              "Ponte de cara a la columna, a un paso, con una mano apoyada en ella."
+            ]
+          },
+          "standing_leg_curl__bilateral__machine": {
+            "description": "De pie no hay curl a dos piernas: una siempre sostiene el cuerpo sobre la plataforma. Esta opción equivale a pasar las dos piernas por el rodillo dentro de la misma serie, primero una y después la otra, con el pecho apoyado en el soporte.",
+            "executionCues": [
+              "Dobla la rodilla hasta pasar el ángulo recto con el muslo quieto contra la almohadilla.",
+              "Al terminar las repeticiones de esa pierna, cambia de pie y repite con la otra."
+            ],
+            "setupCues": [
+              "Recuesta el pecho en el soporte, agarra los asideros y pisa la plataforma con un pie.",
+              "Coloca el rodillo detrás de la otra pierna, justo encima del talón, con el muslo contra su almohadilla."
+            ]
+          },
+          "standing_leg_curl__unilateral__cable": {
+            "description": "Una tobillera une el tobillo a la polea baja, delante del cuerpo, y ninguna almohadilla sujeta el muslo: la propia cadera lo deja vertical. El cable pesa más al arrancar, con la pierna estirada, y menos cuando la espinilla llega a horizontal.",
+            "executionCues": [
+              "Sube el talón por detrás hasta que la espinilla quede horizontal, con el muslo quieto.",
+              "Baja despacio sin que el pie toque el suelo entre repeticiones."
+            ],
+            "setupCues": [
+              "Baja la polea al mínimo y abrocha la tobillera en el tobillo que va a trabajar.",
+              "Ponte de cara a la columna, a un paso de ella, y apoya una mano en ella."
             ]
           },
           "standing_leg_curl__unilateral__machine": {
-            "description": "Con máquina y a un lado, de pie, una pierna flexiona llevando el talón hacia atrás contra la resistencia. Los isquiosurales trabajan en la máquina, con el recorrido guiado y sin distracciones. A un lado, el trabajo de los isquiosurales se hace en solitario y las diferencias salen a la vista.",
+            "description": "El rodillo se apoya detrás del tobillo y el pecho se recuesta en el soporte. La almohadilla hace de tope delante del muslo, y el talón sube solo por la rodilla mientras el muslo no se separe de ella.",
             "executionCues": [
-              "Máquina de pie con una pierna: un aislamiento mayor de un isquio. La rodilla flexiona acercando el talón y vuelve con una fase lenta; la cadera permanece fijada por el banco, la máquina o el apoyo disponible."
+              "Sube el talón hasta que la rodilla pase el ángulo recto, sin separar el muslo de la almohadilla.",
+              "Baja despacio con la rodilla de apoyo un poco flexionada."
             ],
             "setupCues": [
-              "Preparación: Máquina de pie con una pierna: un aislamiento mayor de un isquio."
+              "Ajusta el rodillo a la altura del tobillo, justo por encima del talón.",
+              "Apoya el muslo contra su almohadilla y el pecho en el soporte, con las manos en los asideros."
             ]
           }
         },
-        "description": "El Curl de Isquiosurales de Pie aísla una pierna cada vez: de pie en la máquina, la rodilla flexiona llevando el talón hacia atrás contra la resistencia. Se ejecuta con el muslo apoyado y el movimiento limpio, sin balancear la cadera. Trabajar a una pierna deja al descubierto diferencias entre lados que las máquinas bilaterales esconden. El detector y corrector de desequilibrios en los isquiosurales."
+        "description": "El Curl de Isquiosurales de Pie (standing leg curl) se hace sobre una sola pierna: una sostiene el cuerpo y la otra dobla la rodilla llevando el talón hacia atrás y arriba, con el muslo vertical o algo adelantado. Los isquiosurales mueven la carga con ayuda de los gemelos, mientras el glúteo medio de la pierna de apoyo sujeta la pelvis para que no caiga hacia el lado libre. La cadera queda recta con la polea, o flexionada unos 20 a 30 grados con el pecho en el soporte de la máquina, así que los isquiosurales trabajan acortados y la carga es menor que con la cadera muy flexionada. Cada pierna carga sola con su serie, así que una diferencia de fuerza entre lados aparece enseguida."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Los isquiosurales son el bíceps femoral, con sus porciones larga y corta, el semitendinoso y el semimembranoso; sus vientres largos nacen en la tuberosidad isquiática y sus tendones cruzan la rodilla, y su función es extender la cadera y flexionar la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "En velocistas, el par máximo de los isquiosurales en la rodilla fue menor con la cadera a 0 grados que a cualquier otro ángulo y mayor a 90 grados que a 30 y 60, sin cambios en su actividad eléctrica.",
+          "id": "guex2012",
+          "title": "Influence of hip-flexion angle on hamstrings isokinetic activity in sprinters",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/22889654/"
+        },
+        {
+          "claim": "Doce semanas de curl tumbado, con la cadera a unos 30 grados, hicieron crecer los isquiosurales menos que el curl sentado, con la cadera a unos 90, en la otra pierna (9 frente a 14 por ciento).",
+          "id": "maeo2021",
+          "title": "Greater Hamstrings Muscle Hypertrophy but Similar Damage Protection after Training at Long versus Short Muscle Lengths",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33009197/"
+        },
+        {
+          "claim": "El gastrocnemio es biarticular: nace en los cóndilos del fémur, se inserta en el calcáneo, produce la flexión plantar del tobillo, ayuda a flexionar la rodilla y contribuye a la postura y la marcha.",
+          "id": "statpearls_gastrocnemius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "Con estimulación eléctrica selectiva del gastrocnemio, el momento flexor que produjo en la rodilla fue máximo con la rodilla recta, cayó sobre todo en los primeros 15 grados y fue pequeño con la rodilla en ángulo recto o más cerrada.",
+          "id": "li2002",
+          "title": "The function of gastrocnemius as a knee flexor at selected knee and ankle angles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/12223171/"
+        },
+        {
+          "claim": "La región glútea es clave para la estabilidad de la pierna y la pelvis, y el glúteo medio y el menor trabajan juntos como abductores de la cadera, vitales para la marcha.",
+          "id": "statpearls_gluteus_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Con apoyo sobre la pierna derecha mientras la izquierda se movía, el glúteo medio derecho mostró más actividad que en los ejercicios sin carga de peso, salvo la abducción tumbado de lado, por el mayor momento externo sobre los abductores.",
+          "id": "bolgla2005",
+          "title": "Electromyographic analysis of hip rehabilitation exercises in a group of healthy subjects",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16187509/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        },
+        {
+          "claim": "En la prensa de piernas, el ejercicio con menos exigencia de estabilidad, la actividad de los músculos del tronco fue entre un 17 y un 59 por ciento menor que en la sentadilla libre.",
+          "id": "saeterbakken2022",
+          "title": "Core Muscle Activation in Three Lower Extremity Exercises With Different Stability Requirements",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31895283/"
+        },
+        {
+          "claim": "La rodilla funciona sobre todo como una bisagra de flexión y extensión, y su principal estabilizador es la musculatura.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga del esqueleto axial a las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El tobillo es una bisagra en la que el astrágalo permite la flexión dorsal y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión de rodilla de pie sobre una sola pierna: la otra rodilla se dobla y sube el talón por detrás, con el muslo vertical o algo adelantado, contra una carga situada detrás de esa pierna. Lo definen el apoyo sobre un pie y una cadera poco flexionada: recta con el tronco erguido de la polea, unos 20 a 30 grados con el pecho en el soporte de la máquina. Siempre trabaja una pierna mientras la otra sostiene el cuerpo.",
+        "keyPositions": [
+          "Inicio: las dos piernas casi rectas, la que trabaja apenas separada del suelo y el cable o el rodillo ya cargando.",
+          "Punto alto: rodilla en ángulo recto o algo más, talón detrás y arriba, muslo vertical o algo adelantado, sin irse hacia atrás, y rodilla de apoyo apenas flexionada."
+        ],
+        "mistakes": [
+          "Llevar el muslo hacia atrás, como en una patada de glúteo, para subir el talón con la cadera.",
+          "Inclinar el tronco y arquear la zona lumbar para ayudar a la pierna.",
+          "Bloquear la rodilla de apoyo o dejar caer la pelvis hacia el lado de la pierna libre.",
+          "Dejar que el cable arrastre la rodilla hacia delante.",
+          "Dar un impulso con la pierna y dejar caer el talón en la bajada."
+        ],
+        "phases": [
+          {
+            "description": "El pie que trabaja se separa del suelo y la rodilla empieza a doblarse sin que el muslo se mueva.",
+            "name": "Despegue"
+          },
+          {
+            "description": "El talón sube hacia atrás hasta que la espinilla queda horizontal o un poco más arriba.",
+            "name": "Flexión"
+          },
+          {
+            "description": "La rodilla se estira despacio y el pie vuelve cerca del suelo sin apoyarse.",
+            "name": "Descenso"
+          }
+        ],
+        "setup": [
+          "Máquina: pecho o antebrazos sobre el soporte, manos en los asideros, muslo de la pierna que trabaja contra su almohadilla y rodillo detrás del tobillo, encima del talón; el otro pie pisa la plataforma.",
+          "Polea: columna con la polea abajo del todo, tobillera en el tobillo que trabaja y el atleta de cara a la columna, a un paso, con una mano apoyada en ella."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el atleta de la cabeza a los pies y la carga dentro del encuadre.",
+          "contacts": "Un solo pie apoyado en el suelo o en la plataforma; la otra pierna en el aire; al menos una mano se apoya en los asideros o en la columna.",
+          "load": "La resistencia actúa detrás de la parte baja de la pierna que trabaja, por encima del talón, y queda separada del suelo.",
+          "orientation": "Atleta de pie y de perfil, de cara a la estructura que le da apoyo, con el talón de la pierna que trabaja hacia el lado contrario.",
+          "phase": "Punto alto del curl: la rodilla de la pierna que trabaja doblada cerca de 90 grados, con el talón detrás y arriba.",
+          "posture": "Muslo de la pierna que trabaja casi vertical, sin irse hacia atrás; pelvis nivelada, espalda neutra y rodilla de apoyo apenas flexionada."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Columna de polea delante del atleta con la polea en la posición más baja; tobillera acolchada en el tobillo que trabaja y cable tenso desde el tobillo hacia delante y abajo, hasta la polea; una mano apoyada en la columna."
+          },
+          "machine": {
+            "geometry": "Máquina de curl de pie: soporte acolchado para el pecho o los antebrazos con asideros, almohadilla delante del muslo de la pierna que trabaja y rodillo detrás de la parte baja de esa pierna, encima del talón; la pierna de apoyo pisa una plataforma."
+          }
+        },
+        "forbidden": [
+          "Muslo de la pierna que trabaja llevado hacia atrás como en una patada de glúteo: en este curl el muslo queda vertical o algo adelantado.",
+          "Atleta tumbado boca abajo o sentado: eso es el curl tumbado o el sentado, no el de pie.",
+          "Las dos rodillas dobladas a la vez sin ningún pie en el suelo.",
+          "Tronco muy inclinado hacia delante, como en un peso muerto.",
+          "Cable que sale hacia arriba desde una polea alta, o tobillera sin cable.",
+          "Rodillo separado de la pierna o flotando en el aire."
+        ],
+        "promptCore": {
+          "cable": "Side view of an athlete standing upright on the left leg, facing a cable column, frozen at the TOP of a standing cable leg curl. The pulley is set at its lowest position near the floor. A padded ankle strap is buckled around the right ankle, and the cable runs taut forward and down from the strap to the low pulley. The right knee is bent to about 90 degrees with the heel raised behind, and the right thigh stays vertical beside the left thigh. The left hand rests flat on the column for balance. The weight stack is lifted.",
+          "machine": "Side view of an athlete standing on one leg in a standing leg curl machine, frozen at the TOP of a standing leg curl. The torso leans slightly forward with the chest on the upper pad, and both hands grip the handles. The front of the right thigh presses against the thigh pad, angled slightly forward of vertical and never swung back, and the right knee is bent to about 90 degrees with the padded roller pressing on the back of the lower leg just above the heel. The left foot stands flat on the platform with a soft knee. The weight stack is lifted in the frame."
+        },
+        "qa": [
+          "¿El atleta está de pie con un solo pie apoyado?",
+          "¿La rodilla de la pierna que trabaja está doblada cerca de 90 grados con el muslo vertical o algo adelantado, en el punto alto?",
+          "¿La carga está sujeta, con el rodillo detrás de la pierna o la tobillera unida a un cable tenso, sin nada flotando?",
+          "¿Al menos una mano se apoya en los asideros o en la columna?",
+          "¿La pelvis queda nivelada y la cadera sin echarse hacia atrás?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_flexion",

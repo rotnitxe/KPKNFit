@@ -1,21 +1,208 @@
 {
   "definitions": {
     "quads_reverse_nordic_peso_corporal": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "pereira2024"
+            ],
+            "why": "Es el eje sobre el que gira todo el cuerpo: se dobla más allá de los 90 grados de la posición de rodillas mientras el cuerpo se echa atrás, y se extiende para volver. Su recorrido fue menor que en las sentadillas con peso corporal (Pereira et al. 2024)."
+          },
+          {
+            "actions": [
+              "Sostén de la cadera extendida"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "alonso2019"
+            ],
+            "why": "No cambia de ángulo: muslos y tronco siguen en línea durante todo el recorrido, y esa extensión es la que alarga al recto femoral por arriba mientras la rodilla se dobla. Si se flexiona, el gesto pierde lo que lo distingue, así que esta articulación sostiene la postura y no mueve la carga."
+          },
+          {
+            "actions": [
+              "Resistencia a la extensión lumbar"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El tronco, colgado por detrás de las rodillas, empuja la zona lumbar hacia el arqueo; la columna se queda neutra gracias a la pared abdominal y no participa en el movimiento."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_quadriceps",
+              "alonso2019",
+              "larsen2025",
+              "pereira2024"
+            ],
+            "why": "Frena la caída hacia atrás y devuelve el cuerpo a la vertical extendiendo la rodilla. Con la cadera extendida, el recto femoral trabaja alargado: ocho semanas de este ejercicio aumentaron la longitud de sus fascículos, su grosor y su sección, valores que disminuyeron tras cuatro semanas sin entrenar (Alonso-Fernández et al. 2019). En la extensión de rodilla, bajar la flexión de cadera de 90 a 40 grados hizo crecer más al recto femoral (Larsen et al. 2025), un dato que aquí se extrapola. La activación excéntrica del recto femoral y del vasto medial fue parecida a la de las sentadillas con peso corporal, y la del vasto lateral, menor que en la sentadilla a una pierna (Pereira et al. 2024)."
+          },
+          {
+            "id": "hip_flexors",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_iliopsoas",
+              "statpearls_hip"
+            ],
+            "why": "Con el cuerpo echado atrás, el peso del tronco tiende a llevar la cadera más allá de la extensión. El iliopsoas y el propio recto femoral, como flexores, lo frenan en isometría. No hay registros de su actividad en este ejercicio: el papel se deduce de la postura y por eso queda como estabilizador."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La pared abdominal impide que la zona lumbar ceda al arqueo mientras el tronco cuelga por detrás de las rodillas, y así une tronco y muslos en una sola pieza. No mueve ninguna articulación del gesto y no hay mediciones de su actividad aquí, así que su papel es postural."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_reverse_nordic_peso_corporal__default": {
-            "description": "Con peso corporal, desde las rodillas, el cuerpo se inclina hacia atrás con el cuádriceps frenando la caída. Sin más carga que el propio cuerpo, la exigencia del cuádriceps es la justa.",
+            "description": "Sin más carga que el cuerpo, la dificultad se regula con la profundidad de la inclinación y con los brazos: estirados al frente la facilitan y por encima de la cabeza la endurecen, porque así su peso queda más lejos de las rodillas.",
             "executionCues": [
-              "De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Échate atrás despacio doblando solo las rodillas, sin que la cadera se flexione ni la espalda se arquee.",
+              "Baja solo hasta donde puedas frenar sin romper la línea recta del cuerpo.",
+              "Vuelve a la vertical estirando las rodillas, con el cuerpo en bloque."
             ],
             "setupCues": [
-              "Preparación: De rodillas, te inclinas hacia atrás frenando con los cuádriceps y vuelves."
+              "Arrodíllate sobre una colchoneta con las rodillas a la anchura de la cadera y los empeines apoyados en el suelo.",
+              "Cruza los brazos sobre el pecho y alinea rodillas, cadera y hombros en vertical."
             ]
           }
         },
-        "description": "El Curl Nórdico Inverso, o Reverse Nordic Curl, inclina el cuerpo hacia atrás desde las rodillas: el cuádriceps frena la caída con el tronco rígido y los pies anclados. Se ejecuta bajando hacia el suelo sin doblar la cadera y regresando con la fuerza del muslo frontal. Solo el peso corporal y una superficie blanda bajo las rodillas. El estiramiento cargado del cuádriceps que nadie hace y todos deberían."
+        "description": "El Curl Nórdico Inverso (reverse Nordic curl) trabaja el cuádriceps con el propio peso y con el recto femoral alargado por la cadera extendida. De rodillas sobre una colchoneta, con el cuerpo recto de las rodillas a la cabeza, muslos y tronco se echan atrás en bloque mientras las rodillas se doblan; después, los muslos devuelven el cuerpo a la vertical. La cadera no se flexiona en ningún momento: el iliopsoas impide que se extienda de más y la pared abdominal, que la zona lumbar se arquee. Su activación no superó a la de las sentadillas con peso corporal, pero en ocho semanas de práctica el recto femoral alargó sus fascículos y ganó grosor: su aporte es el estiramiento bajo carga."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Ocho semanas de entrenamiento excéntrico con el nórdico inverso aumentaron la longitud de los fascículos, el grosor, el ángulo de penación y la sección del recto femoral; esos valores bajaron tras cuatro semanas sin entrenar.",
+          "id": "alonso2019",
+          "title": "Changes in rectus femoris architecture induced by the reverse nordic hamstring exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30293403/"
+        },
+        {
+          "claim": "La activación excéntrica del recto femoral y del vasto medial fue similar a la de la sentadilla a una pierna, la búlgara y la zancada; la del vasto lateral fue menor que en la sentadilla a una pierna, y el recorrido de la rodilla, menor que en esos ejercicios.",
+          "id": "pereira2024",
+          "title": "Reverse Nordic Curl Does Not Generate Superior Eccentric Activation of the Quadriceps Muscle Than Bodyweight Squat-Based Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39214520/"
+        },
+        {
+          "claim": "En la extensión de rodilla, reducir la flexión de cadera de 90 a 40 grados hizo crecer más el recto femoral, sin diferencias en el vasto lateral.",
+          "id": "larsen2025",
+          "title": "The effects of hip flexion angle on quadriceps femoris muscle hypertrophy in the leg extension exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39699974/"
+        },
+        {
+          "claim": "El cuádriceps femoral es el músculo más voluminoso del cuerpo y sus funciones afectan a la rodilla, a la cadera y a la relación entre la pelvis y la columna.",
+          "id": "statpearls_quadriceps",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La rodilla es ante todo una bisagra que flexiona y extiende la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga entre el esqueleto axial y la pierna.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El iliopsoas es el principal flexor del muslo y contribuye a estabilizar la cadera y la columna lumbar.",
+          "id": "statpearls_iliopsoas",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Iliopsoas Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30285403/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Ejercicio de rodillas en el que el cuerpo, recto de las rodillas a la cabeza, gira hacia atrás sobre las rodillas y vuelve a la vertical: las tibias y los empeines descansan en el suelo, nada sujeta los tobillos y la cadera no se flexiona. El apoyo sobre las tibias con la cadera extendida lo separa de los gestos de pie y de los que traban los pies.",
+        "keyPositions": [
+          "Inicio: de rodillas y erguido, con las rodillas a unos 90 grados y la línea de rodillas, cadera y hombros en vertical.",
+          "Punto bajo: el cuerpo, todavía en línea recta, queda echado atrás detrás de las rodillas; la cadera no se dobla, los glúteos siguen lejos de los talones y la zona lumbar, neutra."
+        ],
+        "mistakes": [
+          "Flexionar la cadera y llevar los glúteos hacia los talones, con lo que el gesto pasa a ser sentarse sobre las piernas.",
+          "Arquear la zona lumbar para acercar la cabeza al suelo sin que los muslos se inclinen.",
+          "Bajar más de lo que se puede frenar y caer de golpe hacia el suelo.",
+          "Volver a la vertical doblando primero la cadera para acortar la palanca."
+        ],
+        "phases": [
+          {
+            "description": "Las rodillas empiezan a doblarse y el bloque de muslos y tronco gira hacia atrás sobre ellas, despacio.",
+            "name": "Inclinación"
+          },
+          {
+            "description": "El cuerpo se detiene antes de perder la línea recta, con los muslos frenando y la cadera todavía extendida.",
+            "name": "Punto bajo"
+          },
+          {
+            "description": "Las rodillas se extienden y llevan el bloque de nuevo a la vertical sin que la cadera se flexione para ayudar.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Colchoneta o cojín bajo las rodillas, separadas a la anchura de la cadera; empeines planos en el suelo o dedos apoyados con los pies flexionados.",
+          "Brazos cruzados sobre el pecho; estirados al frente lo facilitan y por encima de la cabeza lo endurecen.",
+          "Antes de empezar, muslos y tronco quedan en vertical, sin ninguna flexión de cadera."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el atleta entero de los pies a la cabeza y el suelo visible.",
+          "contacts": "Rodillas sobre una colchoneta y tibias y empeines apoyados en el suelo por detrás de ellas; nada sujeta los tobillos y los glúteos no tocan los talones.",
+          "load": "Sin carga externa: la resistencia es el peso del propio cuerpo, que queda por detrás de las rodillas.",
+          "orientation": "Atleta de perfil y de rodillas, con la cara hacia un lado del encuadre y la cabeza por detrás de la vertical de las rodillas.",
+          "phase": "Punto bajo de la inclinación: el cuerpo recto queda echado atrás unos 40 grados respecto de la vertical, justo antes de volver.",
+          "posture": "Línea recta de las rodillas a los hombros, cadera extendida, zona lumbar neutra, brazos cruzados sobre el pecho y cuello alineado con el tronco."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Sin implementos: solo una colchoneta delgada bajo las rodillas; las tibias quedan planas sobre el suelo y los empeines apoyados, sin nada que trabe los tobillos."
+          }
+        },
+        "forbidden": [
+          "Tobillos trabados bajo un rodillo o por un compañero y el cuerpo cayendo hacia delante: eso es un curl nórdico de isquiosurales.",
+          "De pie sobre la parte delantera de los pies con los talones elevados: eso es una sentadilla sissy, no el nórdico inverso.",
+          "Cadera flexionada con los glúteos cerca de los talones o sentados sobre ellos.",
+          "Espalda arqueada con la cabeza hacia el suelo mientras los muslos siguen verticales.",
+          "Sentado en una máquina con un rodillo en las tibias, o de pie con una tobillera de polea: eso es una extensión de cuádriceps.",
+          "Manos apoyadas en el suelo detrás del cuerpo o una carga en las manos."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of an athlete kneeling on a thin exercise mat, frozen at the LOWEST point of a reverse Nordic curl. Both knees rest on the mat hip-width apart, and the shins and the tops of both feet lie flat on the floor behind them; nothing holds the ankles. The body is one straight line from the knees through the hips to the shoulders and head, leaning back about 40 degrees behind vertical, with the hips fully extended, no bend at the hips and no arched lower back. Arms are crossed over the chest. The buttocks stay far from the heels."
+        },
+        "qa": [
+          "¿El atleta está de rodillas, con las tibias y los empeines apoyados en el suelo?",
+          "¿Los brazos están cruzados sobre el pecho, sin manos en el suelo, y nada sujeta los tobillos?",
+          "¿El cuerpo forma una línea recta de las rodillas a los hombros, echada atrás, sin flexionar la cadera?",
+          "¿Los glúteos quedan lejos de los talones y la zona lumbar sin arquear?"
+        ]
+      }
     }
   },
   "familyId": "lower_biarticular_lengthened",

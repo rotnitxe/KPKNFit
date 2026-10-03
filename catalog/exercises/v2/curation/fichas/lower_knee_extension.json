@@ -1,56 +1,408 @@
 {
   "definitions": {
     "quads_extension_cuadriceps": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "escamilla1998",
+              "pedrosa2022"
+            ],
+            "why": "Es la única articulación que recorre un arco: pasa de unos 90 grados de flexión a quedar recta y vuelve frenando la carga. En la extensión de rodilla de cadena abierta, la actividad del cuádriceps fue máxima cerca de la extensión completa (Escamilla et al. 1998), y entrenar solo la parte inicial del recorrido, con la rodilla más doblada, dio más hipertrofia regional que la parte final (Pedrosa et al. 2022)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_quadriceps",
+              "ema2016",
+              "kinoshita2026",
+              "larsen2025"
+            ],
+            "why": "Es el único motor: sus cuatro vientres extienden la rodilla contra el rodillo y ningún otro músculo mueve la carga. Sin par extensor de cadera, el recto femoral se activó más que en la prensa (Ema et al. 2016) y en 12 semanas creció un 13,2 % frente al 1,1 % con ella, mientras los vastos crecieron parecido con ambos ejercicios (Kinoshita et al. 2026). Con el respaldo reclinado y la cadera a 40 grados en lugar de 90, el recto femoral creció más y el vasto lateral igual (Larsen et al. 2025)."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_extension_cuadriceps__machine__bilateral": {
-            "description": "Con a dos lados, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+            "description": "Ambas tibias empujan el mismo rodillo y la pila sube con la fuerza sumada de las dos piernas, lo que permite cargar más kilos. Si una pierna es más fuerte, puede asumir más parte del esfuerzo sin que el peso lo delate.",
             "executionCues": [
-              "Máquina con ambas piernas: estiras las rodillas contra la resistencia. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Estira las dos rodillas hasta dejar las piernas rectas, sin despegar la cadera del asiento.",
+              "Aguanta un instante arriba y baja despacio hasta que las placas casi toquen la pila."
             ],
             "setupCues": [
-              "Preparación: Máquina con ambas piernas: estiras las rodillas contra la resistencia."
+              "Ajusta el respaldo hasta que el eje de la máquina quede a la altura de tus rodillas.",
+              "Mete los pies bajo el rodillo, que debe quedar justo encima de los tobillos, y agarra las asas del asiento."
             ]
           },
           "quads_extension_cuadriceps__machine__unilateral": {
-            "description": "Con a un lado, sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. En la máquina, la trayectoria guiada concentra todo el esfuerzo del cuádriceps. Un lado cada vez: el esfuerzo del cuádriceps se aísla y las asimetrías quedan al descubierto.",
+            "description": "El rodillo lo sube una sola tibia mientras la otra pierna espera doblada detrás, así que ninguna puede cubrir a la otra. En mujeres poco entrenadas, trabajar así subió más la fuerza isométrica de cada pierna que hacerlo con ambas, con un crecimiento muscular parecido.",
             "executionCues": [
-              "Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Extiende esa rodilla hasta que la pierna quede casi horizontal, con la cadera pegada al asiento y las manos en las asas.",
+              "Baja despacio y no cambies de pierna hasta acabar la serie con esta."
             ],
             "setupCues": [
-              "Preparación: Máquina con una pierna: cada cuádriceps trabaja sin ayuda del otro lado y corriges desequilibrios."
+              "Ajusta el respaldo para que el eje de la máquina quede a la altura de la rodilla que vas a trabajar.",
+              "Engancha esa pierna bajo el rodillo, justo encima del tobillo, y deja la otra doblada por detrás sin tocarlo."
             ]
           }
         },
-        "description": "La Extensión de Cuádriceps en Máquina aísla el muslo frontal sin distracciones: sentado, las espinillas levantan la almohadilla hasta la extensión completa de la rodilla. Se ejecuta con la espalda contra el respaldo, subiendo con pausa arriba y bajando sin soltar la tensión. A una pierna iguala fuerzas entre lados. El remate clásico para dejar el cuádriceps congestionado al final de la sesión."
+        "description": "En la Extensión de Cuádriceps en Máquina (leg extension), la rodilla es la única articulación que se mueve y el cuádriceps, el único músculo que levanta el peso. Sentado contra el respaldo, con el rodillo sobre la parte baja de las tibias, las piernas suben desde la flexión hasta quedar rectas y vuelven despacio sin soltar la carga. Admite las dos piernas a la vez o una sola. Trabajan sus cuatro vientres, recto femoral incluido, y por eso conviene sumarla a la prensa y a las sentadillas, que apenas estimulan ese músculo."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Describe el cuádriceps femoral como el músculo más voluminoso del cuerpo, con funciones sobre la rodilla y la cadera, y la coordinación entre sus vastos.",
+          "id": "statpearls_quadriceps",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La rodilla es sobre todo una bisagra que permite flexionar y extender la pierna, y su principal estabilizador es la musculatura.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "Sumar par extensor de cadera redujo la activación del recto femoral; en la extensión de rodilla se activó más que en la prensa, sin diferencias en los vastos.",
+          "id": "ema2016",
+          "title": "Unique activation of the quadriceps femoris during single- and multi-joint exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27032805/"
+        },
+        {
+          "claim": "Tras 12 semanas, la extensión de rodilla hizo crecer las cuatro cabezas del cuádriceps; el recto femoral creció un 13,2 % frente al 1,1 % con la prensa, que en cambio hizo crecer el glúteo mayor y el aductor mayor.",
+          "id": "kinoshita2026",
+          "title": "Hypertrophic Effects of Single- versus Multi-Joint Exercise: A Direct Comparison between Knee Extension and Leg Press",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41630124/"
+        },
+        {
+          "claim": "En la extensión de rodilla, entrenar con la cadera a 40 grados de flexión hizo crecer más el recto femoral que a 90 grados, sin diferencia en el vasto lateral.",
+          "id": "larsen2025",
+          "title": "The effects of hip flexion angle on quadriceps femoris muscle hypertrophy in the leg extension exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39699974/"
+        },
+        {
+          "claim": "En la extensión de rodilla de cadena abierta, la actividad del cuádriceps fue mayor cerca de la extensión completa y la del recto femoral superó a la de la sentadilla y la prensa, que dieron más actividad de los vastos.",
+          "id": "escamilla1998",
+          "title": "Biomechanics of the knee during closed kinetic chain and open kinetic chain exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9565938/"
+        },
+        {
+          "claim": "Entrenar la extensión de rodilla solo entre 100 y 65 grados de flexión dio más hipertrofia relativa en varias regiones del muslo que el recorrido final o el completo.",
+          "id": "pedrosa2022",
+          "title": "Partial range of motion training elicits favorable improvements in muscular adaptations when carried out at long muscle lengths",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33977835/"
+        },
+        {
+          "claim": "Con igual volumen, la extensión de rodilla hizo crecer las tres regiones del recto femoral, mientras la sentadilla en Smith solo hizo crecer la región central del vasto lateral.",
+          "id": "zabaleta2021",
+          "title": "The role of exercise selection in regional Muscle Hypertrophy: A randomized controlled trial",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34743671/"
+        },
+        {
+          "claim": "En mujeres poco entrenadas, la extensión de rodilla a una pierna aumentó más la fuerza isométrica unilateral que la bilateral, con un aumento parecido del grosor muscular.",
+          "id": "botton2016",
+          "title": "Neuromuscular Adaptations to Unilateral vs. Bilateral Strength Training in Women",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26348920/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión de rodilla en posición sentada, con la espalda contra el respaldo y los muslos sobre el asiento: la parte baja de la tibia empuja el rodillo y la pierna pasa de doblada a recta girando sobre el eje de la máquina, alineado con la rodilla. Ni la cadera ni el tobillo cambian de ángulo, y el muslo apoyado en el asiento lo separa de las versiones de pie o de rodillas.",
+        "keyPositions": [
+          "Inicio: rodillas dobladas unos 90 grados o algo más, pies bajo las rodillas o algo por detrás y la carga casi en reposo.",
+          "Punto alto: rodillas rectas y piernas casi horizontales, con el rodillo arriba, la espalda en el respaldo y los glúteos en el asiento."
+        ],
+        "mistakes": [
+          "Despegar la cadera del asiento o tirar de las asas para subir la carga de un tirón.",
+          "Dejar caer el rodillo en la vuelta, con un golpe de placas sobre la pila.",
+          "Sentarse con la rodilla lejos del eje, de modo que el rodillo resbala por la tibia durante el recorrido.",
+          "Moverse solo en la mitad final del recorrido, con las rodillas casi rectas, sin volver a doblarlas."
+        ],
+        "phases": [
+          {
+            "description": "Las rodillas se estiran y el rodillo sube en un arco alrededor del eje, con la espalda apoyada y la cadera quieta.",
+            "name": "Subida"
+          },
+          {
+            "description": "Las piernas quedan rectas un instante con la carga levantada, sin que los glúteos se despeguen del asiento.",
+            "name": "Arriba"
+          },
+          {
+            "description": "Las rodillas se doblan despacio hasta unos 90 grados y las placas vuelven a rozar la pila sin chocar.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Respaldo ajustado para que el eje de giro quede a la altura de la rodilla y la corva toque el borde del asiento.",
+          "Rodillo sobre la parte baja de las tibias, por encima de los tobillos, con las manos en las asas laterales.",
+          "A una pierna, la otra queda doblada por detrás del rodillo sin apoyarse en él."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura del asiento, con el atleta entero, el respaldo y la resistencia dentro del encuadre.",
+          "contacts": "Espalda contra el respaldo, glúteos y muslos sobre el asiento, la resistencia apoyada en la parte baja de las tibias y las manos agarradas a los lados del asiento.",
+          "load": "La resistencia empuja las tibias hacia abajo; en el punto alto está levantada, separada de su tope y sin tocar el suelo.",
+          "orientation": "Atleta sentado de perfil, con la cara y las piernas estiradas hacia el mismo lado del encuadre.",
+          "phase": "Punto alto de la extensión: rodillas rectas y piernas casi horizontales, con la resistencia levantada.",
+          "posture": "Tronco erguido o algo reclinado, cadera flexionada por el asiento sin moverse, rodillas rectas y tobillos relajados."
+        },
+        "byImplement": {
+          "machine": {
+            "geometry": "Máquina de extensión de piernas: asiento con respaldo, eje de giro a la altura de la rodilla y un brazo de palanca que termina en un rodillo acolchado sobre la parte baja de las tibias, justo encima de los tobillos; asas a ambos lados del asiento y la pila de placas en la torre lateral, con parte de las placas levantadas en el punto alto."
+          }
+        },
+        "byVariant": {
+          "quads_extension_cuadriceps__machine__unilateral": {
+            "difference": "Solo una pierna queda recta con el rodillo arriba; la otra cuelga doblada por detrás del rodillo, con el pie bajo el asiento."
+          }
+        },
+        "forbidden": [
+          "Atleta de pie con una tobillera de polea o de rodillas en el suelo: eso es la extensión de pie en polea o el curl nórdico inverso, no la máquina sentada.",
+          "Rodillo detrás de los tobillos empujando hacia atrás o atleta boca abajo: eso es un curl de isquiosurales.",
+          "Pies apoyados en una plataforma y empujándola: eso es una prensa de piernas.",
+          "De pie con los tobillos trabados bajo rodillos y el cuerpo echado atrás: eso es una sentadilla sissy en máquina.",
+          "Rodillo sobre los empeines o en mitad de la tibia, o rodillas lejos del eje del brazo de palanca.",
+          "Cadera despegada del asiento o tronco echado hacia delante tirando de las asas.",
+          "Rodillo o placas flotando sin un brazo de palanca que los una a la máquina."
+        ],
+        "promptCore": {
+          "machine": "Side view of an athlete seated on a leg extension machine, frozen at the TOP of the leg extension. The back rests against the upright backrest and the hips sit deep on the seat. Both hands grip the handles at the sides of the seat. Both knees are fully straightened and the legs point forward, almost parallel to the floor. The padded roller at the end of the lever arm presses on the front of the lower shins, just above the ankles. The knees line up with the pivot of the lever arm. Part of the weight stack is lifted on its guide rods, above the resting plates."
+        },
+        "qa": [
+          "¿El atleta está sentado, con la espalda contra el respaldo y la cadera en el asiento?",
+          "¿Las manos agarran las asas del asiento y el rodillo apoya en la parte baja de las tibias, por encima de los tobillos?",
+          "¿Las rodillas están rectas y las piernas casi horizontales, en el punto alto?",
+          "¿El rodillo cuelga de un brazo de palanca unido a la máquina y parte de la pila está levantada, sin nada flotando?"
+        ]
+      }
     },
     "quads_extension_cuadriceps_pie_polea": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "escamilla1998"
+            ],
+            "why": "Es el único arco del gesto: pasa de unos 90 grados de flexión a quedar recta con el muslo fijo, y vuelve. Con la polea baja, el cable frena más a medida que la rodilla se estira, el tramo en el que otra extensión de cadena abierta mostró la mayor actividad del cuádriceps (Escamilla et al. 1998); es un paralelismo, no una medición de este ejercicio."
+          },
+          {
+            "actions": [
+              "Flexión sostenida de la cadera",
+              "Estabilidad de la pelvis sobre un pie"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_hip",
+              "statpearls_iliopsoas",
+              "bolgla2005"
+            ],
+            "why": "En la pierna que trabaja, la cadera se queda flexionada unos 45 grados sin moverse; en la de apoyo, recibe el peso del cuerpo y sostiene la pelvis nivelada. En ninguno de los dos lados mueve la carga, así que su papel es sostener la postura."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "quadriceps",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_quadriceps",
+              "ema2016",
+              "larsen2025"
+            ],
+            "why": "Extiende la rodilla contra el cable y es el único músculo que mueve la carga. No hay estudios de esta versión de pie: se extrapola de la extensión sentada, donde, sin par extensor de cadera, el recto femoral se activó más que en la prensa (Ema et al. 2016). Aquí el muslo solo se eleva unos 45 grados, y en la extensión con la cadera a 40 grados el recto femoral creció más que a 90 (Larsen et al. 2025)."
+          },
+          {
+            "id": "hip_flexors",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_iliopsoas",
+              "statpearls_hip",
+              "statpearls_quadriceps"
+            ],
+            "why": "El iliopsoas, principal flexor del muslo, sostiene la pierna elevada contra su propio peso y contra el cable, que tira del tobillo hacia atrás y abajo. El recto femoral, que también cruza la cadera, colabora en ese sostén mientras extiende la rodilla. Como la cadera no cambia de ángulo, su trabajo es isométrico; el papel se deduce de la postura, sin electromiografía de este ejercicio."
+          },
+          {
+            "id": "gluteus_medius",
+            "role": "STABILIZER",
+            "sources": [
+              "bolgla2005",
+              "statpearls_gluteus_medius"
+            ],
+            "why": "Es el glúteo de la pierna de apoyo: impide que la pelvis se descuelgue hacia el lado de la pierna elevada durante toda la serie. En ejercicios de pie sobre una pierna, el glúteo medio de esa pierna se activó más que al mover la cadera sin cargar peso en ella (Bolgla y Uhl 2005); aquí se extrapola, y agarrarse a la estructura puede rebajar esa demanda."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "quads_extension_cuadriceps_pie_polea__bilateral": {
-            "description": "Con a dos lados, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. El cuádriceps trabaja con la polea, que mantiene la tensión constante en todo el arco. Con ambos lados a la vez, el trabajo del cuádriceps se reparte.",
+            "description": "De pie no se pueden estirar las dos rodillas a la vez contra la tobillera: una pierna tiene que sostener el cuerpo. Por eso, aquí las dos piernas hacen la serie por turnos, primero una y después la otra, pasando la tobillera de tobillo.",
             "executionCues": [
-              "Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Estira y dobla la rodilla con el muslo quieto hasta completar las repeticiones de esa pierna.",
+              "Cambia la tobillera de tobillo y haz el mismo número de repeticiones con la otra pierna."
             ],
             "setupCues": [
-              "Preparación: Polea con ambas piernas: el tobillo enganchado y la rodilla estirando contra la tensión."
+              "Abrocha la tobillera a un tobillo y quédate de espaldas a la polea baja, a un paso de ella.",
+              "Sujétate a la estructura y eleva el muslo de esa pierna hacia delante, a medio camino de la horizontal."
             ]
           },
           "quads_extension_cuadriceps_pie_polea__unilateral": {
-            "description": "Con a un lado, de pie con el tobillo enganchado, la rodilla se extiende contra la tensión del cable. Con la polea, la tensión sobre el cuádriceps se mantiene viva de principio a fin. A un lado, el trabajo del cuádriceps se hace en solitario y las diferencias salen a la vista.",
+            "description": "La tobillera va en un solo tobillo y esa pierna hace la serie entera mientras la otra soporta todo el peso del cuerpo. Al terminar se cambia la tobillera de lado, así que cada pierna tiene sus propias series y su propio peso en la pila.",
             "executionCues": [
-              "Polea con una pierna: extensión unilateral con tensión continua. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Estira la rodilla hasta dejar la pierna recta, sin bajar el muslo ni echar el tronco atrás.",
+              "Dobla la rodilla despacio hasta que el pie vuelva bajo la cadera, con el cable siempre tenso."
             ],
             "setupCues": [
-              "Preparación: Polea con una pierna: extensión unilateral con tensión continua."
+              "Ajusta la tobillera al tobillo de la pierna que trabaja y sitúate de espaldas a la polea baja.",
+              "Agárrate a la estructura con una mano y eleva ese muslo hacia delante, a medio camino de la horizontal."
             ]
           }
         },
-        "description": "La Extensión de Cuádriceps de Pie en Polea lleva el aislamiento a una posición vertical: con el tobillo enganchado al cable, la rodilla se extiende hacia atrás contra la tensión constante. Se ejecuta de pie, sujeto al soporte, extendiendo una pierna cada vez con el muslo quieto. La polea mantiene la resistencia viva en todo el recorrido. Una alternativa fresca a la versión sentada para sentir el cuádriceps de otro modo."
+        "description": "La Extensión de Cuádriceps de Pie en Polea lleva el aislamiento de rodilla a la postura erguida y a una pierna: de espaldas a una polea baja, el muslo se eleva hacia delante y se queda quieto mientras la rodilla se estira. La tobillera tira del pie hacia atrás, la otra pierna sostiene el cuerpo y una mano se agarra al marco. El cuádriceps mueve la carga; los flexores de la cadera sujetan el muslo y el glúteo medio del lado que pisa nivela la pelvis. La altura de la polea decide dónde pesa más: baja, cerca de la extensión; a la altura de la cintura, con la rodilla doblada. Sirve cuando no hay máquina de extensiones, y con la cadera flexionada unos 45 grados el recto femoral trabaja más largo que con el muslo a 90."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Describe el cuádriceps femoral, el músculo más voluminoso del cuerpo, cuyas funciones alcanzan a la rodilla y a la cadera.",
+          "id": "statpearls_quadriceps",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Thigh Quadriceps Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30020706/"
+        },
+        {
+          "claim": "La rodilla funciona sobre todo como una bisagra de flexión y extensión de la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera da soporte al peso del cuerpo y transmite la carga del esqueleto axial a la pierna.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El iliopsoas es el principal flexor del muslo y ayuda a estabilizar la cadera y la columna lumbar.",
+          "id": "statpearls_iliopsoas",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Iliopsoas Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30285403/"
+        },
+        {
+          "claim": "Los glúteos medio y menor abducen la cadera, y la región glútea es clave para la estabilidad de la pierna y de la pelvis.",
+          "id": "statpearls_gluteus_medius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Gluteus Medius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32491441/"
+        },
+        {
+          "claim": "Con par extensor de cadera el recto femoral se activó menos; en la extensión de rodilla se activó más que en la prensa, sin diferencias en los vastos.",
+          "id": "ema2016",
+          "title": "Unique activation of the quadriceps femoris during single- and multi-joint exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27032805/"
+        },
+        {
+          "claim": "En la extensión de rodilla, la cadera a 40 grados de flexión dio más crecimiento del recto femoral que a 90 grados, y el vasto lateral creció igual.",
+          "id": "larsen2025",
+          "title": "The effects of hip flexion angle on quadriceps femoris muscle hypertrophy in the leg extension exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39699974/"
+        },
+        {
+          "claim": "En la extensión de rodilla de cadena abierta, la actividad del cuádriceps fue mayor con la rodilla cerca de la extensión completa.",
+          "id": "escamilla1998",
+          "title": "Biomechanics of the knee during closed kinetic chain and open kinetic chain exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9565938/"
+        },
+        {
+          "claim": "Los ejercicios con apoyo sobre la pierna medida dieron más actividad del glúteo medio que los ejercicios sin apoyo en ella, con la única excepción de la abducción tumbado de lado.",
+          "id": "bolgla2005",
+          "title": "Electromyographic analysis of hip rehabilitation exercises in a group of healthy subjects",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/16187509/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Extensión de rodilla de pie y a una pierna, de espaldas a una polea baja: la tobillera rodea el tobillo de trabajo, el muslo se eleva hacia delante unos 45 grados y se queda quieto, y la rodilla pasa de doblada a recta contra el cable, que tira del pie hacia atrás. La otra pierna sostiene el cuerpo y una mano se agarra a la estructura: ese apoyo sobre un pie con el muslo en el aire es lo que la define.",
+        "keyPositions": [
+          "Inicio: muslo elevado unos 45 grados, rodilla doblada unos 90 grados y el pie retrasado bajo la cadera, con el cable ya tenso.",
+          "Mitad: rodilla doblada unos 45 grados, espinilla vertical y pie justo bajo la rodilla, con el muslo en el mismo ángulo y el tronco erguido.",
+          "Tramo final: rodilla a unos 30 grados de quedar recta, espinilla inclinada hacia delante y pie por delante de la rodilla.",
+          "Final: pierna recta apuntando hacia delante y abajo; con la polea baja, el cable frena más en este tramo que al inicio."
+        ],
+        "mistakes": [
+          "Bajar el muslo mientras se estira la rodilla, de modo que la pierna entera oscila desde la cadera.",
+          "Echar el tronco hacia atrás o hacia delante para lanzar la pierna.",
+          "Soltar la vuelta y dejar que el cable arrastre el pie hacia atrás de golpe.",
+          "Colocarse de cara a la polea, con lo que el cable tira del pie hacia delante y ayuda en lugar de frenar."
+        ],
+        "phases": [
+          {
+            "description": "La rodilla se estira y el pie avanza en un arco: de estar bajo la cadera pasa a quedar bajo la rodilla y luego por delante de ella, con el muslo quieto en su ángulo.",
+            "name": "Extensión"
+          },
+          {
+            "description": "La pierna queda recta un instante, con el cable tenso hacia atrás y la pelvis nivelada.",
+            "name": "Final"
+          },
+          {
+            "description": "La rodilla se dobla despacio hasta que el pie vuelve bajo la cadera, sin que el muslo caiga.",
+            "name": "Retorno"
+          }
+        ],
+        "setup": [
+          "Polea en la posición más baja con una tobillera acolchada y el atleta de espaldas a ella, a la distancia justa para que el cable quede tenso con la rodilla doblada. Es la altura que describen la mayoría de las guías, y con ella el cable frena cada vez más a medida que la rodilla se estira; a la altura de la cintura el reparto se invierte y la carga pesa más con la rodilla doblada.",
+          "Pierna de apoyo con la rodilla algo flexionada y una mano en un poste de la estación; la otra mano en la cadera.",
+          "Muslo de trabajo elevado unos 45 grados; si la parte trasera del muslo impide estirar la rodilla, se eleva algo menos."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el cuerpo entero, el suelo y el anclaje de la resistencia detrás del atleta dentro del encuadre.",
+          "contacts": "Solo el pie de apoyo toca el suelo; una mano agarra un poste junto a la cadera y la resistencia se engancha al tobillo de la pierna elevada.",
+          "load": "La resistencia tira del tobillo de trabajo hacia atrás y hacia abajo, siempre tensa, y nada toca el suelo salvo el pie de apoyo.",
+          "orientation": "Atleta de perfil y de espaldas al anclaje de la resistencia, con la cara hacia el lado contrario del encuadre.",
+          "phase": "Tramo final de la extensión: muslo elevado unos 45 grados y quieto, rodilla a unos 30 grados de quedar recta, espinilla inclinada hacia delante y pie por delante de la rodilla.",
+          "posture": "Tronco erguido, pelvis nivelada, rodilla de apoyo algo flexionada y muslo de trabajo elevado hacia delante sin girar hacia fuera."
+        },
+        "byImplement": {
+          "cable": {
+            "geometry": "Estación de poleas con la polea en la posición más baja, detrás del atleta: así el cable frena más cerca de la extensión, mientras que a la altura de la cintura pesaría más con la rodilla doblada. Tobillera acolchada en el tobillo de la pierna que trabaja y cable tenso desde ella hacia atrás y abajo hasta la polea, pasando junto a la pierna de apoyo; un poste vertical del marco queda junto a la cadera y la mano de ese lado lo agarra; la pila de placas de la columna queda algo levantada."
+          }
+        },
+        "forbidden": [
+          "Atleta sentado con un rodillo sobre las tibias: eso es la extensión de cuádriceps en máquina.",
+          "Pierna recta subiendo entera desde la cadera, sin rodilla doblada: eso es una elevación de pierna en polea.",
+          "Pierna enganchada estirándose hacia atrás con el muslo por detrás del cuerpo: eso es una patada de glúteo en polea.",
+          "Atleta de cara a la polea, con el cable tirando del pie hacia delante.",
+          "Las dos piernas en el aire o los dos tobillos enganchados al cable a la vez.",
+          "Talones elevados y cuerpo echado hacia atrás desde las rodillas: eso es una sentadilla sissy.",
+          "Atleta de rodillas en el suelo: eso es el curl nórdico inverso.",
+          "Cable flojo colgando hasta el suelo o tobillera sin cable."
+        ],
+        "promptCore": {
+          "cable": "Side view of an athlete standing on one leg with the back to a cable station, frozen near the END of a standing cable knee extension. A padded cuff is strapped around the ankle of the raised working leg, and a taut cable runs from it backward and down to the lowest pulley behind the athlete. The working thigh is raised forward about 45 degrees and held still; the knee is about 30 degrees short of straight, so the shin angles forward and the foot is in front of the knee. The standing foot is flat on the floor, knee slightly bent. One hand grips a frame post beside the hip; the other rests on the hip. Torso upright. The weight stack is slightly lifted."
+        },
+        "qa": [
+          "¿El atleta está de pie sobre una sola pierna y de espaldas a la polea?",
+          "¿La tobillera rodea el tobillo de la pierna elevada y el cable sale tenso hacia atrás, hasta la polea baja?",
+          "¿Una mano agarra un poste de la estructura y la otra descansa en la cadera, sin que nada flote?",
+          "¿El muslo de trabajo está elevado hacia delante y la rodilla, todavía algo doblada, deja la espinilla inclinada hacia delante con el pie por delante de la rodilla?",
+          "¿El tronco está erguido, sin echarse hacia atrás?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_extension",

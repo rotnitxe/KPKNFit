@@ -143,7 +143,7 @@
       "evidence": "Curls de isquiosurales, extensiones de cuádriceps y sus variantes mueven la rodilla contra carga; no puede faltar entre las articulaciones ni ser secundaria.",
       "applies": {
         "movementPatterns": [
-          "knee_flexion", "knee_extension", "eccentric_knee_flexion", "knee_hip_flexion", "knee_hip_extension"
+          "knee_flexion", "knee_extension", "eccentric_knee_flexion", "biarticular_lengthened"
         ]
       },
       "requireJoints": [{"joint": "rodilla", "atLeast": "PRIMARY"}]

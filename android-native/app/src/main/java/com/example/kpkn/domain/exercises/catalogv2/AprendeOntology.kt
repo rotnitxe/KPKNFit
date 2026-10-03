@@ -99,8 +99,6 @@ object AprendeOntology {
         "knee_extension" to "knee-extension",
         "knee_flexion" to "knee-flexion",
         "knee_hip_dominant" to null,
-        "knee_hip_extension" to null,
-        "knee_hip_flexion" to null,
         "lateral_knee_dominant" to "lateral-knee-dominant",
         "lateral_trunk_flexion" to "lateral-trunk-flexion",
         "neck_extension" to "neck-extension",

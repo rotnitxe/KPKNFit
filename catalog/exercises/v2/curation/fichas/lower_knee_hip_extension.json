@@ -1,21 +1,249 @@
 {
   "definitions": {
     "glute_ham_raise": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Flexión de la rodilla",
+              "Extensión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "mcallister2014",
+              "statpearls_knee"
+            ],
+            "why": "Recorre unos noventa grados: se dobla para llevar el cuerpo de la horizontal a la vertical y se estira al bajar. Es la única articulación que se mueve, y cuesta más al arrancar, cuando el cuerpo horizontal deja todo su peso por delante de las rodillas."
+          },
+          {
+            "actions": [
+              "Extensión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "mcallister2014",
+              "statpearls_hip"
+            ],
+            "why": "Se queda extendida de principio a fin, con el muslo en la línea del tronco: el cuerpo sube recto desde la horizontal sin que la cadera recorra ningún arco, como en el protocolo de McAllister et al. (2014), que la fijó en posición neutra."
+          },
+          {
+            "actions": [
+              "Apoyo de los pies contra la plataforma"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_gastrocnemius",
+              "statpearls_ankle"
+            ],
+            "why": "Los rodillos traban los tobillos y las plantas empujan la plataforma: el tobillo no cambia de ángulo, pero transmite el empuje del gastrocnemio, que también actúa sobre la rodilla."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "mcallister2014",
+              "statpearls_back"
+            ],
+            "why": "La zona lumbar no se arquea ni se redondea mientras el tronco sale en voladizo del cojín; los erectores la sujetan con una actividad alta (McAllister et al. 2014)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "mcallister2014",
+              "statpearls_hamstring"
+            ],
+            "why": "Doblan la rodilla para subir el cuerpo desde la horizontal hasta la vertical y frenan la bajada; como cruzan también la cadera, ayudan a sostenerla extendida. En hombres entrenados que lo hicieron con el 85 % de su máximo sujeto al pecho, 90 grados de recorrido de rodilla y la cadera neutra, el GHR dio la mayor actividad concéntrica del bíceps femoral y del semitendinoso entre cuatro ejercicios, y el semitendinoso superó al bíceps femoral en todos ellos (McAllister et al. 2014). Aquí se extrapola a la versión con el peso del cuerpo."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "mcallister2014",
+              "chiu2017",
+              "statpearls_gastrocnemius"
+            ],
+            "why": "El gastrocnemio cruza la rodilla y ayuda a doblarla mientras las puntas de los pies empujan la plataforma. En la fase concéntrica del GHR con carga al pecho se activó más que en el curl de isquiosurales tumbado (McAllister et al. 2014), y el ejercicio se ha propuesto precisamente para trabajar el gastrocnemio (Chiu et al. 2017)."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "nemeth1985",
+              "neto2020"
+            ],
+            "why": "Sostiene la cadera extendida para que el cuerpo no se doble por ella mientras las rodillas lo suben; la cadera no cambia de ángulo, así que su trabajo es isométrico. Ninguna de las fuentes consultadas midió el glúteo mayor en este ejercicio: el papel se deduce de su función de extensor principal de la cadera (Neto et al. 2020), y con la cadera recta es el extensor con más brazo de palanca, 79 mm frente a 61 mm de los isquiosurales (Németh y Ohlsén 1985)."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "mcallister2014",
+              "statpearls_back"
+            ],
+            "why": "Los extensores de la espalda sujetan la columna recta mientras el tronco, sin apoyo por delante del cojín, sube y baja. En la fase concéntrica, con la carga sujeta al pecho, su actividad fue mayor que en el peso muerto rumano y en el buenos días (McAllister et al. 2014), pero no mueven la columna: trabajan en isometría."
+          }
+        ]
+      },
+      "pattern": {
+        "movementPatternId": "knee_flexion",
+        "why": "En el GHR canónico la cadera se mantiene extendida y el cuerpo sube desde la horizontal flexionando la rodilla mientras los muslos ruedan sobre el cojín: el patrón es flexión de rodilla, no extensión de rodilla y cadera. Decisión del usuario, lote 3 (2026-10-03)."
+      },
       "public": {
         "configurations": {
           "glute_ham_raise__default": {
-            "description": "Con GHD, con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa con la cadena posterior. Los isquiosurales trabajan en el GHD, que fija los pies y concentra todo el esfuerzo.",
+            "description": "La plataforma y los rodillos fijan los pies, y el cojín curvo sostiene la parte baja de los muslos: al doblar las rodillas, los muslos ruedan sobre él y el cuerpo sube recto hasta la vertical. El empuje de las puntas contra la plataforma suma a los gemelos a la flexión de rodilla.",
             "executionCues": [
-              "Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Empieza con el cuerpo horizontal y recto de las rodillas a la cabeza, con los glúteos apretados.",
+              "Empuja la plataforma con la punta de los pies y dobla las rodillas hasta quedar vertical, sin doblar la cadera.",
+              "Baja despacio estirando las rodillas hasta volver a la horizontal, con la cadera extendida."
             ],
             "setupCues": [
-              "Preparación: Espinillas apoyadas y cuerpo bajando extendido: isquios y glúteo frenan y suben el peso."
+              "Ajusta la plataforma para que la parte baja de los muslos, justo encima de las rodillas, quede sobre el cojín.",
+              "Apoya las plantas contra la plataforma con los tobillos bajo los rodillos y cruza los brazos sobre el pecho."
             ]
           }
         },
-        "description": "El Glute Ham Raise es la reverencia a la cadena posterior: con los pies anclados en el banco GHD, el cuerpo desciende en bloque y regresa usando isquiosurales y glúteos como bisagra. Se ejecuta bajando el torso con la espalda neutra hasta casi tocar el suelo y subiendo sin empujar con las manos si se puede. Pocos ejercicios exponen tan rápido la debilidad de los isquiosurales. El rito de paso de los que entrenan la parte trasera en serio."
+        "description": "El Glute Ham Raise (GHR) se hace en un banco GHD y sube el cuerpo desde la horizontal hasta la vertical solo doblando las rodillas, con la cadera estirada durante toda la subida. Con las plantas contra la plataforma, los tobillos bajo los rodillos y la parte baja de los muslos sobre el cojín curvo, los muslos ruedan sobre él mientras la rodilla se dobla. Los isquiosurales hacen ese trabajo con ayuda de los gemelos, que empujan la plataforma; el glúteo mayor y los lumbares sostienen la línea recta de las rodillas a la cabeza. En hombres entrenados que lo hicieron con carga al pecho, fue con el peso muerto rumano el que más activó los isquiosurales entre cuatro ejercicios."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "En doce hombres entrenados, el GHR, hecho con el 85 % de su máximo sujeto al pecho, 90 grados de recorrido de rodilla y la cadera neutra, dio la mayor actividad concéntrica del bíceps femoral y del semitendinoso entre cuatro ejercicios; el gastrocnemio medial se activó más que en el curl tumbado y los erectores, más que en el peso muerto rumano y el buenos días.",
+          "id": "mcallister2014",
+          "title": "Muscle activation during various hamstring exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/24149748/"
+        },
+        {
+          "claim": "Se añadió el glute-ham-gastroc raise a un programa de sentadillas y cargadas para trabajar el gastrocnemio; en ocho semanas el salto vertical mejoró más y la flexión dorsal del tobillo en carga aumentó.",
+          "id": "chiu2017",
+          "title": "Addition of Glute-Ham-Gastroc Raise to a Resistance Training Program: Effect on Jump Propulsion and Landing",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/28658084/"
+        },
+        {
+          "claim": "Con la cadera en posición anatómica, el brazo de palanca extensor fue de 79 mm en el glúteo mayor y de 61 mm en los isquiosurales; el del glúteo mayor disminuyó al flexionar la cadera.",
+          "id": "nemeth1985",
+          "title": "In vivo moment arm lengths for hip extensor muscles at different angles of hip flexion",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/3988782/"
+        },
+        {
+          "claim": "El glúteo mayor es uno de los principales extensores de la cadera.",
+          "id": "neto2020",
+          "title": "Gluteus Maximus Activation during Common Strength and Hypertrophy Exercises: A Systematic Review",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/32132843/"
+        },
+        {
+          "claim": "Los isquiosurales nacen en la tuberosidad isquiática, cruzan la rodilla y participan en la extensión de la cadera y la flexión de la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El gastrocnemio es un músculo biarticular que produce la flexión plantar del tobillo y ayuda a flexionar la rodilla.",
+          "id": "statpearls_gastrocnemius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "La rodilla es sobre todo una bisagra que permite la flexión y la extensión de la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga entre el esqueleto axial y las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El tobillo es una bisagra que permite la flexión dorsal y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Flexión de rodillas con la cadera extendida en un banco GHD: con los pies contra la plataforma, los tobillos trabados y la parte baja de los muslos sobre un cojín curvo, el cuerpo arranca recto y horizontal y sube hasta la vertical solo doblando las rodillas. Los muslos ruedan sobre el cojín mientras la rodilla se dobla, y la línea de las rodillas a la cabeza no se rompe en ningún momento.",
+        "keyPositions": [
+          "Inicio: cuerpo horizontal y recto de las rodillas a la cabeza, rodillas estiradas y la cadera extendida por delante del cojín.",
+          "Mitad de la subida: rodillas a medio doblar y el cuerpo, todavía recto, inclinado unos 45 grados por encima de la horizontal.",
+          "Arriba: muslos y tronco verticales sobre el cojín, con la rodilla doblada a unos noventa grados y la cadera extendida."
+        ],
+        "mistakes": [
+          "Doblar la cadera mientras se doblan las rodillas, con los glúteos hacia atrás, para acortar la palanca.",
+          "Hundir la zona lumbar en arco para despegar desde la horizontal, en lugar de subir con el cuerpo recto.",
+          "Colocar el cojín bajo las rótulas en lugar de sobre la parte baja de los muslos.",
+          "Bajar de golpe desde la vertical en lugar de frenar con las rodillas hasta la horizontal."
+        ],
+        "phases": [
+          {
+            "description": "El cuerpo parte horizontal y recto de las rodillas a la cabeza, con la cadera extendida por delante del cojín y los pies firmes contra la plataforma.",
+            "name": "Arranque"
+          },
+          {
+            "description": "Los pies empujan la plataforma, las rodillas se doblan y los muslos ruedan sobre el cojín hasta que el cuerpo queda vertical.",
+            "name": "Flexión de rodillas"
+          },
+          {
+            "description": "Las rodillas se estiran despacio y el cuerpo, todavía recto, vuelve a la horizontal sin que la cadera se doble.",
+            "name": "Bajada"
+          }
+        ],
+        "setup": [
+          "Plataforma ajustada para que las rodillas queden justo por detrás del cojín, con la parte baja de los muslos apoyada en él.",
+          "Plantas contra la plataforma, tobillos trabados bajo los rodillos y brazos cruzados sobre el pecho."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura del apoyo de los muslos, con el cuerpo entero, los pies y el suelo dentro del encuadre.",
+          "contacts": "Las plantas empujan una superficie vertical por detrás, los tobillos están trabados y la parte baja de los muslos, justo encima de las rodillas, descansa sobre un apoyo acolchado; las manos no tocan nada.",
+          "load": "Sin carga externa: el cuerpo gira sobre el apoyo de los muslos y ninguna parte del tronco toca el suelo.",
+          "orientation": "Atleta de perfil con el pecho hacia el suelo, la cabeza hacia un lado del encuadre y los pies, más altos que el suelo, hacia el otro.",
+          "phase": "Mitad de la flexión de rodillas: el cuerpo recto ha subido unos 45 grados por encima de la horizontal, con las rodillas a medio doblar.",
+          "posture": "Rodillas, cadera, hombros y cabeza en una línea recta; cadera extendida; brazos cruzados sobre el pecho; zona lumbar neutra."
+        },
+        "byImplement": {
+          "ghd": {
+            "geometry": "Banco GHD: plataforma vertical para los pies con dos rodillos acolchados que traban los tobillos y, delante, un cojín grande y curvo; la parte baja de los muslos descansa en lo alto del cojín, las rodillas quedan justo por detrás y el tronco sobresale por delante, por encima del suelo."
+          }
+        },
+        "forbidden": [
+          "Atleta de rodillas en el suelo o sobre un cojín plano con los tobillos sujetos: eso es el curl nórdico.",
+          "Cojín bajo la cadera o la pelvis y rodillas estiradas: eso es una hiperextensión de espalda, no un GHR.",
+          "Cadera doblada con los glúteos hacia atrás durante la flexión de rodillas.",
+          "Atleta boca arriba con los talones sobre un balón o sobre discos deslizantes: eso es un curl con balón o con sliders.",
+          "Atleta tumbado en una máquina de curl con un rodillo sobre los tobillos: eso es el curl tumbado en máquina.",
+          "Pies sueltos o separados de la plataforma.",
+          "Disco o mancuerna en las manos.",
+          "Atleta boca arriba en el GHD: eso es un sit-up en GHD.",
+          "Tronco colgando hacia el suelo con la cadera doblada sobre el cojín: este GHR arranca desde la horizontal."
+        ],
+        "promptCore": {
+          "ghd": "Side view of an athlete on a glute ham developer bench, frozen HALFWAY UP a glute ham raise. Both soles press against the vertical footplate and two padded rollers lock the ankles from behind; the lower legs run back roughly level. The front of the lower thighs, just above the kneecaps, rests on top of the large curved pad, knees just behind it. The knees are half bent, at an open angle of about 135 degrees, and the hips are fully extended: knees, hips, shoulders and head form one rigid straight line rising about 45 degrees above horizontal. Arms are crossed over the chest and the hands hold nothing. The torso is high above the floor."
+        },
+        "qa": [
+          "¿La parte baja de los muslos se apoya en el cojín curvo, justo por encima de las rodillas, y no la cadera?",
+          "¿Las plantas empujan la plataforma con los tobillos trabados por los rodillos, y los brazos van cruzados sin sostener nada?",
+          "¿Las rodillas están a medio doblar y el cuerpo recto sube en diagonal por encima de la horizontal?",
+          "¿La cadera está extendida, sin los glúteos hacia atrás?"
+        ]
+      }
     }
   },
   "familyId": "lower_knee_hip_extension",

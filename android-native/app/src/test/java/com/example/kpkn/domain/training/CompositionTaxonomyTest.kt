@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -26,5 +27,10 @@ class CompositionTaxonomyTest {
             missing.isEmpty(),
         )
         assertTrue(CompositionTaxonomy.knownPatternIds().isNotEmpty())
+    }
+
+    @Test
+    fun reverse_nordic_pattern_is_knee_extension_not_elbow_flexion() {
+        assertEquals(PatternFamily.KNEE_EXTENSION, CompositionTaxonomy.familyOf("biarticular_lengthened"))
     }
 }

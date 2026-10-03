@@ -76,7 +76,8 @@ object CompositionTaxonomy {
         "eccentric_knee_flexion" to PatternFamily.KNEE_FLEXION,
         "elbow_extension" to PatternFamily.ELBOW_EXTENSION,
         "elbow_flexion" to PatternFamily.ELBOW_FLEXION,
-        "biarticular_lengthened" to PatternFamily.ELBOW_FLEXION,
+        // Only the reverse Nordic curl uses it: knee extension with the hip held extended.
+        "biarticular_lengthened" to PatternFamily.KNEE_EXTENSION,
         "shoulder_abduction_full_rom" to PatternFamily.SHOULDER_ABDUCTION,
         "shoulder_abduction_diagonal" to PatternFamily.SHOULDER_ABDUCTION,
         "hip_abduction" to PatternFamily.HIP_EXTENSION,

@@ -1,21 +1,309 @@
 {
   "definitions": {
     "hams_curl_nordic_peso_corporal": {
+      "anatomy": {
+        "joints": [
+          {
+            "actions": [
+              "Extensión frenada de la rodilla",
+              "Flexión de la rodilla"
+            ],
+            "id": "rodilla",
+            "role": "PRIMARY",
+            "sources": [
+              "statpearls_knee",
+              "ditroilo2013"
+            ],
+            "why": "Pasa de doblada a casi recta mientras el cuerpo cae, con los flexores frenando ese giro, y vuelve a doblarse en el regreso. La caída se acelera a partir de un ángulo de rodilla que en un estudio varió entre unos 48 y 80 grados según la persona (Ditroilo et al. 2013)."
+          },
+          {
+            "actions": [
+              "Extensión sostenida de la cadera"
+            ],
+            "id": "cadera",
+            "role": "STABILIZER",
+            "sources": [
+              "hegyi2019",
+              "statpearls_hip"
+            ],
+            "why": "Se queda extendida de principio a fin, sin recorrer arco. Si se dobla, el ejercicio cambia: con la cadera flexionada a 90 grados la actividad de los isquiosurales fue menor, sobre todo en la segunda mitad de la bajada (Hegyi et al. 2019)."
+          },
+          {
+            "actions": [
+              "Anclaje del tobillo"
+            ],
+            "id": "tobillo",
+            "role": "STABILIZER",
+            "sources": [
+              "comfort2017",
+              "keerasomboon2025",
+              "statpearls_ankle"
+            ],
+            "why": "Los tobillos, trabados por detrás, son el anclaje que impide que las tibias se levanten mientras el cuerpo bascula sobre las rodillas, y no se mueven. La posición del pie no cambió la actividad del gastrocnemio ni del bíceps femoral en un estudio (Comfort et al. 2017); en otro, la flexión plantar aumentó la de la cabeza larga del bíceps femoral, pero solo en la pierna dominante (Keerasomboon et al. 2025)."
+          },
+          {
+            "actions": [
+              "Estabilidad del tronco"
+            ],
+            "id": "columna-lumbar",
+            "role": "STABILIZER",
+            "sources": [
+              "narouei2018",
+              "statpearls_back"
+            ],
+            "why": "La columna lumbar se queda neutra para que tronco y muslos caigan juntos; los extensores de la espalda y el oblicuo interno la sujetan (Narouei et al. 2018)."
+          }
+        ],
+        "muscles": [
+          {
+            "id": "hamstrings",
+            "role": "PRIMARY",
+            "sources": [
+              "bourne2017_emg",
+              "messer2018",
+              "monajati2017",
+              "bourne2017_arq",
+              "statpearls_hamstring"
+            ],
+            "why": "Frenan la extensión de la rodilla mientras el cuerpo cae, en una contracción excéntrica que soporta todo el peso del tronco y los muslos. La resonancia funcional mostró que el nórdico recluta sobre todo el semitendinoso (Bourne et al. 2017; Messer et al. 2018), y en deportistas la activación superó el 70 % entre los 60 y los 40 grados de flexión y bajó al final del recorrido (Monajati et al. 2017). En diez semanas alargó los fascículos de la cabeza larga del bíceps femoral (Bourne et al. 2017)."
+          },
+          {
+            "id": "calves",
+            "role": "SECONDARY",
+            "sources": [
+              "comfort2017",
+              "statpearls_gastrocnemius"
+            ],
+            "why": "El gastrocnemio cruza la rodilla y ayuda a flexionarla, así que también frena la caída: en el nórdico alcanzó el 82-84 % de su máximo isométrico, con el tobillo en flexión dorsal o plantar, por debajo del bíceps femoral, que superó el 120 % (Comfort et al. 2017). Suma a la frenada y no solo a la postura."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "sarabon2019",
+              "narouei2018",
+              "gulgosteren2025"
+            ],
+            "why": "Sujeta la cadera extendida para que el cuerpo no se pliegue al caer; la articulación no se mueve, así que su trabajo es isométrico. Su activación varía entre estudios: por debajo del 20 % del máximo en el nórdico estándar (Šarabon et al. 2019, en línea con Narouei et al. 2018) y cerca del 51 % en futbolistas sanos (Gulgosteren et al. 2025)."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "STABILIZER",
+            "sources": [
+              "narouei2018",
+              "sarabon2019"
+            ],
+            "why": "Los extensores de la espalda impiden que el tronco se doble hacia delante mientras cae: en el nórdico fueron, junto con el oblicuo interno, los músculos más activos después de los isquiosurales (Narouei et al. 2018), y rondaron el 65 % de su máximo en el estudio de Šarabon et al. (2019), siempre en isometría y sin mover la columna."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "narouei2018",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El oblicuo interno y el resto de la pared abdominal frenan el arqueo lumbar y sujetan la pelvis alineada con el tronco; su actividad destacó sobre la de otros músculos de la cadera y del tronco durante el nórdico (Narouei et al. 2018)."
+          }
+        ]
+      },
       "public": {
         "configurations": {
           "hams_curl_nordic_peso_corporal__default": {
-            "description": "Con peso corporal, de rodillas con los tobillos anclados, el cuerpo cae hacia delante frenado por los isquiosurales. Sin más carga que el propio cuerpo, la exigencia de los isquiosurales es la justa.",
+            "description": "El único lastre es el cuerpo, así que la dificultad depende de hasta dónde se aguanta la bajada antes de que las manos recojan la caída. Los tobillos necesitan un anclaje firme: un compañero que los sujete, una barra baja acolchada o los rodillos de un banco nórdico.",
             "executionCues": [
-              "De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios. La trayectoria permanece estable y la vuelta conserva la tensión en la zona que define esta variante."
+              "Inclínate hacia delante muy despacio, sin doblar la cadera, frenando con la parte de atrás de los muslos.",
+              "Cuando ya no puedas frenar, recoge la caída con las manos como en una flexión.",
+              "Empuja con los brazos lo justo para volver arriba y vuelve a alinear el cuerpo."
             ],
             "setupCues": [
-              "Preparación: De rodillas con los tobillos sujetos, bajas el cuerpo al frente frenando con los isquios."
+              "Arrodíllate sobre una superficie acolchada y fija los tobillos bajo un anclaje firme o pide a un compañero que los sujete.",
+              "Endereza el cuerpo de las rodillas a la cabeza, aprieta los glúteos y lleva las manos delante del pecho."
             ]
           }
         },
-        "description": "El Curl Nórdico es el ejercicio de isquiosurales más temido con razón: de rodillas y con los tobillos anclados, el cuerpo cae hacia delante y los isquiosurales frenan el descenso hasta donde aguanten. Se ejecuta bajando lento con la cadera extendida y empujando con las manos lo justo para volver. El peso corporal basta y sobra. La referencia mundial para proteger los isquiosurales de lesiones."
+        "description": "El Curl Nórdico (Nordic hamstring curl) trabaja los isquiosurales en excéntrico con el peso del cuerpo: de rodillas y con los tobillos anclados, el cuerpo bascula hacia delante, rígido desde las rodillas hasta la coronilla, mientras las rodillas se abren despacio. Esa caída la frenan los isquiosurales, sobre todo el semitendinoso, con ayuda de los gemelos; los glúteos, los lumbares y la zona media solo sujetan la línea de cadera y tronco para que el cuerpo no se pliegue. Llega un punto en que la caída se acelera y las manos la recogen en el suelo; la vuelta suele hacerse con un empujón de los brazos. En un ensayo de diez semanas, este ejercicio alargó los fascículos de la porción larga del isquiosural externo."
       },
-      "status": "LEGACY"
+      "sources": [
+        {
+          "claim": "Entre diez ejercicios, el nórdico compartió con el puente con rodillas dobladas la relación más baja entre bíceps femoral e isquiosurales mediales en la fase excéntrica; en la resonancia funcional, tras el nórdico el semitendinoso aumentó su señal más que los demás isquiosurales.",
+          "id": "bourne2017_emg",
+          "title": "Impact of exercise selection on hamstring muscle activation",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27467123/"
+        },
+        {
+          "claim": "Diez semanas de nórdico alargaron los fascículos de la cabeza larga del bíceps femoral y aumentaron el volumen del semitendinoso frente al grupo control.",
+          "id": "bourne2017_arq",
+          "title": "Impact of the Nordic hamstring and hip extension exercises on hamstring architecture and morphology: implications for injury prevention",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27660368/"
+        },
+        {
+          "claim": "En mujeres, el nórdico reclutó de forma preferente el semitendinoso frente a las dos cabezas del bíceps femoral.",
+          "id": "messer2018",
+          "title": "Hamstring Muscle Use in Women During Hip Extension and the Nordic Hamstring Exercise: A Functional Magnetic Resonance Imaging Study",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29685059/"
+        },
+        {
+          "claim": "En diez deportistas, la activación de los isquiosurales en el nórdico superó el 70 % entre 60 y 40 grados de flexión de rodilla y bajó al 27 % al final del recorrido; en ese tramo fue mayor que en el curl con balón.",
+          "id": "monajati2017",
+          "title": "Analysis of the Hamstring Muscle Activation During two Injury Prevention Exercises",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29339983/"
+        },
+        {
+          "claim": "En quince deportistas, el nórdico activó el bíceps femoral al 124,5-128,1 % y el gastrocnemio medial al 82,1-83,5 % de su máximo isométrico, sin diferencias entre el tobillo en flexión dorsal o plantar.",
+          "id": "comfort2017",
+          "title": "Lack of Effect of Ankle Position During the Nordic Curl on Muscle Activity of the Biceps Femoris and Medial Gastrocnemius",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/27632836/"
+        },
+        {
+          "claim": "En doce hombres, el nórdico con el tobillo en flexión plantar aumentó la actividad de la cabeza larga del bíceps femoral de la pierna dominante frente a la flexión dorsal, sin cambiar el ángulo de rotura.",
+          "id": "keerasomboon2025",
+          "title": "Characteristics of Hamstring Electromyographic Activity and the Break-Point Angle during Nordic Hamstring Exercise at Different Ankle Positions",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/42211804/"
+        },
+        {
+          "claim": "En el nórdico estándar la actividad del glúteo mayor fue baja (menos del 20 % del máximo) y la de los erectores rondó el 65 %; ninguna variante con más pendiente o más flexión de cadera aumentó la actividad de los músculos medidos.",
+          "id": "sarabon2019",
+          "title": "Kinematic and electromyographic analysis of variations in Nordic hamstring exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31644582/"
+        },
+        {
+          "claim": "Durante el nórdico, semitendinoso y bíceps femoral fueron los más activos, y los extensores de la espalda y el oblicuo interno superaron al resto de los músculos de la cadera y del tronco medidos.",
+          "id": "narouei2018",
+          "title": "Hip and trunk muscles activity during nordic hamstring exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29740557/"
+        },
+        {
+          "claim": "En futbolistas sanos, el curl nórdico activó el bíceps femoral al 76,8 % y el glúteo mayor al 50,7 % de la contracción máxima; quienes habían tenido una lesión de isquiosurales mostraron valores menores.",
+          "id": "gulgosteren2025",
+          "title": "Persistent neuromuscular deficits in the posterior kinetic chain following hamstring strain injury: EMG insights from nordic hamstring curl, kettlebell swing, and supine sliding leg curl",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41318473/"
+        },
+        {
+          "claim": "La actividad del bíceps femoral en el nórdico superó la de una contracción excéntrica máxima en dinamómetro, y el ángulo en que la caída se aceleraba bruscamente varió entre 47,9 y 80,5 grados.",
+          "id": "ditroilo2013",
+          "title": "Kinematic and electromyographic analysis of the Nordic Hamstring Exercise",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23809430/"
+        },
+        {
+          "claim": "Con la cadera flexionada a 90 grados la actividad de los isquiosurales fue menor que con la cadera neutra, sobre todo en la segunda mitad de la bajada.",
+          "id": "hegyi2019",
+          "title": "Impact of Hip Flexion Angle on Unilateral and Bilateral Nordic Hamstring Exercise Torque and High-Density Electromyography Activity",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30913969/"
+        },
+        {
+          "claim": "Los isquiosurales nacen en la tuberosidad isquiática, cruzan la rodilla y participan en la extensión de la cadera y la flexión de la rodilla.",
+          "id": "statpearls_hamstring",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hamstring Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31536294/"
+        },
+        {
+          "claim": "El gastrocnemio es un músculo biarticular que produce la flexión plantar del tobillo y ayuda a flexionar la rodilla.",
+          "id": "statpearls_gastrocnemius",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Gastrocnemius Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30422541/"
+        },
+        {
+          "claim": "La rodilla es sobre todo una bisagra que permite la flexión y la extensión de la pierna.",
+          "id": "statpearls_knee",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Knee",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29763193/"
+        },
+        {
+          "claim": "La cadera sostiene el peso del tronco y transmite la carga entre el esqueleto axial y las piernas.",
+          "id": "statpearls_hip",
+          "title": "Anatomy, Bony Pelvis and Lower Limb, Hip Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/29262200/"
+        },
+        {
+          "claim": "El tobillo es una bisagra que permite la flexión dorsal y la flexión plantar.",
+          "id": "statpearls_ankle",
+          "title": "Anatomy, Bony Pelvis and Lower Limb: Ankle Joint",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31424742/"
+        },
+        {
+          "claim": "Describe los músculos intrínsecos o profundos de la espalda, unidos a la columna, como los músculos propios de la espalda.",
+          "id": "statpearls_back",
+          "title": "Anatomy, Back, Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725759/"
+        },
+        {
+          "claim": "La pared abdominal genera presión intraabdominal y puede mover la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
+        }
+      ],
+      "status": "CURATED",
+      "technique": {
+        "identity": "Bajada excéntrica de rodillas con los tobillos anclados: sobre un apoyo acolchado, el cuerpo rígido desde las rodillas hasta la cabeza bascula hacia delante mientras las rodillas se extienden y sus flexores frenan la caída. La cadera no se dobla en ningún momento, de modo que muslos y tronco caen como una sola pieza, y la subida suele ayudarse con un empujón de los brazos desde el suelo.",
+        "keyPositions": [
+          "Inicio: de rodillas con tronco y muslos verticales, las tibias horizontales sobre el apoyo y la cadera extendida.",
+          "Mitad de la bajada: el cuerpo, todavía recto, ha caído unos 45 grados desde la vertical; las manos esperan delante del pecho.",
+          "Final: las manos tocan el suelo a la altura de los hombros, con los codos doblados como en una flexión y las rodillas casi rectas."
+        ],
+        "mistakes": [
+          "Doblar la cadera y echar el glúteo atrás para acortar la palanca.",
+          "Soltar la bajada desde el primer tramo en lugar de frenarla hasta el punto de rotura.",
+          "Arquear la zona lumbar o adelantar la cabeza para ganar recorrido.",
+          "Anclar mal los tobillos, de modo que los pies se levantan del apoyo."
+        ],
+        "phases": [
+          {
+            "description": "Las rodillas se abren poco a poco y el cuerpo rígido bascula hacia delante mientras los flexores de la rodilla frenan.",
+            "name": "Bajada"
+          },
+          {
+            "description": "Cuando los isquiosurales ya no pueden frenar, la caída se acelera y las manos se adelantan hacia el suelo.",
+            "name": "Rotura"
+          },
+          {
+            "description": "Las manos amortiguan en el suelo con los codos flexionados, como al bajar en una flexión de brazos.",
+            "name": "Recepción"
+          },
+          {
+            "description": "Un empujón de los brazos devuelve el cuerpo hacia arriba y las rodillas se doblan de nuevo hasta la vertical.",
+            "name": "Regreso"
+          }
+        ],
+        "setup": [
+          "Rodillas sobre una colchoneta o un cojín, a la anchura de la cadera, y tobillos sujetos por detrás por un compañero, una barra acolchada o los rodillos de un banco nórdico.",
+          "Tronco y muslos verticales sobre las rodillas, cadera extendida, glúteos activos y manos delante del pecho o brazos cruzados."
+        ]
+      },
+      "visual": {
+        "base": {
+          "camera": "Vista lateral pura a la altura de la cadera, con el cuerpo entero, el apoyo de las rodillas y el suelo libre delante del atleta.",
+          "contacts": "Rodillas y espinillas sobre una superficie acolchada; tobillos sujetos por detrás, justo encima de los talones; manos en el aire delante del pecho, sin tocar nada.",
+          "load": "Sin carga externa: el peso del cuerpo cae por delante de las rodillas y lo retienen los tobillos anclados.",
+          "orientation": "Atleta de perfil y de rodillas, con la cabeza hacia el lado al que cae y los pies hacia el contrario.",
+          "phase": "Mitad de la bajada: el cuerpo recto ha caído unos 45 grados desde la vertical y las manos todavía no tocan el suelo.",
+          "posture": "Rodillas, cadera, hombros y cabeza en una sola línea recta inclinada hacia delante; cadera extendida, zona lumbar neutra y cuello alineado."
+        },
+        "byImplement": {
+          "bodyweight": {
+            "geometry": "Banco nórdico bajo y acolchado: las rodillas descansan en el cojín y dos rodillos acolchados traban los tobillos por detrás, sobre los talones; el suelo queda libre delante para las manos."
+          }
+        },
+        "forbidden": [
+          "Cadera doblada con el glúteo hacia atrás y el tronco más inclinado que los muslos: la línea de rodillas a cabeza se ha roto.",
+          "Cuerpo inclinado hacia atrás desde las rodillas: eso es el curl nórdico inverso.",
+          "Pies sueltos o tobillos sin nada que los sujete.",
+          "Muslos sobre un cojín curvo y pies contra una plataforma vertical: eso es un Glute Ham Raise.",
+          "Atleta boca arriba con los talones sobre un balón o sobre discos deslizantes: eso es un curl con balón o con sliders.",
+          "Atleta boca abajo con un rodillo sobre los tobillos: eso es el curl tumbado en máquina.",
+          "Manos ya apoyadas en el suelo en posición de flexión: es el final del recorrido, no el fotograma pedido.",
+          "Mancuernas, discos u otra carga en las manos."
+        ],
+        "promptCore": {
+          "bodyweight": "Side view of an athlete kneeling on the padded board of a low Nordic curl bench, frozen HALFWAY DOWN a Nordic hamstring curl. Padded rollers lock both ankles from behind, just above the heels, and the shins lie flat on the pad. The body is one rigid straight line from knees to hips to shoulders to head, tilted forward about 45 degrees from vertical; the hips are fully extended, not bent. Both hands are held open in front of the chest, ready to catch the fall, and hold nothing. The hands are well above the floor."
+        },
+        "qa": [
+          "¿El atleta está de rodillas sobre un apoyo acolchado con los tobillos sujetos por detrás?",
+          "¿Las manos están libres delante del pecho, sin tocar el suelo ni sostener nada?",
+          "¿El cuerpo está recto de las rodillas a la cabeza e inclinado hacia delante, a mitad de la bajada?",
+          "¿La cadera está extendida, sin que los glúteos se echen hacia atrás?"
+        ]
+      }
     }
   },
   "familyId": "lower_eccentric_knee_flexion",
