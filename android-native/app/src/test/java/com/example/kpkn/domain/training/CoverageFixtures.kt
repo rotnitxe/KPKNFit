@@ -16,6 +16,7 @@ import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogReposi
 import com.example.kpkn.domain.onboarding.NativePlanFailureMapper
 import com.example.kpkn.domain.onboarding.PlanCandidateRequest
 import com.example.kpkn.domain.onboarding.PlanCatalogSnapshot
+import com.example.kpkn.domain.onboarding.PlanGoalMatcher
 import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanMaterializationOutcome
 import com.example.kpkn.domain.onboarding.PlanMaterializationPort
@@ -262,6 +263,10 @@ internal object CoverageFixtures {
         trainingOptions = SetupTrainingOptions(availability = equipment.availability),
     )
 
+    /**
+     * Entrada del planner tal como la arma el wizard (DEC-w2-06): Atleta completo lleva el
+     * prefiltro de capacidades declaradas y los demás objetivos no filtran por capacidades.
+     */
     fun plannerInput(draft: SetupWizardDraft): SetupTrainingPlannerInput =
         SetupTrainingPlannerInput(
             reference = draft.trainingReference(),
@@ -269,6 +274,11 @@ internal object CoverageFixtures {
             equipment = draft.trainingOptions.effectiveEquipment(emptySet()),
             level = levelOf(requireNotNull(draft.experience)),
             focus = TrainingFocus.FULL_BODY,
+            requiredCapabilities = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) {
+                PlanGoalMatcher.requiredCapabilities(PlanGoalProfile.COMPLETE_ATHLETE)
+            } else {
+                emptySet()
+            },
         )
 
     /**

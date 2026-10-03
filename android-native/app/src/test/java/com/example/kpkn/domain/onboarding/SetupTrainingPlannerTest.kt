@@ -2,8 +2,10 @@ package com.example.kpkn.domain.onboarding
 
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.CatalogSource
+import com.example.kpkn.data.programs.TrainingCapability
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.programs.TrainingReference
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,7 +19,10 @@ class SetupTrainingPlannerTest {
         focus: TrainingFocus = TrainingFocus.FULL_BODY,
         protocolOnly: Boolean = false,
         mixedTraining: Boolean = false,
-    ) = SetupTrainingPlannerInput(reference, frequency, equipment, level, focus, protocolOnly, mixedTraining)
+        requiredCapabilities: Set<TrainingCapability> = emptySet(),
+    ) = SetupTrainingPlannerInput(
+        reference, frequency, equipment, level, focus, protocolOnly, mixedTraining, requiredCapabilities,
+    )
 
     @Test
     fun fixedRecipesAreNotHiddenBehindCoarseGeneralGym() {
@@ -126,6 +131,71 @@ class SetupTrainingPlannerTest {
         val candidates = SetupTrainingPlanner.candidates(input(protocolOnly = true))
         assertTrue(candidates.isNotEmpty())
         assertTrue(candidates.all { it.source == CatalogSource.PROTOCOL })
+    }
+
+    /** DEC-w2-06: `requiredCapabilities` vacío (el valor por defecto) no filtra nada. */
+    @Test
+    fun emptyRequiredCapabilitiesDoNotFilterAnything() {
+        listOf<TrainingReference?>(null, TrainingReference.POWERLIFTING, TrainingReference.HYPERTROPHY).forEach { reference ->
+            val withoutCapabilities = SetupTrainingPlanner.candidates(input(reference = reference, frequency = 3)).map { it.id }
+            val explicitlyEmpty = SetupTrainingPlanner.candidates(
+                input(reference = reference, frequency = 3, requiredCapabilities = emptySet()),
+            ).map { it.id }
+            assertEquals("ref=$reference", withoutCapabilities, explicitlyEmpty)
+        }
+        val unfiltered = SetupTrainingPlanner.candidates(input(reference = null, frequency = 3)).map { it.id }
+        assertTrue("Sin prefiltro Atleta sigue viendo los planes propios de todos los objetivos", unfiltered.containsAll(
+            listOf(
+                "native:strength-foundation-v2",
+                "native:muscle-foundation-v2",
+                "native:powerbuilding-foundation-v2",
+                "native:complete-athlete-v2",
+            ),
+        ))
+    }
+
+    /** DEC-w2-06: con capacidades requeridas solo pasan las entradas que las declaran TODAS. */
+    @Test
+    fun requiredCapabilitiesKeepOnlyEntriesThatDeclareAllOfThem() {
+        val athlete = SetupTrainingPlanner.candidates(
+            input(reference = null, frequency = 3, requiredCapabilities = TrainingCapability.entries.toSet()),
+        )
+        assertEquals(listOf("native:complete-athlete-v2"), athlete.map { it.id })
+
+        val strengthAndMuscle = SetupTrainingPlanner.candidates(
+            input(
+                reference = null,
+                frequency = 3,
+                requiredCapabilities = setOf(TrainingCapability.STRENGTH, TrainingCapability.HYPERTROPHY),
+            ),
+        ).map { it.id }
+        assertEquals(
+            "los planes propios con fuerza e hipertrofia declaradas, en orden editorial",
+            listOf("native:powerbuilding-foundation-v2", "native:complete-athlete-v2"),
+            strengthAndMuscle,
+        )
+
+        // La disciplina pedida se sigue aplicando encima: powerbuilding declara fuerza pero no es powerlifting.
+        val strengthOnly = SetupTrainingPlanner.candidates(
+            input(
+                reference = TrainingReference.POWERLIFTING,
+                frequency = 3,
+                requiredCapabilities = setOf(TrainingCapability.STRENGTH),
+            ),
+        ).map { it.id }
+        assertEquals(listOf("native:strength-foundation-v2"), strengthOnly)
+    }
+
+    /** DEC-w2-06: la exención de enfoque alcanza a las plantillas con receta fija, no a las simples. */
+    @Test
+    fun templatesWithAFixedRecipeSurviveAFocusAndSimpleTemplatesDoNot() {
+        val glutes = SetupTrainingPlanner.candidates(
+            input(reference = null, frequency = 3, focus = TrainingFocus.GLUTES),
+        ).map { it.id }
+        assertTrue("la plantilla con receta fija sigue con enfoque glúteos", "template:power-12-3" in glutes)
+        assertTrue("las plantillas simples dependen del enfoque", glutes.none { it.startsWith("template:simple-") })
+        val fullBody = SetupTrainingPlanner.candidates(input(reference = null, frequency = 3)).map { it.id }
+        assertTrue("con cuerpo completo las plantillas simples sí están", fullBody.any { it.startsWith("template:simple-") })
     }
 
     @Test

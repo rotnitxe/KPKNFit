@@ -1925,12 +1925,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     sweepStats.passes.incrementAndGet()
                     val source = if (equipment == setOf("bodyweight")) bodyweightAdapted(draft) else draft
                     // Atleta completo NO filtra por `schedulesCardio` (§15.1):
-                    // su capability real la exige el evaluador sobre la receta.
+                    // su capability real la exige el evaluador sobre la receta. El
+                    // planner solo aplica el prefiltro BARATO de capacidades declaradas
+                    // (fuerza + hipertrofia + potencia + cardio, DEC-w2-06): así los
+                    // PROFILE_MISMATCH triviales de medio catálogo no encabezan los rechazos.
                     val reference = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) null else draft.trainingReference()
                     val publishedEntries = SetupTrainingPlanner.candidates(SetupTrainingPlannerInput(reference, draft.daysPerWeek,
                         equipment, draft.experience.toCatalogLevel(),
                         draft.focus.toTrainingFocus(), protocolOnly = protocolOnly,
-                        mixedTraining = draft.goal == SetupGoal.MIXED))
+                        mixedTraining = draft.goal == SetupGoal.MIXED,
+                        requiredCapabilities = PlanGoalMatcher.requiredCapabilities(goalProfileOf(draft))))
                     val request = candidateRequest(source, equipment, exerciseRevision)
                     val snapshot = PlanCatalogSnapshot(
                         entries = PersonalizedPlanCatalog.entries(),

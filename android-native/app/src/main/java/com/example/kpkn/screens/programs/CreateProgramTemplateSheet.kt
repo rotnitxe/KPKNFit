@@ -31,12 +31,12 @@ import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.ProgramTemplateOption
 import com.example.kpkn.data.programs.PublicationState
-import com.example.kpkn.data.programs.TrainingCapability
-import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.PlanProvenanceClass
 import com.example.kpkn.data.protocols.Protocol
 import com.example.kpkn.data.protocols.isVisibleForApplication
+import com.example.kpkn.domain.onboarding.PlanGoalMatcher
+import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.KpknSheetLightChip
 import com.example.kpkn.ui.components.KpknSheetTokens
@@ -84,7 +84,7 @@ fun CreateProgramTemplateSheet(
         ) {
             Text("Planes", fontWeight = FontWeight.Black, fontSize = 20.sp, color = Color.White)
             Text(
-                "Plantillas, métodos y planes propios en una biblioteca. La configuración confirma material, días y duración antes de activar un programa.",
+                "Elige un plan para ver cómo funciona. Antes de activarlo confirmamos tu material, tus días y tu tiempo.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.7f),
             )
@@ -218,21 +218,25 @@ private fun FilterRow(
     }
 }
 
-private fun profileMatches(entry: CatalogEntry, filter: LibraryProfileFilter): Boolean {
-    if (filter == LibraryProfileFilter.ALL) return true
-    val caps = entry.capabilities
-    val refs = entry.references
-    return when (filter) {
-        LibraryProfileFilter.ALL -> true
-        LibraryProfileFilter.STRENGTH -> TrainingCapability.STRENGTH in caps || TrainingReference.POWERLIFTING in refs
-        LibraryProfileFilter.MUSCLE -> TrainingCapability.HYPERTROPHY in caps || TrainingReference.HYPERTROPHY in refs
-        LibraryProfileFilter.STRENGTH_MUSCLE -> TrainingCapability.STRENGTH in caps && TrainingCapability.HYPERTROPHY in caps ||
-            TrainingReference.POWERBUILDING in refs
-        LibraryProfileFilter.COMPLETE_ATHLETE -> setOf(
-            TrainingCapability.STRENGTH, TrainingCapability.HYPERTROPHY, TrainingCapability.POWER, TrainingCapability.CARDIO,
-        ).all { it in caps }
-        LibraryProfileFilter.OTHER -> caps.isEmpty() && refs.isEmpty()
-    }
+/** Los cuatro objetivos del wizard: lo que no sirve a ninguno cae en «Otros». */
+private val LIBRARY_GOAL_PROFILES: List<PlanGoalProfile> = listOf(
+    PlanGoalProfile.STRENGTH,
+    PlanGoalProfile.MUSCLE,
+    PlanGoalProfile.STRENGTH_MUSCLE,
+    PlanGoalProfile.COMPLETE_ATHLETE,
+)
+
+/**
+ * Misma regla que el wizard (DEC-w2-06): decide [PlanGoalMatcher], no las capacidades
+ * sueltas. Así «Fuerza» no lista `powerbuilding-foundation` solo por declarar fuerza.
+ */
+private fun profileMatches(entry: CatalogEntry, filter: LibraryProfileFilter): Boolean = when (filter) {
+    LibraryProfileFilter.ALL -> true
+    LibraryProfileFilter.STRENGTH -> PlanGoalMatcher.matches(entry, PlanGoalProfile.STRENGTH)
+    LibraryProfileFilter.MUSCLE -> PlanGoalMatcher.matches(entry, PlanGoalProfile.MUSCLE)
+    LibraryProfileFilter.STRENGTH_MUSCLE -> PlanGoalMatcher.matches(entry, PlanGoalProfile.STRENGTH_MUSCLE)
+    LibraryProfileFilter.COMPLETE_ATHLETE -> PlanGoalMatcher.matches(entry, PlanGoalProfile.COMPLETE_ATHLETE)
+    LibraryProfileFilter.OTHER -> LIBRARY_GOAL_PROFILES.none { PlanGoalMatcher.matches(entry, it) }
 }
 
 private fun originMatches(entry: CatalogEntry, filter: LibraryOriginFilter): Boolean {

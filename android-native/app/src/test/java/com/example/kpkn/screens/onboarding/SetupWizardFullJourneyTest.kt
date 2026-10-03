@@ -532,6 +532,9 @@ class SetupWizardFullJourneyTest {
         ) { !it.isCandidateLoading && (it.availablePlanCandidates + it.planCandidates).isNotEmpty() }
         val candidates = vm.state.value.availablePlanCandidates.ifEmpty { vm.state.value.planCandidates }
         val native = candidates.firstOrNull { it.source == "NATIVE" }
+        // C.P3 (DEC-w2-06): el orden de la lista sale de la ficha editorial; el primer nativo viable
+        // de Músculo es el plan propio. Se deja la traza para saber qué plan recorre este viaje.
+        println("[C.P3][FullJourney] viables=${candidates.map { it.id }} primerNativo=${native?.id}")
         if (native == null) {
             fail("sin candidato nativo entre ${candidates.map { it.source }}")
             return
@@ -678,7 +681,12 @@ class SetupWizardFullJourneyTest {
         val capabilities = OrderPrioritiesContract.capabilitiesOf(committed, options = draftAtReview.trainingOptions)
         assertEquals("la bolsa pedida viaja al contrato", priorityBag(), capabilities.requested)
         assertNotNull("bolsa válida (≤2 por músculo, 5 en total)", capabilities.normalizedRequested)
-        assertEquals("la bolsa se aplicó al generar", OrderPrioritiesStatus.APPLIED, capabilities.status)
+        assertEquals(
+            "la bolsa se aplicó al generar (plan=${committed.structureTemplateId}, " +
+                "bolsa aplicada=${capabilities.appliedBag}, motivos=${capabilities.reasons})",
+            OrderPrioritiesStatus.APPLIED,
+            capabilities.status,
+        )
         assertEquals(priorityBag(), capabilities.appliedBag)
 
         // Plan de nutrición activo + metas duraderas.

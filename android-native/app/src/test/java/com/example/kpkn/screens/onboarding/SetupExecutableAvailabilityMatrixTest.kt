@@ -38,6 +38,8 @@ import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.onboarding.PlanGoalMatcher
+import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupTrainingPlanner
@@ -2349,6 +2351,13 @@ class SetupExecutableAvailabilityMatrixTest {
                 focus = com.example.kpkn.data.programs.TrainingFocus.valueOf(draft.focus.name),
                 protocolOnly = draft.programRoute == SetupProgramRoute.PROTOCOL,
                 mixedTraining = draft.goal == SetupGoal.MIXED,
+                // Mismo prefiltro que el wizard (DEC-w2-06): solo Atleta completo exige capacidades
+                // declaradas; así la evidencia de «publicadas» es la lista que el VM evalúa de verdad.
+                requiredCapabilities = if (draft.goal == SetupGoal.COMPLETE_ATHLETE) {
+                    PlanGoalMatcher.requiredCapabilities(PlanGoalProfile.COMPLETE_ATHLETE)
+                } else {
+                    emptySet()
+                },
             ),
         ).map { it.id }.toSet()
 
