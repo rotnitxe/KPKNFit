@@ -131,6 +131,17 @@
             android:exported="false" />
 
         <receiver
+            android:name=".services.nutrition.NutritionReminderBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".widgets.NutritionQuickActionWidgetReceiver"
             android:exported="true"
             android:label="@string/app_name">

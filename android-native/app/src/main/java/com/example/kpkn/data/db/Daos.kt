@@ -285,6 +285,14 @@ interface NutritionDao {
     @Query("SELECT * FROM nutrition_logs WHERE date = :date ORDER BY date DESC")
     suspend fun getLogsForDate(date: String): List<NutritionLogEntity>
 
+    /**
+     * Logs de un día por PREFIJO de fecha ISO (`yyyy-MM-dd`): el cajón guarda `"<fecha>T12:00:00.000Z"`, así que la
+     * igualdad de [getLogsForDate] no los encuentra. Lo usan los receivers de recordatorios (WP-U14), que leen Room
+     * directamente sin arrancar el repositorio de nutrición.
+     */
+    @Query("SELECT * FROM nutrition_logs WHERE date LIKE :dayPrefix || '%' ORDER BY date DESC")
+    suspend fun getLogsForDayPrefix(dayPrefix: String): List<NutritionLogEntity>
+
     @Upsert
     suspend fun upsertLog(entity: NutritionLogEntity)
 
