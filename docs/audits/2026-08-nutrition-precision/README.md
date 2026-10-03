@@ -111,6 +111,9 @@ El generador de assets v2 (`scripts/generate_food_catalog_v2.py`) ya está dispo
 para producir esos CSV gzip y su manifiesto de forma atómica; la generación/importación
 del asset grande y su medición de memoria siguen pendientes de una ejecución explícita.
 
+> Nota (2026-10): `scripts/generate_food_catalog_v2.py` se retiró en WP-S10 (nada consumía su
+> salida); el ítem «catálogo v2 con procedencia» lo cierran los campos de procedencia.
+
 ## Entrega Android — wizard, cuerpo y calibración
 
 - `NutritionEnergyEngine` usa EER 2023 para adultos elegibles y persiste dirección,
@@ -198,6 +201,7 @@ Sin prueba aún (requiere ejecución adicional/autorización):
 - `scripts/generate_food_catalog_v2.py` genera de forma atómica los CSV gzip V2 y
   el manifiesto con checksums, licencias y filas aceptadas/rechazadas; no modifica
   los datasets grandes manualmente.
+  Retirado en 2026-10 por WP-S10 (nada consumía su salida); ver la nota de la Fase 2.
 
 Estas capas tienen pruebas JVM dirigidas (351/351 verdes) y compilación Base/HealthDebug
 verde. Sigue sin

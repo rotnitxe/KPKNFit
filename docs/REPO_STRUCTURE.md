@@ -133,7 +133,8 @@ com.example.kpkn/
 | `exercise_catalog_v2.json` | generated | Sole approved exercise catalog runtime asset: parent definitions, explicit configurations, chip axes, exact IDs, and rich AUGE/biomechanics/programming metadata. |
 | `catalog/exercises/v2/curation/evidence/legacy/` | evidence only | Archived v1 inputs used to justify editorial decisions; never loaded by the app and never used as an ID-alias fallback. |
 | `catalog/exercises/v2/curation/fichas/` | authoring source | One ficha per family (public copy, anatomy, internal technique and visual brief). `scripts/catalog_v2_apply_fichas.py` copies it into `source/families/`; the gate fails when the source differs from what the fichas produce. |
-| `food_data/` | ~80 MB | USDA/OFF CSVs imported into Room on first launch, plus compiled offline semantic index `dataset_knowledge.bin` (~1.3 MB gzip, 19,405 examples) used by `SemanticPortionRetriever`. |
+| `food_data/` | ~72 MB | USDA/OFF CSVs imported into Room on first launch (`food.csv`, `food_nutrient.csv`, `food_portion.csv`, `food_category.csv`, `measure_unit.csv`, `usda_es_aliases.csv` and `off_chile.csv`, ~54 MB), plus compiled offline semantic index `dataset_knowledge.bin` (~1.3 MB gzip, 19,405 examples) used by `SemanticPortionRetriever` and a few small JSON files. The 20 unused FDC CSV/XLSX tables live in `android-native/datasets/usda_fdc_raw/` and are not bundled (WP-S11). |
+| `food_data/manifest.json` | generated, < 1 KB | Not in `src/main/assets/`: the Gradle task `generateFoodDataManifest` (WP-S10) writes it to `app/build/generated/foodDataManifest/food_data/manifest.json` (sha256 and size per CSV plus one fingerprint) and registers that folder as an assets source. `FoodImporter.expectedFingerprint` reads it at start instead of hashing the CSVs. |
 | `wikilab/` | ~104 KB | `muscles.json`, `joints.json`, `tendons.json`, `movement_patterns.json`, `kinetic_chains.json` (anatomy catalog). |
 
 ### Tests — `app/src/test/` (JUnit 4 + Robolectric + coroutines-test)
@@ -144,4 +145,5 @@ Mirrors the main package tree. Strongest coverage in `domain/` (AUGE engines, nu
 
 *   `qa-screenshots/` — Device screenshots from QA passes.
 *   `scripts/` — Android-specific helper scripts (deploy, sounds, cleanup).
+*   `datasets/usda_fdc_raw/` — Raw USDA FoodData Central tables (20 CSV/XLSX files) that nothing in the app reads; kept out of the APK (WP-S11).
 *   `build_last_compile*.txt`, `hs_err_pid*.log` — Local build artifacts/logs (safe to ignore).

@@ -94,14 +94,15 @@ Located in `android-native/app/src/main/assets/`:
 
 1.  **`exercise_catalog_v2.json`:** The sole approved exercise runtime asset. It contains 180 parent/specialty definitions, 280 explicit configurations, exact catalog identities, rich muscle/AUGE/biomechanics/programming metadata, and hierarchical chip axes. It is loaded by `data/exercises/ExerciseDatabase.kt` and validated against the approved catalog revision/hash. The former `exercise_database.json` and `exercise_id_aliases.json` are not runtime fallbacks; legacy copies exist only as curation evidence under `catalog/exercises/v2/curation/evidence/legacy/`.
 2.  **`wikilab/` (`joints.json`, `kinetic_chains.json`, `movement_patterns.json`, `muscles.json`, `tendons.json` — ~104 KB):** Full relational catalog representing the anatomical connectivity of the human body (imported by `data/WikiLabPrepopulate.kt`).
-3.  **`food_data/` (`food.csv` & `food_nutrient.csv`):** Standard USDA database.
-4.  **`food_data/off_chile.csv`:** OpenFoodFacts Chile TSV dataset (~53 MB; the whole `food_data/` folder is ~80 MB).
+3.  **`food_data/` (`food.csv`, `food_nutrient.csv`, `food_portion.csv`, `food_category.csv`, `measure_unit.csv`, `usda_es_aliases.csv`):** USDA FoodData Central tables read by `FoodImporter`. WP-S11 trimmed the folder to the files the app reads; the 20 unused FDC CSV/XLSX tables now live in `android-native/datasets/usda_fdc_raw/` and are not bundled.
+4.  **`food_data/off_chile.csv`:** OpenFoodFacts Chile TSV dataset (~54 MB; the whole `food_data/` folder, with `dataset_knowledge.bin` and a few small JSON files, is ~72 MB).
+5.  **`food_data/manifest.json` (generated):** Not under `src/main/assets/`: the Gradle task `generateFoodDataManifest` (WP-S10) writes it to `android-native/app/build/generated/foodDataManifest/food_data/manifest.json` (sha256 and size per CSV plus one fingerprint) and registers that folder as an assets source, so it ships in every variant. `FoodImporter.expectedFingerprint` reads it at start.
 
 ### 2.5 Food Database Import Flow (`data/food/FoodImporter.kt`)
 
 *   **Mechanism:** Parses USDA `foundation_food` rows from `food.csv` + `food_nutrient.csv` (energy IDs `2048`/`2047`/`1008`, plus macro and micronutrient IDs) and OFF Chile rows with declared, coherent nutrition from `off_chile.csv` (column indices: `0`=barcode, `10`=name, `18`=brand, `89`=kcal, `92`=fat, `129`=carbs, `130`=sugar, `146`=fiber, `150`=protein, `156`=sodium).
 *   **Text Normalization:** Lowercases, strips accents, removes non-letter characters, and builds search alias arrays (`normalizeSearch` / `encodeAliases`).
-*   **Database Pre-population:** Batched transactions (`BATCH_SIZE = 2000`) into the `global_foods` SQLite table during first run.
+*   **Database Pre-population:** The CSVs are parsed off-thread without holding a Room lock (WP-S8); one short transaction then replaces the `global_foods` rows (inserted in chunks of `BATCH_SIZE = 2000`), keeps the per-food usage counters, and an FTS index rebuild follows. The import gate compares the stored fingerprint with `FoodImporter.expectedFingerprint(context)` = `"v<DATA_VERSION>+<manifest sha256>"` (`"v<DATA_VERSION>"` when the manifest is missing), so a CSV that changes triggers one re-import without bumping `DATA_VERSION` (WP-S10).
 
 ### 2.6 Additional Data Layer Services
 
@@ -357,7 +358,7 @@ The home dashboard centers around **three concentric recovery rings** representi
 *   Application class: `.KpknApplication`; single exported activity: `.MainActivity`.
 *   Permissions: `INTERNET`, `RECORD_AUDIO`, `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `FOREGROUND_SERVICE(_DATA_SYNC)`, `WAKE_LOCK`, `VIBRATE`, `RECEIVE_BOOT_COMPLETED`.
 *   `FileProvider` (`${applicationId}.fileprovider`) for sharing files (e.g. backups, workout shares via `WorkoutShareService.kt`).
-*   `android:largeHeap="true"` (the ~80 MB food dataset import requires it).
+*   `android:largeHeap="true"` (the ~72 MB food dataset import requires it).
 
 ---
 

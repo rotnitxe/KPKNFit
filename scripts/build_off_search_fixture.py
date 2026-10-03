@@ -107,7 +107,7 @@ def bounded(value, maximum):
 
 
 def importable(parts):
-    """The checks FoodImporter.importAll applies to an OFF line before it keeps it."""
+    """The checks FoodImporter.parseOffLine applies to an OFF line before it keeps it (WP-S8: the fixture is parsed by it too)."""
     if len(parts) <= USED["sodium"] or not parts[USED["code"]].strip() or not parts[USED["name"]].strip():
         return False
     kcal = bounded(parts[USED["kcal"]], 1000.0)
