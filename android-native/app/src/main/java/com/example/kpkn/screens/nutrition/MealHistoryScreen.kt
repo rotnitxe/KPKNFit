@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.domain.nutrition.DayGoalsResult
+import com.example.kpkn.domain.nutrition.NutritionDisplayFormat
 import com.example.kpkn.domain.nutrition.computeDailyTotals
 import com.example.kpkn.domain.nutrition.resolveDayGoalsByDate
 
@@ -299,10 +300,17 @@ private fun DayHeader(day: DaySummary, goals: DayGoalsResult) {
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    "${kotlin.math.round(day.totals.calories).toInt()} kcal · P${kotlin.math.round(day.totals.protein).toInt()} C${kotlin.math.round(day.totals.carbs).toInt()} G${kotlin.math.round(day.totals.fats).toInt()}",
+                    "${NutritionDisplayFormat.kcalLabel(day.totals)} · P${kotlin.math.round(day.totals.protein).toInt()} C${kotlin.math.round(day.totals.carbs).toInt()} G${kotlin.math.round(day.totals.fats).toInt()}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                NutritionDisplayFormat.kcalRangeLabel(day.totals)?.let { range ->
+                    Text(
+                        range,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             Surface(
@@ -330,12 +338,10 @@ private fun HistoryLogEntry(log: NutritionLog) {
     val icon = MEAL_ICONS[log.mealType] ?: Icons.Default.Restaurant
     val label = MEAL_LABELS[log.mealType] ?: log.mealType.name
     val foodNames = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
-    val cal = log.foods.sumOf { it.calories }
     val pro = log.foods.sumOf { it.protein }
     val car = log.foods.sumOf { it.carbs }
     val fat = log.foods.sumOf { it.fats }
     val uncertainFoods = log.foods.count { it.isUncertain }
-    val hasRange = log.foods.any { it.caloriesMin != null || it.caloriesMax != null }
 
     Surface(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
@@ -366,26 +372,17 @@ private fun HistoryLogEntry(log: NutritionLog) {
                     )
                 }
                 Text(
-                    "${kotlin.math.round(cal).toInt()} kcal · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
+                    "${NutritionDisplayFormat.logKcalSummary(log)} · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (hasRange || uncertainFoods > 0) {
+                if (uncertainFoods > 0) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (hasRange) {
-                            AssistChip(
-                                onClick = {},
-                                label = { Text("Rango estimado", style = MaterialTheme.typography.labelSmall) },
-                                enabled = false,
-                            )
-                        }
-                        if (uncertainFoods > 0) {
-                            AssistChip(
-                                onClick = {},
-                                label = { Text("Incertidumbre ($uncertainFoods)", style = MaterialTheme.typography.labelSmall) },
-                                enabled = false,
-                            )
-                        }
+                        AssistChip(
+                            onClick = {},
+                            label = { Text("Incertidumbre ($uncertainFoods)", style = MaterialTheme.typography.labelSmall) },
+                            enabled = false,
+                        )
                     }
                 }
             }

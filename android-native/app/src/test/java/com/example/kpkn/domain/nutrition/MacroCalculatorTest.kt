@@ -86,6 +86,119 @@ class MacroCalculatorTest {
         assertEquals(300.0, totals.calories, 0.01) // only consumed
     }
 
+    @Test
+    fun `daily totals carry min and max and estimate flag from foods`() {
+        val logs = listOf(
+            NutritionLog(
+                id = "1", date = "2025-01-15T12:00:00", mealType = MealType.LUNCH,
+                foods = listOf(
+                    LoggedFood(id = "f1", foodName = "Arroz", calories = 200.0),
+                    LoggedFood(
+                        id = "f2", foodName = "Guiso casero", calories = 400.0,
+                        caloriesMin = 300.0, caloriesMax = 550.0, isUncertain = true,
+                    ),
+                ),
+            )
+        )
+        val totals = computeDailyTotals(logs)
+        assertEquals(600.0, totals.calories, 0.01)
+        // El alimento exacto aporta su centro a ambos extremos; el incierto, su rango guardado.
+        assertEquals(500.0, totals.caloriesMin!!, 0.01) // 200 + 300
+        assertEquals(750.0, totals.caloriesMax!!, 0.01) // 200 + 550
+        assertTrue(totals.isEstimate)
+    }
+
+    @Test
+    fun `exact foods produce a zero-width range`() {
+        val logs = listOf(
+            NutritionLog(
+                id = "1", date = "2025-01-15T12:00:00", mealType = MealType.LUNCH,
+                foods = listOf(
+                    LoggedFood(id = "f1", foodName = "Arroz", calories = 200.0),
+                    // Un registro V2 exacto guarda su banda como [centro, centro]: tampoco es una estimación.
+                    LoggedFood(id = "f2", foodName = "Pollo", calories = 300.0, caloriesMin = 300.0, caloriesMax = 300.0),
+                ),
+            )
+        )
+        val totals = computeDailyTotals(logs)
+        assertEquals(500.0, totals.calories, 0.0)
+        assertEquals(totals.calories, totals.caloriesMin!!, 0.0)
+        assertEquals(totals.calories, totals.caloriesMax!!, 0.0)
+        assertFalse(totals.isEstimate)
+    }
+
+    @Test
+    fun `empty input is an exact zero with a zero-width range`() {
+        val totals = computeDailyTotals(emptyList())
+        assertEquals(0.0, totals.caloriesMin!!, 0.0)
+        assertEquals(0.0, totals.caloriesMax!!, 0.0)
+        assertFalse(totals.isEstimate)
+    }
+
+    @Test
+    fun `an uncertain food without a stored range still flags the estimate`() {
+        val totals = computeDailyTotals(
+            listOf(NutritionLog(foods = listOf(LoggedFood(foodName = "Postre", calories = 250.0, isUncertain = true))))
+        )
+        assertEquals(250.0, totals.caloriesMin!!, 0.0)
+        assertEquals(250.0, totals.caloriesMax!!, 0.0)
+        assertTrue(totals.isEstimate)
+    }
+
+    @Test
+    fun `a stored range flags the estimate even when the food is not marked uncertain`() {
+        val totals = computeDailyTotals(
+            listOf(NutritionLog(foods = listOf(LoggedFood(foodName = "Pollo", calories = 400.0, caloriesMin = 350.0, caloriesMax = 470.0))))
+        )
+        assertEquals(350.0, totals.caloriesMin!!, 0.0)
+        assertEquals(470.0, totals.caloriesMax!!, 0.0)
+        assertTrue(totals.isEstimate)
+    }
+
+    @Test
+    fun `planned logs add neither range nor estimate flag`() {
+        val planned = NutritionLog(
+            id = "p", status = NutritionStatus.PLANNED,
+            foods = listOf(LoggedFood(foodName = "Cena", calories = 500.0, caloriesMin = 400.0, caloriesMax = 700.0, isUncertain = true)),
+        )
+        val consumed = NutritionLog(id = "c", foods = listOf(LoggedFood(foodName = "Pan", calories = 300.0)))
+        val totals = computeDailyTotals(listOf(planned, consumed))
+        assertEquals(300.0, totals.calories, 0.0)
+        assertEquals(300.0, totals.caloriesMin!!, 0.0)
+        assertEquals(300.0, totals.caloriesMax!!, 0.0)
+        assertFalse(totals.isEstimate)
+    }
+
+    @Test
+    fun `range bounds are rounded like calories`() {
+        val totals = computeDailyTotals(
+            listOf(
+                NutritionLog(
+                    foods = listOf(LoggedFood(foodName = "Batido", calories = 100.4, caloriesMin = 99.6, caloriesMax = 150.6, isUncertain = true))
+                )
+            )
+        )
+        assertEquals(100.0, totals.calories, 0.0)
+        assertEquals(100.0, totals.caloriesMin!!, 0.0)
+        assertEquals(151.0, totals.caloriesMax!!, 0.0)
+    }
+
+    @Test
+    fun `food totals describe the foods whatever the log status`() {
+        val planned = NutritionLog(
+            status = NutritionStatus.PLANNED,
+            foods = listOf(LoggedFood(foodName = "Cena", calories = 500.0, caloriesMin = 400.0, caloriesMax = 700.0)),
+        )
+        // El total del día no cuenta lo planificado...
+        assertEquals(0.0, computeDailyTotals(listOf(planned)).calories, 0.0)
+        // ...pero la fila de ese registro sí se describe con sus propios alimentos.
+        val totals = computeFoodTotals(planned.foods)
+        assertEquals(500.0, totals.calories, 0.0)
+        assertEquals(400.0, totals.caloriesMin!!, 0.0)
+        assertEquals(700.0, totals.caloriesMax!!, 0.0)
+        assertTrue(totals.isEstimate)
+    }
+
     // ─── Meal Groups ───────────────────────────────────────────────────────
 
     @Test
@@ -101,6 +214,22 @@ class MacroCalculatorTest {
         val breakfast = groups.find { it.mealType == MealType.BREAKFAST }
         assertEquals(1, breakfast?.logs?.size)
         assertEquals(300.0, breakfast?.totals?.calories ?: 0.0, 0.01)
+    }
+
+    @Test
+    fun `meal groups keep the estimate flag per meal`() {
+        val logs = listOf(
+            NutritionLog(id = "1", date = "2025-01-15T08:00:00", mealType = MealType.BREAKFAST,
+                foods = listOf(LoggedFood(id = "f1", foodName = "Avena", calories = 300.0))),
+            NutritionLog(id = "2", date = "2025-01-15T12:00:00", mealType = MealType.LUNCH,
+                foods = listOf(LoggedFood(id = "f2", foodName = "Guiso", calories = 400.0, caloriesMin = 300.0, caloriesMax = 550.0, isUncertain = true))),
+        )
+        val groups = computeMealGroups(logs).associateBy { it.mealType }
+        assertFalse(groups.getValue(MealType.BREAKFAST).totals.isEstimate)
+        assertTrue(groups.getValue(MealType.LUNCH).totals.isEstimate)
+        assertEquals(300.0, groups.getValue(MealType.LUNCH).totals.caloriesMin!!, 0.0)
+        assertEquals(550.0, groups.getValue(MealType.LUNCH).totals.caloriesMax!!, 0.0)
+        assertFalse(groups.getValue(MealType.DINNER).totals.isEstimate)
     }
 
     // ─── Macro Ring Pct ────────────────────────────────────────────────────

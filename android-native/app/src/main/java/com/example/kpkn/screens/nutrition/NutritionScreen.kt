@@ -425,6 +425,8 @@ private fun NutritionHeroHeader(
     val dayGoals = (goals as? DayGoalsResult.Present)?.goals
     val hasGoals = dayGoals?.hasGoals == true
     val calRemaining = dayGoals?.calorieGoal?.let { it - dailyTotals.calories.toInt() }
+    // Un total incierto es un centro estimado: se marca «≈» y no se presenta como exacto (C22).
+    val approx = NutritionDisplayFormat.approxPrefix(dailyTotals.isEstimate)
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
     Box(
@@ -493,7 +495,7 @@ private fun NutritionHeroHeader(
                         }
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            "${dailyTotals.calories.toInt()}",
+                            NutritionDisplayFormat.kcalValue(dailyTotals),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Black,
                             color = CALORIES_COLOR,
@@ -503,6 +505,13 @@ private fun NutritionHeroHeader(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        NutritionDisplayFormat.kcalRangeLabel(dailyTotals)?.let { range ->
+                            Text(
+                                range,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
 
                     Spacer(Modifier.width(16.dp))
@@ -517,6 +526,7 @@ private fun NutritionHeroHeader(
                             goal = dayGoals?.proteinGoal,
                             unit = "g",
                             color = PROTEIN_COLOR,
+                            approximate = dailyTotals.isEstimate,
                         )
                         MacroDetailRow(
                             label = "Carbohidratos",
@@ -524,6 +534,7 @@ private fun NutritionHeroHeader(
                             goal = dayGoals?.carbGoal,
                             unit = "g",
                             color = CARBS_COLOR,
+                            approximate = dailyTotals.isEstimate,
                         )
                         MacroDetailRow(
                             label = "Grasas",
@@ -531,6 +542,7 @@ private fun NutritionHeroHeader(
                             goal = dayGoals?.fatGoal,
                             unit = "g",
                             color = FATS_COLOR,
+                            approximate = dailyTotals.isEstimate,
                         )
 
                         Spacer(Modifier.height(4.dp))
@@ -562,8 +574,8 @@ private fun NutritionHeroHeader(
                                 Text(
                                     when {
                                         calRemaining == null -> "Sin objetivos para este día"
-                                        calRemaining >= 0 -> "$calRemaining kcal restantes"
-                                        else -> "${-calRemaining} kcal de más"
+                                        calRemaining >= 0 -> "$approx$calRemaining kcal restantes"
+                                        else -> "$approx${-calRemaining} kcal de más"
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
@@ -631,9 +643,12 @@ private fun MacroDetailRow(
     unit: String,
     color: Color,
     margin: Double? = null,
+    /** El total viene de alimentos inciertos: el valor se muestra con «≈» y no como exacto. */
+    approximate: Boolean = false,
 ) {
     // Sin meta (null) o meta 0 no hay barra de objetivo; el 0 explícito sí se
     // muestra como 0 en el valor.
+    val approx = NutritionDisplayFormat.approxPrefix(approximate)
     val pct = if (goal != null && goal > 0) (current / goal).coerceIn(0.0, 1.2) else 0.0
     val trackColor = if (color == MaterialTheme.colorScheme.onSurface) {
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f)
@@ -651,7 +666,7 @@ private fun MacroDetailRow(
                 Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
             }
             Text(
-                goal?.let { "${current.toInt()} / $it $unit" } ?: "${current.toInt()} $unit · sin meta",
+                goal?.let { "$approx${current.toInt()} / $it $unit" } ?: "$approx${current.toInt()} $unit · sin meta",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = if (pct > 1.0 && color != MaterialTheme.colorScheme.onSurface) Color(0xFFE53935) else MaterialTheme.colorScheme.onSurface,
@@ -1073,7 +1088,7 @@ private fun MealGroupCard(
                         )
                         if (logs.isNotEmpty()) {
                             Text(
-                                "${kotlin.math.round(totals.calories).toInt()} kcal · P ${kotlin.math.round(totals.protein).toInt()}g · C ${kotlin.math.round(totals.carbs).toInt()}g · G ${kotlin.math.round(totals.fats).toInt()}g",
+                                "${NutritionDisplayFormat.kcalLabel(totals)} · P ${kotlin.math.round(totals.protein).toInt()}g · C ${kotlin.math.round(totals.carbs).toInt()}g · G ${kotlin.math.round(totals.fats).toInt()}g",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -1129,14 +1144,9 @@ private fun MealGroupCard(
 @Composable
 private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
     val foodNames = log.foods.joinToString(", ") { it.foodName }.ifEmpty { "Comida registrada" }
-    val cal = log.foods.sumOf { it.calories }
     val pro = log.foods.sumOf { it.protein }
     val car = log.foods.sumOf { it.carbs }
     val fat = log.foods.sumOf { it.fats }
-    val minKcal = kotlin.math.round(log.foods.sumOf { it.caloriesMin ?: it.calories }).toInt()
-    val maxKcal = kotlin.math.round(log.foods.sumOf { it.caloriesMax ?: it.calories }).toInt()
-    val hasRange = maxKcal > minKcal
-    val isEstimate = hasRange || log.foods.any { it.isUncertain }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -1156,17 +1166,10 @@ private fun LogEntry(log: NutritionLog, onDelete: (String) -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    "${if (isEstimate) "≈ " else ""}${kotlin.math.round(cal).toInt()} kcal · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
+                    "${NutritionDisplayFormat.logKcalSummary(log)} · P${kotlin.math.round(pro).toInt()} C${kotlin.math.round(car).toInt()} G${kotlin.math.round(fat).toInt()}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (hasRange) {
-                    Text(
-                        "Rango estimado: $minKcal–$maxKcal kcal",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
                 log.foods.mapNotNull { it.nutritionReferenceNote }.distinct().forEach { note ->
                     Text(note, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }

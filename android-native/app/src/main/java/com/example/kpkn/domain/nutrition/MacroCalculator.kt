@@ -249,7 +249,18 @@ fun createLoggedFood(
 
 // ─── Daily Stats ─────────────────────────────────────────────────────────────
 
-fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
+fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals =
+    computeFoodTotals(logs.filter { it.status != NutritionStatus.PLANNED }.flatMap { it.foods })
+
+/**
+ * Totales de [foods] sin mirar el estado del registro: [computeDailyTotals] descarta antes los planificados y la fila
+ * de un registro (`NutritionDisplayFormat.logKcalSummary`) describe sus alimentos tal cual.
+ *
+ * Además del centro, la banda de kcal suma el rango guardado de cada alimento (`caloriesMin`/`caloriesMax`; sin rango
+ * aporta su centro) y `isEstimate` se activa si alguno es incierto o trae un rango de ancho > 0, para que la UI no
+ * presente ese centro como exacto. Cada campo conserva su redondeo de siempre y la banda se redondea como las kcal.
+ */
+fun computeFoodTotals(foods: List<LoggedFood>): DailyMacroTotals {
     var calories = 0.0
     var protein = 0.0
     var carbs = 0.0
@@ -261,22 +272,27 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
     var waterMl = 0.0
     var caffeineMg = 0.0
     var creatineG = 0.0
+    var caloriesMin = 0.0
+    var caloriesMax = 0.0
+    var isEstimate = false
 
-    for (log in logs) {
-        if (log.status == NutritionStatus.PLANNED) continue
-        for (food in log.foods) {
-            calories += food.calories
-            protein += food.protein
-            carbs += food.carbs
-            fats += food.fats
-            fiber += food.fiber
-            sugar += food.sugar
-            sodiumMg += food.sodiumMg
-            potassiumMg += food.potassiumMg
-            waterMl += food.waterMl
-            caffeineMg += food.caffeineMg
-            creatineG += food.creatineG
-        }
+    for (food in foods) {
+        calories += food.calories
+        protein += food.protein
+        carbs += food.carbs
+        fats += food.fats
+        fiber += food.fiber
+        sugar += food.sugar
+        sodiumMg += food.sodiumMg
+        potassiumMg += food.potassiumMg
+        waterMl += food.waterMl
+        caffeineMg += food.caffeineMg
+        creatineG += food.creatineG
+        val foodMin = food.caloriesMin ?: food.calories
+        val foodMax = food.caloriesMax ?: food.calories
+        caloriesMin += foodMin
+        caloriesMax += foodMax
+        if (food.isUncertain || foodMin != foodMax) isEstimate = true
     }
 
     return DailyMacroTotals(
@@ -291,6 +307,9 @@ fun computeDailyTotals(logs: List<NutritionLog>): DailyMacroTotals {
         waterMl = kotlin.math.round(waterMl),
         caffeineMg = kotlin.math.round(caffeineMg),
         creatineG = kotlin.math.round(creatineG * 10) / 10.0,
+        caloriesMin = kotlin.math.round(caloriesMin),
+        caloriesMax = kotlin.math.round(caloriesMax),
+        isEstimate = isEstimate,
     )
 }
 

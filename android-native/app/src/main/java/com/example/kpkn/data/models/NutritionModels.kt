@@ -425,6 +425,19 @@ data class DailyMacroTotals(
     val waterMl: Double = 0.0,
     val caffeineMg: Double = 0.0,
     val creatineG: Double = 0.0,
+    /**
+     * Banda de [calories] sumada desde los rangos guardados por alimento (un alimento sin rango aporta su centro).
+     * `null` = totales armados a mano, sin banda; los de `computeDailyTotals`/`computeFoodTotals` siempre la traen.
+     * No se persiste (se recalcula desde los registros), así que basta con los defaults.
+     */
+    val caloriesMin: Double? = null,
+    val caloriesMax: Double? = null,
+    /**
+     * Algún alimento sumado es incierto o trae un rango de ancho > 0: las cifras son un centro estimado y la UI no
+     * debe presentarlas como exactas (contrato nutrition_interpretation_v2). Aplica a kcal y a macros por igual,
+     * porque salen de la misma interpretación.
+     */
+    val isEstimate: Boolean = false,
 )
 
 data class NutrientProgress(
