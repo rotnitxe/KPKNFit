@@ -1,5 +1,6 @@
 package com.example.kpkn.data.programs
 
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
@@ -11,15 +12,18 @@ import com.example.kpkn.data.protocols.definitions.AuthoredSourceRecord
 import com.example.kpkn.data.protocols.definitions.AuthoredSources
 import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.data.protocols.definitions.NativeWeekBuilder
-import com.example.kpkn.domain.text.SpanishPlurals
 import kotlinx.serialization.Serializable
 
 @Serializable
 enum class CatalogSource { TEMPLATE, PROTOCOL, NATIVE }
 @Serializable
 enum class CatalogLevel { BEGINNER, INTERMEDIATE, ADVANCED }
+/**
+ * Cómo dura un plan: una semana que se repite, un ciclo de varias semanas que se
+ * repite (Texas, 5/3/1, Westside…) o un ciclo finito que termina.
+ */
 @Serializable
-enum class CatalogDuration { REPEATING_WEEK, FINITE_CYCLE }
+enum class CatalogDuration { REPEATING_WEEK, REPEATING_CYCLE, FINITE_CYCLE }
 @Serializable
 enum class PublicationState { PUBLISHED, UNAVAILABLE }
 @Serializable
@@ -52,11 +56,22 @@ data class CatalogEntry(
     val id: String,
     val source: CatalogSource,
     val sourceId: String,
+    @Deprecated("Usa displayName", ReplaceWith("displayName"))
     val title: String,
+    @Deprecated(
+        "Usa PlanLabels.subtitle(entry)",
+        ReplaceWith("PlanLabels.subtitle(this)", "com.example.kpkn.data.programs.PlanLabels"),
+    )
     val technicalSubtitle: String,
+    @Deprecated("Usa summary", ReplaceWith("summary"))
     val description: String,
     val requiredEquipment: Set<String>,
     val supportedFrequencies: IntRange,
+    /**
+     * Nivel base: el menor de [levels]. El planner lo usa hoy para ordenar; las
+     * familias nativas históricas conservan el suyo aunque [levels] sea «todos»
+     * (el orden del planner no cambia hasta C.P3).
+     */
     val level: CatalogLevel,
     val duration: CatalogDuration,
     val supportedFocuses: Set<TrainingFocus>,
@@ -87,7 +102,38 @@ data class CatalogEntry(
      * `schedulesCardio`) hasta que el consumidor migre.
      */
     val capabilities: Set<TrainingCapability> = emptySet(),
+    /**
+     * Ficha editorial única (texto de usuario, orden, niveles, atribución): sale
+     * de [PlanEditorialTable]. El valor por defecto se deriva de los alias para
+     * que quien construye la entrada a mano (fixtures) siga compilando.
+     */
+    val editorial: PlanEditorial = PlanEditorial(
+        displayName = title,
+        summary = description,
+        origin = PlanOrigin.KPKN,
+        rank = 10_000,
+        levels = setOf(level),
+    ),
+    /** Semanas del ciclo (1 en las semanas que se repiten); null si la entrada se construyó a mano. */
+    val durationWeeks: Int? = null,
 ) {
+    val displayName: String get() = editorial.displayName
+    val shortName: String get() = editorial.shortName
+    val summary: String get() = editorial.summary
+    val kind: PlanKind get() = editorial.kind
+    val origin: PlanOrigin get() = editorial.origin
+    val rank: Int get() = editorial.rank
+    val levels: Set<CatalogLevel> get() = editorial.levels
+    val attributionLine: String? get() = editorial.attributionLine
+    val notes: List<String> get() = editorial.notes
+    val listed: Boolean get() = editorial.listed
+
+    /**
+     * Términos del glosario: los editoriales más los que se deducen de la receta
+     * (la de la propia entrada o, en las plantillas, la de la plantilla).
+     */
+    val terms: Set<PlanTerm> get() = editorial.terms + derivedTerms(recipe ?: template?.recipe)
+
     val classification: CatalogClassification
         get() = if (template?.type == ProgramStructure.COMPLEX || (recipe?.distinctBlockCount ?: 1) > 1) CatalogClassification.ADVANCED else CatalogClassification.SIMPLE
 
@@ -99,34 +145,37 @@ data class CatalogEntry(
 object PersonalizedPlanCatalog {
     const val REVISION = "native-cycle-1"
 
-    private data class NativeSpec(val id: String, val title: String, val description: String, val frequencies: IntRange, val equipment: Set<String>, val level: CatalogLevel = CatalogLevel.BEGINNER)
+    // Los textos de las ocho familias históricas viven en PlanEditorialTable;
+    // aquí solo quedan días, material y nivel base.
+    private data class NativeSpec(val id: String, val frequencies: IntRange, val equipment: Set<String>, val level: CatalogLevel = CatalogLevel.BEGINNER)
     private val nativeSpecs = listOf(
-        NativeSpec("full-body", "Empieza con todo el cuerpo", "Trabaja los principales grupos musculares en una semana que puedes repetir. Ajustamos la dosis a tu experiencia y al tiempo disponible.", 2..3, setOf("general_gym")),
-        NativeSpec("gym-muscle", "Construye músculo en el gimnasio", "Reparte el trabajo de torso y piernas y da prioridad a la zona que quieras desarrollar, sin abandonar el resto del cuerpo.", 3..6, setOf("general_gym"), CatalogLevel.INTERMEDIATE),
-        NativeSpec("machine-muscle", "Construye músculo con máquinas", "Una semana de movimientos guiados. Solo utilizamos máquinas; no añadimos barras, mancuernas o poleas que no hayas elegido.", 2..4, setOf("machine")),
-        NativeSpec("home-training", "Entrena en casa sin gimnasio", "Aprovecha tus bandas, mancuernas y peso corporal. Te indicamos si falta material para cubrir algún movimiento, sin sustituirlo a escondidas.", 2..4, setOf("bodyweight")),
-        NativeSpec("bodyweight", "Domina tu peso corporal", "Organiza fuerza con tu propio peso. Las variantes de tracción necesitan una barra o apoyo estable y experiencia previa.", 2..4, setOf("bodyweight", "support", "pull_up_bar"), CatalogLevel.INTERMEDIATE),
-        NativeSpec("strength-cardio", "Fuerza y resistencia", "Combina series de fuerza con cardio de intensidad moderada. La vista previa reserva tiempo para ambas partes.", 1..6, setOf("general_gym")),
-        NativeSpec("return-training", "Vuelve a entrenar", "Retoma la constancia con una entrada conservadora. Empezamos por una dosis manejable, no por el máximo volumen.", 2..3, setOf("general_gym")),
-        NativeSpec("one-day", "Aprovecha un solo día", "Una sesión equilibrada cuando tu semana deja poco espacio. Priorizamos lo posible sin prometer la frecuencia de un plan de varios días.", 1..1, setOf("general_gym")),
+        NativeSpec("full-body", 2..3, setOf("general_gym")),
+        NativeSpec("gym-muscle", 3..6, setOf("general_gym"), CatalogLevel.INTERMEDIATE),
+        NativeSpec("machine-muscle", 2..4, setOf("machine")),
+        NativeSpec("home-training", 2..4, setOf("bodyweight")),
+        NativeSpec("bodyweight", 2..4, setOf("bodyweight", "support", "pull_up_bar"), CatalogLevel.INTERMEDIATE),
+        NativeSpec("strength-cardio", 1..6, setOf("general_gym")),
+        NativeSpec("return-training", 2..3, setOf("general_gym")),
+        NativeSpec("one-day", 1..1, setOf("general_gym")),
     )
 
-    private fun nativeEntry(spec: NativeSpec) = CatalogEntry(
-        id = "native:${spec.id}", source = CatalogSource.NATIVE, sourceId = spec.id,
-        title = spec.title,
-        technicalSubtitle = "Semana cíclica · " + if (spec.frequencies.first == spec.frequencies.last) {
-            SpanishPlurals.days(spec.frequencies.first)
-        } else {
-            "${spec.frequencies.first}–${spec.frequencies.last} días"
-        },
-        description = spec.description, requiredEquipment = spec.equipment,
-        supportedFrequencies = spec.frequencies, level = spec.level, duration = CatalogDuration.REPEATING_WEEK,
-        supportedFocuses = TrainingFocus.entries.toSet(), adaptation = AdaptationPolicy.CURATED_WEEKLY,
-        publication = PublicationState.PUBLISHED, sourceAuthor = "KPKN", sourceRevision = REVISION,
-        // SimpleCyclePersonalizer generates hypertrophy cycles; they are never
-        // relabelled as another discipline.
-        references = setOf(TrainingReference.HYPERTROPHY),
-    )
+    private fun nativeEntry(spec: NativeSpec): CatalogEntry {
+        val id = "native:${spec.id}"
+        val editorial = PlanEditorialTable.forId(id)
+        return CatalogEntry(
+            id = id, source = CatalogSource.NATIVE, sourceId = spec.id,
+            title = editorial.displayName,
+            technicalSubtitle = PlanLabels.subtitle(CatalogDuration.REPEATING_WEEK, 1, editorial.levels),
+            description = editorial.summary, requiredEquipment = spec.equipment,
+            supportedFrequencies = spec.frequencies, level = spec.level, duration = CatalogDuration.REPEATING_WEEK,
+            supportedFocuses = TrainingFocus.entries.toSet(), adaptation = AdaptationPolicy.CURATED_WEEKLY,
+            publication = PublicationState.PUBLISHED, sourceAuthor = "KPKN", sourceRevision = REVISION,
+            // SimpleCyclePersonalizer generates hypertrophy cycles; they are never
+            // relabelled as another discipline.
+            references = setOf(TrainingReference.HYPERTROPHY),
+            editorial = editorial, durationWeeks = 1,
+        )
+    }
 
     // ─── Cuatro perfiles propios §11.1 (paquete F, T-004a) ──────────────────
 
@@ -170,13 +219,14 @@ object PersonalizedPlanCatalog {
      */
     private fun ownProfileEntry(spec: OwnProfileEntry): CatalogEntry {
         val kind = spec.kind
+        val editorial = PlanEditorialTable.forId(kind.entryId)
         return CatalogEntry(
             id = kind.entryId,
             source = CatalogSource.NATIVE,
             sourceId = kind.sourceId,
-            title = kind.title,
-            technicalSubtitle = "Ciclo de ${NativeWeekBuilder.WEEKS} semanas · 1–6 días",
-            description = kind.description,
+            title = editorial.displayName,
+            technicalSubtitle = PlanLabels.subtitle(CatalogDuration.FINITE_CYCLE, NativeWeekBuilder.WEEKS, editorial.levels),
+            description = editorial.summary,
             // Metadata gruesa: el material real se decide en el motor (§11.1).
             requiredEquipment = setOf("general_gym"),
             supportedFrequencies = 1..6,
@@ -189,6 +239,8 @@ object PersonalizedPlanCatalog {
             sourceRevision = REVISION,
             references = spec.references,
             capabilities = spec.capabilities,
+            editorial = editorial,
+            durationWeeks = NativeWeekBuilder.WEEKS,
         )
     }
 
@@ -221,15 +273,23 @@ object PersonalizedPlanCatalog {
         return fromTags.ifEmpty { recipeReferences(protocol.recipe) }
     }
 
-    private val friendlyMethods = mapOf(
-        "gzclp" to "Gana fuerza paso a paso",
-        "wendler-531-bbb" to "Fuerza y músculo por ciclos",
-        "texas-method" to "Alterna volumen, recuperación e intensidad",
-        "smolov-jr" to "Especializa tu fuerza con alta frecuencia",
-        "kpkn-native-sbd-4" to "Mejora tus tres levantamientos",
-        "phul" to "Combina días de fuerza y músculo",
-        "phat" to "Reparte potencia e hipertrofia",
-    )
+    /** Nivel declarado por una receta («principiante», «intermedio», «avanzado»); null si no lo declara. */
+    private fun claimedCatalogLevel(claimedLevel: String?): CatalogLevel? = when (claimedLevel?.trim()?.lowercase()) {
+        "principiante", "beginner" -> CatalogLevel.BEGINNER
+        "intermedio", "intermediate" -> CatalogLevel.INTERMEDIATE
+        "avanzado", "advanced" -> CatalogLevel.ADVANCED
+        else -> null
+    }
+
+    /**
+     * Duración de una receta fija: una semana que se repite, un ciclo de varias
+     * semanas que se repite, o un ciclo finito que termina.
+     */
+    private fun recipeDuration(recipe: TrainingPlanRecipe): CatalogDuration = when {
+        recipe.repeats && recipe.weeks.size == 1 -> CatalogDuration.REPEATING_WEEK
+        recipe.repeats && recipe.weeks.size > 1 -> CatalogDuration.REPEATING_CYCLE
+        else -> CatalogDuration.FINITE_CYCLE
+    }
 
     // ─── Entradas autoradas §10.1 (paquete E) ────────────────────────────────
 
@@ -278,42 +338,45 @@ object PersonalizedPlanCatalog {
     private fun authoredEntry(
         id: String,
         sourceId: String,
-        title: String,
-        technicalSubtitle: String,
-        description: String,
         level: CatalogLevel,
         frequency: Int,
         sourceRevision: String,
         source: AuthoredSourceRecord,
         recipe: TrainingPlanRecipe,
-        adapted: Boolean,
-    ): CatalogEntry = CatalogEntry(
-        id = id,
-        source = CatalogSource.PROTOCOL,
-        sourceId = sourceId,
-        title = title,
-        technicalSubtitle = technicalSubtitle,
-        description = description,
-        // Metadata gruesa de receta fija (§4 E-102): el material real se
-        // verifica en la guardia de materialización, nunca en este filtro.
-        requiredEquipment = setOf("general_gym"),
-        supportedFrequencies = frequency..frequency,
-        level = level,
-        duration = CatalogDuration.FINITE_CYCLE,
-        supportedFocuses = setOf(TrainingFocus.FULL_BODY),
-        adaptation = AdaptationPolicy.FIXED_PRESCRIPTION,
-        publication = PublicationState.PUBLISHED,
-        sourceAuthor = source.author,
-        sourceUrl = source.sourceUrl,
-        sourceRevision = sourceRevision,
-        disclaimer = "No afiliado a ${source.author}",
-        recipe = recipe,
-        // PHUL/PHAT son powerbuilding real con días de hipertrofia: se ofrecen
-        // en Fuerza y músculo y en Músculo; nunca como powerlifting (§11.1).
-        references = setOf(TrainingReference.POWERBUILDING, TrainingReference.HYPERTROPHY),
-        provenance = recipe.provenance,
-        authoredSource = source,
-    )
+    ): CatalogEntry {
+        val editorial = PlanEditorialTable.forId(id)
+        val duration = recipeDuration(recipe)
+        val weeks = recipe.weeks.size
+        return CatalogEntry(
+            id = id,
+            source = CatalogSource.PROTOCOL,
+            sourceId = sourceId,
+            title = editorial.displayName,
+            technicalSubtitle = PlanLabels.subtitle(duration, weeks, editorial.levels),
+            description = editorial.summary,
+            // Metadata gruesa de receta fija (§4 E-102): el material real se
+            // verifica en la guardia de materialización, nunca en este filtro.
+            requiredEquipment = setOf("general_gym"),
+            supportedFrequencies = frequency..frequency,
+            level = level,
+            duration = duration,
+            supportedFocuses = setOf(TrainingFocus.FULL_BODY),
+            adaptation = AdaptationPolicy.FIXED_PRESCRIPTION,
+            publication = PublicationState.PUBLISHED,
+            sourceAuthor = source.author,
+            sourceUrl = source.sourceUrl,
+            sourceRevision = sourceRevision,
+            disclaimer = "No afiliado a ${source.author}",
+            recipe = recipe,
+            // PHUL/PHAT son powerbuilding real con días de hipertrofia: se ofrecen
+            // en Fuerza y músculo y en Músculo; nunca como powerlifting (§11.1).
+            references = setOf(TrainingReference.POWERBUILDING, TrainingReference.HYPERTROPHY),
+            provenance = recipe.provenance,
+            authoredSource = source,
+            editorial = editorial,
+            durationWeeks = weeks,
+        )
+    }
 
     private val authoredEntriesLazy: List<CatalogEntry> by lazy {
         val phul = AuthoredSources.phul
@@ -322,115 +385,114 @@ object PersonalizedPlanCatalog {
             authoredEntry(
                 id = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID,
                 sourceId = "phul-ms-2021-r1",
-                title = "PHUL original",
-                technicalSubtitle = "Original fiel · 4 días · 12 semanas · M&S 2021",
-                description = "PHUL de Brandon Campbell tal y como se publica en Muscle & Strength: " +
-                    "cuatro días de fuerza e hipertrofia durante doce semanas, con los rangos del autor, " +
-                    "esfuerzo con reserva y sin porcentajes. Requiere barra, rack, banco, polea y máquinas.",
                 level = CatalogLevel.INTERMEDIATE,
                 frequency = 4,
                 sourceRevision = "M&S 2021 receta r1",
                 source = phul,
                 recipe = AuthoredPhulPhatRecipes.phulOriginal,
-                adapted = false,
             ),
             authoredEntry(
                 id = AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID,
                 sourceId = "phat-biolayne-2016-r1",
-                title = "PHAT original",
-                technicalSubtitle = "Original fiel · 5 días · 6 semanas · Biolayne 2016",
-                description = "PHAT de Layne Norton tal y como se publica en Biolayne (2016): cinco días " +
-                    "con tres bloques de velocidad al 65 % de tu carga habitual de 3–5 repeticiones, para " +
-                    "atletas acostumbrados a la alta frecuencia. Nivel avanzado; seis semanas de carga.",
                 level = CatalogLevel.ADVANCED,
                 frequency = 5,
                 sourceRevision = "Biolayne 2016 receta r1",
                 source = phat,
                 recipe = AuthoredPhulPhatRecipes.phatOriginal,
-                adapted = false,
             ),
             authoredEntry(
                 id = AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID,
                 sourceId = "phul-kpkn-r1",
-                title = "PHUL adaptado KPKN",
-                technicalSubtitle = "Adaptación KPKN · 4 días · 12 semanas",
-                description = "El mismo PHUL de cuatro días con las tablas de origen intactas y " +
-                    "sustituciones curadas slot a slot cuando falta material. Conserva días y dosis; " +
-                    "si algo no puede sustituirse se explica, nunca se recorta en silencio.",
                 level = CatalogLevel.INTERMEDIATE,
                 frequency = 4,
                 sourceRevision = "M&S 2021 receta r1 · adaptación KPKN r1",
                 source = phul,
                 recipe = AuthoredPhulPhatRecipes.phulAdapted,
-                adapted = true,
             ),
             authoredEntry(
                 id = AuthoredPhulPhatRecipes.PHAT_ADAPTED_ID,
                 sourceId = "phat-kpkn-r1",
-                title = "PHAT adaptado KPKN",
-                technicalSubtitle = "Adaptación KPKN · 5 días · 6 semanas",
-                description = "El mismo PHAT de cinco días con las tablas de origen intactas y " +
-                    "sustituciones curadas slot a slot. Si el presupuesto de tiempo no admite el volumen " +
-                    "se ofrece el plan propio de fuerza y músculo, nunca un PHAT recortado en silencio.",
                 level = CatalogLevel.ADVANCED,
                 frequency = 5,
                 sourceRevision = "Biolayne 2016 receta r1 · adaptación KPKN r1",
                 source = phat,
                 recipe = AuthoredPhulPhatRecipes.phatAdapted,
-                adapted = true,
             ),
         )
     }
 
     fun entries(): List<CatalogEntry> {
         val templates = PROGRAM_TEMPLATES.map { template ->
+            val id = "template:${template.id}"
+            val editorial = PlanEditorialTable.forId(id)
             val days = template.recipe?.daysPerWeek?.takeIf { it > 0 }
+            val duration = if (template.weeks == 1) CatalogDuration.REPEATING_WEEK else CatalogDuration.FINITE_CYCLE
             CatalogEntry(
-                id = "template:${template.id}", source = CatalogSource.TEMPLATE, sourceId = template.id,
-                title = when (template.id) {
-                    "simple-1" -> "Tu semana de entrenamiento"
-                    "simple-ab" -> "Alterna dos semanas"
-                    "simple-4" -> "Organiza cuatro semanas"
-                    else -> template.name
-                },
-                technicalSubtitle = "${SpanishPlurals.weeks(template.weeks)} · " +
-                    if (template.type == ProgramStructure.SIMPLE) "una fase" else SpanishPlurals.blocks(template.blockNames.size),
-                description = template.description, requiredEquipment = setOf("general_gym"),
+                id = id, source = CatalogSource.TEMPLATE, sourceId = template.id,
+                title = editorial.displayName,
+                technicalSubtitle = PlanLabels.subtitle(duration, template.weeks, editorial.levels),
+                description = editorial.summary, requiredEquipment = setOf("general_gym"),
                 supportedFrequencies = days?.let { it..it } ?: (1..6),
-                level = if (template.type == ProgramStructure.SIMPLE) CatalogLevel.BEGINNER else CatalogLevel.ADVANCED,
-                duration = if (template.weeks == 1) CatalogDuration.REPEATING_WEEK else CatalogDuration.FINITE_CYCLE,
+                // El nivel de una plantilla compleja sale de su receta (claimedLevel);
+                // las plantillas simples (sin receta) valen para cualquier nivel.
+                level = claimedCatalogLevel(template.recipe?.claimedLevel)
+                    ?: if (template.type == ProgramStructure.SIMPLE) CatalogLevel.BEGINNER else CatalogLevel.ADVANCED,
+                duration = duration,
                 supportedFocuses = setOf(TrainingFocus.FULL_BODY), adaptation = AdaptationPolicy.FIXED_PRESCRIPTION,
                 publication = PublicationState.PUBLISHED, template = template, sourceAuthor = "KPKN",
                 references = templateReferences(template),
+                editorial = editorial, durationWeeks = template.weeks,
             )
         }
         val protocols = PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }.map { protocol ->
+            val id = "protocol:${protocol.id}"
+            val editorial = PlanEditorialTable.forId(id)
             val weeks = protocol.recipe!!.weeks.size
             val days = protocol.recipe.daysPerWeek
+            val duration = recipeDuration(protocol.recipe)
             CatalogEntry(
-                id = "protocol:${protocol.id}", source = CatalogSource.PROTOCOL, sourceId = protocol.id,
-                title = friendlyMethods[protocol.id] ?: "Progresa con ${protocol.name}",
-                technicalSubtitle = "${protocol.name} · ${SpanishPlurals.days(days)} · " +
-                    if (protocol.recipe.repeats) "ciclo de ${SpanishPlurals.weeks(weeks)}" else SpanishPlurals.weeks(weeks),
-                description = "Una planificación de ${SpanishPlurals.days(days)} por semana con una progresión definida. Conservamos el orden y las dosis del método; puedes revisar requisitos y detalle técnico antes de elegirlo.",
+                id = id, source = CatalogSource.PROTOCOL, sourceId = protocol.id,
+                title = editorial.displayName,
+                technicalSubtitle = PlanLabels.subtitle(duration, weeks, editorial.levels),
+                description = editorial.summary,
                 requiredEquipment = setOf("general_gym"), supportedFrequencies = days..days,
-                level = when (protocol.fidelitySpec?.claimedLevel?.lowercase()) {
-                    "principiante", "beginner" -> CatalogLevel.BEGINNER
-                    "avanzado", "advanced" -> CatalogLevel.ADVANCED
-                    else -> CatalogLevel.INTERMEDIATE
-                },
-                duration = if (weeks == 1 && protocol.recipe.repeats) CatalogDuration.REPEATING_WEEK else CatalogDuration.FINITE_CYCLE,
+                level = claimedCatalogLevel(protocol.fidelitySpec?.claimedLevel) ?: CatalogLevel.INTERMEDIATE,
+                duration = duration,
                 supportedFocuses = setOf(TrainingFocus.FULL_BODY), adaptation = AdaptationPolicy.FIXED_PRESCRIPTION,
                 publication = PublicationState.PUBLISHED, sourceAuthor = protocol.author,
                 sourceUrl = protocol.source.primaryUrl, sourceRevision = protocol.source.revision ?: protocol.source.catalogRevision,
                 disclaimer = protocol.source.disclaimer, recipe = protocol.recipe,
                 references = protocolReferences(protocol),
+                editorial = editorial, durationWeeks = weeks,
             )
         }
         return nativeSpecs.map(::nativeEntry) + ownProfileEntries.map(::ownProfileEntry) + templates + protocols + authoredEntriesLazy
     }
 
     fun find(id: String): CatalogEntry? = entries().firstOrNull { it.id == id }
+
+    /**
+     * Entrada del catálogo a la que pertenece un programa ya creado, o null si
+     * el programa no viene del catálogo (creado a mano o de una versión que ya
+     * no existe). Se prueba, en este orden, y gana la primera que resuelve:
+     *
+     * 1. `planProvenance.planId`: el id publicado exacto de los planes de autor.
+     * 2. `structureTemplateId`: el id de la entrada (`native:...`, planes de autor)
+     *    o el id desnudo de la receta o plantilla (`texas-method-3d`, `power-12-3`),
+     *    que los motores rellenan con `recipe.id` o `template.id`.
+     * 3. `sourceProtocolId`: el id desnudo del protocolo o de la plantilla.
+     *
+     * Un id desnudo se busca con los prefijos `protocol:`, `template:` y `native:`.
+     */
+    fun findForProgram(program: Program): CatalogEntry? {
+        val all = entries()
+        fun byId(id: String): CatalogEntry? = all.firstOrNull { it.id == id }
+        fun byAnyId(id: String): CatalogEntry? =
+            byId(id) ?: byId("protocol:$id") ?: byId("template:$id") ?: byId("native:$id")
+        return program.planProvenance?.planId?.let(::byId)
+            ?: program.structureTemplateId?.let(::byAnyId)
+            ?: program.sourceProtocolId?.let(::byAnyId)
+    }
 
     fun classify(source: CatalogSource, structure: ProgramStructure, blockCount: Int, mesocycleCount: Int, repeats: Boolean, weeksDiffer: Boolean): CatalogClassification =
         if (blockCount > 1 || mesocycleCount > 1) CatalogClassification.ADVANCED else CatalogClassification.SIMPLE

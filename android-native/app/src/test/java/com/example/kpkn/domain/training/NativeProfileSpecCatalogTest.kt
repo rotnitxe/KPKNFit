@@ -59,6 +59,11 @@ class NativeProfileSpecCatalogTest {
             assertEquals("${entry.id} frecuencias", 1..6, entry.supportedFrequencies)
             assertEquals("${entry.id} duración", CatalogDuration.FINITE_CYCLE, entry.duration)
             assertEquals("${entry.id} nivel base", CatalogLevel.BEGINNER, entry.level)
+            assertEquals(
+                "${entry.id} niveles",
+                setOf(CatalogLevel.BEGINNER, CatalogLevel.INTERMEDIATE, CatalogLevel.ADVANCED),
+                entry.levels,
+            )
             assertTrue("${entry.id} sin título", entry.title.isNotBlank())
             assertTrue("${entry.id} sin descripción", entry.description.isNotBlank())
         }

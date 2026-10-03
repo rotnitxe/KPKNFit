@@ -106,11 +106,13 @@ fun CreateProgramTemplateSheet(
                 selected = when (durationFilter) {
                     null -> "Todas"
                     CatalogDuration.REPEATING_WEEK -> "Semana repetible"
+                    CatalogDuration.REPEATING_CYCLE -> "Ciclo repetible"
                     CatalogDuration.FINITE_CYCLE -> "Ciclo finito"
                 },
                 onSelect = { label ->
                     durationFilter = when (label) {
                         "Semana repetible" -> CatalogDuration.REPEATING_WEEK
+                        "Ciclo repetible" -> CatalogDuration.REPEATING_CYCLE
                         "Ciclo finito" -> CatalogDuration.FINITE_CYCLE
                         else -> null
                     }
@@ -265,5 +267,6 @@ private fun frequencyLabel(entry: CatalogEntry): String = when {
 
 private fun durationLabel(entry: CatalogEntry): String = when (entry.duration) {
     CatalogDuration.REPEATING_WEEK -> "Semana repetible"
+    CatalogDuration.REPEATING_CYCLE -> "Ciclo repetible"
     CatalogDuration.FINITE_CYCLE -> "Ciclo finito"
 }

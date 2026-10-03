@@ -1,10 +1,12 @@
 package com.example.kpkn.data.programs
 
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.VolumeRecommendation
 import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.data.protocols.PlanProvenance
 import com.example.kpkn.data.protocols.PlanProvenanceClass
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.protocols.SlotRole
@@ -238,14 +240,15 @@ class PersonalizedPlanCatalogTest {
         assertEquals(4, phul.supportedFrequencies.first)
         assertEquals(12, phul.recipe!!.weeks.size)
         assertEquals(CatalogLevel.INTERMEDIATE, phul.level)
-        assertEquals(CatalogDuration.FINITE_CYCLE, phul.duration)
+        // PHUL original: receta con repeats = true y 12 semanas, es un ciclo que se repite.
+        assertEquals(CatalogDuration.REPEATING_CYCLE, phul.duration)
         assertEquals(PublicationState.PUBLISHED, phul.publication)
         assertEquals(PlanProvenanceClass.ORIGINAL, phul.provenance!!.category)
         val phulSource = requireNotNull(phul.authoredSource)
         assertEquals("2026-09-28", phulSource.consultedOn)
         assertTrue(phulSource.effectiveRules.isNotEmpty())
         assertTrue(phulSource.kpknDefaults.isNotEmpty())
-        assertTrue(phul.technicalSubtitle.contains("Original fiel"))
+        assertTrue(PlanLabels.provenanceLabel(phul).contains("Original fiel"))
 
         val phat = requireNotNull(PersonalizedPlanCatalog.find(AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID))
         assertEquals(5, phat.supportedFrequencies.first)
@@ -259,7 +262,7 @@ class PersonalizedPlanCatalogTest {
         assertEquals(PlanProvenanceClass.ADAPTED, adaptedPhat.provenance!!.category)
         assertEquals(AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID, adaptedPhat.provenance!!.parentId)
         assertEquals(1, adaptedPhat.provenance!!.parentRevision)
-        assertTrue(adaptedPhat.technicalSubtitle.contains("Adaptación KPKN"))
+        assertTrue(PlanLabels.provenanceLabel(adaptedPhat).contains("Adaptación KPKN"))
         // Misma tabla que su original: mismos días y oráculos de series.
         assertEquals(
             phat.recipe!!.weeks.first().days.map { day -> day.id to day.slots.size },
@@ -324,5 +327,134 @@ class PersonalizedPlanCatalogTest {
         assertTrue("PHAT original recomendable: $fiveDays", AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID in fiveDays)
         assertTrue("PHAT adaptado recomendable", AuthoredPhulPhatRecipes.PHAT_ADAPTED_ID in fiveDays)
         assertTrue("el PHAT histórico sigue disponible", "protocol:phat-verified" in fiveDays)
+    }
+
+    // ─── C.P1 · niveles de plantillas, tercera duración y findForProgram ─────
+
+    @Test
+    fun complex_templates_take_their_level_from_the_recipe_and_simple_ones_serve_every_level() {
+        val expected = mapOf(
+            "template:power-12-3" to CatalogLevel.BEGINNER,
+            "template:power-16-4" to CatalogLevel.INTERMEDIATE,
+            "template:power-20-5" to CatalogLevel.ADVANCED,
+            "template:powerbuild-16-4" to CatalogLevel.ADVANCED,
+            "template:body-12-3" to CatalogLevel.INTERMEDIATE,
+            "template:body-16-4" to CatalogLevel.ADVANCED,
+            "template:body-20-5" to CatalogLevel.ADVANCED,
+        )
+        expected.forEach { (id, level) ->
+            val entry = requireNotNull(PersonalizedPlanCatalog.find(id)) { "falta $id" }
+            assertEquals("$id nivel base", level, entry.level)
+            assertEquals("$id niveles", setOf(level), entry.levels)
+        }
+        listOf("template:simple-1", "template:simple-ab", "template:simple-4").forEach { id ->
+            val entry = requireNotNull(PersonalizedPlanCatalog.find(id)) { "falta $id" }
+            assertEquals("$id nivel base", CatalogLevel.BEGINNER, entry.level)
+            assertEquals("$id niveles", CatalogLevel.entries.toSet(), entry.levels)
+        }
+    }
+
+    @Test
+    fun recipes_that_repeat_over_several_weeks_are_a_repeating_cycle() {
+        listOf(
+            "protocol:texas-method-3d",
+            "protocol:texas-method-4d",
+            "protocol:wendler-531-bbb",
+            "protocol:wendler-531-fsl",
+            "protocol:madcow-5x5",
+            "protocol:nsuns-531-lp-4d",
+            "protocol:gzclp",
+            "protocol:westside-conjugate",
+            "protocol:phul-verified",
+            "protocol:phat-verified",
+            AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID,
+        ).forEach { id ->
+            val entry = requireNotNull(PersonalizedPlanCatalog.find(id)) { "falta $id" }
+            val weeks = entry.recipe!!.weeks.size
+            assertEquals("$id duración", CatalogDuration.REPEATING_CYCLE, entry.duration)
+            assertEquals("$id semanas", weeks, entry.durationWeeks)
+            assertEquals("$id etiqueta", "Ciclo de $weeks semanas que se repite", PlanLabels.durationLabel(entry.duration, weeks))
+        }
+    }
+
+    @Test
+    fun finite_recipes_stay_finite_and_a_week_that_repeats_stays_a_week() {
+        listOf(
+            "protocol:calgary-16",
+            "protocol:smolov",
+            "protocol:coan-phillipi-dl",
+            "template:power-12-3",
+            AuthoredPhulPhatRecipes.PHAT_ORIGINAL_ID,
+        ).forEach { id ->
+            assertEquals(id, CatalogDuration.FINITE_CYCLE, requireNotNull(PersonalizedPlanCatalog.find(id)).duration)
+        }
+        listOf("native:machine-muscle", "native:one-day", "template:simple-1").forEach { id ->
+            assertEquals(id, CatalogDuration.REPEATING_WEEK, requireNotNull(PersonalizedPlanCatalog.find(id)).duration)
+        }
+    }
+
+    private fun programOf(
+        structureTemplateId: String? = null,
+        sourceProtocolId: String? = null,
+        planId: String? = null,
+    ) = Program(
+        id = "programa-de-prueba",
+        name = "Programa de prueba",
+        structureTemplateId = structureTemplateId,
+        sourceProtocolId = sourceProtocolId,
+        planProvenance = planId?.let { PlanProvenance(planId = it) },
+    )
+
+    @Test
+    fun findForProgram_resolves_native_template_protocol_and_authored_programs() {
+        fun resolve(program: Program) = PersonalizedPlanCatalog.findForProgram(program)?.id
+        // Nativo: el personalizador guarda el id completo de la entrada.
+        assertEquals("native:machine-muscle", resolve(programOf(structureTemplateId = "native:machine-muscle")))
+        assertEquals("native:muscle-foundation-v2", resolve(programOf(structureTemplateId = "native:muscle-foundation-v2")))
+        // Plantilla: los motores guardan el id desnudo de la plantilla.
+        assertEquals("template:power-12-3", resolve(programOf(structureTemplateId = "power-12-3", sourceProtocolId = "power-12-3")))
+        assertEquals("template:simple-1", resolve(programOf(structureTemplateId = "simple-1")))
+        // Protocolo: id desnudo de la receta y del protocolo, o solo el del protocolo.
+        assertEquals(
+            "protocol:texas-method-3d",
+            resolve(programOf(structureTemplateId = "texas-method-3d", sourceProtocolId = "texas-method-3d")),
+        )
+        assertEquals("protocol:gzclp", resolve(programOf(sourceProtocolId = "gzclp")))
+        // Autoradas: la procedencia declarada o el id de la entrada.
+        assertEquals(
+            AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID,
+            resolve(programOf(planId = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID)),
+        )
+        assertEquals(
+            AuthoredPhulPhatRecipes.PHAT_ADAPTED_ID,
+            resolve(programOf(structureTemplateId = AuthoredPhulPhatRecipes.PHAT_ADAPTED_ID)),
+        )
+    }
+
+    @Test
+    fun findForProgram_prefers_the_declared_provenance_and_returns_null_without_a_match() {
+        assertEquals(
+            AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID,
+            PersonalizedPlanCatalog.findForProgram(
+                programOf(planId = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID, structureTemplateId = "native:machine-muscle"),
+            )?.id,
+        )
+        assertNull(PersonalizedPlanCatalog.findForProgram(programOf()))
+        assertNull(PersonalizedPlanCatalog.findForProgram(programOf(structureTemplateId = "no-existe", sourceProtocolId = "tampoco")))
+    }
+
+    @Test
+    fun findForProgram_resolves_every_entry_from_the_ids_the_engines_store() {
+        PersonalizedPlanCatalog.entries().filter { it.source == CatalogSource.NATIVE }.forEach { entry ->
+            assertEquals(entry.id, PersonalizedPlanCatalog.findForProgram(programOf(structureTemplateId = entry.id))?.id)
+        }
+        PROGRAM_TEMPLATES.forEach { template ->
+            val program = programOf(structureTemplateId = template.id, sourceProtocolId = template.id)
+            assertEquals("template:${template.id}", PersonalizedPlanCatalog.findForProgram(program)?.id)
+        }
+        PROTOCOL_LIBRARY.filter { it.isVisibleForApplication }.forEach { protocol ->
+            val program = programOf(structureTemplateId = protocol.recipe!!.id, sourceProtocolId = protocol.id)
+            assertEquals("protocol:${protocol.id}", PersonalizedPlanCatalog.findForProgram(program)?.id)
+        }
     }
 }

@@ -31,45 +31,29 @@ import kotlin.math.ceil
 enum class NativeProfileKind(
     val entryId: String,
     val sourceId: String,
-    val title: String,
-    val description: String,
     /** Composición de §14.3. */
     val compositionProfile: RecipeCompositionProfile,
 ) {
+    // El título y la descripción de cada perfil viven en PlanEditorialTable
+    // (`com.example.kpkn.data.programs`): este enum solo lleva identidad y composición.
     STRENGTH(
         entryId = "native:strength-foundation-v2",
         sourceId = "strength-foundation",
-        title = "Fuerza KPKN",
-        description = "Sentadilla, banca y peso muerto con barra todas las semanas: técnica de " +
-            "competición, fuerza submáxima y progresión propia durante seis semanas con descarga. " +
-            "Requiere barra y carga, rack y banco confirmados.",
         compositionProfile = RecipeCompositionProfile.NATIVE_COMPACT,
     ),
     MUSCLE(
         entryId = "native:muscle-foundation-v2",
         sourceId = "muscle-foundation",
-        title = "Músculo KPKN",
-        description = "Trabajo muscular con rangos, esfuerzo con reserva y seis semanas con " +
-            "descarga. Compatible con mancuernas, bandas o solo peso corporal; sin material de " +
-            "tirón se declara la limitación de espalda en lugar de inventar series.",
         compositionProfile = RecipeCompositionProfile.NATIVE_COMPACT,
     ),
     POWERBUILDING(
         entryId = "native:powerbuilding-foundation-v2",
         sourceId = "powerbuilding-foundation",
-        title = "Fuerza y músculo KPKN",
-        description = "Principales de pocas reps más trabajo muscular durante seis semanas con " +
-            "descarga. Con barra trabaja sentadilla, banca y peso muerto; sin barra se etiqueta " +
-            "como adaptación de movimientos de fuerza con mancuernas, no como preparación SBD.",
         compositionProfile = RecipeCompositionProfile.NATIVE_COMPACT,
     ),
     COMPLETE_ATHLETE(
         entryId = "native:complete-athlete-v2",
         sourceId = "complete-athlete",
-        title = "Atleta completo KPKN",
-        description = "Semana con dosis de fuerza, músculo, potencia y cardio dosificadas por " +
-            "separado. La fuerza puede ser relativa con el peso corporal; la potencia usa " +
-            "ejecución rápida real, no series pesadas retituladas.",
         compositionProfile = RecipeCompositionProfile.MIXED_CARDIO,
     ),
     ;

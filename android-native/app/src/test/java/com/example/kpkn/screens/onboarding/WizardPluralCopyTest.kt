@@ -3,6 +3,7 @@ package com.example.kpkn.screens.onboarding
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.PlanLabels
 import com.example.kpkn.domain.onboarding.SetupStepId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -117,16 +118,19 @@ class WizardPluralCopyTest {
     // ─── Catálogo de planes ──────────────────────────────────────────────────
 
     @Test
-    fun nativeSubtitleSaysOneDayForTheOneDayPlanAndKeepsRanges() {
-        assertEquals("Semana cíclica · 1 día", entry("native:one-day").technicalSubtitle)
+    fun nativeSubtitleDropsTheDaysAndTheFrequencyLabelKeepsTheSingularAndTheRanges() {
+        // El subtítulo es «{duración} · {nivel}»: los días van en el motivo y en la línea de metadatos.
+        assertEquals("Semana que se repite · Todos los niveles", entry("native:one-day").technicalSubtitle)
+        assertEquals("Semana que se repite · Todos los niveles", entry("native:full-body").technicalSubtitle)
+        assertEquals("1 día por semana", PlanLabels.frequencyLabel(entry("native:one-day").supportedFrequencies))
         // Rango con raya (U+2013): siempre plural, no se toca.
-        assertEquals("Semana cíclica · 2–3 días", entry("native:full-body").technicalSubtitle)
+        assertEquals("2–3 días por semana", PlanLabels.frequencyLabel(entry("native:full-body").supportedFrequencies))
     }
 
     @Test
-    fun templateSubtitleSaysOneWeekForTheSingleWeekTemplate() {
+    fun templateSubtitleSaysOneRepeatingWeekForTheSingleWeekTemplate() {
         val simpleOne = entry("template:simple-1").technicalSubtitle
-        assertTrue("subtítulo: $simpleOne", simpleOne.startsWith("1 semana · "))
+        assertTrue("subtítulo: $simpleOne", simpleOne.startsWith("Semana que se repite · "))
         val simpleAb = entry("template:simple-ab").technicalSubtitle
         assertTrue("subtítulo: $simpleAb", simpleAb.startsWith("2 semanas · "))
     }
@@ -134,13 +138,35 @@ class WizardPluralCopyTest {
     @Test
     fun noCatalogTextEverPairsTheNumberOneWithAPluralNoun() {
         PersonalizedPlanCatalog.entries().forEach { entry ->
-            listOf(entry.title, entry.technicalSubtitle, entry.description, entry.disclaimer.orEmpty())
-                .forEach { text ->
-                    assertTrue(
-                        "${entry.id}: «$text» mezcla 1 con un sustantivo en plural",
-                        !oneWithPlural.containsMatchIn(text),
-                    )
-                }
+            listOf(
+                entry.title,
+                entry.technicalSubtitle,
+                entry.description,
+                entry.disclaimer.orEmpty(),
+                entry.displayName,
+                PlanLabels.subtitle(entry),
+                PlanLabels.metaLine(entry),
+                entry.summary,
+                entry.attributionLine.orEmpty(),
+            ).forEach { text ->
+                assertTrue(
+                    "${entry.id}: «$text» mezcla 1 con un sustantivo en plural",
+                    !oneWithPlural.containsMatchIn(text),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun noPlanRepeatsTheSameNumberOfDaysInItsNameSubtitleAndSummary() {
+        val numberOfDays = Regex("""\b(\d+) días\b""")
+        PersonalizedPlanCatalog.entries().forEach { entry ->
+            // Los dos Texas llevan los días en el nombre («Texas Method (3 días)») para distinguir
+            // las dos variantes, y su resumen los vuelve a citar: es la única repetición aprobada.
+            if (numberOfDays.containsMatchIn(entry.displayName)) return@forEach
+            val text = entry.displayName + " " + PlanLabels.subtitle(entry) + " " + entry.summary
+            val cited = numberOfDays.findAll(text).map { it.value }.toList()
+            assertEquals("${entry.id}: repite el mismo «N días»: $cited", cited.size, cited.toSet().size)
         }
     }
 
