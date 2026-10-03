@@ -188,11 +188,11 @@ class GoldenCorpusTest {
             "2 empanadas de pino",
             listOf(Expectation("empanadas de pino", quantity = 2.0)),
         ),
+        // WP-N9: "panes con palta" is the plural of a protected dish, one food counted twice (two servings of the catalog row).
         GoldenCase(
             "dos panes con palta",
             listOf(
-                Expectation("pan", quantity = 2.0),
-                Expectation("palta"),
+                Expectation("pan con palta", quantity = 2.0, grams = 240.0, intent = AmountIntent.RESOLVED_SUBJECTIVE),
             ),
         ),
 

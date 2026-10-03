@@ -94,6 +94,9 @@ object TextNormalizer {
     // ─── Common typos ─────────────────────────────────────────────────────
     // FIX NUT-01: systemic authority — Gauda/Gouda must normalize to single form,
     // otherwise OFF rows "gouda" never match query "gauda" as exact → NEEDS_REVIEW.
+    // Spelling mistakes and accent folds only. A plural is not a mistake: "papas", "porotos", "lentejas" and "garbanzos" used to be cut
+    // to the singular here, before any protected phrase was read (A-P3); FoodParser gives a bare mention its singular tag
+    // (STAPLE_SINGULARS), and a regional name is a SYNONYM_MAP entry.
     private val TYPO_MAP = mapOf(
         "poyo" to "pollo", "polllo" to "pollo", "pyo" to "pollo",
         "arros" to "arroz", "arro" to "arroz", "aros" to "arroz",
@@ -101,7 +104,7 @@ object TextNormalizer {
         "gueso" to "queso", "keso" to "queso",
         "gauda" to "gouda", "gouda" to "gouda",
         "panna" to "pana",
-        "papa" to "papa", "papas" to "papa",
+        "papa" to "papa",
         "tomate" to "tomate", "tomate" to "tomate",
         "cebolla" to "cebolla", "cebolla" to "cebolla",
         "zanahoria" to "zanahoria", "sanahoria" to "zanahoria",
@@ -111,18 +114,18 @@ object TextNormalizer {
         "lechuga" to "lechuga", "lechua" to "lechuga",
         "brocoli" to "brocoli", "brocolí" to "brocoli",
         "espinaca" to "espinaca", "espina" to "espinaca",
-        "palta" to "palta", "aguacate" to "palta",
-        "choclo" to "choclo", "maiz" to "choclo", "maíz" to "choclo",
-        "poroto" to "poroto", "porotos" to "poroto",
-        "lenteja" to "lenteja", "lentejas" to "lenteja",
-        "garbanzo" to "garbanzo", "garbanzos" to "garbanzo",
+        "palta" to "palta",
+        "choclo" to "choclo",
+        "poroto" to "poroto",
+        "lenteja" to "lenteja",
+        "garbanzo" to "garbanzo",
         "avena" to "avena", "abena" to "avena",
         "merluza" to "merluza", "merluza" to "merluza",
         "salmon" to "salmon", "salmón" to "salmon",
         "camaron" to "camaron", "camarón" to "camaron",
         "pimenton" to "pimenton", "pimentón" to "pimenton",
-        "betarraga" to "betarraga", "remolacha" to "betarraga",
-        "zapallo" to "zapallo", "calabaza" to "zapallo",
+        "betarraga" to "betarraga",
+        "zapallo" to "zapallo",
         "marraqueta" to "marraqueta",
         "hallulla" to "hallulla", "hallula" to "hallulla", "halulla" to "hallulla", "allulla" to "hallulla",
         "empanada" to "empanada", "empanada" to "empanada",
@@ -132,6 +135,21 @@ object TextNormalizer {
         "completo" to "completo",
         "chorrillana" to "chorrillana",
     )
+
+    // ─── Regional names ──────────────────────────────────────────────────────
+    // Another word for the same food, not a spelling mistake ("aguacate" is Chile's palta). A synonym replaces a word that
+    // stands on its own, never one inside a protected phrase: "tortilla de maíz" keeps its maíz (a tortilla "de choclo" is
+    // another food), and "aceite de maíz" is a catalog name. applyTypos masks the protected phrases before it gets here (WP-N9).
+    private val SYNONYM_MAP = mapOf(
+        "aguacate" to "palta", "aguacates" to "paltas",
+        "maiz" to "choclo", "maíz" to "choclo", "maices" to "choclos", "maíces" to "choclos",
+        "remolacha" to "betarraga", "remolachas" to "betarragas",
+        "calabaza" to "zapallo", "calabazas" to "zapallos",
+    )
+
+    private val SYNONYM_REGEX_LIST: List<Pair<Regex, String>> by lazy {
+        SYNONYM_MAP.map { (word, synonym) -> Regex(RegexEs.boundedLiteral(word), RegexOption.IGNORE_CASE) to synonym }
+    }
 
     // ─── English → Spanish food words + culinary jargon ─────────────────────
     private val EN_ES_MAP = mapOf(
@@ -615,7 +633,10 @@ object TextNormalizer {
     }
 
     private fun applyTypos(text: String): String {
-        var result = text
+        // A protected phrase is written as it is named: "porotos con riendas" is not "poroto con riendas" and the maíz of
+        // "tortilla de maíz" is not a choclo (A-P3). Its words leave this pass as a token and come back as typed.
+        val protectedPhrases = ProtectedPhrases.mask(text) { "\u0001PP$it\u0001" }
+        var result = protectedPhrases.text
         val placeholders = mutableListOf<String>()
         for ((regex, correction) in MULTIWORD_TYPO_REGEX_LIST) {
             result = regex.replace(result) { match ->
@@ -634,10 +655,13 @@ object TextNormalizer {
             val corrected = TYPO_MAP[stem] ?: return@replace match.value
             corrected + if (word.endsWith("es")) "es" else "s"
         }
+        for ((regex, synonym) in SYNONYM_REGEX_LIST) {
+            result = result.replace(regex, synonym)
+        }
         placeholders.forEachIndexed { index, phrase ->
             result = result.replace("\u0001PH$index\u0001", phrase)
         }
-        return result
+        return protectedPhrases.restore(result)
     }
 
     private fun applyEnglishMapping(text: String): String {

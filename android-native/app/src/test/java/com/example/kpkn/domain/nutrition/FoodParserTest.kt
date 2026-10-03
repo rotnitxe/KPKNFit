@@ -387,4 +387,99 @@ class FoodParserTest {
         assertEquals(12.1, oiled.fats, 0.1) // 0.1 + 12
         assertEquals(195.0, oiled.calories, 0.5) // 87 + 108
     }
+
+    // ─── Protected phrases are read before typos, and a mass weighs the dish (WP-N9) ─────────────
+
+    @Test
+    fun `porotos con riendas stays one dish in the plural and in the singular`() {
+        assertEquals(listOf("porotos con riendas"), parseMealDescription("porotos con riendas").items.map { it.tag })
+        assertEquals(listOf("poroto con riendas"), parseMealDescription("poroto con riendas").items.map { it.tag })
+    }
+
+    @Test
+    fun `papas con mayo is a protected dish and papas con carne is a list`() {
+        assertEquals(listOf("papas con mayo"), parseMealDescription("papas con mayo").items.map { it.tag })
+        assertEquals(listOf("papa", "carne"), parseMealDescription("papas con carne").items.map { it.tag })
+    }
+
+    @Test
+    fun `a staple keeps its singular tag and a count reads the singular of any food`() {
+        assertEquals("lenteja", parseMealDescription("lentejas").items.single().tag)
+        val two = parseMealDescription("2 garbanzos").items.single()
+        assertEquals("garbanzo", two.tag)
+        assertEquals(2.0, two.quantity, 0.01)
+    }
+
+    @Test
+    fun `a flavour pair after de is one food`() {
+        assertEquals(1, parseMealDescription("helado de vainilla y chocolate").items.size)
+        assertEquals(2, parseMealDescription("vainilla y chocolate").items.size)
+    }
+
+    @Test
+    fun `a mass in front of a named dish is shared by its parts`() {
+        val result = parseMealDescription("200 g de arroz con pollo")
+        assertEquals(listOf("arroz", "pollo"), result.items.map { it.tag })
+        assertEquals(listOf(100.0, 100.0), result.items.map { it.amountGrams })
+        assertTrue(result.items.all { it.amountIntent == AmountIntent.EXPLICIT_MASS })
+    }
+
+    // ─── A mass that closes a mention after its exclusion weighs the food (WP-N9) ───────────────
+
+    @Test
+    fun `a mass after an exclusion weighs the food it is excluded from`() {
+        val result = parseMealDescription("pechuga frita sin aceite 150 g")
+        assertEquals(listOf("pechuga", "aceite"), result.items.map { it.tag })
+        val breast = result.items[0]
+        assertEquals(150.0, breast.amountGrams ?: Double.NaN, 0.01)
+        assertEquals(AmountIntent.EXPLICIT_MASS, breast.amountIntent)
+        assertEquals(CookingMethod.FRITO, breast.cookingMethod)
+        assertEquals(setOf("aceite"), breast.excludedIngredients)
+        val oil = result.items[1]
+        assertTrue(oil.isExcluded)
+        assertEquals(AmountIntent.UNSPECIFIED, oil.amountIntent)
+        assertNull(oil.amountGrams)
+    }
+
+    @Test
+    fun `the mass after a list of exclusions weighs the food too`() {
+        val result = parseMealDescription("arroz sin sal ni azúcar 200 g")
+        assertEquals(listOf("arroz", "sal", "azúcar"), result.items.map { it.tag })
+        assertEquals(200.0, result.items[0].amountGrams ?: Double.NaN, 0.01)
+        assertEquals(setOf("sal", "azucar"), result.items[0].excludedIngredients)
+        assertTrue(result.items.drop(1).all { it.isExcluded && it.amountGrams == null })
+        assertEquals(1000.0, parseMealDescription("arroz sin sal 1 kg").items[0].amountGrams ?: Double.NaN, 0.01)
+        assertEquals(150.0, parseMealDescription("pollo, sin aceite 150 g").items[0].amountGrams ?: Double.NaN, 0.01)
+    }
+
+    @Test
+    fun `a mass in front of the food or with no food to weigh stays where it was`() {
+        val inFront = parseMealDescription("150 g de pechuga frita sin aceite")
+        assertEquals(150.0, inFront.items[0].amountGrams ?: Double.NaN, 0.01)
+        assertNull(inFront.items[1].amountGrams)
+        // The skin is a modifier of the chicken, not an exclusion: the mass was always the chicken's.
+        assertEquals(150.0, parseMealDescription("pollo sin piel 150 g").items.single().amountGrams ?: Double.NaN, 0.01)
+        // Nothing to weigh but the exclusion.
+        val onlyExclusion = parseMealDescription("sin aceite 150 g").items.single()
+        assertTrue(onlyExclusion.isExcluded)
+        assertEquals(150.0, onlyExclusion.amountGrams ?: Double.NaN, 0.01)
+    }
+
+    @Test
+    fun `the mass after an exclusion does not leak into the next mention`() {
+        val result = parseMealDescription("pechuga frita sin aceite 150 g, arroz sin sal 100 g")
+        assertEquals(listOf("pechuga", "aceite", "arroz", "sal"), result.items.map { it.tag })
+        assertEquals(listOf(150.0, null, 100.0, null), result.items.map { it.amountGrams })
+    }
+
+    // ─── The cooking word as typed (WP-N9 hands it to WP-N10: a prepared row is looked up by the literal word first) ───
+
+    @Test
+    fun `the cooking word is kept as the person typed it`() {
+        assertEquals("revueltos", parseMealDescription("huevos revueltos").items.single().cookingWord)
+        assertEquals("fritas", parseMealDescription("papas fritas").items.single().cookingWord)
+        assertEquals("a la plancha", parseMealDescription("pollo a la plancha").items.single().cookingWord)
+        assertEquals(listOf("al horno", "a la parrilla"), parseMealDescription("tomate al horno y pollo a la parrilla").items.map { it.cookingWord })
+        assertNull(parseMealDescription("papas").items.single().cookingWord)
+    }
 }

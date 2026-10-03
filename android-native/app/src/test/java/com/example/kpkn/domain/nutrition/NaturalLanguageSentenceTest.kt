@@ -128,4 +128,31 @@ class NaturalLanguageSentenceTest {
         assertEquals(1000.0, items("1 kg. de papas").single().amountGrams!!, 0.01)
         assertEquals(listOf(100.0, 50.0), items("arroz 100 g. pollo 50 g.").map { it.amountGrams })
     }
+
+    // ─── Connectors inside a name, and a mass next to a dish (WP-N9) ──────────────────────────
+
+    @Test fun aConnectorInsideACompoundNameDoesNotCutIt() {
+        assertEquals(listOf("agua con gas"), tags("agua con gas"))
+        assertEquals(listOf("agua sin gas"), tags("agua sin gas"))
+        assertTrue(items("agua sin gas").none { it.isExcluded })
+        assertEquals(listOf("helado de vainilla y chocolate"), tags("helado de vainilla y chocolate"))
+        assertEquals(listOf("porotos con riendas"), tags("porotos con riendas"))
+        assertEquals(listOf("papas con mayo"), tags("papas con mayo"))
+    }
+
+    @Test fun thePluralOfAProtectedDishIsOneMentionCountedTwice() {
+        val coffees = items("dos cafés con leche").single()
+        assertEquals("café con leche", coffees.tag)
+        assertEquals(2.0, coffees.quantity, 0.001)
+        assertEquals(listOf("lenteja", "arroz"), tags("lentejas con arroz"))
+    }
+
+    @Test fun aMassNextToANamedDishIsTheMassOfTheDish() {
+        val rice = items("200 g de arroz con pollo")
+        assertEquals(listOf("arroz", "pollo"), rice.map { it.tag })
+        assertEquals(listOf(100.0, 100.0), rice.map { it.amountGrams })
+        assertTrue(rice.all { it.amountIntent == AmountIntent.EXPLICIT_MASS })
+        // "100 g de avena con leche" weighs the oats: the milk is added to them.
+        assertEquals(listOf(100.0, null), items("100 g de avena con leche").map { it.amountGrams })
+    }
 }
