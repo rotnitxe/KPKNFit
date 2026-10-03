@@ -81,7 +81,35 @@ data class ResolvedTag(
     val stateConversion: String? = null,
     val ambiguousPackageGrams: Double? = null,
     val nutritionEstimate: NutritionEstimateEvidence? = null,
+    /** WP-U9: quién creó el tag; decide si un nuevo análisis de la descripción lo conserva ([TagOrigin.isPinned]). */
+    val origin: TagOrigin = TagOrigin.DESCRIPTION,
 )
+
+/**
+ * De dónde salió un tag del logger (WP-U9, C7). Decide qué hace un nuevo análisis de la descripción con él
+ * ([mergeReanalyzedTags]): lo que produjo el texto se reemplaza o se fusiona; lo que el usuario sumó por otra vía no
+ * depende del texto y se conserva.
+ */
+enum class TagOrigin {
+    /** Interpretado y resuelto desde la descripción: un nuevo análisis lo reemplaza o lo fusiona con sus ediciones. */
+    DESCRIPTION,
+
+    /** Elegido por el usuario en la búsqueda de alimentos: no sale del texto, así que un nuevo análisis lo conserva. */
+    SEARCH,
+
+    /**
+     * Marcador de último recurso cuando el análisis falló. Está en lugar del texto, así que un nuevo análisis lo trata
+     * como [DESCRIPTION]: si se conservara, un reintento exitoso lo dejaría repetido junto a los alimentos ya
+     * interpretados.
+     */
+    LAST_RESORT,
+
+    /** Cargado desde una comida ya registrada para editarla (WP-U11): no sale del texto, así que se conserva. */
+    EDIT;
+
+    /** Verdadero si un nuevo análisis de la descripción debe conservar el tag en vez de reemplazarlo. */
+    val isPinned: Boolean get() = this == SEARCH || this == EDIT
+}
 
 /** Acceso a datos del resolver — implementado por el drawer con NutritionRepository. */
 interface FoodResolutionPort {
@@ -165,6 +193,7 @@ class TagResolver(
 
         val declared = replacement.copy(
             id = original.id,
+            origin = original.origin,
             isExpanded = original.isExpanded,
             isExcluded = false,
             hasManualEdits = true,
@@ -1108,9 +1137,12 @@ fun isOilTag(tag: String): Boolean {
 
 /**
  * Merges newly-parsed tags with existing tags that have manual edits.
- * - Matching by tag name (case-insensitive)
- * - If old tag has hasManualEdits=true, preserve it over the new tag
- * - Preserve old tags not present in new tags if they have manual edits
+ * - An old tag matches a new one by normalized name, cooking method, unit and exclusions
+ * - If the matching old tag has hasManualEdits=true, it is kept in place of the new tag
+ * - Old tags with manual edits that match no new tag are dropped: their mention is no longer in the text
+ *
+ * Only tags that came from the text belong here. Foods the user added another way (search, edit) are not part of
+ * the text and are kept by [mergeReanalyzedTags].
  */
 fun mergeTagsPreservingManualEdits(oldTags: List<ResolvedTag>, newTags: List<ResolvedTag>): List<ResolvedTag> {
     val remaining = oldTags.filter { it.hasManualEdits }.toMutableList()
@@ -1122,4 +1154,32 @@ fun mergeTagsPreservingManualEdits(oldTags: List<ResolvedTag>, newTags: List<Res
         }
         if (match >= 0) remaining.removeAt(match) else newTag
     }
+}
+
+/**
+ * Lista de tags tras volver a analizar la descripción (WP-U9, C7).
+ *
+ * - Los tags fijados ([TagOrigin.isPinned]: alimentos sumados por búsqueda o cargados para editar) no salen del
+ *   texto, así que sobreviven siempre; se anexan al final y sin repetir ids.
+ * - Los demás son los que produjo el texto. Si es la misma solicitud (o no había ninguno) se fusionan con
+ *   [mergeTagsPreservingManualEdits]; si el texto cambió los reemplaza [parsed], porque el texto nuevo anula toda
+ *   decisión previa de identidad o porción sobre él.
+ *
+ * Pura y sin estado: el drawer solo aporta la lista previa, lo que resolvió el análisis y si la descripción es la
+ * misma que la última analizada.
+ */
+fun mergeReanalyzedTags(
+    previous: List<ResolvedTag>,
+    parsed: List<ResolvedTag>,
+    sameRequest: Boolean,
+): List<ResolvedTag> {
+    val pinned = previous.filter { it.origin.isPinned }
+    val fromText = previous.filterNot { it.origin.isPinned }
+    val textTags = if (sameRequest || fromText.isEmpty()) {
+        mergeTagsPreservingManualEdits(fromText, parsed)
+    } else {
+        parsed
+    }
+    val taken = textTags.mapTo(HashSet()) { it.id }
+    return textTags + pinned.filter { taken.add(it.id) }
 }

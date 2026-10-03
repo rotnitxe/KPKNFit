@@ -144,6 +144,15 @@ class NutritionRepository private constructor(
         SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() + (name to ml))
     }
 
+    /**
+     * Devuelve un utensilio a su volumen base (WP-U12, C11): quita el override guardado y el del motor de porciones.
+     * Un valor que el usuario no cambió no debe quedar fijado como si lo hubiera elegido (congelaría la base).
+     */
+    fun clearUtensilOverride(name: String) {
+        utensilPrefs.edit().remove("ml_$name").apply()
+        SubjectivePortionEngine.applyUtensilOverrides(SubjectivePortionEngine.currentUtensilOverrides() - name)
+    }
+
     @Serializable
     private data class FoodQueryLearningEntry(
         val query: String,
@@ -906,11 +915,6 @@ class NutritionRepository private constructor(
 
     suspend fun prepareSemanticDataset() {
         ensureDatasetKnowledge()
-    }
-
-    /** IT3: aplica los utensilios configurados al motor antes de cada análisis. */
-    fun applyConfiguredUtensils() {
-        loadUtensilOverrides()
     }
 
     /** D7: estado del dataset de conocimiento (diagnóstico / aviso no-silencioso). */

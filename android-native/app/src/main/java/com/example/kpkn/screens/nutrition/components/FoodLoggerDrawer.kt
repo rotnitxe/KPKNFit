@@ -68,6 +68,7 @@ import com.example.kpkn.domain.nutrition.TagResolver
 import com.example.kpkn.domain.nutrition.NutritionCalibrationWizardEngine
 import com.example.kpkn.domain.nutrition.FoodResolutionPort
 import com.example.kpkn.domain.nutrition.ResolvedTag
+import com.example.kpkn.domain.nutrition.TagOrigin
 import com.example.kpkn.domain.nutrition.FoodLearningConfirmation
 import com.example.kpkn.domain.nutrition.ClarificationRequest
 import com.example.kpkn.domain.nutrition.PortionOption
@@ -76,7 +77,7 @@ import com.example.kpkn.domain.nutrition.toLoggedFood
 import com.example.kpkn.domain.nutrition.confirmedLearning
 import com.example.kpkn.domain.nutrition.rescaleEstimatedFood
 import com.example.kpkn.domain.nutrition.rebaseManualNutrients
-import com.example.kpkn.domain.nutrition.mergeTagsPreservingManualEdits
+import com.example.kpkn.domain.nutrition.mergeReanalyzedTags
 import com.example.kpkn.domain.nutrition.absolutePortionOptions
 import com.example.kpkn.domain.nutrition.hasMaterialQuestion
 import com.example.kpkn.domain.nutrition.applyModifierScale
@@ -150,12 +151,6 @@ private fun isOilTag(tag: String): Boolean {
     return lower == "aceite" || lower == "aceite vegetal" || lower == "aceite de oliva" || lower == "aceite de maravilla" || lower == "aceite de girasol"
 }
 
-/**
- * Merges newly-parsed tags with existing tags that have manual edits.
- * - Matching by tag name (case-insensitive)
- * - If old tag has hasManualEdits=true, preserve it over the new tag
- * - Preserve old tags not present in new tags if they have manual edits
- */
 // ─── Composable ──────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -216,11 +211,8 @@ fun FoodLoggerDrawer(
     // IT3: utensilios configurables (ml por utensilio).
     var showUtensilDialog by remember { mutableStateOf(false) }
     var showPrivacyInfo by remember { mutableStateOf(false) }
-    var utensilValues by remember {
-        mutableStateOf(
-            SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (_, ml) -> ml.toFloat() },
-        )
-    }
+    // WP-U12 (C11): el diálogo parte de lo vigente (base + lo guardado), no solo de la base.
+    var utensilValues by remember { mutableStateOf(currentUtensilValues()) }
 
     val listState = rememberLazyListState()
     val keepEditing: () -> Unit = {
@@ -313,20 +305,20 @@ fun FoodLoggerDrawer(
             val newTags = result.first
             // FIX NUT-04: key drawer state per request — don't keep stale tags from previous description
             // If description changed, old manual edits for hallulla shouldn't block marraqueta analysis.
+            // WP-U9 (C7): only what the text produced is superseded. Foods added by search (or loaded to edit)
+            // are not part of the text, so they survive every re-analysis.
             val previousTags = tags
             val isSameRequest = lastAnalyzedDescription.isNotBlank() &&
                 FoodIdentity.normalize(parsed.rawDescription) == FoodIdentity.normalize(lastAnalyzedDescription)
-            val merged = if (isSameRequest || previousTags.isEmpty()) {
-                mergeTagsPreservingManualEdits(previousTags, newTags)
-            } else {
-                // Changed text supersedes every prior identity/portion decision.
-                newTags
-            }
+            val merged = mergeReanalyzedTags(previousTags, newTags, isSameRequest)
             // resolveAll already enriched every tag it returned (TagResolution.kt), and enriching again
             // is a no-op for them, so only the tags kept from the previous list (manual edits) are
-            // enriched here against the new parse, exactly as before.
+            // enriched here against the new parse, exactly as before. Pinned tags do not belong to this
+            // parse (and were enriched when they were created), so they stay as they are.
             val freshIds = newTags.mapTo(HashSet()) { it.id }
-            result.second to merged.map { if (it.id in freshIds) it else NutritionInterpretationBridge.enrich(it, parsed) }
+            result.second to merged.map {
+                if (it.id in freshIds || it.origin.isPinned) it else NutritionInterpretationBridge.enrich(it, parsed)
+            }
         }
         detectedContext = resolvedContext
         tags = mergedTags
@@ -399,6 +391,8 @@ fun FoodLoggerDrawer(
     fun createLastResortManualTags(raw: String): Boolean {
         val fragments = LastResortSplitter.split(raw)
         val trimmed = raw.trim()
+        // WP-U9 (C7): foods added by search (or loaded to edit) are not part of the text: keep them.
+        val pinned = tags.filter { it.origin.isPinned }
                 // El último nivel muestra una estimación editable, pero exige una
                 // confirmación explícita antes de guardarla y de alimentar aprendizaje.
         fun manualTag(fragment: String): ResolvedTag {
@@ -439,14 +433,15 @@ fun FoodLoggerDrawer(
                 nutritionSource = NutritionSourceKind.HEURISTIC_ESTIMATE,
                 resolutionConfidence = 0.35,
                 resolutionMargin = 0.0,
+                origin = TagOrigin.LAST_RESORT,
             )
         }
         if (fragments.isEmpty()) {
             if (trimmed.isEmpty()) return false
-            tags = listOf(NutritionInterpretationBridge.refresh(manualTag(trimmed)))
+            tags = pinned + NutritionInterpretationBridge.refresh(manualTag(trimmed))
             return true
         }
-        tags = fragments.map { NutritionInterpretationBridge.refresh(manualTag(it)) }
+        tags = pinned + fragments.map { NutritionInterpretationBridge.refresh(manualTag(it)) }
         // La estimación queda explícitamente pendiente de revisión; Guardar se
         // mantiene bloqueado hasta que el usuario confirme o elija una ficha.
         return true
@@ -535,7 +530,8 @@ fun FoodLoggerDrawer(
                 // CRI-AUDIT (P2): si el parseo local devolvió 0 alimentos para un texto
                 // no-vacío, NUNCA dejar tags vacíos en silencio: caemos al último nivel
                 // para que el usuario siempre tenga algo que revisar y guardar.
-                if (tags.isEmpty() && descriptionSnapshot.isNotBlank()) {
+                // WP-U9: los tags fijados (búsqueda/edición) no salen del texto, así que no lo representan.
+                if (tags.all { it.origin.isPinned } && descriptionSnapshot.isNotBlank()) {
                     createLastResortManualTags(descriptionSnapshot)
                 }
                 lastAnalyzedDescription = descriptionSnapshot
@@ -845,7 +841,7 @@ fun FoodLoggerDrawer(
         compositionRequestToken = requestToken
         // The answer is a declaration, so a stale wheat preview must immediately
         // stop being eligible for Unsure or saving while the replacement resolves.
-        val pending = ResolvedTag(id = original.id, tag = query, foodQuery = query,
+        val pending = ResolvedTag(id = original.id, tag = query, foodQuery = query, origin = original.origin,
             isExpanded = original.isExpanded, excludedIngredients = original.excludedIngredients,
             quantity = original.quantity, portion = original.portion, cookingMethod = original.cookingMethod,
             amountIntent = original.amountIntent,
@@ -1223,8 +1219,7 @@ fun FoodLoggerDrawer(
                             .fillMaxWidth()
                             .clickable {
                                 showSettingsDialog = false
-                                utensilValues = SubjectivePortionEngine.UTENSIL_DEFAULTS
-                                    .mapValues { (_, ml) -> ml.toFloat() }
+                                utensilValues = currentUtensilValues()
                                 showUtensilDialog = true
                             },
                     ) {
@@ -1311,8 +1306,15 @@ fun FoodLoggerDrawer(
             values = utensilValues,
             onValueChange = { key, ml -> utensilValues = utensilValues + (key to ml) },
             onSave = {
+                // WP-U12 (C11): solo lo que difiere de la base se guarda; lo que volvió a la base deja de ser un
+                // override (si no, quedaría fijado aunque la base cambie).
                 utensilValues.forEach { (key, ml) ->
-                    nutritionRepo.saveUtensilOverride(key, ml.toDouble())
+                    val volume = ml.toDouble()
+                    if (volume == SubjectivePortionEngine.UTENSIL_DEFAULTS[key]) {
+                        nutritionRepo.clearUtensilOverride(key)
+                    } else {
+                        nutritionRepo.saveUtensilOverride(key, volume)
+                    }
                 }
                 showUtensilDialog = false
             },
@@ -1630,6 +1632,7 @@ fun FoodLoggerDrawer(
                             resolutionStatus = status,
                             nutritionSource = NutrientBasis.source(identity),
                             resolutionConfidence = 1.0,
+                            origin = TagOrigin.SEARCH,
                         )
                         tags = tags + NutritionInterpretationBridge.refresh(tag.copy(foodQuery = queryUsed, confirmedDimensions = setOf("identity")))
                         saveError = null
@@ -2674,6 +2677,16 @@ private val CONFIGURABLE_UTENSILS = listOf(
     UtensilSpec("bol", "Bol", 200f..500f),
     UtensilSpec("copa", "Copa", 100f..300f),
 )
+
+/**
+ * WP-U12 (C11): volumen vigente de cada utensilio configurable, es decir la base salvo lo que el usuario ya guardó.
+ * Partir siempre de la base hacía que el diálogo mostrara los valores originales y que Guardar pisara con ellos los
+ * tamaños que el usuario ya había guardado.
+ */
+private fun currentUtensilValues(): Map<String, Float> {
+    val saved = SubjectivePortionEngine.currentUtensilOverrides()
+    return SubjectivePortionEngine.UTENSIL_DEFAULTS.mapValues { (key, base) -> (saved[key] ?: base).toFloat() }
+}
 
 @Composable
 private fun UtensilSettingsDialog(
