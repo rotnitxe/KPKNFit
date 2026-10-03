@@ -1,6 +1,7 @@
 package com.example.kpkn.data.db
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -774,6 +775,7 @@ abstract class KpknDatabase : RoomDatabase() {
                     MIGRATION_26_27,
                     MIGRATION_27_28,
                 )
+                .addCallback(GlobalFoodsFtsHygiene)
                 .build()
                 .also { INSTANCE = it }
             }
@@ -792,6 +794,57 @@ abstract class KpknDatabase : RoomDatabase() {
                 KpknDatabase::class.java,
             )
                 .allowMainThreadQueries()
+                .addCallback(GlobalFoodsFtsHygiene)
                 .build()
     }
+}
+
+/**
+ * Keeps `global_foods_fts` free of duplicated sync triggers (audit finding B11) without a schema migration.
+ *
+ * `MIGRATION_5_6` created `global_foods_ai`, `global_foods_ad` and `global_foods_au` to feed the FTS4 table.
+ * Room owns its own `room_fts_content_sync_global_foods_fts_*` triggers: it creates them in `createAllTables`
+ * for a new database and recreates them in `onPostMigrate` after every migration, so they always exist before
+ * `onOpen` runs. A database migrated from v<=5 therefore carries both sets and indexes every insert twice. The
+ * legacy `_ad`/`_au` pair also uses the FTS5-only `'delete'` command, which an FTS4 table rejects, so UPDATE and
+ * DELETE on `global_foods` fail while they exist.
+ *
+ * On open, if any legacy trigger is present, the legacy triggers are dropped and the index is rebuilt from the
+ * content table in a single transaction. A database that is already clean only pays one `sqlite_master` query.
+ * The cleanup is best-effort: a failure is logged and retried on the next open instead of blocking the database.
+ */
+object GlobalFoodsFtsHygiene : RoomDatabase.Callback() {
+    internal const val TAG = "GlobalFoodsFtsHygiene"
+    private const val ROOM_SYNC_TRIGGER_PREFIX = "room_fts_content_sync_global_foods_fts_"
+    private val LEGACY_TRIGGERS = listOf("global_foods_ai", "global_foods_ad", "global_foods_au")
+
+    override fun onOpen(db: SupportSQLiteDatabase) {
+        if (db.isReadOnly) return
+        try {
+            val triggers = triggerNames(db)
+            val legacy = LEGACY_TRIGGERS.filter { it in triggers }
+            if (legacy.isEmpty()) return
+            if (triggers.none { it.startsWith(ROOM_SYNC_TRIGGER_PREFIX) }) {
+                // Room's own triggers are missing: dropping the legacy ones would leave the index without any sync.
+                Log.w(TAG, "Legacy FTS triggers $legacy found but Room's sync triggers are missing; leaving them")
+                return
+            }
+            db.beginTransaction()
+            try {
+                LEGACY_TRIGGERS.forEach { db.execSQL("DROP TRIGGER IF EXISTS `$it`") }
+                db.execSQL("INSERT INTO `global_foods_fts`(`global_foods_fts`) VALUES('rebuild')")
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            Log.i(TAG, "Dropped legacy FTS triggers $legacy and rebuilt global_foods_fts from global_foods")
+        } catch (e: Exception) {
+            Log.w(TAG, "FTS trigger cleanup failed; it will be retried on the next open", e)
+        }
+    }
+
+    private fun triggerNames(db: SupportSQLiteDatabase): Set<String> =
+        db.query("SELECT name FROM sqlite_master WHERE type = 'trigger'").use { cursor ->
+            buildSet { while (cursor.moveToNext()) add(cursor.getString(0)) }
+        }
 }
