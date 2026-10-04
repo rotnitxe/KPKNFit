@@ -2050,6 +2050,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                                 }
                                 if (entry.level == draft.experience.toCatalogLevel()) add("Su nivel coincide con tu experiencia")
                                 if (draft.goal == SetupGoal.MIXED && entry.schedulesCardio) add("Programa el cardio que has pedido")
+                                // A.E1 (D6): qué hace ESTA tarjeta con la bolsa de prioridades (si la hay).
+                                planOrderPriorityReason(entry, draft.trainingOptions.orderPriorities)?.let { add(it) }
                             },
                             details = listOfNotNull(
                                 entry.sourceAuthor?.let { "Método de $it" },
@@ -2672,3 +2674,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
 }
 
 private fun List<SetupSessionDraft>.ensureSession(weekday: Int): List<SetupSessionDraft> = if (any { it.weekday == weekday }) this else this + SetupSessionDraft(weekday, "Sesión del día $weekday")
+
+/** Paquete A · E1: razón de una tarjeta de plan KPKN (nativo) cuando la bolsa de prioridades trae puntos. */
+internal const val ORDER_PRIORITIES_NATIVE_REASON = "Tus prioridades ordenan los ejercicios de cada día"
+
+/** Paquete A · E1: razón de una tarjeta de método (receta de autor o de plantilla) cuando la bolsa trae puntos. */
+internal const val ORDER_PRIORITIES_RECIPE_FIXED_REASON = "Conserva el orden del método"
+
+/**
+ * Paquete A · E1 (D6): razón de tarjeta sobre la bolsa de prioridades de orden, solo cuando la bolsa trae algún
+ * punto. Un plan KPKN (nativo) ordena con ella los ejercicios de cada día; un método de autor o una plantilla con
+ * receta fija su orden (`OrderOwnership.RECIPE_FIXED`) y la bolsa no lo toca. Las plantillas sin receta no
+ * declaran nada: no hay orden de método que conservar ni plan generado que se ordene.
+ */
+internal fun planOrderPriorityReason(entry: CatalogEntry, bag: Map<String, Int>): String? = when {
+    bag.values.none { points -> points > 0 } -> null
+    entry.source == CatalogSource.NATIVE -> ORDER_PRIORITIES_NATIVE_REASON
+    (entry.recipe ?: entry.template?.recipe) != null -> ORDER_PRIORITIES_RECIPE_FIXED_REASON
+    else -> null
+}

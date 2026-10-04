@@ -849,7 +849,8 @@ class SimpleCyclePersonalizer(
         val horizontalPull = resolveConfiguration(NativeSlotKey.R, SlotIntent.H)
         val verticalPull = resolveConfiguration(NativeSlotKey.V, SlotIntent.H)
         val pullAvailable = horizontalPull != null || verticalPull != null
-        // La bolsa de prioridades sigue siendo SOLO orden y sigue con su contrato.
+        // La bolsa de prioridades sigue siendo SOLO orden y sigue con su contrato. Aquí se valida y se normaliza;
+        // se aplica y se registra en el programa al terminar el fitter (paquete A · E1, DEC-w2-08).
         val exerciseOrderPoints = orderPoints(options.applyTo(input))
             ?: return unavailable(
                 "La bolsa de prioridades de orden no es válida: máximo 2 puntos por músculo, 5 puntos en total y ningún punto negativo. Ajusta tus prioridades.",
@@ -1323,11 +1324,74 @@ class SimpleCyclePersonalizer(
             )
         }
 
+        // Paquete A · E1 (D6, DEC-w2-08): la bolsa de prioridades de orden se aplica AL FINAL, con las dosis, los
+        // accesorios y los días que el fitter ya fijó. Si reordenara antes, el fitter (que retira y recorta
+        // recorriendo los slots en el orden del día) dependería de la bolsa: el ejercicio priorizado iría el
+        // primero y sería el primero en retirarse o recortarse, y la bolsa dejaría de ser «solo orden».
+        // Aquí solo se permuta dentro de cada rango H1 (el orden entre rangos es el contrato H1 y no cambia):
+        // los empates los decide el máximo de puntos de los músculos directos del ejercicio y, a igual puntuación,
+        // se conserva el orden recomendado (la ordenación es estable). Se revalida con el mismo intento del
+        // fitter: si el orden con bolsa no pasa las reglas duras o no cabe en el tiempo, el plan sale con el
+        // orden recomendado, con aviso, y SIN registrar la bolsa, para que `OrderPrioritiesContract` nunca
+        // afirme una bolsa que no se aplicó.
+        var appliedOrderPoints: Map<String, Int> = emptyMap()
+        if (exerciseOrderPoints.isNotEmpty()) {
+            val pointsByConfiguration = HashMap<String, Int>()
+            fun priorityOf(slot: NativeSlotPlan): Int = pointsByConfiguration.getOrPut(slot.configurationId) {
+                orderPriorityPoints(slot.configurationId, exerciseOrderPoints, legacyLookup, input.level)
+            }
+            val recommendedOrders = dayPlans.map { day -> day.slots.toList() }
+            val recommendedWarmups = dayPlans.map { day -> day.slots.map { slot -> slot.warmup } }
+            /** Reordena un día y devuelve true si algún slot cambió de posición. */
+            fun reorderDay(day: NativeDayPlan): Boolean {
+                val before = day.slots.toList()
+                val warmupsByFamily = day.slots.filter { slot -> slot.warmup }
+                    .mapNotNull { slot -> COMPOUND_FAMILY_BY_SLOT[slot.key] }
+                    .groupingBy { family -> family }
+                    .eachCount()
+                day.slots.sortWith(
+                    compareBy<NativeSlotPlan> { slot -> h1Rank(slot, day.priority, metadata) }
+                        .thenByDescending { slot -> priorityOf(slot) },
+                )
+                val changed = day.slots.indices.any { index -> day.slots[index] !== before[index] }
+                if (changed) {
+                    // La aproximación sigue al PRIMER compuesto de cada patrón en el orden que ve la persona
+                    // (igual que al armar el día); el número de aproximaciones por patrón no cambia.
+                    val seen = mutableMapOf<String, Int>()
+                    day.slots.forEach { slot ->
+                        val family = COMPOUND_FAMILY_BY_SLOT[slot.key] ?: return@forEach
+                        val position = seen.getOrDefault(family, 0)
+                        seen[family] = position + 1
+                        slot.warmup = position < (warmupsByFamily[family] ?: 0)
+                    }
+                }
+                return changed
+            }
+            // `count` recorre TODOS los días (un `any` se detendría en el primero que cambia).
+            val changedDays = dayPlans.count { day -> reorderDay(day) }
+            val reorderedFit = if (changedDays == 0) fit else attemptFit()
+            if (reorderedFit != null && reorderedFit.maxMinutes <= budget && reorderedFit.overSoftCeiling.isEmpty()) {
+                fit = reorderedFit
+                appliedOrderPoints = exerciseOrderPoints
+            } else {
+                dayPlans.forEachIndexed { dayIndex, day ->
+                    day.slots.clear()
+                    day.slots.addAll(recommendedOrders[dayIndex])
+                    day.slots.forEachIndexed { slotIndex, slot -> slot.warmup = recommendedWarmups[dayIndex][slotIndex] }
+                }
+                notes += ORDER_PRIORITIES_NOT_APPLIED_NOTE
+                plainNotes += ORDER_PRIORITIES_NOT_APPLIED_NOTE
+            }
+        }
+
         notes += adjustments
         fit.highVolume.forEach { notice -> notes += notice.message }
         val program = fit.program.copy(
             description = (entry.description + "\n" + notes.distinct().joinToString("\n")).trim(),
             sourceRecipe = fit.recipe,
+            // La bolsa REALMENTE aplicada (la normalizada por `orderPointsFromBag`, que es la que compara
+            // `OrderPrioritiesContract`); null si no se pidió ninguna o no se pudo aplicar.
+            planOrderPriorities = appliedOrderPoints.takeIf { it.isNotEmpty() },
         )
         val stamped = program.withSessionDurations(fit)
         val structuralIssues = ProgramExecutionContract.validate(stamped)
@@ -1416,6 +1480,30 @@ class SimpleCyclePersonalizer(
             CompositionTaxonomy.isFinisherFamily(family) -> 7
             else -> 6
         }
+    }
+
+    /**
+     * Paquete A · E1 (D6): puntos de la bolsa de orden que gana un ejercicio de un plan propio = el MAYOR
+     * número de puntos entre los músculos en los que trabaja de forma directa; 0 si la bolsa está vacía,
+     * la configuración no está en la tabla de músculos o ningún músculo directo tiene puntos. «Directo» y los
+     * nombres de grupo son los de la ruta histórica ([Candidate.primary]): series directas del volumen
+     * separado por rol de una sola serie de prueba sobre la tabla de músculos del catálogo, o sea los
+     * grupos canónicos que [orderPointsFromBag] usa como llaves de la bolsa. Solo desempata dentro de un
+     * mismo rango H1 ([h1Rank]).
+     */
+    private fun orderPriorityPoints(
+        configurationId: String,
+        points: Map<String, Int>,
+        lookup: Map<String, ExerciseMuscleInfo>,
+        level: CatalogLevel,
+    ): Int {
+        if (points.isEmpty()) return 0
+        val info = lookup[configurationId.lowercase()] ?: return 0
+        val directGroups = VolumeCalculator.calculateRoleSeparatedMuscleVolume(
+            listOf(Session("probe", "probe", exercises = listOf(exercise(info, "probe", 1, level)))),
+            listOf(info),
+        ).filterValues { volume -> volume.directSets > 0.0 }.keys
+        return directGroups.maxOfOrNull { group -> points[group] ?: 0 } ?: 0
     }
 
     /**
@@ -2002,6 +2090,15 @@ class SimpleCyclePersonalizer(
         /** Contrato de la bolsa de puntos de orden: máximo 2 por músculo y 5 en total. */
         internal const val MAX_ORDER_POINTS_PER_MUSCLE = 2
         internal const val MAX_ORDER_POINTS_TOTAL = 5
+
+        /**
+         * Paquete A · E1: aviso para cuando la bolsa de orden pedida no se puede aplicar a un plan propio ya
+         * ajustado (el orden con bolsa no pasa las reglas de composición o no cabe en el tiempo): el plan sale
+         * con el orden recomendado y la bolsa no se registra en el programa.
+         */
+        private const val ORDER_PRIORITIES_NOT_APPLIED_NOTE: String =
+            "No pudimos ordenar los ejercicios según tus prioridades sin salirnos de las reglas del plan o del " +
+                "tiempo de la sesión, así que quedan en el orden recomendado."
 
         /** Techo de `availableMinutes` que acepta [personalize] (rango 20..100). */
         private const val MAX_SESSION_MINUTES = 100

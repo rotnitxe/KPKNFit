@@ -11,6 +11,7 @@ import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.weekRecipe
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.onboarding.SetupTrainingOptions
 import kotlinx.coroutines.runBlocking
@@ -26,8 +27,9 @@ import org.junit.Test
  * - La receta de autor fija su orden: la bolsa NO se aplica y la UI recibe un
  *   resultado explícito (`NOT_APPLIED_RECIPE_FIXED`) con el que no puede
  *   afirmar «aplicado».
- * - La ruta nativa es la única que aplica la bolsa (ya lo hace al generar) y
- *   el resultado se contrasta con la bolsa realmente persistida en el programa.
+ * - La ruta nativa (los históricos y, desde A.E1, los cuatro planes propios) es
+ *   la única que aplica la bolsa (ya lo hace al generar) y el resultado se
+ *   contrasta con la bolsa realmente persistida en el programa.
  * - Bolsa fuera de contrato → `INVALID`; nunca altera ejercicios, series,
  *   repeticiones, intensidades ni frecuencia.
  */
@@ -61,6 +63,29 @@ class RecipeOrderPrioritiesContractTest {
         val options = SetupTrainingOptions(orderPriorities = bag)
         return requireNotNull(personalizer().personalize("order-contract", nativeInput, options).program) {
             "La generación nativa debe producir programa"
+        }
+    }
+
+    /** Plan propio (A.E1, D6): Músculo, intermedio, 3 días de 90 min, gimnasio completo con soportes confirmados. */
+    private val ownInput = PersonalizerInput(
+        catalogEntryId = NativeProfileKind.MUSCLE.entryId,
+        focus = TrainingFocus.FULL_BODY,
+        frequency = 3,
+        weekdays = listOf(1, 3, 5),
+        equipment = emptySet(),
+        level = CatalogLevel.INTERMEDIATE,
+        availableMinutes = 90,
+    )
+
+    private fun ownOptions(bag: Map<String, Int>) = SetupTrainingOptions(
+        availability = CoverageFixtures.legacyFixtures().first { it.id == "E6" }.availability,
+        orderPriorities = bag,
+    )
+
+    private fun generateOwn(bag: Map<String, Int>): Program {
+        val result = personalizer().personalize("order-contract-own", ownInput, ownOptions(bag))
+        return requireNotNull(result.program) {
+            "La generación del plan propio debe producir programa: ${result.report.limitations} (${result.report.reasonCode})"
         }
     }
 
@@ -140,6 +165,59 @@ class RecipeOrderPrioritiesContractTest {
         val rejected = personalizer().personalize("bolsa-invalida", nativeInput, invalidBag)
         assertNull(rejected.program)
         assertTrue(rejected.report.limitations.any { it.contains("2 puntos") })
+    }
+
+    // ─── Plan propio (A.E1, D6): mismo contrato que la ruta histórica ─────────
+
+    @Test
+    fun own_plan_bag_is_reported_applied_only_when_it_matches_the_persisted_one() {
+        val bag = mapOf("Pectorales" to 2, "Dorsales" to 1)
+        val program = generateOwn(bag)
+        assertEquals("La bolsa aplicada queda persistida en el programa propio", bag, program.planOrderPriorities)
+
+        val same = PlanMaterializer.orderPrioritiesCapabilities(program, options = SetupTrainingOptions(orderPriorities = bag))
+        assertEquals(OrderOwnership.NATIVE_GENERATOR, same.ownership)
+        assertEquals(OrderPrioritiesStatus.APPLIED, same.status)
+        assertTrue(same.applied)
+        assertEquals(bag, same.appliedBag)
+        assertEquals(bag, same.normalizedRequested)
+
+        val other = PlanMaterializer.orderPrioritiesCapabilities(
+            program,
+            options = SetupTrainingOptions(orderPriorities = mapOf("Tríceps" to 1)),
+        )
+        assertFalse("Otra bolsa ≠ aplicada → no puede afirmarse aplicada", other.applied)
+        assertEquals(OrderPrioritiesStatus.NOT_APPLIED_BAG_MISMATCH, other.status)
+        assertTrue(other.reasons.isNotEmpty())
+
+        val none = PlanMaterializer.orderPrioritiesCapabilities(program)
+        assertEquals(OrderPrioritiesStatus.NOT_REQUESTED, none.status)
+        assertFalse(none.applied)
+    }
+
+    @Test
+    fun own_plan_without_a_bag_registers_none_and_the_contract_reports_it_not_applied_when_one_is_asked_later() {
+        val program = generateOwn(emptyMap())
+        assertNull("Sin bolsa no se registra ninguna", program.planOrderPriorities)
+        // Programas propios ya activados (sin bolsa registrada): el contrato dice la verdad, no «aplicado».
+        val asked = PlanMaterializer.orderPrioritiesCapabilities(
+            program,
+            options = SetupTrainingOptions(orderPriorities = mapOf("Pectorales" to 2)),
+        )
+        assertEquals(OrderPrioritiesStatus.NOT_APPLIED_BAG_MISMATCH, asked.status)
+        assertFalse(asked.applied)
+        assertTrue(asked.reasons.any { it.contains("no registra ninguna bolsa") })
+    }
+
+    @Test
+    fun own_plan_rejects_an_invalid_bag_with_the_same_message() {
+        val invalidBag = ownOptions(mapOf("Pectorales" to 3))
+        val rejected = personalizer().personalize("bolsa-invalida-propio", ownInput, invalidBag)
+        assertNull(rejected.program)
+        assertTrue(rejected.report.limitations.any { it.contains("2 puntos") })
+        val caps = PlanMaterializer.orderPrioritiesCapabilities(generateOwn(emptyMap()), options = invalidBag)
+        assertEquals(OrderPrioritiesStatus.INVALID, caps.status)
+        assertFalse(caps.applied)
     }
 
     // ─── Receta de autor: orden fijo, sin aplicar, estructura intacta ─────────

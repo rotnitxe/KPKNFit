@@ -533,12 +533,17 @@ class SetupWizardFullJourneyTest {
         val candidates = vm.state.value.availablePlanCandidates.ifEmpty { vm.state.value.planCandidates }
         val native = candidates.firstOrNull { it.source == "NATIVE" }
         // C.P3 (DEC-w2-06): el orden de la lista sale de la ficha editorial; el primer nativo viable
-        // de Músculo es el plan propio. Se deja la traza para saber qué plan recorre este viaje.
-        println("[C.P3][FullJourney] viables=${candidates.map { it.id }} primerNativo=${native?.id}")
+        // de Músculo es el plan propio.
         if (native == null) {
             fail("sin candidato nativo entre ${candidates.map { it.source }}")
             return
         }
+        // A.E1 (D6): con una bolsa de prioridades en el borrador, la tarjeta de un plan KPKN dice que la bolsa
+        // ordena sus ejercicios (la de un método de autor diría que conserva el orden del método).
+        assertTrue(
+            "la tarjeta del plan propio explica la bolsa (plan=${native.id}, motivos=${native.reasons})",
+            "Tus prioridades ordenan los ejercicios de cada día" in native.reasons,
+        )
         confirmStep(vm, SetupStepId.PLAN, SetupStepId.AUTOREGULATION) { vm.selectPlan(native.id) }
         assertEquals("el plan elegido es el candidato real", native.id, vm.state.value.draft.selectedCatalogId)
 
