@@ -40,6 +40,9 @@ import com.example.kpkn.data.models.ringScore
 import com.example.kpkn.data.models.KeyDateType
 import com.example.kpkn.data.models.PendingProgramActionType
 import com.example.kpkn.data.models.isSimpleTemporalProgram
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.screens.programs.PlanInfoMode
+import com.example.kpkn.screens.programs.PlanInfoSheet
 import com.example.kpkn.screens.programs.TrainingMaxWizard
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.LoopEngine
@@ -125,6 +128,8 @@ fun ProgramDetailScreen(
     var showSplitPage by rememberSaveable { mutableStateOf(false) }
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
+    // Id de la entrada del catálogo cuya hoja «Cómo funciona» está abierta (solo lectura); null = cerrada.
+    var planInfoEntryId by rememberSaveable { mutableStateOf<String?>(null) }
     var squat1RmText by rememberSaveable { mutableStateOf("") }
     var bench1RmText by rememberSaveable { mutableStateOf("") }
     var deadlift1RmText by rememberSaveable { mutableStateOf("") }
@@ -194,11 +199,9 @@ fun ProgramDetailScreen(
                 spinalBattery = augeSnapshot.ringScore(RecoveryChannelId.STRUCTURE),
                 isVolumeCalibrated = p.volumeRecommendations.isNotEmpty() && p.athleteProfileScore != null,
                 blockProgressLabel = viewModel.blockProgressLabel(),
-                protocolLabel = remember(p.sourceProtocolId) {
-                    p.sourceProtocolId?.let { id ->
-                        com.example.kpkn.data.protocols.PROTOCOL_LIBRARY.firstOrNull { it.id == id }
-                            ?.let { "${it.emoji} ${it.name}" }
-                    }
+                // Nombre corto del plan del catálogo, sin emoji (C.P7); null si el programa no viene de un método.
+                protocolLabel = remember(p.sourceProtocolId, p.structureTemplateId, p.planProvenance?.planId) {
+                    planChipLabel(p)
                 },
                 onBack = onBack,
                 onStartPause = { viewModel.toggleStartPause() },
@@ -275,7 +278,7 @@ fun ProgramDetailScreen(
                 openVolumeSheetToken = openVolumeSheetToken,
             )
 
-            PlanDetailsSummary(program = p)
+            PlanDetailsSummary(program = p, onOpenPlanInfo = { entry -> planInfoEntryId = entry.id })
 
             CompactStructureSubTabs(
                 structureSubTab = uiState.structureSubTab,
@@ -413,6 +416,16 @@ fun ProgramDetailScreen(
                 viewModel.updatePowerliftingProfile(profile)
                 showTmEditor = false
             },
+        )
+    }
+
+    // «Ver cómo funciona» de la tarjeta de plan: la misma hoja de la biblioteca, sin botón primario.
+    val planInfoEntry = remember(planInfoEntryId) { planInfoEntryId?.let(PersonalizedPlanCatalog::find) }
+    if (planInfoEntry != null) {
+        PlanInfoSheet(
+            entry = planInfoEntry,
+            mode = PlanInfoMode.READ_ONLY,
+            onDismiss = { planInfoEntryId = null },
         )
     }
 }
@@ -1272,7 +1285,7 @@ private fun AutoregulationProposalsCard(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        "TM: SQ ${tm?.squatTM?.let { "%.0f".format(it) } ?: "—"} · BP ${tm?.benchTM?.let { "%.0f".format(it) } ?: "—"} · DL ${tm?.deadliftTM?.let { "%.0f".format(it) } ?: "—"}",
+                        trainingMaxLine(tm),
                         fontSize = 12.sp,
                         color = Color.White.copy(alpha = 0.75f),
                         modifier = Modifier.weight(1f),

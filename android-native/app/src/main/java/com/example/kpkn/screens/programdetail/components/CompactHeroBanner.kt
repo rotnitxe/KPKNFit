@@ -94,11 +94,24 @@ private val heroCoverGradients = listOf(
     CoverGradient("gradient://forest", "Forest", listOf(Color(0xFF102A1F), Color(0xFF2D6A4F), Color(0xFF95D5B2))),
 )
 
+/**
+ * Nombre del enfoque de un programa con el vocabulario del asistente: «Fuerza», «Fuerza y músculo» y «Músculo».
+ * No se añade un valor nuevo a [ProgramMode]: una app antigua no sabría leerlo; solo cambia lo que se dice.
+ */
+internal fun focusModeLabel(mode: ProgramMode): String = when (mode) {
+    ProgramMode.POWERLIFTING -> "Fuerza"
+    ProgramMode.POWERBUILDING -> "Fuerza y músculo"
+    ProgramMode.HYPERTROPHY -> "Músculo"
+}
+
+/** Etiqueta del enfoque cuando [focusMode] no es ninguno de los modos conocidos (no ocurre con los datos reales). */
+private const val UNKNOWN_FOCUS_LABEL = "Enfoque"
+
 private val focusOptions = listOf(
-    FocusOption(ProgramMode.POWERLIFTING, "Powerlifting"),
-    FocusOption(ProgramMode.POWERBUILDING, "Powerbuilding"),
-    FocusOption(ProgramMode.HYPERTROPHY, "Hipertrofia"),
-)
+    ProgramMode.POWERLIFTING,
+    ProgramMode.POWERBUILDING,
+    ProgramMode.HYPERTROPHY,
+).map { mode -> FocusOption(mode, focusModeLabel(mode)) }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -244,7 +257,7 @@ fun CompactHeroBanner(
                             CompactFocusPill(
                                 onClick = { showFocusMenu = true },
                                 label = focusOptions.find { it.mode.name.equals(focusMode, ignoreCase = true) }?.label
-                                    ?: focusMode.replaceFirstChar { it.uppercase() },
+                                    ?: UNKNOWN_FOCUS_LABEL,
                                 contentColor = primaryTextColor,
                                 containerColor = glassColor,
                                 borderColor = strokeColor,

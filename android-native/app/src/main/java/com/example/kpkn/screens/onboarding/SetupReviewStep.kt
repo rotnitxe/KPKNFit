@@ -14,11 +14,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -30,6 +32,8 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.effectiveRepRange
+import com.example.kpkn.data.programs.CatalogEntry
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.nutrition.EerSex
 import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
 import com.example.kpkn.domain.nutrition.NutritionPlanPreparationStatus
@@ -47,6 +51,8 @@ import com.example.kpkn.screens.onboarding.design.WizardRadioMark
 import com.example.kpkn.screens.onboarding.design.WizardShapes
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
+import com.example.kpkn.screens.programs.PlanInfoMode
+import com.example.kpkn.screens.programs.PlanInfoSheet
 
 /**
  * Revisión y activación: los cuatro bloques obligatorios como tarjetas
@@ -220,6 +226,15 @@ internal fun previewSessionsSummary(sessions: Int, exercises: Int): String =
 internal fun allSessionsSummary(sessions: Int, weeks: Int): String =
     "${SpanishPlurals.sessions(sessions)} en ${SpanishPlurals.weeks(weeks)}"
 
+/**
+ * C.P7 · Valor de la fila «Plan»: el título editorial del plan elegido del catálogo
+ * (sin «Plan de …» ni ids). Sin plan del catálogo (programa desde cero, id que ya no
+ * existe) conserva el nombre del programa de la vista previa; sin nombre, null
+ * («Sin declarar»).
+ */
+internal fun planReviewValue(entry: CatalogEntry?, programName: String): String? =
+    entry?.displayName ?: programName.ifBlank { null }
+
 // ─── Resumen: entreno ────────────────────────────────────────────────────────
 
 @Composable
@@ -229,6 +244,11 @@ private fun TrainingSummary(
     edit: (SetupStepId) -> (() -> Unit)?,
 ) {
     var expanded by rememberSaveable(state.draft.draftId, state.draft.commitId) { mutableStateOf(false) }
+    var showPlanInfo by rememberSaveable(state.draft.draftId, state.draft.commitId) { mutableStateOf(false) }
+    // El plan elegido (la INTENCIÓN del borrador, §15.2): de ahí salen el título y «Ver cómo funciona».
+    val planEntry = remember(state.draft.selectedCatalogId) {
+        state.draft.selectedCatalogId?.let(PersonalizedPlanCatalog::find)
+    }
     val program = state.programPreview
     if (program == null) {
         SetupDataLine(label = "Programa", value = null, missing = "Sin vista previa")
@@ -241,9 +261,22 @@ private fun TrainingSummary(
 
     SetupDataLine(
         label = "Plan",
-        value = program.name.ifBlank { null },
+        value = planReviewValue(planEntry, program.name),
         onEdit = edit(SetupStepId.PLAN),
     )
+    if (planEntry != null) {
+        // Ya está elegido: la hoja es de solo lectura (sin botón primario).
+        TextButton(onClick = { showPlanInfo = true }, modifier = Modifier.testTag("review-plan-info")) {
+            Text(text = "Ver cómo funciona", color = WizardColors.text)
+        }
+        if (showPlanInfo) {
+            PlanInfoSheet(
+                entry = planEntry,
+                mode = PlanInfoMode.READ_ONLY,
+                onDismiss = { showPlanInfo = false },
+            )
+        }
+    }
     SetupDataLine(
         label = "Reparto semanal",
         value = draftSplitLabel(state),
