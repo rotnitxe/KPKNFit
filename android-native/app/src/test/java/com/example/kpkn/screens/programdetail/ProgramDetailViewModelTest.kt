@@ -8,6 +8,7 @@ import com.example.kpkn.data.protocols.AutoregulationHook
 import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayRecipe
+import com.example.kpkn.data.protocols.IncrementScope
 import com.example.kpkn.data.protocols.LiftSlot
 import com.example.kpkn.data.protocols.LoadBasis
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
@@ -2375,6 +2376,263 @@ class ProgramDetailViewModelTest {
         assertEquals("No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.", message)
         assertEquals("el aviso se pinta como fallo", SnackbarType.DANGER, snackbarTypeFor(message))
         assertEquals("el plan no cambió", before, repository.getProgramById(id))
+    }
+
+    // ─── B.S6 parte 2a-bis: las puertas de bloque leen los registros y el inventario reales ───
+
+    /**
+     * Dos olas de dos semanas con la subida del método por bloque (`CycleIncrement` con `BLOCK`). Con
+     * [benchAmrap] la última serie de banca es AMRAP; con [firstWaveGoal] = REALIZATION la ola 1 cierra con
+     * la puerta del test de 1RM.
+     */
+    private fun waveRecipe(firstWaveGoal: BlockGoal, benchAmrap: Boolean): TrainingPlanRecipe {
+        fun waveDay() = day(
+            "Día A",
+            weekday = 1,
+            slots = listOf(
+                slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to 70.0, 5 to 70.0), 180, LiftSlot.SQUAT, isCompetitionLift = true),
+                slot("bp", SlotRole.T1_MAIN, CatalogIds.BP, percentSets(180, 5 to 70.0, 5 to 70.0, amrapLast = benchAmrap), 180, LiftSlot.BENCH, isCompetitionLift = true),
+            ),
+        )
+        return TrainingPlanRecipe(
+            id = "vm-waves",
+            weeks = listOf(
+                weekRecipe(1, 0, "Ola 1", firstWaveGoal, listOf(waveDay())),
+                weekRecipe(2, 0, "Ola 1", firstWaveGoal, listOf(waveDay())),
+                weekRecipe(3, 1, "Ola 2", BlockGoal.INTENSIFICATION, listOf(waveDay())),
+                weekRecipe(4, 1, "Ola 2", BlockGoal.INTENSIFICATION, listOf(waveDay())),
+            ),
+            trainingMaxPercent = 0.90,
+            liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW, LiftSlot.BENCH to CatalogIds.BP),
+            progression = ProgressionRule.CycleIncrement(2.5, 5.0, IncrementScope.BLOCK),
+        )
+    }
+
+    /** Registro de la sesión de [week] con el T1 de [configurationId]: las series del plan y [amrapReps] en la AMRAP. */
+    private fun amrapLog(program: Program, week: ProgramWeek, configurationId: String, amrapReps: Int): WorkoutLog {
+        val t1 = week.sessions.single().allExercises().first {
+            it.slotRole == SlotRole.T1_MAIN && it.catalogConfigurationId == configurationId
+        }
+        return trainedLogs(program, week).single().copy(
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = t1.id,
+                    exerciseName = t1.name,
+                    catalogConfigurationId = t1.catalogConfigurationId,
+                    sets = t1.sets.mapIndexed { index, planned ->
+                        CompletedSet(
+                            id = "set$index",
+                            weight = planned.weight ?: 60.0,
+                            reps = if (planned.isAmrap) amrapReps else planned.targetReps ?: 5,
+                            amrapPerformed = planned.isAmrap,
+                        )
+                    },
+                ),
+            ),
+        )
+    }
+
+    /**
+     * Las dos olas con la ola 1 entrenada y la puerta que levanta el motor al cerrarla: una descarga de AUGE si
+     * [stress] es alto, o el test de 1RM si [firstWaveGoal] es REALIZATION. Con [shortBenchReps] la ola 1 lleva
+     * una AMRAP de banca que se queda en esas repeticiones donde el plan pedía 5. Devuelve el programa con la
+     * puerta pendiente y los registros de la ola 1. Con el [profile] por defecto los TM son 180 / 108.
+     */
+    private fun waveGate(
+        id: String,
+        firstWaveGoal: BlockGoal = BlockGoal.ACCUMULATION,
+        stress: Boolean = false,
+        shortBenchReps: Int? = null,
+        profile: PowerliftingProfile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0),
+    ): Pair<Program, List<WorkoutLog>> {
+        val materialized = PlanMaterializer.materialize(
+            Program(id = id, name = "Olas $id"),
+            waveRecipe(firstWaveGoal, benchAmrap = shortBenchReps != null),
+            CatalogCompositionTestSupport.metadata,
+            TmIds(),
+            profile = profile,
+            strict = false,
+        )
+        val weeks = weeksOf(materialized)
+        val atLastWeek = materialized.copy(
+            runState = ProgramRunState(
+                runId = "$id-run",
+                cycleNumber = 1,
+                weekId = weeks[1].id,
+                weekInstanceId = weeks[1].id,
+            ),
+        )
+        val logs = weeks.take(2).flatMap { week ->
+            if (shortBenchReps != null && week.id == weeks[0].id) {
+                listOf(amrapLog(atLastWeek, week, CatalogIds.BP, shortBenchReps))
+            } else {
+                trainedLogs(atLastWeek, week)
+            }
+        }
+        val gate = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = atLastWeek,
+            activeState = null,
+            completedSession = weeks[1].sessions.last(),
+            weekInstanceId = weeks[1].id,
+            logs = logs,
+            transitionContext = if (stress) BlockTransitionEngine.TransitionContext(mesocycleStressEma = 80.0) else null,
+        )
+        return gate.program to logs
+    }
+
+    /** Los discos de 1,25 kg hacen que el TM se redondee a múltiplos de 2,5 kg. */
+    private fun plates125() = EquipmentInventory(
+        plates = listOf(PlateStock(1.25, 2), PlateStock(2.5, 2), PlateStock(5.0, 2), PlateStock(20.0, 2)),
+    )
+
+    private fun userNoticeOf(program: Program): String =
+        program.nativeProgressionAudit.single { it.userFacingNotice }.reason
+
+    @Test
+    fun rejectPendingDeload_holds_the_lift_with_a_short_amrap_read_from_the_history() = runBlocking {
+        val id = nextId()
+        val (gate, logs) = waveGate(id, stress = true, shortBenchReps = 3)
+        assertEquals(PendingProgramActionType.CONFIRM_DELOAD, gate.runState?.pendingAction?.type)
+        repository.addProgram(gate)
+        val vm = ProgramDetailViewModel(id)
+        // Los registros llegan DESPUÉS de crear el ViewModel: el AMRAP corto se lee de la historia viva y no
+        // de un flujo perezoso que nadie observa.
+        logs.forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+
+        vm.rejectPendingDeload()
+
+        val saved = repository.getProgramById(id)!!
+        assertNull(saved.runState?.pendingAction)
+        assertTrue(
+            "la descarga rechazada se quita del plan",
+            saved.macrocycles.flatMap { it.blocks }.none { it.goal == BlockGoal.DELOAD },
+        )
+        val tm = saved.powerliftingProfile!!
+        assertEquals("la sentadilla sube 5", 185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene por el AMRAP corto de la ola que se cierra", 108.0, tm.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            userNoticeOf(saved),
+        )
+        // La ola 2 (semanas 3 y 4 sin la descarga) toma el TM de cada levantamiento.
+        val weeks = weeksOf(saved)
+        assertEquals(0.70 * 185.0, t1Weight(weeks[2], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 108.0, t1Weight(weeks[2], CatalogIds.BP), 1e-6)
+    }
+
+    @Test
+    fun rejectPendingDeload_raises_the_lift_when_the_history_has_no_short_amrap() = runBlocking {
+        val id = nextId()
+        // La ola 1 tiene AMRAP de banca y se entrenó, pero ninguna AMRAP quedó corta.
+        val (gate, logs) = waveGate(id, stress = true, shortBenchReps = 8)
+        repository.addProgram(gate)
+        logs.forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.rejectPendingDeload()
+
+        val tm = repository.getProgramById(id)!!.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        // Con los discos por defecto (1,25 kg) el paso es 2,5 kg: 108 + 2,5 = 110,5 cae en 110.
+        assertEquals(110.0, tm.benchTM!!, 1e-9)
+    }
+
+    @Test
+    fun rejectPendingDeload_rounds_the_raised_tm_with_the_plates_of_the_settings() = runBlocking {
+        val id = nextId()
+        repository.updateSettings { it.copy(equipmentInventory = plates125()) }
+        val (gate, logs) = waveGate(id, stress = true)
+        repository.addProgram(gate)
+        logs.forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.rejectPendingDeload()
+
+        // Discos de 1,25 kg: el paso es 2,5 kg y la banca (108 + 2,5 = 110,5) cae en 110. Sin pasar el
+        // inventario el paso sería medio kilo y quedaría en 110,5.
+        val saved = repository.getProgramById(id)!!
+        val tm = saved.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals(110.0, tm.benchTM!!, 1e-9)
+        assertEquals("Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110 kg.", userNoticeOf(saved))
+    }
+
+    @Test
+    fun rejectPendingDeload_follows_the_athlete_when_the_settings_declare_no_plates() = runBlocking {
+        val id = nextId()
+        // Un inventario sin discos declarados no tiene paso de rejilla: el TM se redondea a medio kilo.
+        repository.updateSettings { it.copy(equipmentInventory = EquipmentInventory(barbellWeightKg = 20.0)) }
+        val (gate, logs) = waveGate(id, stress = true)
+        repository.addProgram(gate)
+        logs.forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.rejectPendingDeload()
+
+        val saved = repository.getProgramById(id)!!
+        assertEquals(110.5, saved.powerliftingProfile!!.benchTM!!, 1e-9)
+        assertEquals("Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg.", userNoticeOf(saved))
+    }
+
+    @Test
+    fun recordPendingOneRmTest_reads_the_history_and_the_plates_for_the_block_increment() = runBlocking {
+        val id = nextId()
+        repository.updateSettings { it.copy(equipmentInventory = plates125()) }
+        val (gate, logs) = waveGate(id, firstWaveGoal = BlockGoal.REALIZATION, shortBenchReps = 3)
+        assertEquals(PendingProgramActionType.CONFIRM_1RM_TEST, gate.runState?.pendingAction?.type)
+        repository.addProgram(gate)
+        logs.forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        // 1RM de sentadilla 210 (TM 189); el de banca no cambia y conserva su TM de 108.
+        vm.recordPendingOneRmTest(210.0, 120.0, 230.0)
+
+        val saved = repository.getProgramById(id)!!
+        assertNull(saved.runState?.pendingAction)
+        val profile = saved.powerliftingProfile!!
+        // Discos de 1,25 kg: 189 + 5 = 194 se redondea a la rejilla de 2,5 kg (195). Sin el inventario sería 194.
+        assertEquals(195.0, profile.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene por el AMRAP corto de la ola que se cierra", 108.0, profile.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 189 → 195 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            userNoticeOf(saved),
+        )
+        val weeks = weeksOf(saved)
+        assertEquals(0.70 * 195.0, t1Weight(weeks[2], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 108.0, t1Weight(weeks[2], CatalogIds.BP), 1e-6)
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+    }
+
+    @Test
+    fun skipPendingOneRmTest_reads_the_history_and_the_plates_for_the_block_increment() = runBlocking {
+        val id = nextId()
+        repository.updateSettings { it.copy(equipmentInventory = plates125()) }
+        // El TM de sentadilla (181) sube a 186, que no está en la rejilla de 2,5 kg.
+        val profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, squatTM = 181.0)
+        val (gate, logs) = waveGate(id, firstWaveGoal = BlockGoal.REALIZATION, shortBenchReps = 3, profile = profile)
+        assertEquals(PendingProgramActionType.CONFIRM_1RM_TEST, gate.runState?.pendingAction?.type)
+        repository.addProgram(gate)
+        logs.forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.skipPendingOneRmTest()
+
+        val saved = repository.getProgramById(id)!!
+        assertNull(saved.runState?.pendingAction)
+        val tm = saved.powerliftingProfile!!
+        // El test omitido no cambia el TM; el método suma 5 y los discos de 1,25 kg lo llevan a la rejilla.
+        assertEquals("181 + 5 = 186 se redondea a 185", 185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene por el AMRAP corto de la ola que se cierra", 108.0, tm.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 181 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            userNoticeOf(saved),
+        )
     }
 
     // ─── B.S5 · R-03: «VER PROPUESTA» solo lleva a la pestaña Semana ───

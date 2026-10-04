@@ -1,6 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
+import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.LoopState
@@ -476,7 +477,8 @@ object ProgramProgressEngine {
      * receta y, con `CycleIncrement(scope = BLOCK)`, el TM sube una vez (marca `author-block-b<i>` con el
      * índice del bloque YA sin la descarga, el mismo que tendría sin puerta). Al ACEPTARLA el cursor entra
      * en la «Descarga (auto)» de AUGE, que no es un bloque de la receta: el enganche no hace nada y el TM
-     * sube al entrar después en el bloque siguiente, por el avance normal.
+     * sube al entrar después en el bloque siguiente, por el avance normal; esa subida lee el AMRAP corto
+     * de la ola anterior a la descarga ([closingBlockWeeks]), no el de la descarga, que no tiene AMRAP.
      *
      * [logs], [compositionMetadata] e [inventory] cumplen el mismo papel que en
      * [advanceAfterSessionComplete]: [logs] protege las sesiones ya entrenadas y detecta el AMRAP corto
@@ -657,8 +659,9 @@ object ProgramProgressEngine {
      * (instancias nativas de semana en el avance normal, id de plantilla tras una puerta, y la acción
      * pendiente que cada una conserva o limpia), y unificarlo cambiaría el estado que ya persisten.
      * [closingWeeks] son las semanas del bloque que se deja: de ellas sale el AMRAP corto que congela a
-     * un levantamiento («un lift con AMRAP corto no sube»). [logs] da además las sesiones ya entrenadas
-     * del run, que no se reconstruyen.
+     * un levantamiento («un lift con AMRAP corto no sube»). Las calcula [closingBlockWeeks]: si el bloque
+     * que se deja es una descarga de AUGE (sin AMRAP), son las de la ola de la receta anterior a ella.
+     * [logs] da además las sesiones ya entrenadas del run, que no se reconstruyen.
      *
      * Sin receta de autor, con otra regla o con progresión nativa activa no hace nada. Entrar al primer
      * bloque no cuenta, y entrar en un bloque que no es de la receta (la «Descarga (auto)» de AUGE)
@@ -704,14 +707,43 @@ object ProgramProgressEngine {
     /**
      * Semanas del bloque que se deja al resolver una puerta (descarga o test de 1RM): el bloque en el que
      * quedó el cursor al levantarla (`runState.blockId`), o, si ese id falta en un estado antiguo, el de
-     * la semana del cursor.
+     * la semana del cursor. Si ese bloque no es de la receta (una «Descarga (auto)» de AUGE), las semanas
+     * salen del bloque de la receta anterior más cercano: lo decide la sobrecarga que recibe el bloque.
      */
     private fun closingBlockWeeks(program: Program, run: ProgramRunState): List<ProgramWeek> {
         val closing = run.blockId?.let { id -> program.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == id } }
             ?: run.weekId?.let { weekId ->
                 ProgramHierarchyIndex(program).locateWeek(templateWeekIdFromInstance(weekId) ?: weekId)?.block
             }
-        return closing?.mesocycles?.flatMap { it.weeks }.orEmpty()
+        return closingBlockWeeks(program, closing)
+    }
+
+    /**
+     * Semanas de las que sale el AMRAP corto que congela una subida del método al dejar el bloque
+     * [closing] (`CycleIncrement` con `scope = BLOCK`: «un lift con AMRAP corto no sube»).
+     *
+     * Son las del propio bloque cuando viene de la receta. Si no (la «Descarga (auto)» que inserta
+     * AUGE, o un bloque que el atleta añadió), el bloque que se deja no tiene AMRAP que leer y la ola
+     * que sí lo tuvo es la anterior: se toma el bloque de la receta previo más cercano, en el orden del
+     * programa. Así un AMRAP corto de la ola 1 sigue contando cuando, después de una descarga
+     * aceptada, se entra en la ola 2 por el avance normal (o al rechazar una segunda descarga). Sin
+     * receta, o sin ningún bloque de la receta antes de [closing], se queda con las semanas de
+     * [closing]: el comportamiento de antes. Los registros que protegen sesiones ya entrenadas no
+     * cambian: son siempre los del run.
+     */
+    private fun closingBlockWeeks(program: Program, closing: Block?): List<ProgramWeek> {
+        if (closing == null) return emptyList()
+        val recipeId = program.sourceRecipe?.id
+        val source = if (recipeId == null || closing.sourceDefinitionId == recipeId) {
+            closing
+        } else {
+            val blocks = program.macrocycles.flatMap { it.blocks }
+            val closingIndex = blocks.indexOfFirst { it.id == closing.id }
+            blocks.take(closingIndex.coerceAtLeast(0))
+                .lastOrNull { it.sourceDefinitionId == recipeId }
+                ?: closing
+        }
+        return source.mesocycles.flatMap { it.weeks }
     }
 
     /**
@@ -1050,7 +1082,7 @@ object ProgramProgressEngine {
             working = applyAuthoredBlockEntry(
                 program = working,
                 enteredBlockId = nextBlockId,
-                closingWeeks = weeksInBlock,
+                closingWeeks = closingBlockWeeks(program, block),
                 logs = logs,
                 cycleNumber = cycleNumber,
                 runId = runId,

@@ -12,6 +12,7 @@ import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
 import com.example.kpkn.data.models.BlockProgressionScheme
+import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.HYPERTROPHY_ROLE_MULTIPLIERS
 import com.example.kpkn.data.models.Mesocycle
@@ -1627,12 +1628,33 @@ class ProgramDetailViewModel(
             },
         )
 
+    /**
+     * Registros de este programa para las puertas de bloque (descarga y test de 1RM). Se leen de la
+     * fuente viva [history] y no de [programLogs]: ese flujo es perezoso y, sin nadie que lo observe,
+     * su `value` sigue siendo la lista vacía del arranque. Sin registros el motor no puede detectar un
+     * AMRAP corto en la ola que se cierra (el levantamiento subiría igual) ni proteger una sesión de la
+     * ola nueva que ya se entrenó por adelantado.
+     */
+    private fun currentProgramLogs(): List<WorkoutLog> =
+        ProgramDetailHelpers.computeProgramLogs(history.value, programId)
+
+    /**
+     * Barra y discos que el atleta declaró en los ajustes: el TM que sube la progresión del método se
+     * redondea a lo que realmente se puede cargar (con discos de 1,25 kg, 108 + 2,5 da 110 y no 110,5).
+     * El proveedor de metadatos del catálogo no se pasa: el motor usa el instalado, igual que el resto
+     * de reconstrucciones de este ViewModel.
+     */
+    private fun currentEquipmentInventory(): EquipmentInventory =
+        repository.settings.value.resolvedEquipmentInventory()
+
     private fun resolvePendingDeload(accept: Boolean) {
         val current = program.value ?: return
         val result = ProgramProgressEngine.resolvePendingDeload(
             program = current,
             activeState = activeProgramState.value?.takeIf { it.programId == current.id },
             accept = accept,
+            logs = currentProgramLogs(),
+            inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
         updateProgram(result.program)
@@ -1659,6 +1681,8 @@ class ProgramDetailViewModel(
                 bench1RM = bench1RM,
                 deadlift1RM = deadlift1RM,
             ),
+            logs = currentProgramLogs(),
+            inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
         val recipe = result.program.sourceRecipe
@@ -1686,6 +1710,8 @@ class ProgramDetailViewModel(
                 status = com.example.kpkn.data.models.OneRmResolutionStatus.SKIPPED,
                 note = "Atleta omitió el registro de 1RM",
             ),
+            logs = currentProgramLogs(),
+            inventory = currentEquipmentInventory(),
         )
         if (result.program == current) return
         updateProgram(result.program)

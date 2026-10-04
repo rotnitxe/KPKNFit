@@ -1583,4 +1583,153 @@ class ProgramProgressCycleCloseTest {
         assertTrue(userNotices(resolved.program).isEmpty())
         assertEquals(program.macrocycles.first().blocks[1].id, resolved.program.runState?.blockId)
     }
+
+    // ─── B.S6 parte 2a-bis: la ola anterior a una descarga aceptada sigue leyéndose para el AMRAP corto ───
+
+    /** La semana donde quedó el cursor del run. */
+    private fun cursorWeek(program: Program): ProgramWeek =
+        weeksOf(program).first { it.id == program.runState?.weekId }
+
+    /**
+     * AUGE pide una descarga al cerrar la ola 1 y el atleta la ACEPTA: el cursor entra en la «Descarga (auto)»,
+     * que no es un bloque de la receta. Devuelve la aceptación y el avance que sigue a entrenar su única
+     * semana, el que entra en la ola 2 por el camino normal. [waveExtraLogs] añade registros sueltos de la
+     * ola 1 (p. ej. una AMRAP corta).
+     */
+    private fun acceptDeloadThenTrainIt(
+        program: Program,
+        waveExtraLogs: List<WorkoutLog> = emptyList(),
+    ): Pair<ProgramProgressEngine.ProgressAdvanceResult, ProgramProgressEngine.ProgressAdvanceResult> {
+        val gate = deloadGate(program, waveExtraLogs)
+        val waveLogs = wave1Logs(program) + waveExtraLogs
+        val accepted = ProgramProgressEngine.resolvePendingDeload(gate.program, gate.activeState, accept = true, logs = waveLogs)
+        val deloadWeek = cursorWeek(accepted.program)
+        val entering = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = accepted.program,
+            activeState = accepted.activeState,
+            completedSession = deloadWeek.sessions.last(),
+            weekInstanceId = deloadWeek.id,
+            logs = waveLogs + logsFor(accepted.program, listOf(deloadWeek)),
+        )
+        return accepted to entering
+    }
+
+    @Test
+    fun a_short_amrap_before_an_accepted_auge_deload_still_holds_the_lift_when_the_next_wave_starts() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+
+        val (accepted, entering) = acceptDeloadThenTrainIt(program, listOf(shortBenchLog(program)))
+
+        // Aceptar la descarga no sube el TM: no es un bloque de la receta.
+        assertEquals(program.powerliftingProfile, accepted.program.powerliftingProfile)
+        val blocks = entering.program.macrocycles.flatMap { it.blocks }
+        assertEquals("ola 1, descarga de AUGE y ola 2", 3, blocks.size)
+        assertTrue(entering.advancedWeek)
+        assertEquals("el cursor entra en la ola 2", blocks[2].id, entering.program.runState?.blockId)
+        // La descarga no tiene AMRAP: cuenta el de la ola 1, que la descarga interrumpió.
+        val tm = entering.program.powerliftingProfile!!
+        assertEquals("la sentadilla sube 5", 185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene por el AMRAP corto de la ola anterior a la descarga", 108.0, tm.benchTM!!, 1e-9)
+        val notice = userNotices(entering.program).single()
+        assertEquals("author-block-b2", notice.proposalId)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            notice.reason,
+        )
+        assertEquals(1, appliedProposals(entering.program, "author-block-b2").size)
+        // Semanas del programa: ola 1 (0 y 1), descarga (2) y ola 2 (3 y 4). La ola 2 toma el TM de cada
+        // levantamiento y la descarga queda como estaba.
+        listOf(3, 4).forEach { index ->
+            assertEquals("ola 2, semana $index", 0.70 * 185.0, squatKgOf(entering.program, index), 1e-6)
+            assertEquals(0.70 * 108.0, benchKgOf(entering.program, index), 1e-6)
+        }
+        assertEquals(accepted.program.macrocycles.flatMap { it.blocks }[1], blocks[1])
+    }
+
+    @Test
+    fun without_a_short_amrap_the_next_wave_after_an_accepted_auge_deload_raises_every_lift() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+
+        // La ola 1 tiene AMRAP de banca pero ninguna quedó corta: no hay nada que congelar.
+        val (_, entering) = acceptDeloadThenTrainIt(program)
+
+        val tm = entering.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca sube 2,5", 110.5, tm.benchTM!!, 1e-9)
+        val notice = userNotices(entering.program).single()
+        assertEquals("author-block-b2", notice.proposalId)
+        assertEquals("Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg.", notice.reason)
+        assertEquals(0.70 * 110.5, benchKgOf(entering.program, 3), 1e-6)
+    }
+
+    /** Ola 1, descarga de AUGE aceptada y entrenada y, como el estrés sigue alto, una segunda descarga pendiente. */
+    private fun secondDeloadGate(
+        program: Program,
+        waveExtraLogs: List<WorkoutLog>,
+    ): Pair<ProgramProgressEngine.ProgressAdvanceResult, List<WorkoutLog>> {
+        val waveLogs = wave1Logs(program) + waveExtraLogs
+        val firstGate = deloadGate(program, waveExtraLogs)
+        val accepted = ProgramProgressEngine.resolvePendingDeload(firstGate.program, firstGate.activeState, accept = true, logs = waveLogs)
+        val firstDeload = cursorWeek(accepted.program)
+        val logs = waveLogs + logsFor(accepted.program, listOf(firstDeload))
+        val secondGate = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = accepted.program,
+            activeState = accepted.activeState,
+            completedSession = firstDeload.sessions.last(),
+            weekInstanceId = firstDeload.id,
+            logs = logs,
+            transitionContext = augeStress,
+        )
+        return secondGate to logs
+    }
+
+    @Test
+    fun the_closest_recipe_wave_is_read_when_two_auge_deloads_come_before_the_next_wave() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+        val (gate, logs) = secondDeloadGate(program, listOf(shortBenchLog(program)))
+        assertEquals(PendingProgramActionType.CONFIRM_DELOAD, gate.program.runState?.pendingAction?.type)
+        assertEquals("ola 1, dos descargas de AUGE y ola 2", 4, gate.program.macrocycles.flatMap { it.blocks }.size)
+
+        // La segunda descarga también se acepta y se entrena: la ola 2 se entra por el avance normal.
+        val accepted = ProgramProgressEngine.resolvePendingDeload(gate.program, gate.activeState, accept = true, logs = logs)
+        val secondDeload = cursorWeek(accepted.program)
+        val entering = ProgramProgressEngine.advanceAfterSessionComplete(
+            program = accepted.program,
+            activeState = accepted.activeState,
+            completedSession = secondDeload.sessions.last(),
+            weekInstanceId = secondDeload.id,
+            logs = logs + logsFor(accepted.program, listOf(secondDeload)),
+        )
+
+        val tm = entering.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals("el AMRAP corto de la ola 1 cuenta aunque haya dos descargas por medio", 108.0, tm.benchTM!!, 1e-9)
+        val notice = userNotices(entering.program).single()
+        // Índices: ola 1 = 0, las dos descargas = 1 y 2, ola 2 = 3.
+        assertEquals("author-block-b3", notice.proposalId)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            notice.reason,
+        )
+    }
+
+    @Test
+    fun rejecting_a_second_auge_deload_still_holds_the_lift_with_a_short_amrap_before_the_first_one() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+        val (gate, logs) = secondDeloadGate(program, listOf(shortBenchLog(program)))
+
+        // El cursor está en la primera descarga, que no es de la receta, cuando se rechaza la segunda.
+        val rejected = ProgramProgressEngine.resolvePendingDeload(gate.program, gate.activeState, accept = false, logs = logs)
+
+        val tm = rejected.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene por el AMRAP corto de la ola 1", 108.0, tm.benchTM!!, 1e-9)
+        val notice = userNotices(rejected.program).single()
+        // Índices sin la segunda descarga: ola 1 = 0, primera descarga = 1 y ola 2 = 2.
+        assertEquals("author-block-b2", notice.proposalId)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            notice.reason,
+        )
+    }
 }
