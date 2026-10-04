@@ -4,6 +4,7 @@ import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
@@ -14,8 +15,11 @@ import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
 import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.onboarding.NativePlanFailureMapper
+import com.example.kpkn.domain.onboarding.PlanCandidateEvaluation
 import com.example.kpkn.domain.onboarding.PlanCandidateRequest
 import com.example.kpkn.domain.onboarding.PlanCatalogSnapshot
+import com.example.kpkn.domain.onboarding.PlanCoverage
+import com.example.kpkn.domain.onboarding.PlanDurationBreakdown
 import com.example.kpkn.domain.onboarding.PlanGoalMatcher
 import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanMaterializationOutcome
@@ -322,6 +326,29 @@ internal object CoverageFixtures {
             exerciseCatalogRevision = CatalogCompositionTestSupport.catalog.catalogRevision,
         )
     }
+
+    /**
+     * Paquete A · A.C1: evaluación `Ready` mínima, SIN programa real (un `Program` vacío). Sirve a las pruebas que solo
+     * preguntan «¿queda Ready?» (el asesor de reparaciones) sin pagar ni retener un programa materializado: el
+     * contrato de cobertura guarda miles de resultados en su memo y un programa por fila no cabe en la memoria del JVM.
+     */
+    fun stubReady(planId: String, inputKey: String): PlanCandidateEvaluation.Ready =
+        PlanCandidateEvaluation.Ready(
+            planId = planId,
+            preparedPlan = Program(id = "stub-$planId", name = "stub"),
+            recipeSnapshot = null,
+            provenance = null,
+            durationBreakdown = PlanDurationBreakdown(emptyList()),
+            inputKey = inputKey,
+            unresolvedWorkoutLoads = emptyList(),
+            coverage = PlanCoverage(
+                frequency = 1,
+                hasStrength = true,
+                hasHypertrophy = true,
+                hasPower = true,
+                hasCardio = true,
+            ),
+        )
 
     /** Un generador con el catálogo aprobado ya cargado (cárgalo UNA vez por prueba, no por fila). */
     fun personalizer(): SimpleCyclePersonalizer = SimpleCyclePersonalizer(

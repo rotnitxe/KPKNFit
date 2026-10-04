@@ -56,7 +56,7 @@ class NativePlanFailureMapperTest {
     @Test
     fun timeBudgetKeepsTheMinimumMinutesTheFitterComputed() {
         val failure = NativePlanFailureMapper.typedFailure(
-            report("TIME_BUDGET", 21, "Este plan necesita 20 min por sesión y no cabe; el mínimo real es de 21 min."),
+            report("TIME_BUDGET", 21, "Con las series mínimas este plan necesita 21 min por sesión y elegiste 20."),
         )
         assertNotNull(failure)
         failure!!
@@ -344,6 +344,109 @@ class NativePlanFailureMapperTest {
             fail("la cancelación debe propagarse")
         } catch (expected: CancellationException) {
             assertEquals("cancelado", expected.message)
+        }
+    }
+
+    // ─── Paquete A · C2: mínimo EXACTO con pocas pruebas (DEC-w2-03) ──────────────────────────────
+
+    /** [SimpleCyclePersonalizer.exactMinimumMinutes] con un registro de las pruebas que hizo. */
+    private fun exactMinimum(
+        available: Int,
+        hint: Int?,
+        probed: MutableList<Int>,
+        viableAt: (Int) -> Boolean,
+    ): Int? = SimpleCyclePersonalizer.exactMinimumMinutes(available, hint) { minutes ->
+        probed += minutes
+        viableAt(minutes)
+    }
+
+    @Test
+    fun theExactMinimumIsFoundForEveryThresholdWhateverTheHintAndWithAtMostTenProbes() {
+        var worst = 0
+        listOf(20, 33, 59, 98).forEach { available ->
+            (available + 1..100).forEach { threshold ->
+                val hints = listOf(null, threshold, threshold - 1, threshold - 3, threshold + 1, threshold + 7, available + 1, 100, 250)
+                hints.forEach { hint ->
+                    val probed = mutableListOf<Int>()
+                    val minimum = exactMinimum(available, hint, probed) { minutes -> minutes >= threshold }
+                    val context = "available=$available threshold=$threshold hint=$hint probes=$probed"
+                    assertEquals(context, threshold, minimum)
+                    assertTrue(context, probed.size <= 10)
+                    assertTrue("$context: solo se prueba entre el presupuesto elegido (excluido) y el techo", probed.all { it in available + 1..100 })
+                    worst = maxOf(worst, probed.size)
+                }
+            }
+        }
+        println("[C2] peor caso de pruebas del mínimo exacto: $worst")
+    }
+
+    @Test
+    fun whenTheHintIsAlreadyTheMinimumOnlyItAndItsLowerNeighbourAreProbed() {
+        val probed = mutableListOf<Int>()
+        assertEquals(31, exactMinimum(20, 31, probed) { minutes -> minutes >= 31 })
+        assertEquals("la conjetura y su vecino de abajo", listOf(31, 30), probed)
+
+        val adjacent = mutableListOf<Int>()
+        assertEquals(21, exactMinimum(20, 21, adjacent) { minutes -> minutes >= 21 })
+        assertEquals("el vecino de abajo es el rechazo que se explica: no se vuelve a probar", listOf(21), adjacent)
+    }
+
+    @Test
+    fun aMistakenHintStillEndsAtTheExactMinimum() {
+        // Conjetura demasiado alta: es viable y su vecino también, así que se bisecciona hacia abajo.
+        val high = mutableListOf<Int>()
+        assertEquals(30, exactMinimum(20, 45, high) { minutes -> minutes >= 30 })
+        assertEquals(listOf(45, 44), high.take(2))
+
+        // Conjetura demasiado baja (no viable): se prueba el techo y se bisecciona entre el presupuesto y el techo.
+        val low = mutableListOf<Int>()
+        assertEquals(50, exactMinimum(20, 25, low) { minutes -> minutes >= 50 })
+        assertEquals(listOf(25, 100), low.take(2))
+    }
+
+    @Test
+    fun theExactMinimumIsNullWhenEvenTheCeilingIsNotViable() {
+        val withHint = mutableListOf<Int>()
+        assertNull(exactMinimum(20, 31, withHint) { false })
+        assertEquals("la conjetura y el techo, nada más", listOf(31, 100), withHint)
+
+        val withoutHint = mutableListOf<Int>()
+        assertNull(exactMinimum(20, null, withoutHint) { false })
+        assertEquals(listOf(100), withoutHint)
+
+        val ceilingHint = mutableListOf<Int>()
+        assertNull(exactMinimum(20, 100, ceilingHint) { false })
+        assertEquals("el techo no se prueba dos veces", listOf(100), ceilingHint)
+
+        val spent = mutableListOf<Int>()
+        assertNull(exactMinimum(100, 100, spent) { true })
+        assertTrue("con 100 min ya no hay presupuesto mayor que ofrecer", spent.isEmpty())
+    }
+
+    @Test
+    fun theExactMinimumIsAnExactEdgeEvenWhenViabilityDoesNotGrowWithTheBudget() {
+        // Viable en 50..52 y desde 80: la bisección encuentra un borde exacto (no necesariamente el primero), que es lo
+        // que exige el contrato de cobertura (viable con n y no viable con n - 1).
+        val viable = (50..52).toSet() + (80..100).toSet()
+        val probed = mutableListOf<Int>()
+        val minimum = requireNotNull(exactMinimum(20, null, probed) { minutes -> minutes in viable })
+        assertTrue("$minimum debe ser viable", minimum in viable)
+        assertTrue("${minimum - 1} no debe ser viable", (minimum - 1) !in viable)
+    }
+
+    @Test
+    fun theExactMinimumPropagatesCancellationAndEveryOtherException() {
+        try {
+            SimpleCyclePersonalizer.exactMinimumMinutes(20, 31) { throw CancellationException("cancelado") }
+            fail("la cancelación debe propagarse")
+        } catch (expected: CancellationException) {
+            assertEquals("cancelado", expected.message)
+        }
+        try {
+            SimpleCyclePersonalizer.exactMinimumMinutes(20, null) { throw IllegalStateException("roto") }
+            fail("una excepción cualquiera no se traga")
+        } catch (expected: IllegalStateException) {
+            assertEquals("roto", expected.message)
         }
     }
 }

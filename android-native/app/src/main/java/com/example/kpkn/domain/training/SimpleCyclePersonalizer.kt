@@ -206,8 +206,9 @@ class SimpleCyclePersonalizer(
     ): PersonalizationResult = personalizeAt(programId, input, options, probeMinimumMinutes = true)
 
     /**
-     * Cuerpo de [personalize]. [probeMinimumMinutes] solo lo activa la llamada pública: el sondeo
-     * de [minimumViableMinutes] vuelve aquí con `false`, así que nunca se anida un sondeo dentro
+     * Cuerpo de [personalize]. [probeMinimumMinutes] solo lo activa la llamada pública: los sondeos
+     * de [minimumViableMinutes] (ruta histórica y Atleta sin cardio explícito) y de [exactMinimumMinutes]
+     * (planes propios, paquete A · C2) vuelven aquí con `false`, así que nunca se anida un sondeo dentro
      * de otro.
      */
     private fun personalizeAt(
@@ -265,6 +266,7 @@ class SimpleCyclePersonalizer(
                 ready = ready,
                 provenance = provenance,
                 unavailable = { message -> unavailable(message) },
+                probeMinimumMinutes = probeMinimumMinutes,
             )
         }
         val lookup = ready.catalog.toLegacyConfigurationLookup()
@@ -615,17 +617,25 @@ class SimpleCyclePersonalizer(
      * lo sería la llamada real; `CancellationException` se propaga siempre.
      */
     private fun minimumViableMinutes(programId: String, input: PersonalizerInput, options: TrainingOptions): Int? =
-        firstViableMinutes(input.availableMinutes) { minutes ->
-            try {
-                personalizeAt(programId, input.copy(availableMinutes = minutes), options, probeMinimumMinutes = false)
-                    .program != null
-            } catch (cancel: CancellationException) {
-                throw cancel
-            } catch (_: IllegalArgumentException) {
-                false
-            } catch (_: IllegalStateException) {
-                false
-            }
+        firstViableMinutes(input.availableMinutes) { minutes -> isViableAt(programId, input, options, minutes) }
+
+    /**
+     * ¿Produce programa la MISMA entrada con [minutes] min por sesión? Es una llamada completa a
+     * [personalizeAt] SIN sondeo (nunca se anida un sondeo dentro de otro): el mismo generador y el mismo
+     * estimador que el resultado final, con cardio, descansos, slots esenciales, días y split intactos. Una
+     * prueba que lanza `IllegalArgumentException` o `IllegalStateException` cuenta como NO viable;
+     * `CancellationException` se propaga siempre.
+     */
+    private fun isViableAt(programId: String, input: PersonalizerInput, options: TrainingOptions, minutes: Int): Boolean =
+        try {
+            personalizeAt(programId, input.copy(availableMinutes = minutes), options, probeMinimumMinutes = false)
+                .program != null
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (_: IllegalArgumentException) {
+            false
+        } catch (_: IllegalStateException) {
+            false
         }
 
     // ─── Cuatro planes propios §11–§12 (paquete F, T-004a) ───────────────────
@@ -705,6 +715,7 @@ class SimpleCyclePersonalizer(
         ready: ExerciseCatalogStateV2.Ready,
         provenance: CatalogProvenance,
         unavailable: (String) -> PersonalizationResult,
+        probeMinimumMinutes: Boolean,
     ): PersonalizationResult {
         fun fail(
             message: String,
@@ -1303,13 +1314,48 @@ class SimpleCyclePersonalizer(
         if (fit.maxMinutes > budget) {
             // §12.3 paso 5: sin variante de split que quepa → TIME_BUDGET con
             // los minutos mínimos reales calculados; nunca éxito parcial.
-            val compositionDiagnostic = compositionError?.let { "; diagnóstico de composición: $it" } ?: ""
-            return fail(
-                "Este plan necesita $budget min por sesión y no cabe con las dosis mínimas; el mínimo real es de " +
-                    "${fit.maxMinutes} min. Amplía el tiempo o elige otro plan.$compositionDiagnostic",
-                reasonCode = "TIME_BUDGET",
-                maxMinutes = fit.maxMinutes,
-            )
+            //
+            // Paquete A · C2 (DEC-w2-03): el mínimo que se informa es el EXACTO, no lo que midió el mejor
+            // esfuerzo del fitter. `fit.maxMinutes` no es una cota inferior: medido, Atleta de 3 días a 20 min con
+            // 10 min de cardio da un esfuerzo de 31 min y, sin embargo, con 30 ya hay programa (el paso 4 solo
+            // mueve un accesorio si los dos días caben en el presupuesto, así que el esfuerzo con un presupuesto
+            // pequeño puede quedar por encima del mínimo real). Se sondea la MISMA entrada (mismo cardio, descansos,
+            // slots esenciales, días y split) con presupuestos mayores y se informa el primero que produce programa,
+            // hasta 100 min. Sin palancas nuevas: DEC-w1-01 sigue intacta. Los sondeos no se anidan
+            // (`probeMinimumMinutes = false`).
+            val exactMinimum: Int? = when {
+                !probeMinimumMinutes -> fit.maxMinutes
+                // Atleta sin minutos de cardio explícitos: el cardio por defecto sube con el presupuesto (§11.4,
+                // 10/15/20 min), así que la viabilidad no es monótona y se barre minuto a minuto. En el wizard el
+                // Atleta siempre manda sus minutos de cardio; este caso solo lo alcanzan las llamadas directas.
+                kind == NativeProfileKind.COMPLETE_ATHLETE && cardio == null ->
+                    minimumViableMinutes(programId, input, options)
+                else -> exactMinimumMinutes(budget, fit.maxMinutes) { minutes ->
+                    isViableAt(programId, input, options, minutes)
+                }
+            }
+            // El diagnóstico de composición de algún intento intermedio del fitter es solo para el registro: va tras
+            // un salto de línea para que el texto de la persona no lo incluya (lo arma el presentador a partir de
+            // `requiredMinutes`, nunca de este mensaje).
+            val compositionDiagnostic = compositionError
+                ?.let { "\nDiagnóstico de composición (solo para el registro): $it" }
+                .orEmpty()
+            return if (exactMinimum != null) {
+                fail(
+                    "Con las series mínimas este plan necesita $exactMinimum min por sesión y elegiste $budget." +
+                        compositionDiagnostic,
+                    reasonCode = "TIME_BUDGET",
+                    maxMinutes = exactMinimum,
+                )
+            } else {
+                // Ningún presupuesto de hasta 100 min lo arregla: sin minutos que ofrecer (la reparación de
+                // `SetMinutes` no existe y la UI no promete un ajuste que no funciona).
+                fail(
+                    "Con las series mínimas este plan no cabe ni con $MAX_SESSION_MINUTES min por sesión y " +
+                        "elegiste $budget." + compositionDiagnostic,
+                    reasonCode = "TIME_BUDGET",
+                )
+            }
         }
         // B-02: el MRV sigue siendo el objetivo (la cascada de arriba ya agotó sus palancas), pero un
         // plan propio cuyos glúteos quedan entre el MRV y el techo blando se entrega con aviso de
@@ -2119,6 +2165,43 @@ class SimpleCyclePersonalizer(
                 if (viableAt(minutes)) return minutes
             }
             return MAX_SESSION_MINUTES
+        }
+
+        /**
+         * Paquete A · C2: mínimo EXACTO de presupuesto por encima de [availableMinutes] (hasta
+         * [MAX_SESSION_MINUTES]) para el que [viableAt] es verdadero, con pocas pruebas, o null si ni el techo basta.
+         * «Exacto» = el devuelto es viable y el anterior no (`viableAt(n)` y `!viableAt(n - 1)`), que es lo que exige
+         * `time_budget_minimum_is_exact` del contrato de cobertura. [availableMinutes] es el rechazo que se explica,
+         * así que se da por NO viable sin probarlo.
+         *
+         * [hint] es la mejor conjetura (el esfuerzo del fitter): casi siempre es ya el mínimo, así que se prueba
+         * primero y, si es viable, solo se comprueba su vecino de abajo (2 pruebas). Si el vecino también es viable,
+         * o la conjetura no lo era, se bisecciona entre [availableMinutes] y el menor viable conocido (el techo en el
+         * segundo caso). La bisección supone que la viabilidad crece con el presupuesto, que es lo que hace el
+         * fitter con minutos de cardio explícitos; si no lo hiciera, el resultado sigue siendo un borde exacto
+         * (viable y con su anterior no viable) aunque no el primero. Cota de pruebas: 2 + ⌈log2(100 − availableMinutes)⌉,
+         * como mucho 10 generaciones (el barrido lineal de [firstViableMinutes] llega a ~80). Una excepción de
+         * [viableAt] (incluida `CancellationException`) sale tal cual.
+         */
+        internal fun exactMinimumMinutes(availableMinutes: Int, hint: Int?, viableAt: (Int) -> Boolean): Int? {
+            if (availableMinutes >= MAX_SESSION_MINUTES) return null
+            val known = HashMap<Int, Boolean>()
+            fun probe(minutes: Int): Boolean = known.getOrPut(minutes) { viableAt(minutes) }
+            var low = availableMinutes
+            var high: Int
+            val start = hint?.takeIf { it > availableMinutes && it <= MAX_SESSION_MINUTES }
+            if (start != null && probe(start)) {
+                if (start - 1 == low || !probe(start - 1)) return start
+                high = start - 1
+            } else {
+                if (!probe(MAX_SESSION_MINUTES)) return null
+                high = MAX_SESSION_MINUTES
+            }
+            while (high - low > 1) {
+                val middle = (low + high) ushr 1
+                if (probe(middle)) high = middle else low = middle
+            }
+            return high
         }
 
         /**

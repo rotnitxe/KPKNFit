@@ -1032,6 +1032,92 @@ class NativeProfileRecipeAndFitterTest {
         )
     }
 
+    /**
+     * Paquete A · C2 (DEC-w2-03): `requiredMinutes` es el mínimo EXACTO del generador, no lo que midió el mejor esfuerzo
+     * del fitter. El oráculo es independiente del sondeo: para cada fila se barren con el generador público TODOS los
+     * presupuestos entre el elegido y el informado, y el informado debe ser el primero con programa (viable con él y
+     * TIME_BUDGET en cada minuto anterior). Las filas de Atleta con 10 min de cardio y 20 de presupuesto son las que
+     * antes informaban de más (esfuerzo de 31 min y programa ya con 30). La fila de Atleta sin minutos de cardio
+     * explícitos tiene una viabilidad que NO crece con el presupuesto (el cardio por defecto sube de 10 a 15 min en
+     * 45), así que el generador la barre minuto a minuto en lugar de bisecar.
+     */
+    @Test
+    fun time_budget_reports_the_exact_first_viable_minute() {
+        val generator = personalizer()
+        class Row(
+            val label: String,
+            val entryId: String,
+            val days: Int,
+            val level: CatalogLevel,
+            val equipment: Set<String>,
+            val budget: Int,
+            val cardio: CardioPreference?,
+        )
+        fun walk(minutes: Int) = CardioPreference(CardioType.WALK, minutes)
+        val athlete = NativeProfileKind.COMPLETE_ATHLETE.entryId
+        val muscle = NativeProfileKind.MUSCLE.entryId
+        val rows = listOf(
+            Row("Atleta 3d principiante, cardio 10, 20 min", athlete, 3, CatalogLevel.BEGINNER, BODYWEIGHT, 20, walk(10)),
+            Row("Atleta 4d principiante, cardio 10, 20 min", athlete, 4, CatalogLevel.BEGINNER, BODYWEIGHT, 20, walk(10)),
+            Row("Atleta 5d principiante, cardio 10, 30 min", athlete, 5, CatalogLevel.BEGINNER, BODYWEIGHT, 30, walk(10)),
+            Row("Atleta 1d principiante, cardio 20, 45 min", athlete, 1, CatalogLevel.BEGINNER, BODYWEIGHT, 45, walk(20)),
+            Row("Atleta 2d intermedio con barra, cardio 15, 40 min", athlete, 2, CatalogLevel.INTERMEDIATE, BARBELL, 40, walk(15)),
+            Row("Atleta 1d principiante, cardio por defecto, 30 min", athlete, 1, CatalogLevel.BEGINNER, BODYWEIGHT, 30, null),
+            Row("Músculo 3d principiante corporal, 20 min", muscle, 3, CatalogLevel.BEGINNER, BODYWEIGHT, 20, null),
+            Row("Músculo 6d intermedio con mancuernas, 30 min", muscle, 6, CatalogLevel.INTERMEDIATE, DUMBBELLS, 30, null),
+            Row("Fuerza 1d principiante con barra, 20 min", NativeProfileKind.STRENGTH.entryId, 1, CatalogLevel.BEGINNER, BARBELL, 20, null),
+            Row(
+                "Fuerza y músculo 3d intermedio con mancuernas, 20 min",
+                NativeProfileKind.POWERBUILDING.entryId,
+                3,
+                CatalogLevel.INTERMEDIATE,
+                DUMBBELLS,
+                20,
+                null,
+            ),
+        )
+        fun attempt(row: Row, minutes: Int) = generator.personalize(
+            "exact-${row.entryId.removePrefix("native:")}-${row.days}-$minutes",
+            PersonalizerInput(
+                catalogEntryId = row.entryId,
+                focus = TrainingFocus.FULL_BODY,
+                frequency = row.days,
+                equipment = row.equipment,
+                level = row.level,
+                availableMinutes = minutes,
+                cardio = row.cardio,
+            ),
+        )
+
+        var checked = 0
+        val failures = mutableListOf<String>()
+        rows.forEach { row ->
+            val rejected = attempt(row, row.budget)
+            // Una fila que cabe en su presupuesto no es un rechazo de tiempo: no entra en el oráculo.
+            if (rejected.program != null) return@forEach
+            val required = rejected.report.maxSessionMinutes
+            if (rejected.report.reasonCode != "TIME_BUDGET" || required == null || required <= row.budget || required > 100) {
+                failures += "${row.label}: rechazo ${rejected.report.reasonCode} con mínimo $required (presupuesto ${row.budget})"
+                return@forEach
+            }
+            checked++
+            val firstLine = rejected.report.limitations.first().lineSequence().first()
+            val expectedLine = "Con las series mínimas este plan necesita $required min por sesión y elegiste ${row.budget}."
+            if (firstLine != expectedLine) failures += "${row.label}: primera línea «$firstLine» en vez de «$expectedLine»"
+            if (attempt(row, required).program == null) failures += "${row.label}: con $required min no hay programa"
+            (row.budget + 1 until required).forEach { minutes ->
+                val below = attempt(row, minutes)
+                if (below.program != null) {
+                    failures += "${row.label}: con $minutes min ya hay programa y se informaron $required"
+                } else if (below.report.reasonCode != "TIME_BUDGET") {
+                    failures += "${row.label}: con $minutes min el rechazo es ${below.report.reasonCode}, no TIME_BUDGET"
+                }
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+        assertTrue("al menos 8 de las 10 filas son rechazos de tiempo (fueron $checked)", checked >= 8)
+    }
+
     @Test
     fun athlete_explicit_cardio_at_session_limit_returns_precise_time_budget() {
         val result = generate(

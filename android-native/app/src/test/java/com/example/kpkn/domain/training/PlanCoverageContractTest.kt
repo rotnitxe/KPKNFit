@@ -2,13 +2,17 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluation
 import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
+import com.example.kpkn.domain.onboarding.PlanCandidateRequest
 import com.example.kpkn.domain.onboarding.PlanEvaluationStage
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.PlanRepair
+import com.example.kpkn.domain.onboarding.PlanRepairAdvisor
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.training.CoverageFixtures.EquipmentFixture
 import com.example.kpkn.domain.training.CoverageFixtures.Profile
@@ -46,12 +50,17 @@ private val VIOLATION_CEILING: Map<String, Int> = mapOf(
     // Smith (E11) pasa del calendario «sin tirón» al calendario con tirón, más largo, y cae en el mismo patrón de A.C2 que el
     // resto de fixtures con tirón, 81 → 84 filas cada uno). Ready 13 624 → 13 471 (−153: Atleta E10 y E11 −72 cada uno,
     // Músculo E10, E11 y E16 −3 cada uno), todas rechazos honestos TIME_BUDGET con reparación `SetMinutes`.
-    "smoke" to 110,
-    "ci/0" to 432,
-    "ci/1" to 420,
-    "ci/2" to 426,
-    "ci/3" to 426,
-    "full" to 1_704,
+    // tras A.C1/C2 (2026-10-03): corrida `full` = 120 (TIME_BUDGET_INEXACT 1 584 → 0: `requiredMinutes` es ya el mínimo
+    // exacto del generador, DEC-w2-03; quedan solo las 120 NOT_HONEST `COMPOSITION` de Atleta de 1 día, intermedio y
+    // avanzado, con solo barra de dominadas (E13), que esperan a las tablas de candidatos o a un calendario con V).
+    // Ready 13 471, rechazos honestos 12 059 y reparaciones por clase no cambian: el asesor del dominio reproduce la
+    // semántica de las simulaciones que sustituye (smoke 110 → 8, ci/0–ci/3 → 30 cada uno).
+    "smoke" to 8,
+    "ci/0" to 30,
+    "ci/1" to 30,
+    "ci/2" to 30,
+    "ci/3" to 30,
+    "full" to 120,
 )
 
 /** Filas de la rejilla C1: 3 objetivos x 3 niveles x 6 días x 5 duraciones x 19 fixtures + Atleta x 12 (cardio). */
@@ -103,9 +112,13 @@ private fun inSmokeSlice(key: String): Boolean = Math.floorMod(key.hashCode(), 1
  * tiene SU generador y SU memo; el resultado de una fila no depende de qué hilo la procese y el informe se ordena
  * por posición de fila, así que el número de violaciones no varía con el reparto.
  *
- * // TODO A.C4 (C3): UI y test comparten `PlanRejectionPresenter.primary` (hoy no existe).
+ * Las reparaciones de un toque las decide [PlanRepairAdvisor] (A.C1), no una simulación del test, y `requiredMinutes`
+ * es el mínimo exacto del generador (A.C2, DEC-w2-03).
+ *
+ * // TODO A.C4 (C3): `PlanRejectionPresenter` ya existe (parte pura); falta cablearlo en la UI (C.P11) para que UI y
+ * //   test compartan `primary`.
  * // TODO A.D4 (C4): el pase «a peso corporal» solo si todos los rechazos son APPARATUS_* (hoy no existe).
- * // TODO A.C4: ClearSplit no aplica todavía; la rejilla no fija split (el contrato C1 lo contempla desde A.E2).
+ * // TODO A.E2: `ClearSplit` ya lo propone el asesor, pero la rejilla no fija split; A.E2 lo activará.
  */
 class PlanCoverageContractTest {
 
@@ -276,15 +289,7 @@ class PlanCoverageContractTest {
 
         private suspend fun compute(spec: Spec): Outcome {
             val cardioType = spec.cardio?.type ?: CardioType.WALK
-            val request = CoverageFixtures.request(
-                spec.profile,
-                spec.experience,
-                spec.days,
-                spec.minutes,
-                spec.fixture,
-                cardioMinutes = spec.cardioMinutes ?: 10,
-                cardioType = cardioType,
-            )
+            val request = requestOf(spec)
             return try {
                 when (
                     val result = PlanCandidateEvaluator.evaluate(
@@ -445,7 +450,7 @@ class PlanCoverageContractTest {
                     "ninguna reparación de un toque deja el plan Ready: etapa=${rejected.stage} ${rejected.details}",
                 )
             }
-            // TODO A.C2: requiredMinutes exacto (hoy el fitter informa el mínimo tras su mejor esfuerzo, no el real).
+            // A.C2: el mínimo que informa el generador es el exacto (viable con él y no viable con uno menos).
             if (rejected.reason == PlanRejectionReason.TIME_BUDGET) checkTimeBudgetIsExact(row, rejected)
         }
 
@@ -466,98 +471,97 @@ class PlanCoverageContractTest {
             }
         }
 
-        // ── Reparaciones de un toque simuladas ──
-        // TODO A.C1: sustituir estas simulaciones por PlanRepairAdvisor.suggest(request, rejected, evaluate).
-
-        /** Nombre de la primera reparación que deja el plan `Ready`, o null si ninguna lo logra. */
-        private suspend fun findRepair(row: Spec, rejected: Outcome.Rejected): String? = when (rejected.reason) {
-            PlanRejectionReason.TIME_BUDGET -> timeBudgetRepair(row, rejected)
-            PlanRejectionReason.APPARATUS_UNKNOWN -> confirmApparatusRepair(row, rejected)
-            PlanRejectionReason.APPARATUS_ABSENT,
-            PlanRejectionReason.PROFILE_MISMATCH -> switchGoalRepair(row)
-            else -> null
-        }
-
-        /** SetMinutes(requiredMinutes) y, solo para Atleta, SetCardioMinutes (nunca se recorta el cardio dentro del fitter). */
-        private suspend fun timeBudgetRepair(row: Spec, rejected: Outcome.Rejected): String? {
-            val required = rejected.requiredMinutes ?: return null
-            if (evaluate(row.copy(minutes = required)) is Outcome.Ready) return "SetMinutes"
-            if (row.profile == Profile.COMPLETE_ATHLETE) {
-                val current = row.cardioMinutes ?: return null
-                for (candidate in GRID_CARDIO_MINUTES.sortedDescending()) {
-                    if (candidate >= current) continue
-                    if (evaluate(row.copy(cardioMinutes = candidate)) is Outcome.Ready) return "SetCardioMinutes"
-                }
-            }
-            return null
-        }
+        // ── Reparaciones de un toque: el asesor del dominio (A.C1), ya no una simulación propia ──
 
         /**
-         * ConfirmApparatus: confirma como PRESENT EXACTAMENTE las llaves que el rechazo pidió (las de
-         * `missingRequirements`, vía [SetupApparatusPanel.keyForToken]) y añade las categorías que esas llaves
-         * necesitan para mostrarse y contar (`SUPPORT` para rack y banco; una llave sin categoría cuenta como
-         * `SUPPORT`). Es lo que haría el panel con un toque; ya no se confirman rack y banco fijos. Si con el
-         * material confirmado el plan solo falla por tiempo (TIME_BUDGET honesto) se encadena UN solo SetMinutes,
-         * igual que en [switchGoalRepair].
+         * Nombre de la primera reparación (o cadena de reparaciones) que deja el plan `Ready`, o null si ninguna lo
+         * logra. La decide [PlanRepairAdvisor.suggest] —la misma función que usa el wizard— y cada candidata se prueba
+         * con el `evaluate(spec)` de este hilo (con memo), igual que el resto del contrato. Los nombres son los de
+         * siempre: `SetMinutes`, `SetCardioMinutes`, `ConfirmApparatus`, `ConfirmApparatus+SetMinutes`, `SwitchGoal`,
+         * `SwitchGoal+SetMinutes` y `ClearSplit`.
          */
-        private suspend fun confirmApparatusRepair(row: Spec, rejected: Outcome.Rejected): String? {
-            val keys = rejected.missingRequirements.mapNotNull(SetupApparatusPanel::keyForToken).distinct()
-            if (keys.isEmpty()) return null
-            val withCategories = row.fixture.availability.let {
-                it.copy(categories = it.categories + SetupApparatusPanel.categoriesFor(keys))
+        private suspend fun findRepair(row: Spec, rejected: Outcome.Rejected): String? {
+            val repairs = PlanRepairAdvisor.suggest(
+                request = requestOf(row),
+                rejected = rejected.asEvaluation(row),
+                availability = row.fixture.availability,
+            ) { probeRequest, probeAvailability -> probe(row, probeRequest, probeAvailability) }
+            return nameOf(repairs)
+        }
+
+        private fun nameOf(repairs: List<PlanRepair>): String? = repairs.takeIf { it.isNotEmpty() }
+            ?.joinToString("+") { repair ->
+                when (repair) {
+                    is PlanRepair.SetMinutes -> "SetMinutes"
+                    is PlanRepair.SetCardioMinutes -> "SetCardioMinutes"
+                    is PlanRepair.ConfirmApparatus -> "ConfirmApparatus"
+                    is PlanRepair.SwitchGoal -> if (repair.alsoMinutes != null) "SwitchGoal+SetMinutes" else "SwitchGoal"
+                    PlanRepair.ClearSplit -> "ClearSplit"
+                }
             }
-            val confirmed = keys.fold(withCategories) { current, key ->
-                val spec = EFFECTIVE_EQUIPMENT_KEYS.first { it.key == key }
-                requireNotNull(
-                    SetupApparatusPanel.withPresence(current, key, ApparatusPresence.PRESENT, SetupApparatusPanel.isSupport(spec.category)),
+
+        /** El pedido normalizado de una fila (el mismo que evalúa `compute`). */
+        private fun requestOf(spec: Spec): PlanCandidateRequest = CoverageFixtures.request(
+            spec.profile,
+            spec.experience,
+            spec.days,
+            spec.minutes,
+            spec.fixture,
+            cardioMinutes = spec.cardioMinutes ?: 10,
+            cardioType = spec.cardio?.type ?: CardioType.WALK,
+        )
+
+        /**
+         * Evaluación de prueba que el asesor pide: traduce (pedido, material) de vuelta a una fila de la rejilla y usa el
+         * `evaluate(spec)` memoizado de este hilo. De paso comprueba que el asesor arma el pedido del destino como lo
+         * arma el wizard (la referencia propia de cada objetivo y el cardio solo en Atleta completo), que es justo lo
+         * que este contrato no vería porque reconstruye el pedido desde la fila.
+         */
+        private suspend fun probe(
+            row: Spec,
+            request: PlanCandidateRequest,
+            availability: EquipmentAvailability,
+        ): PlanCandidateEvaluation {
+            val profile = Profile.entries.first { it.planGoal == request.goalProfile }
+            val isAthlete = profile == Profile.COMPLETE_ATHLETE
+            check(request.reference == profile.reference) {
+                "el asesor arma ${profile.name} con la referencia ${request.reference} y el wizard con ${profile.reference}"
+            }
+            check(request.requiresCardio == isAthlete) {
+                "el asesor arma ${profile.name} con requiresCardio=${request.requiresCardio}"
+            }
+            val fixture = if (availability == row.fixture.availability) {
+                row.fixture
+            } else {
+                EquipmentFixture("${row.fixture.id}+repair", availability)
+            }
+            val spec = row.copy(
+                profile = profile,
+                minutes = request.minutesPerSession,
+                fixture = fixture,
+                cardio = if (isAthlete) row.cardio ?: CardioChoice.WALK else null,
+                cardioMinutes = if (isAthlete) request.cardioMinutes else null,
+            )
+            return when (val outcome = evaluate(spec)) {
+                is Outcome.Ready -> CoverageFixtures.stubReady(profile.nativeKind.entryId, request.inputKey)
+                is Outcome.Rejected -> outcome.asEvaluation(spec)
+                is Outcome.Failed -> PlanCandidateEvaluation.Rejected(
+                    planId = profile.nativeKind.entryId,
+                    stage = PlanEvaluationStage.MATERIALIZATION,
+                    reasonCode = PlanRejectionReason.INTERNAL_MATERIALIZATION,
+                    details = outcome.message,
                 )
             }
-            val repaired = row.copy(fixture = EquipmentFixture("${row.fixture.id}+confirm", confirmed))
-            return when (val first = evaluate(repaired)) {
-                is Outcome.Ready -> "ConfirmApparatus"
-                is Outcome.Rejected -> {
-                    val required = first.requiredMinutes
-                    if (first.reason == PlanRejectionReason.TIME_BUDGET && required != null &&
-                        required > row.minutes && required <= MAX_SESSION_MINUTES &&
-                        evaluate(repaired.copy(minutes = required)) is Outcome.Ready
-                    ) {
-                        "ConfirmApparatus+SetMinutes"
-                    } else {
-                        null
-                    }
-                }
-                is Outcome.Failed -> null
-            }
         }
 
-        /**
-         * SwitchGoal: Fuerza → Fuerza y músculo (si hay mancuernas) o Músculo; Fuerza y músculo → Músculo. Nunca hacia
-         * Atleta (exige cardio). Si el destino da un TIME_BUDGET honesto se encadena UN solo SetMinutes.
-         */
-        private suspend fun switchGoalRepair(row: Spec): String? {
-            val destination = when (row.profile) {
-                Profile.STRENGTH ->
-                    if (EquipmentCategory.DUMBBELLS in row.fixture.availability.categories) Profile.POWERBUILDING else Profile.MUSCLE
-                Profile.POWERBUILDING -> Profile.MUSCLE
-                Profile.MUSCLE, Profile.COMPLETE_ATHLETE -> null
-            } ?: return null
-            val switched = row.copy(profile = destination, cardio = null, cardioMinutes = null)
-            return when (val first = evaluate(switched)) {
-                is Outcome.Ready -> "SwitchGoal"
-                is Outcome.Rejected -> {
-                    val required = first.requiredMinutes
-                    if (first.reason == PlanRejectionReason.TIME_BUDGET && required != null &&
-                        required > row.minutes && required <= MAX_SESSION_MINUTES &&
-                        evaluate(switched.copy(minutes = required)) is Outcome.Ready
-                    ) {
-                        "SwitchGoal+SetMinutes"
-                    } else {
-                        null
-                    }
-                }
-                is Outcome.Failed -> null
-            }
-        }
+        private fun Outcome.Rejected.asEvaluation(spec: Spec) = PlanCandidateEvaluation.Rejected(
+            planId = spec.profile.nativeKind.entryId,
+            stage = stage,
+            reasonCode = reason,
+            requiredMinutes = requiredMinutes,
+            details = details,
+            missingRequirements = missingRequirements,
+        )
     }
 
     /** Resultado agregado de todos los hilos, con las violaciones ordenadas por posición de fila. */
@@ -721,7 +725,7 @@ class PlanCoverageContractTest {
 
     @Test
     fun C1_own_plan_is_ready_or_honestly_rejected_with_one_tap_repair() {
-        // TODO A.C4 (C3): UI y test comparten PlanRejectionPresenter.primary (hoy no existe el presentador).
+        // TODO A.C4 (C3): falta cablear PlanRejectionPresenter.primary en la UI para que UI y test lo compartan.
         // TODO A.D4 (C4): el pase "a peso corporal" solo si todos los rechazos son APPARATUS_* (hoy no existe).
         val tier = resolveTier()
         val allRows = buildGrid(CoverageFixtures.allFixtures())
