@@ -733,6 +733,96 @@ class ProgramAutoregulationEngineTest {
         assertEquals(PendingActionResolutionStatus.EXPIRED, entry.resolution)
         assertTrue(entry.resolutionReason, entry.resolutionReason.contains("no indica a qué levantamiento"))
     }
+
+    // ─── B.S6 parte 2a · DEC-w3-07: la propuesta de variante técnica se retira ───────────────────
+
+    @Test
+    fun repeated_joint_pain_no_longer_proposes_a_technique_variant() {
+        val program = materialized()
+
+        val proposals = ProgramAutoregulationEngine.evaluate(
+            program = program,
+            completedWeek = firstWeek(program),
+            logs = emptyList(),
+            recipe = recipe(),
+            signals = WeeklyAutoregulationSignals(repeatedJointPain = true, readinessScore = 80),
+        )
+
+        assertTrue(
+            "ninguna propuesta SWAP_TO_TECHNIQUE_VARIANT con dolor articular repetido",
+            proposals.none { it.kind == AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT },
+        )
+        assertTrue("y sin otras señales no queda ninguna propuesta", proposals.isEmpty())
+    }
+
+    @Test
+    fun joint_pain_changes_none_of_the_other_proposals_and_distinct_by_still_applies() {
+        val program = materialized()
+        // AMRAP corto de sentadilla + readiness bajo con ACWR UNLOAD + e1RM alto dos semanas: tres propuestas distintas.
+        val signals = WeeklyAutoregulationSignals(
+            readinessScore = 38,
+            cumulativeFatigue = 90.0,
+            loadAdvisoryLevel = LoadAdvisoryLevel.UNLOAD,
+            e1rmByLift = mapOf(LiftSlot.SQUAT to 220.0),
+            consecutiveHighE1rmWeeks = 2,
+            amrapHits = listOf(AmrapHit(LiftSlot.SQUAT, 95.0, prescribedReps = 5, actualReps = 1, meanRpe = 9.4)),
+        )
+
+        fun proposalsFor(joint: Boolean) = ProgramAutoregulationEngine.evaluate(
+            program = program,
+            completedWeek = firstWeek(program),
+            logs = emptyList(),
+            recipe = recipe(),
+            signals = signals.copy(repeatedJointPain = joint),
+        )
+
+        val withPain = proposalsFor(joint = true)
+        assertEquals("el dolor articular ya no cambia ninguna propuesta", proposalsFor(joint = false), withPain)
+        assertEquals(
+            listOf(
+                AutoregulationProposalKind.ADJUST_TM,
+                AutoregulationProposalKind.INSERT_DELOAD,
+                AutoregulationProposalKind.PROMOTE_TM,
+            ),
+            withPain.map { it.kind },
+        )
+        assertEquals(
+            "distinctBy (tipo, levantamiento) sigue sin quitar nada",
+            withPain.size,
+            withPain.distinctBy { it.kind to it.liftSlot }.size,
+        )
+    }
+
+    @Test
+    fun a_technique_variant_proposal_never_rewrites_the_effective_recipe_in_auto_mode() {
+        val auto = materialized(AutoregulationMode.AUTO)
+        val weeks = auto.macrocycles.first().blocks.first().mesocycles.first().weeks
+        val swap = AutoregulationProposal(
+            kind = AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT,
+            explanation = "Molestias articulares repetidas — pasar el T1 a variante técnica (pausa)",
+        )
+
+        val result = ProgramAutoregulationEngine.apply(
+            program = auto,
+            nextWeekId = weeks[1].id,
+            proposals = listOf(swap),
+            recipe = recipe(),
+            executedWeekIds = setOf(weeks.first().id),
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertFalse("nada se aplica", result.applied)
+        assertEquals("la receta efectiva no se reescribe", auto.macrocycles, result.program.macrocycles)
+        assertTrue(result.program.effectiveWeekRecipes.isEmpty())
+        assertEquals(auto.powerliftingProfile, result.program.powerliftingProfile)
+        val entry = result.program.runState?.autoregulationAudit.orEmpty().single { it.resolution != null }
+        assertEquals(PendingActionResolutionStatus.EXPIRED, entry.resolution)
+        assertEquals(listOf(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT), entry.kinds)
+        assertEquals(
+            "La propuesta de variante técnica ya no se aplica: las variantes son configuraciones del catálogo (DEC-w3-07)",
+            entry.resolutionReason,
+        )
+    }
 }
 
 class ProgramProgressEngineAutoregulationTest {

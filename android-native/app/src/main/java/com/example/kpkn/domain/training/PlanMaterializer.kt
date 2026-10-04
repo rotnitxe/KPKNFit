@@ -1097,6 +1097,15 @@ object PlanMaterializer {
             }
             ?.capturedLoadKg
             ?.takeIf { it > 0.0 }
+        // H10: 1RM de referencia con el que `materializeSet` acota la carga de `WeeklyKg`. Sin referencia
+        // declarada es el 1RM del perfil (o, si solo hay TM, el TM entre la fracción de TM de la receta); con
+        // una referencia declarada solo vale la de un 1RM capturado, igual que `Exercise.reference1RM`.
+        val weeklyKgOneRmKg: Double? = when {
+            explicit == null -> oneRm ?: tm?.takeIf { it > 0.0 }?.let { it / PercentBasis.tmFraction(recipe.trainingMaxPercent) }
+            explicit.kind == PlanLoadReferenceKind.EXERCISE_1RM && explicit.state == PlanLoadReferenceState.CAPTURED ->
+                explicit.capturedLoadKg?.takeIf { it > 0.0 }
+            else -> null
+        }
         val sets = working.mapIndexed { index, set ->
             val materialized = materializeSet(
                 set = set,
@@ -1106,6 +1115,7 @@ object PlanMaterializer {
                 idProvider = idProvider,
                 stableSetId = stableExerciseId?.let { "$it#set:$index" },
                 progression = recipe.progression,
+                oneRmKg = weeklyKgOneRmKg,
             )
             if (set.percent == null && directWorkingLoadKg != null) {
                 materialized.copy(weight = directWorkingLoadKg)
@@ -1267,6 +1277,23 @@ object PlanMaterializer {
         return reference.capturedLoadKg?.takeIf { it > 0.0 }
     }
 
+    /**
+     * Serie materializada de [set] con la carga base [tm] (el TM o el 1RM, según la base de la serie).
+     *
+     * H10 · tope de seguridad de `WeeklyKg`: el kilo semanal del método se suma a la carga resuelta sin mirar
+     * el 1RM, y con un 1RM corto la serie pasaba del 100 % (Smolov con 1RM de 60 kg: el 80 % son 48 kg y con
+     * +15 kg dan 63 kg). Cuando se conoce [oneRmKg] y la carga con el kilo semanal lo supera, la carga se limita
+     * al 1RM (`weight = oneRmKg`) y `targetPercentageRM` sigue la misma base que el resto de la serie
+     * (`oneRmKg ÷ tm × 100`: exactamente 100 con una base en 1RM, como Smolov). `ExerciseSet` no tiene un
+     * campo de nota o marca para decir que la serie se limitó y el modelo no se amplía: una serie limitada se
+     * reconoce por quedar justo en el 1RM. Sin [oneRmKg] no hay tope, y sin carga base no hay kilos ni tope (el
+     * peso queda null). Con 1RM de 160 kg el 85 % más 15 kg son 151 kg (94 %) y no se toca.
+     *
+     * Los hallazgos H11 y H11b de `SessionCompositionPolicy` miden el porcentaje CRUDO de la receta; este tope
+     * cubre el hueco en ejecución, donde ya se conocen el 1RM del atleta y el kilo de la semana.
+     *
+     * @param oneRmKg 1RM de referencia del levantamiento de la serie; null = sin 1RM conocido.
+     */
     private fun materializeSet(
         set: SetRecipe,
         slot: SlotRecipe,
@@ -1275,6 +1302,7 @@ object PlanMaterializer {
         idProvider: IdProvider,
         stableSetId: String? = null,
         progression: ProgressionRule = ProgressionRule.None,
+        oneRmKg: Double? = null,
     ): ExerciseSet {
         // Porcentaje respecto del TM; la regla vive en PercentResolver para que la
         // política de composición (H11/H11b) mida exactamente lo mismo que se materializa.
@@ -1286,11 +1314,20 @@ object PlanMaterializer {
         val weeklyOffsetKg = baseWeight?.let {
             AuthoredProgressionEngine.weeklyOffsetKg(progression, week.weekNumber, slot.lift.liftSlot, slot.role)
         }
-        val weight = if (baseWeight != null && weeklyOffsetKg != null) baseWeight + weeklyOffsetKg else baseWeight
-        val percent = if (rawPercent != null && weeklyOffsetKg != null && tm != null) {
-            rawPercent + weeklyOffsetKg / tm * 100.0
-        } else {
-            rawPercent
+        val offsetWeight = if (baseWeight != null && weeklyOffsetKg != null) baseWeight + weeklyOffsetKg else baseWeight
+        // H10: con el kilo semanal la carga no puede pasar del 100 % del 1RM de referencia.
+        val ceilingKg = oneRmKg?.takeIf { it > 0.0 }
+        val cappedAtKg: Double? =
+            if (weeklyOffsetKg != null && offsetWeight != null && ceilingKg != null && offsetWeight > ceilingKg + WEEKLY_KG_CAP_EPSILON) {
+                ceilingKg
+            } else {
+                null
+            }
+        val weight = cappedAtKg ?: offsetWeight
+        val percent = when {
+            cappedAtKg != null && tm != null -> cappedAtKg / tm * 100.0
+            rawPercent != null && weeklyOffsetKg != null && tm != null -> rawPercent + weeklyOffsetKg / tm * 100.0
+            else -> rawPercent
         }
         val range = if (set.repsMin != null && set.repsMax != null) RepRange(set.repsMin, set.repsMax) else null
         val mode = when {
@@ -1326,6 +1363,9 @@ object PlanMaterializer {
 
     private const val WARMUP_EQUIVALENT_POINTS = 5.0
     private const val UNKNOWN_PATTERN_BUCKET = "__unknown_pattern__"
+
+    /** Margen contra el redondeo de coma flotante al comparar la carga de `WeeklyKg` con el 1RM (H10): una carga igual al 1RM no se limita. */
+    private const val WEEKLY_KG_CAP_EPSILON = 1e-9
     /** Tolerancia de la revalidación piso↔material (kg). */
     private const val LOAD_EPSILON = 0.01
 

@@ -938,8 +938,15 @@ class ProgramProgressCycleCloseTest {
 
     // ─── B.S3: CycleIncrement por bloque (olas) ───────────────────────────────────
 
-    /** Dos olas de dos semanas con sentadilla y banca en el T1; con [benchAmrap] la última serie de banca es AMRAP. */
-    private fun waveRecipe(scope: IncrementScope, benchAmrap: Boolean = false): TrainingPlanRecipe {
+    /**
+     * Dos olas de dos semanas con sentadilla y banca en el T1; con [benchAmrap] la última serie de banca es AMRAP.
+     * Con [firstWaveGoal] = `REALIZATION` la ola 1 cierra con la puerta del test de 1RM (H7).
+     */
+    private fun waveRecipe(
+        scope: IncrementScope,
+        benchAmrap: Boolean = false,
+        firstWaveGoal: BlockGoal = BlockGoal.ACCUMULATION,
+    ): TrainingPlanRecipe {
         fun waveDay() = day(
             "Día A",
             weekday = 1,
@@ -951,8 +958,8 @@ class ProgramProgressCycleCloseTest {
         return TrainingPlanRecipe(
             id = "waves",
             weeks = listOf(
-                weekRecipe(1, 0, "Ola 1", BlockGoal.ACCUMULATION, listOf(waveDay())),
-                weekRecipe(2, 0, "Ola 1", BlockGoal.ACCUMULATION, listOf(waveDay())),
+                weekRecipe(1, 0, "Ola 1", firstWaveGoal, listOf(waveDay())),
+                weekRecipe(2, 0, "Ola 1", firstWaveGoal, listOf(waveDay())),
                 weekRecipe(3, 1, "Ola 2", BlockGoal.INTENSIFICATION, listOf(waveDay())),
                 weekRecipe(4, 1, "Ola 2", BlockGoal.INTENSIFICATION, listOf(waveDay())),
             ),
@@ -962,9 +969,13 @@ class ProgramProgressCycleCloseTest {
         )
     }
 
-    private fun waveProgram(scope: IncrementScope, benchAmrap: Boolean = false): Program = PlanMaterializer.materialize(
+    private fun waveProgram(
+        scope: IncrementScope,
+        benchAmrap: Boolean = false,
+        firstWaveGoal: BlockGoal = BlockGoal.ACCUMULATION,
+    ): Program = PlanMaterializer.materialize(
         Program(id = "waves", name = "Olas"),
-        waveRecipe(scope, benchAmrap),
+        waveRecipe(scope, benchAmrap, firstWaveGoal),
         CatalogCompositionTestSupport.metadata,
         SeqIds(),
         profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0),
@@ -979,6 +990,7 @@ class ProgramProgressCycleCloseTest {
         program: Program,
         completedWeekIndex: Int,
         extraLogs: List<WorkoutLog> = emptyList(),
+        transitionContext: BlockTransitionEngine.TransitionContext? = null,
     ): ProgramProgressEngine.ProgressAdvanceResult {
         val weeks = weeksOf(program)
         val completed = weeks[completedWeekIndex]
@@ -996,6 +1008,7 @@ class ProgramProgressCycleCloseTest {
             completedSession = completed.sessions.last(),
             weekInstanceId = completed.id,
             logs = logsFor(program, weeks.take(completedWeekIndex + 1)) + extraLogs,
+            transitionContext = transitionContext,
         )
     }
 
@@ -1260,5 +1273,314 @@ class ProgramProgressCycleCloseTest {
         val flagged = result.program.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }.map { it.id }
         assertEquals(blocks.map { it.id }.toSet(), flagged.toSet())
         assertFalse(deloadBlockId in flagged)
+    }
+
+    // ─── B.S6 parte 2a · H7: todas las entradas a un bloque pasan por el enganche de autor ───────
+
+    /** AUGE con estrés alto de mesociclo: al cerrar la ola 1 pide una descarga y queda la puerta CONFIRM_DELOAD. */
+    private val augeStress = BlockTransitionEngine.TransitionContext(mesocycleStressEma = 80.0)
+
+    /** Los registros de las dos semanas de la ola 1, la que se cierra al entrar en la ola 2. */
+    private fun wave1Logs(program: Program): List<WorkoutLog> = logsFor(program, weeksOf(program).take(2))
+
+    /** Cierra la ola 1 con AUGE pidiendo una descarga: acción pendiente CONFIRM_DELOAD y cursor todavía en la ola 1. */
+    private fun deloadGate(
+        program: Program,
+        extraLogs: List<WorkoutLog> = emptyList(),
+    ): ProgramProgressEngine.ProgressAdvanceResult =
+        advanceWave(advanceWave(program, 0).program, 1, extraLogs, augeStress)
+
+    /** Cierra la ola 1 (de realización) con el motor real: acción pendiente CONFIRM_1RM_TEST y cursor todavía en la ola 1. */
+    private fun oneRmGateFromEngine(program: Program): ProgramProgressEngine.ProgressAdvanceResult =
+        advanceWave(advanceWave(program, 0).program, 1)
+
+    /** AMRAP de banca con 3 repeticiones donde se pedían 5, en la primera semana de la ola 1: más reciente que el registro simple. */
+    private fun shortBenchLog(program: Program): WorkoutLog {
+        val week1 = weeksOf(program)[0]
+        return amrapLog(program, week1, week1.sessions.single(), CatalogIds.BP, amrapReps = 3)
+            .copy(id = "short-bench", date = "2026-01-02T10:00:00.000Z")
+    }
+
+    private fun squatKgOf(program: Program, weekIndex: Int): Double =
+        t1Of(weeksOf(program)[weekIndex], CatalogIds.SQ_LOW).sets.first().weight!!
+
+    private fun benchKgOf(program: Program, weekIndex: Int): Double =
+        t1Of(weeksOf(program)[weekIndex], CatalogIds.BP).sets.first().weight!!
+
+    @Test
+    fun rejecting_the_auge_deload_enters_the_next_wave_through_the_author_hook_exactly_once() {
+        val program = waveProgram(IncrementScope.BLOCK)
+        val wave2Id = program.macrocycles.first().blocks[1].id
+        val gate = deloadGate(program)
+
+        // La puerta de descarga no toca el TM ni la ola 2 hasta que el atleta decide.
+        assertEquals(PendingProgramActionType.CONFIRM_DELOAD, gate.program.runState?.pendingAction?.type)
+        assertEquals(180.0, gate.program.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertTrue(userNotices(gate.program).isEmpty())
+        assertEquals("ola 1, descarga de AUGE y ola 2", 3, gate.program.macrocycles.first().blocks.size)
+
+        val rejected = ProgramProgressEngine.resolvePendingDeload(
+            gate.program,
+            gate.activeState,
+            accept = false,
+            logs = wave1Logs(program),
+        )
+
+        assertTrue(rejected.advancedWeek)
+        assertNull(rejected.program.runState?.pendingAction)
+        assertEquals(wave2Id, rejected.program.runState?.blockId)
+        assertTrue(
+            "la descarga rechazada se quita del programa",
+            rejected.program.macrocycles.flatMap { it.blocks }.none { it.goal == BlockGoal.DELOAD },
+        )
+        // El TM sube +5 (sentadilla) y +2,5 (banca) al entrar en la ola 2, como sin la puerta.
+        val tm = rejected.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals(110.5, tm.benchTM!!, 1e-9)
+        // La ola 1 (ya entrenada) conserva su carga y la ola 2 toma el TM nuevo.
+        assertEquals(126.0, squatKgOf(rejected.program, 0), 1e-6)
+        assertEquals(126.0, squatKgOf(rejected.program, 1), 1e-6)
+        assertEquals(0.70 * 185.0, squatKgOf(rejected.program, 2), 1e-6)
+        assertEquals(0.70 * 185.0, squatKgOf(rejected.program, 3), 1e-6)
+        assertEquals(0.70 * 110.5, benchKgOf(rejected.program, 3), 1e-6)
+        // Un solo aviso y una sola marca; el índice es el del bloque YA sin la descarga, el mismo que sin puerta.
+        val notice = userNotices(rejected.program).single()
+        assertEquals("author-block-b1", notice.proposalId)
+        assertEquals("Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg.", notice.reason)
+        val markers = appliedProposals(rejected.program, "author-block-b1")
+        assertEquals(1, markers.size)
+        assertEquals("AUTHOR_BLOCK_INCREMENT", markers.single().second.kind)
+
+        // Mismo resultado que entrar en la ola 2 sin puerta alguna.
+        val withoutGate = advanceWave(advanceWave(program, 0).program, 1)
+        assertEquals(withoutGate.program.powerliftingProfile, rejected.program.powerliftingProfile)
+        assertEquals(userNotices(withoutGate.program).map { it.reason }, userNotices(rejected.program).map { it.reason })
+
+        // Idempotente: entrar de nuevo en la misma ola no vuelve a subir el TM.
+        val again = AuthoredProgressionEngine.applyAtBlockClose(
+            rejected.program,
+            wave2Id,
+            CatalogCompositionTestSupport.metadata,
+            inventory = null,
+        )
+        assertEquals(rejected.program, again)
+    }
+
+    @Test
+    fun accepting_the_auge_deload_enters_a_block_that_is_not_the_recipe_and_raises_nothing() {
+        val program = waveProgram(IncrementScope.BLOCK)
+        val gate = deloadGate(program)
+
+        val accepted = ProgramProgressEngine.resolvePendingDeload(
+            gate.program,
+            gate.activeState,
+            accept = true,
+            logs = wave1Logs(program),
+        )
+
+        val entered = accepted.program.macrocycles.flatMap { it.blocks }.first { it.id == accepted.program.runState?.blockId }
+        assertEquals(BlockGoal.DELOAD, entered.goal)
+        assertNull("la descarga de AUGE no viene de la receta", entered.sourceDefinitionId)
+        assertEquals("el TM no cambia al entrar en la descarga", program.powerliftingProfile, accepted.program.powerliftingProfile)
+        assertTrue(userNotices(accepted.program).isEmpty())
+        assertTrue(
+            accepted.program.effectiveWeekRecipes.none { entry ->
+                entry.appliedProposals.any { it.proposalId.startsWith(AuthoredProgressionEngine.BLOCK_PROPOSAL_PREFIX) }
+            },
+        )
+    }
+
+    @Test
+    fun rejecting_the_auge_deload_still_holds_the_lift_with_a_short_amrap_in_the_closing_wave() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+        val shortBench = shortBenchLog(program)
+        val gate = deloadGate(program, extraLogs = listOf(shortBench))
+
+        val rejected = ProgramProgressEngine.resolvePendingDeload(
+            gate.program,
+            gate.activeState,
+            accept = false,
+            logs = wave1Logs(program) + shortBench,
+        )
+
+        val tm = rejected.program.powerliftingProfile!!
+        assertEquals("la sentadilla sube 5", 185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene", 108.0, tm.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            userNotices(rejected.program).single().reason,
+        )
+        assertEquals(0.70 * 108.0, benchKgOf(rejected.program, 2), 1e-6)
+    }
+
+    @Test
+    fun resolving_the_deload_without_logs_still_applies_the_method_but_cannot_read_a_short_amrap() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+        val gate = deloadGate(program, extraLogs = listOf(shortBenchLog(program)))
+
+        // Así llama hoy el ViewModel: sin registros. El método se aplica igual; solo falta el AMRAP corto.
+        val rejected = ProgramProgressEngine.resolvePendingDeload(gate.program, gate.activeState, accept = false)
+
+        val tm = rejected.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals("sin registros no se ve el AMRAP corto y la banca sube", 110.5, tm.benchTM!!, 1e-9)
+        assertEquals(1, appliedProposals(rejected.program, "author-block-b1").size)
+    }
+
+    @Test
+    fun a_cycle_scoped_rule_does_not_raise_the_tm_when_the_deload_is_rejected() {
+        val program = waveProgram(IncrementScope.CYCLE)
+        val gate = deloadGate(program)
+
+        val rejected = ProgramProgressEngine.resolvePendingDeload(
+            gate.program,
+            gate.activeState,
+            accept = false,
+            logs = wave1Logs(program),
+        )
+
+        assertEquals(program.macrocycles.first().blocks[1].id, rejected.program.runState?.blockId)
+        assertEquals(program.powerliftingProfile, rejected.program.powerliftingProfile)
+        assertTrue(userNotices(rejected.program).isEmpty())
+    }
+
+    @Test
+    fun a_recorded_one_rm_test_enters_the_next_wave_through_the_author_hook_on_the_merged_profile() {
+        val program = waveProgram(IncrementScope.BLOCK, firstWaveGoal = BlockGoal.REALIZATION)
+        val wave2Id = program.macrocycles.first().blocks[1].id
+        val gate = oneRmGateFromEngine(program)
+        assertEquals(PendingProgramActionType.CONFIRM_1RM_TEST, gate.program.runState?.pendingAction?.type)
+        assertEquals(wave2Id, gate.program.runState?.pendingAction?.nextBlockId)
+        assertEquals("el TM no sube antes de resolver el test", 180.0, gate.program.powerliftingProfile!!.squatTM!!, 1e-9)
+
+        // 1RM de sentadilla 210 (TM 189 al 90 % de la receta); el de banca no cambia (conserva su TM de 108).
+        val resolved = ProgramProgressEngine.resolvePendingOneRmTest(
+            gate.program,
+            gate.activeState,
+            recorded(squat = 210.0, bench = 120.0, deadlift = 230.0),
+            logs = wave1Logs(program),
+        )
+
+        assertTrue(resolved.advancedWeek)
+        assertNull(resolved.program.runState?.pendingAction)
+        assertEquals(wave2Id, resolved.program.runState?.blockId)
+        assertEquals(210.0, resolved.program.goals?.squat1RM)
+        val profile = resolved.program.powerliftingProfile!!
+        assertEquals(210.0, profile.squat1RM!!, 0.0)
+        // Orden elegido: manda el 1RM probado (TM 210 × 0,9 = 189) y el incremento del método se suma encima (+5).
+        assertEquals(194.0, profile.squatTM!!, 1e-9)
+        assertEquals("la banca conserva su TM y el método suma 2,5", 110.5, profile.benchTM!!, 1e-9)
+        // La ola 1 conserva su carga; la ola 2 toma el TM de cada levantamiento.
+        assertEquals(weeksOf(gate.program).take(2), weeksOf(resolved.program).take(2))
+        assertEquals(0.70 * 194.0, squatKgOf(resolved.program, 2), 1e-6)
+        assertEquals(0.70 * 194.0, squatKgOf(resolved.program, 3), 1e-6)
+        assertEquals(0.70 * 110.5, benchKgOf(resolved.program, 2), 1e-6)
+        // Una sola subida: un aviso, que parte del TM recalculado por el test, y una marca.
+        val notice = userNotices(resolved.program).single()
+        assertEquals("author-block-b1", notice.proposalId)
+        assertEquals("Nuevo bloque: TM sentadilla 189 → 194 kg, banca 108 → 110,5 kg.", notice.reason)
+        assertEquals(1, appliedProposals(resolved.program, "author-block-b1").size)
+        // Los bloques de la receta siguen pendientes (R-19): quien aplica el resultado los reconstruye con la evidencia.
+        assertTrue(resolved.program.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+    }
+
+    @Test
+    fun a_skipped_one_rm_test_still_enters_the_next_wave_with_the_method_increment_on_the_stored_tm() {
+        val program = waveProgram(IncrementScope.BLOCK, firstWaveGoal = BlockGoal.REALIZATION)
+        val gate = oneRmGateFromEngine(program)
+
+        val resolved = ProgramProgressEngine.resolvePendingOneRmTest(
+            gate.program,
+            gate.activeState,
+            OneRmResolution(OneRmResolutionStatus.SKIPPED),
+            logs = wave1Logs(program),
+        )
+
+        val tm = resolved.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals(110.5, tm.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg.",
+            userNotices(resolved.program).single().reason,
+        )
+        // Mismo TM que entrando en la ola 2 por el avance normal (sin puerta).
+        val normal = advanceWave(advanceWave(waveProgram(IncrementScope.BLOCK), 0).program, 1)
+        assertEquals(normal.program.powerliftingProfile, resolved.program.powerliftingProfile)
+    }
+
+    @Test
+    fun repeating_the_block_entry_after_a_one_rm_test_raises_the_tm_only_once() {
+        val program = waveProgram(IncrementScope.BLOCK, firstWaveGoal = BlockGoal.REALIZATION)
+        val wave2Id = program.macrocycles.first().blocks[1].id
+        val gate = oneRmGateFromEngine(program)
+        val logs = wave1Logs(program)
+        val first = ProgramProgressEngine.resolvePendingOneRmTest(
+            gate.program,
+            gate.activeState,
+            recorded(squat = 210.0, bench = 120.0, deadlift = 230.0),
+            logs = logs,
+        )
+        assertEquals(194.0, first.program.powerliftingProfile!!.squatTM!!, 1e-9)
+
+        // La misma puerta vuelve a resolverse (p. ej. un doble toque que llega con el estado ya guardado).
+        val rearmed = first.program.copy(
+            runState = first.program.runState?.copy(
+                pendingAction = PendingProgramAction(
+                    type = PendingProgramActionType.CONFIRM_1RM_TEST,
+                    message = "Test de 1RM",
+                    nextBlockId = wave2Id,
+                ),
+            ),
+        )
+        val second = ProgramProgressEngine.resolvePendingOneRmTest(
+            rearmed,
+            first.activeState,
+            recorded(squat = 210.0, bench = 120.0, deadlift = 230.0),
+            logs = logs,
+        )
+
+        assertEquals(first.program.powerliftingProfile, second.program.powerliftingProfile)
+        assertEquals(1, userNotices(second.program).size)
+        assertEquals(1, appliedProposals(second.program, "author-block-b1").size)
+    }
+
+    @Test
+    fun a_one_rm_gate_without_a_block_id_finds_the_closing_wave_by_its_week_and_holds_the_short_amrap_lift() {
+        val base = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+        // `oneRmGate` deja el run con la semana del cursor pero sin `blockId`, como un estado antiguo.
+        val gate = oneRmGate(base)
+        assertNull(gate.runState?.blockId)
+
+        val resolved = ProgramProgressEngine.resolvePendingOneRmTest(
+            gate,
+            null,
+            OneRmResolution(OneRmResolutionStatus.SKIPPED),
+            logs = wave1Logs(base) + shortBenchLog(base),
+        )
+
+        val tm = resolved.program.powerliftingProfile!!
+        assertEquals(185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene por el AMRAP corto de la ola que se cierra", 108.0, tm.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            userNotices(resolved.program).single().reason,
+        )
+    }
+
+    @Test
+    fun a_cycle_scoped_rule_does_not_raise_the_tm_when_a_one_rm_test_is_resolved() {
+        val program = waveProgram(IncrementScope.CYCLE, firstWaveGoal = BlockGoal.REALIZATION)
+        val gate = oneRmGateFromEngine(program)
+
+        val resolved = ProgramProgressEngine.resolvePendingOneRmTest(
+            gate.program,
+            gate.activeState,
+            OneRmResolution(OneRmResolutionStatus.SKIPPED),
+            logs = wave1Logs(program),
+        )
+
+        assertEquals(program.powerliftingProfile, resolved.program.powerliftingProfile)
+        assertTrue(userNotices(resolved.program).isEmpty())
+        assertEquals(program.macrocycles.first().blocks[1].id, resolved.program.runState?.blockId)
     }
 }

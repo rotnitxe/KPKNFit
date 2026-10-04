@@ -273,8 +273,9 @@ object AuthoredProgressionEngine {
      * garantías que [applyAtCycleClose]. Entrar al primer bloque no es un cierre de bloque, y entrar
      * en un bloque que no es de la receta (la «Descarga (auto)» de AUGE) tampoco: no hace nada.
      *
-     * Nota: `resolvePendingDeload(reject)` y `advanceAfterPendingAction` entran al bloque sin pasar
-     * por aquí; hay que cubrirlos antes de activar BLOCK en Juggernaut (B.S6).
+     * H7: todas las entradas a un bloque llegan aquí por `ProgramProgressEngine.applyAuthoredBlockEntry`:
+     * el avance normal, rechazar la descarga de AUGE y resolver el test de 1RM. Aceptar la descarga entra
+     * en la «Descarga (auto)», que esta función ignora por no ser de la receta.
      *
      * @param excludedLifts levantamientos con un AMRAP corto en el bloque que se cierra (B.S4): no
      *   suben al entrar en el bloque nuevo y el aviso lo dice.

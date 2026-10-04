@@ -74,6 +74,11 @@ data class WeeklyAutoregulationSignals(
     val amrapHits: List<AmrapHit> = emptyList(),
     val e1rmByLift: Map<LiftSlot, Double> = emptyMap(),
     val consecutiveHighE1rmWeeks: Int = 0,
+    /**
+     * Dolor articular repetido en las últimas sesiones. Sin efecto desde DEC-w3-07: antes generaba la
+     * propuesta `SWAP_TO_TECHNIQUE_VARIANT` («pasar el T1 a variante técnica»), que se retiró. El campo se
+     * conserva porque quien arma las señales lo sigue rellenando; hoy ninguna propuesta lo lee.
+     */
     val repeatedJointPain: Boolean = false,
     val settings: Settings = Settings(),
     /** Top sets de la semana; vacío = `evaluate` los lee de los registros (solo con `TopSetPr`). */
@@ -119,6 +124,13 @@ object ProgramAutoregulationEngine {
 
     /** Paso de redondeo del TM al aplicar una propuesta en kilos (sin inventario en este motor). */
     private const val KG_ROUNDING_STEP = 0.5
+
+    /**
+     * DEC-w3-07: motivo con el que caduca una propuesta `SWAP_TO_TECHNIQUE_VARIANT` guardada antes de
+     * retirarla. El enum se conserva por compatibilidad del JSON: las propuestas pendientes siguen leyéndose.
+     */
+    internal const val TECHNIQUE_VARIANT_RETIRED_REASON =
+        "La propuesta de variante técnica ya no se aplica: las variantes son configuraciones del catálogo (DEC-w3-07)"
 
     /**
      * Cambio de TM que propone una señal de rendimiento: en kilos ([kgDelta], de la tabla de la receta)
@@ -440,8 +452,6 @@ object ProgramAutoregulationEngine {
         val percentsAfter = percentSignature(afterWeek)
         val countsBefore = setCountSignature(beforeWeek)
         val countsAfter = setCountSignature(afterWeek)
-        val techniqueBefore = techniqueSignature(beforeWeek)
-        val techniqueAfter = techniqueSignature(afterWeek)
         val hasPercent = percentsBefore.any { it != null }
         val trainedReason = "No aplicada: la semana objetivo ya tiene sesiones entrenadas; su prescripción se conserva (§14.5)."
         return proposals.map { proposal ->
@@ -485,12 +495,10 @@ object ProgramAutoregulationEngine {
                         "Sin efecto observable: la semana no perdió series (respetando SPEED y mínimos)."
                 }
 
-                AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT -> when {
-                    techniqueBefore != techniqueAfter -> PendingActionResolutionStatus.APPLIED to "Aplicada: ${proposal.explanation}"
-                    protectedTarget -> PendingActionResolutionStatus.EXPIRED to trainedReason
-                    else -> PendingActionResolutionStatus.EXPIRED to
-                        "No aplicada: el cambio de variante no alteró la prescripción de la semana objetivo."
-                }
+                // DEC-w3-07: la propuesta de variante técnica se retiró y el enum se conserva solo para leer
+                // las guardadas. Nunca se aplica, ni con la semana objetivo sin entrenar: caduca con motivo.
+                AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT ->
+                    PendingActionResolutionStatus.EXPIRED to TECHNIQUE_VARIANT_RETIRED_REASON
             }
             resolutionEntry(proposal, status, reason, targetWeekId, mode, nowMs)
         }
@@ -514,9 +522,6 @@ object ProgramAutoregulationEngine {
 
     private fun setCountSignature(week: ProgramWeek?): List<Int> =
         week?.sessions?.flatMap { it.allExercises() }?.map { it.sets.size }.orEmpty()
-
-    private fun techniqueSignature(week: ProgramWeek?): List<String?> =
-        week?.sessions?.flatMap { it.allExercises() }?.map { it.techniqueModifier?.name ?: it.variantName }.orEmpty()
 
     private fun weekWithId(program: Program, weekId: String): ProgramWeek? {
         program.macrocycles.forEach { macro ->
@@ -845,22 +850,19 @@ object ProgramAutoregulationEngine {
             .mapNotNull { it.volumeFactor }
             .fold(1.0) { acc, factor -> acc * factor }
 
-        val swap = proposals.any { it.kind == AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT }
+        // DEC-w3-07: una propuesta SWAP_TO_TECHNIQUE_VARIANT guardada se IGNORA aquí: no reescribe la receta
+        // efectiva ni reconstruye la semana. Antes solo disparaba una reconstrucción sin cambios (el cambio
+        // de variante nunca se implementó) y quedaba «sin efecto»; `outcomeEntries` la marca caducada con motivo.
         val delayPeak = proposals.any { it.kind == AutoregulationProposalKind.DELAY_PEAK }
         var recipeForNext = recipe
-        if (swap || delayPeak) {
+        if (delayPeak) {
             recipeForNext = recipe.copy(
                 weeks = recipe.weeks.map { week ->
                     week.copy(
                         days = week.days.map { day ->
                             day.copy(
                                 slots = day.slots.map { slot ->
-                                    val next = if (swap && slot.role.name.startsWith("T1")) {
-                                        slot
-                                    } else slot
-                                    if (delayPeak) {
-                                        next.copy(sets = next.sets.map { set -> set.copy(percent = set.percent?.times(0.95)) })
-                                    } else next
+                                    slot.copy(sets = slot.sets.map { set -> set.copy(percent = set.percent?.times(0.95)) })
                                 },
                             )
                         },
@@ -869,7 +871,7 @@ object ProgramAutoregulationEngine {
             )
         }
 
-        if (nextWeekId != null && (intensity != 1.0 || volume != 1.0 || swap || delayPeak || proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM })) {
+        if (nextWeekId != null && (intensity != 1.0 || volume != 1.0 || delayPeak || proposals.any { it.kind == AutoregulationProposalKind.ADJUST_TM || it.kind == AutoregulationProposalKind.PROMOTE_TM })) {
             val beforeWeeks = working.macrocycles
             working = PlanMaterializer.rematerializeWeek(
                 program = working,
@@ -894,6 +896,8 @@ object ProgramAutoregulationEngine {
                         weekRecipe = PlanMaterializer.scaleWeekRecipe(source.weekRecipe, intensity, volume),
                         applied = proposals
                             .filter { it.kind != AutoregulationProposalKind.INSERT_DELOAD }
+                            // DEC-w3-07: la variante técnica retirada no consta como aprobada en la receta efectiva.
+                            .filter { it.kind != AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT }
                             .map { proposal ->
                                 AppliedRecipeProposal(
                                     proposalId = "${proposal.kind.name}:${proposal.liftSlot.orEmpty()}:$nextWeekId",
@@ -982,12 +986,10 @@ object ProgramAutoregulationEngine {
             )
         }
 
-        if (signals.repeatedJointPain) {
-            out += AutoregulationProposal(
-                kind = AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT,
-                explanation = "Molestias articulares repetidas — pasar el T1 a variante técnica (pausa)",
-            )
-        }
+        // DEC-w3-07: el dolor articular repetido ([WeeklyAutoregulationSignals.repeatedJointPain]) ya no
+        // genera la propuesta «pasar el T1 a variante técnica (pausa)»: las variantes son configuraciones
+        // del catálogo y el cambio de ejercicio va por `PlanAdaptationResolver`. Tampoco queda como aviso
+        // informativo: este motor devuelve propuestas aplicables y no tiene canal de avisos.
 
         return out.distinctBy { it.kind to it.liftSlot }
     }

@@ -360,11 +360,27 @@ object ProgramProgressEngine {
      * falta el historial: los bloques de la receta quedan con `materializationPending` y
      * quien aplica el resultado los recalcula con la evidencia real (el botón RE-MATERIALIZAR es la
      * red de seguridad si no puede).
+     *
+     * H7: al resolver el test el cursor entra en el bloque siguiente y esa entrada pasa por el MISMO
+     * enganche de autor que el avance normal ([applyAuthoredBlockEntry]): con `CycleIncrement(scope = BLOCK)`
+     * el TM sube una vez al entrar. Orden elegido: primero manda el 1RM probado y se fusiona en el perfil
+     * (TM = 1RM × porcentaje de la receta en los levantamientos cuyo 1RM cambió; los demás conservan su
+     * TM) y DESPUÉS el incremento del método se suma sobre ese TM ya recalculado: un 1RM de 210 kg con TM
+     * al 90 % da 189 kg y el bloque nuevo parte de 194 kg con +5 kg. El aviso «Nuevo bloque» parte del
+     * TM recalculado. Con un test omitido el perfil no cambia y el incremento se suma al TM guardado.
+     *
+     * [logs], [compositionMetadata] e [inventory] cumplen aquí el mismo papel que en
+     * [advanceAfterSessionComplete]: [logs] protege las sesiones ya entrenadas y detecta el AMRAP corto
+     * del bloque que se deja; sin ellos ([logs] vacío) el incremento se aplica igual pero no puede
+     * congelar a un levantamiento por AMRAP corto ni conservar una sesión entrenada por adelantado.
      */
     fun resolvePendingOneRmTest(
         program: Program,
         activeState: ActiveProgramState?,
         resolution: OneRmResolution,
+        logs: List<WorkoutLog> = emptyList(),
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
         val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
         require(run.pendingAction?.type == PendingProgramActionType.CONFIRM_1RM_TEST) {
@@ -396,7 +412,7 @@ object ProgramProgressEngine {
                 oneRmAuditTrail = run.oneRmAuditTrail + resolution,
             ))
         }
-        return advanceAfterPendingAction(withResolution, activeState)
+        return advanceAfterPendingAction(withResolution, activeState, logs, compositionMetadata, inventory)
     }
 
     /**
@@ -437,10 +453,16 @@ object ProgramProgressEngine {
     fun continueAfterPendingAction(
         program: Program,
         activeState: ActiveProgramState?,
+        logs: List<WorkoutLog> = emptyList(),
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult = resolvePendingOneRmTest(
         program,
         activeState,
         OneRmResolution(status = OneRmResolutionStatus.SKIPPED, note = "Compatibilidad: omitido"),
+        logs,
+        compositionMetadata,
+        inventory,
     )
 
     /**
@@ -448,11 +470,26 @@ object ProgramProgressEngine {
      * generated, reduced-volume block. Rejecting removes that candidate and
      * advances to the originally scheduled next block. Both paths clear the
      * pending action and are safe to persist/read back.
+     *
+     * H7: la entrada al bloque pasa por el mismo enganche de autor que el avance normal
+     * ([applyAuthoredBlockEntry]). Al RECHAZAR la descarga el cursor entra en el bloque siguiente de la
+     * receta y, con `CycleIncrement(scope = BLOCK)`, el TM sube una vez (marca `author-block-b<i>` con el
+     * índice del bloque YA sin la descarga, el mismo que tendría sin puerta). Al ACEPTARLA el cursor entra
+     * en la «Descarga (auto)» de AUGE, que no es un bloque de la receta: el enganche no hace nada y el TM
+     * sube al entrar después en el bloque siguiente, por el avance normal.
+     *
+     * [logs], [compositionMetadata] e [inventory] cumplen el mismo papel que en
+     * [advanceAfterSessionComplete]: [logs] protege las sesiones ya entrenadas y detecta el AMRAP corto
+     * del bloque que se deja; sin ellos ([logs] vacío) el incremento se aplica igual pero no puede
+     * congelar a un levantamiento por AMRAP corto ni conservar una sesión entrenada por adelantado.
      */
     fun resolvePendingDeload(
         program: Program,
         activeState: ActiveProgramState?,
         accept: Boolean,
+        logs: List<WorkoutLog> = emptyList(),
+        compositionMetadata: ExerciseCompositionMetadataProvider? = null,
+        inventory: EquipmentInventory? = null,
     ): ProgressAdvanceResult {
         val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
         val action = run.pendingAction ?: return ProgressAdvanceResult(program, activeState)
@@ -503,8 +540,20 @@ object ProgramProgressEngine {
             status = ProgramRunStatus.ACTIVE,
             pendingAction = null,
         )
-        return ProgressAdvanceResult(
+        // H7: la entrada al bloque pasa por el mismo enganche de autor que el avance normal. Al aceptar,
+        // el bloque es la descarga de AUGE y el enganche no hace nada (no es un bloque de la receta).
+        val entered = applyAuthoredBlockEntry(
             program = resolvedProgram.copy(runState = updatedRun),
+            enteredBlockId = targetBlock.id,
+            closingWeeks = closingBlockWeeks(program, run),
+            logs = logs,
+            cycleNumber = run.cycleNumber,
+            runId = run.runId,
+            compositionMetadata = compositionMetadata,
+            inventory = inventory,
+        )
+        return ProgressAdvanceResult(
+            program = entered,
             activeState = activeState?.copy(
                 status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
                 currentWeekId = targetWeek.id,
@@ -521,9 +570,18 @@ object ProgramProgressEngine {
         )
     }
 
+    /**
+     * Entrada al bloque siguiente tras resolver el test de 1RM (la puerta que levanta
+     * `BlockTransitionEngine` al cerrar un bloque de realización o pico). H7: pasa por el mismo enganche de
+     * autor que el avance normal ([applyAuthoredBlockEntry]). Lo llama solo [resolvePendingOneRmTest],
+     * que ya fusionó el 1RM probado en el perfil: el incremento del método se suma sobre ese TM.
+     */
     private fun advanceAfterPendingAction(
         program: Program,
         activeState: ActiveProgramState?,
+        logs: List<WorkoutLog>,
+        compositionMetadata: ExerciseCompositionMetadataProvider?,
+        inventory: EquipmentInventory?,
     ): ProgressAdvanceResult {
         val run = program.runState ?: return ProgressAdvanceResult(program, activeState)
         val action = run.pendingAction ?: return ProgressAdvanceResult(program, activeState)
@@ -559,8 +617,18 @@ object ProgramProgressEngine {
             status = ProgramRunStatus.ACTIVE,
             pendingAction = null,
         )
-        return ProgressAdvanceResult(
+        val entered = applyAuthoredBlockEntry(
             program = program.copy(runState = updatedRun),
+            enteredBlockId = targetBlock.id,
+            closingWeeks = closingBlockWeeks(program, run),
+            logs = logs,
+            cycleNumber = run.cycleNumber,
+            runId = run.runId,
+            compositionMetadata = compositionMetadata,
+            inventory = inventory,
+        )
+        return ProgressAdvanceResult(
+            program = entered,
             activeState = activeState?.copy(
                 status = com.example.kpkn.data.models.ProgramStatus.ACTIVE,
                 currentWeekId = targetWeek.id,
@@ -575,6 +643,75 @@ object ProgramProgressEngine {
             ),
             advancedWeek = true,
         )
+    }
+
+    /**
+     * H7: la ÚNICA manera de «entrar en un bloque» desde el punto de vista de la progresión del método
+     * (`CycleIncrement` con `scope = BLOCK`). La llaman todas las rutas que mueven el cursor a un bloque
+     * nuevo: el avance normal ([advanceComplexAfterSessionComplete]), rechazar o aceptar la descarga de
+     * AUGE ([resolvePendingDeload]) y resolver el test de 1RM ([advanceAfterPendingAction]). Así el TM
+     * sube una sola vez, con los mismos argumentos y con el mismo aviso («Nuevo bloque: …») y la misma
+     * marca idempotente (`author-block-b<i>`) sin importar por dónde se entró.
+     *
+     * [program] llega con el cursor YA movido al bloque [enteredBlockId]: cada ruta lo mueve a su manera
+     * (instancias nativas de semana en el avance normal, id de plantilla tras una puerta, y la acción
+     * pendiente que cada una conserva o limpia), y unificarlo cambiaría el estado que ya persisten.
+     * [closingWeeks] son las semanas del bloque que se deja: de ellas sale el AMRAP corto que congela a
+     * un levantamiento («un lift con AMRAP corto no sube»). [logs] da además las sesiones ya entrenadas
+     * del run, que no se reconstruyen.
+     *
+     * Sin receta de autor, con otra regla o con progresión nativa activa no hace nada. Entrar al primer
+     * bloque no cuenta, y entrar en un bloque que no es de la receta (la «Descarga (auto)» de AUGE)
+     * tampoco: lo decide [AuthoredProgressionEngine.applyAtBlockClose].
+     *
+     * No incluye la autorregulación semanal del avance normal: las rutas de puerta nunca la ejecutaron
+     * (la última semana del bloque no se evalúa cuando hay una puerta de descarga o de 1RM) y evaluarla
+     * tras un test de 1RM apilaría un ajuste por AMRAP sobre un TM recién medido.
+     */
+    private fun applyAuthoredBlockEntry(
+        program: Program,
+        enteredBlockId: String,
+        closingWeeks: List<ProgramWeek>,
+        logs: List<WorkoutLog>,
+        cycleNumber: Int,
+        runId: String?,
+        compositionMetadata: ExerciseCompositionMetadataProvider?,
+        inventory: EquipmentInventory?,
+    ): Program {
+        val recipe = program.sourceRecipe ?: return program
+        if (!AuthoredProgressionEngine.appliesAtBlockClose(recipe.progression)) return program
+        val trainedSessionIds = logs
+            .filter { it.programId == program.id && (it.programRunId == null || it.programRunId == runId) }
+            .mapTo(mutableSetOf()) { it.sessionId }
+        return AuthoredProgressionEngine.applyAtBlockClose(
+            program = program,
+            enteredBlockId = enteredBlockId,
+            metadata = compositionMetadata ?: CompositionMetadataHolder.current,
+            inventory = inventory,
+            protectedSessionIds = trainedSessionIds,
+            // B.S4: un levantamiento con un AMRAP corto en el bloque que se cierra no sube su TM.
+            excludedLifts = ProgramAutoregulationEngine.shortAmrapLifts(
+                weeks = closingWeeks,
+                logs = logs,
+                cycleNumber = cycleNumber,
+                programId = program.id,
+                runId = runId,
+                recipe = recipe,
+            ),
+        )
+    }
+
+    /**
+     * Semanas del bloque que se deja al resolver una puerta (descarga o test de 1RM): el bloque en el que
+     * quedó el cursor al levantarla (`runState.blockId`), o, si ese id falta en un estado antiguo, el de
+     * la semana del cursor.
+     */
+    private fun closingBlockWeeks(program: Program, run: ProgramRunState): List<ProgramWeek> {
+        val closing = run.blockId?.let { id -> program.macrocycles.flatMap { it.blocks }.firstOrNull { it.id == id } }
+            ?: run.weekId?.let { weekId ->
+                ProgramHierarchyIndex(program).locateWeek(templateWeekIdFromInstance(weekId) ?: weekId)?.block
+            }
+        return closing?.mesocycles?.flatMap { it.weeks }.orEmpty()
     }
 
     /**
@@ -907,28 +1044,18 @@ object ProgramProgressEngine {
         // B.S3: la progresión DEL MÉTODO por bloque u ola (CycleIncrement con scope BLOCK) sube el TM al
         // entrar en el bloque siguiente, con el cursor ya movido. Va antes de la autorregulación semanal:
         // sus propuestas de TM se aplican sobre el TM ya subido. Las sesiones con registros del run no se
-        // reconstruyen. Ojo: `resolvePendingDeload(reject)` y `advanceAfterPendingAction` entran al bloque sin
-        // pasar por aquí; cubrirlos antes de activar BLOCK en Juggernaut (B.S6).
-        val authoredRecipe = program.sourceRecipe
-        if (nextBlockId != null && authoredRecipe != null && AuthoredProgressionEngine.appliesAtBlockClose(authoredRecipe.progression)) {
-            val trainedSessionIds = logs
-                .filter { it.programId == program.id && (it.programRunId == null || it.programRunId == runId) }
-                .mapTo(mutableSetOf()) { it.sessionId }
-            working = AuthoredProgressionEngine.applyAtBlockClose(
+        // reconstruyen. H7: es la misma entrada que usan rechazar la descarga de AUGE y resolver el test de
+        // 1RM ([applyAuthoredBlockEntry]), así que el TM sube igual sea cual sea la ruta.
+        if (nextBlockId != null) {
+            working = applyAuthoredBlockEntry(
                 program = working,
                 enteredBlockId = nextBlockId,
-                metadata = compositionMetadata ?: CompositionMetadataHolder.current,
+                closingWeeks = weeksInBlock,
+                logs = logs,
+                cycleNumber = cycleNumber,
+                runId = runId,
+                compositionMetadata = compositionMetadata,
                 inventory = inventory,
-                protectedSessionIds = trainedSessionIds,
-                // B.S4: un levantamiento con un AMRAP corto en el bloque que se cierra no sube su TM.
-                excludedLifts = ProgramAutoregulationEngine.shortAmrapLifts(
-                    weeks = weeksInBlock,
-                    logs = logs,
-                    cycleNumber = cycleNumber,
-                    programId = program.id,
-                    runId = runId,
-                    recipe = authoredRecipe,
-                ),
             )
         }
         val regulated = applyWeeklyAutoregulation(
@@ -1198,6 +1325,13 @@ object ProgramProgressEngine {
     /**
      * If the cursor sits on a loop week that is no longer actionable (postponed/cancelled),
      * jump to the next valid base week of the current or following cycle.
+     *
+     * H7: esta función NO entra en un bloque nuevo, así que no pasa por [applyAuthoredBlockEntry]. Solo
+     * actúa sobre programas SIMPLE (los de receta con varios bloques son COMPLEX, que es donde existe
+     * `CycleIncrement(scope = BLOCK)`) y solo recoloca el cursor sobre la primera semana base del ciclo
+     * en curso. El único salto de ciclo ocurre con todas las semanas base en REST, es decir, sin nada
+     * entrenado, de modo que tampoco hay una subida de TM por ciclo que registrar (`completeCycle` la
+     * ejecuta cuando de verdad se cierra un ciclo entrenado).
      */
     fun reconcileCursorAfterLoopChange(program: Program): Program {
         if (!program.isSimpleProgram || program.simpleProgramKind == SimpleProgramKind.CALENDARIZED) {

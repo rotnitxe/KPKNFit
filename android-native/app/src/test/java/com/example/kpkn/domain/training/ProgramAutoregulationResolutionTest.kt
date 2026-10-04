@@ -551,4 +551,123 @@ class ProgramAutoregulationResolutionTest {
         // sin perder las entradas anteriores.
         assertTrue(advanced.program.runState?.autoregulationAudit.orEmpty().isNotEmpty())
     }
+
+    // ─── B.S6 parte 2a · DEC-w3-07: las propuestas guardadas de variante técnica ya no se aplican ───
+
+    private val retiredVariantReason =
+        "La propuesta de variante técnica ya no se aplica: las variantes son configuraciones del catálogo (DEC-w3-07)"
+
+    private fun storedSwapProposal() = AutoregulationProposal(
+        kind = AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT,
+        explanation = "Molestias articulares repetidas — pasar el T1 a variante técnica (pausa)",
+    )
+
+    @Test
+    fun a_stored_technique_variant_proposal_changes_nothing_and_expires_with_the_retirement_reason() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+        val seeded = pendingWith(program, week2.id, storedSwapProposal())
+
+        val accepted = ProgramAutoregulationEngine.resolvePending(
+            seeded,
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertEquals("la receta efectiva no se reescribe", program.macrocycles, accepted.macrocycles)
+        assertEquals("ninguna semana se reconstruye ni queda como aprobada", seeded.effectiveWeekRecipes, accepted.effectiveWeekRecipes)
+        assertEquals("el TM no cambia", program.powerliftingProfile, accepted.powerliftingProfile)
+        assertNull(accepted.runState?.pendingAction)
+        val entry = resolutions(accepted).single()
+        assertEquals(PendingActionResolutionStatus.EXPIRED, entry.resolution)
+        assertEquals(listOf(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT), entry.kinds)
+        assertEquals(retiredVariantReason, entry.resolutionReason)
+        assertFalse(resolutions(accepted).any { it.resolution == PendingActionResolutionStatus.APPLIED })
+    }
+
+    @Test
+    fun a_stored_technique_variant_proposal_expires_with_the_same_reason_even_on_a_trained_target_week() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+        val seeded = pendingWith(program, week2.id, storedSwapProposal()).let { pending ->
+            pending.copy(runState = pending.runState?.copy(completedSessionIds = setOf(week2.sessions.first().id)))
+        }
+
+        val resolved = ProgramAutoregulationEngine.resolvePending(
+            seeded,
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertEquals(retiredVariantReason, resolutions(resolved).single().resolutionReason)
+        assertEquals(program.macrocycles, resolved.macrocycles)
+    }
+
+    @Test
+    fun rejecting_a_stored_technique_variant_proposal_is_still_a_plain_rejection() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+
+        val rejected = ProgramAutoregulationEngine.resolvePending(
+            pendingWith(program, week2.id, storedSwapProposal()),
+            accept = false,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertEquals(program.macrocycles, rejected.macrocycles)
+        val entry = resolutions(rejected).single()
+        assertEquals(PendingActionResolutionStatus.REJECTED, entry.resolution)
+        assertTrue(entry.resolutionReason, entry.resolutionReason.startsWith("Rechazada por el atleta"))
+    }
+
+    @Test
+    fun accepting_a_variant_proposal_together_with_a_tm_proposal_applies_only_the_tm_one() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+        val raise = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = "SQUAT",
+            kgDelta = 5.0,
+            explanation = "AMRAP 95 % de sentadilla: 5 reps (objetivo 1+): TM +5 kg",
+        )
+
+        val accepted = ProgramAutoregulationEngine.resolvePending(
+            pendingWith(program, week2.id, storedSwapProposal(), raise),
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertEquals("el TM de la propuesta de TM sí sube", 185.0, accepted.powerliftingProfile!!.squatTM!!, 1e-9)
+        val byKind = resolutions(accepted).associateBy { it.kinds.single() }
+        assertEquals(PendingActionResolutionStatus.APPLIED, byKind.getValue(AutoregulationProposalKind.ADJUST_TM).resolution)
+        assertEquals(PendingActionResolutionStatus.EXPIRED, byKind.getValue(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT).resolution)
+        assertEquals(retiredVariantReason, byKind.getValue(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT).resolutionReason)
+        // La receta efectiva solo recoge la propuesta de TM: la variante retirada no consta como aprobada.
+        val approvedKinds = accepted.effectiveWeekRecipes.flatMap { it.appliedProposals }.map { it.kind }
+        assertEquals(listOf(AutoregulationProposalKind.ADJUST_TM.name), approvedKinds)
+    }
+
+    @Test
+    fun a_stored_technique_variant_proposal_survives_json_and_still_reads_after_the_retirement() {
+        val stored = PendingProgramAction(
+            type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
+            message = "AUGE propone ajustes para la próxima semana.",
+            proposals = listOf(storedSwapProposal()),
+            targetWeekId = "w2",
+        )
+
+        val roundTrip = dbJson.decodeFromString(
+            PendingProgramAction.serializer(),
+            dbJson.encodeToString(PendingProgramAction.serializer(), stored),
+        )
+
+        assertEquals(stored, roundTrip)
+        assertEquals(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT, roundTrip.proposals.single().kind)
+        // El JSON antiguo, escrito antes de retirar la propuesta, se sigue leyendo.
+        val legacy = dbJson.decodeFromString(
+            AutoregulationProposal.serializer(),
+            """{"kind":"SWAP_TO_TECHNIQUE_VARIANT","explanation":"Molestias articulares repetidas — pasar el T1 a variante técnica (pausa)"}""",
+        )
+        assertEquals(AutoregulationProposalKind.SWAP_TO_TECHNIQUE_VARIANT, legacy.kind)
+    }
 }
