@@ -777,6 +777,13 @@ data class SetupWizardState(
      * la activación espera re-preparar (nunca se cambia de plan en silencio).
      */
     val selectionStale: Boolean = false,
+    /**
+     * Paquete A · D2 (B-01): el plan que la persona tenía elegido cuando llegó una lista de candidatos nueva
+     * en la que ya no está entre los viables. El ViewModel NO relanza el preview de ese plan (antes un
+     * error de su preview escondía toda la lista) y deja aquí el motivo, tomado del rechazo del barrido,
+     * para que la lista lo explique. Se limpia al empezar una búsqueda nueva y al elegir otro plan.
+     */
+    val droppedSelection: SetupDroppedSelection? = null,
     val exerciseSuggestions: List<ExerciseMuscleInfo> = emptyList(),
     val isExerciseSearching: Boolean = false,
     val exerciseSearchError: String? = null,
@@ -832,6 +839,20 @@ data class SetupPlanCandidate(
     val source: String,
     val reasons: List<String> = emptyList(),
     val details: String? = null,
+)
+
+/**
+ * Paquete A · D2 (B-01): la selección del paso PLAN que dejó de ser viable (ver
+ * [SetupWizardState.droppedSelection]).
+ *
+ * - [planId] es el plan elegido y [title] su nombre visible (nunca un id crudo).
+ * - [rejection] es el rechazo de ESE plan en el barrido que lo dejó fuera; es null cuando el plan ni
+ *   siquiera se evaluó (el planificador ya lo descartó por objetivo, nivel o días).
+ */
+data class SetupDroppedSelection(
+    val planId: String,
+    val title: String,
+    val rejection: SetupCandidateRejection?,
 )
 
 /**

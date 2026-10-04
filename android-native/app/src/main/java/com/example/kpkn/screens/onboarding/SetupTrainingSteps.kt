@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -841,9 +842,132 @@ private fun writeCustomPattern(vm: SetupWizardViewModel, step: SetupStepId, labe
 // ─── PLAN: candidatos reales ────────────────────────────────────────────────
 
 /**
+ * Qué enseña la lista de planes (Paquete A · D2, B-01). Es una decisión pura sobre el estado, separada del
+ * composable para poder probarla sin montar la pantalla:
+ *
+ *  - [Loading]: el barrido de candidatos sigue en curso.
+ *  - [SearchFailed]: la BÚSQUEDA falló (el catálogo no quedó listo o hubo un error global): no hay lista, solo
+ *    el motivo (`errors["candidates"]`) y «Reintentar». Se distingue del «ningún plan es viable» porque el
+ *    fallo de búsqueda deja un rechazo global (`planId == null`) y el otro, rechazos por plan.
+ *  - [NoneViable]: la búsqueda terminó y ningún plan es viable: la explicación con acciones
+ *    ([CandidateIncompatibility]).
+ *  - [Candidates]: hay lista y se enseña SIEMPRE. El error del preview de la SELECCIÓN ya no la esconde: va
+ *    como aviso encima de las tarjetas, igual que la selección caída (el plan elegido que ya no encaja).
+ */
+internal sealed interface CandidateListGate {
+    data object Loading : CandidateListGate
+
+    data class SearchFailed(val message: String) : CandidateListGate
+
+    data object NoneViable : CandidateListGate
+
+    data class Candidates(
+        val cards: List<SetupPlanCandidate>,
+        /** Error del preview del plan elegido (`previewError`); null si no hay. */
+        val previewError: String?,
+        /** Selección caída que sigue pendiente de explicar; null si ya no corresponde a la selección actual. */
+        val dropped: SetupDroppedSelection?,
+    ) : CandidateListGate
+}
+
+internal fun candidateListGate(state: SetupWizardState): CandidateListGate {
+    if (state.isCandidateLoading) return CandidateListGate.Loading
+    val cards = state.planCandidates.ifEmpty { state.availablePlanCandidates }
+    if (cards.isEmpty()) {
+        val searchError = state.errors["candidates"]
+        return if (searchError != null && state.candidateRejections.any { it.planId == null }) {
+            CandidateListGate.SearchFailed(searchError)
+        } else {
+            CandidateListGate.NoneViable
+        }
+    }
+    val selected = state.draft.selectedCatalogId
+    return CandidateListGate.Candidates(
+        cards = cards,
+        previewError = state.previewError,
+        // Elegir otro plan descarta el aviso (el ViewModel ya lo limpia); esta comprobación evita enseñarlo
+        // si, por la vía que sea, la selección actual ya no es la que cayó.
+        dropped = state.droppedSelection?.takeIf { selected == null || selected == it.planId },
+    )
+}
+
+/** Qué hace el botón del aviso de la selección caída (Paquete A · D2). */
+internal enum class DroppedSelectionAction { CONFIRM_MATERIAL, EDIT_TIME, SEE_ALTERNATIVES }
+
+/** Texto y acción del aviso de la selección caída: solo lenguaje llano, nunca ids ni códigos. */
+internal data class DroppedSelectionNotice(
+    val text: String,
+    val actionLabel: String,
+    val action: DroppedSelectionAction,
+)
+
+/** Arranque común del aviso de la selección caída. */
+internal const val DROPPED_SELECTION_LEAD = "Tu plan elegido ya no encaja con tus respuestas."
+
+/**
+ * Aviso de la selección caída. Tabla local y corta por motivo cerrado, a la espera del presentador único de
+ * rechazos (paso A.C4): donde `CandidateIncompatibility` ya tiene frase (material por confirmar, material
+ * ausente, tiempo) se reutiliza literalmente; el resto son frases cortas y llanas. El `reason` crudo del
+ * rechazo no se pinta nunca. La acción lleva al paso que lo arregla: material → «Confirmar material»,
+ * tiempo → «Editar tiempo», cualquier otro → «Ver alternativas», que solo cierra el aviso.
+ */
+internal fun droppedSelectionNotice(dropped: SetupDroppedSelection, chosenMinutes: Int?): DroppedSelectionNotice {
+    val rejection = dropped.rejection
+        ?: return DroppedSelectionNotice(
+            text = "$DROPPED_SELECTION_LEAD Ya no está entre los planes que corresponden a tus respuestas.",
+            actionLabel = "Ver alternativas",
+            action = DroppedSelectionAction.SEE_ALTERNATIVES,
+        )
+    return when (rejection.reasonCode) {
+        PlanRejectionReason.APPARATUS_UNKNOWN -> {
+            // Misma frase que `CandidateIncompatibility`; sin etiqueta curada no se nombra la llave.
+            val label = rejection.apparatusKey?.let(::apparatusLabelOrNull)
+            val reason = if (label != null) "Falta confirmar material: $label." else "Falta confirmar material."
+            DroppedSelectionNotice("$DROPPED_SELECTION_LEAD $reason", "Confirmar material", DroppedSelectionAction.CONFIRM_MATERIAL)
+        }
+
+        PlanRejectionReason.APPARATUS_ABSENT -> DroppedSelectionNotice(
+            "$DROPPED_SELECTION_LEAD Este plan pide material que declaraste ausente.",
+            "Confirmar material",
+            DroppedSelectionAction.CONFIRM_MATERIAL,
+        )
+
+        PlanRejectionReason.TIME_BUDGET -> {
+            val required = rejection.requiredMinutes
+            val reason = if (required != null) {
+                "Este plan necesita $required min por sesión; elegiste ${chosenMinutes ?: "—"} min."
+            } else {
+                "Con el tiempo que elegiste ya no cabe una sesión completa de este plan."
+            }
+            DroppedSelectionNotice("$DROPPED_SELECTION_LEAD $reason", "Editar tiempo", DroppedSelectionAction.EDIT_TIME)
+        }
+
+        PlanRejectionReason.PROFILE_MISMATCH,
+        PlanRejectionReason.LEVEL_UNSUITABLE,
+        PlanRejectionReason.FREQUENCY,
+        PlanRejectionReason.SPLIT,
+        -> DroppedSelectionNotice(
+            "$DROPPED_SELECTION_LEAD Este plan no se ajusta a tu objetivo, tu nivel o tus días de entrenamiento.",
+            "Ver alternativas",
+            DroppedSelectionAction.SEE_ALTERNATIVES,
+        )
+
+        else -> DroppedSelectionNotice(
+            "$DROPPED_SELECTION_LEAD Con tus respuestas actuales no se puede armar este plan.",
+            "Ver alternativas",
+            DroppedSelectionAction.SEE_ALTERNATIVES,
+        )
+    }
+}
+
+/**
  * Candidatos reales con sus metadatos; se eligen antes de las marcas (el grafo
  * coloca PLAN antes de TRAINING_MAX/TRAINING_MARKS). Carga, error y vacío son
  * estados explícitos con reintento, no carrusel infinito.
+ *
+ * Paquete A · D2 (B-01): la puerta de la lista es [candidateListGate]. Solo el fallo de la BÚSQUEDA
+ * esconde la lista; el error del preview del plan elegido y la selección caída salen como avisos encima de
+ * las tarjetas, que siguen visibles para poder elegir otro plan.
  */
 @Composable
 private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) {
@@ -854,22 +978,29 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
         return
     }
 
-    val candidates = state.planCandidates.ifEmpty { state.availablePlanCandidates }
-    val candidateError = state.previewError
-    when {
-        state.isCandidateLoading -> TrainingLoading("Buscando planes compatibles con tus respuestas…")
-        candidateError != null -> TrainingNotice(
-            text = candidateError,
+    when (val gate = candidateListGate(state)) {
+        CandidateListGate.Loading -> TrainingLoading("Buscando planes compatibles con tus respuestas…")
+        is CandidateListGate.SearchFailed -> TrainingNotice(
+            text = gate.message,
             tone = TrainingNoticeTone.ERROR,
             actionLabel = "Reintentar",
             onAction = { vm.retryFailedOperation(SetupRetryOperation.CANDIDATES) },
         )
 
-        candidates.isEmpty() -> CandidateIncompatibility(state = state, vm = vm)
+        CandidateListGate.NoneViable -> CandidateIncompatibility(state = state, vm = vm)
 
-        else -> {
+        is CandidateListGate.Candidates -> {
+            gate.dropped?.let { dropped -> DroppedSelectionBanner(dropped = dropped, state = state, vm = vm) }
+            gate.previewError?.let { previewError ->
+                TrainingNotice(
+                    text = previewError,
+                    tone = TrainingNoticeTone.ERROR,
+                    actionLabel = "Reintentar",
+                    onAction = { vm.retryFailedOperation(SetupRetryOperation.PREVIEW) },
+                )
+            }
             val selected = draft.selectedValues(step)
-            candidates.forEach { candidate ->
+            gate.cards.forEach { candidate ->
                 WizardChoiceCard(
                     title = candidate.title,
                     subtitle = planCandidateSubtitle(candidate),
@@ -888,6 +1019,34 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
             CandidateCountsLine(state = state)
         }
     }
+}
+
+/**
+ * Aviso encima de la lista: el plan que la persona tenía elegido ya no encaja con sus respuestas. La acción
+ * lleva al paso que lo arregla; «Ver alternativas» solo cierra el aviso (el estado del ViewModel se
+ * conserva: sigue sin lanzar el preview de ese plan). Elegir otro plan lo retira del estado.
+ */
+@Composable
+private fun DroppedSelectionBanner(
+    dropped: SetupDroppedSelection,
+    state: SetupWizardState,
+    vm: SetupWizardViewModel,
+) {
+    var closed by rememberSaveable(dropped.planId) { mutableStateOf(false) }
+    if (closed) return
+    val notice = droppedSelectionNotice(dropped, chosenMinutes = state.draft.minutesPerSession)
+    TrainingNotice(
+        text = notice.text,
+        tone = TrainingNoticeTone.ERROR,
+        actionLabel = notice.actionLabel,
+        onAction = {
+            when (notice.action) {
+                DroppedSelectionAction.CONFIRM_MATERIAL -> vm.editStep(SetupStepId.AVAILABILITY)
+                DroppedSelectionAction.EDIT_TIME -> vm.editStep(SetupStepId.SESSION_TIME)
+                DroppedSelectionAction.SEE_ALTERNATIVES -> closed = true
+            }
+        },
+    )
 }
 
 /** §15.2: evaluados / viables / no viables (nunca «publicados» de un subconjunto). */
@@ -966,6 +1125,11 @@ private fun CandidateIncompatibility(state: SetupWizardState, vm: SetupWizardVie
 private fun labelForApparatus(key: String): String =
     SetupApparatusPanel.itemsFor(com.example.kpkn.data.models.EquipmentCategory.entries.toSet())
         .firstOrNull { it.key == key }?.label ?: key
+
+/** Etiqueta curada de una llave del panel de material, o null si la llave no existe (nunca la llave cruda). */
+private fun apparatusLabelOrNull(key: String): String? =
+    SetupApparatusPanel.itemsFor(com.example.kpkn.data.models.EquipmentCategory.entries.toSet())
+        .firstOrNull { it.key == key }?.label
 
 private fun planCandidateSubtitle(candidate: SetupPlanCandidate): String =
     (listOf(candidate.subtitle) + candidate.reasons)

@@ -17,7 +17,7 @@ import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
-import com.example.kpkn.data.protocols.PlanProvenanceClass
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.kilogramsFromInput
@@ -57,10 +57,19 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * para controlar orden y tiempo de los previews (carrera A→B→A).
      */
     private val materializeOverride: SetupWizardMaterializer? = null,
+    /**
+     * Paquete A · D3 (B-06): repositorio del catálogo de ejercicios. Producción usa siempre el asset real
+     * (el valor por defecto); las pruebas inyectan uno que falla y luego se recupera para fijar que un
+     * catálogo que no quedó listo nunca se da por cargado.
+     */
+    catalogRepositoryOverride: ExerciseCatalogRepositoryV2? = null,
 ) : AndroidViewModel(application) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val commandMutex = Mutex()
-    private val catalogRepository = ApprovedAssetExerciseCatalogRepositoryV2(application.applicationContext)
+    private val catalogRepository: ExerciseCatalogRepositoryV2 =
+        catalogRepositoryOverride ?: ApprovedAssetExerciseCatalogRepositoryV2(application.applicationContext)
+    /** Serializa la carga del catálogo: una sola `load()` a la vez y sin ver el `Loading` de otra (B-06). */
+    private val catalogLoadMutex = Mutex()
     @Volatile private var catalogLoaded = false
     private var initialized = false
     private var initializeJob: kotlinx.coroutines.Job? = null
@@ -118,7 +127,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // guardar/salir y a la recreación del ViewModel.
         _state.value = _state.value.copy(mode = mode, isLoading = true, machineState = WizChatMachineState.Loading,
             programPreview = null, planCandidates = emptyList(), availablePlanCandidates = emptyList(),
-            candidateRejections = emptyList(),
+            candidateRejections = emptyList(), droppedSelection = null,
             isCandidateLoading = false,
             isPreviewLoading = false,
             nutritionPlanPreview = null, nutritionPreparation = null, ringsBatteriesPreview = null, ringsCoveragePreview = null,
@@ -314,20 +323,26 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * La selección conserva intención (`selectedCatalogId`), nunca cambia de
      * plan en silencio: si las respuestas cambian, el preview queda obsoleto
      * y la activación espera re-preparar.
+     *
+     * Paquete A · D2 (B-01): elegir un plan descarta el aviso de «tu plan elegido ya no encaja»
+     * ([SetupWizardState.droppedSelection]); la elección nueva es la respuesta a ese aviso.
      */
-    fun selectPlan(id: String) = updateStep(SetupStepId.PLAN) { draft ->
-        if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft
-        else draft.copy(
-            selectedCatalogId = id,
-            acceptFixedRecipeDifference = false,
-            // LATER no se convierte en entrenamiento por elegir una tarjeta.
-            programRoute = if (draft.programRoute == SetupProgramRoute.LATER) {
-                draft.programRoute
-            } else {
-                SetupProgramRoute.CUSTOMIZABLE
-            },
-            trainingPath = SetupTrainingPath.PERSONALIZE,
-        )
+    fun selectPlan(id: String) {
+        if (_state.value.droppedSelection != null) _state.value = _state.value.copy(droppedSelection = null)
+        updateStep(SetupStepId.PLAN) { draft ->
+            if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) draft
+            else draft.copy(
+                selectedCatalogId = id,
+                acceptFixedRecipeDifference = false,
+                // LATER no se convierte en entrenamiento por elegir una tarjeta.
+                programRoute = if (draft.programRoute == SetupProgramRoute.LATER) {
+                    draft.programRoute
+                } else {
+                    SetupProgramRoute.CUSTOMIZABLE
+                },
+                trainingPath = SetupTrainingPath.PERSONALIZE,
+            )
+        }
     }
 
     fun setWeightUnit(unit: String) = mutateDraft(step = SetupStepId.WEIGHT) { draft ->
@@ -576,6 +591,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
             _state.value = current.copy(errors = validation.mapNotNull { check -> check.message?.let { check.key to it } }.toMap())
             return SetupSubmitResult(SetupSubmitOutcome.REJECTED)
         }
+        // Paquete A · D2 (B-01): en PLAN, Continuar exige una selección VIABLE de la lista vigente.
+        val planGate = planSelectionGate(current, step)
+        if (planGate.isNotEmpty()) {
+            Log.w(DIAG_TAG, "submit $step → REJECT selección no viable (candidatos=${current.availablePlanCandidates.size} cargando=${current.isCandidateLoading})")
+            _state.value = current.copy(errors = planGate)
+            return SetupSubmitResult(SetupSubmitOutcome.REJECTED)
+        }
         navigationInFlight = true
         Log.d(DIAG_TAG, "submit $step → ACCEPTED (encolado, cursor=${current.draft.stepProgress.currentStepId} rev=${current.draft.revision})")
         viewModelScope.launch {
@@ -628,6 +650,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
         if (validation.any { it.isBlocking }) {
             Log.w(DIAG_TAG, "submitLocked $expectedStep → REJECT ${validation.filter { it.isBlocking }.map { it.key }}")
             _state.value = _state.value.copy(errors = validation.mapNotNull { check -> check.message?.let { check.key to it } }.toMap())
+            return
+        }
+        // Misma puerta que en `submitCurrentStep`, ahora sobre el estado vigente dentro de la cola: la lista
+        // pudo cambiar entre el toque y este punto.
+        val planGate = planSelectionGate(current, expectedStep)
+        if (planGate.isNotEmpty()) {
+            Log.w(DIAG_TAG, "submitLocked $expectedStep → REJECT selección no viable (candidatos=${current.availablePlanCandidates.size} cargando=${current.isCandidateLoading})")
+            _state.value = _state.value.copy(errors = planGate)
             return
         }
         val previous = current.draft
@@ -1142,8 +1172,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
             )
     }
 
-    /** Resultado del cálculo de candidatos: qué pase se eligió y si activó el segundo pase adaptado. */
-    private data class CandidateOutcome(val scan: CandidateScan, val useAdapted: Boolean)
+    /**
+     * Resultado del cálculo de candidatos: el pase PEDIDO ([requested], el único que explica los rechazos y
+     * los conteos que se publican), el pase que se MUESTRA ([scan]: el pedido o, si se activó, el de peso
+     * corporal) y si se usó el segundo pase adaptado (Paquete A · D4, B-07).
+     */
+    private data class CandidateOutcome(
+        val requested: CandidateScan,
+        val scan: CandidateScan,
+        val useAdapted: Boolean,
+    )
 
     /**
      * C4: contadores del barrido de candidatos. SOLO medición: no influyen en el
@@ -1158,14 +1196,37 @@ class SetupWizardViewModel @JvmOverloads constructor(
     /** Barridos de candidatos lanzados por este ViewModel (el primero suele ser en frío). */
     @Volatile private var candidateSweepsStarted = 0
 
-    /** Catalog is loaded lazily, only when a preview or candidate computation requires it. */
+    /**
+     * Catalog is loaded lazily, only when a preview or candidate computation requires it.
+     *
+     * Paquete A · D3 (B-06): `catalogLoaded` pasa a true SOLO cuando, tras `load()`, el repositorio está en
+     * Ready. `load()` no lanza si el catálogo falla (publica `Error` en su estado), y marcarlo como cargado
+     * igualmente dejaba el barrido sin revisión de catálogo —todo `CatalogLoading`, ningún rechazo— y hacía
+     * que «Reintentar» no volviera a cargar nunca. Ahora un catálogo que no quedó listo lanza un fallo
+     * TIPADO ([PlanRejectionReason.CATALOG_NOT_READY], texto llano) y deja `catalogLoaded` en false, así
+     * que el siguiente intento vuelve a leerlo. Cada llamador ya captura la excepción: el barrido publica un
+     * rechazo CATALOG visible, el preview su `previewError` y la búsqueda de ejercicios su aviso.
+     */
     private suspend fun ensureCatalogLoaded() {
         if (catalogLoaded) return
         // §15.3: lectura de asset SIEMPRE en IO; la materialización corre en Default.
         withContext(Dispatchers.IO) {
-            if (!catalogLoaded) {
-                catalogRepository.load()
-                catalogLoaded = true
+            catalogLoadMutex.withLock {
+                if (!catalogLoaded) {
+                    catalogRepository.load()
+                    val loaded = catalogRepository.state.value
+                    if (loaded !is ExerciseCatalogStateV2.Ready) {
+                        // Solo la clase y el código del estado: sin datos personales, como el resto del diagnóstico.
+                        val detail = (loaded as? ExerciseCatalogStateV2.Error)?.reason ?: "sin resultado"
+                        Log.w(DIAG_TAG, "catálogo de ejercicios no listo tras load(): ${loaded::class.java.simpleName} ($detail)")
+                        throw PlanMaterializationException(
+                            PlanEvaluationStage.CATALOG,
+                            PlanRejectionReason.CATALOG_NOT_READY,
+                            CATALOG_UNAVAILABLE_MESSAGE,
+                        )
+                    }
+                    catalogLoaded = true
+                }
             }
         }
     }
@@ -1193,6 +1254,15 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     private fun preparePreview(draft: SetupWizardDraft) {
         prepareRingsPreview(draft)
+        // Paquete A · D2 (B-01): una selección que ya no está entre los viables no tiene programa que
+        // preparar. Mientras siga marcada como caída ([SetupWizardState.droppedSelection]) ninguna vía
+        // (guardado de una respuesta, confirmación, reintento) relanza su preview: sería el error del plan
+        // que ya no encaja pegado a la lista. Elegir otro plan o una búsqueda nueva retiran la marca.
+        val dropped = _state.value.droppedSelection
+        if (dropped != null && dropped.planId == draft.selectedCatalogId) {
+            updateNutritionPreview(draft)
+            return
+        }
         // Mientras se recalculan candidatos, el pase adaptado todavía no está
         // decidido. Materializar aquí mostraría un error de equipo que el
         // segundo pase puede resolver. El job de candidatos relanza la vista.
@@ -1877,9 +1947,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             (!requiresCardio || (draft.cardioType != null && draft.cardioMinutes != null))
         if (!canPrepare) {
             // Entradas incompletas: se retira SOLO la marca de candidatos
-            // (`errors["candidates"]` + su `previewError`); los errores de otras
-            // operaciones nunca se tocan ni se filtran aquí. Los rechazos
-            // estructurados del cálculo anterior tampoco significan nada sin
+            // (`errors["candidates"]`); los errores de otras operaciones (incluido el
+            // `previewError` de la selección) nunca se tocan ni se filtran aquí. Los
+            // rechazos estructurados del cálculo anterior tampoco significan nada sin
             // entradas completas, así que se limpian con la lista.
             _state.value = withoutStaleCandidatesError(
                 _state.value.copy(
@@ -1887,6 +1957,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     availablePlanCandidates = emptyList(),
                     candidateRejections = emptyList(),
                     candidateCounts = SetupCandidateCounts(),
+                    droppedSelection = null,
                     isCandidateLoading = false,
                     planAdaptedToBodyweight = false,
                     selectionStale = false,
@@ -1895,13 +1966,15 @@ class SetupWizardViewModel @JvmOverloads constructor(
             return
         }
         // Nueva carga: la marca vieja de candidatos sale YA, para que un error
-        // anterior no tape la lista que está a punto de llegar.
+        // anterior no tape la lista que está a punto de llegar. La selección
+        // caída de la lista anterior tampoco significa nada hasta que llegue la nueva.
         _state.value = withoutStaleCandidatesError(
             _state.value.copy(
                 planCandidates = emptyList(),
                 availablePlanCandidates = emptyList(),
                 candidateRejections = emptyList(),
                 candidateCounts = SetupCandidateCounts(),
+                droppedSelection = null,
                 isCandidateLoading = true,
                 planAdaptedToBodyweight = false,
             ),
@@ -1974,19 +2047,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // barrido, se refrescan esas tres entradas en el LRU para
                     // que el primer toque pueda usar su snapshot aunque el
                     // catálogo completo supere el límite de 32.
-                    // §15.3: propios y originales primero; las adaptaciones de autor
-                    // (ADAPTED) van detrás sin ocultarse. Orden ESTABLE: el resto
-                    // conserva el ranking del planificador (el desempate por id lo
-                    // dejaría delante de los planes propios: «adapted:» < «native:»).
-                    val orderedViable = viableEntries.sortedBy { candidate ->
-                        if (candidate.provenance?.category == PlanProvenanceClass.ADAPTED) 1 else 0
-                    }
-                    orderedViable.take(3).forEach { entry ->
+                    // Orden: el del planificador, sin reordenar aquí. El `rank` editorial ya pone
+                    // los planes propios y los originales delante de las adaptaciones (DEC-w2-06);
+                    // el antiguo `sortedBy { ADAPTED → 1 }` era redundante y además empujaba las
+                    // adaptaciones por detrás de BBB y de las versiones anteriores de PHUL y PHAT.
+                    viableEntries.take(3).forEach { entry ->
                         readySnapshots[entry.id]?.let { ready ->
                             candidateCache.put(cacheRevision, "${request.inputKey}|${entry.id}", ready)
                         }
                     }
-                    return CandidateScan(publishedEntries, orderedViable, rejections)
+                    return CandidateScan(publishedEntries, viableEntries, rejections)
                     }
                     val requested = collectViable(
                         equipmentIds,
@@ -1998,16 +2068,25 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // el código jamás sustituye la ruta ni publica un nativo.
                     // En el recorrido unificado nuevo la ruta es CUSTOMIZABLE, así
                     // que este guard solo aplica a drafts legacy de protocolo.
+                    //
+                    // Paquete A · D4 (B-07, DEC-w2-05): el pase a peso corporal solo se intenta cuando NADA
+                    // fue viable y TODOS los rechazos del pase pedido son de material (APPARATUS_UNKNOWN o
+                    // APPARATUS_ABSENT). Un TIME_BUDGET, PROFILE_MISMATCH, COMPOSITION o un fallo interno lo
+                    // impiden: la persona tiene que ver el motivo real, no un plan «adaptado» que no
+                    // resuelve el problema (antes, un TIME_BUDGET del plan con su material podía acabar en
+                    // un plan de peso corporal presentado como «tu material no tenía una receta ejecutable»).
                     val adaptedPass = draft.programRoute != SetupProgramRoute.PROTOCOL &&
-                        requested.viable.isEmpty() && equipmentIds != setOf("bodyweight")
-                    val fallback = if (adaptedPass) {
+                        equipmentIds != setOf("bodyweight") &&
+                        bodyweightPassAllowed(requested.viable.size, requested.rejections)
+                    val bodyweightScan = if (adaptedPass) {
                         collectViable(setOf("bodyweight"), protocolOnly = false)
                     } else {
-                        requested
+                        null
                     }
-                    val useAdapted = adaptedPass && fallback.viable.isNotEmpty()
-                    val chosen = if (useAdapted) fallback else requested
-                    CandidateOutcome(chosen, useAdapted)
+                    // Se MUESTRAN los candidatos del pase corporal solo si hubo alguno; los rechazos y los
+                    // conteos que se publican son SIEMPRE los del pase pedido (ver `CandidateOutcome`).
+                    val adaptedScan = bodyweightScan?.takeIf { it.viable.isNotEmpty() }
+                    CandidateOutcome(requested, adaptedScan ?: requested, useAdapted = adaptedScan != null)
                 }
                 // C4: solo medición. Sin datos personales: milisegundos y contadores.
                 Log.i(
@@ -2026,7 +2105,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         useAdapted = outcome.useAdapted,
                     ),
                 )
-                val published = outcome.scan.published
+                // Paquete A · D4 (B-07): lo que se explica (publicados, rechazos, conteos) es SIEMPRE el pase
+                // pedido; lo que se muestra como tarjetas es el pase mostrado (`scan`).
+                val published = outcome.requested.published
                 val viable = outcome.scan.viable
                 val useAdapted = outcome.useAdapted
                 // AC-T001-03: sólo publica si las entradas de ESTE cálculo siguen
@@ -2086,8 +2167,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             // (AC-T001-02). El preview anterior se retira: ya no
                             // corresponde a este material.
                             errors = current.errors + ("candidates" to reason),
-                            candidateRejections = outcome.scan.rejections,
-                            candidateCounts = outcome.scan.counts,
+                            candidateRejections = outcome.requested.rejections,
+                            candidateCounts = outcome.requested.counts,
                             programPreview = null,
                             previewReport = null,
                         )
@@ -2101,48 +2182,114 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             errors = current.errors - "candidates",
                             // Los que se evaluaron y no encajaron siguen visibles
                             // para que la UI muestre evaluados/viables/no viables.
-                            candidateRejections = outcome.scan.rejections,
-                            candidateCounts = outcome.scan.counts,
+                            // Paquete A · D4 (B-07): son los del pase PEDIDO, también cuando las
+                            // tarjetas salen del pase a peso corporal.
+                            candidateRejections = outcome.requested.rejections,
+                            candidateCounts = outcome.requested.counts,
                         )
-                        refreshPreviewAfterCandidates(draft)
+                        refreshPreviewAfterCandidates(options.map { it.id }.toSet(), outcome.requested.rejections)
                     }
                 }
             } catch (cancel: CancellationException) { throw cancel }
             catch (error: Exception) {
-                if (ownsCandidateGeneration(generation) && isCurrentCandidateKey(draft)) _state.value = _state.value.copy(
-                    planCandidates = emptyList(), availablePlanCandidates = emptyList(),
-                    isCandidateLoading = false, planAdaptedToBodyweight = false,
-                    previewError = "No pude comprobar los planes. Prueba de nuevo.",
-                    errors = _state.value.errors + ("candidates" to "No pude comprobar los planes. Prueba de nuevo."),
-                    // AC-T001-02: la causa ESTRUCTURADA de este fallo global es de
-                    // etapa CATALOG y conserva clase+mensaje; el texto amable de arriba
-                    // es para la UI, el registro es para diagnosticar de verdad.
-                    candidateRejections = listOf(
-                        SetupCandidateRejection(null, SetupCandidateRejectionStage.CATALOG, failureDetail(error)),
-                    ))
+                if (ownsCandidateGeneration(generation) && isCurrentCandidateKey(draft)) {
+                    // Paquete A · D3 (B-06): un catálogo que no quedó listo se explica en llano y con su
+                    // motivo cerrado; cualquier otro fallo global conserva su aviso genérico y su causa
+                    // (clase + mensaje) solo en el rechazo estructurado.
+                    val catalogNotReady = error is PlanMaterializationException &&
+                        error.reason == PlanRejectionReason.CATALOG_NOT_READY
+                    val message = if (catalogNotReady) CATALOG_UNAVAILABLE_MESSAGE else "No pude comprobar los planes. Prueba de nuevo."
+                    val rejection = if (catalogNotReady) {
+                        SetupCandidateRejection(
+                            planId = null,
+                            stage = SetupCandidateRejectionStage.CATALOG,
+                            reason = CATALOG_UNAVAILABLE_MESSAGE,
+                            reasonCode = PlanRejectionReason.CATALOG_NOT_READY,
+                        )
+                    } else {
+                        // AC-T001-02: la causa ESTRUCTURADA de este fallo global es de
+                        // etapa CATALOG y conserva clase+mensaje; el texto amable de arriba
+                        // es para la UI, el registro es para diagnosticar de verdad.
+                        SetupCandidateRejection(null, SetupCandidateRejectionStage.CATALOG, failureDetail(error))
+                    }
+                    // Paquete A · D2 (B-01): el fallo de la BÚSQUEDA vive solo en `errors["candidates"]`;
+                    // `previewError` es únicamente el del preview de la selección.
+                    _state.value = _state.value.copy(
+                        planCandidates = emptyList(), availablePlanCandidates = emptyList(),
+                        isCandidateLoading = false, planAdaptedToBodyweight = false,
+                        errors = _state.value.errors + ("candidates" to message),
+                        candidateRejections = listOf(rejection),
+                    )
+                }
             }
         }
     }
 
     private fun ownsCandidateGeneration(generation: Long): Boolean = generation == candidateGeneration
 
-    /** Relanza el programa solo cuando ya hay un plan elegido y los candidatos terminaron. */
-    private fun refreshPreviewAfterCandidates(draft: SetupWizardDraft) {
-        if (draft.selectedCatalogId != null) preparePreview(_state.value.draft)
+    /**
+     * Paquete A · D2 (B-01): relanza el programa SOLO cuando el plan elegido sigue entre los viables de la
+     * lista que acaba de llegar. Si ya no lo está, NO se prepara su preview (antes el error de ese preview
+     * escondía la lista entera): la selección pasa a [SetupWizardState.droppedSelection] con el rechazo de
+     * ese plan en el barrido ([viableIds] y [rejections] son los de este cálculo). Sin plan elegido no hay
+     * nada que relanzar.
+     */
+    private fun refreshPreviewAfterCandidates(viableIds: Set<String>, rejections: List<SetupCandidateRejection>) {
+        val selected = _state.value.draft.selectedCatalogId ?: return
+        if (selected in viableIds) {
+            preparePreview(_state.value.draft)
+        } else {
+            dropSelection(selected, rejections)
+        }
     }
 
     /**
-     * Retira SOLO la marca de candidatos (`errors["candidates"]` y, si era suya,
-     * su `previewError`): así un error viejo nunca se queda ocultando una lista
-     * nueva y los fallos de otras operaciones siguen visibles.
+     * Marca la selección como caída y deja el borrador coherente con ello:
+     *  - se cancela cualquier preview en vuelo y se retira el programa del plan que ya no encaja, junto con su
+     *    error (todo eso era de la selección anterior y ya no corresponde a ninguna respuesta);
+     *  - si el paso PLAN todavía NO se confirmó, la selección se limpia: la persona no confirmó nada;
+     *  - si ya se confirmó, la selección se CONSERVA (no se borra una respuesta confirmada) y el paso queda
+     *    por revisar con la API de dependencias (`withPendingReview`); mientras tanto
+     *    [planSelectionGate] impide continuar con ella.
      */
-    private fun withoutStaleCandidatesError(state: SetupWizardState): SetupWizardState {
-        val hadCandidatesError = "candidates" in state.errors
-        return state.copy(
-            errors = state.errors - "candidates",
-            previewError = if (hadCandidatesError) null else state.previewError,
+    private fun dropSelection(planId: String, rejections: List<SetupCandidateRejection>) {
+        val dropped = SetupDroppedSelection(
+            planId = planId,
+            title = PersonalizedPlanCatalog.find(planId)?.title ?: DROPPED_SELECTION_FALLBACK_TITLE,
+            rejection = rejections.firstOrNull { it.planId == planId },
         )
+        // El código cerrado del motivo solo va al registro (la pantalla muestra texto llano): id del plan y
+        // código, sin respuestas ni datos personales.
+        Log.i(DIAG_TAG, "selección caída: plan=$planId motivo=${dropped.rejection?.reasonCode ?: "sin rechazo"}")
+        // Primero se retira la propiedad del preview en vuelo; después se publica la marca (el guard de
+        // `preparePreview` la lee) para que el guardado de abajo no relance nada.
+        releasePreviewGeneration(cancelInFlight = true)
+        val current = _state.value
+        _state.value = current.copy(
+            droppedSelection = dropped,
+            programPreview = null, previewReport = null,
+            fixedSessionEstimateMinutes = null, fixedTrainingDays = null,
+            previewError = null, errors = current.errors - "preview",
+        )
+        mutateDraft { draft ->
+            when {
+                // La persona ya eligió otro plan mientras tanto: no se toca.
+                draft.selectedCatalogId != planId -> draft
+                SetupStepId.PLAN in draft.stepProgress.answers ->
+                    draft.copy(stepProgress = draft.stepProgress.withPendingReview(setOf(SetupStepId.PLAN)))
+                else -> draft.copy(selectedCatalogId = null, acceptFixedRecipeDifference = false)
+            }
+        }
     }
+
+    /**
+     * Retira SOLO la marca de candidatos (`errors["candidates"]`): así un error viejo nunca se queda
+     * ocultando una lista nueva y los fallos de otras operaciones siguen visibles. Paquete A · D2 (B-01):
+     * `previewError` ya no es de los candidatos (es solo el del preview de la selección), así que esta
+     * función no lo toca.
+     */
+    private fun withoutStaleCandidatesError(state: SetupWizardState): SetupWizardState =
+        state.copy(errors = state.errors - "candidates")
     private fun previewInputsIncomplete(draft: SetupWizardDraft): Boolean { if (!draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER) return false; val days = draft.daysPerWeek ?: return true; if (draft.minutesPerSession == null || draft.selectedWeekdays.size != days || (draft.goal == SetupGoal.MIXED || draft.goal == SetupGoal.COMPLETE_ATHLETE) && (draft.cardioType == null || draft.cardioMinutes == null)) return true; return if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) { val selected = draft.sessions.filter { it.weekday in draft.selectedWeekdays }; selected.size != draft.selectedWeekdays.size || selected.any { it.exercises.isEmpty() } } else draft.selectedCatalogId == null }
 
     private suspend fun materializeProgram(draft: SetupWizardDraft): SetupPreview {
@@ -2693,3 +2840,47 @@ internal fun planOrderPriorityReason(entry: CatalogEntry, bag: Map<String, Int>)
     (entry.recipe ?: entry.template?.recipe) != null -> ORDER_PRIORITIES_RECIPE_FIXED_REASON
     else -> null
 }
+
+/**
+ * Paquete A · D3 (B-06): texto llano de un catálogo de ejercicios que no quedó listo. Es el motivo visible
+ * del rechazo CATALOG y el aviso de la búsqueda; el estado crudo del repositorio solo va al registro.
+ */
+internal const val CATALOG_UNAVAILABLE_MESSAGE = "No pudimos cargar el catálogo de ejercicios. Reintenta."
+
+/** Paquete A · D2 (B-01): aviso de «Continuar» en el paso PLAN sin una selección viable de la lista vigente. */
+internal const val PLAN_SELECTION_REQUIRED_MESSAGE = "Elige un plan de la lista para continuar"
+
+/** Nombre de reserva de una selección caída cuyo id ya no resuelve en el catálogo (nunca se pinta el id crudo). */
+private const val DROPPED_SELECTION_FALLBACK_TITLE = "Tu plan elegido"
+
+/**
+ * Paquete A · D2 (B-01): puerta de «Continuar» en el paso PLAN. Con un plan del catálogo elegido exige que esa
+ * selección esté entre los candidatos VIABLES de la lista vigente (`availablePlanCandidates`, la lista entera,
+ * no solo las tarjetas visibles) y que la lista no esté calculándose; si no, devuelve el error de paso
+ * (`errors["plan"]`) y el paso no avanza. Es una función pura para poder probarla sin montar el ViewModel.
+ *
+ * No añade nada cuando la validación del paso ya habla por sí sola (sin plan elegido) ni en la ruta «desde cero»,
+ * que no usa candidatos.
+ */
+internal fun planSelectionGate(state: SetupWizardState, step: SetupStepId): Map<String, String> {
+    if (step != SetupStepId.PLAN) return emptyMap()
+    val draft = state.draft
+    if (draft.trainingPath == SetupTrainingPath.FROM_SCRATCH) return emptyMap()
+    val selected = draft.selectedCatalogId ?: return emptyMap()
+    val viable = !state.isCandidateLoading && state.availablePlanCandidates.any { it.id == selected }
+    return if (viable) emptyMap() else mapOf("plan" to PLAN_SELECTION_REQUIRED_MESSAGE)
+}
+
+/**
+ * Paquete A · D4 (B-07, DEC-w2-05): ¿se intenta el segundo pase a peso corporal? Solo cuando el pase pedido no
+ * dejó NINGÚN plan viable y TODOS sus rechazos son de material (`APPARATUS_UNKNOWN` o `APPARATUS_ABSENT`).
+ * Sin rechazos no hay nada que explicar con el material (p. ej. el catálogo no se evaluó), y un rechazo de otra
+ * clase (tiempo, perfil, composición, fallo interno, sustitución sin resolver…) significa que el material no es
+ * la causa: la persona debe ver ese motivo, no un plan «adaptado a peso corporal» que no lo resuelve. Un
+ * rechazo heredado sin código (`reasonCode == null`) tampoco habilita el pase.
+ */
+internal fun bodyweightPassAllowed(requestedViableCount: Int, rejections: List<SetupCandidateRejection>): Boolean =
+    requestedViableCount == 0 && rejections.isNotEmpty() && rejections.all { rejection ->
+        rejection.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN ||
+            rejection.reasonCode == PlanRejectionReason.APPARATUS_ABSENT
+    }

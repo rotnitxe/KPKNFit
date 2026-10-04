@@ -9,7 +9,9 @@ import com.example.kpkn.data.onboarding.SetupCommitRequest
 import com.example.kpkn.data.onboarding.SetupCommitResult
 import com.example.kpkn.data.onboarding.SetupDraft
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
+import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepId
+import com.example.kpkn.domain.onboarding.SetupValueState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -42,6 +44,13 @@ import org.robolectric.annotation.Config
  *     motivo tipado de FUENTE EQUIVOCADA en preview y en la puerta real de
  *     activación, sin generar receipt; cambiar de ruta es siempre un acto
  *     explícito del usuario.
+ *
+ *     Paquete A · D2 (B-01): el ID forzado llega con el paso PLAN YA confirmado. Es lo único que
+ *     conserva una selección que no está entre los candidatos viables de la lista nueva (si PLAN
+ *     no se hubiera confirmado, el ViewModel la limpiaría como selección caída y la guardia de
+ *     activación ya no tendría nada que rechazar; ese camino lo cubre
+ *     `SetupWizardCandidateGateTest`). Con el paso confirmado la selección se conserva, no se
+ *     relanza su preview y la puerta de activación sigue rechazándola por FUENTE EQUIVOCADA.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -176,7 +185,15 @@ class SetupProtocolSourceGuardTest {
             vm.initialize(SetupWizardMode.FULL)
             awaitWall { vm.state.value.draft.draftId.isNotBlank() }
             vm.updateStep(SetupStepId.ROUTE) { draft ->
-                protocolDraft(draft).copy(selectedCatalogId = "native:bodyweight")
+                protocolDraft(draft).copy(
+                    selectedCatalogId = "native:bodyweight",
+                    // D2: paso PLAN ya confirmado, para que la selección forzada sobreviva a la lista nueva.
+                    stepProgress = draft.stepProgress.recordAnswer(
+                        SetupStepId.PLAN,
+                        SetupAnswerProvenance.USER_DECLARED,
+                        SetupValueState.DECLARED,
+                    ),
+                )
             }
             awaitWall { vm.state.value.draft.daysPerWeek == 3 }
             vm.setStepChoice(SetupStepId.ROUTE, "protocol")

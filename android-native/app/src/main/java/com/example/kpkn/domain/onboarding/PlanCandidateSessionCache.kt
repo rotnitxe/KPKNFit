@@ -10,6 +10,12 @@ package com.example.kpkn.domain.onboarding
  *   (una revisión vieja jamás responde una pregunta nueva).
  * - Una [PlanCandidateEvaluation.CatalogLoading] no se cachea: no es un
  *   resultado, es «todavía no se puede evaluar».
+ * - Paquete A · D3 (B-05): tampoco se cachea un [PlanCandidateEvaluation.Rejected] con un
+ *   motivo TRANSITORIO ([PlanRejectionReason.INTERNAL_MATERIALIZATION] y
+ *   [PlanRejectionReason.CATALOG_NOT_READY]): describen un fallo del momento, no una
+ *   propiedad del plan. Cachearlos hacía que «Reintentar» reprodujera el mismo rechazo sin
+ *   volver a evaluar. Los rechazos que sí describen al plan (material, tiempo, perfil…) siguen
+ *   cacheados: con las mismas entradas la respuesta es la misma.
  *
  * Sincronizada porque las evaluaciones se calculan en `Dispatchers.Default` y el
  * ViewModel consulta desde Main.
@@ -42,6 +48,7 @@ class PlanCandidateSessionCache(
     @Synchronized
     fun put(revision: String, key: String, value: PlanCandidateEvaluation) {
         if (value is PlanCandidateEvaluation.CatalogLoading) return
+        if (value is PlanCandidateEvaluation.Rejected && value.reasonCode in TRANSIENT_REASONS) return
         ensureRevision(revision)
         store[key] = value
     }
@@ -60,5 +67,11 @@ class PlanCandidateSessionCache(
 
     companion object {
         const val MAX_ENTRIES = 32
+
+        /** Motivos de rechazo que describen un fallo del momento y por eso nunca se cachean (B-05). */
+        val TRANSIENT_REASONS: Set<PlanRejectionReason> = setOf(
+            PlanRejectionReason.INTERNAL_MATERIALIZATION,
+            PlanRejectionReason.CATALOG_NOT_READY,
+        )
     }
 }
