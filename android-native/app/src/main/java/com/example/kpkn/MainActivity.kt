@@ -1190,8 +1190,13 @@ private fun KPKNNavGraph(
                     // Post-onboarding: solo editor directo, nunca el wizard.
                     navController.navigate(KpknRoute.NutritionPlanEditor.create()) { launchSingleTop = true }
                 },
-                onOpenSetupWizard = {
-                    navController.navigate(KpknRoute.SetupWizard.create()) { launchSingleTop = true }
+                // E-18: desde la biblioteca de Inicio, «Configurar este plan» lleva el plan elegido al asistente
+                // (planId); el aviso de bienvenida lo abre sin plan (null).
+                onOpenSetupWizard = { planId ->
+                    navController.navigate(KpknRoute.SetupWizard.create(planId = planId)) { launchSingleTop = true }
+                },
+                onOpenConcept = { conceptId ->
+                    navController.navigate(KpknRoute.Concepts.create(conceptId))
                 },
                 onNavigate = { destination ->
                     when (destination) {
@@ -1253,8 +1258,13 @@ private fun KPKNNavGraph(
                         launchSingleTop = true
                     }
                 },
-                onSelectPlan = {
-                    navController.navigate(KpknRoute.SetupWizard.create()) { launchSingleTop = true }
+                // E-18: la biblioteca entrega el plan elegido (planes propios, de autor, plantillas y métodos) y el
+                // asistente lo guarda como intención con el objetivo prefijado.
+                onSelectPlan = { entry ->
+                    navController.navigate(KpknRoute.SetupWizard.create(planId = entry.id)) { launchSingleTop = true }
+                },
+                onOpenConcept = { conceptId ->
+                    navController.navigate(KpknRoute.Concepts.create(conceptId))
                 },
             )
         }
@@ -1382,6 +1392,9 @@ private fun KPKNNavGraph(
             }, navArgument(KpknRoute.SetupWizard.ARG_DRAFT_ID) {
                 type = NavType.StringType
                 defaultValue = ""
+            }, navArgument(KpknRoute.SetupWizard.ARG_PLAN_ID) {
+                type = NavType.StringType
+                defaultValue = ""
             }),
         ) { entry ->
             val mode = runCatching {
@@ -1390,9 +1403,16 @@ private fun KPKNNavGraph(
                 )
             }.getOrDefault(com.example.kpkn.screens.onboarding.SetupWizardMode.FULL)
             val draftId = entry.arguments?.getString(KpknRoute.SetupWizard.ARG_DRAFT_ID).orEmpty().ifBlank { null }
+            val preselectedPlanId = entry.arguments?.getString(KpknRoute.SetupWizard.ARG_PLAN_ID).orEmpty().ifBlank { null }
             com.example.kpkn.screens.onboarding.SetupWizardScreen(
                 mode = mode,
                 draftId = draftId,
+                preselectedPlanId = preselectedPlanId,
+                // Las hojas «Cómo funciona» del asistente abren Conceptos clave y, al volver, el asistente sigue
+                // donde estaba (su ViewModel vive en esta entrada de la pila).
+                onOpenConcept = { conceptId ->
+                    navController.navigate(KpknRoute.Concepts.create(conceptId))
+                },
                 onDone = {
                     navController.navigate(KpknRoute.Home.route) {
                         popUpTo(KpknRoute.SetupEntry.route) { inclusive = true }

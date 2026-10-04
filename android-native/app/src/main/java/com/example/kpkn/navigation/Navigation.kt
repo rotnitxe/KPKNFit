@@ -192,7 +192,7 @@ sealed class KpknRoute(val route: String) {
      * pantallas representativas. No persiste nada y su entrada es temporal.
      */
     object SetupVisualGate : KpknRoute("setup/visual-gate")
-    object SetupWizard : KpknRoute("setup/wizard?mode={mode}&draftId={draftId}") {
+    object SetupWizard : KpknRoute("setup/wizard?mode={mode}&draftId={draftId}&planId={planId}") {
         const val BASE_ROUTE = "setup/wizard"
         /**
          * Prefijo común de TODAS las rutas de setup (entry, visual-gate,
@@ -203,7 +203,15 @@ sealed class KpknRoute(val route: String) {
         const val ARG_MODE = "mode"
         const val ARG_DRAFT_ID = "draftId"
 
-        fun create(mode: String = "FULL", draftId: String? = null): String = "$BASE_ROUTE?mode=${Uri.encode(mode)}&draftId=${Uri.encode(draftId.orEmpty())}"
+        /**
+         * Plan del catálogo que la persona eligió en la biblioteca («Configurar este plan», E-18): el asistente lo
+         * guarda como intención (`selectedCatalogId`) y prefija el objetivo sin confirmarlo. Vacío = ninguno.
+         */
+        const val ARG_PLAN_ID = "planId"
+
+        fun create(mode: String = "FULL", draftId: String? = null, planId: String? = null): String =
+            "$BASE_ROUTE?mode=${Uri.encode(mode)}&draftId=${Uri.encode(draftId.orEmpty())}" +
+                "&planId=${Uri.encode(planId.orEmpty())}"
     }
     object NutritionCalibration : KpknRoute("nutrition/calibration")
     object MealHistory : KpknRoute("nutrition/meal-history")

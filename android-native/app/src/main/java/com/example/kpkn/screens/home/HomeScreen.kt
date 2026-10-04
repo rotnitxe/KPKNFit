@@ -99,7 +99,10 @@ fun HomeScreen(
     onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onNavigateToNutritionEditor: () -> Unit = {},
-    onOpenSetupWizard: () -> Unit = {},
+    /** Abre el asistente de configuración; con [String] llega el plan que la persona eligió en la biblioteca (E-18). */
+    onOpenSetupWizard: (String?) -> Unit = {},
+    /** Abre un concepto de «Conceptos clave» desde la hoja «Cómo funciona» de la biblioteca; null = sin enlace. */
+    onOpenConcept: ((String) -> Unit)? = null,
     viewModel: HomeViewModel = rememberHomeViewModel(),
     @Suppress("UNUSED_PARAMETER") nutritionViewModel: NutritionViewModel? = null,
 ) {
@@ -191,7 +194,7 @@ fun HomeScreen(
     LaunchedEffect(onboardingState.show) {
         if (onboardingState.show) {
             viewModel.dismissOnboarding()
-            latestOpenSetupWizard()
+            latestOpenSetupWizard(null)
         }
     }
     val listState = rememberLazyListState()
@@ -367,9 +370,17 @@ fun HomeScreen(
                     viewModel.dismissCreateProgramSheet()
                     selectedProtocol = protocol
                 },
-                onSelectPlan = {
+                // E-18: con el asistente disponible, TODA tarjeta de la biblioteca (plan propio, de autor, plantilla o
+                // método) sigue al asistente con el plan elegido; el atajo directo ya no se ofrece desde aquí.
+                onSelectPlan = { entry ->
                     viewModel.dismissCreateProgramSheet()
-                    onOpenSetupWizard()
+                    onOpenSetupWizard(entry.id)
+                },
+                onOpenConcept = onOpenConcept?.let { open ->
+                    { conceptId ->
+                        viewModel.dismissCreateProgramSheet()
+                        open(conceptId)
+                    }
                 },
             )
         }

@@ -28,6 +28,7 @@ import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.TrainingValidation
 import com.example.kpkn.domain.onboarding.RingsCoverage
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.PlanRepair
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupChangeDetector
@@ -957,6 +958,13 @@ data class SetupCandidateRejection(
      * [apparatusKey] sale de `SetupApparatusPanel.keyForToken` y ya no se lee el texto de [reason].
      */
     val missingRequirements: List<String> = emptyList(),
+    /**
+     * Paquete A · C3: reparaciones de UN toque que el asesor ([com.example.kpkn.domain.onboarding.PlanRepairAdvisor])
+     * probó y dejan LISTO el plan propio del objetivo, en el orden en que se aplican (vacía = ninguna). Solo el
+     * rechazo del plan PROPIO las lleva; la UI las ofrece como botón («Sí, tengo rack y banco», «Cambiar a Músculo»,
+     * «Ajustar a N min»…) y las aplica con `applyRepairs`, que es lo que el asesor probó.
+     */
+    val repairs: List<PlanRepair> = emptyList(),
 )
 
 /**

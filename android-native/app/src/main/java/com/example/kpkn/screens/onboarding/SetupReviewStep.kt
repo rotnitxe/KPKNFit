@@ -28,8 +28,10 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.data.exercises.catalogConfigurationDisplayName
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.NutritionPlan
+import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.effectiveRepRange
 import com.example.kpkn.data.programs.CatalogEntry
@@ -42,6 +44,7 @@ import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupWizardBlock
 import com.example.kpkn.domain.text.SpanishPlurals
+import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.HighVolumeNotice
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.VolumeSoftBand
@@ -53,6 +56,7 @@ import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.WizardWeightScale
 import com.example.kpkn.screens.programs.PlanInfoMode
 import com.example.kpkn.screens.programs.PlanInfoSheet
+import com.example.kpkn.screens.programs.ReadyWeekSnapshot
 
 /**
  * Revisión y activación: los cuatro bloques obligatorios como tarjetas
@@ -235,6 +239,19 @@ internal fun allSessionsSummary(sessions: Int, weeks: Int): String =
 internal fun planReviewValue(entry: CatalogEntry?, programName: String): String? =
     entry?.displayName ?: programName.ifBlank { null }
 
+/**
+ * La primera semana REAL del programa de la vista previa, para la hoja «Cómo funciona» de la revisión (C.P6): sin
+ * calentamientos, con el día de cada sesión y las series redactadas como las de una receta. Misma construcción que
+ * `SetupWizardViewModel.readyWeekSnapshotFor` (la de las tarjetas del paso PLAN). Null si el programa no trae ninguna
+ * sesión: la hoja dice entonces «se genera con tus días, tu tiempo y tu material».
+ */
+internal fun reviewReadyWeek(program: Program): ReadyWeekSnapshot? =
+    ReadyWeekSnapshot.from(
+        program = program,
+        names = { configurationId -> catalogConfigurationDisplayName(configurationId) },
+        equipmentOf = { configurationId -> CompositionMetadataHolder.current?.metadata(configurationId)?.equipmentId },
+    ).takeIf { snapshot -> snapshot.sessions.isNotEmpty() }
+
 // ─── Resumen: entreno ────────────────────────────────────────────────────────
 
 @Composable
@@ -270,10 +287,15 @@ private fun TrainingSummary(
             Text(text = "Ver cómo funciona", color = WizardColors.text)
         }
         if (showPlanInfo) {
+            // C.P6: los planes sin receta enseñan la semana REAL del programa que se va a activar (la vista previa de
+            // este mismo paso), y el glosario enlaza a Conceptos clave cuando la pantalla recibe la navegación.
+            val readyWeek = remember(program) { reviewReadyWeek(program) }
             PlanInfoSheet(
                 entry = planEntry,
                 mode = PlanInfoMode.READ_ONLY,
+                readyWeek = readyWeek,
                 onDismiss = { showPlanInfo = false },
+                onOpenConcept = LocalOpenConcept.current,
             )
         }
     }

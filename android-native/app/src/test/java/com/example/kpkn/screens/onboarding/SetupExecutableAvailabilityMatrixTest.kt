@@ -7,8 +7,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.exercises.catalogv2.CatalogCompositionMetadataProvider
+import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
+import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
@@ -16,6 +18,7 @@ import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.NutritionPlan
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.Settings
 import com.example.kpkn.data.models.isCardioPart
 import com.example.kpkn.data.models.resolvedSchedulePlan
@@ -32,15 +35,23 @@ import com.example.kpkn.data.programs.AdaptationPolicy
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.programModeFor
 import com.example.kpkn.data.programs.TrainingReference
+import com.example.kpkn.data.protocols.definitions.AuthoredPhulPhatRecipes
 import com.example.kpkn.data.repository.AugeRepository
 import com.example.kpkn.data.repository.NutritionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2Loader
+import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.onboarding.PlanGoalMatcher
 import com.example.kpkn.domain.onboarding.PlanGoalProfile
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.PlanRejectionPresenter
+import com.example.kpkn.domain.onboarding.PlanRepair
+import com.example.kpkn.domain.onboarding.RejectionAction
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupTrainingPlanner
 import com.example.kpkn.domain.onboarding.SetupTrainingPlannerInput
@@ -57,6 +68,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -1125,6 +1138,414 @@ class SetupExecutableAvailabilityMatrixTest {
         )
         trace("CASE_END case=$currentCaseLabel outcome=PASS")
     }
+
+    // ═════════════════════════════════════════════════════════════════════════════════════
+    // T020 · A3 (curaduría de programas, 2026-10-03) — PARIDAD del ViewModel con las reparaciones
+    // ═════════════════════════════════════════════════════════════════════════════════════
+    //
+    // Las mismas entradas que el contrato de cobertura (`PlanCoverageContractTest`, que prueba el asesor sobre el
+    // motor sin ViewModel) pero a través del [SetupWizardViewModel] REAL: `materializeOverride` AUSENTE, planificador,
+    // evaluador, caché y asesor de producción. Cada fila comprueba lo que la persona ve y toca:
+    //  1. el rechazo del plan PROPIO del objetivo publica la reparación que el asesor probó;
+    //  2. el aviso (texto del presentador y botón con la etiqueta de D5) la ofrece;
+    //  3. el toque (`performNoticeEffect` → `applyRepairs`) deja el plan propio viable y se puede elegir;
+    //  4. el programa que sale es ejecutable y lleva el nombre y el modo de su ficha (C.P6).
+    // Ningún oráculo de las filas anteriores cambia: son pruebas ADITIVAS, cada una con su ViewModel y su base.
+    //
+    //  a. Fuerza + gimnasio completo SIN confirmar soportes: falta confirmar, «Sí, tengo rack y banco».
+    //  b. Fuerza en casa: con mancuernas «Cambiar a Fuerza y músculo»; sin resistencia «Cambiar a Músculo».
+    //  c. TIME_BUDGET (Músculo en 20 min): «Ajustar a N min» con el mínimo EXACTO del plan propio.
+    //  d. Selección caída: el plan elegido deja de caber al bajar el tiempo; el aviso lleva la reparación.
+    //  e. Reintento tras CATALOG_NOT_READY (repositorio que falla una vez).
+    //  f. C.P6: un plan de autor o un método elegido en el asistente se llama como su ficha y toma el modo de su disciplina.
+
+    /** Fila de T020: perfil válido y explícito, sin cardio salvo que se pida. */
+    private fun t020Row(
+        id: String,
+        goal: SetupGoal,
+        experience: SetupExperience,
+        categories: Set<EquipmentCategory>,
+        days: Int,
+        minutes: Int,
+    ) = MatrixRow(
+        id = "T020-$id",
+        group = "T020",
+        goal = goal,
+        experience = experience,
+        categories = categories,
+        daysPerWeek = days,
+        minutes = minutes,
+    )
+
+    /**
+     * Un ViewModel REAL (Room en memoria, motor real) con su propio ciclo de vida: se inicializa, se corre [body] y se
+     * cierra con el mismo helper de las filas de la matriz (`store.clear()`, finalización real del padre y sólo
+     * entonces `db.close()`). Un fallo de cierre se suma al de la fila (o la falla si la fila pasaba).
+     */
+    private fun <T> TestScope.withT020Vm(
+        label: String,
+        catalog: ExerciseCatalogRepositoryV2? = null,
+        body: (SetupWizardViewModel) -> T,
+    ): T {
+        currentCaseLabel = "T020-$label"
+        trace("CASE_BEGIN case=$currentCaseLabel")
+        val store = ViewModelStore()
+        val db = KpknDatabase.createInMemory(app)
+        // `materializeOverride` INTENCIONALMENTE ausente (null): motor real de producción.
+        val vm = SetupWizardViewModel(
+            app,
+            SavedStateHandle(),
+            RoomWizardPersistence(db),
+            FixedSettingsEnvironment(Settings()),
+            RoomWizardCommits(db),
+            null,
+            catalog,
+        )
+        store.put("t020-$label", vm)
+        val owner: Job = vm.viewModelScope.coroutineContext[Job]
+            ?: error("T020: viewModelScope de $label no expone Job")
+        var failure: Throwable? = null
+        try {
+            vm.initialize(SetupWizardMode.FULL, draftId = "t020-$label")
+            if (!awaitUntil(vm, SETTLE_BUDGET_MS) { !it.isLoading }) {
+                throw AssertionError("HARNESS: el wizard T020-$label no salió de isLoading (${stateDump(vm.state.value)})")
+            }
+            // Como en producción (`initializeExerciseDatabase`): las plantillas resuelven sus metadatos por el holder.
+            return withProductionCompositionMetadata(enabled = true) { body(vm) }
+        } catch (error: Throwable) {
+            failure = error
+            throw error
+        } finally {
+            val close = closeRowResources(owner, store, db, "T020-$label", ROW_CLEANUP_BUDGET_NANOS)
+            if (close.clearFailure != null || !close.completed) {
+                val blocker = AssertionError("HARNESS_BLOCKER: ${close.detail}")
+                if (failure != null) failure.addSuppressed(blocker) else throw blocker
+            }
+            trace("CASE_END case=$currentCaseLabel failed=${failure != null}")
+        }
+    }
+
+    /** Estado en reposo que cumple [condition]; si no llega a tiempo, falla con el estado completo. */
+    private fun TestScope.requireSettled(
+        vm: SetupWizardViewModel,
+        what: String,
+        condition: (SetupWizardState) -> Boolean,
+    ): SetupWizardState {
+        if (!awaitUntil(vm, SETTLE_BUDGET_MS) { isIdle(it) && condition(it) }) {
+            throw AssertionError("T020: no se alcanzó «$what» | ${stateDump(vm.state.value)}")
+        }
+        return vm.state.value
+    }
+
+    /**
+     * El aviso que la persona ve para el plan propio, EXACTAMENTE como lo decide la pantalla del paso PLAN: el de
+     * encima de la lista cuando hay otros planes viables y el de «ningún plan viable» cuando no hay ninguno.
+     */
+    private fun t020Notice(state: SetupWizardState): RejectionNotice = when (val gate = candidateListGate(state)) {
+        is CandidateListGate.Candidates -> checkNotNull(gate.ownPlanNotice) { "T020: la lista no explica el plan propio" }
+        CandidateListGate.NoneViable -> incompatibilityNotice(state)
+        else -> throw AssertionError("T020: la puerta de la lista no explica ningún rechazo: $gate")
+    }
+
+    /** Ningún texto del aviso lleva ids, tokens de material, códigos cerrados ni texto crudo del motor. */
+    private fun assertT020PlainLanguage(notice: RejectionNotice) {
+        listOf(notice.text, notice.primary?.label.orEmpty(), notice.secondary?.label.orEmpty()).forEach { text ->
+            assertFalse("«$text» lleva un id con prefijo", Regex("""\b(native|template|protocol|original|adapted):[a-z0-9]""").containsMatchIn(text))
+            assertFalse("«$text» lleva un guion bajo", text.contains('_'))
+            assertFalse(
+                "«$text» lleva un código cerrado",
+                Regex("APPARATUS|TIME_BUDGET|PROFILE_MISMATCH|INTERNAL_|CATALOG_NOT").containsMatchIn(text),
+            )
+            assertFalse("«$text» lleva un token de material", Regex("""\b(barbell|dumbbells|general_gym|bodyweight)\b""").containsMatchIn(text))
+        }
+        assertTrue("como mucho dos botones", notice.buttons.size in 1..2)
+    }
+
+    /**
+     * Toca el botón principal del aviso del plan propio, espera a que el plan propio sea viable, lo elige y devuelve su
+     * programa ya preparado (ejecutable, con el contrato canónico de producción).
+     */
+    private fun TestScope.tapTheOwnRepairAndOpenTheOwnPlan(
+        vm: SetupWizardViewModel,
+        ownId: String,
+        before: SetupWizardState,
+    ): Program {
+        val notice = t020Notice(before)
+        performNoticeEffect(checkNotNull(notice.primary) { "el aviso no trae botón principal" }.effect, vm)
+        requireSettled(vm, "plan propio $ownId viable tras la reparación") { state ->
+            state.availablePlanCandidates.any { it.id == ownId }
+        }
+        vm.selectPlan(ownId)
+        if (!awaitPreviewFor(vm, ownId, PREVIEW_BUDGET_MS)) {
+            throw AssertionError("T020: la vista previa de $ownId no se asentó | ${stateDump(vm.state.value)}")
+        }
+        val state = vm.state.value
+        val program = state.programPreview
+            ?: throw AssertionError("T020: $ownId sin vista previa (previewError=${state.previewError})")
+        val issues = ProgramExecutionContract.validate(program)
+        assertTrue("T020: $ownId no es ejecutable: ${issues.joinToString("; ") { it.message }}", issues.isEmpty())
+        // C.P6: el programa se llama como su ficha y toma el modo de su disciplina.
+        val entry = checkNotNull(PersonalizedPlanCatalog.find(ownId))
+        assertEquals("T020: nombre del programa de $ownId", entry.displayName, program.name)
+        assertEquals("T020: modo del programa de $ownId", programModeFor(entry), program.mode)
+        return program
+    }
+
+    @Test
+    fun T020_a_fuerza_gimnasio_completo_sin_confirmar_soportes_ofrece_el_toque_y_el_plan_propio_llega_a_programa() =
+        runTest(timeout = 10.minutes) {
+            withT020Vm("a-fuerza-gimnasio-sin-confirmar") { vm ->
+                val own = NativeProfileKind.STRENGTH.entryId
+                val row = t020Row("a", SetupGoal.STRENGTH, SetupExperience.INTERMEDIATE, allCategories, days = 3, minutes = 60)
+                applyFixture(vm, row)
+                val before = requireSettled(vm, "plan propio de Fuerza rechazado") { state ->
+                    matchesRequested(state.draft, row) && state.candidateRejections.any { it.planId == own }
+                }
+
+                val rejection = before.candidateRejections.single { it.planId == own }
+                assertEquals(
+                    "gimnasio sin confirmar: FALTA CONFIRMAR, no «declaraste ausente»",
+                    PlanRejectionReason.APPARATUS_UNKNOWN,
+                    rejection.reasonCode,
+                )
+                val repair = rejection.repairs.firstOrNull()
+                assertTrue("el rechazo trae la confirmación del material: ${rejection.repairs}", repair is PlanRepair.ConfirmApparatus)
+                assertEquals(listOf("squat_rack", "bench_flat"), (repair as PlanRepair.ConfirmApparatus).keys)
+                val notice = t020Notice(before)
+                assertTrue(
+                    "etiqueta de D5 en el botón principal: ${notice.primary?.label}",
+                    notice.primary?.label?.startsWith("Sí, tengo rack y banco") == true,
+                )
+                assertT020PlainLanguage(notice)
+
+                val program = tapTheOwnRepairAndOpenTheOwnPlan(vm, own, before)
+
+                val availability = checkNotNull(vm.state.value.draft.trainingOptions.availability)
+                assertEquals(ApparatusPresence.PRESENT, availability.supports["squat_rack"])
+                assertEquals(ApparatusPresence.PRESENT, availability.supports["bench_flat"])
+                assertEquals(ProgramMode.POWERLIFTING, program.mode)
+            }
+        }
+
+    @Test
+    fun T020_b1_fuerza_en_casa_con_mancuernas_ofrece_cambiar_a_fuerza_y_musculo() = runTest(timeout = 10.minutes) {
+        withT020Vm("b1-fuerza-casa-mancuernas") { vm ->
+            val own = NativeProfileKind.STRENGTH.entryId
+            val destination = NativeProfileKind.POWERBUILDING.entryId
+            val categories = setOf(EquipmentCategory.DUMBBELLS, EquipmentCategory.SUPPORT)
+            val row = t020Row("b1", SetupGoal.STRENGTH, SetupExperience.INTERMEDIATE, categories, days = 3, minutes = 60)
+            applyFixture(vm, row)
+            val before = requireSettled(vm, "plan propio de Fuerza rechazado") { state ->
+                matchesRequested(state.draft, row) && state.candidateRejections.any { it.planId == own }
+            }
+
+            val rejection = before.candidateRejections.single { it.planId == own }
+            assertEquals("sin barra no hay Fuerza", PlanRejectionReason.APPARATUS_ABSENT, rejection.reasonCode)
+            val repair = rejection.repairs.firstOrNull()
+            assertTrue("destino honesto: ${rejection.repairs}", repair is PlanRepair.SwitchGoal)
+            assertEquals(PlanGoalProfile.STRENGTH_MUSCLE, (repair as PlanRepair.SwitchGoal).goal)
+            val notice = t020Notice(before)
+            assertTrue(
+                "etiqueta de D5 en el botón principal: ${notice.primary?.label}",
+                notice.primary?.label?.startsWith("Cambiar a Fuerza y músculo") == true,
+            )
+            assertT020PlainLanguage(notice)
+
+            val program = tapTheOwnRepairAndOpenTheOwnPlan(vm, destination, before)
+
+            assertEquals(SetupGoal.STRENGTH_MUSCLE, vm.state.value.draft.goal)
+            assertEquals(ProgramMode.POWERBUILDING, program.mode)
+        }
+    }
+
+    @Test
+    fun T020_b2_fuerza_sin_resistencia_externa_ofrece_cambiar_a_musculo() = runTest(timeout = 10.minutes) {
+        withT020Vm("b2-fuerza-sin-material") { vm ->
+            val own = NativeProfileKind.STRENGTH.entryId
+            val destination = NativeProfileKind.MUSCLE.entryId
+            // Solo peso corporal: disponibilidad vacía EXPLÍCITA (no `null`).
+            val row = t020Row("b2", SetupGoal.STRENGTH, SetupExperience.INTERMEDIATE, emptySet(), days = 3, minutes = 60)
+            applyFixture(vm, row)
+            val before = requireSettled(vm, "plan propio de Fuerza rechazado") { state ->
+                matchesRequested(state.draft, row) && state.candidateRejections.any { it.planId == own }
+            }
+
+            val rejection = before.candidateRejections.single { it.planId == own }
+            assertEquals("sin barra no hay Fuerza", PlanRejectionReason.APPARATUS_ABSENT, rejection.reasonCode)
+            val repair = rejection.repairs.firstOrNull()
+            assertTrue("destino honesto: ${rejection.repairs}", repair is PlanRepair.SwitchGoal)
+            assertEquals(PlanGoalProfile.MUSCLE, (repair as PlanRepair.SwitchGoal).goal)
+            val notice = t020Notice(before)
+            assertTrue(
+                "etiqueta de D5 en el botón principal: ${notice.primary?.label}",
+                notice.primary?.label?.startsWith("Cambiar a Músculo") == true,
+            )
+            assertT020PlainLanguage(notice)
+
+            val program = tapTheOwnRepairAndOpenTheOwnPlan(vm, destination, before)
+
+            assertEquals(SetupGoal.MUSCLE, vm.state.value.draft.goal)
+            assertEquals(ProgramMode.HYPERTROPHY, program.mode)
+        }
+    }
+
+    @Test
+    fun T020_c_time_budget_ofrece_ajustar_al_minimo_exacto_del_plan_propio() = runTest(timeout = 10.minutes) {
+        withT020Vm("c-musculo-20-min") { vm ->
+            val own = NativeProfileKind.MUSCLE.entryId
+            // Las mismas entradas que la fila F-m20: a 20 min ningún candidato cabe y el propio pide más que los demás.
+            val row = t020Row("c", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 20)
+            applyFixture(vm, row)
+            val before = requireSettled(vm, "plan propio de Músculo rechazado por tiempo") { state ->
+                matchesRequested(state.draft, row) &&
+                    state.candidateRejections.any { it.planId == own && it.reasonCode == PlanRejectionReason.TIME_BUDGET }
+            }
+
+            val rejection = before.candidateRejections.single { it.planId == own }
+            val required = checkNotNull(rejection.requiredMinutes) { "el rechazo de tiempo informa el mínimo exacto" }
+            assertTrue("el mínimo supera lo elegido y cabe en el wizard: $required", required in 21..100)
+            assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(required)), rejection.repairs)
+            // El aviso habla del plan PROPIO (no del que pida menos minutos) y da el botón de ajuste.
+            val primary = PlanRejectionPresenter.primary(before.candidateRejections.map { it.toRejectionView() }, own)
+            assertEquals(own, primary?.planId)
+            val notice = t020Notice(before)
+            assertTrue(notice.text, notice.text.contains("necesita $required min por sesión y elegiste 20"))
+            assertEquals("Ajustar a $required min", notice.primary?.label)
+            assertT020PlainLanguage(notice)
+
+            val program = tapTheOwnRepairAndOpenTheOwnPlan(vm, own, before)
+
+            val after = vm.state.value
+            assertEquals(required, after.draft.minutesPerSession)
+            assertTrue("la persona tocó el paso de tiempo", SetupStepId.SESSION_TIME in after.draft.declaredSteps)
+            val longest = program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }
+                .flatMap { it.weeks }.flatMap { it.sessions }
+                .maxOf { SessionDurationEstimator.estimate(it).totalMinutes }
+            assertTrue("la sesión más larga ($longest min) cabe en los $required min", longest <= required)
+        }
+    }
+
+    @Test
+    fun T020_d_seleccion_caida_al_bajar_el_tiempo_lleva_la_reparacion_en_su_aviso() = runTest(timeout = 10.minutes) {
+        withT020Vm("d-seleccion-caida") { vm ->
+            val own = NativeProfileKind.MUSCLE.entryId
+            val row = t020Row("d", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60)
+            applyFixture(vm, row)
+            requireSettled(vm, "plan propio viable con 60 min") { state ->
+                matchesRequested(state.draft, row) && state.availablePlanCandidates.any { it.id == own }
+            }
+            vm.selectPlan(own)
+            if (!awaitPreviewFor(vm, own, PREVIEW_BUDGET_MS)) {
+                throw AssertionError("T020: la vista previa de $own no se asentó | ${stateDump(vm.state.value)}")
+            }
+            assertNotNull("el plan elegido prepara su programa", vm.state.value.programPreview)
+
+            // Entre el mínimo de los planes más cortos (21 min) y el del propio (28): el propio ya no cabe y los demás sí,
+            // así que la lista sigue ahí y el plan elegido cae con su aviso (si ninguno cupiera no habría lista).
+            vm.updateStep(SetupStepId.SESSION_TIME) { it.copy(minutesPerSession = 24) }
+            val dropped = requireSettled(vm, "selección caída") { it.droppedSelection != null }
+
+            val fallen = checkNotNull(dropped.droppedSelection)
+            assertEquals(own, fallen.planId)
+            val why = checkNotNull(fallen.rejection) { "el plan se evaluó: tiene rechazo" }
+            assertEquals(PlanRejectionReason.TIME_BUDGET, why.reasonCode)
+            val required = checkNotNull(why.requiredMinutes)
+            assertEquals(listOf<PlanRepair>(PlanRepair.SetMinutes(required)), why.repairs)
+            val notice = droppedSelectionNotice(fallen, dropped.draft)
+            assertTrue(notice.text, notice.text.startsWith(DROPPED_SELECTION_LEAD))
+            assertTrue(notice.text, notice.text.contains("necesita $required min por sesión y elegiste 24"))
+            assertEquals("Ajustar a $required min", notice.primary?.label)
+            assertT020PlainLanguage(notice)
+
+            performNoticeEffect(checkNotNull(notice.primary).effect, vm)
+            val fixed = requireSettled(vm, "plan propio viable otra vez") { state ->
+                state.draft.minutesPerSession == required && state.availablePlanCandidates.any { it.id == own }
+            }
+            assertNull("la búsqueda nueva retira el aviso de la selección caída", fixed.droppedSelection)
+        }
+    }
+
+    @Test
+    fun T020_e_reintento_tras_un_catalogo_que_no_cargo_vuelve_a_cargarlo_y_publica_la_lista() =
+        runTest(timeout = 10.minutes) {
+            val flaky = FlakyCatalogRepository(ApprovedAssetExerciseCatalogRepositoryV2(app), failures = 1)
+            withT020Vm("e-reintento-catalogo", catalog = flaky) { vm ->
+                val own = NativeProfileKind.MUSCLE.entryId
+                val row = t020Row("e", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60)
+                applyFixture(vm, row)
+                val failed = requireSettled(vm, "fallo del catálogo publicado") { it.errors["candidates"] != null }
+
+                assertEquals(CATALOG_UNAVAILABLE_MESSAGE, failed.errors["candidates"])
+                val why = failed.candidateRejections.single()
+                assertNull("el rechazo es global: no hay candidato que evaluar", why.planId)
+                assertEquals(PlanRejectionReason.CATALOG_NOT_READY, why.reasonCode)
+                assertEquals(CandidateListGate.SearchFailed(CATALOG_UNAVAILABLE_MESSAGE), candidateListGate(failed))
+                // C.P11: el presentador lo dice en llano y su botón es «Reintentar».
+                val presented = PlanRejectionPresenter.present(why.toRejectionView(), presentationContextOf(failed.draft))
+                assertEquals(PlanRejectionPresenter.CATALOG_TEXT, presented.text)
+                assertEquals(RejectionAction.Retry, presented.primary)
+                assertTrue("las respuestas siguen intactas", matchesRequested(failed.draft, row))
+
+                performRejectionAction(checkNotNull(presented.primary), vm)
+                val recovered = requireSettled(vm, "catálogo recuperado y lista publicada") { state ->
+                    state.availablePlanCandidates.any { it.id == own }
+                }
+
+                assertNull(recovered.errors["candidates"])
+                assertTrue(recovered.candidateRejections.none { it.planId == null })
+                assertTrue(candidateListGate(recovered) is CandidateListGate.Candidates)
+                assertTrue("las respuestas siguen intactas", matchesRequested(recovered.draft, row))
+            }
+        }
+
+    @Test
+    fun T020_f_un_plan_de_autor_elegido_en_el_asistente_se_llama_como_su_ficha_y_toma_el_modo_de_su_disciplina() =
+        runTest(timeout = 10.minutes) {
+            withT020Vm("f-nombre-y-modo-de-la-ficha") { vm ->
+                // El escenario de PHUL de `SetupWizardAuthoredPlansTest`: Fuerza y músculo, 4 días, 100 min y gimnasio completo
+                // con todos los aparatos confirmados; PHUL original y adaptado salen viables con el motor real.
+                val gym = AuthoredPlanFixtures.fullGym.availability
+                val row = t020Row("f", SetupGoal.STRENGTH_MUSCLE, SetupExperience.INTERMEDIATE, allCategories, days = 4, minutes = 100)
+                applyFixture(vm, row)
+                vm.updateStep(SetupStepId.AVAILABILITY) { it.copy(trainingOptions = it.trainingOptions.copy(availability = gym)) }
+                val original = AuthoredPhulPhatRecipes.PHUL_ORIGINAL_ID
+                val adapted = AuthoredPhulPhatRecipes.PHUL_ADAPTED_ID
+                val settled = requireSettled(vm, "PHUL original y adaptado viables con el gimnasio completo") { state ->
+                    state.draft.trainingOptions.availability == gym &&
+                        state.draft.minutesPerSession == row.minutes &&
+                        state.availablePlanCandidates.any { it.id == original } &&
+                        state.availablePlanCandidates.any { it.id == adapted }
+                }
+
+                // Antes el programa salía como «Plan de {nombre de la persona}» con el modo de hipertrofia; ahora lleva el
+                // nombre de su ficha y el modo de su disciplina (PHUL: Fuerza y músculo, powerbuilding). Además del plan de
+                // autor se prueba el primer método sin receta de autor y la primera plantilla que salgan viables, si los hay.
+                val authored = listOf(original, adapted)
+                val others = settled.availablePlanCandidates
+                    .mapNotNull { candidate -> PersonalizedPlanCatalog.find(candidate.id) }
+                    .filter { entry -> entry.authoredSource == null && entry.source != CatalogSource.NATIVE }
+                    .distinctBy { entry -> entry.source }
+                    .map { entry -> entry.id }
+                (authored + others).forEach { planId ->
+                    vm.selectPlan(planId)
+                    if (!awaitPreviewFor(vm, planId, PREVIEW_BUDGET_MS)) {
+                        throw AssertionError("T020: la vista previa de $planId no se asentó | ${stateDump(vm.state.value)}")
+                    }
+                    val state = vm.state.value
+                    val program = state.programPreview
+                        ?: throw AssertionError("T020: $planId sin vista previa (previewError=${state.previewError})")
+                    val entry = checkNotNull(PersonalizedPlanCatalog.find(planId))
+                    assertEquals("T020: nombre del programa de $planId", entry.displayName, program.name)
+                    assertFalse("T020: «${program.name}» no debe ser el nombre de la persona", program.name.startsWith("Plan de "))
+                    if (planId in authored) {
+                        assertEquals("T020: modo del programa de $planId", ProgramMode.POWERBUILDING, program.mode)
+                    } else if (entry.source == CatalogSource.PROTOCOL) {
+                        // Un método sin receta de autor ya no sale como powerlifting ni como hipertrofia por defecto.
+                        assertEquals("T020: modo del programa de $planId", programModeFor(entry), program.mode)
+                    }
+                }
+            }
+        }
 
     // ─── Filas de la matriz ────────────────────────────────────────────────────
 
@@ -2763,6 +3184,29 @@ class SetupExecutableAvailabilityMatrixTest {
         return false
     }
 
+
+    /**
+     * T020_e — repositorio del catálogo que falla las primeras [failures] cargas (publica `Error`, como el real, sin
+     * lanzar) y luego delega en el repositorio real: el VM no debe darlo por cargado y «Reintentar» debe volver a leerlo.
+     */
+    private class FlakyCatalogRepository(
+        private val real: ExerciseCatalogRepositoryV2,
+        private var failures: Int,
+    ) : ExerciseCatalogRepositoryV2 by real {
+        private val flakyState = MutableStateFlow<ExerciseCatalogStateV2>(ExerciseCatalogStateV2.Loading)
+
+        override val state: StateFlow<ExerciseCatalogStateV2> get() = flakyState
+
+        override suspend fun load() {
+            if (failures > 0) {
+                failures -= 1
+                flakyState.value = ExerciseCatalogStateV2.Error("catalogo_de_prueba_no_disponible")
+                return
+            }
+            real.load()
+            flakyState.value = real.state.value
+        }
+    }
 
     /** Coordinador REAL de altas (sin repos): esta matriz no confirma ninguna alta. */
     private class RoomWizardCommits(db: KpknDatabase) : SetupWizardCommits {

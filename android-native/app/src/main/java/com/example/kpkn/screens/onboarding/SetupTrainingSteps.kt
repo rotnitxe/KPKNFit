@@ -40,12 +40,21 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
 import com.example.kpkn.data.splits.SplitTag
 import com.example.kpkn.data.splits.SplitTemplate
 import com.example.kpkn.data.splits.isVisibleForApplication
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.onboarding.PlanEvaluationStage
+import com.example.kpkn.domain.onboarding.PlanGoalProfile
+import com.example.kpkn.domain.onboarding.PlanRejectionPresenter
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.PlanRepair
+import com.example.kpkn.domain.onboarding.PresentationContext
+import com.example.kpkn.domain.onboarding.RejectionAction
+import com.example.kpkn.domain.onboarding.RejectionPresentation
+import com.example.kpkn.domain.onboarding.RejectionView
 import com.example.kpkn.domain.onboarding.SetupApparatusPanel
 import com.example.kpkn.domain.onboarding.SetupControlKind
 import com.example.kpkn.domain.onboarding.SetupStepDefinitions
@@ -879,6 +888,12 @@ internal sealed interface CandidateListGate {
         val previewError: String?,
         /** Selección caída que sigue pendiente de explicar; null si ya no corresponde a la selección actual. */
         val dropped: SetupDroppedSelection?,
+        /**
+         * Paquete A · C4: aviso del plan PROPIO del objetivo cuando quedó rechazado y tiene reparación de un toque,
+         * aunque haya otros planes viables debajo («No pudimos armar tu plan de fuerza… [Sí, tengo rack y banco]»);
+         * null cuando el propio es viable, no tiene reparación o ya lo explica el aviso de la selección caída.
+         */
+        val ownPlanNotice: RejectionNotice? = null,
     ) : CandidateListGate
 }
 
@@ -894,82 +909,290 @@ internal fun candidateListGate(state: SetupWizardState): CandidateListGate {
         }
     }
     val selected = state.draft.selectedCatalogId
+    // Elegir otro plan descarta el aviso (el ViewModel ya lo limpia); esta comprobación evita enseñarlo
+    // si, por la vía que sea, la selección actual ya no es la que cayó.
+    val dropped = state.droppedSelection?.takeIf { selected == null || selected == it.planId }
     return CandidateListGate.Candidates(
         cards = cards,
         previewError = state.previewError,
-        // Elegir otro plan descarta el aviso (el ViewModel ya lo limpia); esta comprobación evita enseñarlo
-        // si, por la vía que sea, la selección actual ya no es la que cayó.
-        dropped = state.droppedSelection?.takeIf { selected == null || selected == it.planId },
+        dropped = dropped,
+        ownPlanNotice = ownPlanNotice(state, droppedPlanId = dropped?.planId),
     )
 }
 
-/** Qué hace el botón del aviso de la selección caída (Paquete A · D2). */
-internal enum class DroppedSelectionAction { CONFIRM_MATERIAL, EDIT_TIME, SEE_ALTERNATIVES }
+// ─── Avisos de rechazo (Paquete A · C3/C4 y Paquete C · C.P11) ─────────────────────────────────────────────────
+//
+// Un SOLO camino de texto para todo rechazo que la persona ve: la lista sin planes viables, el aviso de la selección
+// caída y el aviso del plan propio encima de la lista. El texto y los botones salen de `PlanRejectionPresenter` (el
+// presentador único de dominio); aquí solo se hace lo que el presentador no sabe: elegir el rechazo, ofrecer la
+// reparación de un toque del plan propio con la etiqueta de D5 y traducir cada botón a la API del asistente. El
+// texto crudo del motor (`SetupCandidateRejection.reason`) no se pinta nunca: solo va al registro.
 
-/** Texto y acción del aviso de la selección caída: solo lenguaje llano, nunca ids ni códigos. */
-internal data class DroppedSelectionNotice(
+/** Qué hace un botón de un aviso de rechazo con la API del asistente. */
+internal sealed interface NoticeEffect {
+    /** Aplica reparaciones de un toque (`applyRepairs`): justo lo que el asesor probó y deja el plan propio listo. */
+    data class Apply(val repairs: List<PlanRepair>) : NoticeEffect
+
+    /** Una acción del presentador: ir a un paso, reintentar o ver las alternativas. */
+    data class Act(val action: RejectionAction) : NoticeEffect
+}
+
+/** Un botón del aviso: su texto y su efecto. */
+internal data class NoticeButton(val label: String, val effect: NoticeEffect)
+
+/** Un aviso de rechazo listo para pintar: un texto llano y hasta dos botones, el principal primero. */
+internal data class RejectionNotice(
     val text: String,
-    val actionLabel: String,
-    val action: DroppedSelectionAction,
-)
+    val primary: NoticeButton?,
+    val secondary: NoticeButton? = null,
+) {
+    val buttons: List<NoticeButton> get() = listOfNotNull(primary, secondary)
+}
 
 /** Arranque común del aviso de la selección caída. */
 internal const val DROPPED_SELECTION_LEAD = "Tu plan elegido ya no encaja con tus respuestas."
 
+/** Fuerza y músculo sin resistencia externa (r2 §11.1): la frase genérica de disciplina no explica el requisito. */
+internal const val OWN_POWERBUILDING_RESISTANCE_TEXT =
+    "Fuerza y músculo necesita resistencia externa en los ejercicios principales: barra con rack y banco, o mancuernas."
+
+/** Como mucho dos botones por aviso (el principal y uno secundario). */
+private const val MAX_NOTICE_BUTTONS = 2
+
+/** Nombres cortos de las llaves del panel para el botón «Sí, tengo rack y banco» (D5); el resto usa la etiqueta del panel. */
+private val SHORT_APPARATUS_LABELS: Map<String, String> = mapOf(
+    "squat_rack" to "rack",
+    "bench_flat" to "banco",
+    "bench_adjustable" to "banco regulable",
+    "preacher_bench" to "banco predicador",
+    "pullup_bar" to "barra de dominadas",
+    "dip_bars" to "paralelas",
+    "low_bar_support" to "barra baja",
+    "ez_bar" to "barra EZ",
+)
+
+/** Minúscula inicial para insertar una etiqueta en una frase; deja intactas las siglas («EZ»). */
+private fun String.lowercaseFirst(): String =
+    if (isEmpty() || (length > 1 && this[1].isUpperCase())) this else replaceFirstChar { it.lowercaseChar() }
+
+private fun joinSpanish(items: List<String>): String = when (items.size) {
+    0 -> ""
+    1 -> items.first()
+    else -> items.dropLast(1).joinToString(", ") + " y " + items.last()
+}
+
+private fun shortApparatusLabel(key: String): String =
+    SHORT_APPARATUS_LABELS[key] ?: PlanRejectionPresenter.panelLabelOf(key)?.lowercaseFirst() ?: "material"
+
 /**
- * Aviso de la selección caída. Tabla local y corta por motivo cerrado, a la espera del presentador único de
- * rechazos (paso A.C4): donde `CandidateIncompatibility` ya tiene frase (material por confirmar, material
- * ausente, tiempo) se reutiliza literalmente; el resto son frases cortas y llanas. El `reason` crudo del
- * rechazo no se pinta nunca. La acción lleva al paso que lo arregla: material → «Confirmar material»,
- * tiempo → «Editar tiempo», cualquier otro → «Ver alternativas», que solo cierra el aviso.
+ * La proyección mínima de un rechazo del asistente para el presentador. NO lleva `reason` (el texto crudo del motor),
+ * así que ni ids ni tokens pueden llegar a la pantalla.
  */
-internal fun droppedSelectionNotice(dropped: SetupDroppedSelection, chosenMinutes: Int?): DroppedSelectionNotice {
-    val rejection = dropped.rejection
-        ?: return DroppedSelectionNotice(
-            text = "$DROPPED_SELECTION_LEAD Ya no está entre los planes que corresponden a tus respuestas.",
-            actionLabel = "Ver alternativas",
-            action = DroppedSelectionAction.SEE_ALTERNATIVES,
-        )
-    return when (rejection.reasonCode) {
-        PlanRejectionReason.APPARATUS_UNKNOWN -> {
-            // Misma frase que `CandidateIncompatibility`; sin etiqueta curada no se nombra la llave.
-            val label = rejection.apparatusKey?.let(::apparatusLabelOrNull)
-            val reason = if (label != null) "Falta confirmar material: $label." else "Falta confirmar material."
-            DroppedSelectionNotice("$DROPPED_SELECTION_LEAD $reason", "Confirmar material", DroppedSelectionAction.CONFIRM_MATERIAL)
-        }
+internal fun SetupCandidateRejection.toRejectionView(): RejectionView = RejectionView(
+    planId = planId,
+    reasonCode = reasonCode,
+    requiredMinutes = requiredMinutes,
+    apparatusKey = apparatusKey,
+    needsApparatusConfirmation = needsApparatusConfirmation,
+    missingRequirements = missingRequirements,
+    stage = when (stage) {
+        SetupCandidateRejectionStage.CATALOG -> PlanEvaluationStage.CATALOG
+        SetupCandidateRejectionStage.PROFILE -> PlanEvaluationStage.PROFILE
+        SetupCandidateRejectionStage.FREQUENCY -> PlanEvaluationStage.FREQUENCY_SPLIT
+        SetupCandidateRejectionStage.MATERIAL -> PlanEvaluationStage.MATERIAL
+        SetupCandidateRejectionStage.MATERIALIZATION -> PlanEvaluationStage.MATERIALIZATION
+        SetupCandidateRejectionStage.DURATION -> PlanEvaluationStage.SESSION_DURATION
+        SetupCandidateRejectionStage.COMPOSITION -> PlanEvaluationStage.COMPOSITION
+    },
+)
 
-        PlanRejectionReason.APPARATUS_ABSENT -> DroppedSelectionNotice(
-            "$DROPPED_SELECTION_LEAD Este plan pide material que declaraste ausente.",
-            "Confirmar material",
-            DroppedSelectionAction.CONFIRM_MATERIAL,
-        )
-
-        PlanRejectionReason.TIME_BUDGET -> {
-            val required = rejection.requiredMinutes
-            val reason = if (required != null) {
-                "Este plan necesita $required min por sesión; elegiste ${chosenMinutes ?: "—"} min."
-            } else {
-                "Con el tiempo que elegiste ya no cabe una sesión completa de este plan."
-            }
-            DroppedSelectionNotice("$DROPPED_SELECTION_LEAD $reason", "Editar tiempo", DroppedSelectionAction.EDIT_TIME)
-        }
-
-        PlanRejectionReason.PROFILE_MISMATCH,
-        PlanRejectionReason.LEVEL_UNSUITABLE,
-        PlanRejectionReason.FREQUENCY,
-        PlanRejectionReason.SPLIT,
-        -> DroppedSelectionNotice(
-            "$DROPPED_SELECTION_LEAD Este plan no se ajusta a tu objetivo, tu nivel o tus días de entrenamiento.",
-            "Ver alternativas",
-            DroppedSelectionAction.SEE_ALTERNATIVES,
-        )
-
-        else -> DroppedSelectionNotice(
-            "$DROPPED_SELECTION_LEAD Con tus respuestas actuales no se puede armar este plan.",
-            "Ver alternativas",
-            DroppedSelectionAction.SEE_ALTERNATIVES,
-        )
+/**
+ * La disciplina de un plan con las palabras del asistente (Fuerza, Fuerza y músculo, Músculo), nunca «powerlifting»:
+ * los nombres deportivos internos no se ofrecen como etiquetas de la interfaz.
+ */
+internal fun disciplineLabelOf(planId: String?): String? {
+    val references = planId?.let(PersonalizedPlanCatalog::find)?.references ?: return null
+    return when {
+        TrainingReference.POWERLIFTING in references -> SetupGoal.STRENGTH.label
+        TrainingReference.POWERBUILDING in references -> SetupGoal.STRENGTH_MUSCLE.label
+        TrainingReference.HYPERTROPHY in references -> SetupGoal.MUSCLE.label
+        else -> null
     }
+}
+
+/** Lo que el presentador necesita saber de las respuestas de la persona para escribir el texto. */
+internal fun presentationContextOf(draft: SetupWizardDraft): PresentationContext = PresentationContext(
+    userMinutes = draft.minutesPerSession,
+    goalLabel = draft.goal?.label,
+    daysChosen = draft.daysPerWeek,
+    disciplineLabelOf = ::disciplineLabelOf,
+    planDaysOf = { planId -> planId?.let(PersonalizedPlanCatalog::find)?.supportedFrequencies },
+)
+
+/**
+ * La presentación del presentador, con una excepción: el rechazo del plan PROPIO de Fuerza y músculo por falta de
+ * resistencia externa es un `PROFILE_MISMATCH` que la frase genérica («Este plan es de …; tu objetivo es …») no
+ * explica; ahí se dice el requisito (r2 §11.1) y se conservan los botones del presentador.
+ */
+private fun presentationFor(rejection: SetupCandidateRejection, draft: SetupWizardDraft): RejectionPresentation {
+    val view = rejection.toRejectionView()
+    val presented = PlanRejectionPresenter.present(view, presentationContextOf(draft))
+    val goal = planGoalProfileOf(draft.goal)
+    val isOwnPowerbuilding = goal == PlanGoalProfile.STRENGTH_MUSCLE && view.planId == ownPlanIdOf(goal)
+    return if (isOwnPowerbuilding && view.reasonCode == PlanRejectionReason.PROFILE_MISMATCH) {
+        presented.copy(text = OWN_POWERBUILDING_RESISTANCE_TEXT)
+    } else {
+        presented
+    }
+}
+
+/**
+ * Etiqueta del botón de las reparaciones (D5): «Sí, tengo rack y banco», «Cambiar a Músculo», «Ajustar a N min»,
+ * «Cardio de N min», «Quitar el reparto». Con una reparación encadenada (confirmar material y, con él, más minutos)
+ * o un cambio de objetivo que además pide minutos, la etiqueta lo dice: «Sí, tengo rack y banco · ajustar a 75 min».
+ */
+internal fun repairLabelOf(repairs: List<PlanRepair>): String? {
+    val first = repairs.firstOrNull() ?: return null
+    val chainedMinutes = repairs.drop(1).filterIsInstance<PlanRepair.SetMinutes>().firstOrNull()?.minutes
+    return when (first) {
+        is PlanRepair.ConfirmApparatus -> {
+            val items = first.keys.map(::shortApparatusLabel).distinct()
+            val have = if (items.isEmpty()) "Sí, tengo el material" else "Sí, tengo ${joinSpanish(items)}"
+            if (chainedMinutes != null) "$have · ajustar a $chainedMinutes min" else have
+        }
+        is PlanRepair.SwitchGoal -> {
+            val label = "Cambiar a ${first.goal.toSetupGoal()?.label ?: "otro objetivo"}"
+            first.alsoMinutes?.let { minutes -> "$label · ajustar a $minutes min" } ?: label
+        }
+        is PlanRepair.SetMinutes -> "Ajustar a ${first.minutes} min"
+        is PlanRepair.SetCardioMinutes -> "Cardio de ${first.minutes} min"
+        PlanRepair.ClearSplit -> "Quitar el reparto"
+    }
+}
+
+/**
+ * El aviso de UN rechazo: el texto del presentador y hasta dos botones. Si el rechazo trae reparaciones de un toque
+ * (solo el del plan propio), la reparación es el botón principal y el primero del presentador (la acción de navegación
+ * equivalente: «Confirmar material», «Cambiar objetivo»…) pasa a secundario; «Ajustar a N min» no se duplica.
+ *
+ * [keepSeeAlternatives] decide si «Ver alternativas» sobrevive: solo tiene sentido donde las alternativas están a la
+ * vista (el aviso de la selección caída, encima de la lista). Sin lista (ningún plan viable) no hay nada que ver y, si
+ * el botón era el único, queda «Reintentar».
+ */
+internal fun rejectionNotice(
+    rejection: SetupCandidateRejection,
+    draft: SetupWizardDraft,
+    keepSeeAlternatives: Boolean,
+): RejectionNotice {
+    val presentation = presentationFor(rejection, draft)
+    val repairs = rejection.repairs
+    val repairButton = repairLabelOf(repairs)?.let { label -> NoticeButton(label, NoticeEffect.Apply(repairs)) }
+    val fromPresenter = presentation.actions
+        .filter { action -> keepSeeAlternatives || action != RejectionAction.SeeAlternatives }
+        .filterNot { action -> action is RejectionAction.SetMinutes && repairs.any { it is PlanRepair.SetMinutes } }
+        .map { action -> NoticeButton(action.label, NoticeEffect.Act(action)) }
+    val buttons = (listOfNotNull(repairButton) + fromPresenter)
+        .take(MAX_NOTICE_BUTTONS)
+        .ifEmpty { listOf(NoticeButton(RejectionAction.Retry.label, NoticeEffect.Act(RejectionAction.Retry))) }
+    // Cuando solo cabe bajando el cardio, el botón lo nombra y el texto dice por qué es la salida.
+    val cardioHint = repairs.filterIsInstance<PlanRepair.SetCardioMinutes>().firstOrNull()
+        ?.let { repair -> " Con ${repair.minutes} min de cardio sí cabe." }
+        .orEmpty()
+    return RejectionNotice(
+        text = presentation.text + cardioHint,
+        primary = buttons.first(),
+        secondary = buttons.getOrNull(1),
+    )
+}
+
+/**
+ * Aviso de la selección caída: [DROPPED_SELECTION_LEAD] y el motivo del presentador, con sus botones (y «Ver
+ * alternativas», que solo cierra el aviso). Sin rechazo —el plan ni se evaluó, el planificador ya lo descartó por
+ * objetivo, nivel o días— explica eso y ofrece «Ver alternativas» y «Cambiar objetivo». El `reason` crudo no se pinta.
+ */
+internal fun droppedSelectionNotice(dropped: SetupDroppedSelection, draft: SetupWizardDraft): RejectionNotice {
+    val rejection = dropped.rejection
+        ?: return RejectionNotice(
+            text = "$DROPPED_SELECTION_LEAD Ya no está entre los planes que corresponden a tus respuestas.",
+            primary = NoticeButton(RejectionAction.SeeAlternatives.label, NoticeEffect.Act(RejectionAction.SeeAlternatives)),
+            secondary = NoticeButton(RejectionAction.ChangeGoal.label, NoticeEffect.Act(RejectionAction.ChangeGoal)),
+        )
+    val notice = rejectionNotice(rejection, draft, keepSeeAlternatives = true)
+    return notice.copy(text = "$DROPPED_SELECTION_LEAD ${notice.text}")
+}
+
+/**
+ * Aviso del plan propio del objetivo encima de la lista (C4): solo cuando su rechazo trae reparaciones, no está entre
+ * los viables y no es ya la selección caída (que tiene su propio aviso, con las mismas reparaciones). Es lo que ve la
+ * persona que pidió Fuerza con el gimnasio sin confirmar y tiene otros planes debajo: el plan que esperaba, por qué no
+ * está y el botón que lo arregla.
+ */
+internal fun ownPlanNotice(state: SetupWizardState, droppedPlanId: String?): RejectionNotice? {
+    val draft = state.draft
+    val goalLabel = draft.goal?.label ?: return null
+    val ownId = ownPlanIdOf(planGoalProfileOf(draft.goal)) ?: return null
+    if (droppedPlanId == ownId) return null
+    if (state.availablePlanCandidates.any { candidate -> candidate.id == ownId }) return null
+    val rejection = state.candidateRejections.firstOrNull { it.planId == ownId && it.repairs.isNotEmpty() } ?: return null
+    val notice = rejectionNotice(rejection, draft, keepSeeAlternatives = false)
+    return notice.copy(text = "No pudimos armar tu plan de ${goalLabel.lowercaseFirst()} con tus respuestas. ${notice.text}")
+}
+
+/**
+ * El aviso de la lista SIN planes viables: el rechazo más accionable (el del plan propio; luego material por confirmar
+ * con llave; luego el de menos minutos; luego perfil o material ausente; si no, el primero) y su reparación. Sin
+ * ningún rechazo por plan (el planificador no encontró nada) queda el resumen de la búsqueda y «Reintentar».
+ */
+internal fun incompatibilityNotice(state: SetupWizardState): RejectionNotice {
+    val draft = state.draft
+    val rejections = state.candidateRejections
+    val views = rejections.map { it.toRejectionView() }
+    val primary = PlanRejectionPresenter.primary(views, ownPlanIdOf(planGoalProfileOf(draft.goal)))
+        ?.let { view -> views.indexOf(view) }
+        ?.let { index -> rejections.getOrNull(index) }
+        ?: return RejectionNotice(
+            text = state.errors["candidates"] ?: "Ahora mismo no hay un plan compatible con tus respuestas.",
+            primary = NoticeButton(RejectionAction.Retry.label, NoticeEffect.Act(RejectionAction.Retry)),
+        )
+    return rejectionNotice(primary, draft, keepSeeAlternatives = false)
+}
+
+/** Lo que hace un botón con la API del asistente. [onSeeAlternatives] cierra el aviso donde las alternativas están a la vista. */
+internal fun performNoticeEffect(effect: NoticeEffect, vm: SetupWizardViewModel, onSeeAlternatives: () -> Unit = {}) {
+    when (effect) {
+        is NoticeEffect.Apply -> vm.applyRepairs(effect.repairs)
+        is NoticeEffect.Act -> performRejectionAction(effect.action, vm, onSeeAlternatives)
+    }
+}
+
+/** Mapa de las acciones del presentador a la API del asistente (A.C3): navegar con `editStep`, reintentar o ajustar minutos. */
+internal fun performRejectionAction(action: RejectionAction, vm: SetupWizardViewModel, onSeeAlternatives: () -> Unit = {}) {
+    when (action) {
+        RejectionAction.Retry -> vm.retryFailedOperation(SetupRetryOperation.CANDIDATES)
+        RejectionAction.ChangeGoal -> vm.editStep(SetupStepId.GOAL)
+        RejectionAction.SeeAlternatives -> onSeeAlternatives()
+        RejectionAction.ChangeDays -> vm.editStep(SetupStepId.DAYS)
+        RejectionAction.ChangeSplit -> vm.editStep(SetupStepId.SPLIT)
+        RejectionAction.ConfirmApparatus -> vm.editStep(SetupStepId.AVAILABILITY)
+        is RejectionAction.SetMinutes -> vm.applyRepair(PlanRepair.SetMinutes(action.minutes))
+    }
+}
+
+/** Pinta un aviso de rechazo con sus dos botones; cada botón ejecuta su efecto con la API del asistente. */
+@Composable
+private fun RejectionNoticeView(
+    notice: RejectionNotice,
+    vm: SetupWizardViewModel,
+    onSeeAlternatives: () -> Unit = {},
+) {
+    TrainingNotice(
+        text = notice.text,
+        tone = TrainingNoticeTone.ERROR,
+        actionLabel = notice.primary?.label,
+        onAction = notice.primary?.let { button -> { performNoticeEffect(button.effect, vm, onSeeAlternatives) } },
+        secondaryActionLabel = notice.secondary?.label,
+        onSecondaryAction = notice.secondary?.let { button -> { performNoticeEffect(button.effect, vm, onSeeAlternatives) } },
+    )
 }
 
 /**
@@ -1005,6 +1228,8 @@ private fun TrainingPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
 
         is CandidateListGate.Candidates -> {
             gate.dropped?.let { dropped -> DroppedSelectionBanner(dropped = dropped, state = state, vm = vm) }
+            // C4: el plan propio del objetivo rechazado con reparación, aunque debajo haya otros planes viables.
+            gate.ownPlanNotice?.let { notice -> RejectionNoticeView(notice = notice, vm = vm) }
             gate.previewError?.let { previewError ->
                 TrainingNotice(
                     text = previewError,
@@ -1062,7 +1287,8 @@ private const val PLAN_INFO_LINK = "Ver cómo funciona"
 /**
  * La hoja «Cómo funciona» de un candidato del asistente (C.P5): la entrada del catálogo con la semana real que
  * ya calculó la evaluación (solo la pintan los planes sin receta) y «Elegir este plan» como botón principal, que
- * elige el plan y cierra la hoja. No navega a Conceptos clave: el asistente no se interrumpe.
+ * elige el plan y cierra la hoja. El glosario enlaza a Conceptos clave (C.P6) cuando la pantalla recibe el
+ * callback de navegación ([LocalOpenConcept]); al volver, el asistente sigue donde estaba.
  */
 @Composable
 private fun CandidatePlanInfo(planId: String, vm: SetupWizardViewModel, onDismiss: () -> Unit) {
@@ -1077,6 +1303,7 @@ private fun CandidatePlanInfo(planId: String, vm: SetupWizardViewModel, onDismis
             vm.selectPlan(planId)
             onDismiss()
         },
+        onOpenConcept = LocalOpenConcept.current,
     )
 }
 
@@ -1093,19 +1320,8 @@ private fun DroppedSelectionBanner(
 ) {
     var closed by rememberSaveable(dropped.planId) { mutableStateOf(false) }
     if (closed) return
-    val notice = droppedSelectionNotice(dropped, chosenMinutes = state.draft.minutesPerSession)
-    TrainingNotice(
-        text = notice.text,
-        tone = TrainingNoticeTone.ERROR,
-        actionLabel = notice.actionLabel,
-        onAction = {
-            when (notice.action) {
-                DroppedSelectionAction.CONFIRM_MATERIAL -> vm.editStep(SetupStepId.AVAILABILITY)
-                DroppedSelectionAction.EDIT_TIME -> vm.editStep(SetupStepId.SESSION_TIME)
-                DroppedSelectionAction.SEE_ALTERNATIVES -> closed = true
-            }
-        },
-    )
+    val notice = droppedSelectionNotice(dropped, state.draft)
+    RejectionNoticeView(notice = notice, vm = vm, onSeeAlternatives = { closed = true })
 }
 
 /** §15.2: revisados / encajan (nunca «publicados» de un subconjunto). */
@@ -1114,20 +1330,27 @@ private fun CandidateCountsLine(state: SetupWizardState) {
     val counts = state.candidateCounts
     if (counts.evaluated == 0) return
     Text(
-        text = candidateCountsText(counts),
+        text = candidateCountsText(counts, adaptedToBodyweight = state.planAdaptedToBodyweight),
         style = WizardTypography.bodySmall,
         color = WizardColors.textMuted,
         modifier = Modifier.testTag("setup-candidate-counts"),
     )
 }
 
+/** Cierre del conteo cuando las tarjetas salen del pase a peso corporal (los conteos son los del pase pedido). */
+internal const val ADAPTED_TO_BODYWEIGHT_COUNT_SUFFIX = "te mostramos planes de peso corporal"
+
 /**
  * «12 planes revisados · 3 encajan con tus respuestas» (C.P5): cada cifra concuerda con su sustantivo y con su
  * verbo. Con uno solo («1 plan revisado · 1 encaja con tus respuestas», lo normal en Atleta completo) y con
  * ninguno («… · ninguno encaja con tus respuestas») el texto cambia de forma, no solo de número. Los que no
  * encajan no se cuentan aparte: son la resta.
+ *
+ * Con [adaptedToBodyweight] las tarjetas que se ven NO son las que se contaron (el conteo es del pase pedido y las
+ * tarjetas, del segundo pase a peso corporal): el texto lo dice para que «ninguno encaja» no parezca un error al
+ * lado de unas tarjetas («… · ninguno encaja con tus respuestas; te mostramos planes de peso corporal»).
  */
-internal fun candidateCountsText(counts: SetupCandidateCounts): String {
+internal fun candidateCountsText(counts: SetupCandidateCounts, adaptedToBodyweight: Boolean = false): String {
     val reviewed = SpanishPlurals.withNoun(counts.evaluated, "plan revisado", "planes revisados")
     val fitting = when (counts.viable) {
         0 -> "ninguno encaja con tus respuestas"
@@ -1137,71 +1360,24 @@ internal fun candidateCountsText(counts: SetupCandidateCounts): String {
             "${counts.viable} encajan con tus respuestas",
         )
     }
-    return "$reviewed · $fitting"
+    val line = "$reviewed · $fitting"
+    return if (adaptedToBodyweight) "$line; $ADAPTED_TO_BODYWEIGHT_COUNT_SUFFIX" else line
 }
 
 /**
- * T-005 / §15.2: incompatibilidad con ACCIONES concretas, antes de revisión y
- * sin tocar las respuestas del usuario. Cada motivo cerrado lleva su acción:
- * error de catálogo → reintentar; falta de aparato → el panel de material;
- * tiempo insuficiente → otros planes o editar el tiempo.
+ * T-005 / §15.2: incompatibilidad con ACCIONES concretas, antes de revisión y sin tocar las respuestas de la persona.
+ * El texto y los botones los decide [incompatibilityNotice], que se apoya en el presentador único de rechazos (C.P11):
+ * error de catálogo → «Reintentar»; material por confirmar → «Sí, tengo rack y banco» cuando hay reparación o
+ * «Confirmar material»; tiempo insuficiente → «Ajustar a N min»; objetivo que no cabe → «Cambiar a Músculo»…
+ * El texto crudo del motor ya no se pinta: solo va al registro.
  */
 @Composable
 private fun CandidateIncompatibility(state: SetupWizardState, vm: SetupWizardViewModel) {
-    val rejection = state.candidateRejections.firstOrNull()
-    val summary = state.errors["candidates"]
-        ?: "Ahora mismo no hay un plan compatible con tus respuestas."
     Column(verticalArrangement = Arrangement.spacedBy(WizardSpacing.cardGap)) {
-        val message = when {
-            rejection == null -> summary
-            rejection.stage == SetupCandidateRejectionStage.CATALOG ||
-                rejection.reasonCode == PlanRejectionReason.CATALOG_NOT_READY ->
-                "No encontramos plan por un error de catálogo. Puedes reintentar sin cambiar tus respuestas."
-
-            rejection.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN -> {
-                val key = rejection.apparatusKey
-                if (key != null) "Falta confirmar material: ${labelForApparatus(key)}. $summary" else "Falta confirmar material. $summary"
-            }
-
-            rejection.reasonCode == PlanRejectionReason.APPARATUS_ABSENT ->
-                "Este plan pide material que declaraste ausente. $summary"
-
-            rejection.reasonCode == PlanRejectionReason.TIME_BUDGET && rejection.requiredMinutes != null ->
-                "Este plan necesita ${rejection.requiredMinutes} min por sesión; elegiste ${state.draft.minutesPerSession ?: "—"} min."
-
-            else -> summary
-        }
-        TrainingNotice(
-            text = message,
-            tone = TrainingNoticeTone.ERROR,
-            actionLabel = when {
-                rejection?.needsApparatusConfirmation == true -> "Confirmar material"
-                rejection?.reasonCode == PlanRejectionReason.TIME_BUDGET -> "Editar tiempo"
-                else -> "Reintentar"
-            },
-            onAction = {
-                when {
-                    rejection?.needsApparatusConfirmation == true -> vm.editStep(SetupStepId.AVAILABILITY)
-                    rejection?.reasonCode == PlanRejectionReason.TIME_BUDGET -> vm.editStep(SetupStepId.SESSION_TIME)
-                    else -> vm.retryFailedOperation(SetupRetryOperation.CANDIDATES)
-                }
-            },
-        )
-        rejection?.reason?.takeIf { it.isNotBlank() && it != message }?.let { detail ->
-            Text(text = detail, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
-        }
+        RejectionNoticeView(notice = incompatibilityNotice(state), vm = vm)
         CandidateCountsLine(state = state)
     }
 }
-
-private fun labelForApparatus(key: String): String =
-    SetupApparatusPanel.itemsFor(com.example.kpkn.data.models.EquipmentCategory.entries.toSet())
-        .firstOrNull { it.key == key }?.label ?: key
-
-/** Etiqueta curada de una llave del panel de material, o null si la llave no existe (nunca la llave cruda). */
-private fun apparatusLabelOrNull(key: String): String? =
-    SetupApparatusPanel.itemsFor(com.example.kpkn.data.models.EquipmentCategory.entries.toSet())
-        .firstOrNull { it.key == key }?.label
 
 private fun planCandidateSubtitle(candidate: SetupPlanCandidate): String =
     (listOf(candidate.subtitle) + candidate.reasons)
@@ -1708,7 +1884,8 @@ private fun TrainingMilestoneSummary(state: SetupWizardState) {
             add("Split" to name)
         }
         draft.selectedCatalogId?.let { id ->
-            add("Plan" to (PersonalizedPlanCatalog.find(id)?.title ?: id))
+            // C.P6: el nombre de la ficha editorial; si el id ya no resuelve, nunca se pinta el id crudo.
+            add("Plan" to (PersonalizedPlanCatalog.find(id)?.displayName ?: "Tu plan elegido"))
         }
         if (draft.knowsTrainingMarks) {
             val marks = listOfNotNull(

@@ -12,6 +12,9 @@ import com.example.kpkn.data.models.ProgramMode
 import com.example.kpkn.data.models.ProgramStatus
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.programModeFor
+import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.programs.resolveProgramTemplate
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
 import com.example.kpkn.data.repository.ProgramRepository
@@ -210,15 +213,18 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
             val template = resolveProgramTemplate(templateId)
             val programId = UUID.randomUUID().toString()
             val pending = calibration ?: pendingCalibrationForCreate
+            // C.P6: la plantilla se llama como su ficha de la biblioteca (nunca el nombre crudo de la plantilla) y,
+            // si no declara una pista, toma el modo de la disciplina de la entrada.
+            val entry = PersonalizedPlanCatalog.find("template:${template.id}")
             val base = Program(
                 id = programId,
-                name = template.name,
+                name = entry?.let(::programNameFor) ?: template.name,
                 coverImage = "gradient://ember",
                 structure = template.type,
                 mode = pending?.mode ?: when (template.trackLabel) {
                     "Powerlifting" -> ProgramMode.POWERLIFTING
                     "Powerbuilding" -> ProgramMode.POWERBUILDING
-                    else -> ProgramMode.HYPERTROPHY
+                    else -> entry?.let(::programModeFor) ?: ProgramMode.HYPERTROPHY
                 },
                 volumeRecommendations = pending?.recommendations.orEmpty(),
                 athleteProfileScore = pending?.score,
@@ -258,12 +264,15 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
     ): String? {
         val protocol = PROTOCOL_LIBRARY.first { it.id == protocolId }
         val programId = UUID.randomUUID().toString()
+        // C.P6: el nombre que la persona escribió sigue mandando; si no, el de la ficha de la biblioteca. El modo
+        // sale de la disciplina de la entrada (antes TODOS los métodos salían como powerlifting, también PHUL).
+        val entry = PersonalizedPlanCatalog.find("protocol:${protocol.id}")
         val base = Program(
             id = programId,
-            name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: protocol.name,
+            name = preferredName?.trim()?.takeIf { it.isNotEmpty() } ?: entry?.let(::programNameFor) ?: protocol.name,
             coverImage = "gradient://ember",
             structure = ProgramStructure.SIMPLE,
-            mode = ProgramMode.POWERLIFTING,
+            mode = entry?.let(::programModeFor) ?: ProgramMode.POWERLIFTING,
             powerliftingProfile = profile,
             selectedSplitId = protocol.defaultSplit,
             volumeRecommendations = calibration?.recommendations.orEmpty(),

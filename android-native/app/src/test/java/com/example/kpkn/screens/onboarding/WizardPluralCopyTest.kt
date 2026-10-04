@@ -88,6 +88,39 @@ class WizardPluralCopyTest {
         )
     }
 
+    /**
+     * C.P6 · Con el pase a peso corporal las tarjetas que se ven no son las que se contaron (el conteo es del pase
+     * pedido): el texto lo dice con un solo literal, para que «ninguno encaja» no parezca un error junto a unas tarjetas.
+     */
+    @Test
+    fun candidateCountsSaysWhenTheCardsComeFromTheBodyweightPass() {
+        assertEquals("te mostramos planes de peso corporal", ADAPTED_TO_BODYWEIGHT_COUNT_SUFFIX)
+        assertEquals(
+            "12 planes revisados · ninguno encaja con tus respuestas; te mostramos planes de peso corporal",
+            candidateCountsText(SetupCandidateCounts(evaluated = 12, viable = 0, nonViable = 12), adaptedToBodyweight = true),
+        )
+        assertEquals(
+            "1 plan revisado · ninguno encaja con tus respuestas; te mostramos planes de peso corporal",
+            candidateCountsText(SetupCandidateCounts(evaluated = 1, viable = 0, nonViable = 1), adaptedToBodyweight = true),
+        )
+        // Sin el pase a peso corporal el texto es el de siempre.
+        assertEquals(
+            "12 planes revisados · 3 encajan con tus respuestas",
+            candidateCountsText(SetupCandidateCounts(evaluated = 12, viable = 3, nonViable = 9), adaptedToBodyweight = false),
+        )
+        assertEquals(
+            candidateCountsText(SetupCandidateCounts(evaluated = 5, viable = 1, nonViable = 4)),
+            candidateCountsText(SetupCandidateCounts(evaluated = 5, viable = 1, nonViable = 4), adaptedToBodyweight = false),
+        )
+        for (evaluated in 0..14) {
+            for (viable in 0..evaluated) {
+                val text = candidateCountsText(SetupCandidateCounts(evaluated, viable, evaluated - viable), adaptedToBodyweight = true)
+                assertTrue("«$text» mezcla 1 con un sustantivo en plural", !oneWithPlural.containsMatchIn(text))
+                assertTrue("«$text» no cierra con el aviso del pase corporal", text.endsWith("; $ADAPTED_TO_BODYWEIGHT_COUNT_SUFFIX"))
+            }
+        }
+    }
+
     @Test
     fun candidateCountsNeverPairsAnAmountWithTheWrongNounOrVerb() {
         for (evaluated in 0..14) {

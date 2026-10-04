@@ -84,7 +84,7 @@ internal fun libraryOrder(entries: List<CatalogEntry>): List<CatalogEntry> =
 
 /** Qué hace el botón principal de la hoja «Cómo funciona» cuando se abre desde una tarjeta de la biblioteca. */
 internal sealed class LibraryPrimary(val label: String) {
-    /** Crea el programa desde la plantilla (el camino directo de siempre). */
+    /** Crea el programa desde la plantilla (el camino directo, solo cuando no hay asistente al que seguir). */
     data class UseTemplate(val template: ProgramTemplateOption) : LibraryPrimary("Usar esta plantilla")
 
     /** Sigue al asistente de configuración con este plan. */
@@ -94,9 +94,10 @@ internal sealed class LibraryPrimary(val label: String) {
 /** Qué pasa al tocar una tarjeta de la biblioteca. */
 internal sealed interface LibraryTap {
     /**
-     * Un método de la biblioteca: el tap se lo entrega al llamador (`onSelectProtocol`) como siempre. Los tres
-     * llamadores lo presentan con `ProtocolDetailSheet`, que delega en [PlanInfoSheet]: abrir otra hoja aquí
-     * encima mostraría dos veces la misma ficha, una tras otra.
+     * Un método de la biblioteca, SOLO cuando no hay asistente al que seguir (la biblioteca embebida del editor,
+     * `MacrocycleEditorLegacy`): el tap se lo entrega al llamador (`onSelectProtocol`), que lo presenta con
+     * `ProtocolDetailSheet`, y esa hoja delega en [PlanInfoSheet]: abrir otra hoja aquí encima mostraría dos
+     * veces la misma ficha, una tras otra. Con asistente (Planes, Inicio) el método sigue al asistente.
      */
     data class HandOffProtocol(val protocol: Protocol) : LibraryTap
 
@@ -112,20 +113,27 @@ internal fun visibleProtocolOf(entry: CatalogEntry): Protocol? =
     PROTOCOL_LIBRARY.firstOrNull { protocol -> protocol.id == entry.sourceId && protocol.isVisibleForApplication }
 
 /**
- * Qué hace el tap de una tarjeta. La acción de cada clase de entrada es la que ejecutaba el tap antes de C.P5:
- * plantilla → crear desde la plantilla; método con ficha en la biblioteca → entregarlo al llamador; el resto
- * → seguir al asistente si hay ([hasPlanAction]). Todo lo que no se entrega abre la hoja «Cómo funciona».
+ * Qué hace el tap de una tarjeta (C.P6, decisión D8 y r2 §16.1: la biblioteca no se salta el evaluador).
+ *
+ *  - CON asistente al que seguir ([hasPlanAction], Planes e Inicio): TODA tarjeta —plan propio, de autor, plantilla
+ *    o método— abre su hoja «Cómo funciona» y su botón principal es «Configurar este plan», que lleva el plan al
+ *    asistente. Plantillas y métodos ya no crean el programa directo: el asistente evalúa con las respuestas de la
+ *    persona (material, días, tiempo) antes de proponerlo.
+ *  - SIN asistente (la biblioteca embebida del editor, que reemplaza o añade estructura): el camino directo de
+ *    siempre. Plantilla → crear desde la plantilla; método con ficha en la biblioteca → entregarlo al llamador; el
+ *    resto abre la hoja de solo lectura.
  */
 internal fun libraryTapFor(
     entry: CatalogEntry,
     hasPlanAction: Boolean,
     protocolOf: (CatalogEntry) -> Protocol? = ::visibleProtocolOf,
 ): LibraryTap {
+    if (hasPlanAction) return LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan)
     entry.template?.let { template -> return LibraryTap.OpenSheet(LibraryPrimary.UseTemplate(template)) }
     if (entry.source == CatalogSource.PROTOCOL) {
         protocolOf(entry)?.let { protocol -> return LibraryTap.HandOffProtocol(protocol) }
     }
-    return LibraryTap.OpenSheet(if (hasPlanAction) LibraryPrimary.ConfigurePlan else null)
+    return LibraryTap.OpenSheet(null)
 }
 
 /** La hoja de una tarjeta abierta y lo que hace su botón principal. */
@@ -138,8 +146,14 @@ fun CreateProgramTemplateSheet(
     onCreateBlank: (() -> Unit)?,
     onCreateFromTemplate: (ProgramTemplateOption) -> Unit,
     onSelectProtocol: (Protocol) -> Unit = {},
-    /** Non-legacy entries continue through setup/evaluation rather than a second recipe compiler. */
+    /**
+     * Con el asistente disponible TODA tarjeta —plan propio, de autor, plantilla o método— sigue al asistente con el
+     * plan elegido, en lugar de crear el programa directo (C.P6, decisión D8). Sin él (la biblioteca embebida del
+     * editor) rige el camino directo: [onCreateFromTemplate] y [onSelectProtocol].
+     */
     onSelectPlan: ((CatalogEntry) -> Unit)? = null,
+    /** Abre un concepto de «Conceptos clave» desde el glosario de la hoja «Cómo funciona»; null = sin enlace. */
+    onOpenConcept: ((String) -> Unit)? = null,
 ) {
     var profileFilter by remember { mutableStateOf(LibraryProfileFilter.ALL) }
     var daysFilter by remember { mutableStateOf<Int?>(null) }
@@ -251,6 +265,7 @@ fun CreateProgramTemplateSheet(
             mode = if (primary != null) PlanInfoMode.LIBRARY else PlanInfoMode.READ_ONLY,
             onDismiss = { openSheet = null },
             onPrimaryAction = confirm,
+            onOpenConcept = onOpenConcept,
             primaryActionLabel = primary?.label,
         )
     }

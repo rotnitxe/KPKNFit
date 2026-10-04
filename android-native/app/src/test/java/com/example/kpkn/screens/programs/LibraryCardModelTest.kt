@@ -20,8 +20,9 @@ import kotlin.random.Random
  * Fija sobre las 50 entradas que la biblioteca ofrece: la tarjeta sale de la ficha editorial (nombre,
  * procedencia, resumen, metadatos y atribución) sin `level.name` en inglés ni ids; el orden es el editorial
  * de DEC-w2-06 (propios, originales, adaptaciones, plantillas, terceros, históricos…); el filtro de
- * procedencia coincide con la etiqueta de la tarjeta; y el tap de cada clase de tarjeta hace lo de siempre
- * (crear desde la plantilla, entregar el método al llamador, seguir al asistente) o abre la hoja de solo lectura.
+ * procedencia coincide con la etiqueta de la tarjeta; y el tap de cada clase de tarjeta sigue al asistente cuando
+ * lo hay (C.P6, decisión D8: la biblioteca no se salta el evaluador) y, sin asistente (la biblioteca embebida del
+ * editor), hace lo de siempre (crear desde la plantilla, entregar el método al llamador) o abre la hoja de solo lectura.
  */
 class LibraryCardModelTest {
 
@@ -227,31 +228,40 @@ class LibraryCardModelTest {
     // ─── 4 · Qué hace el tap de cada tarjeta ─────────────────────────────────
 
     @Test
-    fun a_template_opens_its_sheet_and_the_primary_button_creates_from_the_template() {
+    fun a_template_follows_the_assistant_when_there_is_one_and_creates_from_the_template_when_there_is_not() {
         val templates = listed.filter { it.source == CatalogSource.TEMPLATE }
         assertEquals(10, templates.size)
         templates.forEach { entry ->
-            listOf(true, false).forEach { hasPlanAction ->
-                val tap = libraryTapFor(entry, hasPlanAction)
-                assertTrue("${entry.id}: $tap", tap is LibraryTap.OpenSheet)
-                val primary = (tap as LibraryTap.OpenSheet).primary
-                assertEquals("${entry.id}: usa su plantilla", LibraryPrimary.UseTemplate(requireNotNull(entry.template)), primary)
-                assertEquals("Usar esta plantilla", primary?.label)
-            }
+            // C.P6 (D8, r2 §16.1): con asistente la plantilla NO crea el programa directo; su botón lleva al asistente,
+            // que evalúa con el material, los días y el tiempo de la persona antes de proponerla.
+            val withAssistant = libraryTapFor(entry, hasPlanAction = true)
+            assertEquals("${entry.id}: sigue al asistente", LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan), withAssistant)
+            assertEquals("Configurar este plan", (withAssistant as LibraryTap.OpenSheet).primary?.label)
+            // Sin asistente (la biblioteca embebida del editor) rige el camino directo de siempre.
+            val tap = libraryTapFor(entry, hasPlanAction = false)
+            assertTrue("${entry.id}: $tap", tap is LibraryTap.OpenSheet)
+            val primary = (tap as LibraryTap.OpenSheet).primary
+            assertEquals("${entry.id}: usa su plantilla", LibraryPrimary.UseTemplate(requireNotNull(entry.template)), primary)
+            assertEquals("Usar esta plantilla", primary?.label)
         }
     }
 
     @Test
-    fun a_library_method_is_handed_to_the_caller_because_the_caller_already_shows_the_same_sheet() {
+    fun a_library_method_follows_the_assistant_when_there_is_one_and_is_handed_to_the_caller_when_there_is_not() {
         val protocols = listed.filter { visibleProtocolOf(it) != null }
         // 22 métodos de terceros, 5 planes KPKN de receta fija y las dos versiones anteriores.
         assertEquals(29, protocols.size)
         protocols.forEach { entry ->
-            listOf(true, false).forEach { hasPlanAction ->
-                val tap = libraryTapFor(entry, hasPlanAction)
-                assertTrue("${entry.id}: $tap", tap is LibraryTap.HandOffProtocol)
-                assertEquals(entry.sourceId, (tap as LibraryTap.HandOffProtocol).protocol.id)
-            }
+            // C.P6 (D8): con asistente el método tampoco crea el programa directo (antes: TM wizard en dos toques).
+            assertEquals(
+                "${entry.id}: sigue al asistente",
+                LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan),
+                libraryTapFor(entry, hasPlanAction = true),
+            )
+            // Sin asistente se entrega al llamador, que ya enseña la misma hoja con `ProtocolDetailSheet`.
+            val tap = libraryTapFor(entry, hasPlanAction = false)
+            assertTrue("${entry.id}: $tap", tap is LibraryTap.HandOffProtocol)
+            assertEquals(entry.sourceId, (tap as LibraryTap.HandOffProtocol).protocol.id)
         }
         // Sin ficha en la biblioteca, el método sigue al asistente si lo hay, o abre la hoja de solo lectura.
         val texas = entry("protocol:texas-method-3d")
@@ -293,12 +303,16 @@ class LibraryCardModelTest {
     @Test
     fun every_listed_entry_resolves_to_an_action_or_to_the_read_only_sheet_in_every_context() {
         listed.forEach { entry ->
-            listOf(true, false).forEach { hasPlanAction ->
-                val tap = libraryTapFor(entry, hasPlanAction)
-                when (tap) {
-                    is LibraryTap.HandOffProtocol -> assertEquals(entry.sourceId, tap.protocol.id)
-                    is LibraryTap.OpenSheet -> if (!hasPlanAction && entry.template == null) assertNull("${entry.id}", tap.primary)
-                }
+            // Con asistente TODA tarjeta abre su hoja con «Configurar este plan»: nada se entrega ni se crea directo.
+            assertEquals(
+                "${entry.id}: con asistente",
+                LibraryTap.OpenSheet(LibraryPrimary.ConfigurePlan),
+                libraryTapFor(entry, hasPlanAction = true),
+            )
+            val tap = libraryTapFor(entry, hasPlanAction = false)
+            when (tap) {
+                is LibraryTap.HandOffProtocol -> assertEquals(entry.sourceId, tap.protocol.id)
+                is LibraryTap.OpenSheet -> if (entry.template == null) assertNull("${entry.id}", tap.primary)
             }
         }
     }

@@ -570,7 +570,7 @@ class SimpleCyclePersonalizer(
             repeats = true,
         )
         val program = Program(
-            id = programId, name = entry.title,
+            id = programId, name = programNameFor(entry),
             description = "${entry.description}\n${notes.distinct().joinToString("\n")}",
             mode = ProgramMode.HYPERTROPHY, structure = ProgramStructure.SIMPLE,
             simpleProgramKind = SimpleProgramKind.CYCLIC, structureTemplateId = entry.id,
@@ -1766,20 +1766,19 @@ class SimpleCyclePersonalizer(
         input: PersonalizerInput,
     ): Program = Program(
         id = programId,
-        name = entry.title,
+        name = programNameFor(entry),
         description = entry.description,
-        mode = when (entry.id) {
-            NativeProfileKind.STRENGTH.entryId -> ProgramMode.POWERLIFTING
-            NativeProfileKind.POWERBUILDING.entryId -> ProgramMode.POWERBUILDING
-            else -> ProgramMode.HYPERTROPHY
-        },
+        // C.P6: el modo sale de la disciplina de la entrada (la misma regla de la biblioteca y del asistente).
+        // Para los cuatro planes propios coincide con el que se fijaba por perfil: Fuerza → powerlifting,
+        // Fuerza y músculo → powerbuilding, Músculo y Atleta completo → hipertrofia.
+        mode = programModeFor(entry),
         structure = ProgramStructure.COMPLEX,
         simpleProgramKind = SimpleProgramKind.LINEAR,
         structureTemplateId = entry.id,
         macrocycles = listOf(
             Macrocycle(
                 id = "$programId-macro",
-                name = entry.title,
+                name = programNameFor(entry),
                 blocks = listOf(
                     Block(
                         id = "$programId-block",

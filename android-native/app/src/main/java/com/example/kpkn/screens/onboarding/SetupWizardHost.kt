@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,10 @@ import kotlinx.coroutines.launch
 fun SetupWizardScreen(
     mode: SetupWizardMode,
     draftId: String? = null,
+    /** Plan de la biblioteca que la persona eligió («Configurar este plan», E-18); null = ninguno. */
+    preselectedPlanId: String? = null,
+    /** Abre un concepto de «Conceptos clave» desde las hojas «Cómo funciona»; null = sin enlace (sin navegación). */
+    onOpenConcept: ((String) -> Unit)? = null,
     onDone: () -> Unit,
     onCancel: () -> Unit,
     viewModel: SetupWizardViewModel = viewModel(),
@@ -62,7 +67,9 @@ fun SetupWizardScreen(
 
     // La clave incluye el ViewModel: si las tests recrean el VM, la
     // inicialización se vuelve a ejecutar en lugar de quedar en un no-op.
-    LaunchedEffect(mode, draftId, viewModel) { viewModel.initialize(mode, draftId = draftId) }
+    LaunchedEffect(mode, draftId, viewModel) {
+        viewModel.initialize(mode, draftId = draftId, preselectedPlanId = preselectedPlanId)
+    }
 
     // Atrás nunca descarta ni borra respuestas: retrocede un paso cuando existe
     // historial y abre la salida explícita solo en el primer paso.
@@ -79,71 +86,73 @@ fun SetupWizardScreen(
 
     val step: SetupStepId = state.currentStep
 
-    when (state.machineState) {
-        WizChatMachineState.Loading -> WizardStatusScreen(
-            title = "Preparando tu configuración…",
-            body = "Estamos recuperando tus respuestas guardadas.",
-            // Si la carga nunca termina, el usuario siempre puede salir.
-            tertiaryLabel = "Volver",
-            onTertiary = onCancel,
-        )
-
-        WizChatMachineState.UnsupportedDraft -> WizardStatusScreen(
-            title = "No pude abrir este borrador",
-            body = state.errors["draft"] ?: "El borrador no es convertible. Puedes conservarlo o descartarlo con confirmación.",
-            secondaryLabel = "Volver a configuraciones",
-            onSecondary = onCancel,
-            tertiaryLabel = "Descartar este borrador",
-            onTertiary = { viewModel.requestDiscard() },
-        )
-
-        WizChatMachineState.RecoverableError -> WizardStatusScreen(
-            title = "No pude abrir tu configuración",
-            // Mensaje honesto del fallo real, no un texto genérico.
-            body = state.lastFailure
-                ?: state.errors["initialize"]
-                ?: "Tu borrador sigue guardado. Puedes reintentarlo.",
-            secondaryLabel = "Reintentar",
-            onSecondary = { viewModel.retryFailedOperation(SetupRetryOperation.LOAD) },
-            tertiaryLabel = "Volver",
-            onTertiary = onCancel,
-        )
-
-        else -> Box(modifier = Modifier.fillMaxSize()) {
-            SetupStepScreen(
-                    step = step,
-                    state = state,
-                    vm = viewModel,
-                    onBack = { if (viewModel.canGoBack()) viewModel.goBack() else viewModel.requestExit() },
-                    onExit = { viewModel.requestExit() },
-                    // Un solo CTA por paso, siempre sobre el paso actual.
-                    ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar",
-                    ctaEnabled = state.canConfirmStep,
-                    onCta = {
-                        if (step == SetupStepId.REVIEW_ACTIVATE) {
-                            scope.launch {
-                                if (viewModel.commit() != null && !navigatedAfterCommit) {
-                                    navigatedAfterCommit = true
-                                    onDone()
-                                }
-                            }
-                        } else {
-                            viewModel.submitCurrentStep(step)
-                        }
-                    },
+    CompositionLocalProvider(LocalOpenConcept provides onOpenConcept) {
+        when (state.machineState) {
+            WizChatMachineState.Loading -> WizardStatusScreen(
+                title = "Preparando tu configuración…",
+                body = "Estamos recuperando tus respuestas guardadas.",
+                // Si la carga nunca termina, el usuario siempre puede salir.
+                tertiaryLabel = "Volver",
+                onTertiary = onCancel,
             )
-            // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
-            // ni el botón. Sigue siendo descartable y reintenta la misma operación.
-            if (state.errors.isNotEmpty()) {
-                WizardInlineErrors(
-                    errors = state.errors,
-                    onDismiss = viewModel::clearError,
-                    retryFor = viewModel::retryOperationForError,
-                    onRetry = { operation -> viewModel.retryFailedOperation(operation) },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 88.dp),
+
+            WizChatMachineState.UnsupportedDraft -> WizardStatusScreen(
+                title = "No pude abrir este borrador",
+                body = state.errors["draft"] ?: "El borrador no es convertible. Puedes conservarlo o descartarlo con confirmación.",
+                secondaryLabel = "Volver a configuraciones",
+                onSecondary = onCancel,
+                tertiaryLabel = "Descartar este borrador",
+                onTertiary = { viewModel.requestDiscard() },
+            )
+
+            WizChatMachineState.RecoverableError -> WizardStatusScreen(
+                title = "No pude abrir tu configuración",
+                // Mensaje honesto del fallo real, no un texto genérico.
+                body = state.lastFailure
+                    ?: state.errors["initialize"]
+                    ?: "Tu borrador sigue guardado. Puedes reintentarlo.",
+                secondaryLabel = "Reintentar",
+                onSecondary = { viewModel.retryFailedOperation(SetupRetryOperation.LOAD) },
+                tertiaryLabel = "Volver",
+                onTertiary = onCancel,
+            )
+
+            else -> Box(modifier = Modifier.fillMaxSize()) {
+                SetupStepScreen(
+                        step = step,
+                        state = state,
+                        vm = viewModel,
+                        onBack = { if (viewModel.canGoBack()) viewModel.goBack() else viewModel.requestExit() },
+                        onExit = { viewModel.requestExit() },
+                        // Un solo CTA por paso, siempre sobre el paso actual.
+                        ctaLabel = if (step == SetupStepId.REVIEW_ACTIVATE) "Activar y entrar a KPKN" else "Continuar",
+                        ctaEnabled = state.canConfirmStep,
+                        onCta = {
+                            if (step == SetupStepId.REVIEW_ACTIVATE) {
+                                scope.launch {
+                                    if (viewModel.commit() != null && !navigatedAfterCommit) {
+                                        navigatedAfterCommit = true
+                                        onDone()
+                                    }
+                                }
+                            } else {
+                                viewModel.submitCurrentStep(step)
+                            }
+                        },
                 )
+                // El aviso flota sobre el paso: no empuja la cabecera, la pregunta
+                // ni el botón. Sigue siendo descartable y reintenta la misma operación.
+                if (state.errors.isNotEmpty()) {
+                    WizardInlineErrors(
+                        errors = state.errors,
+                        onDismiss = viewModel::clearError,
+                        retryFor = viewModel::retryOperationForError,
+                        onRetry = { operation -> viewModel.retryFailedOperation(operation) },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 88.dp),
+                    )
+                }
             }
         }
     }

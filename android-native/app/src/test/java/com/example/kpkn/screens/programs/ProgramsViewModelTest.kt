@@ -9,6 +9,9 @@ import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
+import com.example.kpkn.data.programs.programModeFor
+import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.repository.ProgramRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -145,6 +148,61 @@ class ProgramsViewModelTest {
         assertNotNull(created.sourceRecipe)
         assertTrue(created.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.flatMap { it.sessions }.isNotEmpty())
         assertEquals(180.0, created.powerliftingProfile?.squatTM ?: -1.0, 0.01)
+    }
+
+    @Test
+    fun createProgramFromProtocol_is_named_after_its_library_card_and_takes_its_discipline_mode() {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val repository = ProgramRepository.getInstance()
+        val profile = com.example.kpkn.data.models.PowerliftingProfile(
+            squat1RM = 200.0,
+            bench1RM = 140.0,
+            deadlift1RM = 240.0,
+        )
+        val calibration = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
+            style = com.example.kpkn.data.models.TrainingStyle.POWERLIFTER,
+            technique = 2,
+            consistency = 2,
+            strength = 2,
+            mobility = 2,
+        )
+        val entry = requireNotNull(PersonalizedPlanCatalog.find("protocol:kpkn-native-sbd-4"))
+
+        // C.P6: el nombre de la ficha de la biblioteca (no el nombre crudo del protocolo) y el modo de su disciplina.
+        val id = vm.createProgramFromProtocol("kpkn-native-sbd-4", profile, calibration = calibration)!!
+        val created = repository.getProgramById(id)!!
+        assertEquals(programNameFor(entry), created.name)
+        assertEquals(programModeFor(entry), created.mode)
+
+        // El nombre que la persona escribió sigue mandando sobre el de la ficha.
+        val named = vm.createProgramFromProtocol(
+            "kpkn-native-sbd-4",
+            profile,
+            preferredName = "  Mi bloque  ",
+            calibration = calibration,
+        )!!
+        assertEquals("Mi bloque", repository.getProgramById(named)!!.name)
+    }
+
+    @Test
+    fun createProgramFromTemplate_is_named_after_its_library_card() = runBlocking {
+        com.example.kpkn.domain.training.CatalogCompositionTestSupport.install()
+        val vm = ProgramsViewModel(ApplicationProvider.getApplicationContext())
+        val repository = ProgramRepository.getInstance()
+        val calibration = com.example.kpkn.screens.programdetail.components.buildVolumeCalibration(
+            style = com.example.kpkn.data.models.TrainingStyle.BODYBUILDER,
+            technique = 2,
+            consistency = 2,
+            strength = 2,
+            mobility = 2,
+        )
+
+        listOf("simple-1", "power-12-3").forEach { templateId ->
+            val entry = requireNotNull(PersonalizedPlanCatalog.find("template:$templateId"))
+            val id = vm.createProgramFromTemplate(templateId, calibration = calibration).getOrThrow()
+            assertEquals(templateId, programNameFor(entry), repository.getProgramById(id)!!.name)
+        }
     }
 
     @Test

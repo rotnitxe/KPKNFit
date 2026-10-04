@@ -30,6 +30,8 @@ import com.example.kpkn.domain.onboarding.AuthoredPlanFixtures
 import com.example.kpkn.domain.onboarding.PlanEvaluationStage
 import com.example.kpkn.domain.onboarding.PlanMaterializationException
 import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.domain.onboarding.PlanRepair
+import com.example.kpkn.domain.onboarding.RejectionAction
 import com.example.kpkn.domain.onboarding.SetupAnswerProvenance
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.onboarding.SetupTrainingPlanner
@@ -234,6 +236,10 @@ class SetupWizardCandidateGateTest {
 
     @Test
     fun theDroppedSelectionNoticeExplainsEachReasonInPlainLanguageWithTheRightAction() {
+        // C4/C.P11: el aviso lo escribe el presentador único de rechazos (`PlanRejectionPresenter`), no una tabla
+        // local; el texto crudo del motor no se pinta nunca y las acciones son las del presentador.
+        val draft = SetupWizardDraft(goal = SetupGoal.MUSCLE, daysPerWeek = 3, minutesPerSession = 60)
+
         fun noticeOf(reason: PlanRejectionReason?, requiredMinutes: Int? = null, key: String? = null) =
             droppedSelectionNotice(
                 SetupDroppedSelection(
@@ -241,55 +247,90 @@ class SetupWizardCandidateGateTest {
                     "Plan a",
                     rejected("native:a", reason, requiredMinutes = requiredMinutes, apparatusKey = key),
                 ),
-                chosenMinutes = 60,
+                draft,
             )
 
+        fun RejectionNotice.act(): RejectionAction? = (primary?.effect as? NoticeEffect.Act)?.action
+
+        // Material por confirmar: nombra la llave con la etiqueta del panel («rack de sentadilla») y lleva al panel.
         val unknown = noticeOf(PlanRejectionReason.APPARATUS_UNKNOWN, key = "squat_rack")
-        assertEquals(DroppedSelectionAction.CONFIRM_MATERIAL, unknown.action)
-        assertEquals("Confirmar material", unknown.actionLabel)
         assertTrue(unknown.text.startsWith(DROPPED_SELECTION_LEAD))
-        assertTrue(unknown.text, unknown.text.contains("Falta confirmar material:"))
+        assertTrue(unknown.text, unknown.text.contains("Falta confirmar si tienes rack de sentadilla."))
         assertFalse("nunca la llave cruda: ${unknown.text}", unknown.text.contains("squat_rack"))
-        assertTrue(noticeOf(PlanRejectionReason.APPARATUS_UNKNOWN).text.contains("Falta confirmar material."))
-        // Una llave que el panel no conoce tampoco se pinta: la frase se queda sin etiqueta.
+        assertEquals(RejectionAction.ConfirmApparatus, unknown.act())
+        assertEquals("Confirmar material", unknown.primary?.label)
+        // Sin llave la frase es general; una llave que el panel no conoce tampoco se pinta.
+        assertTrue(noticeOf(PlanRejectionReason.APPARATUS_UNKNOWN).text.contains("Falta confirmar si tienes todo el material de este plan."))
         val unmapped = noticeOf(PlanRejectionReason.APPARATUS_UNKNOWN, key = "llave_que_no_existe")
-        assertTrue(unmapped.text, unmapped.text.endsWith("Falta confirmar material."))
         assertFalse(unmapped.text, unmapped.text.contains("llave_que_no_existe"))
+        assertTrue(unmapped.text, unmapped.text.contains("Falta confirmar si tienes todo el material de este plan."))
 
+        // Material declarado ausente: «Confirmar material» y, con las alternativas a la vista, «Ver alternativas».
         val absent = noticeOf(PlanRejectionReason.APPARATUS_ABSENT)
-        assertEquals(DroppedSelectionAction.CONFIRM_MATERIAL, absent.action)
-        assertTrue(absent.text.contains("Este plan pide material que declaraste ausente."))
+        assertTrue(absent.text, absent.text.contains("Este plan necesita material que dijiste que no tienes."))
+        assertEquals(RejectionAction.ConfirmApparatus, absent.act())
+        assertEquals("Ver alternativas", absent.secondary?.label)
+        assertEquals(NoticeEffect.Act(RejectionAction.SeeAlternatives), absent.secondary?.effect)
 
+        // Tiempo: el presentador dice los minutos EXACTOS y el botón los aplica («Ajustar a N min»).
         val time = noticeOf(PlanRejectionReason.TIME_BUDGET, requiredMinutes = 75)
-        assertEquals(DroppedSelectionAction.EDIT_TIME, time.action)
-        assertEquals("Editar tiempo", time.actionLabel)
-        assertTrue(time.text, time.text.contains("Este plan necesita 75 min por sesión; elegiste 60 min."))
-        assertEquals(DroppedSelectionAction.EDIT_TIME, noticeOf(PlanRejectionReason.TIME_BUDGET).action)
+        assertTrue(time.text, time.text.contains("Con las series mínimas este plan necesita 75 min por sesión y elegiste 60."))
+        assertEquals(RejectionAction.SetMinutes(75), time.act())
+        assertEquals("Ajustar a 75 min", time.primary?.label)
+        // Sin minutos que el asistente admita no hay ajuste: el texto lo dice y solo quedan las alternativas.
+        val noMinutes = noticeOf(PlanRejectionReason.TIME_BUDGET)
+        assertTrue(noMinutes.text, noMinutes.text.contains("no cabe en los 60 min que elegiste"))
+        assertEquals(RejectionAction.SeeAlternatives, noMinutes.act())
 
-        listOf(
-            PlanRejectionReason.PROFILE_MISMATCH,
-            PlanRejectionReason.LEVEL_UNSUITABLE,
-            PlanRejectionReason.FREQUENCY,
-            PlanRejectionReason.SPLIT,
-            PlanRejectionReason.COMPOSITION,
-            PlanRejectionReason.NO_VALID_SUBSTITUTION,
-            PlanRejectionReason.INTERNAL_MATERIALIZATION,
-            PlanRejectionReason.CATALOG_NOT_READY,
-            null,
-        ).forEach { reason ->
+        // El resto de motivos: la acción del presentador que lo arregla (o reintentar si es un fallo del motor).
+        mapOf(
+            PlanRejectionReason.PROFILE_MISMATCH to RejectionAction.ChangeGoal,
+            PlanRejectionReason.LEVEL_UNSUITABLE to RejectionAction.SeeAlternatives,
+            PlanRejectionReason.FREQUENCY to RejectionAction.ChangeDays,
+            PlanRejectionReason.SPLIT to RejectionAction.ChangeSplit,
+            PlanRejectionReason.COMPOSITION to RejectionAction.Retry,
+            PlanRejectionReason.NO_VALID_SUBSTITUTION to RejectionAction.SeeAlternatives,
+            PlanRejectionReason.INTERNAL_MATERIALIZATION to RejectionAction.Retry,
+            PlanRejectionReason.CATALOG_NOT_READY to RejectionAction.Retry,
+        ).forEach { (reason, expected) ->
             val other = noticeOf(reason)
-            assertEquals("«$reason» solo cierra el aviso", DroppedSelectionAction.SEE_ALTERNATIVES, other.action)
-            assertEquals("Ver alternativas", other.actionLabel)
-            assertTrue(other.text.startsWith(DROPPED_SELECTION_LEAD))
+            assertEquals("«$reason»", expected, other.act())
+            assertTrue("«$reason»: ${other.text}", other.text.startsWith(DROPPED_SELECTION_LEAD))
         }
+        // Un rechazo heredado sin motivo cerrado se trata como un fallo del motor.
+        assertEquals(RejectionAction.Retry, noticeOf(null).act())
 
-        // Sin rechazo (el plan ni se evaluó) también hay aviso, y ninguno pinta el texto crudo del motor.
-        val unevaluated = droppedSelectionNotice(SetupDroppedSelection("native:a", "Plan a", null), chosenMinutes = 60)
-        assertEquals(DroppedSelectionAction.SEE_ALTERNATIVES, unevaluated.action)
-        listOf(unknown, absent, time, unevaluated).forEach { notice ->
-            assertFalse(notice.text, notice.text.contains("texto crudo del motor"))
-            assertFalse(notice.text, notice.text.contains("native:a"))
+        // Sin rechazo (el plan ni se evaluó) también hay aviso, con «Ver alternativas» y «Cambiar objetivo».
+        val unevaluated = droppedSelectionNotice(SetupDroppedSelection("native:a", "Plan a", null), draft)
+        assertEquals(RejectionAction.SeeAlternatives, unevaluated.act())
+        assertEquals(NoticeEffect.Act(RejectionAction.ChangeGoal), unevaluated.secondary?.effect)
+
+        // Ningún aviso pinta el texto crudo del motor, un id ni un código.
+        listOf(unknown, absent, time, noMinutes, unevaluated).forEach { notice ->
+            listOf(notice.text, notice.primary?.label.orEmpty(), notice.secondary?.label.orEmpty()).forEach { text ->
+                assertFalse(text, text.contains("texto crudo del motor"))
+                assertFalse(text, text.contains("native:a"))
+                assertFalse(text, text.contains("APPARATUS_") || text.contains("TIME_BUDGET"))
+            }
         }
+    }
+
+    @Test
+    fun theDroppedSelectionNoticeOffersTheOwnPlanRepairWhenItsRejectionCarriesOne() {
+        val draft = SetupWizardDraft(goal = SetupGoal.STRENGTH, daysPerWeek = 3, minutesPerSession = 60)
+        val repair = PlanRepair.ConfirmApparatus(listOf("squat_rack", "bench_flat"), setOf(EquipmentCategory.SUPPORT))
+        val own = rejected("native:strength-foundation-v2", PlanRejectionReason.APPARATUS_UNKNOWN)
+            .copy(missingRequirements = listOf("rack", "bench"), repairs = listOf(repair))
+
+        val notice = droppedSelectionNotice(SetupDroppedSelection(own.planId!!, "Fuerza", own), draft)
+
+        assertTrue(notice.text, notice.text.startsWith(DROPPED_SELECTION_LEAD))
+        assertTrue(notice.text, notice.text.contains("Falta confirmar si tienes rack de sentadilla y banco plano."))
+        // D5: el botón principal es la reparación de un toque y la navegación equivalente pasa a secundaria.
+        assertEquals("Sí, tengo rack y banco", notice.primary?.label)
+        assertEquals(NoticeEffect.Apply(listOf(repair)), notice.primary?.effect)
+        assertEquals("Confirmar material", notice.secondary?.label)
+        assertEquals(NoticeEffect.Act(RejectionAction.ConfirmApparatus), notice.secondary?.effect)
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -373,7 +414,7 @@ class SetupWizardCandidateGateTest {
             // Desde aquí el plan elegido se rechaza por tiempo y cambia la huella de candidatos (el peso
             // entra en ella) sin tocar el material ni el tiempo.
             script.failure = { draft -> if (draft.selectedCatalogId == chosen) timeBudget(75) else null }
-            val callsBefore = script.callsFor(chosen)
+            val callsBefore = script.sweepCallsFor(chosen)
             vm.update { it.copy(weightKg = 71.5) }
             val after = awaitUntil(vm, "lista nueva sin el plan elegido y la selección limpia") {
                 isIdle(it) && it.droppedSelection != null && it.draft.selectedCatalogId == null
@@ -398,7 +439,7 @@ class SetupWizardCandidateGateTest {
             assertNull(after.programPreview)
             assertNull(after.previewError)
             assertNull(after.errors["preview"])
-            assertEquals(1, script.callsFor(chosen) - callsBefore)
+            assertEquals(1, script.sweepCallsFor(chosen) - callsBefore)
         }
 
     @Test
@@ -413,7 +454,7 @@ class SetupWizardCandidateGateTest {
             )
 
             script.failure = { draft -> if (draft.selectedCatalogId == chosen) apparatusAbsent() else null }
-            val callsBefore = script.callsFor(chosen)
+            val callsBefore = script.sweepCallsFor(chosen)
             vm.update { it.copy(weightKg = 71.5) }
             val after = awaitUntil(vm, "selección caída con el paso PLAN pendiente") {
                 isIdle(it) && it.droppedSelection != null &&
@@ -432,12 +473,12 @@ class SetupWizardCandidateGateTest {
             assertNull(after.programPreview)
             assertNull(after.previewError)
             assertNull(after.errors["preview"])
-            assertEquals(1, script.callsFor(chosen) - callsBefore)
+            assertEquals(1, script.sweepCallsFor(chosen) - callsBefore)
 
             // Otra edición del borrador (que también dispara la preparación del preview) sigue sin relanzarlo.
             vm.update { it.copy(name = "Ana") }
             awaitUntil(vm, "edición posterior asentada") { isIdle(it) && it.draft.name == "Ana" }
-            assertEquals(1, script.callsFor(chosen) - callsBefore)
+            assertEquals(1, script.sweepCallsFor(chosen) - callsBefore)
             assertNull(vm.state.value.previewError)
 
             // Cuando la causa se arregla (otra huella de candidatos y el plan vuelve a caber) la búsqueda nueva
@@ -834,7 +875,7 @@ class SetupWizardCandidateGateTest {
      * excepción, que el evaluador convierte en `INTERNAL_MATERIALIZATION`).
      */
     private class ScriptedMaterializer : SetupWizardMaterializer {
-        data class Call(val planId: String?, val bodyweightPass: Boolean)
+        data class Call(val planId: String?, val bodyweightPass: Boolean, val minutes: Int?)
 
         private val log = CopyOnWriteArrayList<Call>()
 
@@ -842,7 +883,7 @@ class SetupWizardCandidateGateTest {
         var failure: (SetupWizardDraft) -> Throwable? = { null }
 
         override suspend fun materialize(draft: SetupWizardDraft): SetupPreview {
-            log += Call(draft.selectedCatalogId, isBodyweightPass(draft))
+            log += Call(draft.selectedCatalogId, isBodyweightPass(draft), draft.minutesPerSession)
             failure(draft)?.let { throw it }
             return SetupPreview(cannedProgram(draft.commitId), null)
         }
@@ -850,6 +891,13 @@ class SetupWizardCandidateGateTest {
         fun calls(): List<Call> = log.toList()
 
         fun callsFor(planId: String): Int = log.count { it.planId == planId }
+
+        /**
+         * Llamadas del barrido y del preview del plan, con las respuestas de la persona (sus 60 min). No cuenta los
+         * sondeos del asesor de reparaciones (A.C3): esos evalúan el plan propio con OTROS minutos («Ajustar a N min»)
+         * o con otro material, y son justo lo que esta prueba no mide («el motor solo vio al plan UNA vez»).
+         */
+        fun sweepCallsFor(planId: String): Int = log.count { it.planId == planId && it.minutes == SWEEP_MINUTES }
     }
 
     /**
@@ -906,6 +954,9 @@ class SetupWizardCandidateGateTest {
 
     private companion object {
         const val AWAIT_BUDGET_MS = 90_000L
+
+        /** Minutos por sesión de las entradas de candidato de esta clase (`withCandidateInputs`). */
+        const val SWEEP_MINUTES = 60
 
         fun timeBudget(minutes: Int) = PlanMaterializationException(
             PlanEvaluationStage.SESSION_DURATION,

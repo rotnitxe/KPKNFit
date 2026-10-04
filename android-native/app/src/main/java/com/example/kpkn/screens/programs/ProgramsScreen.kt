@@ -56,6 +56,8 @@ fun ProgramsScreen(
     openCreateSheetOnStart: Boolean = false,
     onCreateSheetOpened: () -> Unit = {},
     onSelectPlan: ((CatalogEntry) -> Unit)? = null,
+    /** Abre un concepto de «Conceptos clave» desde la hoja «Cómo funciona» de la biblioteca; null = sin enlace. */
+    onOpenConcept: ((String) -> Unit)? = null,
 ) {
     val programs by viewModel.programs.collectAsState()
     val archivedPrograms by viewModel.archivedPrograms.collectAsState()
@@ -264,6 +266,12 @@ fun ProgramsScreen(
                 { entry ->
                     showCreateSheet = false
                     select(entry)
+                }
+            },
+            onOpenConcept = onOpenConcept?.let { open ->
+                { conceptId ->
+                    showCreateSheet = false
+                    open(conceptId)
                 }
             },
         )

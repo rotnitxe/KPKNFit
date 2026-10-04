@@ -17,8 +17,12 @@ import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.PlanLabels
+import com.example.kpkn.data.programs.PublicationState
 import com.example.kpkn.data.programs.TrainingFocus
+import com.example.kpkn.data.programs.programModeFor
+import com.example.kpkn.data.programs.programNameFor
 import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
@@ -97,6 +101,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
      */
     private val candidateCache = PlanCandidateSessionCache()
     /**
+     * Paquete A · C3 — caché APARTE de los sondeos del asesor de reparaciones (≤ 8). Cada sondeo lleva su propia clave
+     * de entrada (`PlanRepairAdvisor` la deriva de la del pedido), así que nunca se mezcla con las evaluaciones del
+     * barrido ni las desaloja de [candidateCache]; guarda solo el veredicto (un `Ready` sin programa), no el programa.
+     */
+    private val repairProbeCache = PlanCandidateSessionCache(maxSize = REPAIR_PROBE_CACHE_ENTRIES)
+    /**
      * Generación del cálculo de preview. Cada lanzamiento (o liberación de
      * caché) la incrementa y se hace DUEÑO de `isPreviewLoading` y
      * `preparingTrainingKey`: sólo el job dueño publica o limpia, un job viejo
@@ -109,7 +119,20 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private val _state = MutableStateFlow(SetupWizardState(SetupWizardDraft(commitId = UUID.randomUUID().toString()), isLoading = true))
     val state: StateFlow<SetupWizardState> = _state.asStateFlow()
 
-    fun initialize(mode: SetupWizardMode, nutritionMode: String = "create", nutritionPlanId: String? = null, draftId: String? = null) {
+    /**
+     * [preselectedPlanId] (E-18, C.P6): el plan que la persona eligió en la biblioteca («Configurar este plan»). Entra
+     * como INTENCIÓN —`selectedCatalogId`, r2 §15.2— y prefija el objetivo cuando el plan sirve a uno solo, SIN confirmar
+     * ningún paso: el asistente sigue preguntando lo demás y, al llegar a PLAN, la selección queda hecha si el plan
+     * es viable (si no, cae con el aviso de la selección caída). Un id que no existe o no se ofrece se ignora (con
+     * registro). Se aplica UNA vez por plan y sesión: tras recrear el ViewModel no pisa lo que la persona ya cambió.
+     */
+    fun initialize(
+        mode: SetupWizardMode,
+        nutritionMode: String = "create",
+        nutritionPlanId: String? = null,
+        draftId: String? = null,
+        preselectedPlanId: String? = null,
+    ) {
         if (initialized && _state.value.mode == mode && (draftId == null || draftId == currentDraftId)) return
         initializeJob?.cancel()
         initialized = false
@@ -120,6 +143,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
         candidateJob?.cancel()
         // §15.3: una nueva inicialización no reutiliza evaluaciones de otra sesión.
         candidateCache.invalidate()
+        repairProbeCache.invalidate()
         exerciseSearchJob?.cancel()
         ringsPreviewJob?.cancel()
         lastSuccessfulTrainingKey = null
@@ -172,11 +196,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 }
                 // Catálogo cambiado: se conservan todas las respuestas; solo se
                 // señala qué selección necesita revisión (regla pura testeable).
-                val draft = SetupDraftCompatibility.applyCatalogRevision(
+                val revisionChecked = SetupDraftCompatibility.applyCatalogRevision(
                     normalized,
                     persisted?.catalogRevision,
                     PersonalizedPlanCatalog.REVISION,
                 ) { planId -> PersonalizedPlanCatalog.find(planId) != null }
+                // E-18 (C.P6): la intención de la biblioteca entra DESPUÉS de reparar y de revisar el catálogo, para que
+                // ninguna de las dos la borre; las dos pasadas siguientes (candidatos y preview) ya la ven.
+                val draft = applyPreselection(revisionChecked, preselectedPlanId, restoredFromStorage = restored != null)
                 if (mode == SetupWizardMode.RESUME) {
                     _state.value = _state.value.copy(mode = when (SetupDraftResolver.scopeOf(draft.draftScope)) {
                         SetupDraftScope.TRAINING_ONLY -> SetupWizardMode.TRAINING_ONLY
@@ -346,6 +373,50 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 trainingPath = SetupTrainingPath.PERSONALIZE,
             )
         }
+    }
+
+    /**
+     * Paquete A · C3 — aplica UNA reparación de un toque que propuso el asesor ([PlanRepairAdvisor]) para el plan propio
+     * rechazado. Usa la misma escritura que el resto de la API de pasos (`mutateDraft`: serializada, con revisión
+     * monótona y sin mover el cursor): la persona sigue en PLAN y los candidatos se recalculan solos porque cambia la
+     * huella de entradas (material, tiempo, cardio, objetivo o reparto). Nunca borra una respuesta que la reparación
+     * no toca. Ver [applyRepairs] para el caso de dos reparaciones encadenadas.
+     */
+    fun applyRepair(repair: PlanRepair) = applyRepairs(listOf(repair))
+
+    /**
+     * Aplica las reparaciones de [repairs] en orden y en UNA sola escritura del borrador (p. ej. confirmar el rack y
+     * el banco y, con ellos confirmados, subir los minutos): una sola persistencia, un solo barrido de candidatos y
+     * ningún estado intermedio visible. El paso que se marca como declarado es el de la primera reparación.
+     */
+    fun applyRepairs(repairs: List<PlanRepair>) {
+        val first = repairs.firstOrNull() ?: return
+        Log.i(DIAG_TAG, "reparación de un toque: ${repairs.joinToString("+") { it::class.java.simpleName }}")
+        mutateDraft(step = first.declaredStep()) { draft ->
+            repairs.fold(draft) { current, repair -> current.withRepair(repair) }
+        }
+    }
+
+    /**
+     * E-18 — el plan de la biblioteca como intención. Con una selección que no existe o no se ofrece no cambia nada
+     * (queda en el registro). [restoredFromStorage] distingue un borrador ya guardado —al que NO se vuelve a aplicar la
+     * misma preselección tras recrear el ViewModel, para no pisar lo que la persona cambió después— de uno nuevo, que
+     * no tiene nada que proteger y la recibe otra vez.
+     */
+    private fun applyPreselection(
+        draft: SetupWizardDraft,
+        planId: String?,
+        restoredFromStorage: Boolean,
+    ): SetupWizardDraft {
+        val wanted = planId?.trim()?.takeIf { it.isNotEmpty() } ?: return draft
+        if (restoredFromStorage && savedStateHandle.get<String>(PRESELECTED_PLAN_KEY) == wanted) return draft
+        val seeded = draft.withPreselectedPlan(wanted)
+        if (seeded == null) {
+            Log.w(DIAG_TAG, "preselección ignorada: el plan «$wanted» no existe, no se ofrece o el borrador no incluye entrenamiento")
+            return draft
+        }
+        savedStateHandle[PRESELECTED_PLAN_KEY] = wanted
+        return seeded.withChangeImpacts(draft)
     }
 
     fun setWeightUnit(unit: String) = mutateDraft(step = SetupStepId.WEIGHT) { draft ->
@@ -1750,14 +1821,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     internal fun exerciseCatalogRevision(): String? =
         (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog?.catalogRevision
 
-    private fun goalProfileOf(draft: SetupWizardDraft): PlanGoalProfile = when (draft.goal) {
-        SetupGoal.STRENGTH -> PlanGoalProfile.STRENGTH
-        SetupGoal.MUSCLE -> PlanGoalProfile.MUSCLE
-        SetupGoal.STRENGTH_MUSCLE -> PlanGoalProfile.STRENGTH_MUSCLE
-        SetupGoal.COMPLETE_ATHLETE -> PlanGoalProfile.COMPLETE_ATHLETE
-        SetupGoal.MIXED -> PlanGoalProfile.LEGACY_MIXED
-        SetupGoal.HEALTH, null -> PlanGoalProfile.LEGACY_HEALTH
-    }
+    private fun goalProfileOf(draft: SetupWizardDraft): PlanGoalProfile = planGoalProfileOf(draft.goal)
 
     private fun candidateRequest(
         draft: SetupWizardDraft,
@@ -1978,6 +2042,78 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Paquete A · C3 — reparaciones de UN toque para el rechazo [rejected] del plan propio ([request] es el pedido del
+     * barrido; [source] el borrador que lo originó). El asesor PRUEBA cada candidata con el evaluador real del
+     * asistente ([evaluateRepairProbe]); nunca adivina. Es un extra: cualquier fallo (salvo la cancelación) deja la
+     * lista vacía y el rechazo se explica como siempre, sin botón de un toque.
+     *
+     * Sin disponibilidad de material declarada (ruta legacy con inventario) no hay panel que confirmar ni «sin
+     * confirmar» que reparar: no se propone nada.
+     */
+    private suspend fun ownPlanRepairsFor(
+        source: SetupWizardDraft,
+        request: PlanCandidateRequest,
+        rejected: PlanCandidateEvaluation.Rejected,
+        snapshot: PlanCatalogSnapshot,
+        cacheRevision: String,
+    ): List<PlanRepair> {
+        val availability = source.trainingOptions.availability ?: return emptyList()
+        return try {
+            PlanRepairAdvisor.suggest(request, rejected, availability) { probe, probeAvailability ->
+                evaluateRepairProbe(source, probe, probeAvailability, snapshot, cacheRevision)
+            }
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (error: Exception) {
+            Log.w(DIAG_TAG, "reparaciones del plan propio no disponibles: ${failureDetail(error)}")
+            emptyList()
+        }
+    }
+
+    /**
+     * El evaluador de sondeos del asesor: rehace el borrador con lo que el sondeo cambia (objetivo, minutos, cardio,
+     * reparto y, sobre todo, el MATERIAL que manda: el equipo efectivo se deriva de la disponibilidad recibida, no del
+     * pedido original) y evalúa el plan propio del objetivo sondeado con el motor real. Cada veredicto se guarda en
+     * [repairProbeCache] por la clave propia del sondeo; el programa no se guarda (solo importa si queda listo).
+     */
+    private suspend fun evaluateRepairProbe(
+        source: SetupWizardDraft,
+        probe: PlanCandidateRequest,
+        availability: EquipmentAvailability,
+        snapshot: PlanCatalogSnapshot,
+        cacheRevision: String,
+    ): PlanCandidateEvaluation {
+        val ownId = ownPlanIdOf(probe.goalProfile)
+            ?: return PlanCandidateEvaluation.Rejected(
+                planId = probe.goalProfile.name,
+                stage = PlanEvaluationStage.CATALOG,
+                reasonCode = PlanRejectionReason.RECIPE_UNAVAILABLE,
+                details = "el objetivo no tiene plan propio",
+            )
+        val cacheKey = "${probe.inputKey}|$ownId"
+        repairProbeCache.get(cacheRevision, cacheKey)?.let { return it }
+        val probeDraft = repairProbeDraft(source, probe, availability)
+        val probeRequest = probe.copy(effectiveEquipment = effectiveEquipmentIds(probeDraft))
+        val evaluation = PlanCandidateEvaluator.evaluate(
+            probeRequest,
+            snapshot,
+            ownId,
+            candidateEngine(probeDraft, probeRequest),
+        )
+        val verdict = if (evaluation is PlanCandidateEvaluation.Ready) {
+            evaluation.copy(
+                preparedPlan = Program(id = evaluation.preparedPlan.id, name = evaluation.preparedPlan.name),
+                recipeSnapshot = null,
+                report = null,
+            )
+        } else {
+            evaluation
+        }
+        repairProbeCache.put(cacheRevision, cacheKey, verdict)
+        return verdict
+    }
+
     private fun updateCandidates(draft: SetupWizardDraft) {
         candidateJob?.cancel()
         val generation = ++candidateGeneration
@@ -2037,6 +2173,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     suspend fun collectViable(
                         equipment: Set<String>,
                         protocolOnly: Boolean,
+                        // Paquete A · C3: solo el pase PEDIDO adjunta reparaciones al rechazo del plan propio; el
+                        // pase a peso corporal es una alternativa y sus rechazos nunca se publican.
+                        attachOwnPlanRepairs: Boolean = false,
                     ): CandidateScan {
                     sweepStats.passes.incrementAndGet()
                     val source = if (equipment == setOf("bodyweight")) bodyweightAdapted(draft) else draft
@@ -2066,6 +2205,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     // causa concreta). El antiguo `catch (_: Exception) { false }`
                     // fundía material, tiempo y catálogo en el mismo aviso.
                     val rejections = mutableListOf<SetupCandidateRejection>()
+                    // Paquete A · C3: el plan PROPIO del objetivo (el que la persona espera) y, si queda rechazado, su
+                    // evaluación cruda: de ella salen las reparaciones de un toque.
+                    val ownPlanId = if (attachOwnPlanRepairs) ownPlanIdOf(goalProfileOf(draft)) else null
+                    var ownRejected: PlanCandidateEvaluation.Rejected? = null
                     // §15.2: se evalúa TODA la lista (el límite de 6 tarjetas es
                     // visual): la búsqueda no se corta antes de tener testigos, y
                     // paginar no rematerializa (la caché de sesión guarda el Ready).
@@ -2082,8 +2225,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
                                 readySnapshots[evaluation.planId] = evaluation
                                 if (viableEntries.none { it.id == evaluation.planId }) viableEntries += entry
                             }
-                            is PlanCandidateEvaluation.Rejected -> rejections += setupRejectionOf(evaluation)
+                            is PlanCandidateEvaluation.Rejected -> {
+                                rejections += setupRejectionOf(evaluation)
+                                if (evaluation.planId == ownPlanId) ownRejected = evaluation
+                            }
                             PlanCandidateEvaluation.CatalogLoading -> Unit
+                        }
+                    }
+                    // Paquete A · C3: con el plan propio rechazado, el asesor propone sus reparaciones de un toque (como
+                    // mucho unas pocas evaluaciones extra, y solo en este caso) y se adjuntan a SU rechazo.
+                    val rejectedOwn = ownRejected
+                    val publishedRejections = if (rejectedOwn == null) {
+                        rejections
+                    } else {
+                        val repairs = ownPlanRepairsFor(source, request, rejectedOwn, snapshot, cacheRevision)
+                        rejections.map { rejection ->
+                            if (rejection.planId == rejectedOwn.planId) rejection.copy(repairs = repairs) else rejection
                         }
                     }
                     // La UI expone primero tres tarjetas. Recién terminado el
@@ -2099,11 +2256,12 @@ class SetupWizardViewModel @JvmOverloads constructor(
                             candidateCache.put(cacheRevision, "${request.inputKey}|${entry.id}", ready)
                         }
                     }
-                    return CandidateScan(publishedEntries, viableEntries, rejections)
+                    return CandidateScan(publishedEntries, viableEntries, publishedRejections)
                     }
                     val requested = collectViable(
                         equipmentIds,
                         protocolOnly = draft.programRoute == SetupProgramRoute.PROTOCOL,
+                        attachOwnPlanRepairs = true,
                     )
                     // D-005/E-015: bajo PROTOCOL NUNCA hay segundo pase
                     // `protocolOnly=false`. Si no hay protocolo viable, la UI
@@ -2156,6 +2314,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 // AC-T001-03: sólo publica si las entradas de ESTE cálculo siguen
                 // vigentes; un job cancelado o tardío jamás sobreescribe la respuesta más nueva.
                 if (ownsCandidateGeneration(generation) && isCurrentCandidateKey(draft)) {
+                    // C.P11: el texto crudo del motor NUNCA se pinta; la causa concreta (`reason`) y el código cerrado del
+                    // plan propio van solo al registro, sin datos personales.
+                    ownPlanIdOf(goalProfileOf(draft))?.let { ownId ->
+                        outcome.requested.rejections.firstOrNull { it.planId == ownId }?.let { own ->
+                            Log.i(
+                                DIAG_TAG,
+                                "plan propio rechazado: plan=$ownId motivo=${own.reasonCode} etapa=${own.stage} " +
+                                    "reparaciones=${own.repairs.size} causa=${own.reason.take(DIAG_REASON_MAX)}",
+                            )
+                        }
+                    }
                     val options = viable.map { entry ->
                         SetupPlanCandidate(
                             id = entry.id,
@@ -2188,16 +2357,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         // Estado explícito «no compatible» con motivo REAL (UDF):
                         // una lista vacía nunca se publica en silencio. El motivo
                         // sale de los datos del propio borrador, sin fabricar nada.
-                        val material = equipmentIds.sorted().joinToString(", ")
-                            .ifBlank { "solo peso corporal" }
+                        // Sin la lista de tokens de material (`general_gym`, `barbell`…): son identificadores internos y
+                        // este aviso lo lee la persona (C.P11: nada de ids ni códigos en los textos).
                         val frequency = draft.daysPerWeek?.let { "${SpanishPlurals.days(it)} por semana" } ?: "esta frecuencia"
                         val reason = if (published.isEmpty()) {
-                            "No hay planes publicados compatibles con tu material ($material) y $frequency."
+                            "No hay planes publicados compatibles con tu material y $frequency."
                         } else {
                             SpanishPlurals.choose(
                                 published.size,
-                                "1 plan publicado, pero no es ejecutable con tu material ($material) y $frequency.",
-                                "${published.size} planes publicados; ninguno es ejecutable con tu material ($material) y $frequency.",
+                                "1 plan publicado, pero no es ejecutable con tu material y $frequency.",
+                                "${published.size} planes publicados; ninguno es ejecutable con tu material y $frequency.",
                             )
                         }
                         _state.value = current.copy(
@@ -2297,7 +2466,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private fun dropSelection(planId: String, rejections: List<SetupCandidateRejection>) {
         val dropped = SetupDroppedSelection(
             planId = planId,
-            title = PersonalizedPlanCatalog.find(planId)?.title ?: DROPPED_SELECTION_FALLBACK_TITLE,
+            // C.P5/C.P6: el nombre de la ficha editorial, no el alias heredado `title`.
+            title = PersonalizedPlanCatalog.find(planId)?.displayName ?: DROPPED_SELECTION_FALLBACK_TITLE,
             rejection = rejections.firstOrNull { it.planId == planId },
         )
         // El código cerrado del motivo solo va al registro (la pantalla muestra texto llano): id del plan y
@@ -2415,8 +2585,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
         // viajan como `defaultOptions` hasta el materializador, que da
         // precedencia a la elección/autor ya guardada sobre `options`.
         val options = draft.trainingOptions
+        // C.P6: el programa se llama como su plan (ficha editorial) y toma el modo de su disciplina; antes salía como
+        // «Plan de {nombre de la persona}», con el modo de hipertrofia por defecto aunque el método fuera de powerlifting.
         val base = options.applyTo(
-            Program(id = draft.commitId, name = "Plan de ${draft.name.ifBlank { "entrenamiento" }}", startDay = draft.selectedWeekdays.minOrNull(), powerliftingProfile = draft.powerliftingProfile),
+            Program(
+                id = draft.commitId,
+                name = programNameFor(entry),
+                mode = programModeFor(entry),
+                startDay = draft.selectedWeekdays.minOrNull(),
+                powerliftingProfile = draft.powerliftingProfile,
+            ),
         )
         // Q5-F2 / §10.1: PHUL y PHAT originales y adaptados (entradas PROTOCOL con
         // `authoredSource`) NO existen en PROTOCOL_LIBRARY, que solo guarda las
@@ -2847,6 +3025,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
 
     companion object {
         private const val DRAFT_ID_KEY = "setup_wizard_draft_id"
+        /** Plan de la biblioteca ya aplicado como intención (SavedStateHandle: sobrevive a recrear el ViewModel). */
+        private const val PRESELECTED_PLAN_KEY = "setup_wizard_preselected_plan_id"
+        /** Veredictos de sondeo que guarda la caché aparte del asesor de reparaciones (cada uno ocupa casi nada). */
+        private const val REPAIR_PROBE_CACHE_ENTRIES = 8
         /**
          * Únicos valores de entorno que el reductor de EQUIPMENT acepta como
          * «Sin material». Lista positiva a propósito: un entorno nulo, en blanco
@@ -2855,6 +3037,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
         private val NO_MATERIAL_ENVIRONMENTS = setOf("none", "Sin material")
         /** Etiqueta de logcat de diagnóstico: solo clase+mensaje, nunca datos del usuario. */
         private const val DIAG_TAG = "SetupWizard"
+        /** Largo máximo de la causa cruda de un rechazo en el registro. */
+        private const val DIAG_REASON_MAX = 200
         /** Etiqueta de logcat de la medición del barrido de candidatos (C4): `adb logcat -s SetupPlanSweep`. */
         private const val PERF_TAG = "SetupPlanSweep"
         /** Marca en `lastFailure` del fallo de RINGS; permite limpiarlo sin pisar otros fallos. */
@@ -2926,3 +3110,174 @@ internal fun bodyweightPassAllowed(requestedViableCount: Int, rejections: List<S
         rejection.reasonCode == PlanRejectionReason.APPARATUS_UNKNOWN ||
             rejection.reasonCode == PlanRejectionReason.APPARATUS_ABSENT
     }
+
+// ─── Paquete A · C3 y Paquete C · C.P6: reparaciones, plan propio y preselección (funciones puras) ─────────────
+
+/**
+ * Perfil de objetivo del asistente para el objetivo del borrador. Sin objetivo o con «Salud» (legacy) vale
+ * [PlanGoalProfile.LEGACY_HEALTH]: ninguno de los dos tiene plan propio.
+ */
+internal fun planGoalProfileOf(goal: SetupGoal?): PlanGoalProfile = when (goal) {
+    SetupGoal.STRENGTH -> PlanGoalProfile.STRENGTH
+    SetupGoal.MUSCLE -> PlanGoalProfile.MUSCLE
+    SetupGoal.STRENGTH_MUSCLE -> PlanGoalProfile.STRENGTH_MUSCLE
+    SetupGoal.COMPLETE_ATHLETE -> PlanGoalProfile.COMPLETE_ATHLETE
+    SetupGoal.MIXED -> PlanGoalProfile.LEGACY_MIXED
+    SetupGoal.HEALTH, null -> PlanGoalProfile.LEGACY_HEALTH
+}
+
+/** Objetivo del borrador que ofrece el asistente para este perfil; null para los legacy, que nunca se ofrecen de nuevo. */
+internal fun PlanGoalProfile.toSetupGoal(): SetupGoal? = when (this) {
+    PlanGoalProfile.STRENGTH -> SetupGoal.STRENGTH
+    PlanGoalProfile.MUSCLE -> SetupGoal.MUSCLE
+    PlanGoalProfile.STRENGTH_MUSCLE -> SetupGoal.STRENGTH_MUSCLE
+    PlanGoalProfile.COMPLETE_ATHLETE -> SetupGoal.COMPLETE_ATHLETE
+    PlanGoalProfile.LEGACY_MIXED, PlanGoalProfile.LEGACY_HEALTH -> null
+}
+
+/** Valor estable de la opción del paso GOAL (`strength`, `muscle`, `strength_muscle`, `complete_athlete`). */
+internal fun goalChoiceValueOf(goal: PlanGoalProfile): String? = goal.toSetupGoal()?.name?.lowercase()
+
+/**
+ * El plan PROPIO de un objetivo (el que la persona espera ver): `native:strength-foundation-v2`,
+ * `native:muscle-foundation-v2`, `native:powerbuilding-foundation-v2` o `native:complete-athlete-v2`. Los objetivos
+ * legacy no tienen plan propio.
+ */
+internal fun ownPlanIdOf(goal: PlanGoalProfile): String? = when (goal) {
+    PlanGoalProfile.STRENGTH -> NativeProfileKind.STRENGTH.entryId
+    PlanGoalProfile.MUSCLE -> NativeProfileKind.MUSCLE.entryId
+    PlanGoalProfile.STRENGTH_MUSCLE -> NativeProfileKind.POWERBUILDING.entryId
+    PlanGoalProfile.COMPLETE_ATHLETE -> NativeProfileKind.COMPLETE_ATHLETE.entryId
+    PlanGoalProfile.LEGACY_MIXED, PlanGoalProfile.LEGACY_HEALTH -> null
+}
+
+/**
+ * Paso del asistente que se marca como declarado al aplicar [this]: el que la persona habría tocado a mano. El reparto
+ * no se marca (quitarlo es volver al calendario propio del plan, no declarar nada).
+ */
+internal fun PlanRepair.declaredStep(): SetupStepId? = when (this) {
+    is PlanRepair.SetMinutes -> SetupStepId.SESSION_TIME
+    is PlanRepair.SetCardioMinutes -> SetupStepId.CARDIO_TIME
+    is PlanRepair.ConfirmApparatus -> SetupStepId.AVAILABILITY
+    is PlanRepair.SwitchGoal -> SetupStepId.GOAL
+    PlanRepair.ClearSplit -> null
+}
+
+/**
+ * Borrador con la reparación [repair] aplicada, con las MISMAS escrituras de la API de pasos que usaría la persona a
+ * mano (`withStepNumber`, `withStepChoice`, la disponibilidad del panel de material). Es la única definición de qué
+ * cambia cada reparación: la usan `applyRepairs` (producción) y el sondeo del asesor ([repairProbeDraft]), así lo que
+ * se prueba es exactamente lo que después se aplica.
+ */
+internal fun SetupWizardDraft.withRepair(
+    repair: PlanRepair,
+    nowEpochMs: Long = System.currentTimeMillis(),
+): SetupWizardDraft = when (repair) {
+    is PlanRepair.SetMinutes -> withStepNumber(SetupStepId.SESSION_TIME, repair.minutes.toDouble(), nowEpochMs)
+    is PlanRepair.SetCardioMinutes -> withStepChoice(SetupStepId.CARDIO_TIME, repair.minutes.toString(), nowEpochMs)
+    is PlanRepair.ConfirmApparatus -> withConfirmedApparatus(repair)
+    is PlanRepair.SwitchGoal -> withSwitchedGoal(repair, nowEpochMs)
+    PlanRepair.ClearSplit -> copy(selectedSplitId = null)
+}
+
+/**
+ * Confirma las llaves y las categorías de la reparación. Si la persona ya había marcado categorías en el paso de
+ * material, su selección guardada las incluye también (así la tarjeta del paso y la disponibilidad dicen lo mismo);
+ * la opción «solo peso corporal» se retira, porque ya no es verdad.
+ */
+private fun SetupWizardDraft.withConfirmedApparatus(repair: PlanRepair.ConfirmApparatus): SetupWizardDraft {
+    val confirmed = repair.applyTo(trainingOptions.availability ?: EquipmentAvailability())
+    val stored = stepSelections[SetupStepId.AVAILABILITY]
+    return copy(
+        trainingOptions = trainingOptions.copy(availability = confirmed),
+        stepSelections = if (stored.isNullOrEmpty()) {
+            stepSelections
+        } else {
+            val categories = repair.categories.map { it.name }
+            stepSelections + (SetupStepId.AVAILABILITY to (stored.filterNot { it == AVAILABILITY_BODYWEIGHT } + categories).distinct())
+        },
+    )
+}
+
+/**
+ * Cambia el objetivo como lo haría el paso GOAL (con el estilo de volumen que infiere), sube los minutos si el destino
+ * solo cabe con más tiempo y retira el reparto elegido, que era del objetivo anterior. Nunca va a Atleta completo.
+ */
+private fun SetupWizardDraft.withSwitchedGoal(repair: PlanRepair.SwitchGoal, nowEpochMs: Long): SetupWizardDraft {
+    val value = goalChoiceValueOf(repair.goal) ?: return this
+    val switched = withStepChoice(SetupStepId.GOAL, value, nowEpochMs)
+    val timed = repair.alsoMinutes
+        ?.let { minutes -> switched.withStepNumber(SetupStepId.SESSION_TIME, minutes.toDouble(), nowEpochMs) }
+        ?: switched
+    return timed.copy(selectedSplitId = null)
+}
+
+/**
+ * El borrador sobre el que se evalúa un sondeo del asesor: [source] con lo que el sondeo [probe] cambia respecto del
+ * pedido (objetivo, minutos, cardio, reparto) y con el material [availability] que manda en el sondeo. Se construye
+ * aplicando las mismas reparaciones de [withRepair], de modo que el borrador sondeado y el que dejará
+ * `applyRepairs` tengan la misma huella de entradas.
+ */
+internal fun repairProbeDraft(
+    source: SetupWizardDraft,
+    probe: PlanCandidateRequest,
+    availability: EquipmentAvailability,
+): SetupWizardDraft {
+    var draft = source
+    if (probe.goalProfile != planGoalProfileOf(draft.goal)) {
+        draft = draft.withRepair(PlanRepair.SwitchGoal(probe.goalProfile))
+    }
+    if (probe.minutesPerSession != draft.minutesPerSession) {
+        draft = draft.withRepair(PlanRepair.SetMinutes(probe.minutesPerSession))
+    }
+    val cardio = probe.cardioMinutes
+    if (probe.requiresCardio && cardio != null && cardio != draft.cardioMinutes) {
+        draft = draft.withRepair(PlanRepair.SetCardioMinutes(cardio))
+    }
+    if (probe.selectedSplitId == null && draft.selectedSplitId != null) {
+        draft = draft.withRepair(PlanRepair.ClearSplit)
+    }
+    return draft.copy(trainingOptions = draft.trainingOptions.copy(availability = availability))
+}
+
+/** Los cuatro objetivos que ofrece el asistente: los únicos que la preselección sabe prefijar. */
+private val PRESELECTABLE_GOALS: List<PlanGoalProfile> = listOf(
+    PlanGoalProfile.STRENGTH,
+    PlanGoalProfile.MUSCLE,
+    PlanGoalProfile.STRENGTH_MUSCLE,
+    PlanGoalProfile.COMPLETE_ATHLETE,
+)
+
+/**
+ * E-18 (C.P6) — el borrador con el plan [planId] de la biblioteca como INTENCIÓN, o null si no se puede (el id no
+ * existe, la entrada no se ofrece o el borrador no incluye entrenamiento).
+ *
+ *  - `selectedCatalogId` guarda la intención (r2 §15.2); no confirma el paso PLAN ni ningún otro: el asistente
+ *    sigue preguntando todo y, al llegar a PLAN, la selección queda hecha si el plan es viable y, si no, cae con el
+ *    aviso de selección caída.
+ *  - El objetivo se prefija SIN confirmar cuando el plan sirve a UNO solo ([PlanGoalMatcher.matches]); un plan que
+ *    casa con varios (PHUL: Músculo y Fuerza y músculo) no prefija nada y deja que la persona elija.
+ *  - La ruta se normaliza como al elegir una tarjeta (personalizable) y se descarta «lo decidiré después»: la
+ *    persona acaba de pedir configurar este plan.
+ */
+internal fun SetupWizardDraft.withPreselectedPlan(
+    planId: String,
+    nowEpochMs: Long = System.currentTimeMillis(),
+): SetupWizardDraft? {
+    if (!includeTraining) return null
+    val entry = PersonalizedPlanCatalog.find(planId)
+        ?.takeIf { it.listed && it.publication == PublicationState.PUBLISHED }
+        ?: return null
+    val servedGoal = PRESELECTABLE_GOALS.filter { candidate -> PlanGoalMatcher.matches(entry, candidate) }.singleOrNull()
+    val prefixed = if (servedGoal != null && planGoalProfileOf(goal) != servedGoal) {
+        goalChoiceValueOf(servedGoal)?.let { value -> withStepChoice(SetupStepId.GOAL, value, nowEpochMs) } ?: this
+    } else {
+        this
+    }
+    return prefixed.copy(
+        selectedCatalogId = entry.id,
+        acceptFixedRecipeDifference = false,
+        programRoute = SetupProgramRoute.CUSTOMIZABLE,
+        trainingPath = SetupTrainingPath.PERSONALIZE,
+    )
+}
