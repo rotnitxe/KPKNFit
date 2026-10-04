@@ -1,11 +1,11 @@
 # Auditoría del sistema de alimentos — octubre 2026
 
-> **Estado: documento WP-0 (primera entrega, antes de tocar código), actualizado hasta el gate 30b.** Recoge hallazgos
-> por lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda WP-N0
-> bajo Gradle; el avance posterior está en «Registro de ejecución». No hay QA en dispositivo registrado: los
-> instrumentados no llegaron a ejecutarse (ver «Pruebas instrumentadas (cierre)»). Evidencia de los 55 hallazgos con id:
-> **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia de `\b` (sin id) es
-> **INFERIDO** (ver «Qué se verificó y cómo»).
+> **Estado: documento WP-0 (primera entrega, antes de tocar código), cerrada la ejecución (gates 1 a 31).** Recoge
+> hallazgos por lectura de código, la corrida JVM existente, una sonda estática del catálogo y la línea base de la sonda
+> WP-N0 bajo Gradle; el avance posterior está en «Registro de ejecución» y el balance final en «Cierre». No hay QA en
+> dispositivo registrado: los instrumentados no llegaron a ejecutarse (ver «Pruebas instrumentadas (cierre)»). Evidencia
+> de los 55 hallazgos con id: **17 CONFIRMADO POR SONDA (Gradle)**, **7 VERIFICADO** y **31 REPORTADO**; la divergencia
+> de `\b` (sin id) es **INFERIDO** (ver «Qué se verificó y cómo»).
 
 | Campo | Valor |
 |---|---|
@@ -143,8 +143,9 @@ cierre. Ver «Plan de remediación».
   Ejemplos:
   - **Conteos** (#2, #37, #22): "2 yogures y 3 tomates" da yogur 250 g/148 kcal (2 x 125 g) y `gen026` Tomate 360 g/65
     kcal (3 x 120 g), antes 200 g y el fantasma "tomat"; "tres tomates" pasa de 80 g (tras WP-N3) a `gen026` 360 g/65
-    kcal, así que la cantidad ya escala; "2 manzanas grandes" resuelve `gen001` Manzana 375 g/195 kcal (AUTO), antes
-    "manzanas grand (estimado)" de 200 g sin identidad.
+    kcal, así que la cantidad ya escala; "2 manzanas grandes" resuelve `gen001` Manzana 375 g/195 kcal (AUTO; hoy
+    455 g/237 kcal tras WP-N8b, que sube la pieza de 150 a 182 g), antes "manzanas grand (estimado)" de 200 g sin
+    identidad.
   - **Tamaño** (#55, #20, #51): "jugo natural de naranja grande" usa LARGE: 312,5 g/141 kcal (antes EXTRA, 440 g);
     "plato grande de arroz" da 150 g/195 kcal (antes 180 g; 1,25 x los 120 g de porción base del arroz cocido) y sigue
     por debajo de "un plato de arroz" (212,5 g), lejos del objetivo del plan (1,25 x #21 = 265,6 g); "un completo
@@ -233,6 +234,38 @@ cierre. Ver «Plan de remediación».
     reparte a los demás alimentos: "pan con palta y un té" da el pan con palta de 120 g/280 kcal en lugar de 220 g/513
     kcal (el té sigue en 220 g/2 kcal) y "avena con leche y plátano" pasa de avena 220 g/856 kcal y plátano 220 g/196
     kcal a 40 g/156 kcal y 120 g/107 kcal (la leche sigue en 220 g/134 kcal).
+- **Delta de la sonda tras WP-N8b** (`blind-probe-final.json`, versionada en esta carpeta; gate 31): 52 de las 60
+  entradas difieren de la línea base oficial en algún campo: 50 en la línea de resultado (las 42 que ya diferían tras
+  WP-N11b más #13, #39, #41, #46, #49, #54, #59 y #60) y 2 solo en campos internos (#31 y #56). Frente al estado tras
+  WP-N11b, WP-N8b cambia 20 líneas (#4, #7, #8, #12, #13, #20, #22, #26, #28, #39, #40, #41, #46, #47, #48, #49, #51,
+  #54, #59, #60). Una entrada cambia una identidad equivocada por una estimación con nombre: #49 pierde `gen047` (queso
+  cheddar, 30 g/121 kcal) para "una de queso" y gana el estimado «empanada de queso» de 180 g/417,6 kcal con pregunta de
+  identidad, que es lo que pide la referencia del corpus ciego; el resto no pierde una ficha ni gana un fantasma. La
+  línea base oficial sigue siendo la del gate 1. Ejemplos:
+  - **Porción declarada de un plato nombrado sin cantidad** (#40, #13, #41, #54): "porotos con riendas" pasa de 99 g/127
+    kcal a 350 g/450 kcal (`cl029`, su plato); "un guiso de lentejas" de 120 g/139 kcal a 198 g/230 kcal y las lentejas
+    de "lentejas con arroz" de 99 g/115 kcal a 198 g/230 kcal; "un pan con queso y tomate" da el pan con queso de
+    100 g/320 kcal en lugar de 40 g/128 kcal.
+  - **Bases de plato por contexto** (#7, #12, #20, #46): "plato grande de arroz" pasa de 150 g/195 kcal a 265,6 g/345
+    kcal; el arroz de "Desayuno: 2 huevos. Almuerzo: arroz con pollo." de 198 g/257 kcal a 171 g/222 kcal y la
+    mantequilla de "dos marraquetas con mantequilla" de 15 g/108 kcal a 10 g/72 kcal; "asado" (#12) de 100 g/357 kcal a
+    150 g/536 kcal.
+  - **Partes del sándwich** (#28): el pan pasa de 100 g/265 kcal a 60 g/159 kcal y el jamón de 100 g/107 kcal a 40 g/43
+    kcal; el queso (30 g/121 kcal) y la cola (350 g/147 kcal) no cambian.
+  - **Cocción** (WP-N10c, #4 y #49): "150 g salmón a la parrilla" pasa de 150 g/400 kcal a 150 g/328 kcal (el
+    rendimiento del pescado graso crudo se limita a 0,95) y "una empanada de pino al horno" de 180 g/518 kcal a
+    180 g/450 kcal (un plato completo ya horneado no se multiplica otra vez).
+  - **Identidad** (#49, #59, #51): "una de queso", tras "una empanada de pino", hereda la cabeza y deja de ser `gen047`
+    queso cheddar (30 g/121 kcal): es una empanada de queso estimada de 180 g/417,6 kcal, con pregunta de identidad;
+    "yogur griego" resuelve `gen017` (125 g/121 kcal; antes un estimado de 125 g/121,3 kcal) y "mayo" es `gen065`
+    Mayonesa (10 g/68 kcal; antes un estimado de 15 g/24 kcal).
+  - **Pieza de manzana** (#22): "2 manzanas grandes" pasan de 375 g/195 kcal a 455 g/237 kcal (la pieza pasa de 150 a
+    182 g, la manzana mediana de USDA, FDC 171688).
+  - **Datos** (WP-D1b, #39): "porotos granados" pasa de 350 g/522 kcal a 350 g/347 kcal (`cl007`: de 149 a 99 kcal/100
+    g, la suma de sus componentes USDA).
+  - **Estimaciones con perfil** (#26, #8): "ensalada de repollo" pasa de 350 g/98 kcal a 150 g/82,5 kcal (perfil de
+    ensalada aliñada) y "papas a lo pobre" de 242 g/205,7 kcal a 250 g/617,5 kcal (perfil propio de 247 kcal/100 g, el
+    del plato de la referencia).
 
 ### Qué se verificó y cómo
 
@@ -436,10 +469,15 @@ cuando la confirmación no abarca todos sus ejemplos, dice cuáles no se probaro
   `:472-491`; `SemanticPortionRetriever.getGramsForFood` siempre null), `shouldUseAiLoggedFood`,
   `CookingFactors.applyCooking/applyCookingToMacros`, `FoodParser.extractGlobalPortion`,
   `ContextDetector.adjustPortion`.
-- **REPORTADO** (informe A; el plan no los lista entre los verificados por grep): `MealLanguageGrammar.classifyDe/Con/Y`,
-  `SubjectivePortionEngine.detectIntensifier`, `CookingFactors.isLikelyLiquid`, `InferredMealContext.portionAdjustment`
-  (ignorado en `MacroCalculator.kt:99`), avisos `local-ai-*` y `aiInferredFoods` del drawer (`:318-337`, `:516-518`),
-  `FoodDescriptionParser` (solo import).
+- **REPORTADO** (informe A; el plan no los lista entre los verificados por grep; **corregido al cierre**, ver el final
+  de la viñeta): `MealLanguageGrammar.classifyDe/Con/Y`, `SubjectivePortionEngine.detectIntensifier`,
+  `CookingFactors.isLikelyLiquid`, `InferredMealContext.portionAdjustment` (ignorado en `MacroCalculator.kt:99`), avisos
+  `local-ai-*` y `aiInferredFoods` del drawer (`:318-337`, `:516-518`), `FoodDescriptionParser` (solo import).
+  **Corregido al cierre:** `portionAdjustment` no estaba ignorado y no se retiró: es el ajuste de porción del contexto
+  (`ContextDetector.ContextResult.portionAdjustment`; el informe A lo atribuía a `InferredMealContext`), `TagResolution`
+  y el drawer lo leen y `MacroCalculator.scaleFoodByPortion` lo multiplica cuando la masa no está declarada
+  (`amountGrams` nulo). Los avisos `local-ai-*` ya no existen, pero porque los retiró WP-U17 (`336a8f59e`, gate 23b), no
+  WP-N7. `FoodDescriptionParser` no es «solo import»: `FoodImporter` lo llama (ver «Tras WP-N7: lo que se conservó»).
 - **Tras WP-N7 (gate 29): archivos borrados.** `FoodMentionReconciler.kt`, `CookingMethodParser.kt` (440 patrones nunca
   conectados), `FoodTemplateMatcher.kt` con sus 2 clases de test (`FoodTemplateMatcherTest` y
   `FoodTemplateMatcherRobustnessTest`) y `CookingFactorsAndroidTest.kt` (solo probaba `isLikelyLiquid`).
@@ -899,7 +937,7 @@ El plan completo (diseño, archivos, tests y riesgos de cada paquete) está en
 Alcance aprobado: todo el plan, flavor Base, sin migración Room salvo que WP-S12 se active. Cuatro bloques de
 paquetes (WP): **N** pipeline de descripciones, **S** búsqueda y datos, **U** página, ViewModels y servicios, **D**
 contenido del catálogo; más WP-0 (este documento). Tope por WP: 2 pasadas de QA (tests + diff de la sonda); una tercera
-divide el WP. Avance tras los gates 1 a 30b: 44 de los 45 paquetes del plan cerrados, más S2b
+divide el WP. Avance tras los gates 1 a 31: 44 de los 45 paquetes del plan cerrados, más S2b
 (ver «Registro de ejecución»).
 
 ### Orden de ejecución por fases
@@ -1157,7 +1195,7 @@ carpetas `*nutrition-audit*` de `artifacts/consolidation-20261001/device-evidenc
 - **APK.** `assembleBaseDebug` y `assembleBaseDebugAndroidTest` bajo el candado de Gradle: BUILD SUCCESSFUL en 10 min
   25 s (75 tareas, 16 ejecutadas), tras ~3,5 min de espera del candado, ocupado por la curaduría de programas. Se
   compilaron sobre el código de `611fdf2c4` más ediciones sin commitear de otras sesiones (p. ej. `PlanInfoModel.kt`,
-  que la sesión de programas commiteó después en `e5e428e54`), así que no incluyen WP-N7 ni WP-N13 (3).
+  que la sesión de programas commiteó después en `e5e428e54`), así que no incluyen WP-N7, WP-N13 (3) ni WP-N8b.
 - **AVD y arnés.** Se usó `artifacts/consolidation-20261001/tools/avd` (`start_avd.ps1`, `install_apks.py` y
   `run_instrumentation.py`) y no `connectedBaseDebugAndroidTest`, para no tocar los emuladores del usuario
   (`emulator-5554` y `emulator-5556` no se usaron). AVD propio `KPKNFitSessionAudit20260929` en `emulator-5580`: Android
@@ -1189,10 +1227,10 @@ entorno (un AVD de 2 núcleos arrancado en frío, en un equipo cargado) y no al 
 carga del equipo o el arranque en frío. Se aplicó el tope de iteraciones (memoria del usuario): cuatro intentos y se
 documenta.
 
-**Cómo repetirlo.** Con el equipo sin otras sesiones de Gradle: recompilar los APK (WP-N7 y WP-N13 (3) cambiaron el
-código y el instalador rechaza los APK más viejos que las fuentes, `src/main` y `androidTest`; `--allow-stale` lo omite
-y lo anota en el recibo), arrancar el AVD, esperar al menos 5 min tras el arranque (o usar un emulador ya caliente o
-Android Studio) e instalar y correr:
+**Cómo repetirlo.** Con el equipo sin otras sesiones de Gradle: recompilar los APK (WP-N7, WP-N13 (3) y WP-N8b cambiaron
+el código y el instalador rechaza los APK más viejos que las fuentes, `src/main` y `androidTest`; `--allow-stale` lo
+omite y lo anota en el recibo), arrancar el AVD, esperar al menos 5 min tras el arranque (o usar un emulador ya caliente
+o Android Studio) e instalar y correr:
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File artifacts\consolidation-20261001\tools\avd\start_avd.ps1 -Avd Audit -Headless -WaitBoot -BootTimeoutSeconds 420
@@ -1240,11 +1278,12 @@ divergencia de `\b` sigue INFERIDA (ver «Límites»).
 | 2026-10-03, 15:45-15:59 | Gate 27 | FALLÓ al compilar los tests (BUILD FAILED en 8 min 48 s en `compileBaseDebugUnitTestKotlin`, tras ~4,5 min esperando que `classes.jar` quedara libre) por una edición en curso de otra sesión: `SetupWizardActivationGateTest` usa `setupRejectionOf`, que pasó de `private` a `internal` en `SetupWizardViewModel.kt` entre la compilación principal y la de tests (ambos archivos ajenos y sin commitear). Ningún test corrió. Se reencoló como gate 27b | - |
 | 2026-10-03, 16:00-16:21 | Gate 27b | BUILD SUCCESSFUL en 13 min 19 s, tras ~8 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:08 a 16:21); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.722 tests, 0 fallos. `GoldenCorpusTest` 320 (parametrizado; eran 4) y `GoldenCorpusInvariantsTest` 4; `BlindMealCorpusTest` 7; `NoDoubleOutcomeAssertionsTest` 2; `DessertPiecePortionTest` 16, `SandwichFillingMentionTest` 14 y `FatMarkerAndDrinkPortionTest` 7; `NutritionMetricsContractTest` 5 (E16 robusta a la carga; precisión@1 como aserción dura de 49/50 como mínimo). Corpus ciego: identidad 97,6 %, cobertura 100 %, gramos 83,1 %, kcal 68,7 % y pregunta 95,2 % (ver «Corpus ciego permanente»). Frente al estado tras el gate 25, la sonda cambia en cuatro líneas (#27, #28, #50 y #53); 42 de las 60 difieren de la línea base oficial en la línea de resultado y ninguna pierde una ficha ni gana un fantasma (ver «Línea base»). Paquete cerrado: N12; seguimientos cerrados: N11b y N12b | `6420f5983` "fix(nutrition): WP-N11b — porciones por pieza de postres y hot dogs sin ficha, sándwich de un relleno o lista expandido a pan + rellenos, marcador de grasa por palabra y bebidas con su porción junto a un plato"; `25e8cf787` "test(nutrition): WP-N12 — suite endurecida: golden parametrizado, sin aserciones de doble resultado, bandas exactas con masa declarada, corpus ciego permanente con umbrales y E16 robusto a carga" |
 | 2026-10-03, 16:32-16:47 | Gate 28 | BUILD SUCCESSFUL en 11 min 21 s, tras ~4 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~16:36 a 16:47); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 118 suites, 1.745 tests, 0 fallos. `FoodImporterParseTest` 29 (+3), `FoodImporterUsdaMappingTest` 47 (+13; fija los conteos reales: 60 fichas sin energía, 50 que siguen fuera, 20 filas nuevas y 386 importadas), `SearchGoldenCorpusTest` 58 (+7), `FoodImporterUsageTest` 12, `UsdaAliasTableTest` 11 y `NutritionRepositoryStartupTest` 14. La sonda es idéntica a la del estado tras WP-N11b en todos los campos, también con las 386 filas USDA inyectadas en el pool de búsqueda. Seguimiento cerrado: S9b (de las 436 fichas Foundation, los 8 aceites y las 2 mantequillas sin fila de energía reciben la de Atwater, con la bandera `ENERGY_ATWATER`, y las 10 con carbohidrato levemente negativo se recortan a 0, con `CARB_CLAMPED`: de 366 a 386 filas USDA, sin cambiar ninguna existente; `DATA_VERSION` pasa de 10 a 11, con una reimportación en las instalaciones existentes porque la huella del manifiesto no cambia; el pool de `SearchGoldenCorpusTest` incluye ya filas USDA del extracto de test: "aceite de oliva extra virgen" resuelve a `usda_748608` y "aceite de canola" y "aceite de maravilla" ya no dan un resultado vacío) | `611fdf2c4` "feat(nutrition): WP-S9b — energía Atwater para aceites y mantequillas USDA sin fila de energía, carbohidrato negativo recortado y filas USDA en el corpus de búsqueda" |
-| 2026-10-03, 18:13-18:16 | Gate 29 | BUILD SUCCESSFUL en 3 min 30 s, sin espera (el candado estaba libre); compilación principal y de los androidTest (`compileBaseDebugAndroidTestKotlin`), con 3 de las 43 tareas ejecutadas (las compilaciones principal y de tests ya estaban al día; corrieron las pruebas, KSP de los androidTest y su compilación); filtros `domain.nutrition.*`, `data.food.*`, `data.repository.Nutrition*` y `screens.nutrition.*`; 123 suites, 1.806 tests, 0 fallos. Frente al gate 28 (118 suites y 1.745 tests con los tres primeros filtros), WP-N7 retira 2 suites y 23 tests y este gate vuelve a incluir `screens.nutrition.*`. Tests retirados (cuentas de `@Test` del commit, que suman los 23): `FoodTemplateMatcherTest` (8) y `FoodTemplateMatcherRobustnessTest` (6), borradas; `CookingFactorsTest` 17 (-5); `FoodInterpretationV2Test` 6 (-1; reescrita sobre `interpretResolved`, conserva los 2 de WP-N10b); `NutritionLoggerReliabilityTest` 19, `NutritionResolutionConsistencyTest` 16 y `StapleOntologyTest` 20 (-1 cada una); sale además `CookingFactorsAndroidTest` (-1 instrumentado). La sonda es idéntica a la del estado tras WP-N11b en todos los campos salvo los tiempos (120 casos, 0 diferencias) y el informe del corpus ciego permanente es idéntico byte a byte. Paquete cerrado: N7 (31 archivos, +114/-1.667, sin cambio de comportamiento; criterio de aceptación «cero referencias»: `git grep` de los símbolos retirados da 0 en `app/src`, salvo homónimos de otros tipos, como `NutritionRepository.recordFoodSelection`, y un comentario de `RegexEs.kt` que aún nombra `CookingFactorsAndroidTest`). Se conservan `DatasetKnowledgeSource.kt` y `FoodDescriptionParser.kt` porque siguen vivos (ver «Límites») | `3234cb23a` "refactor(nutrition): WP-N7 — retiro de módulos muertos del pipeline de descripciones" |
+| 2026-10-03, 18:13-18:16 | Gate 29 | BUILD SUCCESSFUL en 3 min 30 s, sin espera (el candado estaba libre); compilación principal y de los androidTest (`compileBaseDebugAndroidTestKotlin`), con 3 de las 43 tareas ejecutadas (las compilaciones principal y de tests ya estaban al día; corrieron las pruebas, KSP de los androidTest y su compilación); filtros `domain.nutrition.*`, `data.food.*`, `data.repository.Nutrition*` y `screens.nutrition.*`; 123 suites, 1.806 tests, 0 fallos. Frente al gate 28 (118 suites y 1.745 tests con los tres primeros filtros), WP-N7 retira 2 suites y 23 tests y este gate vuelve a incluir `screens.nutrition.*`. Tests retirados (cuentas de `@Test` del commit, que suman los 23): `FoodTemplateMatcherTest` (8) y `FoodTemplateMatcherRobustnessTest` (6), borradas; `CookingFactorsTest` 17 (-5); `FoodInterpretationV2Test` 6 (-1; reescrita sobre `interpretResolved`, conserva los 2 de WP-N10b); `NutritionLoggerReliabilityTest` 19, `NutritionResolutionConsistencyTest` 16 y `StapleOntologyTest` 20 (-1 cada una); sale además `CookingFactorsAndroidTest` (-1 instrumentado). La sonda es idéntica a la del estado tras WP-N11b en todos los campos salvo los tiempos (120 casos, 0 diferencias) y el informe del corpus ciego permanente es idéntico byte a byte. Paquete cerrado: N7 (31 archivos, +114/-1.667, sin cambio de comportamiento; criterio de aceptación «cero referencias»: `git grep` de los símbolos retirados da 0 en `app/src`, salvo homónimos de otros tipos, como `NutritionRepository.recordFoodSelection`, y un comentario de `RegexEs.kt` que aún nombra `CookingFactorsAndroidTest` y que corrige el gate 31). Se conservan `DatasetKnowledgeSource.kt` y `FoodDescriptionParser.kt` porque siguen vivos (ver «Límites») | `3234cb23a` "refactor(nutrition): WP-N7 — retiro de módulos muertos del pipeline de descripciones" |
 | 2026-10-03, 18:20-18:29 | Gate 30 | FALLÓ (BUILD FAILED en 8 min 44 s; compilación principal y filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`) en `compileBaseDebugUnitTestKotlin`, por ediciones en curso de otra sesión, ajenas al paquete: `ProtocolAttributionTest` usaba `KPKN_OWN_PLAN_DISCLAIMER` y `TrainingMaxWizardCopyTest` usaba `trainingMaxIntro`, `trainingMaxFiveRepNote` y `trainingMaxPreviewLine` antes de que existieran en `main` (10 errores de referencia sin resolver). La compilación principal con el paquete sí pasó, el candado estaba libre y ningún test corrió; el árbol quedó resuelto minutos después y se reencoló como gate 30b | - |
 | 2026-10-03, 18:30-18:40 | Gate 30b | BUILD SUCCESSFUL en 10 min 22 s, sin espera del candado (libre); filtros `domain.nutrition.*`, `data.food.*` y `data.repository.Nutrition*`; 116 suites (las 118 del gate 28 menos las 2 de `FoodTemplateMatcher` que retiró WP-N7), 1.738 tests (1.745 menos los 23 de WP-N7, más los 16 de este paquete), 0 fallos. `FoodKnowledgeParityTest` 13 (+2), `FoodKnowledgeAssetTest` 26 (+7) y `FoodKnowledgeInstallTest` 23 (+7); `FoodCombinationParserTest` 17, `SandwichMentionBoundaryTest` 12 y `SandwichFillingMentionTest` 14, sin cambios, cubren el parser que ahora lee `dishCompositions`. La sonda es idéntica a la del estado tras WP-N11b en todos los campos salvo los tiempos (120 casos, 0 diferencias) y el informe del corpus ciego permanente es idéntico byte a byte. Paquete cerrado: N13, sección 3 (9 archivos, +1.251/-390). La sección `dishCompositions` del asset recibe la tabla `KNOWN_DISHES` de `FoodCombinationParser` tal como estaba: 302 platos en el mismo orden, cada uno con su base (el primer componente) y sus acompañamientos (alimento, proporción y rol); `parseFoodKnowledge` rechaza un nombre repetido, un plato sin componentes, un rol que no sea de `FoodCombinationParser.Role` y proporciones que no sumen 1 ± 0,01 (la tabla suma 1 exacto). `recipeNotes` documenta las recetas de las siete fichas `RECIPE_ESTIMATE` (gen183 a gen188 y gen196: ingrediente, perfil y porcentaje del peso, igual palabra por palabra al `sourceRecordId` de cada ficha) y ningún código las lee todavía. `FoodCombinationParser` lee `FoodKnowledge.current().dishCompositions` por un `KnowledgeCache` (la regex de cada plato y la lista de sándwiches se derivan una vez por snapshot) y la memoria de platos de `MassBoundDish` pasa a ser por snapshot, que una instalación vacía. `FoodKnowledgeDefaults.kt` guarda la copia Kotlin y el asset pasa de 12 a 75 KB, muy por debajo del tope de 300 KB que fija el plan. Sin cambio de comportamiento: la sonda de 60 y una ampliada de 4.099 entradas (8.198 filas) salen idénticas con la copia Kotlin, con el asset instalado y con una instalación a mitad de uso, y un diferencial de 48.921 entradas (`parse`, `splitFoods`, `sandwichMentions`, `MassBoundDish` y `parseMealDescription`) coincide en las cuatro variantes (mediciones del escritor del paquete, no repetidas en el gate) | `72858962e` "feat(nutrition): WP-N13 (3) — composiciones de platos en el asset de conocimiento: 302 platos con sus proporciones y roles, y las recetas de las fichas RECIPE_ESTIMATE" |
+| 2026-10-03, 20:57-21:10 | Gate 31 | BUILD SUCCESSFUL en 9 min 49 s, tras ~3 min de espera del candado de Gradle, ocupado por la curaduría de programas (Gradle corrió de ~21:00 a 21:10); compilación principal y de tests ejecutadas (10 de las 34 tareas); filtros `domain.nutrition.*`, `data.food.*`, `data.repository.Nutrition*` y `screens.nutrition.*`; 129 suites, 1.858 tests, 0 fallos. Frente al gate 29 (los mismos cuatro filtros: 123 suites y 1.806 tests) suma 6 suites y 52 tests: 36 de WP-N8b y 16 de WP-N13 (3). Suites nuevas: `DishServingPortionTest` 10, `SandwichPartPortionTest` 5, `ElidedHeadNounTest` 5, `CompleteDishAndFattyFishCookingTest` 5, `CustardSpreadAndDrinkPortionTest` 5 y `DryLegumeAndPorotosGranadosTest` 3; ampliada: `NutritionHeuristicEstimatorProfileTest` 15 (+3); con expectativas actualizadas y el mismo conteo: `CountsForAllFoodsTest` 20, `GoldenCorpusTest` 320 y `BlindMealCorpusTest` 7 (umbrales 90/90/95/90/90) y, por cuentas de `@Test` del commit, `CookingSingleApplicationTest` 30, `MacroCalculatorTest` 42, `PortionSizeScaleTest` 8, `SandwichFillingMentionTest` 14, `SearchPickContractTest` 13 y `SpanishSingularizerTest` 11; en verde y sin cambios: `SearchGoldenCorpusTest` 58, `FoodKnowledgeParityTest` 13 (el asset y la copia Kotlin llevan la misma pieza de manzana de 182 g), `NutritionMetricsContractTest` 5 (precisión@1 49/50) y `NutritionViewModelTest` 29. La sonda cambia 20 líneas frente al estado tras WP-N11b y WP-N13 (3) (#4, #7, #8, #12, #13, #20, #22, #26, #28, #39, #40, #41, #46, #47, #48, #49, #51, #54, #59, #60) y 52 de las 60 difieren de la línea base oficial en algún campo (50 en la línea de resultado, es decir, 100 de las 120 filas de la sonda, y 2 solo en campos internos; ver «Línea base»); #49 es la única que cambia una fila equivocada por una estimación con nombre. Corpus ciego (los cuatro modos idénticos; ver «Corpus ciego permanente»): identidad 83/83 = 100 %, cobertura 60/60 = 100 %, gramos 80/83 = 96,4 %, kcal 75/83 = 90,4 % y pregunta 81/83 = 97,6 % (tras WP-N11b: 81/83, 60/60, 69/83, 57/83 y 79/83); quedan 9 menciones fuera de banda. Cierre del bloque N: porciones por defecto del corpus ciego (platos con porción declarada, bases de plato, partes del sándwich, elipsis de núcleo), N10c (platos completos sin factor; pescado graso) y D1b (`cl007`, legumbres secas); paquetes cerrados: N8b, N10c y D1b (parcial). También cierra los restos de WP-N11b (natillas con el perfil CUSTARD de 145 kcal/100 g, el del flan de USDA, FDC 167574; la cola junto a un plato; el manjar de 20 g; `hotdog`; `mayo`) y fija la pieza de manzana en 182 g (USDA, FDC 171688; caso #22), con el mismo valor en la copia Kotlin y en el asset. Las fichas `gen031c` y `gen013c` llevan los ids FDC de los porotos negros y los garbanzos crudos (173734 y 173756) y el KDoc de `RegexEs.kt` apunta ya a `FoodParserAndroidTest`, lo que cierra el seguimiento de WP-N7. 28 archivos (11 de `main` y 17 de pruebas, 6 de ellas nuevas), +1.092/-92 | `e6aff0355` "fix(nutrition): WP-N8b/N10c/D1b — porción declarada de los platos, bases de plato por contexto, partes del sándwich, elipsis de núcleo, rendimiento del pescado graso, natillas y legumbres secas" |
 
-Nota sobre las horas: las de los gates 3 a 30b son las marcas de creación (inicio) y de última escritura (fin) de los
+Nota sobre las horas: las de los gates 3 a 31 son las marcas de creación (inicio) y de última escritura (fin) de los
 logs de cada gate (no versionados), en hora local; incluyen los pasos previos a Gradle (aplicar el parche y esperar el
 candado de Gradle o a que `classes.jar` quede libre). Las filas de los gates 3 a 18 se corrigieron con los logs: las
 horas anotadas durante la ejecución diferían de las que muestran los logs y los commits hasta 13 minutos en los gates 3
@@ -1261,25 +1300,33 @@ Detalle del gate 1:
 - Pendiente de la fase 1A: `bumpCatalogGeneration` (cerrado con WP-S4 en el gate 6) y `verifyDatasetKnowledge`
   (WP-S10/S11); ver «Límites».
 
-Avance acumulado (gates 1 a 30b):
+Avance acumulado (gates 1 a 31):
 
 - Paquetes cerrados: 44 de los 45 del plan, más S2b (añadido en la ejecución): WP-0; N0 a N13 (N13: secciones 1 a 3); S1
   a S11 y S2b; U1 a U17; D1. Por bloque: WP-0 1/1, N 14/14, S 11/12 más S2b, U 17/17, D 1/1.
-- Pendiente del plan (1): S12 (diferido por diseño). Seguimientos cerrados, fuera del plan: N10b, N11b, S9b, S10a, S10c
-  y N12b; en curso: N8b (lanzado tras el gate 29 contra el backlog del corpus ciego); abiertos: N10c, S1b, D1b y las
-  secciones 4 a 6 de N13 (rendimientos, factores y aceite de cocción; alias; perfiles heurísticos), que llegan por
-  incrementos (ver «Límites» y «Corpus ciego permanente»).
+- Pendiente del plan (1): S12 (diferido por diseño). Seguimientos cerrados, fuera del plan: N10b, N10c (dentro de N8b),
+  N11b, N12b, S9b, S10a, S10c, D1b (dentro de N8b, parcial) y N8b. Abiertos: las secciones 4 a 6 de N13 (rendimientos,
+  factores y aceite de cocción; alias; perfiles heurísticos), que llegan por incrementos; S1b; los seguimientos de N7
+  (el par de métodos de `NavigationBus` y el `DisposableEffect` de `MainActivity.kt`, `RetrievalResult.portionPriors` y
+  `MealTemplate`); y las 9 menciones del corpus ciego que siguen fuera de banda (las densidades de `cl029` y `cl023`,
+  las dos bolas de helado, el plural pelado de huevos, que es una decisión de producto, "tres leches" con 100 g, las
+  kcal de los champiñones y la pregunta de #11); ver «Límites» y «Corpus ciego permanente».
 - Sonda: idéntica a la línea base (120/120) en los gates 2, 3 y 6; en el gate 7 mejora en 11 casos y el gate 11 repite
   esa salida; tras el gate 14 difiere de la línea base en 27 casos, con WP-N6/N8 en 30, con WP-N10 en 37, con WP-N9 en
   42, tras el gate 23 en 45, con WP-N11 en 47 y con WP-N11b en 48 (42 en la línea de resultado y 6 solo en campos
-  internos); los gates 19 y 23 no cambian ninguna línea, el gate 25 deja la sonda idéntica a la de WP-N11 y los gates
-  28, 29 y 30b a la de WP-N11b. Con WP-N11 y WP-N11b ningún caso pierde una ficha ni gana un fantasma frente a la línea
-  base: #10, que WP-N9 dejó como una mención sin ficha, vuelve a resolver (`gen193`) (ver «Línea base»).
+  internos) y con WP-N8b en 52 (50 y 2); los gates 19 y 23 no cambian ninguna línea, el gate 25 deja la sonda idéntica a
+  la de WP-N11 y los gates 28, 29 y 30b a la de WP-N11b (el gate 31 es el de WP-N8b). Con WP-N11 y WP-N11b ningún caso
+  pierde una ficha ni gana un fantasma frente a la línea base: #10, que WP-N9 dejó como una mención sin ficha, vuelve a
+  resolver (`gen193`); con WP-N8b solo #49 cambia una identidad equivocada (`gen047`) por una estimación con nombre (ver
+  «Línea base»).
 - Cobertura del catálogo estático: de 118/174 términos con ficha en WP-0 a 169/174 tras WP-D1 (gate 19; criterio de
   frase completa, más estricto que el grep de WP-0); quedan sin ficha mate, tallarines, negrita, pre entreno y pap (ver
   «Sonda de cobertura de términos cotidianos»).
 - Precisión@1 de identidad: 45/47 en la línea base y en el gate 11; 48/50 en los gates 12 y 14; 49/50 en el gate 24 y,
-  desde WP-N12, como aserción dura (49/50 como mínimo) verde en el gate 27b.
+  desde WP-N12, como aserción dura (49/50 como mínimo) verde en los gates 27b y 31.
+- Corpus ciego permanente (identidad, cobertura, gramos, kcal y pregunta, en %): 97,6, 100, 78,3, 63,9 y 95,2 con WP-N12
+  (gate 26); 97,6, 100, 83,1, 68,7 y 95,2 con WP-N11b (gate 27b); 100, 100, 96,4, 90,4 y 97,6 con WP-N8b (gate 31). Los
+  cinco superan los mínimos del plan (90, 90, 80, 80 y 90) y el test los exige en 90, 90, 95, 90 y 90.
 - Gate 4: el fallo fue de infraestructura (`classes.jar` bloqueado por un arnés externo); el gate 4b es la repetición
   verde del mismo paquete (S5).
 - Gate 12: el fallo fue de comportamiento (`SearchGoldenCorpusTest` #36 "coca cola": la ficha genérica `gen146` con alias
@@ -1307,6 +1354,8 @@ Avance acumulado (gates 1 a 30b):
   el asset de conocimiento de WP-N13 (`food_knowledge_v1.json`, contrato en `docs/contracts/food_knowledge_v1.md`),
   incluida su sección 3 (`dishCompositions` y `recipeNotes`; el asset pasó de 12 a 75 KB).
   `docs/ANDROID_ARCHITECTURE_MAP.md` ya no nombra `CookingMethodParser.kt` (retirado por WP-N7).
+  `android-native/PLAN_FOOD_IA_ALIKE.md` y `docs/PLAN_MAESTRO_SISTEMA_JSONL.md` llevan una nota fechada en cada mención
+  de lo que WP-N7 retiró, y `.opencode/memory/MEMORY.md` una entrada nueva con el resultado de la auditoría.
 
 ## Corpus ciego permanente
 
@@ -1316,8 +1365,9 @@ Avance acumulado (gates 1 a 30b):
 USDA FoodData Central (SR Legacy y Foundation), la tabla chilena INTA (marraqueta, 272 kcal/100 g), tablas publicadas de
 platos chilenos y la suma de componentes USDA en los platos compuestos. Cada mención lleva su masa y su energía de
 referencia y la fuente de esa energía (`kcalSource`), que quedan en el informe
-`app/build/reports/nutrition-reliability/blind-corpus.json` (de build, no versionado). El libro primario del INTA no
-está disponible sin conexión: se cita su copia pública, no se verificó.
+`app/build/reports/nutrition-reliability/blind-corpus.json` (de build, no versionado; el del estado final, gate 31, está
+versionado como `blind-corpus-final.json` en esta carpeta). El libro primario del INTA no está disponible sin conexión:
+se cita su copia pública, no se verificó.
 
 - **Alcance.** 60 casos y 83 menciones, con cinco dimensiones contadas por separado: identidad (por mención: la fila
   resuelta es el id esperado, y una mención sin fila debe seguir siendo una estimación con nombre), cobertura (por
@@ -1332,40 +1382,60 @@ está disponible sin conexión: se cita su copia pública, no se verificó.
 
 Resultado frente a los criterios de cierre del plan (punto 1 de «Criterios de cierre»):
 
-| Dimensión | Mínimo del plan | Umbral del test | Antes de WP-N11b (gate 26, N12 sola) | Tras WP-N11b (gate 27b) | Frente al plan |
-|---|---|---|---|---|---|
-| Identidad | 90 % | 90 | 81/83 = 97,6 % | 81/83 = 97,6 % | cumple |
-| Cobertura | 90 % | 90 | 60/60 = 100 % | 60/60 = 100 % | cumple |
-| Gramos | 80 % | 75 | 65/83 = 78,3 % | 69/83 = 83,1 % | cumple tras WP-N11b |
-| kcal | 80 % | 60 | 53/83 = 63,9 % | 57/83 = 68,7 % | **no cumple** |
-| Pregunta | 90 % | 90 | 79/83 = 95,2 % | 79/83 = 95,2 % | cumple |
+| Dimensión | Mínimo del plan | Umbral del test (final) | Antes de WP-N11b (gate 26, N12 sola) | Tras WP-N11b (gate 27b) | Tras WP-N8b (gate 31) | Frente al plan |
+|---|---|---|---|---|---|---|
+| Identidad | 90 % | 90 | 81/83 = 97,6 % | 81/83 = 97,6 % | 83/83 = 100 % | cumple |
+| Cobertura | 90 % | 90 | 60/60 = 100 % | 60/60 = 100 % | 60/60 = 100 % | cumple |
+| Gramos | 80 % | 95 | 65/83 = 78,3 % | 69/83 = 83,1 % | 80/83 = 96,4 % | cumple tras WP-N8b |
+| kcal | 80 % | 90 | 53/83 = 63,9 % | 57/83 = 68,7 % | 75/83 = 90,4 % | cumple tras WP-N8b |
+| Pregunta | 90 % | 90 | 79/83 = 95,2 % | 79/83 = 95,2 % | 81/83 = 97,6 % | cumple |
 
-Identidad, cobertura y pregunta usan como umbral el mínimo del plan (90); gramos (75) y kcal (60) quedan en el piso
-medido, porque estaban por debajo del mínimo de 80 %. Tras WP-N11b los gramos superan el mínimo y las kcal no (68,7 %
-frente a 80 %). El informe sugiere subir los umbrales a 80 (gramos) y 65 (kcal), pero el test los conserva en 75 y 60.
+Identidad, cobertura y pregunta usan como umbral el mínimo del plan (90). WP-N12 dejó gramos (75) y kcal (60) en el piso
+medido, porque estaban por debajo del mínimo de 80 %; tras WP-N8b los cinco superan los mínimos del plan y el test sube
+esos dos umbrales a 95 y 90, el piso medido redondeado hacia abajo a un múltiplo de 5, para que ninguna regresión
+posterior pase inadvertida. Los cuatro modos dan el mismo resultado.
 
-**Casos que fallan, por causa.** Tras WP-N11b fallan 2 menciones en identidad, 14 en gramos, 26 en kcal y 4 en pregunta;
-la referencia de cada una está en el informe y se reparten en seguimientos:
+**Casos que fallan, por causa.** Tras WP-N8b fallan 0 menciones en identidad, 3 en gramos, 8 en kcal y 2 en pregunta; en
+total son 9 de las 83 menciones fuera de banda (frente a 28 tras WP-N11b), con la referencia de cada una en el informe:
 
-- **WP-N8b, porciones por defecto.** Un plato nombrado sin «un plato de» toma 99 g ("porotos con riendas" #40,
-  referencia 350 g; "lentejas" #41 y "un guiso de lentejas" #13: 99 y 120 g frente a 198 g). Otras porciones lejos de la
-  referencia: "ensalada de repollo" 350 g frente a 150 g (#26), "asado" 100 g frente a 150 g (#12), "plato grande de
-  arroz" 150 g frente a 296 g (#20), "un pan con queso" 40 g frente a 130 g (#54), mantequilla 15 g frente a 10 g (#46)
-  y "tres leches" 100 g frente a 150 g (#27). Los componentes del sándwich usan porciones sueltas: pan 100 g y jamón
-  100 g frente a 60 g y 40 g (#28). Un plural pelado ("wevos", "huevos revueltos") vale un huevo (#25 y #32; la
-  referencia pide al menos dos: decisión de producto).
-- **WP-N8b, identidad.** #49 "empanada de queso" resuelve a `gen047` (queso cheddar) en lugar del plato (30 g/121 kcal
-  frente a 180 g/380 kcal, y sin pregunta); #59 "yogur griego" queda sin resolver (se esperaba `gen017`).
-- **WP-N10c, cocción.** #49 "empanada de pino al horno" aplica x1,15 a una fila de plato ya horneado (518 kcal frente a
-  430); #4 "150 g salmón a la parrilla": la conversión única crudo a cocido da 400 kcal frente a 309 (USDA, salmón
-  cocido: 206 kcal/100 g), porque el pescado graso y las carnes conservan las kcal por gramo al cocinarse (pierden
-  grasa) y el modelo de rendimiento las sobreestima.
-- **WP-D1b, datos.** `cl007` "porotos granados" tiene 149 kcal/100 g, que parece alto (#39: 522 kcal frente a 347).
-- **Sin causa asignada todavía** (solo kcal): #1 (450 kcal frente a 356), #8 "pollo a la plancha" (266 frente a 214,5) y
-  "papas a lo pobre" (206 frente a 630), #10 (207 frente a 279: la referencia cuenta dos bolas de 66 g), #22 (195 frente
-  a 252), #33 (101 frente a 70) y el arroz de #41, #48 y #60 (315 frente a 260).
-- **Pregunta.** Se pregunta sin que la referencia lo pida en #11 "arroz" (mitad del plato), #27 y #59, y no se pregunta
-  en #49 "empanada de queso".
+- **Densidad de dos filas del catálogo** (kcal; sin paquete asignado). `cl029` "porotos con riendas" da 450 kcal por
+  350 g (128,6 kcal/100 g) frente a 355,6 de la referencia (101,6 kcal/100 g), en #1 y #40; `cl023` "arroz con leche" da
+  220 kcal por 200 g (110 kcal/100 g) frente a 292 (146 kcal/100 g) en #48.
+- **Dos bolas de helado** (kcal, #10). "helado de vainilla y chocolate" da `gen193` 100 g/207 kcal; la referencia cuenta
+  dos sabores como dos bolas de 66 g (132 g/279,2 kcal).
+- **Plural pelado de huevo** (gramos y kcal, #25 y #32; decisión de producto). "wevos" y "huevos revueltos" valen un
+  huevo (50 g; 77 y 95 kcal) y la referencia pide al menos dos (100 g; 155 y 185 kcal).
+- **"Tres leches"** (gramos, kcal y pregunta, #27). Da `sn_cr_tresleches` 100 g/280 kcal frente a una tajada de
+  150 g/445,5 kcal, y sigue en NEEDS_REVIEW con una pregunta de identidad que la referencia no pide.
+- **Champiñones salteados** (kcal, #33). "100 g champiñones salteados" da `gen038` 101 kcal frente a 70 (FNDDS:
+  champiñones cocidos con aceite, sin cantidad de aceite declarada); la referencia sí pide la pregunta.
+- **Pregunta** (#11). "arroz (mitad del plato)" pregunta aunque la referencia no lo pide (100 g de arroz cocido,
+  130 kcal).
+
+**Lo que corrigió WP-N8b (con N10c y D1b).** Salen de la lista 20 de las 28 menciones que fallaban tras WP-N11b (casos
+#4, #8, #12, #13, #20, #22, #26, #28, #39, #41, #46, #48 (arroz), #49, #54, #59, #60) y entra #48 "un arroz con leche"
+(la porción pasa a los 200 g de la referencia, pero la fila `cl023` queda en 110 kcal/100 g frente a 146):
+
+- **Porciones declaradas.** Un plato con nombre y sin cantidad toma su porción declarada: legumbres cocidas 198 g (la
+  taza USDA), ensalada sola 150 g y como guarnición 99 g, manjar y dulce de leche 20 g.
+- **Bases de plato.** Los platos con nombre toman una base por rol (almidón 190 g, proteína 125 g, guarnición 90 g;
+  grasa en comida 10 g); "asado" suelto 150 g, "papas a lo pobre" 250 g con perfil propio y "plato grande de arroz" sin
+  artículo, un plato x1,25.
+- **Sándwich.** Se reparte en partes: pan 60 g, fiambre 40 g, queso 30 g, ave, carne o atún 60 g, palta 60 g, otro
+  relleno 40 g; las salsas se limitan a una cucharada.
+- **Identidad.** "una de queso" tras "una empanada de pino" hereda la cabeza; un plato protegido no acepta el nombre de
+  una fila más larga salvo alias declarado ("empanada de queso" queda como estimado de 180 g con pregunta); "yogur
+  griego" (`gen017`) y "yogur natural" (`gen087`) tienen alias, "mayo" es Mayonesa y "hotdog" es "hot dog".
+- **Pieza de manzana (#22).** La pieza pasa de 150 a 182 g (USDA, manzana mediana, FDC 171688): "2 manzanas grandes" dan
+  455 g/237 kcal frente a 484 g/251,7 kcal de la referencia.
+- **Cocción (WP-N10c).** La regla de factor por método no se aplica a platos completos ("empanada de pino al horno",
+  450 kcal) y el rendimiento del pescado graso crudo (10 g/100 g de grasa o más) se limita a 0,95: el salmón de 150 g
+  pasa de 400 a 328 kcal (USDA: 208 kcal/100 g crudo y 206 cocido).
+- **Natillas y bebidas.** Un flan, una mousse o un budín usan el perfil de natilla CUSTARD (145 kcal/100 g, con rango
+  con fuente) en lugar de la densidad de postre (310); una lata de bebida con marca conserva su envase junto a un plato.
+- **Datos (WP-D1b, parcial).** `cl007` "porotos granados" baja de 149 a 99 kcal/100 g (suma de componentes USDA) y
+  entran `gen031c` (poroto negro seco, 341 kcal) y `gen013c` (garbanzo seco, 378 kcal), con alias "seco" y "crudo";
+  "garbanzos secos" ya no apunta al garbanzo cocido.
 
 **Otros cambios de WP-N12 y N12b.**
 
@@ -1381,6 +1451,99 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   un presupuesto de 50 ms escalado por un factor de carga (nunca menor que 1; con carga mayor que x8 se omite por
   `Assume`); la precisión@1 pasa a aserción dura de 49/50 como mínimo.
 
+## Cierre
+
+Cierre de la ejecución del plan: 44 de los 45 paquetes cerrados (queda WP-S12, diferido por diseño: solo se activa si la
+búsqueda en dispositivo supera 150 ms) más WP-S2b y los seguimientos que salieron en el camino (ver «Avance acumulado»),
+en 37 corridas de gate (28 verdes, 6 fallidas y 3 que no llegaron a correr; ver «Registro de ejecución»). Esta sección
+compara el estado final con el de partida y contrasta cada criterio de cierre del plan con lo medido. La evidencia
+versionada es `blind-probe-baseline.json` (línea base, gate 1), `blind-probe-final.json` y `blind-corpus-final.json`
+(estado final, gate 31), todos en esta carpeta; los informes de build y los logs de los gates no se versionan.
+
+### Antes y después
+
+**Pruebas JVM.** 719 tests verdes en las suites de nutrición, food y repos al partir (2026-10-02); 1.858 tests en 129
+suites con los filtros del gate 31 (que incluyen también `screens.nutrition.*`), con 0 fallos.
+
+**Sonda de 60 descripciones** (`BlindMealCorpusProbeTest`: 60 entradas x 2 pasadas, con y sin el snapshot del dataset).
+Frente a la línea base del gate 1, el estado final cambia la línea de resultado de 50 entradas y otras 2 solo en campos
+internos (#31, #56); las dos pasadas coinciden y no hay errores ni entradas sin tags. Una entrada cambia una identidad
+equivocada por una estimación con nombre: #49 pierde `gen047` (queso cheddar, 30 g/121 kcal) para "una de queso" y gana
+el estimado «empanada de queso» de 180 g/417,6 kcal con pregunta de identidad, que es lo que pide la referencia del
+corpus ciego; el resto no pierde una ficha ni gana un fantasma. Los fantasmas (ítems «(estimado)» sin ficha, con valores
+provisionales) pasan de 28 a 4: la línea base tenía 14 con los valores de un plato genérico (160 kcal/100 g) y 10 de
+500 kcal o más (hasta 1.200 kcal), 11.676 kcal en total; el estado final no tiene ninguno del plato genérico y solo
+«papa a lo pobre» (#8, 617,5 kcal, 247 kcal/100 g, un perfil con fuente) de 500 kcal o más, y suma 1.536 kcal. En la
+pasada A los tiempos de la sonda en la JVM (que varían con la carga del equipo) pasan de p50 19 ms, p95 55 ms y máximo
+63 ms a 6, 35 y 40 ms, y las fichas indexadas de 490 a 546. Casos de cabecera:
+
+| # | Entrada | Línea base (gate 1) | Estado final |
+|---|---|---|---|
+| 1 | "almorcé un plato de porotos con riendas y un pan con palta, después un café con leche" | `gen135` Porotos (cocidos) 212,5 g/298 kcal + fantasma «riendas (estimado)» 40 g/64 kcal [NEEDS_REVIEW] + `cl025` Pan con Palta 120 g/280 kcal + fantasma «después 1 café con leche (estimado)» 40 g/24,8 kcal [NEEDS_REVIEW] | `cl029` Porotos con Riendas 350 g/450 kcal + `cl025` Pan con Palta 120 g/280 kcal + `gen145` Café con leche 247,2 g/91 kcal |
+| 2 | "2 yogures y 3 tomates" | `gen087` Yogurt Natural 200 g/118 kcal + fantasma «tomat (estimado)» 100 g/160 kcal [NEEDS_REVIEW] | `gen087` Yogurt Natural 250 g/148 kcal + `gen026` Tomate 360 g/65 kcal |
+| 3 | "un vaso de agua" | fantasma «agua (estimado)» 250 g/400 kcal [NEEDS_REVIEW] | `gen143` Agua 250 g/0 kcal |
+| 4 | "150 g salmón a la parrilla" | `gen009` Salmón (crudo) 150 g/420 kcal | `gen009` Salmón (crudo) 150 g/328 kcal |
+| 6 | "al menos 2 huevos" | fantasma «al (estimado)» 350 g/560 kcal [NEEDS_REVIEW] + `gen007` Huevo Entero (cocido) 100 g/154 kcal [excluido] | `gen007` Huevo Entero (cocido) 100 g/154 kcal |
+| 7 | "Desayuno: 2 huevos. Almuerzo: arroz con pollo." | fantasma «desayuno: 2 huevos. almuerzo: arroz (estimado)» 198 g/306,9 kcal [NEEDS_REVIEW] + `gen004` Pechuga de Pollo (cocida) 126 g/209 kcal [NEEDS_CONFIRMATION] | `gen007` Huevo Entero (cocido) 100 g/154 kcal + `gen005` Arroz Blanco (cocido) 171 g/222 kcal + `gen004` Pechuga de Pollo (cocida) 112,5 g/187 kcal [NEEDS_CONFIRMATION] |
+| 10 | "helado de vainilla y chocolate" | fantasma «helado de vainilla (estimado)» 100 g/160 kcal [NEEDS_REVIEW] + `gen141` Chocolate de mesa 25 g/136 kcal | `gen193` Helado 100 g/207 kcal |
+| 12 | "asado" | `gen093c` Asado de Tira (crudo) 100 g/250 kcal | `gen093c` Asado de Tira (crudo) 150 g/536 kcal |
+| 28 | "un sandwich de jamón y queso y una coca cola" | `gen019` Pan Blanco 100 g/265 kcal + `gen094` Jamón Cocido 100 g/107 kcal + `gen047` Queso Cheddar 30 g/121 kcal | `gen019` Pan Blanco 60 g/159 kcal + `gen094` Jamón Cocido 40 g/43 kcal + `gen047` Queso Cheddar 30 g/121 kcal + `off_coca_cola_original_350ml` Coca-Cola Original 350 ml 350 g/147 kcal |
+| 40 | "porotos con riendas" | `gen135` Porotos (cocidos) 99 g/139 kcal + fantasma «riendas (estimado)» 99 g/158,4 kcal [NEEDS_REVIEW] | `cl029` Porotos con Riendas 350 g/450 kcal |
+
+**Corpus ciego permanente** (`BlindMealCorpusTest`: 60 casos y 83 menciones, con referencias externas al motor; ver
+«Corpus ciego permanente»). Los cuatro modos (con y sin snapshot, con historial vacío y con calibración) dan el mismo
+resultado:
+
+| Dimensión | Mínimo del plan | Antes de WP-N11b (gate 26) | Tras WP-N11b (gate 27b) | Estado final (gate 31) |
+|---|---|---|---|---|
+| Identidad | 90 % | 81/83 = 97,6 % | 81/83 = 97,6 % | 83/83 = 100 % |
+| Cobertura | 90 % | 60/60 = 100 % | 60/60 = 100 % | 60/60 = 100 % |
+| Gramos | 80 % | 65/83 = 78,3 % | 69/83 = 83,1 % | 80/83 = 96,4 % |
+| kcal | 80 % | 53/83 = 63,9 % | 57/83 = 68,7 % | 75/83 = 90,4 % |
+| Pregunta | 90 % | 79/83 = 95,2 % | 79/83 = 95,2 % | 81/83 = 97,6 % |
+
+### Criterios de cierre globales
+
+Los cuatro criterios del plan (ver «Criterios de cierre»), desglosados por cláusula, con su estado al cierre.
+«Pendiente» es lo que no se pudo ejecutar; «no verificado en dispositivo en esta sesión» es lo que solo tiene evidencia
+de pruebas unitarias. Las pruebas de `data.db`, `navigation` y `domain.auge` no están en los filtros de los gates
+finales: su último resultado verde es el del gate que se indica, y ni su código ni sus pruebas cambiaron después.
+
+| Plan | Criterio | Resultado | Estado | Evidencia o límite |
+|---|---|---|---|---|
+| 1 | `BlindMealCorpusTest`: identidad >= 90 % | 83/83 = 100 % | cumple | umbral del test 90 %; la misma cifra en los cuatro modos |
+| 1 | cobertura >= 90 % | 60/60 = 100 % | cumple | umbral 90 %; por descripción: cada mención tiene su tag y no sobra ninguno |
+| 1 | gramos >= 80 % | 80/83 = 96,4 % | cumple | umbral del test 95 % (±25 % de la referencia) |
+| 1 | kcal >= 80 % | 75/83 = 90,4 % | cumple | umbral del test 90 % (±20 % de la referencia) |
+| 1 | preguntas >= 90 % | 81/83 = 97,6 % | cumple | umbral 90 % |
+| 1 | `SearchGoldenCorpusTest` 44/44 | 58/58, sin `@Ignore` | cumple | el plan fijaba 44 consultas; 49 tests en el gate 11 (WP-S2, con 1 `@Ignore`), 51 desde WP-S2b y 51/51 sin `@Ignore` en el gate 15b (WP-S6), 58 desde WP-S9b (gate 28) |
+| 2 | Suite nutricional filtrada verde (719 + nuevos; golden parametrizado ~1.040) | 129 suites, 1.858 tests, 0 fallos (gate 31) | cumple | `GoldenCorpusTest` parametrizado: 320 pruebas (eran 4); filtros del gate 31 en su fila del Registro |
+| 2 | `NutritionMetricsContractTest` precisión@1 >= 45/47 | 49/50 | cumple | aserción dura de 49/50 como mínimo desde WP-N12 (la línea base era 45/47) |
+| 2 | Instrumentados `FoodParserAndroidTest`, `FoodLoggerDrawerDraftUiTest` y `NutritionMigrationTest` verdes | no ejecutados (7 tests) | **pendiente** | cuatro intentos el 2026-10-03: el proceso de la aplicación no terminó de arrancar en el AVD (ANR de arranque); ver «Pruebas instrumentadas (cierre)». La divergencia de `\b` sigue INFERIDA |
+| 3 | Arranque en caliente sin abrir CSV y `phase1.published` < 400 ms | sin medición en dispositivo | no verificado en dispositivo en esta sesión | `NutritionRepositoryStartupTest` (14, gate 31): con la meta vigente se pide un solo asset, el manifiesto, y ningún CSV, y las filas del usuario y el catálogo estático se publican con la importación suspendida; los 400 ms no están medidos |
+| 3 | Búsqueda < 150 ms | sin medición en dispositivo | no verificado en dispositivo en esta sesión | ninguna prueba mide la latencia de la búsqueda; E16 mide la resolución de descripciones (p95 < 50 ms en la JVM) y `DatasetKnowledgeIntegrationTest` la recuperación del dataset (p95 < 10 ms). Por eso WP-S12 sigue diferido |
+| 3 | Sin triggers `global_foods_ai/ad/au` | sin comprobación en dispositivo | no verificado en dispositivo en esta sesión | `GlobalFoodsFtsTriggerHygieneTest` (6, Robolectric; último verde en el gate 18): los triggers heredados se borran al abrir la base y el índice FTS se reconstruye sin duplicados |
+| 3 | Medianoche con la app viva muestra el día nuevo | sin comprobación en dispositivo | no verificado en dispositivo en esta sesión | `NutritionViewModelTest` ("selected date follows today across a simulated midnight" y "midnight ticker moves today without any screen call", gate 31) y `NutritionDayBoundaryTest` (6: huso local y cambios de hora) |
+| 3 | El widget abre el logger | sin comprobación en dispositivo | no verificado en dispositivo en esta sesión | `NutritionActionRoutingTest` (7, último verde en el gate 8): los alias de registro abren el logger en la pestaña de descripción y los de búsqueda en la de búsqueda, y ningún destino vuelve a la ruta de acción |
+| 3 | AUGE deja de decir «Sin comidas en la ventana» con comidas registradas | sin comprobación en dispositivo | no verificado en dispositivo en esta sesión | `NutritionRecoveryEngineTest` (7, verde en el gate 1): una comida con la fecha en el formato del drawer cuenta dentro de la ventana y una fecha malformada se ignora sin lanzar |
+| 4 | Ningún ítem desconocido produce fantasmas de ~560 kcal ni rangos 0-900 kcal/100 g en totales; «un vaso de agua» = 0 kcal | fantasmas de la sonda: de 28 a 4; los del plato genérico (160 kcal/100 g), de 14 a 0; los de 500 kcal o más, de 10 a 1 | cumple | sonda #3, #17 y #45: `gen143` Agua 0 kcal AUTO; el que queda de 500 kcal o más es «papa a lo pobre» (617,5 kcal), con un perfil propio de 247 kcal/100 g y no el plato genérico; los perfiles heurísticos con evidencia llevan un rango con fuente en lugar de 0-900 (DESSERT desde WP-N11, CUSTARD desde WP-N8b); el corpus ciego exige cobertura 60/60, sin tags de más |
+
+### Decisiones pendientes tras el cierre
+
+- **Redacción de `CLAUDE.md:56`.** Dice «~80 MB food CSVs»; tras WP-S11 `food_data/` pesa ~72 MB y las 20 tablas FDC sin
+  uso viven en `android-native/datasets/usda_fdc_raw/`. Ni los escritores ni esta auditoría lo tocan (política); texto
+  propuesto: «~72 MB food CSVs (7 CSV + json/bin; las 20 tablas FDC sin uso están en
+  android-native/datasets/usda_fdc_raw/)».
+- **Plural pelado de contables.** «wevos» y «huevos revueltos» valen un huevo (#25 y #32); la referencia del corpus pide
+  al menos dos. Decisión de producto.
+- **`DATA_VERSION` 11.** WP-S9b la subió de 10 a 11 porque cambió el modo de importar y los CSV no (la huella del
+  manifiesto sigue igual): las instalaciones existentes reimportan el catálogo en el primer arranque tras actualizar.
+- **Densidad de `cl029` y `cl023`.** Las filas del catálogo chileno difieren de la referencia USDA (128,6 frente a
+  101,6 kcal/100 g en "porotos con riendas"; 110 frente a 146 en "arroz con leche"): corregirlas o aceptar la diferencia
+  es una decisión de datos, sin paquete asignado.
+- **Instrumentados.** Repetir la corrida de los 7 tests con APK recompilados (ver «Pruebas instrumentadas (cierre)»);
+  queda a decisión del usuario por el tope de iteraciones.
+
 ## Límites
 
 - **Sin QA en dispositivo ni en emulador.** Los gates registrados son pruebas JVM bajo Gradle; no hay QA de dispositivo
@@ -1392,8 +1555,8 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   ninguno corrió: cuatro intentos el 2026-10-03 en un AVD propio no llegaron a ejecutar ningún test, porque el proceso
   de la aplicación no terminó de arrancar (ver «Pruebas instrumentadas (cierre)»). Quedan sin medir el criterio de
   cierre 2 (instrumentados verdes) y el 3 (en dispositivo), y la divergencia de `\b` sigue INFERIDA. Los APK instalados
-  en el AVD son anteriores a WP-N7 y a WP-N13 (3): hay que recompilarlos antes de repetir. Repetir queda a decisión del
-  usuario (tope de iteraciones).
+  en el AVD son anteriores a WP-N7, WP-N13 (3) y WP-N8b: hay que recompilarlos antes de repetir. Repetir queda a
+  decisión del usuario (tope de iteraciones).
 - **Sonda WP-N0.** Corrió bajo Gradle (`BlindMealCorpusProbeTest` 2/2, gate 1) y su salida es la línea base oficial, que
   sigue siendo la referencia para el delta final. Los `expect` de las 60 descripciones son objetivos posteriores a la
   remediación y la sonda no los afirma. La divergencia de `\b` no se puede medir en la JVM (entrada #34): WP-N4 (gate 7)
@@ -1404,9 +1567,12 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
 - **`verifyDatasetKnowledge` falla desde antes del gate 1.** `dataset_knowledge.bin` está desactualizado respecto al
   master (sha regenerado `670b30cf…` frente al del bin `64b5f971…`). Los commits de WP-S11 (gate 19) y WP-S10 (gate 23)
   no tocan el bin y ninguno de los gates registrados ejecutó esa tarea, así que sigue pendiente y sin paquete asignado.
-- **WP-N8b, en curso (lanzado tras el gate 29).** Reúne las porciones por defecto y las identidades que fallan en el
-  corpus ciego (ver «Corpus ciego permanente») y los topes por ítem, que frenan los conteos grandes ("3 completos" y "5
-  manzanas" quedan en revisión).
+- **WP-N8b, cerrado en el gate 31 (con WP-N10c y WP-D1b parcial).** Cierra las porciones por defecto, las identidades y
+  la cocción que el corpus ciego tenía abiertas, y los restos de WP-N11b (natillas, cola junto a un plato, manjar,
+  `hotdog` y `mayo`); quedan 9 menciones fuera de banda: las densidades de `cl029` y `cl023`, las dos bolas de helado,
+  el plural pelado de huevos (decisión de producto), "tres leches" con 100 g, las kcal de los champiñones y la pregunta
+  de #11 (ver «Corpus ciego permanente»). Los topes por ítem, que frenan los conteos grandes ("3 completos" y "5
+  manzanas" quedan en revisión), no figuran entre las causas que cerró WP-N8b y siguen abiertos.
 - **Plural corto de 3 letras.** El plural corto con conteo se corrigió en el gate 17; "tés" y "tes" sin conteo siguen
   sin resolverse.
 - **Límites de WP-U11 (gate 21), tras WP-U17.** `MealHistoryScreen` sigue de solo lectura. WP-U17 (gate 23) pasó
@@ -1434,19 +1600,13 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   (`NutritionViewModel.mealTemplates` no tiene colectores) y nada crea plantillas nuevas (`rememberMealTemplateFromLog`
   no tiene llamadores): tras retirar `findMealTemplateMatch`, darle una pantalla o retirarlo es una decisión de
   producto. El par de métodos de `NavigationBus` y el `DisposableEffect` de `MainActivity.kt` se pueden retirar cuando
-  se edite ese hub, y un comentario de `RegexEs.kt` (línea 12) aún nombra `CookingFactorsAndroidTest`.
+  se edite ese hub.
 - **WP-S1b, nuevo y pendiente.** WP-S10 encontró que, con una fila estática y una consulta con kg o litro explícito,
   `eatenGramsForSearchPick` (`HouseholdPortions.kt`) devuelve el `servingSize` de la fila (100 g) en lugar de la masa
   pedida; es la regla de S1, anterior a S10.
-- **Restos de WP-N11b (cerrado en el gate 27b).** Flan, mousse y budín usan la densidad de postre (310 kcal/100 g) y
-  necesitan un perfil de natilla; "un completo y una coca cola" sigue registrando la cola con 100 g (`ContextDetector`
-  no conoce "coca cola"); "hotdog" en una palabra cae en la fila de vienesa; el manjar toma 200 g (clasificado como
-  leche); "mayo" no tiene alias en Mayonesa.
-- **WP-N10c, nuevo y abierto.** Cocción: x1,15 sobre una fila de plato ya horneado y rendimiento de crudo a cocido que
-  sobreestima el pescado graso y las carnes (#49 y #4 del corpus ciego; ver «Corpus ciego permanente»).
-- **WP-D1b, nuevo y abierto.** Datos: `cl007` "porotos granados" con 149 kcal/100 g parece alto (#39 del corpus ciego),
-  y faltan fichas estáticas de legumbres secas (poroto negro seco, ~341 kcal/100 g): los porotos secos de USDA no se
-  pueden importar con seguridad (ver «Datos y catálogos»).
+- **WP-D1b, parcial (dentro de WP-N8b).** Corregidos `cl007` "porotos granados" (de 149 a 99 kcal/100 g) y las fichas de
+  poroto negro y garbanzo secos (`gen031c` y `gen013c`); sigue abierto que los porotos secos de USDA no se pueden
+  importar con seguridad (ver «Datos y catálogos»).
 - **Negación en la búsqueda.** `matchesDeclaredIdentity` ignora la negación: con "con sal" entra la fila "sin sal" en el
   segundo puesto (hallado por WP-S9b; sin paquete asignado).
 - **Doble fuente del conocimiento (WP-N13, secciones 1 a 3).** El asset `food_knowledge_v1.json` (75 KB, mantenido a
@@ -1460,7 +1620,7 @@ la referencia de cada una está en el informe y se reparten en seguimientos:
   código o de mediciones previas (p. ej. los 3,4 s de `resolve_tags` de ago-2026); no se midieron aquí. Los kcal de los
   fantasmas citados en «Línea base» vienen de la línea base de la sonda WP-N0 (JVM, bajo Gradle). Las mediciones reales
   en que se apoya el documento son la corrida JVM de 719 tests del 2026-10-02, la sonda de cobertura y el recuento de
-  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 30b de «Registro de ejecución».
+  fichas de `FoodDatabase.kt` (ambos de WP-0), la línea base de WP-N0 y los gates 1 a 31 de «Registro de ejecución».
 - **Sonda de cobertura.** Se calculó sobre 174 términos únicos (la lista original de 179 repetía 5) con coincidencia por
   subcadena: 10 términos quedan marcados `"trusted": false` (8 colisiones de subcadena y 2 homónimos de otro país), por
   lo que 118/174 (A o B) y 102/174 (solo A) son una cota superior de la cobertura real. Un grep por líneas no ve las 6

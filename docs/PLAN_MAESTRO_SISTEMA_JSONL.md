@@ -141,6 +141,7 @@ Puntos de emisión (en `WorkoutViewModel`, `WorkoutSetRecorder`, `WorkoutFinishC
 
 ### III. Nutrición (`area=nutrition`) — parcial, consolidar
 - NutriTelemetry ya registra el pipeline de descripción (spans de etapa, % resueltos, confianza IA, fallback). Se migra al área y se añade `analysis_verdict` final: motor usado, items resueltos/no resueltos, `reviewRequired`, divergencia macros IA vs heurística (el crash histórico del regex de `FoodTemplateMatcher` queda como caso de prueba de regresión).
+  - Nota (2026-10-03): WP-N7 de la auditoría del sistema de alimentos (`docs/audits/2026-10-food-system/README.md`) retiró los campos `engine` y `aiInferred` del evento `completed` y borró `FoodTemplateMatcher.kt`: «motor usado» ya no existe en la telemetría de descripción y el caso de regresión del regex tendrá que escribirse sobre otro parser.
 
 ### IV. Rendimiento (`area=performance`) — pendiente: instrumentar
 - `cold_start` (Application→primer frame), `screen_open` con duración por ruta.

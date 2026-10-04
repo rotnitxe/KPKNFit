@@ -291,6 +291,8 @@ Input del usuario
 | `TextNormalizer.kt` (modificado) | ~260 | ~12 | 54 emojis + 40+ typos + jerga culinaria |
 | `scripts/process-dataset.mjs` | ~350 | ~15 | Procesador JSON → Kotlin |
 
+> Nota (2026-10-03): `CookingMethodParser.kt` se borró en WP-N7 de la auditoría del sistema de alimentos (`docs/audits/2026-10-food-system/README.md`): sus 440 patrones nunca estuvieron conectados; la cocción se detecta en `FoodParser.kt` (`COOKING_PATTERNS`).
+
 ### Métricas Finales
 
 | Métrica | Antes | Después |
@@ -410,6 +412,8 @@ Input usuario
 │  - Differentiated fallback by type                         │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> Nota (2026-10-03): el recuadro `CookingMethodParser` del diagrama ya no existe: WP-N7 borró el archivo; la cocción se detecta en `FoodParser.kt` y se aplica una sola vez en `cookingTransformFor` (`MacroCalculator.kt`).
 
 ---
 
