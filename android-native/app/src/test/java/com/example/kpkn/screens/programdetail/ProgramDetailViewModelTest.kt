@@ -4,21 +4,33 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.*
+import com.example.kpkn.data.protocols.AutoregulationHook
+import com.example.kpkn.data.protocols.AutoregulationHookKind
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayRecipe
 import com.example.kpkn.data.protocols.LiftSlot
+import com.example.kpkn.data.protocols.LoadBasis
+import com.example.kpkn.data.protocols.PROTOCOL_LIBRARY
+import com.example.kpkn.data.protocols.ProgressionRule
+import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TrainingPlanRecipe
+import com.example.kpkn.data.protocols.day
 import com.example.kpkn.data.protocols.percentSets
 import com.example.kpkn.data.protocols.slot
 import com.example.kpkn.data.protocols.weekRecipe
 import com.example.kpkn.data.repository.CompetitionRepository
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
+import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.IdProvider
+import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.domain.training.PlanMaterializer
 import com.example.kpkn.domain.training.ProgramCalendarEngine
+import com.example.kpkn.domain.training.ProgramProgressEngine
+import com.example.kpkn.domain.training.TrainingMaxResolver
 import com.example.kpkn.data.preferences.programSnapshotStore
+import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.ui.components.SnackbarType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +55,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -1930,5 +1943,534 @@ class ProgramDetailViewModelTest {
             snackbarTypeFor("No se aplicó la propuesta de Remo. Ya no quedan sesiones sin entrenar donde aplicar la propuesta."),
         )
         assertEquals(SnackbarType.SUCCESS, snackbarTypeFor("Propuesta rechazada. Remo se queda como está."))
+    }
+
+    // ─── B.S5 · R-04 y R-19: «Guardar TM» y el test de 1RM recalculan las semanas pendientes ───
+
+    private class TmIds : IdProvider {
+        private var next = 0
+        override fun newId(): String = "tm-${++next}"
+    }
+
+    private fun wendlerRecipe(): TrainingPlanRecipe = PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }.recipe!!
+
+    /** 5/3/1 BBB de autor (Simple cíclico de cuatro semanas) con el cursor en la primera semana del ciclo 1. */
+    private fun wendlerProgram(id: String, profile: PowerliftingProfile): Program {
+        val materialized = PlanMaterializer.materialize(
+            Program(id = id, name = "5/3/1 $id"),
+            wendlerRecipe(),
+            CatalogCompositionTestSupport.metadata,
+            TmIds(),
+            profile = profile,
+        )
+        val first = weeksOf(materialized).first()
+        return materialized.copy(
+            runState = ProgramRunState(
+                runId = "$id-run",
+                cycleNumber = 1,
+                weekId = first.id,
+                weekInstanceId = ProgramProgressEngine.instanceIdFor(1, first.id),
+            ),
+        )
+    }
+
+    /** Un registro por sesión de [week]: la semana queda entrenada. */
+    private fun trainedLogs(program: Program, week: ProgramWeek): List<WorkoutLog> = week.sessions.map { session ->
+        WorkoutLog(
+            id = "tm-log-${session.id}",
+            programId = program.id,
+            sessionId = session.id,
+            sessionName = session.name,
+            date = "2026-09-30T10:00:00Z",
+            durationMinutes = 45,
+            weekId = week.id,
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(1, week.id),
+            cycleNumber = 1,
+            programRunId = program.runState?.runId,
+        )
+    }
+
+    /** Peso de la primera serie del T1 de [configurationId] en [week]. */
+    private fun t1Weight(week: ProgramWeek, configurationId: String): Double =
+        week.sessions.flatMap { it.allExercises() }
+            .first { it.slotRole == SlotRole.T1_MAIN && it.catalogConfigurationId == configurationId }
+            .sets.first().weight!!
+
+    /** Lo que devuelve el asistente de TM: solo 1RM con su TM hidratado y las variantes por defecto. */
+    private fun wizardProfile(squat: Double?, bench: Double?, deadlift: Double?, percent: Double = 0.90) =
+        TrainingMaxResolver.hydrateProfile(
+            PowerliftingProfile(squat1RM = squat, bench1RM = bench, deadlift1RM = deadlift),
+            percent,
+        )
+
+    @Test
+    fun updatePowerliftingProfile_merges_the_profile_and_recalculates_only_the_weeks_not_trained() = runBlocking {
+        val id = nextId()
+        // La banca trae un TM ajustado por una propuesta (110 en lugar de 108); la sentadilla, barra alta.
+        val stored = PowerliftingProfile(
+            squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0,
+            squatTM = 180.0, benchTM = 110.0, deadliftTM = 198.0,
+            squatVariant = SquatVariant.HIGH_BAR,
+        )
+        val program = wendlerProgram(id, stored)
+        repository.addProgram(program)
+        trainedLogs(program, weeksOf(program).first()).forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        // Mismo 1RM de banca y de peso muerto; otra sentadilla.
+        vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 120.0, deadlift = 220.0))
+
+        assertEquals("TM actualizado: 3 semanas recalculadas, 1 entrenada intacta", awaitSnackbar(vm))
+        val saved = repository.getProgramById(id)!!
+        val profile = saved.powerliftingProfile!!
+        assertEquals(210.0, profile.squat1RM!!, 0.0)
+        assertEquals("la sentadilla recalcula su TM", 189.0, profile.squatTM!!, 1e-9)
+        assertEquals("la banca conserva el TM ajustado", 110.0, profile.benchTM!!, 1e-9)
+        assertEquals(198.0, profile.deadliftTM!!, 1e-9)
+        assertEquals("las variantes del atleta se conservan", SquatVariant.HIGH_BAR, profile.squatVariant)
+
+        val weeksBefore = weeksOf(before)
+        val weeksAfter = weeksOf(saved)
+        assertEquals(4, weeksAfter.size)
+        assertEquals(
+            "la semana entrenada queda tal cual",
+            weeksBefore.first().sessions.map { sessionJson(it) },
+            weeksAfter.first().sessions.map { sessionJson(it) },
+        )
+        // Primera serie del T1 de cada semana: 65, 70, 75 y 40 % del TM.
+        listOf(65.0, 70.0, 75.0, 40.0).forEachIndexed { index, percent ->
+            val label = "semana ${index + 1}"
+            val squatTm = if (index == 0) 180.0 else 189.0
+            assertEquals("sentadilla $label", percent / 100.0 * squatTm, t1Weight(weeksAfter[index], CatalogIds.SQ_LOW), 1e-6)
+            assertEquals("banca $label", percent / 100.0 * 110.0, t1Weight(weeksAfter[index], CatalogIds.BP), 1e-6)
+            assertEquals("peso muerto $label", percent / 100.0 * 198.0, t1Weight(weeksAfter[index], CatalogIds.DL), 1e-6)
+        }
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+    }
+
+    @Test
+    fun updatePowerliftingProfile_with_nothing_trained_recalculates_every_week_of_the_recipe() = runBlocking {
+        val id = nextId()
+        val program = wendlerProgram(id, PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0))
+        repository.addProgram(program)
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 125.0, deadlift = 230.0))
+
+        // Sin nada entrenado se recalculan las cuatro semanas y no hay «entrenadas intactas» que contar.
+        assertEquals("TM actualizado: 4 semanas recalculadas", awaitSnackbar(vm))
+        val firstWeek = weeksOf(repository.getProgramById(id)!!).first()
+        assertEquals(0.65 * 189.0, t1Weight(firstWeek, CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.65 * 112.5, t1Weight(firstWeek, CatalogIds.BP), 1e-6)
+        assertEquals(0.65 * 207.0, t1Weight(firstWeek, CatalogIds.DL), 1e-6)
+    }
+
+    @Test
+    fun updatePowerliftingProfile_never_rebuilds_the_loop_weeks_the_athlete_added() = runBlocking {
+        val id = nextId()
+        val withLoop = LoopEngine.upsertLoop(
+            wendlerProgram(id, PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0)),
+            Loop(id = "comp", title = "Competición", type = LoopType.COMPETITION, repeatEveryXLoops = 12),
+        )
+        assertEquals("cuatro semanas de la receta y la de loop", 5, weeksOf(withLoop).size)
+        repository.addProgram(withLoop)
+        repository.flushPendingWrites()
+        val loopWeekBefore = weeksOf(repository.getProgramById(id)!!).single { it.isLoopWeek }
+        val vm = ProgramDetailViewModel(id)
+
+        vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 120.0, deadlift = 220.0))
+
+        // La semana de loop no viene de la receta: ni se reconstruye ni se cuenta como recalculada.
+        assertEquals("TM actualizado: 4 semanas recalculadas", awaitSnackbar(vm))
+        val after = weeksOf(repository.getProgramById(id)!!)
+        assertEquals(loopWeekBefore, after.single { it.isLoopWeek })
+        assertEquals(0.65 * 189.0, t1Weight(after.first(), CatalogIds.SQ_LOW), 1e-6)
+    }
+
+    @Test
+    fun updatePowerliftingProfile_leaves_the_auge_deload_block_alone() = runBlocking {
+        val id = nextId()
+        val materialized = PlanMaterializer.materialize(
+            Program(id = id, name = "Test $id"),
+            oneRmGateRecipe(),
+            CatalogCompositionTestSupport.metadata,
+            TmIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+            strict = false,
+        )
+        // La «Descarga (auto)» que inserta AUGE entre el pico y la ola no viene de la receta.
+        val (withDeload, deloadBlockId) =
+            BlockTransitionEngine.insertDeloadBlockAfter(materialized, materialized.macrocycles.first().blocks[0].id)!!
+        repository.addProgram(withDeload)
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 125.0, deadlift = 230.0))
+
+        // El pico (1 semana) y la ola (2): tres semanas de la receta; la descarga no cuenta.
+        assertEquals("TM actualizado: 3 semanas recalculadas", awaitSnackbar(vm))
+        val after = repository.getProgramById(id)!!
+        assertEquals(
+            before.macrocycles.first().blocks.first { it.id == deloadBlockId },
+            after.macrocycles.first().blocks.first { it.id == deloadBlockId },
+        )
+        val recipeWeeks = after.macrocycles.first().blocks.filter { it.id != deloadBlockId }
+            .flatMap { block -> block.mesocycles.flatMap { it.weeks } }
+        assertEquals(3, recipeWeeks.size)
+        recipeWeeks.forEach { week -> assertEquals(0.70 * 189.0, t1Weight(week, CatalogIds.SQ_LOW), 1e-6) }
+    }
+
+    @Test
+    fun updatePowerliftingProfile_for_a_program_that_no_longer_exists_reports_a_failure_in_red() = runBlocking {
+        val vm = ProgramDetailViewModel(nextId())
+
+        vm.updatePowerliftingProfile(wizardProfile(squat = 200.0, bench = 120.0, deadlift = 220.0))
+
+        val message = awaitSnackbar(vm)
+        assertEquals("No se pudo guardar el TM. El plan y el historial se conservaron.", message)
+        assertEquals(SnackbarType.DANGER, snackbarTypeFor(message))
+    }
+
+    @Test
+    fun updatePowerliftingProfile_without_a_recipe_saves_only_the_profile() = runBlocking {
+        val id = nextId()
+        repository.addProgram(makeSimpleProgram(id))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        vm.updatePowerliftingProfile(wizardProfile(squat = 200.0, bench = 120.0, deadlift = 220.0))
+
+        assertEquals("TM actualizado", awaitSnackbar(vm))
+        val saved = repository.getProgramById(id)!!
+        assertEquals(180.0, saved.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals(108.0, saved.powerliftingProfile!!.benchTM!!, 1e-9)
+        assertEquals("el plan no cambia", weeksOf(before), weeksOf(saved))
+    }
+
+    @Test
+    fun updatePowerliftingProfile_keeps_the_tm_and_flags_the_recipe_blocks_when_the_weeks_cannot_be_rebuilt() = runBlocking {
+        val id = nextId()
+        val program = wendlerProgram(id, PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0))
+        repository.addProgram(program)
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        val installed = CompositionMetadataHolder.current
+        CompositionMetadataHolder.current = null
+        val message = try {
+            vm.updatePowerliftingProfile(wizardProfile(squat = 210.0, bench = 120.0, deadlift = 220.0))
+            awaitSnackbar(vm)
+        } finally {
+            CompositionMetadataHolder.current = installed
+        }
+
+        assertEquals("TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR.", message)
+        val saved = repository.getProgramById(id)!!
+        assertEquals("el TM se guardó igual", 189.0, saved.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals("las semanas no se tocaron", weeksOf(before), weeksOf(saved))
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+    }
+
+    @Test
+    fun trainingMaxSavedMessage_agrees_in_number_and_stays_a_success() {
+        assertEquals("TM actualizado", ProgramDetailViewModel.trainingMaxSavedMessage(0, 0))
+        assertEquals("TM actualizado: 1 semana recalculada", ProgramDetailViewModel.trainingMaxSavedMessage(1, 0))
+        assertEquals("TM actualizado: 4 semanas recalculadas", ProgramDetailViewModel.trainingMaxSavedMessage(4, 0))
+        assertEquals(
+            "TM actualizado: 3 semanas recalculadas, 1 entrenada intacta",
+            ProgramDetailViewModel.trainingMaxSavedMessage(3, 1),
+        )
+        assertEquals(
+            "TM actualizado: 1 semana recalculada, 2 entrenadas intactas",
+            ProgramDetailViewModel.trainingMaxSavedMessage(1, 2),
+        )
+        assertEquals(
+            "TM actualizado: 0 semanas recalculadas, 3 entrenadas intactas",
+            ProgramDetailViewModel.trainingMaxSavedMessage(0, 3),
+        )
+        assertEquals(SnackbarType.SUCCESS, snackbarTypeFor(ProgramDetailViewModel.trainingMaxSavedMessage(3, 1)))
+    }
+
+    // El test de 1RM llega al final de un bloque de pico; la siguiente ola debe usar los 1RM nuevos.
+
+    private fun oneRmGateRecipe(): TrainingPlanRecipe {
+        fun gateDay() = day(
+            "Día A",
+            weekday = 1,
+            slots = listOf(
+                slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to 70.0, 5 to 70.0), 180, LiftSlot.SQUAT, isCompetitionLift = true),
+                slot("bp", SlotRole.T1_MAIN, CatalogIds.BP, percentSets(180, 5 to 70.0, 5 to 70.0), 180, LiftSlot.BENCH, isCompetitionLift = true),
+            ),
+        )
+        return TrainingPlanRecipe(
+            id = "one-rm-gate",
+            weeks = listOf(
+                weekRecipe(1, 0, "Pico", BlockGoal.REALIZATION, listOf(gateDay())),
+                weekRecipe(2, 1, "Ola", BlockGoal.ACCUMULATION, listOf(gateDay())),
+                weekRecipe(3, 1, "Ola", BlockGoal.ACCUMULATION, listOf(gateDay())),
+            ),
+            trainingMaxPercent = 0.90,
+            liftSlots = mapOf(LiftSlot.SQUAT to CatalogIds.SQ_LOW, LiftSlot.BENCH to CatalogIds.BP),
+        )
+    }
+
+    /** Un bloque de pico de una semana y otro de ola de dos, con el test de 1RM pendiente antes de la ola. */
+    private fun oneRmGateProgram(id: String): Program {
+        val materialized = PlanMaterializer.materialize(
+            Program(id = id, name = "Test $id"),
+            oneRmGateRecipe(),
+            CatalogCompositionTestSupport.metadata,
+            TmIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+            strict = false,
+        )
+        val first = weeksOf(materialized).first()
+        return materialized.copy(
+            runState = ProgramRunState(
+                runId = "$id-run",
+                cycleNumber = 1,
+                weekId = first.id,
+                weekInstanceId = first.id,
+                pendingAction = PendingProgramAction(
+                    type = PendingProgramActionType.CONFIRM_1RM_TEST,
+                    message = "Test de 1RM",
+                    nextBlockId = materialized.macrocycles.first().blocks[1].id,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun recordPendingOneRmTest_updates_the_profile_and_recalculates_the_weeks_after_the_test() = runBlocking {
+        val id = nextId()
+        val program = oneRmGateProgram(id)
+        repository.addProgram(program)
+        trainedLogs(program, weeksOf(program).first()).forEach { repository.addWorkoutLog(it) }
+        repository.flushPendingWrites()
+        assertEquals(
+            PendingProgramActionType.CONFIRM_1RM_TEST,
+            repository.getProgramById(id)!!.runState?.pendingAction?.type,
+        )
+        val vm = ProgramDetailViewModel(id)
+
+        vm.recordPendingOneRmTest(210.0, 125.0, 230.0)
+
+        assertEquals("1RM registrado. TM actualizado: 2 semanas recalculadas, 1 entrenada intacta", awaitSnackbar(vm))
+        val saved = repository.getProgramById(id)!!
+        val profile = saved.powerliftingProfile!!
+        assertEquals(189.0, profile.squatTM!!, 1e-9)
+        assertEquals(112.5, profile.benchTM!!, 1e-9)
+        assertEquals(207.0, profile.deadliftTM!!, 1e-9)
+        assertEquals(210.0, saved.goals?.squat1RM)
+        assertNull(saved.runState?.pendingAction)
+        val weeks = weeksOf(saved)
+        assertEquals("el pico, ya entrenado, conserva su carga", 0.70 * 180.0, t1Weight(weeks[0], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 108.0, t1Weight(weeks[0], CatalogIds.BP), 1e-6)
+        listOf(1, 2).forEach { index ->
+            assertEquals("ola, semana $index", 0.70 * 189.0, t1Weight(weeks[index], CatalogIds.SQ_LOW), 1e-6)
+            assertEquals(0.70 * 112.5, t1Weight(weeks[index], CatalogIds.BP), 1e-6)
+        }
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+    }
+
+    @Test
+    fun recordPendingOneRmTest_keeps_the_blocks_pending_when_the_weeks_cannot_be_rebuilt() = runBlocking {
+        val id = nextId()
+        repository.addProgram(oneRmGateProgram(id))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        val installed = CompositionMetadataHolder.current
+        CompositionMetadataHolder.current = null
+        try {
+            vm.recordPendingOneRmTest(210.0, 125.0, 230.0)
+        } finally {
+            CompositionMetadataHolder.current = installed
+        }
+
+        assertEquals(
+            "1RM registrado. TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR.",
+            awaitSnackbar(vm),
+        )
+        val saved = repository.getProgramById(id)!!
+        assertEquals("los 1RM se guardaron igual", 189.0, saved.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals("las semanas no se tocaron", weeksOf(before), weeksOf(saved))
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+    }
+
+    @Test
+    fun skipPendingOneRmTest_leaves_the_profile_and_the_weeks_alone() = runBlocking {
+        val id = nextId()
+        repository.addProgram(oneRmGateProgram(id))
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        vm.skipPendingOneRmTest()
+
+        val saved = repository.getProgramById(id)!!
+        assertNull(saved.runState?.pendingAction)
+        assertEquals(before.powerliftingProfile, saved.powerliftingProfile)
+        assertEquals(weeksOf(before), weeksOf(saved))
+        assertTrue(saved.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+        assertNull("saltar el test no avisa de ningún TM", vm.uiState.value.snackbarMessage)
+    }
+
+    @Test
+    fun rematerializePending_rebuilds_only_the_pending_blocks_and_clears_their_flag() = runBlocking {
+        val id = nextId()
+        val gate = oneRmGateProgram(id)
+        val waveId = gate.macrocycles.first().blocks[1].id
+        // El TM de sentadilla subió a 189 y solo la ola quedó pendiente de materializar.
+        val pending = gate.copy(
+            powerliftingProfile = gate.powerliftingProfile!!.copy(squatTM = 189.0),
+            macrocycles = gate.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.map { if (it.id == waveId) it.copy(materializationPending = true) else it })
+            },
+        )
+        repository.addProgram(pending)
+        repository.flushPendingWrites()
+        val vm = ProgramDetailViewModel(id)
+
+        vm.rematerializePending()
+
+        val weeks = weeksOf(repository.getProgramById(id)!!)
+        assertEquals("el bloque que no estaba pendiente no se reconstruye", 0.70 * 180.0, t1Weight(weeks[0], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 189.0, t1Weight(weeks[1], CatalogIds.SQ_LOW), 1e-6)
+        assertEquals(0.70 * 189.0, t1Weight(weeks[2], CatalogIds.SQ_LOW), 1e-6)
+        assertTrue(repository.getProgramById(id)!!.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+    }
+
+    @Test
+    fun rematerializePending_reports_a_failure_in_red_and_keeps_the_plan_and_the_pending_flag() = runBlocking {
+        val id = nextId()
+        val gate = oneRmGateProgram(id)
+        val waveId = gate.macrocycles.first().blocks[1].id
+        val pending = gate.copy(
+            macrocycles = gate.macrocycles.map { macro ->
+                macro.copy(blocks = macro.blocks.map { if (it.id == waveId) it.copy(materializationPending = true) else it })
+            },
+        )
+        repository.addProgram(pending)
+        repository.flushPendingWrites()
+        val before = repository.getProgramById(id)!!
+        val vm = ProgramDetailViewModel(id)
+
+        val installed = CompositionMetadataHolder.current
+        CompositionMetadataHolder.current = null
+        try {
+            vm.rematerializePending()
+        } finally {
+            CompositionMetadataHolder.current = installed
+        }
+
+        val message = awaitSnackbar(vm)
+        assertEquals("No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.", message)
+        assertEquals("el aviso se pinta como fallo", SnackbarType.DANGER, snackbarTypeFor(message))
+        assertEquals("el plan no cambió", before, repository.getProgramById(id))
+    }
+
+    // ─── B.S5 · R-03: «VER PROPUESTA» solo lleva a la pestaña Semana ───
+
+    private fun programDetailScreenSource(): String {
+        val relative = "main/java/com/example/kpkn/screens/programdetail/ProgramDetailScreen.kt"
+        val file = listOf("src/$relative", "../$relative", "app/src/$relative", "android-native/app/src/$relative")
+            .map(::File)
+            .firstOrNull { it.exists() }
+            ?: error("No se encontró ProgramDetailScreen.kt desde ${File(".").absolutePath}")
+        return file.readText()
+    }
+
+    @Test
+    fun verPropuesta_only_navigates_to_the_week_tab_and_never_accepts_the_proposal() {
+        val source = programDetailScreenSource()
+        val label = source.indexOf("Text(\"VER PROPUESTA\")")
+        assertTrue("el botón VER PROPUESTA existe", label > 0)
+        val handler = source.substring(source.lastIndexOf("TextButton(", label), label)
+
+        assertTrue(handler, handler.contains("setStructureSubTab(StructureSubTab.SEMANA)"))
+        assertFalse(handler, handler.contains("acceptAutoregulation"))
+        assertFalse(handler, handler.contains("rejectAutoregulation"))
+        // La decisión se toma en la tarjeta de propuestas de la pestaña Semana (aplicar, aceptar todo, rechazar).
+        assertTrue(
+            Regex("""if \(structureSubTab == StructureSubTab\.SEMANA\) \{\s*AutoregulationProposalsCard\(""")
+                .containsMatchIn(source),
+        )
+    }
+
+    // ─── B.S5 · usesTrainingMax: la tarjeta de TM sale con toda progresión que lo mueve ───
+
+    private fun recipeWith(
+        progression: ProgressionRule = ProgressionRule.None,
+        sets: List<SetRecipe> = emptyList(),
+        liftSlot: LiftSlot? = LiftSlot.BENCH,
+        hooks: List<AutoregulationHook> = emptyList(),
+    ): TrainingPlanRecipe = TrainingPlanRecipe(
+        id = "uses-tm",
+        weeks = listOf(
+            weekRecipe(
+                1, 0, "Base", BlockGoal.ACCUMULATION,
+                listOf(day("A", slots = listOf(slot("s1", SlotRole.T1_MAIN, CatalogIds.BP, sets, 120, liftSlot)))),
+            ),
+        ),
+        progression = progression,
+        autoregulationHooks = hooks,
+    )
+
+    @Test
+    fun usesTrainingMax_is_true_for_every_rule_that_moves_the_tm_and_for_series_prescribed_over_it() {
+        listOf(
+            ProgressionRule.CycleIncrement(2.5, 5.0),
+            ProgressionRule.WeeklyKg(mapOf(2 to 5.0)),
+            ProgressionRule.TopSetPr(),
+            ProgressionRule.RepMaxAutoregulated,
+            ProgressionRule.AmrapDrivenTm(),
+            ProgressionRule.RepTargetDrivenTm(),
+        ).forEach { rule ->
+            assertTrue("${rule::class.simpleName}", usesTrainingMax(recipeWith(progression = rule)))
+        }
+        assertTrue(usesTrainingMax(recipeWith(hooks = listOf(AutoregulationHook(AutoregulationHookKind.AMRAP_TM)))))
+        // Sin progresión, pero con series de trabajo en porcentaje del TM de un levantamiento.
+        assertTrue(usesTrainingMax(recipeWith(sets = percentSets(120, 5 to 70.0, 5 to 75.0))))
+        assertTrue("5/3/1 de autor", usesTrainingMax(wendlerRecipe()))
+    }
+
+    @Test
+    fun usesTrainingMax_is_false_when_nothing_in_the_recipe_loads_from_the_tm() {
+        assertFalse("sin series ni regla", usesTrainingMax(recipeWith()))
+        assertFalse(
+            "WeeklyPercent no tiene consumidor",
+            usesTrainingMax(recipeWith(progression = ProgressionRule.WeeklyPercent(2.5))),
+        )
+        assertFalse(
+            "series por repeticiones en reserva",
+            usesTrainingMax(recipeWith(sets = List(3) { SetRecipe(reps = 8, rir = 2, loadBasis = LoadBasis.RPE) })),
+        )
+        assertFalse(
+            "porcentaje del 1RM: su base no es el TM",
+            usesTrainingMax(recipeWith(sets = percentSets(120, 5 to 70.0, basis = LoadBasis.PERCENT_1RM))),
+        )
+        assertFalse(
+            "solo los calentamientos van en porcentaje del TM",
+            usesTrainingMax(
+                recipeWith(
+                    sets = listOf(
+                        SetRecipe(reps = 5, percent = 40.0, isWarmup = true),
+                        SetRecipe(reps = 8, rir = 2, loadBasis = LoadBasis.RPE),
+                    ),
+                ),
+            ),
+        )
+        assertFalse(
+            "un ejercicio sin levantamiento de competición no lee el TM del perfil",
+            usesTrainingMax(recipeWith(sets = percentSets(120, 5 to 70.0, 5 to 75.0), liftSlot = null)),
+        )
     }
 }

@@ -349,7 +349,18 @@ object ProgramProgressEngine {
      * caller must invoke this only after recording/confirming the test; there is
      * intentionally no automatic fallback that skips the athlete decision.
      */
-    /** Records the athlete's S/B/D result (or an explicit skip) before advancing. */
+    /**
+     * Records the athlete's S/B/D result (or an explicit skip) before advancing.
+     *
+     * R-19: un resultado registrado actualiza también [Program.powerliftingProfile], que es lo que
+     * leen las semanas por materializar: antes solo cambiaban las metas y el plan siguiente seguía
+     * con el TM viejo. Los 1RM probados se fusionan con [TrainingMaxMerge] (solo cambian los
+     * levantamientos cuyo 1RM es otro; el TM nuevo es `1RM × porcentaje` de la receta, o el 90 % sin
+     * receta). Las semanas no se reconstruyen aquí, porque para saber cuáles están entrenadas hace
+     * falta el historial: los bloques de la receta quedan con `materializationPending` y
+     * quien aplica el resultado los recalcula con la evidencia real (el botón RE-MATERIALIZAR es la
+     * red de seguridad si no puede).
+     */
     fun resolvePendingOneRmTest(
         program: Program,
         activeState: ActiveProgramState?,
@@ -365,16 +376,19 @@ object ProgramProgressEngine {
             require(resolution.deadlift1RM != null && resolution.deadlift1RM > 0.0) { "Registra un 1RM de peso muerto válido." }
         }
         val withResolution = if (resolution.status == OneRmResolutionStatus.RECORDED) {
-            program.copy(
-                goals = (program.goals ?: com.example.kpkn.data.models.ProgramGoals()).copy(
-                    squat1RM = resolution.squat1RM,
-                    bench1RM = resolution.bench1RM,
-                    deadlift1RM = resolution.deadlift1RM,
+            withTestedProfile(
+                program.copy(
+                    goals = (program.goals ?: com.example.kpkn.data.models.ProgramGoals()).copy(
+                        squat1RM = resolution.squat1RM,
+                        bench1RM = resolution.bench1RM,
+                        deadlift1RM = resolution.deadlift1RM,
+                    ),
+                    runState = run.copy(
+                        oneRmResolution = resolution,
+                        oneRmAuditTrail = run.oneRmAuditTrail + resolution,
+                    ),
                 ),
-                runState = run.copy(
-                    oneRmResolution = resolution,
-                    oneRmAuditTrail = run.oneRmAuditTrail + resolution,
-                ),
+                resolution,
             )
         } else {
             program.copy(runState = run.copy(
@@ -383,6 +397,36 @@ object ProgramProgressEngine {
             ))
         }
         return advanceAfterPendingAction(withResolution, activeState)
+    }
+
+    /**
+     * Lleva los 1RM del test al perfil de cargas (R-19) y deja pendientes de materializar los bloques de
+     * la receta, que son los que leen ese perfil. Si el perfil no cambia (el test repite los 1RM que ya
+     * tenía) no se toca nada; sin receta no hay semanas que recalcular y solo se guarda el perfil.
+     */
+    private fun withTestedProfile(program: Program, resolution: OneRmResolution): Program {
+        val tested = com.example.kpkn.data.models.PowerliftingProfile(
+            squat1RM = resolution.squat1RM,
+            bench1RM = resolution.bench1RM,
+            deadlift1RM = resolution.deadlift1RM,
+        )
+        val merged = TrainingMaxMerge.merge(
+            old = program.powerliftingProfile,
+            new = tested,
+            trainingMaxPercent = TrainingMaxMerge.trainingMaxPercentOf(program),
+        )
+        if (merged == program.powerliftingProfile) return program
+        val withProfile = program.copy(powerliftingProfile = merged)
+        val recipe = program.sourceRecipe ?: return withProfile
+        return withProfile.copy(
+            macrocycles = withProfile.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        if (block.sourceDefinitionId == recipe.id) block.copy(materializationPending = true) else block
+                    },
+                )
+            },
+        )
     }
 
     /**

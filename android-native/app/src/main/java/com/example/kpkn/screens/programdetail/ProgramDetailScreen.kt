@@ -661,8 +661,10 @@ private fun TrainingPanel(
                         Column(horizontalAlignment = Alignment.End) {
                             if (banner.requiresExplicitConfirmation) {
                                 if (banner.pendingType == PendingProgramActionType.CONFIRM_AUTOREGULATION) {
+                                    // R-03: «VER PROPUESTA» solo lleva a la pestaña Semana, donde la tarjeta
+                                    // de propuestas deja aplicar una a una, aceptar todo o rechazar. Mirar
+                                    // la propuesta nunca la acepta.
                                     TextButton(onClick = {
-                                        viewModel.acceptAutoregulation()
                                         viewModel.setStructureSubTab(StructureSubTab.SEMANA)
                                     }) {
                                         Text("VER PROPUESTA")
@@ -1420,12 +1422,38 @@ internal fun snackbarTypeFor(message: String): SnackbarType = when {
     else -> SnackbarType.SUCCESS
 }
 
-private fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPlanRecipe): Boolean {
+/**
+ * true si la receta trabaja con el TM del atleta y la tarjeta de propuestas debe mostrarlo y dejar
+ * editarlo: porque su progresión lo mueve (la del método: `CycleIncrement` y `WeeklyKg`; la de
+ * rendimiento: `TopSetPr`, AMRAP y serie al máximo), porque declara el gancho AMRAP sobre el TM o, aunque
+ * no progrese, porque alguna serie de trabajo de un levantamiento se prescribe como porcentaje del TM
+ * (`LoadBasis.PERCENT_TM`). Las recetas con porcentaje del 1RM no cuentan: su base no es el TM.
+ */
+internal fun usesTrainingMax(recipe: com.example.kpkn.data.protocols.TrainingPlanRecipe): Boolean {
     if (recipe.autoregulationHooks.any { it.kind == com.example.kpkn.data.protocols.AutoregulationHookKind.AMRAP_TM }) return true
-    val progression = recipe.progression
-    return progression is com.example.kpkn.data.protocols.ProgressionRule.RepMaxAutoregulated ||
-        progression is com.example.kpkn.data.protocols.ProgressionRule.AmrapDrivenTm ||
-        progression is com.example.kpkn.data.protocols.ProgressionRule.RepTargetDrivenTm
+    val movedByProgression = when (recipe.progression) {
+        is com.example.kpkn.data.protocols.ProgressionRule.CycleIncrement,
+        is com.example.kpkn.data.protocols.ProgressionRule.WeeklyKg,
+        is com.example.kpkn.data.protocols.ProgressionRule.TopSetPr,
+        com.example.kpkn.data.protocols.ProgressionRule.RepMaxAutoregulated,
+        is com.example.kpkn.data.protocols.ProgressionRule.AmrapDrivenTm,
+        is com.example.kpkn.data.protocols.ProgressionRule.RepTargetDrivenTm,
+        -> true
+        is com.example.kpkn.data.protocols.ProgressionRule.WeeklyPercent,
+        com.example.kpkn.data.protocols.ProgressionRule.None,
+        -> false
+    }
+    if (movedByProgression) return true
+    return recipe.weeks.any { week ->
+        week.days.any { day ->
+            day.slots.any { slot ->
+                slot.lift.liftSlot != null && slot.sets.any { set ->
+                    !set.isWarmup && set.percent != null &&
+                        set.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM
+                }
+            }
+        }
+    }
 }
 
 private fun parseIsoDate(raw: String?): LocalDate? =

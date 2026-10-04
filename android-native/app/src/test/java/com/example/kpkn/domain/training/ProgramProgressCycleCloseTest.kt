@@ -17,6 +17,8 @@ import com.example.kpkn.data.models.NativeProgressionIdentity
 import com.example.kpkn.data.models.NativeProgressionProposal
 import com.example.kpkn.data.models.NativeProgressionProposalKind
 import com.example.kpkn.data.models.NativeProgressionResolutionStatus
+import com.example.kpkn.data.models.OneRmResolution
+import com.example.kpkn.data.models.OneRmResolutionStatus
 import com.example.kpkn.data.models.PendingActionResolutionStatus
 import com.example.kpkn.data.models.PendingProgramAction
 import com.example.kpkn.data.models.PendingProgramActionType
@@ -1137,5 +1139,126 @@ class ProgramProgressCycleCloseTest {
         }
         // El índice del bloque cuenta la descarga insertada: ola 1 = 0, descarga = 1, ola 2 = 2.
         assertEquals(1, appliedProposals(enteringWave2, "author-block-b2").size)
+    }
+
+    // ─── B.S5 · R-19: el test de 1RM también actualiza el perfil de cargas ────────
+
+    /** Las dos olas con el cursor en la última semana de la ola 1 y el test de 1RM pendiente antes de la ola 2. */
+    private fun oneRmGate(base: Program = waveProgram(IncrementScope.CYCLE)): Program {
+        val weeks = weeksOf(base)
+        val wave2 = base.macrocycles.first().blocks[1]
+        return base.copy(
+            runState = ProgramRunState(
+                runId = "run_waves",
+                cycleNumber = 1,
+                weekId = weeks[1].id,
+                weekInstanceId = weeks[1].id,
+                pendingAction = PendingProgramAction(
+                    type = PendingProgramActionType.CONFIRM_1RM_TEST,
+                    message = "Test de 1RM",
+                    nextBlockId = wave2.id,
+                ),
+            ),
+        )
+    }
+
+    private fun recorded(squat: Double, bench: Double, deadlift: Double) =
+        OneRmResolution(OneRmResolutionStatus.RECORDED, squat1RM = squat, bench1RM = bench, deadlift1RM = deadlift)
+
+    @Test
+    fun a_recorded_one_rm_test_updates_the_load_profile_and_leaves_the_recipe_blocks_pending() {
+        val base = waveProgram(IncrementScope.CYCLE)
+        // La banca trae un TM ajustado (110, no 108) y el perfil no tiene peso muerto.
+        val program = oneRmGate(base.copy(powerliftingProfile = base.powerliftingProfile!!.copy(benchTM = 110.0)))
+
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(program, null, recorded(squat = 210.0, bench = 120.0, deadlift = 230.0))
+
+        val profile = result.program.powerliftingProfile!!
+        // Solo cambia el levantamiento cuyo 1RM es otro: TM = 1RM × 0,90 de la receta.
+        assertEquals(210.0, profile.squat1RM!!, 0.0)
+        assertEquals(189.0, profile.squatTM!!, 1e-9)
+        assertEquals("el 1RM de banca no cambió: conserva su TM ajustado", 110.0, profile.benchTM!!, 1e-9)
+        assertEquals(120.0, profile.bench1RM!!, 0.0)
+        assertEquals("el peso muerto entra con su TM", 230.0, profile.deadlift1RM!!, 0.0)
+        assertEquals(207.0, profile.deadliftTM!!, 1e-9)
+        // Las metas siguen guardándose y el cursor sigue avanzando al bloque siguiente.
+        assertEquals(210.0, result.program.goals?.squat1RM)
+        assertTrue(result.advancedWeek)
+        assertEquals(program.macrocycles.first().blocks[1].id, result.program.runState?.blockId)
+        assertNull(result.program.runState?.pendingAction)
+        // Las semanas no se tocan aquí (hace falta el historial para saber cuáles están entrenadas): los
+        // bloques de la receta quedan pendientes para que quien aplica el resultado las recalcule.
+        assertEquals(weeksOf(program), weeksOf(result.program))
+        assertTrue(result.program.macrocycles.flatMap { it.blocks }.all { it.materializationPending })
+    }
+
+    @Test
+    fun a_recorded_one_rm_test_without_a_recipe_creates_the_profile_at_ninety_percent_and_flags_nothing() {
+        val program = oneRmGate(waveProgram(IncrementScope.CYCLE).let { it.copy(sourceRecipe = null, powerliftingProfile = null) })
+
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(program, null, recorded(squat = 200.0, bench = 120.0, deadlift = 220.0))
+
+        val profile = result.program.powerliftingProfile!!
+        assertEquals(180.0, profile.squatTM!!, 1e-9)
+        assertEquals(108.0, profile.benchTM!!, 1e-9)
+        assertEquals(198.0, profile.deadliftTM!!, 1e-9)
+        assertTrue(result.program.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+    }
+
+    @Test
+    fun a_recorded_one_rm_test_uses_the_training_max_percentage_of_the_recipe() {
+        val base = waveProgram(IncrementScope.CYCLE)
+        val program = oneRmGate(base.copy(sourceRecipe = base.sourceRecipe!!.copy(trainingMaxPercent = 0.87)))
+
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(program, null, recorded(squat = 220.0, bench = 130.0, deadlift = 240.0))
+
+        val profile = result.program.powerliftingProfile!!
+        assertEquals(220.0 * 0.87, profile.squatTM!!, 1e-9)
+        assertEquals(130.0 * 0.87, profile.benchTM!!, 1e-9)
+        assertEquals(240.0 * 0.87, profile.deadliftTM!!, 1e-9)
+    }
+
+    @Test
+    fun a_one_rm_test_that_repeats_the_stored_one_rms_changes_nothing_and_flags_nothing() {
+        val base = waveProgram(IncrementScope.CYCLE)
+        val stored = PowerliftingProfile(
+            squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0,
+            squatTM = 181.0, benchTM = 109.0, deadliftTM = 199.0,
+        )
+        val program = oneRmGate(base.copy(powerliftingProfile = stored))
+
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(program, null, recorded(squat = 200.0, bench = 120.0, deadlift = 220.0))
+
+        assertEquals(stored, result.program.powerliftingProfile)
+        assertTrue(result.program.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+        assertTrue(result.advancedWeek)
+    }
+
+    @Test
+    fun a_skipped_one_rm_test_does_not_touch_the_load_profile() {
+        val program = oneRmGate()
+
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(program, null, OneRmResolution(OneRmResolutionStatus.SKIPPED))
+
+        assertEquals(program.powerliftingProfile, result.program.powerliftingProfile)
+        assertTrue(result.program.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+        assertEquals(weeksOf(program), weeksOf(result.program))
+    }
+
+    @Test
+    fun the_block_pending_flag_of_a_one_rm_test_only_reaches_the_blocks_of_the_recipe() {
+        val base = waveProgram(IncrementScope.CYCLE)
+        val blocks = base.macrocycles.first().blocks
+        // La «Descarga (auto)» de AUGE no viene de la receta: no se marca ni se reconstruirá.
+        val (withDeload, deloadBlockId) = BlockTransitionEngine.insertDeloadBlockAfter(base, blocks[0].id)!!
+        val program = oneRmGate(withDeload).let { gate ->
+            gate.copy(runState = gate.runState?.copy(pendingAction = gate.runState?.pendingAction?.copy(nextBlockId = blocks[1].id)))
+        }
+
+        val result = ProgramProgressEngine.resolvePendingOneRmTest(program, null, recorded(squat = 210.0, bench = 125.0, deadlift = 230.0))
+
+        val flagged = result.program.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }.map { it.id }
+        assertEquals(blocks.map { it.id }.toSet(), flagged.toSet())
+        assertFalse(deloadBlockId in flagged)
     }
 }

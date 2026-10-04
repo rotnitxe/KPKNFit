@@ -236,6 +236,12 @@ object PlanMaterializer {
             // explícita, queda registrada aquí (null = preset del plan).
             planWarmupConfig = program.planWarmupConfig ?: options.warmup,
             runState = null,
+            // H13: el run se reinicia, y con él la progresión del método. Las marcas idempotentes
+            // `author-cycle-c<N>` / `author-block-b<N>` y sus avisos de un run anterior suprimirían la
+            // primera subida de TM del plan nuevo; el resto de la receta efectiva y del registro de
+            // progresión nativa no se toca.
+            effectiveWeekRecipes = withoutAuthorMarkers(program.effectiveWeekRecipes),
+            nativeProgressionAudit = program.nativeProgressionAudit.filterNot { isAuthorProposalId(it.proposalId) },
             loops = emptyList(),
             loopState = null,
             loopOccurrences = emptyList(),
@@ -254,6 +260,26 @@ object PlanMaterializer {
             ),
         ).let { ProgramPersistNormalizer.forRoomStorage(it) }
     }
+
+    /** true si [proposalId] es la marca o el aviso de una subida de TM del método (`author-cycle-c<N>`, `author-block-b<N>`). */
+    private fun isAuthorProposalId(proposalId: String): Boolean =
+        proposalId.startsWith(AuthoredProgressionEngine.CYCLE_PROPOSAL_PREFIX) ||
+            proposalId.startsWith(AuthoredProgressionEngine.BLOCK_PROPOSAL_PREFIX)
+
+    /**
+     * Quita de las recetas efectivas las marcas idempotentes de la progresión del método. Una receta
+     * efectiva que solo existía para llevar esas marcas (sin semana efectiva ni cambios propios)
+     * desaparece; las demás conservan su semana efectiva y sus propuestas aprobadas.
+     */
+    private fun withoutAuthorMarkers(recipes: List<EffectiveWeekRecipe>): List<EffectiveWeekRecipe> =
+        recipes.mapNotNull { entry ->
+            val kept = entry.appliedProposals.filterNot { isAuthorProposalId(it.proposalId) }
+            when {
+                kept.size == entry.appliedProposals.size -> entry
+                kept.isEmpty() && entry.weekRecipe == null && entry.changes.isEmpty() -> null
+                else -> entry.copy(appliedProposals = kept)
+            }
+        }
 
     fun hydrateProfile(
         program: Program,

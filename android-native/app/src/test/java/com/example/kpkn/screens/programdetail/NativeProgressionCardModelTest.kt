@@ -237,6 +237,31 @@ class NativeProgressionCardModelTest {
     }
 
     @Test
+    fun build_titlesTheMethodNoticesByTheirPrefix() {
+        fun titleOf(id: String): String =
+            NativeProgressionCardModel.build(program(audit = listOf(notice(id, now - day, identity = null))), now)
+                .notices.single().title
+
+        // H14: la subida de TM del método al cerrar el ciclo es «Nuevo ciclo», no «Progresión de carga».
+        assertEquals("Nuevo ciclo", titleOf("author-cycle-c2"))
+        assertEquals("Nuevo ciclo", titleOf("author-cycle-c13"))
+        assertEquals("Nuevo bloque", titleOf("author-block-b1"))
+        // La continuación nativa al cambiar de ciclo sigue siendo «Nuevo bloque»; lo demás, como antes.
+        assertEquals("Nuevo bloque", titleOf("native-cycle-c2"))
+        assertEquals("Progresión de carga", titleOf("legacy"))
+        assertEquals("Progresión de carga", titleOf("p1"))
+    }
+
+    @Test
+    fun build_keepsTheExerciseNameForAMethodNoticeThatCarriesAnIdentity() {
+        val audit = listOf(notice("author-cycle-c2", now - day))
+
+        val notice = NativeProgressionCardModel.build(program(audit = audit), now).notices.single()
+
+        assertEquals("Press de banca con mancuernas", notice.title)
+    }
+
+    @Test
     fun pendingLabel_isSingularOrPlural() {
         val one = NativeProgressionCardModel.build(program(proposals = listOf(proposal("a"))), now)
         val two = NativeProgressionCardModel.build(program(proposals = listOf(proposal("a"), proposal("b"))), now)

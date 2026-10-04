@@ -1,9 +1,16 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.models.AppliedRecipeProposal
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.EffectiveWeekRecipe
+import com.example.kpkn.data.models.NativeProgressionProposalKind
+import com.example.kpkn.data.models.NativeProgressionResolution
+import com.example.kpkn.data.models.NativeProgressionResolutionStatus
 import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramGoals
+import com.example.kpkn.data.models.ProgramRunState
+import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.protocols.CatalogIds
 import com.example.kpkn.data.protocols.DayArchetypes
 import com.example.kpkn.data.protocols.LiftSlot
@@ -577,5 +584,139 @@ class PlanMaterializerTest {
         )
         val rebuiltWeek = rebuilt.macrocycles.first().blocks.first().mesocycles.first().weeks.first()
         assertEquals(listOf(3, 4, 6, 7), rebuiltWeek.sessions.map { it.dayOfWeek })
+    }
+
+    // ─── B.S5 · H13: re-materializar reinicia la progresión del método ────────────
+
+    private fun wendlerRecipe(): TrainingPlanRecipe = PROTOCOL_LIBRARY.first { it.id == "wendler-531-bbb" }.recipe!!
+
+    private fun weeksOf(program: Program) =
+        program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+
+    /** Entrena las cuatro semanas del ciclo 1 y cierra el ciclo con el motor de progreso (sube el TM del método). */
+    private fun closeFirstCycle(materialized: Program): Program {
+        val weeks = weeksOf(materialized)
+        val last = weeks.last()
+        val atEnd = materialized.copy(
+            runState = ProgramRunState(
+                runId = "run_531",
+                cycleNumber = 1,
+                weekId = last.id,
+                weekInstanceId = ProgramProgressEngine.instanceIdFor(1, last.id),
+            ),
+        )
+        val logs = weeks.flatMap { week ->
+            week.sessions.map { session ->
+                WorkoutLog(
+                    id = "log_${session.id}",
+                    programId = atEnd.id,
+                    sessionId = session.id,
+                    sessionName = session.name,
+                    date = "2026-01-01T10:00:00.000Z",
+                    durationMinutes = 45,
+                    weekId = week.id,
+                    cycleNumber = 1,
+                    weekInstanceId = ProgramProgressEngine.instanceIdFor(1, week.id),
+                )
+            }
+        }
+        return ProgramProgressEngine.completeCycle(
+            program = atEnd,
+            activeState = null,
+            cycleNumber = 1,
+            logs = logs,
+            compositionMetadata = CatalogCompositionTestSupport.metadata,
+        ).program
+    }
+
+    private fun markersOf(program: Program, proposalId: String) =
+        program.effectiveWeekRecipes.flatMap { it.appliedProposals }.filter { it.proposalId == proposalId }
+
+    @Test
+    fun rematerializing_the_same_program_lets_the_method_raise_the_tm_again_at_the_first_cycle_close() {
+        val recipe = wendlerRecipe()
+        val oneRms = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0)
+        val first = PlanMaterializer.materialize(
+            Program(id = "w531", name = "5/3/1"), recipe, CatalogCompositionTestSupport.metadata, SeqIds(),
+            profile = oneRms,
+        )
+        val closed = closeFirstCycle(first)
+        assertEquals("el primer cierre sube la sentadilla de 180 a 185", 185.0, closed.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals(1, markersOf(closed, "author-cycle-c2").size)
+        assertEquals(1, closed.nativeProgressionAudit.count { it.proposalId == "author-cycle-c2" })
+
+        // Se vuelve a aplicar el mismo plan al mismo programa: el run empieza de cero.
+        val again = PlanMaterializer.materialize(
+            closed, recipe, CatalogCompositionTestSupport.metadata, SeqIds(),
+            profile = oneRms,
+        )
+
+        // El run empieza de cero: ciclo 1 y cursor en la primera semana (no el ciclo 2 del run anterior).
+        assertEquals(1 to weeksOf(again).first().id, again.runState?.cycleNumber to again.runState?.weekId)
+        assertTrue("sin marca del ciclo anterior", markersOf(again, "author-cycle-c2").isEmpty())
+        assertTrue("la marca era lo único de esa receta efectiva", again.effectiveWeekRecipes.isEmpty())
+        assertTrue("sin aviso del ciclo anterior", again.nativeProgressionAudit.none { it.proposalId == "author-cycle-c2" })
+        assertEquals("el TM vuelve a empezar", 180.0, again.powerliftingProfile!!.squatTM!!, 1e-9)
+
+        // Antes de H13 la marca vieja suprimía esta subida: el TM se quedaba en 180 y no había aviso.
+        val closedAgain = closeFirstCycle(again)
+        assertEquals(185.0, closedAgain.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals(110.5, closedAgain.powerliftingProfile!!.benchTM!!, 1e-9)
+        assertEquals(1, markersOf(closedAgain, "author-cycle-c2").size)
+        assertEquals(1, closedAgain.nativeProgressionAudit.count { it.proposalId == "author-cycle-c2" && it.userFacingNotice })
+    }
+
+    @Test
+    fun materialize_drops_only_the_author_markers_and_notices_of_a_previous_run() {
+        val recipe = sampleRecipe()
+        fun applied(id: String, kind: String) = AppliedRecipeProposal(proposalId = id, kind = kind, summary = "x", acceptedAtMs = 1L)
+        fun notice(id: String) = NativeProgressionResolution(
+            proposalId = id,
+            status = NativeProgressionResolutionStatus.NOTICE,
+            kind = NativeProgressionProposalKind.INCREASE_LOAD,
+            resolvedAtMs = 1L,
+            reason = "x",
+            userFacingNotice = true,
+        )
+        val dirty = Program(
+            id = "p",
+            name = "T",
+            effectiveWeekRecipes = listOf(
+                // Solo llevaban la marca de autor: desaparecen.
+                EffectiveWeekRecipe(2, 2, appliedProposals = listOf(applied("author-cycle-c2", "AUTHOR_CYCLE_INCREMENT"))),
+                EffectiveWeekRecipe(3, 1, appliedProposals = listOf(applied("author-block-b1", "AUTHOR_BLOCK_INCREMENT"))),
+                // Semana efectiva aprobada con una propuesta y una marca de autor: queda la semana y la propuesta.
+                EffectiveWeekRecipe(
+                    weekOccurrence = 1,
+                    cycleNumber = 1,
+                    version = 4,
+                    weekRecipe = recipe.weeks.first(),
+                    appliedProposals = listOf(applied("auge-1", "ADJUST_TM"), applied("author-cycle-c3", "AUTHOR_CYCLE_INCREMENT")),
+                ),
+                // Continuación nativa: no es del motor de autor y no se toca.
+                EffectiveWeekRecipe(1, 3, appliedProposals = listOf(applied("native-progression-c3", "NATIVE_PROGRESSION"))),
+            ),
+            nativeProgressionAudit = listOf(
+                notice("author-cycle-c2"),
+                notice("author-block-b1"),
+                notice("native-cycle-c2"),
+                notice("p-1"),
+            ),
+        )
+
+        val program = PlanMaterializer.materialize(
+            dirty, recipe, CatalogCompositionTestSupport.metadata, SeqIds(),
+            profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0),
+        )
+
+        assertEquals(
+            listOf(1 to 1, 1 to 3),
+            program.effectiveWeekRecipes.map { it.weekOccurrence to it.cycleNumber },
+        )
+        val kept = program.effectiveWeekRecipes.first { it.weekOccurrence == 1 && it.cycleNumber == 1 }
+        assertEquals(listOf("auge-1"), kept.appliedProposals.map { it.proposalId })
+        assertEquals("la semana efectiva y su versión no cambian", recipe.weeks.first(), kept.weekRecipe)
+        assertEquals(4, kept.version)
+        assertEquals(listOf("native-cycle-c2", "p-1"), program.nativeProgressionAudit.map { it.proposalId })
     }
 }

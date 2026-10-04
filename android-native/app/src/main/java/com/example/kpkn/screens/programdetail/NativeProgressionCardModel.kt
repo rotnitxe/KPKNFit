@@ -8,6 +8,7 @@ import com.example.kpkn.data.models.NativeProgressionProposalKind
 import com.example.kpkn.data.models.NativeProgressionResolution
 import com.example.kpkn.data.models.NativeProgressionResolutionStatus
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.domain.training.AuthoredProgressionEngine
 import com.example.kpkn.domain.training.CompositionMetadataHolder
 import com.example.kpkn.domain.training.NativeLoadConventions
 import com.example.kpkn.domain.training.NativeProgressionText
@@ -71,15 +72,23 @@ object NativeProgressionCardModel {
                 NativeProgressionItemUi(
                     id = notice.proposalId,
                     title = notice.identity?.let { exerciseName(program, it, displayNameOf) }
-                        ?: if (notice.proposalId.startsWith(NativeWorkoutProgressionRuntime.NEW_BLOCK_NOTICE_PREFIX)) {
-                            "Nuevo bloque"
-                        } else {
-                            "Progresión de carga"
-                        },
+                        ?: noticeTitle(notice.proposalId),
                     body = notice.reason,
                 )
             }
         return NativeProgressionCardUi(proposals = proposals, notices = notices)
+    }
+
+    /**
+     * Título de un aviso que no habla de un ejercicio concreto, por el prefijo de su identificador:
+     * la subida de TM del método al cerrar el ciclo («Nuevo ciclo») o al entrar en otro bloque («Nuevo
+     * bloque», también el de la continuación nativa); cualquier otro, «Progresión de carga».
+     */
+    private fun noticeTitle(proposalId: String): String = when {
+        proposalId.startsWith(AuthoredProgressionEngine.CYCLE_PROPOSAL_PREFIX) -> "Nuevo ciclo"
+        proposalId.startsWith(AuthoredProgressionEngine.BLOCK_PROPOSAL_PREFIX) -> "Nuevo bloque"
+        proposalId.startsWith(NativeWorkoutProgressionRuntime.NEW_BLOCK_NOTICE_PREFIX) -> "Nuevo bloque"
+        else -> "Progresión de carga"
     }
 
     /**

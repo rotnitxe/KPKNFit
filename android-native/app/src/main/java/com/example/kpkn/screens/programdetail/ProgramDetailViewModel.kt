@@ -38,8 +38,10 @@ import com.example.kpkn.data.models.calendarizeSimpleCycle
 import com.example.kpkn.data.models.suggestCalendarTrainingDays
 import com.example.kpkn.data.models.toSimpleProgramSnapshot
 import com.example.kpkn.data.repository.CompetitionRepository
+import com.example.kpkn.data.protocols.TrainingPlanRecipe
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarAdapter
+import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.BlockProgressionEngine
 import com.example.kpkn.domain.training.BlockTransitionEngine
 import com.example.kpkn.domain.training.ProgramAutoregulationEngine
@@ -57,6 +59,7 @@ import com.example.kpkn.domain.exercises.normalizedSessionStructures
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.domain.training.StartDaySessionMode
 import com.example.kpkn.domain.training.StartDayTemporalScope
+import com.example.kpkn.domain.training.TrainingMaxMerge
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.WeekAdherence
 import com.example.kpkn.domain.training.WeekWithMeta
@@ -129,6 +132,18 @@ data class MuscleOvertrainingStatus(
     val isOverreaching: Boolean,
     val activeFactorsCount: Int,
     val explanation: String,
+)
+
+/**
+ * Resultado de reconstruir semanas del plan con la evidencia real de entrenamiento: el programa
+ * resultante, cuántas semanas se recalcularon y cuántas se dejaron intactas por estar entrenadas.
+ * [failed]: no se pudo reconstruir (p. ej. sin metadatos del catálogo); [program] es el de entrada.
+ */
+internal data class Rematerialization(
+    val program: Program,
+    val recalculatedWeeks: Int,
+    val preservedWeeks: Int,
+    val failed: Boolean = false,
 )
 
 class ProgramDetailViewModel(
@@ -1484,42 +1499,133 @@ class ProgramDetailViewModel(
         updateProgram(current.copy(autoregulationMode = mode))
     }
 
+    /**
+     * «Guardar TM» (R-04). El asistente solo edita los 1RM y devuelve un perfil nuevo; se fusiona con el
+     * que tiene el programa ([TrainingMaxMerge]: conserva las variantes y los TM ajustados de los
+     * levantamientos cuyo 1RM no cambió) y, en la MISMA mutación durable, se recalculan las semanas de la
+     * receta que no se han entrenado. Las sesiones iniciadas o registradas y las semanas completas se
+     * conservan tal cual (evidencia real del repositorio). El aviso dice cuántas semanas se recalcularon
+     * y cuántas se dejaron intactas. Sin receta solo se guarda el perfil.
+     *
+     * Si las semanas no se pueden reconstruir (p. ej. sin metadatos del catálogo) el TM se guarda igual
+     * y los bloques de la receta quedan pendientes: el botón RE-MATERIALIZAR aplica las cargas nuevas.
+     */
     fun updatePowerliftingProfile(profile: com.example.kpkn.data.models.PowerliftingProfile) {
-        val current = program.value ?: return
-        val hydrated = com.example.kpkn.domain.training.TrainingMaxResolver.hydrateProfile(
-            profile,
-            current.sourceRecipe?.trainingMaxPercent ?: 0.90,
-        )
-        updateProgram(current.copy(powerliftingProfile = hydrated))
+        viewModelScope.launch {
+            var rebuild: Rematerialization? = null
+            val outcome = runCatching {
+                repository.mutateProgramNow(programId) { current ->
+                    rebuild = null
+                    val merged = TrainingMaxMerge.merge(
+                        old = current.powerliftingProfile,
+                        new = profile,
+                        trainingMaxPercent = TrainingMaxMerge.trainingMaxPercentOf(current),
+                    )
+                    val withProfile = current.copy(powerliftingProfile = merged)
+                    val recipe = current.sourceRecipe ?: return@mutateProgramNow withProfile
+                    val rebuilt = rematerializeWithEvidence(withProfile, recipe, onlyPendingBlocks = false)
+                    rebuild = rebuilt
+                    if (rebuilt.failed) withPendingRecipeBlocks(withProfile, recipe) else rebuilt.program
+                }
+            }
+            val error = outcome.exceptionOrNull()
+            if (error is CancellationException) throw error
+            val message = if (error != null || !outcome.getOrDefault(false)) {
+                "No se pudo guardar el TM. El plan y el historial se conservaron."
+            } else {
+                savedMessageFor(rebuild)
+            }
+            _uiState.update { it.copy(snackbarMessage = message) }
+        }
+    }
+
+    private fun savedMessageFor(rebuild: Rematerialization?): String = when {
+        rebuild == null -> "TM actualizado"
+        rebuild.failed -> "TM actualizado. Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR."
+        else -> trainingMaxSavedMessage(rebuild.recalculatedWeeks, rebuild.preservedWeeks)
     }
 
     fun rematerializePending() {
         val current = program.value ?: return
         val recipe = current.sourceRecipe ?: return
-        // §14.5/AC-G1: la evidencia REAL de entrenamiento viaja con la
-        // reconstrucción (sesiones iniciadas/registradas + semanas completas);
-        // jamás se pasa `emptySet()` cuando hay trabajo realizado.
-        val evidence = repository.executedTrainingEvidence(current)
-        var working = current
-        val pendingBlocks = current.macrocycles.flatMap { it.blocks }.filter { it.materializationPending }
-        pendingBlocks.forEach { block ->
-            block.mesocycles.flatMap { it.weeks }.forEach { week ->
+        val rebuilt = rematerializeWithEvidence(current, recipe, onlyPendingBlocks = true)
+        if (rebuilt.failed) {
+            // Empieza por «No se pudo»: así la pantalla lo pinta como fallo (`snackbarTypeFor`).
+            _uiState.update {
+                it.copy(snackbarMessage = "No se pudo recalcular lo pendiente del plan. El plan y el historial se conservaron.")
+            }
+            return
+        }
+        updateProgram(rebuilt.program)
+    }
+
+    /**
+     * Reconstruye con la receta las semanas de [program] que quedan por entrenar. Con
+     * [onlyPendingBlocks] solo las de los bloques `materializationPending` (RE-MATERIALIZAR); sin él, las
+     * de todos los bloques que vienen de [recipe] (un TM nuevo cambia las cargas de todo el plan). La
+     * «Descarga (auto)» de AUGE y las semanas de loop no vienen de la receta y no se tocan.
+     *
+     * §14.5/AC-G1: la evidencia REAL de entrenamiento viaja con la reconstrucción (sesiones iniciadas o
+     * registradas + semanas completas); jamás se pasa `emptySet()` cuando hay trabajo realizado.
+     * `rematerializeWeek` conserva intactas las semanas y sesiones con evidencia y las sesiones editadas
+     * a mano. Los bloques reconstruidos dejan de estar pendientes. Si la reconstrucción falla devuelve
+     * [Rematerialization.failed] y el programa sin tocar.
+     */
+    private fun rematerializeWithEvidence(
+        program: Program,
+        recipe: TrainingPlanRecipe,
+        onlyPendingBlocks: Boolean,
+    ): Rematerialization {
+        val evidence = repository.executedTrainingEvidence(program)
+        val targetBlocks = program.macrocycles.flatMap { it.blocks }.filter { block ->
+            if (onlyPendingBlocks) block.materializationPending else block.sourceDefinitionId == recipe.id
+        }
+        val targetBlockIds = targetBlocks.mapTo(mutableSetOf()) { it.id }
+        // Las semanas de loop las añade el atleta (competición, descarga…): no vienen de la receta y
+        // reconstruirlas por posición las sustituiría por una semana de la receta.
+        val weekIds = targetBlocks.flatMap { block -> block.mesocycles.flatMap { it.weeks } }
+            .filterNot { it.isLoopWeek }
+            .map { it.id }
+        val recalculated = weekIds.count { it !in evidence.weekIds }
+        return try {
+            var working = program
+            weekIds.forEach { weekId ->
                 working = com.example.kpkn.domain.training.PlanMaterializer.rematerializeWeek(
                     program = working,
-                    weekId = week.id,
+                    weekId = weekId,
                     recipe = recipe,
                     executedWeekIds = evidence.weekIds,
                     executedSessionIds = evidence.sessionIds,
                 )
             }
+            working = working.copy(
+                macrocycles = working.macrocycles.map { macro ->
+                    macro.copy(
+                        blocks = macro.blocks.map { block ->
+                            if (block.id in targetBlockIds) block.copy(materializationPending = false) else block
+                        },
+                    )
+                },
+            )
+            Rematerialization(working, recalculatedWeeks = recalculated, preservedWeeks = weekIds.size - recalculated)
+        } catch (failure: RuntimeException) {
+            if (failure is CancellationException) throw failure
+            Log.w(LOG_TAG, "No se pudieron reconstruir las semanas del plan.", failure)
+            Rematerialization(program, recalculatedWeeks = 0, preservedWeeks = 0, failed = true)
         }
-        working = working.copy(
-            macrocycles = working.macrocycles.map { macro ->
-                macro.copy(blocks = macro.blocks.map { it.copy(materializationPending = false) })
+    }
+
+    /** Deja pendientes de materializar los bloques de [recipe]: el TM ya está guardado y RE-MATERIALIZAR lo aplica. */
+    private fun withPendingRecipeBlocks(program: Program, recipe: TrainingPlanRecipe): Program =
+        program.copy(
+            macrocycles = program.macrocycles.map { macro ->
+                macro.copy(
+                    blocks = macro.blocks.map { block ->
+                        if (block.sourceDefinitionId == recipe.id) block.copy(materializationPending = true) else block
+                    },
+                )
             },
         )
-        updateProgram(working)
-    }
 
     private fun resolvePendingDeload(accept: Boolean) {
         val current = program.value ?: return
@@ -1534,7 +1640,14 @@ class ProgramDetailViewModel(
         _blockTransitionBanner.value = null
     }
 
-    /** Records the three competition 1RMs and then advances the persisted cursor. */
+    /**
+     * Records the three competition 1RMs and then advances the persisted cursor.
+     *
+     * R-19: el motor también lleva los 1RM al perfil de cargas y deja pendientes los bloques de la
+     * receta. Aquí se recalculan con la evidencia real (lo entrenado y las sesiones editadas a mano se
+     * conservan) en la misma escritura que avanza el cursor. Si no se puede reconstruir, los bloques
+     * siguen pendientes y el botón RE-MATERIALIZAR aplica las cargas nuevas.
+     */
     fun recordPendingOneRmTest(squat1RM: Double, bench1RM: Double, deadlift1RM: Double) {
         val current = program.value ?: return
         val result = ProgramProgressEngine.resolvePendingOneRmTest(
@@ -1548,9 +1661,19 @@ class ProgramDetailViewModel(
             ),
         )
         if (result.program == current) return
-        updateProgram(result.program)
+        val recipe = result.program.sourceRecipe
+        val profileChanged = result.program.powerliftingProfile != current.powerliftingProfile
+        val rebuilt = if (recipe != null && profileChanged) {
+            rematerializeWithEvidence(result.program, recipe, onlyPendingBlocks = false)
+        } else {
+            null
+        }
+        updateProgram(rebuilt?.takeUnless { it.failed }?.program ?: result.program)
         result.activeState?.let(repository::updateActiveProgramState)
         _blockTransitionBanner.value = null
+        if (profileChanged) {
+            _uiState.update { it.copy(snackbarMessage = "1RM registrado. ${savedMessageFor(rebuilt)}") }
+        }
     }
 
     /** Explicitly declines the test while still persisting the audit decision. */
@@ -2355,6 +2478,20 @@ class ProgramDetailViewModel(
         /** Sin almacén de copias conectado, «Reemplazar todo» no quita el plan sin dejar copia (D2.3). */
         internal const val SNAPSHOT_REQUIRED_MESSAGE =
             "No se pudo guardar la copia recuperable del programa. No se aplicaron cambios."
+
+        /**
+         * Aviso tras «Guardar TM» o tras registrar un test de 1RM: «TM actualizado: 3 semanas recalculadas,
+         * 1 entrenada intacta». Sin semanas de la receta (ni recalculadas ni entrenadas) solo «TM actualizado».
+         */
+        internal fun trainingMaxSavedMessage(recalculatedWeeks: Int, preservedWeeks: Int): String {
+            if (recalculatedWeeks == 0 && preservedWeeks == 0) return "TM actualizado"
+            val recalculated = SpanishPlurals.weeks(recalculatedWeeks) + " " +
+                SpanishPlurals.choose(recalculatedWeeks, "recalculada", "recalculadas")
+            if (preservedWeeks == 0) return "TM actualizado: $recalculated"
+            val preserved = "$preservedWeeks " +
+                SpanishPlurals.choose(preservedWeeks, "entrenada intacta", "entrenadas intactas")
+            return "TM actualizado: $recalculated, $preserved"
+        }
 
         fun factory(programId: String): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
