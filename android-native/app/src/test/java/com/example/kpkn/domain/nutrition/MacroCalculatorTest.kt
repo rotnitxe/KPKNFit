@@ -483,7 +483,10 @@ class MacroCalculatorTest {
             val plain = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0))
             for (method in CookingMethod.entries) {
                 val logged = macrosOf(scaleFoodByPortion(food, amountGrams = 100.0, cookingMethod = method))
-                if (method in CONCENTRATING_METHODS && !CookingStateResolver.isAlreadyPreparedForMethod(food, method)) {
+                // A complete dish row (WP-N8b) holds the cooking its name says: it takes no factor either.
+                if (method in CONCENTRATING_METHODS && !CookingStateResolver.isAlreadyPreparedForMethod(food, method) &&
+                    !HouseholdPortions.isCompleteDish(food)
+                ) {
                     assertEquals("${food.id} + $method", scaledMacros(food, 100.0, COOKING_FACTORS.getValue(method)), logged)
                 } else {
                     assertEquals("${food.id} + $method", plain, logged)
@@ -504,20 +507,22 @@ class MacroCalculatorTest {
 
     @Test
     fun `scale food converts a raw row by yield alone, with no factor on top`() {
-        val salmon = FoodItem(
-            id = "s", name = "Salmón (crudo)", servingSize = 100.0, unit = "g",
-            calories = 208.0, protein = 20.0, carbs = 0.0, fats = 13.0, cookingWeightFactor = 0.78,
+        // A lean raw row (1.9 g of fat per 100 g): the yield of the row is the conversion. Salmon, a FATTY fish, has its own test in
+        // CompleteDishAndFattyFishCookingTest (WP-N8b floors its yield at 0.95).
+        val chicken = FoodItem(
+            id = "c", name = "Pechuga de Pollo (cruda)", servingSize = 100.0, unit = "g",
+            calories = 106.0, protein = 22.5, carbs = 0.0, fats = 1.9, cookingWeightFactor = 0.75,
         )
-        // 150 g cooked = 150 / 0.78 g raw: 192.3 g x 2.08 = 400 kcal. Before WP-N10 the parrilla factor made it 420.
+        // 150 g cooked = 150 / 0.75 g raw: 200 g x 1.06 = 212 kcal. Before WP-N10 the factor of the method was added on top of the yield.
         for (method in listOf(CookingMethod.ASADO_PARRILLA, CookingMethod.HORNO, CookingMethod.COCIDO, CookingMethod.FRITO)) {
-            val logged = scaleFoodByPortion(salmon, amountGrams = 150.0, cookingMethod = method)
-            assertEquals("$method", 400.0, logged.calories, 0.0)
-            assertEquals("$method", 38.5, logged.protein, 0.0)
-            assertEquals("$method", 25.0, logged.fats, 0.0)
+            val logged = scaleFoodByPortion(chicken, amountGrams = 150.0, cookingMethod = method)
+            assertEquals("$method", 212.0, logged.calories, 0.0)
+            assertEquals("$method", 45.0, logged.protein, 0.0)
+            assertEquals("$method", 3.8, logged.fats, 0.0)
             assertEquals(150.0, logged.amount, 0.0)
         }
-        val plain = scaleFoodByPortion(salmon, amountGrams = 150.0)
-        assertEquals(312.0, plain.calories, 0.0) // no method: the row as it is
+        val plain = scaleFoodByPortion(chicken, amountGrams = 150.0)
+        assertEquals(159.0, plain.calories, 0.0) // no method: the row as it is
     }
 
     @Test

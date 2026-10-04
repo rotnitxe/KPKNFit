@@ -25,6 +25,10 @@ import org.junit.Test
  *
  * Every pipeline case runs the real parser and [TagResolver] over the static catalog (no Room) and checks the identity, the
  * transformation that was applied and the arithmetic. The numbers are exact: each one is written out next to its assertion.
+ *
+ * WP-N8b: the yield of a FATTY raw fish is floored at 0.95 ([cookingNutrientYield]), so the 150 g of salmon of probe #4 are 328 kcal and no longer
+ * the 400 that the yield of the row (0.78) gave: USDA cooked salmon is 206 kcal per 100 g (309 for 150 g), the raw one 208. A complete dish row takes
+ * no per-gram factor of a concentrating method (see [CompleteDishAndFattyFishCookingTest]).
  */
 class CookingSingleApplicationTest {
 
@@ -103,12 +107,14 @@ class CookingSingleApplicationTest {
         assertEquals("gen009", tag.food().id)
         assertEquals(150.0, tag.amountGrams ?: 0.0, 0.0)
         val logged = tag.logged()
-        // 150 g cooked = 150 / 0.78 g raw = 192.3 g; x 2.08 kcal/g = 400. Before: the parrilla factor x1.05 on top gave 420.
-        assertEquals(400.0, logged.calories, 0.0)
-        assertEquals(38.5, logged.protein, 0.0) // 20 g/100 g x 1.923
-        assertEquals(25.0, logged.fats, 0.0) // 13 g/100 g x 1.923 (the parrilla factor x0.90 gave 22.5)
-        // The conversion is recorded once, with its yield and its source row.
-        assertEquals("weight_basis:RAW->COOKED;yield=0.78;source=gen009", tag.stateConversion)
+        // Fatty fish (13 g of fat per 100 g): the yield of the row, 0.78, would make 150 g cooked 192.3 g raw and 400 kcal, 29 % more than the 309 of USDA
+        // cooked salmon (206 kcal per 100 g, FDC 175168; the raw entry FDC 175167 is 208). The nutrients convert with the floor of 0.95 of
+        // cookingNutrientYield: 150 / 0.95 = 157.9 g raw x 2.08 kcal/g = 328. Before WP-N10: the parrilla factor x1.05 on top gave 420.
+        assertEquals(328.0, logged.calories, 0.0)
+        assertEquals(31.6, logged.protein, 0.0) // 20 g/100 g x 1.579
+        assertEquals(20.5, logged.fats, 0.0) // 13 g/100 g x 1.579 (the parrilla factor x0.90 gave 22.5)
+        // The conversion is recorded once, with the yield that was applied and its source row.
+        assertEquals("weight_basis:RAW->COOKED;yield=0.95;source=gen009", tag.stateConversion)
         assertEquals(FoodState.COOKED, tag.foodState)
         assertFalse(tag.oilApplied)
         assertEquals(0.0, tag.appliedOilGrams ?: 0.0, 0.0)
@@ -297,9 +303,9 @@ class CookingSingleApplicationTest {
 
         assertEquals("gen009", tag.food().id)
         assertTrue(tag.stateAssumed)
-        assertEquals(0.78, tag.recordedYield(), 0.0)
-        // grams / 0.78 x 2.08 kcal (150 g gives 400). Before: the COCIDO factor x0.90 made it 360.
-        assertEquals((tag.amountGrams ?: 0.0) / 0.78 * 2.08, tag.logged().calories, 0.5)
+        assertEquals(0.95, tag.recordedYield(), 0.0) // the row's 0.78, floored at 0.95 for a fatty fish (WP-N8b)
+        // grams / 0.95 x 2.08 kcal (150 g gives 328, 400 with the yield of the row). Before WP-N10: the COCIDO factor x0.90 made it 360.
+        assertEquals((tag.amountGrams ?: 0.0) / 0.95 * 2.08, tag.logged().calories, 0.5)
     }
 
     // ─── Verduras: rendimiento propio, sin factor del horno encima ──────────────

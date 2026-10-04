@@ -9,7 +9,7 @@ package com.example.kpkn.domain.nutrition
  * ("jam" in "jamón"), therefore matched differently in the unit tests than on the device:
  * `\bpoch[eé]\b` never matched "poché" on the JVM, and on the phone "huevo poché" was
  * swallowed whole. Neither `(?U)` nor `UNICODE_CHARACTER_CLASS` is an option: ICU rejects
- * unknown inline flags (the very failure `CookingFactorsAndroidTest` guards).
+ * unknown inline flags (the very failure `FoodParserAndroidTest` guards).
  *
  * The lookarounds below only use `\p{L}`, `\p{N}` and `_`, which both engines read the
  * same way, so a pattern built with them matches identically on either platform. Keep a

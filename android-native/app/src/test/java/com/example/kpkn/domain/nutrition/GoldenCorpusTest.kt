@@ -739,8 +739,9 @@ class GoldenCorpusInvariantsTest {
             val result = parseMealDescription("media manzana", dummy)
             assertEquals(1, result.items.size)
             assertEquals(0.5, result.items[0].quantity, 0.01)
-            // WP-N8: one apple is 150 g (it was 100 g), so half an apple is 75 g; the dataset prior of 120 g still loses to the household unit.
-            assertEquals(75.0, result.items[0].amountGrams!!, 0.01)
+            // WP-N8: one apple is a piece, not the 100 g serving; WP-N8b follow-up: the USDA medium apple of 182 g (it was 150 g), so half an apple is
+            // 91 g; the dataset prior of 120 g (60 g for half) still loses to the household unit.
+            assertEquals(91.0, requireNotNull(result.items[0].amountGrams), 0.01)
         } finally {
             DatasetTestHarness.restore(original)
         }

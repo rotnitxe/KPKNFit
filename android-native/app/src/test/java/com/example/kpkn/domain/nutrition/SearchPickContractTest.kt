@@ -172,7 +172,8 @@ class SearchPickContractTest {
         Tap("gen099", "aceite", "aceite", "ml", 10.0),
         Tap("gen047", "queso", "queso", "g", 30.0),
         Tap("gen040", "pasta", "pasta", "g", 160.0),
-        Tap("gen012", "lentejas", "lentejas", "g", 120.0),
+        // WP-N8b: a plate of cooked legumes is one cup, 198 g (USDA household weight of cooked lentils, FDC 172421); it was the 120 g of a grain.
+        Tap("gen012", "lentejas", "lentejas", "g", 198.0),
     )
 
     @Test

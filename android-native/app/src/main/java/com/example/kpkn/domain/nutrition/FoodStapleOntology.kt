@@ -86,6 +86,8 @@ object FoodStapleOntology {
         StapleNode(Family.VACUNO, Cut.MOLIDA, "gen010", 120.0, 217.0, StapleState.COOKED, "cocido", "PER_100G_COOKED", null, setOf("carne molida", "molida")),
         StapleNode(Family.VACUNO, Cut.BISTEC, "gen093", 150.0, 187.0, StapleState.COOKED, "plancha", "PER_100G_COOKED", null, setOf("filete", "filete de vacuno", "bistec", "lomo", "bife")),
         StapleNode(Family.VACUNO, Cut.FILETE, "gen093h", 150.0, 180.0, StapleState.COOKED, "plancha", "PER_100G_COOKED", null, setOf("churrasco")),
+        // Asado de tira (WP-N8b): a serving of grilled beef rib is 150 g cooked (USDA broiled whole rib, FDC 168676); the row is raw, so the 150 g convert once.
+        StapleNode(Family.VACUNO, Cut.GENERIC, "gen093c", 150.0, 250.0, StapleState.RAW, null, "PER_100G_RAW", null, setOf("asado", "asado de tira", "costillar")),
         // Pavo / pescado
         StapleNode(Family.PAVO, Cut.PECHUGA, "gen045", 150.0, 135.0, StapleState.COOKED, "cocido", "PER_100G_COOKED", null, setOf("pavo", "pechuga de pavo")),
         StapleNode(Family.PESCADO, Cut.GENERIC, "gen009", 150.0, 208.0, StapleState.RAW, null, "PER_100G_RAW", null, setOf("salmon", "salmón")),

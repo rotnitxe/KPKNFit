@@ -419,9 +419,8 @@ class TagResolver(
                 else -> null
             }
             // The one raw/cooked basis conversion of this tag (rule a of MacroCalculator): the same decision scaleFoodByPortion applies.
-            val convertedTarget = effectiveFood?.let {
-                (cookingTransformFor(it, scaleMethod) as? CookingTransform.StateConversion)?.to
-            }
+            val conversion = effectiveFood?.let { cookingTransformFor(it, scaleMethod) as? CookingTransform.StateConversion }
+            val convertedTarget = conversion?.to
             val rememberedOil = if (applyOil && !hasExcludedOil) effectiveFood?.id?.let { calibrationProfile?.oilProfiles?.get(it) }
                 ?.takeIf { it.isFinite() && it >= 0.0 } else null
 
@@ -700,7 +699,7 @@ class TagResolver(
                     resolutionMargin = resolutionMargin,
                     stateAssumed = stateAssumed,
                     stateConversion = convertedTarget?.let { target ->
-                        "weight_basis:${FoodIdentity.stateFor(effectiveFood).name}->${target.name};yield=${cookingWeightYield(effectiveFood)};source=${effectiveFood.sourceRecordId ?: effectiveFood.id}"
+                        "weight_basis:${FoodIdentity.stateFor(effectiveFood).name}->${target.name};yield=${conversion?.weightYield ?: cookingWeightYield(effectiveFood)};source=${effectiveFood.sourceRecordId ?: effectiveFood.id}"
                     },
                     learnedWeightBasis = rememberedState?.takeIf { it == foodState },
                     learnedOilGramsPer100g = rememberedOil,
@@ -969,8 +968,8 @@ class TagResolver(
             val isDish = index > 0 && found != null && found.tags.any { it.equals("preparacion", ignoreCase = true) }
             if (isDish && port.staticIsExact(name)) dishInside = true
             val food = found?.takeUnless { isDish }
-            // A sauce in a sandwich is a spoonful, not the 100 g of its table.
-            val grams = HouseholdPortions.defaultGrams(food, name).let { whole ->
+            // Each part weighs what it does inside a sandwich, and a sauce is a spoonful, not the 100 g of its table (WP-N8b).
+            val grams = (HouseholdPortions.sandwichPartGrams(food, name, isBread = index == 0) ?: HouseholdPortions.defaultGrams(food, name)).let { whole ->
                 if (index > 0 && roles.getOrNull(index) == FoodCombinationParser.Role.SAUCE) minOf(whole, sauceSpoonfulGrams(name)) else whole
             }
             if (food != null) {

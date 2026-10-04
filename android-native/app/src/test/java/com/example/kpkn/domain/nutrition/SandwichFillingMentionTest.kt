@@ -100,7 +100,9 @@ class SandwichFillingMentionTest {
             assertEquals(text, listOf("pan", "jamón", "queso", "palta"), tags.map { it.tag })
             // every part is a row of the catalog: no estimate of a whole sandwich and no filling counted twice
             assertTrue("every part is a row of the catalog: $text", tags.all { it.foodItem != null })
-            assertTrue("${N11bTestEnv.kcal(tags)} kcal", N11bTestEnv.kcal(tags) in 550.0..700.0)
+            // WP-N8b: each part weighs what it does in a sandwich: bread 60 g (159 kcal) + ham 40 g (43) + cheese 30 g (121) + avocado 60 g (96) = 419 kcal;
+            // with the 100 g of bread and the 100 g of ham of their standalone defaults it was 550-700.
+            assertTrue("${N11bTestEnv.kcal(tags)} kcal", N11bTestEnv.kcal(tags) in 380.0..480.0)
         }
         assertEquals(listOf("pan", "jamón", "queso", "palta", "jugo"), names("un sandwich de jamón, queso y palta y un jugo"))
         assertEquals(listOf("pan", "jamón", "queso", "palta", "jugo"), names("un sandwich de jamón, queso y palta, un jugo"))

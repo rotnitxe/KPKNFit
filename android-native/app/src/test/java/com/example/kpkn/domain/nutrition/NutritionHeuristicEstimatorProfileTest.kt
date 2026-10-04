@@ -23,6 +23,10 @@ class NutritionHeuristicEstimatorProfileTest {
     private val dessert = 310.0
     private val hotDog = 190.0
     private val mixedDish = 160.0
+    private val custard = 145.0
+    private val salad = 55.0
+    private val aLoPobre = 247.0
+    private val empanada = 232.0
 
     private fun kcal(name: String): Double = NutritionHeuristicEstimator.estimatePer100g(name).calories
 
@@ -33,7 +37,8 @@ class NutritionHeuristicEstimatorProfileTest {
     @Test
     fun `a keyword inside a longer word does not name the food`() {
         // repollo holds pollo, fresa and fresco hold res, papaya holds papa: none of them is the food of its piece
-        assertProfile(vegetable, "repollo", "repollo morado", "ensalada de repollo", "un repollo")
+        assertProfile(vegetable, "repollo", "repollo morado", "un repollo")
+        assertProfile(salad, "ensalada de repollo") // the vegetable, dressed (WP-N8b)
         assertProfile(fruit, "fresa", "fresas", "un plato de fresas", "papaya", "papayas", "una papaya")
         assertProfile(mixedDish, "fresco", "refresco", "jugo fresco", "nectares", "express")
         assertProfile(vegetable, "tres tomates")
@@ -74,7 +79,6 @@ class NutritionHeuristicEstimatorProfileTest {
             "kuchen", "kuchenes", "kuchen de manzana", "kuchen de nuez",
             "helado", "helados", "helado de vainilla", "helado de chocolate", "helado de frutilla",
             "pie", "pies", "pie de limón", "pie de manzana",
-            "flan", "flanes", "flan de caramelo",
             "mil hojas", "milhojas", "cheesecake", "chesecake", "cheesecake de frambuesa",
             "brownie", "brownies", "alfajor", "alfajores", "alfajor de maicena",
         )
@@ -82,6 +86,58 @@ class NutritionHeuristicEstimatorProfileTest {
         val tresLeches = NutritionHeuristicEstimator.estimatePer100g("tres leches")
         assertTrue(tresLeches.protein < 10.0)
         assertTrue(tresLeches.carbs > 30.0)
+    }
+
+    @Test
+    fun `flan, mousse and budin are the custard profile and not the cake that dominates the dessert`() {
+        assertProfile(custard, "flan", "flanes", "flan de caramelo", "mousse", "mousse de chocolate", "budín", "budín de pan", "budin", "natilla", "panna cotta")
+        // the other desserts keep their profile
+        assertProfile(dessert, "tres leches", "torta de chocolate", "helado de vainilla", "brownie", "queque")
+        // 4/4/9 closes within 5 %
+        val flan = NutritionHeuristicEstimator.estimatePer100g("flan")
+        assertEquals(flan.calories, 4.0 * flan.protein + 4.0 * flan.carbs + 9.0 * flan.fats, flan.calories * 0.05)
+        // the profile is the USDA flan it cites (FDC 167574: 145 kcal, 4.53 g protein, 22.78 g carbohydrate, 4.03 g fat), to one decimal
+        assertEquals(145.0, flan.calories, 0.001)
+        assertEquals(4.53, flan.protein, 0.05)
+        assertEquals(22.78, flan.carbs, 0.05)
+        assertEquals(4.03, flan.fats, 0.05)
+        // the evidence is the range of the OFF Chile rows named in the table (flans 81 kcal, mousse 270), not the generic 0..900
+        val evidence = NutritionHeuristicEstimator.estimateWithEvidence("flan").evidence
+        assertFalse(evidence.isUnmatchedFallback)
+        assertEquals(81.0, evidence.minPer100g.calories, 0.001)
+        assertEquals(270.0, evidence.maxPer100g.calories, 0.001)
+        assertTrue(145.0 in evidence.minPer100g.calories..evidence.maxPer100g.calories)
+    }
+
+    @Test
+    fun `a salad of vegetables is dressed and one of fruit, protein or starch is that food`() {
+        assertProfile(
+            salad,
+            "ensalada de repollo", "ensalada de lechuga", "ensalada de tomate", "ensaladas de pepino", "una ensalada de tomate y cebolla",
+        )
+        assertProfile(fruit, "ensalada de frutas")
+        assertProfile(leanProtein, "ensalada de pollo", "ensalada de atún")
+        assertProfile(starchy, "ensalada de papa")
+        assertProfile(pasta, "ensalada de pasta")
+        // the vegetable plus 3 g of olive oil per 100 g: 28 + 27 kcal; the vegetable alone is unchanged
+        val profile = NutritionHeuristicEstimator.estimatePer100g("ensalada de repollo")
+        assertEquals(28.0 + 9.0 * 3.0, profile.calories, 0.001)
+        assertEquals(0.3 + 3.0, profile.fats, 0.001)
+        assertEquals(vegetable, kcal("repollo"), 0.001)
+    }
+
+    @Test
+    fun `papas a lo pobre carry the fried egg and the fried onion and an empanada is its own profile`() {
+        assertProfile(aLoPobre, "papas a lo pobre", "papa a lo pobre", "lomo a lo pobre", "churrasco a lo pobre")
+        // 150 g of fries + 50 g of fried egg + 50 g of onion + 5 g of oil: 630 kcal in 255 g (the plate of the blind corpus)
+        val plate = NutritionHeuristicEstimator.estimatePer100g("papas a lo pobre")
+        assertEquals(630.0, plate.calories * 2.55, 6.0)
+        assertEquals(plate.calories, 4.0 * plate.protein + 4.0 * plate.carbs + 9.0 * plate.fats, plate.calories * 0.05)
+        assertProfile(empanada, "empanada de pino", "empanada de pollo", "empanada de jamón y queso", "empanadas")
+        val cheese = NutritionHeuristicEstimator.estimatePer100g("empanada de queso")
+        assertEquals(cheese.calories, 4.0 * cheese.protein + 4.0 * cheese.carbs + 9.0 * cheese.fats, cheese.calories * 0.05)
+        // a cheese empanada of 180 g is within 20 % of the 380 kcal that a published table gives it
+        assertTrue("${cheese.calories * 1.8} kcal", cheese.calories * 1.8 in 304.0..456.0)
     }
 
     @Test
@@ -107,7 +163,8 @@ class NutritionHeuristicEstimatorProfileTest {
     fun `a specific profile still wins over the one of an ingredient word`() {
         assertProfile(dessert, "helado de chocolate", "torta de zanahoria", "kuchen de manzana")
         assertProfile(leanProtein, "pollo a la plancha")
-        assertProfile(bread, "empanada", "empanadas de queso", "panqueque", "choripan")
+        assertProfile(bread, "panqueque", "choripan")
+        assertProfile(empanada, "empanada", "empanadas de queso") // WP-N8b: the empanada is no bread
         assertProfile(fattyProtein, "costillar", "huachalomo")
     }
 

@@ -383,6 +383,9 @@ object FoodIdentity {
         }
     }
 
+    /** The "(...)" qualifiers that close the name of a row: "Papa (cocida)", "Tres leches (porción)". */
+    private val TRAILING_PARENTHETICAL = Regex("""(?:\s*+\([^()]*+\))++\s*+$""")
+
     fun matchesDeclaredIdentity(query: String, name: String, aliases: Collection<String> = emptyList(), brandHint: String? = null, brand: String? = null): Boolean {
         val q = normalize(query)
         val n = normalize(name)
@@ -390,6 +393,13 @@ object FoodIdentity {
         val identityAliases = aliases.filterNot { normalize(it) == normalize(brand.orEmpty()) }
         val searchable = normalize((listOf(name) + identityAliases).joinToString(" "))
         if (!declaredAttributes(searchable).containsAll(declaredAttributes(q))) return false
+        // A dish of the protected lexicon is its own row or an estimate: a longer name that only holds it is another dish ("empanada de queso" is not
+        // the "Empanada de queso boliviana"), unless that row declares the query as an alias. The "(...)" that closes a name is a qualifier of the same
+        // dish: "Tres leches (porción)" is "tres leches" (WP-N8b).
+        if (ProtectedPhrases.isEntityKey(q) && identityAliases.none { normalize(it) == q }) {
+            val bareName = normalize(TRAILING_PARENTHETICAL.replace(name, ""))
+            if (bareName != q && contentTokens(bareName).size > contentTokens(q).size) return false
+        }
         val species = setOf("pollo", "pavo", "cerdo", "vacuno", "salmon", "merluza")
         val requestedSpecies = contentTokens(q).filter { it in species }.toSet()
         val candidateSpecies = contentTokens(searchable).filter { it in species }.toSet()

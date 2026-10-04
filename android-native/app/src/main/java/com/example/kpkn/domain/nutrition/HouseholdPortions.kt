@@ -38,6 +38,44 @@ object HouseholdPortions {
     private const val NUTRIENT_DENOMINATOR_GRAMS = 100.0
 
     /**
+     * The portions of one food of a main plate when the person gave no amount (WP-N8b), before the factor of the meal context (breakfast and dinner
+     * x0.9, lunch x1.1). They are what the household references say of a plate, so that every context stays within 25 % of them:
+     *  - a cooked starch (rice, pasta, potatoes), 190 g: 1.2 cups of cooked rice of 158 g (USDA FoodData Central 168878), 209 g at lunch and 171 g
+     *    at dinner; the references say 200 g;
+     *  - a piece of meat, poultry or fish, 125 g: the cooked chicken piece of 130 g, between half a USDA breast (86 g) and a whole one (172 g),
+     *    137 g at lunch and 112 g at dinner;
+     *  - any other food, 90 g: a side of 99 g at lunch.
+     * They used to be 220 and 140 g for the first two: the 242 g of rice and the 154 g of chicken of a lunch plate were 20 % above the references.
+     */
+    private const val PLATE_STARCH_GRAMS = 190.0
+    private const val PLATE_PROTEIN_GRAMS = 125.0
+    private const val PLATE_SIDE_GRAMS = 90.0
+
+    /**
+     * A plate of cooked legumes (lentils, beans, chickpeas), 198 g: one cup, the USDA household weight of cooked lentils (FDC 172421). The cups of the
+     * other cooked legumes weigh 164 to 182 g, so it is the upper end of the household range; a dry or raw legume has its own default.
+     */
+    private const val LEGUME_SERVING_GRAMS = 198.0
+
+    /** A spoonful of manjar or dulce de leche, 20 g: a spread, never the 200 g of the milk that its name holds. OFF Chile pots declare 20 to 30 g servings. */
+    private const val SPREAD_SPOONFUL_GRAMS = 20.0
+
+    /**
+     * What each part of a sandwich built from loose foods weighs inside it (WP-N8b, see [sandwichPartGrams]). Rounded household weights: two slices of
+     * sandwich bread of 30 g (half a marraqueta is 50 g in the INTA table), two slices of a cold cut of 20 g (USDA deli ham, FDC 173863), one slice of
+     * cheese of 30 g (1 oz), cooked chicken or meat in thin slices, 60 g, and 40 g of any other filling (two slices of tomato of 20 g).
+     */
+    private const val SANDWICH_BREAD_GRAMS = 60.0
+    private const val SANDWICH_COLD_CUT_GRAMS = 40.0
+    private const val SANDWICH_CHEESE_GRAMS = 30.0
+    private const val SANDWICH_MEAT_GRAMS = 60.0
+    private const val SANDWICH_AVOCADO_GRAMS = 60.0
+    private const val SANDWICH_FILLING_GRAMS = 40.0
+
+    /** The source of the recipe rows of the static catalog (WP-D1): complete dishes made of named USDA components. */
+    private const val RECIPE_ESTIMATE_SOURCE = "RECIPE_ESTIMATE"
+
+    /**
      * The piece weights, the lists of what is counted by piece and the portion defaults by family: the `householdUnits` section of
      * [FoodKnowledge] (WP-N13), read at each use so that an install takes effect at once.
      */
@@ -95,6 +133,10 @@ object HouseholdPortions {
      *  - A completo, 220 g: the unit weight of WP-N8; the catalog's completos are 200 g and 220 g (cl002, cl035).
      *  - A hot dog or a choripán, 180 g: a roll of 80 g (OFF Chile, "pan de hot dog x 6" is 480 g) and a frankfurter of 49 g (FDC,
      *    foundation) with their toppings; a choripán is a pan-fried chorizo of 80 g (FDC, medium link) in a marraqueta of 100 g.
+     *  - A salad, 150 g (WP-N8b): the serving that the catalog declares for its Ensalada Chilena (cl028), and the 150 g of cabbage dressed with a
+     *    teaspoon of oil of the blind corpus. A salad on a main plate is its side, 99 g ([inferredItemGrams]).
+     *  - Papas a lo pobre, 250 g (WP-N8b): fries topped with a fried egg and fried onion, 255 g in the plate of the blind corpus: 150 g of fries
+     *    (FDC 170698), 50 g of fried egg (FDC 173423), 50 g of onion (FDC 170000) and the 5 g of oil that cooked it (FDC 171413).
      * The words are whole words of the accent-free name with the optional Spanish plural; the first rule that matches wins. "chesecake" is
      * how the text normalizer leaves a "cheesecake" (it folds the double e).
      */
@@ -104,6 +146,8 @@ object HouseholdPortions {
 
     private val PIECE_PORTIONS: List<PiecePortion> = listOf(
         PiecePortion(listOf("hot dog", "hotdog", "perro caliente", "choripan"), 180.0),
+        PiecePortion(listOf("papas a lo pobre", "papa a lo pobre"), 250.0),
+        PiecePortion(listOf("ensalada"), 150.0),
         PiecePortion(listOf("completo"), 220.0),
         PiecePortion(listOf("flan", "mousse", "budin"), 120.0),
         PiecePortion(listOf("tres leches", "torta", "pie", "kuchen", "mil hojas", "milhojas", "cheesecake", "chesecake", "cheese cake"), 100.0),
@@ -152,6 +196,18 @@ object HouseholdPortions {
 
     // A juice named by its head noun ("jugo de naranja", "zumo", "nectar"): counted in glasses, never in fruits.
     private val JUICE_HEAD_PATTERN = Regex("""^(?:jugos?|zumos?|nectar(?:es)?)(?: |$)""")
+
+    // A dry-bean legume named by its first word (WP-N8b): "lentejas (cocidas)", "porotos negros", "garbanzos". "Poroto verde" is a vegetable, and a raw or
+    // dry legume has the default of its density category (45 g), not a cooked plate.
+    private val LEGUME_HEAD_PATTERN = Regex("""^(?:porotos?|lentejas?|garbanzos?|frijol(?:es)?|frejol(?:es)?)(?: |$)""")
+    private val GREEN_BEAN_PATTERN = Regex(RegexEs.bounded("""porotos?\s+verdes?"""))
+    private val DRY_STATE_PATTERN = Regex(RegexEs.bounded("""crud[oa]s?|sec[oa]s?|deshidratad[oa]s?"""))
+
+    // Manjar and dulce de leche are spreads by their first word; "torta de manjar" is a cake.
+    private val SPREAD_HEAD_PATTERN = Regex("""^(?:manjar|dulce de leche)(?: |$)""")
+
+    // A salad by name: "ensalada chilena", "ensaladas", "ensalada de repollo".
+    private val SALAD_PATTERN = Regex(RegexEs.bounded("""ensaladas?"""))
 
     fun looksLikePackName(name: String): Boolean {
         val n = FoodIdentity.normalize(name)
@@ -301,6 +357,11 @@ object HouseholdPortions {
         FoodStapleOntology.householdDefaultGrams(query ?: "", food)?.let { return it }
         // A beverage row declares its own single serving: a glass of water, a can of soda, a copa of wine.
         food?.takeIf(::isBeverageRow)?.let { return NutrientBasis.massForServingUnits(it, it.servingSize) }
+        // A prepared dish of the catalog is eaten in the serving it declares, whatever else its name says: "Pan con Queso" is a bread with cheese of
+        // 100 g, not a cheese of 30 g, and the plate of "Porotos con Riendas" is its 350 g, not the 99 g of a side (WP-N8b).
+        ownServingGrams(food)?.let { return it }
+        // A drink that is a supermarket SKU (a branded cola) is the can or the glass it is sold in, not the 100 g of its table (WP-N8b).
+        if (food != null && isGlobalSku(food) && isDrinkName(query ?: food.name)) drinkServingGrams(food, query)?.let { return it }
         // A row that is only its 100 g denominator has no piece of its own: a dessert weighs the piece that is eaten ("un alfajor" is 45 g) (WP-N11b).
         if (food != null && isDenominatorOnlyServing(food)) pieceGrams(FoodIdentity.normalize(query ?: food.name))?.let { return it }
         val queryNorm = FoodIdentity.normalize(query.orEmpty())
@@ -313,7 +374,8 @@ object HouseholdPortions {
                 (CHEESE_MARKERS.any { blob.contains(it) } || FoodIdentity.familyFor(blob) == "queso") ->
                 return SubjectivePortionLexicon.resolve(query ?: food?.name.orEmpty(), blob)?.grams
                     ?: 40.0
-            CHEESE_MARKERS.any { blob.contains(it) } -> return 30.0
+            // The cheese of a prepared dish ("Pan con Queso") is not the dish: a bread with cheese is eaten as a bread (WP-N8b).
+            CHEESE_MARKERS.any { blob.contains(it) } && !isPreparedDish(food) -> return 30.0
             queryNorm.contains("papas fritas") || queryNorm.contains("patatas fritas") ->
                 return 120.0
             CHIPS_PATTERN.containsMatchIn(queryNorm) -> return 30.0
@@ -323,6 +385,8 @@ object HouseholdPortions {
                 return 25.0
             blob.contains("granola") -> return 30.0
             blob.contains("avena") -> return 40.0
+            isCookedLegume(food, query) -> return LEGUME_SERVING_GRAMS
+            isSpread(food, query) -> return SPREAD_SPOONFUL_GRAMS
         }
         val family = food?.let(FoodIdentity::familyFor) ?: query?.let(FoodIdentity::familyFor)
         // A bread is a piece; every other family has its default portion in the knowledge table.
@@ -347,20 +411,47 @@ object HouseholdPortions {
     private fun isPreparedDish(food: FoodItem?): Boolean =
         food != null && !isGlobalSku(food) && food.tags.any { it.equals("preparacion", ignoreCase = true) }
 
-    /** The serving that a prepared dish of the catalog declares (a whole sandwich of 150 g); null for any other food. */
-    private fun ownServingGrams(food: FoodItem?): Double? =
-        food?.takeIf { isPreparedDish(it) }?.let { declaredPortionGrams(it) }
+    /**
+     * The serving that a prepared dish of the catalog declares (a whole sandwich of 150 g, a plate of beans of 350 g, a bowl of cazuela of 400 ml that
+     * weighs 450 g), in grams; null for any other food. A dish named with no amount is eaten in this serving (WP-N8b).
+     */
+    private fun ownServingGrams(food: FoodItem?): Double? {
+        val dish = food?.takeIf { isPreparedDish(it) } ?: return null
+        // A dish of exactly 100 g ("Pan con Queso", "Pan con Jamón") declares no other serving: its macros are per 100 g, and that is also the unit it is eaten in.
+        val portion = declaredPortionGrams(dish) ?: dish.servingSize.positiveOrNull() ?: return null
+        // The portion of a per-100 g row is in grams already; any other row declares its serving in its own unit (g, ml or a piece).
+        return if (dish.nutritionBasis.startsWith("PER_100G") && !dish.isCustom) portion else NutrientBasis.massForServingUnits(dish, portion)
+    }
+
+    /** True when the food is a cooked legume plate by name (WP-N8b); a prepared dish, a vegetable bean and a raw or dry legume are not. */
+    private fun isCookedLegume(food: FoodItem?, query: String?): Boolean {
+        if (isPreparedDish(food)) return false
+        val names = listOfNotNull(query, food?.name).map { FoodIdentity.normalize(it) }
+        if (names.none { LEGUME_HEAD_PATTERN.containsMatchIn(it) }) return false
+        val blob = names.joinToString(" ")
+        return !GREEN_BEAN_PATTERN.containsMatchIn(blob) && !DRY_STATE_PATTERN.containsMatchIn(blob)
+    }
+
+    /** True when the food is manjar or dulce de leche by its first word: a spread that its name classes as milk (WP-N8b). */
+    private fun isSpread(food: FoodItem?, query: String?): Boolean =
+        listOfNotNull(query, food?.name).any { SPREAD_HEAD_PATTERN.containsMatchIn(FoodIdentity.normalize(it)) }
+
+    /** A complete dish row of the catalog, a prepared dish or a recipe estimate: its numbers already hold the cooking its name says (WP-N8b). */
+    internal fun isCompleteDish(food: FoodItem): Boolean =
+        isPreparedDish(food) || food.source.equals(RECIPE_ESTIMATE_SOURCE, ignoreCase = true)
 
     internal fun hasClassDefault(food: FoodItem?, query: String?): Boolean {
         if (FoodStapleOntology.hasAnchoredPortion(query ?: "", food)) return true
         if (isCountable(food, query)) return true
         // A beverage row of the catalog declares its own single serving (a glass, a can, a copa).
         if (isBeverageRow(food)) return true
+        // A prepared dish declares its serving, a cooked legume is a plate and a spread is a spoonful (WP-N8b).
+        if (ownServingGrams(food) != null || isCookedLegume(food, query) || isSpread(food, query)) return true
         val blob = FoodIdentity.normalize(
             listOfNotNull(query, food?.name, food?.searchAliases?.joinToString(" ")).joinToString(" "),
         )
         if (isFatItem(food, blob)) return true
-        if (CHEESE_MARKERS.any { blob.contains(it) }) return true
+        if (CHEESE_MARKERS.any { blob.contains(it) } && !isPreparedDish(food)) return true
         if (blob.contains("granola") || blob.contains("avena")) return true
         val family = food?.let(FoodIdentity::familyFor) ?: query?.let(FoodIdentity::familyFor)
         return family in setOf("huevo", "pan", "pan_chileno", "leche", "yogurt", "arroz", "avena", "pasta", "pollo", "queso", "papa")
@@ -443,6 +534,10 @@ object HouseholdPortions {
         if (isBeverageRow(food)) return defaultGrams(food, query)
         val factor = context.primaryContext.portionFactor.coerceIn(0.55, 1.45)
         val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
+        // A salad that shares a main plate is its side dish: the plate's side portion, not the serving it has on its own (WP-N8b).
+        if (context.shape == InferredMealContext.Shape.MAIN_PLATE && SALAD_PATTERN.containsMatchIn(blob)) {
+            return (PLATE_SIDE_GRAMS * factor).coerceIn(8.0, MAX_ITEM_GRAMS_WITHOUT_KG)
+        }
         // A dessert or a hot piece with no row of its own is that piece in any meal, not the filling or the side of its plate (WP-N11b).
         if (food == null) pieceGrams(blob)?.let { return it }
         // A drink that is no beverage row (a branded cola) is still its can or its glass next to a plate (WP-N11b); a drinks-only meal knows drinks.
@@ -450,12 +545,17 @@ object HouseholdPortions {
             drinkServingGrams(food, query)?.let { return it }
         }
         val role = inferredRole(blob)
+        // A prepared dish of the catalog is eaten in the serving it declares, in any plate or meal: the role of a word of its name ("pollo" of a cazuela,
+        // "papa" of a pastel) does not size it (WP-N8b).
+        ownServingGrams(food)?.let { return it.coerceIn(8.0, MAX_ITEM_GRAMS_WITHOUT_KG) }
+        // A fat or a spread in a meal is the spoonful it is, not the filling of its shape: "mantequilla" is 10 g, two pats of 5 g (USDA household weight).
+        if (isFatItem(food, blob)) return defaultGrams(food, query).coerceIn(8.0, MAX_ITEM_GRAMS_WITHOUT_KG)
         val grams = when (context.shape) {
             InferredMealContext.Shape.MAIN_PLATE -> when (role) {
-                "starch" -> 220.0 * factor
-                "protein" -> if (blob.contains("huevo")) unitGrams(food, query) else 140.0 * factor
+                "starch" -> PLATE_STARCH_GRAMS * factor
+                "protein" -> if (blob.contains("huevo")) unitGrams(food, query) else PLATE_PROTEIN_GRAMS * factor
                 // A dry cereal or dairy portion has its own prior; it is not a generic side dish.
-                else -> if (hasClassDefault(food, query)) defaultGrams(food, query) else 90.0 * factor
+                else -> if (hasClassDefault(food, query)) defaultGrams(food, query) else PLATE_SIDE_GRAMS * factor
             }
             InferredMealContext.Shape.BREAKFAST_BOWL -> when {
                 blob.contains("avena") -> 40.0
@@ -468,12 +568,12 @@ object HouseholdPortions {
             InferredMealContext.Shape.SANDWICH -> when {
                 isCountable(food, query) || blob.contains("pan") || blob.contains("hallulla") ||
                     blob.contains("marraqueta") -> unitGrams(food, query)
-                CHEESE_MARKERS.any { blob.contains(it) } -> 30.0
-                blob.contains("palta") -> 60.0
+                CHEESE_MARKERS.any { blob.contains(it) } -> SANDWICH_CHEESE_GRAMS
+                blob.contains("palta") -> SANDWICH_AVOCADO_GRAMS
                 // A prepared dish of the catalog ("Sándwich de Pavita", 150 g) keeps its serving, and a drink next to a sandwich is the glass,
                 // the cup or the can it is: neither is the 40 g of a filling (WP-N11b).
                 else -> ownServingGrams(food)
-                    ?: if (isDrinkName(query)) drinkServingGrams(food, query) ?: loneDrinkGrams(food, query) else 40.0
+                    ?: if (isDrinkName(query)) drinkServingGrams(food, query) ?: loneDrinkGrams(food, query) else SANDWICH_FILLING_GRAMS
             }
             // The cup is the portion of a drink: any other food of a drinks-only meal ("ave mayo y un jugo") keeps its own portion (WP-N11b).
             InferredMealContext.Shape.BEVERAGE ->
@@ -498,6 +598,28 @@ object HouseholdPortions {
 
     fun isWholeDish(query: String): Boolean = WHOLE_DISH_PATTERN
         .containsMatchIn(FoodIdentity.normalize(query))
+
+    /**
+     * The portion of one part of a sandwich built from loose foods ("sándwich de jamón y queso": the bread and what goes in it; WP-N8b). A part
+     * weighs what it does inside a sandwich, not what the food weighs on a plate: the 100 g of pan and the 100 g of ham came from their standalone
+     * defaults, and the 150 g of chicken from the plate. The bread is two slices ([SANDWICH_BREAD_GRAMS]), a cold cut two slices, cheese one slice,
+     * poultry, meat and tuna thin slices, an avocado a share, and any other filling [SANDWICH_FILLING_GRAMS]. Null for an egg and for a prepared dish,
+     * which have a piece or a serving of their own; the caller caps a sauce at its spoonful.
+     */
+    fun sandwichPartGrams(food: FoodItem?, name: String, isBread: Boolean): Double? {
+        if (isBread) return SANDWICH_BREAD_GRAMS
+        if (ownServingGrams(food) != null) return null
+        val blob = FoodIdentity.normalize("$name ${food?.name.orEmpty()}")
+        val family = FoodStapleOntology.detectFamily(blob)
+        return when {
+            blob.contains("huevo") -> null
+            CHEESE_MARKERS.any { blob.contains(it) } || FoodIdentity.familyFor(blob) == "queso" -> SANDWICH_CHEESE_GRAMS
+            COLD_CUT_MARKERS.any { blob.contains(it) } || blob.contains("pavo") -> SANDWICH_COLD_CUT_GRAMS
+            blob.contains("palta") -> SANDWICH_AVOCADO_GRAMS
+            family in PIECE_FAMILIES || family == FoodStapleOntology.Family.ATUN -> SANDWICH_MEAT_GRAMS
+            else -> SANDWICH_FILLING_GRAMS
+        }
+    }
 
     fun heuristicDishGrams(query: String, context: ContextDetector.ContextResult? = null): Double {
         val blob = FoodIdentity.normalize(query)
@@ -574,6 +696,8 @@ object HouseholdPortions {
     }
 
     private fun isEnergyDenseFood(food: FoodItem?, query: String, role: String): Boolean {
+        // The cheese, the nuts or the chocolate in the name of a prepared dish of the catalog do not make it a snack: "Pan con Queso" is a bread (WP-N8b).
+        if (isPreparedDish(food)) return false
         val blob = FoodIdentity.normalize("$query ${food?.name.orEmpty()}")
         if (isFatItem(food, blob)) return true
         if (CHEESE_MARKERS.any { blob.contains(it) } || FoodIdentity.familyFor(blob) == "queso") return true

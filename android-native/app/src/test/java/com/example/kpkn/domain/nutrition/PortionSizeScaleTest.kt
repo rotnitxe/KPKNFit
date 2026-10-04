@@ -71,8 +71,10 @@ class PortionSizeScaleTest {
         assertEquals(1.25 * plate, large, 0.1)
         assertEquals(PortionPreset.LARGE, tag("un plato grande de arroz").portion)
         assertEquals(AmountIntent.RESOLVED_SUBJECTIVE, tag("un plato grande de arroz").amountIntent)
-        // Said without the article it is the usual serving of rice, enlarged by the same factor.
-        assertEquals(1.25 * grams("arroz"), grams("plato grande de arroz"), 0.01)
+        // Said without the article it is the same plate (WP-N8b): "plato grande de arroz" is "un plato grande de arroz", not the usual serving of
+        // rice enlarged (150 g, half of the 296 g of the blind corpus), and "plato de arroz" is "un plato de arroz".
+        assertEquals(large, grams("plato grande de arroz"), 0.01)
+        assertEquals(plate, grams("plato de arroz"), 0.01)
     }
 
     @Test

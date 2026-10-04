@@ -177,6 +177,35 @@ private val INHERITABLE_VESSEL = Regex(
     RegexOption.IGNORE_CASE,
 )
 
+// The head noun that "una de queso" inherits (WP-N8b): the dish named before it, "una empanada de pino y una de queso". A closed list of the pieces
+// that are named after their filling ("empanada de queso", "pizza de jamón"), at the start of the mention, with or without its count.
+private val INHERITABLE_HEAD = Regex(
+    """^(?:(?:\d+(?:[.,]\d+)?|un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+)?""" +
+        """(empanadas?|pizzas?|s[aá]ndwich(?:es)?|quesadillas?|tostadas?|calzones?|croissants?|wraps?)\s+de\s+""",
+    RegexOption.IGNORE_CASE,
+)
+
+/**
+ * The head noun of the mention before [previous] that an omitted-noun mention inherits ("una empanada de pino y una de queso": "empanada"), in the
+ * singular, or null. [previous] still holds the tokens of the masked phrases. The count of the new mention says how many there are, as it does in
+ * "2 empanada de queso": "dos empanadas de pino y una de queso" is one empanada de queso, and "una empanada de pino y dos de queso" two.
+ */
+private fun inheritableHead(masks: List<Pair<String, String>>, previous: String): String? {
+    var text = previous
+    for ((token, original) in masks) text = text.replace(token, original)
+    val head = INHERITABLE_HEAD.find(text.trim())?.groupValues?.get(1)?.lowercase() ?: return null
+    return when {
+        head.endsWith("ndwiches") -> head.dropLast(2)
+        head.endsWith("s") -> head.dropLast(1)
+        else -> head
+    }
+}
+
+// A plate named without its count ("plato grande de arroz") is one plate: the same words with their article ("un plato grande de arroz") (WP-N8b).
+// Only the plates the portion engine measures with an article, the plain one and the large and deep ones: the engine has no small plate, and an
+// article would hide the size of "plato chico de arroz" (0,75 of the usual serving) behind the plain plate.
+private val BARE_PLATE_PATTERN = Regex("""^platos?(?:\s+(?:grande|hondo))?\s+de\s+""", RegexOption.IGNORE_CASE)
+
 // Segmentation / negation helpers: compiled once instead of on every fragment.
 private val SIN_PREFIX_PATTERN = Regex("""^sin\s+""", RegexOption.IGNORE_CASE)
 private val KNOWN_NEGATION_TARGET_PATTERN = Regex("""^(?:lactosa|gluten|gas|az[uú]car(?:es)?)(?:\b|$)""")
@@ -343,6 +372,7 @@ private fun parseFragment(
 ): ParsedMealItem? {
     var text = frag.trim()
     if (text.isEmpty()) return null
+    text = BARE_PLATE_PATTERN.replace(text) { "un " + it.value }
 
     // Handle negated items: "sin leche" → parse "leche" and mark excluded
     var isExcluded = false
@@ -437,7 +467,7 @@ private fun parseFragment(
     val expressedCount = quantity != 1.0 ||
         HouseholdPortions.looksLikeCountExpression(frag) ||
         HouseholdPortions.looksLikeCountExpression(working.trim())
-    // The size of the mention ("grande", "chica"). A counted piece takes it here, once: "2 manzanas grandes" are 2 x 150 g x 1.25,
+    // The size of the mention ("grande", "chica"). A counted piece takes it here, once: "2 manzanas grandes" are 2 x 182 g x 1.25,
     // and the resolver reads a declared size back as part of the amount (its base is the same count without the size).
     val itemSize = if (catalogPhrase) PortionPreset.MEDIUM else
         portionResult.first.takeUnless { it == PortionPreset.MEDIUM } ?: declaredPortion
@@ -587,6 +617,16 @@ private fun splitMentionFragments(description: String, bindMasses: Boolean = tru
         if (omittedVessel != null && vessel != null && STANDALONE_QUANTITY.matches(omittedVessel.groupValues[1])) {
             "${omittedVessel.groupValues[1]} $vessel de ${omittedVessel.groupValues[2]}"
         } else part
+    }
+    // The same for an omitted head noun, adjacent and of a closed list (WP-N8b): "una empanada de pino y una de queso" are two empanadas, not an
+    // empanada and a cheese.
+    val namedParts = parts
+    parts = namedParts.mapIndexed { index, part ->
+        val omitted = ELLIPTICAL_MEASURE.matchEntire(part)
+        val head = if (index > 0 && omitted != null && STANDALONE_QUANTITY.matches(omitted.groupValues[1])) {
+            inheritableHead(masks, namedParts[index - 1])
+        } else null
+        if (omitted != null && head != null) "${omitted.groupValues[1]} $head de ${omitted.groupValues[2]}" else part
     }
 
     // Unmask and split negations into separate excluded fragments

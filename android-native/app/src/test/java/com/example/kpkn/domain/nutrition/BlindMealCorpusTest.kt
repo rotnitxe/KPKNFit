@@ -52,10 +52,10 @@ import kotlin.math.max
  * state preference: `NutritionCalibrationProfile` carries identity mappings, state preferences and portions, and a state preference or a
  * remembered portion legitimately changes the answer of the description it matches.
  *
- * Thresholds (see [thresholds]): the worst mode's measured percentage rounded DOWN to a multiple of 5 and capped at the plan minimum
- * (identity 90, coverage 90, grams 80, kcal 80, question 90); a dimension that measures below its plan minimum keeps the measured
- * floor and the failing cases are printed with their references. Guards: no description is copied from the semantic dataset, and the
- * control cases (#13, #31, #51) are asserted one by one on identity and question.
+ * Thresholds (see [thresholds]): the worst mode's measured percentage rounded DOWN to a multiple of 5. Identity, coverage and question are capped
+ * at the plan minimum (90) so that they keep their headroom; grams and kcal are the ratchet of the corpus (WP-N8b): they measured below their plan
+ * minimum (80) and keep following their measured floor now that they are above it, so the failing cases are printed with their references. Guards: no
+ * description is copied from the semantic dataset, and the control cases (#13, #31, #51) are asserted one by one on identity and question.
  *
  * Run: `./gradlew :app:testBaseDebugUnitTest --tests "com.example.kpkn.domain.nutrition.BlindMealCorpusTest" -i`;
  * the report is `app/build/reports/nutrition-reliability/blind-corpus.json`.
@@ -787,22 +787,30 @@ class BlindMealCorpusTest {
     // --- Thresholds ---------------------------------------------------------------------------------------------------
 
     /**
-     * Percent per dimension: the worst mode's measured value rounded down to a multiple of 5 and capped at the plan minimum.
-     * Measured on HEAD 94eec56dd (WP-N11 and WP-S10c committed), identical in the four modes: identity 97.6, coverage 100, grams 78.3,
-     * kcal 63.9, question 95.2. Grams and kcal measure BELOW the plan minimum (80): they keep the measured floor (75, 60) and the
-     * failing cases are printed with their references; they are the ratchet that WP-N8b / N11b / N13 must raise.
+     * Percent per dimension: the worst mode's measured value rounded down to a multiple of 5; identity, coverage and question capped at the plan minimum.
+     * Measured with WP-N8b on HEAD 3234cb23a (WP-N7 committed) and its follow-up (the custard at the 145 kcal of the USDA flan, the apple piece at the 182 g of
+     * the USDA medium apple), identical in the four modes: identity 100 (83/83), coverage 100 (60/60), grams 96.4 (80/83), kcal 90.4 (75/83), question 97.6
+     * (81/83). Before WP-N8b they were 97.6 (81/83), 100, 83.1 (69/83), 68.7 (57/83) and 95.2 (79/83), and the thresholds of grams and kcal were 75 and 60;
+     * with the apple at 150 g kcal was 89.2 (74/83), because the 2 apples of #22 were 375 g and 195 kcal against 484 g and 252 kcal (at 182 g they are 455 g
+     * and 237 kcal). They are now 95 and 90, above the plan minimum of 80: the failing mentions that remain (the cl029 density of #1 and #40, the helado of
+     * #10, the tres leches of #27, the champiñones of #33, the arroz con leche of #48, the plural of #25 and #32 and the question of #11) are printed with
+     * their references.
      */
     private val thresholds: Map<Dimension, Int> = mapOf(
         Dimension.IDENTITY to 90,
         Dimension.COVERAGE to 90,
-        Dimension.GRAMS to 75,
-        Dimension.KCAL to 60,
+        Dimension.GRAMS to 95,
+        Dimension.KCAL to 90,
         Dimension.QUESTION to 90,
     )
 
+    /** The dimensions whose threshold follows the measured floor above the plan minimum (WP-N8b). */
+    private val ratcheted = setOf(Dimension.GRAMS, Dimension.KCAL)
+
     private fun suggestedThreshold(d: Dimension, data: Collected): Int {
         val worst = data.modes.minOf { it.rate(d).percent }
-        return minOf((Math.floor(worst / 5.0) * 5.0).toInt(), d.planMinimum)
+        val floor = (Math.floor(worst / 5.0) * 5.0).toInt()
+        return if (d in ratcheted) floor else minOf(floor, d.planMinimum)
     }
 
     // --- Formatting ----------------------------------------------------------------------------------------------------
@@ -887,7 +895,7 @@ class BlindMealCorpusTest {
                 Basis.entries.joinToString(" ") { b -> b.name + " " + mode.rateBy(Dimension.KCAL, b).let { "${it.passed}/${it.total}" } },
                 mode.densityRate().let { "${it.passed}/${it.total} ${pct(it)}" }))
         }
-        add("suggested thresholds (worst mode, down to 5, capped at the plan minimum): " + Dimension.entries.joinToString(", ") { it.label + " " + suggestedThreshold(it, data) })
+        add("suggested thresholds (worst mode, down to 5; identity, coverage and question capped at the plan minimum): " + Dimension.entries.joinToString(", ") { it.label + " " + suggestedThreshold(it, data) })
         add("plan minimums: " + Dimension.entries.joinToString(", ") { it.label + " " + it.planMinimum })
     }
 

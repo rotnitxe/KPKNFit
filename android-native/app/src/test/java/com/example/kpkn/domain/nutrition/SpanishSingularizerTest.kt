@@ -56,7 +56,8 @@ class SpanishSingularizerTest {
         assertEquals("leche descremada", singular("leches descremadas"))
         assertEquals("jugo de naranja", singular("jugos de naranja"))
         // Neither the plural nor the singular phrase is in the catalog: nothing is guessed.
-        for (phrase in listOf("manzanas verdes", "yogures griegos", "huevos duros", "tostadas francesas")) {
+        // ("yogures griegos" was in this list until WP-N8b gave the Greek yogurt its Spanish alias "yogur griego": now it is a catalog phrase.)
+        for (phrase in listOf("manzanas verdes", "peras maduras", "huevos duros", "tostadas francesas")) {
             assertEquals(phrase, phrase, singular(phrase))
         }
     }

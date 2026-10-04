@@ -7,6 +7,7 @@ import com.example.kpkn.data.food.FOOD_ALIASES
 import com.example.kpkn.data.food.buildFoodDatabase
 import com.example.kpkn.data.food.findFoodExactByNormalized
 import com.example.kpkn.data.models.FoodItem
+import com.example.kpkn.data.models.MealType
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
@@ -72,6 +73,10 @@ internal object N11bTestEnv {
     /** The tags of [description], resolved as the logger resolves them. */
     fun resolve(description: String): List<ResolvedTag> =
         runBlocking { TagResolver(port).resolveAll(parseMealDescription(description)).first }
+
+    /** The tags of [description] for a meal of [mealType]: the meal context scales the portions that were not said (WP-N8b). */
+    fun resolveAt(description: String, mealType: MealType): List<ResolvedTag> =
+        runBlocking { TagResolver(port).resolveAll(parseMealDescription(description), mealType = mealType).first }
 
     /** The tags of [description] when the catalog of the resolver also holds the [extra] rows. */
     fun resolveWith(description: String, vararg extra: FoodItem): List<ResolvedTag> =

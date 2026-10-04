@@ -140,8 +140,8 @@ class CountsForAllFoodsTest {
 
     @Test
     fun `half a piece of a countable fruit uses the same unit weight`() {
-        assertEquals(75.0, grams("media manzana"), 0.01)
-        assertEquals(150.0, grams("una manzana"), 0.01)
+        assertEquals(91.0, grams("media manzana"), 0.01)
+        assertEquals(182.0, grams("una manzana"), 0.01)
         assertEquals(120.0, grams("un plátano"), 0.01)
         assertEquals(130.0, grams("una naranja"), 0.01)
         assertEquals(75.0, grams("un kiwi"), 0.01)
@@ -160,21 +160,21 @@ class CountsForAllFoodsTest {
     // --- A size multiplies the count once -------------------------------------------------------------------------
 
     @Test
-    fun `2 manzanas grandes are 375 g from a base of 300 g, and Grande Habitual Grande is exact`() {
+    fun `2 manzanas grandes are 455 g from a base of 364 g, and Grande Habitual Grande is exact`() {
         val tag = single("2 manzanas grandes")
         assertEquals("manzana", tag.tag)
         assertEquals(PortionPreset.LARGE, tag.portion)
-        assertEquals(375.0, tag.amountGrams ?: Double.NaN, 0.01)
-        assertEquals("the anchor is the count without the size", 300.0, tag.baseAmountGrams ?: Double.NaN, 0.01)
+        assertEquals(455.0, tag.amountGrams ?: Double.NaN, 0.01)
+        assertEquals("the anchor is the count without the size", 364.0, tag.baseAmountGrams ?: Double.NaN, 0.01)
         assertEquals(FoodResolutionStatus.AUTO, tag.resolutionStatus)
         assertEquals("gen001", tag.foodItem?.id)
         // The chips and the options read the immutable anchor, so every round trip lands on the same grams.
         val options = absolutePortionOptions(tag.baseAmountGrams).toMap()
-        assertEquals(375.0, options.getValue("Grande"), 0.0)
-        assertEquals(300.0, options.getValue("Habitual"), 0.0)
-        assertEquals(225.0, options.getValue("Pequeña"), 0.0)
+        assertEquals(455.0, options.getValue("Grande"), 0.0)
+        assertEquals(364.0, options.getValue("Habitual"), 0.0)
+        assertEquals(273.0, options.getValue("Pequeña"), 0.0)
         assertEquals(tag.amountGrams, options["Grande"])
-        assertEquals(187.5, grams("una manzana grande"), 0.01)
+        assertEquals(227.5, grams("una manzana grande"), 0.01)
     }
 
     @Test
@@ -311,7 +311,7 @@ class CountsForAllFoodsTest {
 
     @Test
     fun `the unit weight of a count is known for fruits, drinks and cuts and unknown for nuts and dishes`() {
-        assertEquals(150.0, HouseholdPortions.unitWeightByToken("manzana verde") ?: Double.NaN, 0.0)
+        assertEquals(182.0, HouseholdPortions.unitWeightByToken("manzana verde") ?: Double.NaN, 0.0)
         assertEquals(125.0, HouseholdPortions.unitWeightByToken("yogures") ?: Double.NaN, 0.0)
         assertNull("the head noun decides: pan con palta", HouseholdPortions.unitWeightByToken("pan con palta"))
         assertNull("ensalada de tomate", HouseholdPortions.unitWeightByToken("ensalada de tomate"))

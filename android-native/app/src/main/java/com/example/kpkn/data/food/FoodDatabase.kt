@@ -101,7 +101,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     // unit="ml" is a display/household measure, never the nutrient denominator.
     FoodItem(id = "gen015", name = "Aceite de Oliva", servingSize = 100.0, unit = "ml", nutritionBasis = "PER_100G_AS_SOLD", source = "USDA SR Legacy (rounded)", sourceRecordId = "171413", calories = 884.0, protein = 0.0, carbs = 0.0, fats = 100.0),
     FoodItem(id = "gen016", name = "Leche Entera", brand = "Genérico", servingSize = 100.0, unit = "ml", nutritionBasis = "PER_100G_AS_SOLD", source = "USDA SR Legacy (rounded)", sourceRecordId = "171265", calories = 61.0, protein = 3.2, carbs = 4.8, fats = 3.3),
-    FoodItem(id = "gen017", name = "Yogurt Griego Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 97.0, protein = 9.0, carbs = 3.9, fats = 5.0),
+    FoodItem(id = "gen017", name = "Yogurt Griego Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 97.0, protein = 9.0, carbs = 3.9, fats = 5.0, searchAliases = listOf("yogur griego")),
     FoodItem(id = "gen018", name = "Queso Cottage", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 98.0, protein = 11.0, carbs = 3.4, fats = 4.3),
     // WP-S10: sus macros son por 100 g (PER_100G_AS_SOLD) y por eso esos 100 g ya no cuentan como porción; el pan que come la gente (un pan, "2 panes" =
     // 200 g en EverydayMealCorpusTest) sí pesa 100 g, y la fila lo declara en vez de heredarlo del denominador.
@@ -164,7 +164,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "gen062", name = "Dátiles", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 282.0, protein = 2.5, carbs = 75.0, fats = 0.4),
     FoodItem(id = "gen063", name = "Pasas", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 299.0, protein = 3.1, carbs = 79.0, fats = 0.5),
     FoodItem(id = "gen064", name = "Salsa de Tomate", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 32.0, protein = 1.6, carbs = 7.2, fats = 0.4),
-    FoodItem(id = "gen065", name = "Mayonesa", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 680.0, protein = 1.1, carbs = 0.6, fats = 75.0),
+    FoodItem(id = "gen065", name = "Mayonesa", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 680.0, protein = 1.1, carbs = 0.6, fats = 75.0, searchAliases = listOf("mayo")),
     // ─── Verduras ────────────────────────────────────────────────────────────
     FoodItem(id = "gen066", name = "Lechuga", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 15.0, protein = 1.4, carbs = 2.9, fats = 0.2, source = "USDA SR Legacy (rounded)", sourceRecordId = "169249", nutritionBasis = "PER_100G_AS_SOLD", searchAliases = listOf("lechuga", "ensalada verde")),
     FoodItem(id = "gen067", name = "Repollo", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 25.0, protein = 1.3, carbs = 5.8, fats = 0.1, searchAliases = listOf("repollo", "col", "cabbage")),
@@ -206,7 +206,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     ),
     FoodItem(id = "gen085", name = "Leche Semidescremada", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 46.0, protein = 3.2, carbs = 4.8, fats = 1.5, micronutrients = listOf(Micronutrient("Calcio", 120.0, "mg"))),
     FoodItem(id = "gen086", name = "Crema de Leche", brand = "Genérico", servingSize = 100.0, unit = "ml", calories = 292.0, protein = 2.2, carbs = 2.8, fats = 30.0, searchAliases = listOf("crema", "nata", "crema de leche")),
-    FoodItem(id = "gen087", name = "Yogurt Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 59.0, protein = 3.5, carbs = 4.7, fats = 3.3, searchAliases = listOf("yogurt natural", "yogur")),
+    FoodItem(id = "gen087", name = "Yogurt Natural", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 59.0, protein = 3.5, carbs = 4.7, fats = 3.3, searchAliases = listOf("yogurt natural", "yogur", "yogur natural")),
     FoodItem(id = "gen088", name = "Queso Mantecoso", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 350.0, protein = 22.0, carbs = 1.5, fats = 28.0, searchAliases = listOf("queso mantecoso", "queso amarillo")),
     // ─── Panes y Cereales ────────────────────────────────────────────────────
     FoodItem(id = "gen089", name = "Pan de Molde", brand = "Genérico", servingSize = 25.0, unit = "u", calories = 67.0, protein = 2.2, carbs = 12.0, fats = 0.9, searchAliases = listOf("pan de molde", "molde", "pan lactal", "toast")),
@@ -216,7 +216,7 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     // ─── Carnes y Embutidos ───────────────────────────────────────────────────
     FoodItem(id = "gen093", name = "Filete de Vacuno", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 187.0, protein = 28.0, carbs = 0.0, fats = 8.0, cookingWeightFactor = 0.75, searchAliases = listOf("filete", "lomo", "vacuno", "bife")),
     FoodItem(id = "gen094", name = "Jamón Cocido", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 107.0, protein = 17.0, carbs = 2.0, fats = 3.7, searchAliases = listOf("jamón", "jamon", "jamón de pavo", "fiambre")),
-    FoodItem(id = "gen095", name = "Salchicha Tipo Viena", brand = "Genérico", servingSize = 50.0, unit = "u", calories = 145.0, protein = 6.5, carbs = 2.1, fats = 12.5, searchAliases = listOf("salchicha", "vienesa", "hotdog")),
+    FoodItem(id = "gen095", name = "Salchicha Tipo Viena", brand = "Genérico", servingSize = 50.0, unit = "u", calories = 145.0, protein = 6.5, carbs = 2.1, fats = 12.5, searchAliases = listOf("salchicha", "vienesa")),
     FoodItem(id = "gen096", name = "Camarón (cocido)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 99.0, protein = 21.0, carbs = 0.9, fats = 1.1, searchAliases = listOf("camarón", "camaron", "shrimp")),
     FoodItem(id = "gen097", name = "Tilapia (cocida)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 128.0, protein = 26.0, carbs = 0.0, fats = 2.7),
     // ─── Aceites y Grasas ────────────────────────────────────────────────────
@@ -263,7 +263,41 @@ val GENERIC_FOODS: List<FoodItem> = listOf(
     // Pasta
     FoodItem(id = "gen040c", name = "Pasta (cruda)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 371.0, protein = 13.0, carbs = 75.0, fats = 1.5, cookingWeightFactor = 2.2, searchAliases = listOf("pasta cruda", "fideos crudos", "fideos secos", "tallarines secos")),
     // Lentejas
-    FoodItem(id = "gen012c", name = "Lentejas (crudas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 352.0, protein = 25.0, carbs = 60.0, fats = 1.1, cookingWeightFactor = 2.5, searchAliases = listOf("lentejas crudas")),
+    FoodItem(id = "gen012c", name = "Lentejas (crudas)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 352.0, protein = 25.0, carbs = 60.0, fats = 1.1, cookingWeightFactor = 2.5, searchAliases = listOf("lentejas crudas", "lentejas secas", "lenteja seca", "lenteja cruda")),
+    FoodItem(
+        id = "gen031c",
+        name = "Porotos negros (crudos)",
+        brand = "Genérico",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_RAW",
+        source = "KPKN Curated (FDC 173734, black beans, mature seeds, raw)",
+        sourceRecordId = "173734",
+        foodState = "RAW",
+        calories = 341.0,
+        protein = 21.6,
+        carbs = 62.4,
+        fats = 1.4,
+        cookingWeightFactor = 2.5,
+        searchAliases = listOf("poroto negro seco", "porotos negros secos", "poroto negro crudo", "porotos negros crudos", "frijol negro seco", "frijoles negros secos"),
+    ),
+    FoodItem(
+        id = "gen013c",
+        name = "Garbanzos (crudos)",
+        brand = "Genérico",
+        servingSize = 100.0,
+        unit = "g",
+        nutritionBasis = "PER_100G_RAW",
+        source = "KPKN Curated (FDC 173756, chickpeas, mature seeds, raw)",
+        sourceRecordId = "173756",
+        foodState = "RAW",
+        calories = 378.0,
+        protein = 20.5,
+        carbs = 63.0,
+        fats = 6.0,
+        cookingWeightFactor = 2.5,
+        searchAliases = listOf("garbanzo seco", "garbanzos secos", "garbanzo crudo", "garbanzos crudos"),
+    ),
     // Cerdo
     FoodItem(id = "gen028p", name = "Lomo de Cerdo (plancha)", brand = "Genérico", servingSize = 100.0, unit = "g", calories = 254.0, protein = 27.0, carbs = 0.0, fats = 13.3, searchAliases = listOf("cerdo a la plancha")),
     // Atún
@@ -1457,7 +1491,11 @@ val CHILEAN_FOODS: List<FoodItem> = listOf(
     FoodItem(id = "cl004", name = "Cazuela", servingSize = 400.0, unit = "ml", calories = 350.0, protein = 25.0, carbs = 30.0, fats = 12.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl005", name = "Mote con Huesillo", servingSize = 300.0, unit = "ml", calories = 220.0, protein = 2.0, carbs = 55.0, fats = 0.5, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl006", name = "Sopaipillas", servingSize = 60.0, unit = "u", calories = 150.0, protein = 3.0, carbs = 20.0, fats = 7.0, tags = listOf("preparacion", "chileno"), searchAliases = listOf("sopaipilla", "sopaipillas")),
-    FoodItem(id = "cl007", name = "Porotos Granados", servingSize = 300.0, unit = "ml", calories = 380.0, protein = 16.0, carbs = 50.0, fats = 12.0, tags = listOf("preparacion", "chileno")),
+    // Porotos Granados (WP-D1b): the plate of 350 g of the blind corpus, from its recipe. 150 g of cranberry beans cooked (FDC 173736: 136 kcal per 100 g), 80 g of
+    // corn kernels cooked (FDC 169999: 96), 60 g of squash cooked (FDC 170490: 37) and 5 g of olive oil (FDC 171413: 884) are 347 kcal, 16.8 g of protein, 59 g of
+    // carbohydrate and 7 g of fat: 99 kcal per 100 g (nutrola.app lists 340 kcal for 350 g). The row said 380 kcal per 300 ml, which weigh 255 g by the density of a
+    // grain dish: 149 kcal per 100 g, half as much again as the dish.
+    FoodItem(id = "cl007", name = "Porotos Granados", servingSize = 350.0, unit = "g", calories = 347.0, protein = 17.0, carbs = 59.0, fats = 7.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl008", name = "Curanto", servingSize = 400.0, unit = "g", calories = 550.0, protein = 35.0, carbs = 45.0, fats = 22.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl009", name = "Chorrillana", servingSize = 400.0, unit = "g", calories = 750.0, protein = 30.0, carbs = 55.0, fats = 42.0, tags = listOf("preparacion", "chileno")),
     FoodItem(id = "cl010", name = "Marraqueta", servingSize = 100.0, unit = "g", calories = 260.0, protein = 9.0, carbs = 50.0, fats = 2.5, tags = listOf("chileno"), searchAliases = listOf("marraqueta", "marraquetas", "pan francés", "pan frances")),
@@ -1612,7 +1650,7 @@ val FOOD_ALIASES: Map<String, String> = mapOf(
     "tallarines secos" to "pasta (cruda)",
     "lentejas secas" to "lentejas (crudas)",
     "lentejas remojadas" to "lentejas (hidratadas)",
-    "garbanzos secos" to "garbanzos (cocidos)",
+    "garbanzos secos" to "garbanzos (crudos)",
     "garbanzos remojados" to "garbanzos (hidratados)",
     "pasta seca" to "pasta (cruda)",
     "arroz seco" to "arroz blanco (crudo)",

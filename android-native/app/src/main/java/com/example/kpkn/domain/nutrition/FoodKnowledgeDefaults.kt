@@ -147,7 +147,8 @@ internal object FoodKnowledgeDefaults {
      * Typical weight of ONE piece by the head noun of the food, accent-free, singular and plural (WP-N8). The default portion
      * of these foods is a serving or a topping ("tomate" and "palta" 80 g), not a piece, so a count cannot scale it: "3 tomates"
      * are 3 x 120 g. Rounded household weights (USDA household measures of a medium tomato, orange, peach, banana and kiwi:
-     * 123, 131, 150, 118 and 69 g) and the usual 125 g cup of yogurt. [HouseholdPortions.unitGrams] applies the pieces of the countable
+     * 123, 131, 150, 118 and 69 g), the 182 g of a medium apple as the USDA gives it (FDC 171688, SR Legacy household weight; its large apple
+     * is 242 g) and the usual 125 g cup of yogurt. [HouseholdPortions.unitGrams] applies the pieces of the countable
      * markers; the sopaipilla, the cookie and the breads keep their dedicated rows there. A food that is not here keeps its
      * portion default, and a custom food keeps the serving its owner typed.
      */
@@ -156,7 +157,7 @@ internal object FoodKnowledgeDefaults {
         weight(120.0, "tomate", "tomates", "jitomate", "jitomates")
         weight(150.0, "palta", "paltas", "aguacate", "aguacates")
         weight(130.0, "naranja", "naranjas")
-        weight(150.0, "manzana", "manzanas")
+        weight(182.0, "manzana", "manzanas")
         weight(120.0, "platano", "platanos")
         weight(150.0, "pera", "peras")
         weight(75.0, "kiwi", "kiwis")

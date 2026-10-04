@@ -77,6 +77,27 @@ private val DESSERT         = NutritionProfile(310.0,  5.0, 46.0, 12.0)
 // parts are denser (USDA hot dog roll 172796: 279 kcal, frankfurter 172968: 290 kcal), so this is the figure of a dressed one.
 private val HOT_DOG         = NutritionProfile(190.0,  6.0, 16.0, 11.0)
 
+// Custard (WP-N8b), per 100 g: a set milk-and-egg dessert (flan, mousse, budin, natilla, panna cotta). It is not the 310 kcal of the dessert median,
+// which the cakes and the pies dominate: it is the flan row of that same table, its lowest, USDA FDC 167574 (flan, caramel custard, prepared from
+// recipe): 145 kcal, 4.53 g protein, 22.78 g carbohydrate and 4.03 g fat, here to one decimal (4/4/9 closes at 145 kcal). The packaged desserts of
+// OFF Chile bracket it and are its sourced range, CUSTARD_RANGE: five flans (Nestlé, Colún, Soprole) at 81 to 97 kcal, two panna cotta at 187 and a
+// chocolate mousse (CUK) at 270.
+private val CUSTARD         = NutritionProfile(145.0,  4.5, 22.8,  4.0)
+
+// Dressed vegetable salad (WP-N8b), per 100 g: the VEGETABLE profile plus 3 g of olive oil (FDC 171413, 884 kcal), the teaspoon of the 150 g side
+// salad of the blind corpus (cabbage FDC 169975 and 4.5 g of oil: 51.5 kcal per 100 g); the catalog's Ensalada Chilena (cl028) is 40.
+private val SALAD           = NutritionProfile( 55.0,  2.0,  5.0,  3.3)
+
+// Papas a lo pobre (WP-N8b), per 100 g: the 255 g plate of the blind corpus, 150 g of fries (FDC 170698: 312 kcal, 3.4 g protein, 41 g
+// carbohydrate, 15 g fat), 50 g of fried egg (FDC 173423: 196 kcal), 50 g of onion (FDC 170000: 40 kcal) and 5 g of oil (FDC 171413): 630 kcal,
+// 12.5 g protein, 66.6 g carbohydrate and 35 g fat, that is 247 kcal per 100 g. The catalog's Bistec a lo Pobre (cl038) is 212 with its steak.
+private val A_LO_POBRE      = NutritionProfile(247.0,  4.9, 26.1, 13.7)
+
+// Empanada (WP-N8b), per 100 g: the mean of the catalog's two empanadas, the pino (cl001: 450 kcal per 180 g) and the mariscos (cl032: 320 kcal
+// per 150 g), 232 kcal; a published cheese empanada is 380 kcal per 180 g (211). It was the bread profile (265 kcal), which made a cheese
+// empanada of 180 g 477 kcal.
+private val EMPANADA        = NutritionProfile(232.0, 10.3, 19.1, 13.2)
+
 /** Marginal per-100 g bounds of a profile that has a sourced range (not a confidence interval): the lowest and highest value of each nutrient. */
 private class SourcedRange(val min: NutritionProfile, val max: NutritionProfile)
 
@@ -85,8 +106,14 @@ private val DESSERT_RANGE = SourcedRange(
     max = NutritionProfile(466.0, 6.2, 63.9, 29.1),
 )
 
+// The lowest and the highest value of each nutrient over the custard rows named above (OFF Chile flans, panna cotta and mousse).
+private val CUSTARD_RANGE = SourcedRange(
+    min = NutritionProfile(81.0, 1.8, 12.6, 2.2),
+    max = NutritionProfile(270.0, 5.0, 25.0, 21.7),
+)
+
 /** The profiles whose evidence carries a sourced range instead of the generic 0..900 kcal of a category guess. */
-private val SOURCED_RANGES: Map<NutritionProfile, SourcedRange> = mapOf(DESSERT to DESSERT_RANGE)
+private val SOURCED_RANGES: Map<NutritionProfile, SourcedRange> = mapOf(DESSERT to DESSERT_RANGE, CUSTARD to CUSTARD_RANGE)
 
 // ─── Keyword → Profile mapping ───────────────────────────────────────────────
 // Rules are checked in order — more specific rules first. A keyword names the food only as a whole word (or whole words) of the
@@ -120,6 +147,12 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     listOf(
         "completo", "completo italiano", "completo americano", "hot dog", "hotdog", "perro caliente",
     ) to HOT_DOG,
+
+    // ── A lo pobre (antes que las proteínas y las papas: unas papas a lo pobre llevan huevo frito y cebolla frita) ──
+    listOf("a lo pobre") to A_LO_POBRE,
+
+    // ── Empanada (antes que las proteínas y la masa: una empanada de queso o de pollo es una empanada) ──
+    listOf("empanada") to EMPANADA,
 
     // ── Proteínas magras ──────────────────────────────────────────────────────
     listOf(
@@ -155,9 +188,12 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
         "mortadela", "salame", "cecina", "tocino", "panceta"
     ) to PROCESSED_MEAT,
 
+    // ── Natillas (antes que los postres: un flan o una mousse no son la torta que domina su mediana) ──
+    listOf("flan", "mousse", "budin", "natilla", "panna cotta") to CUSTARD,
+
     // ── Postres (antes que legumbres, lácteos, frutas y dulces: "helado de frutilla" y "torta de zanahoria" son postres) ──
     listOf(
-        "tres leches", "torta", "queque", "kuchen", "helado", "pie", "flan",
+        "tres leches", "torta", "queque", "kuchen", "helado", "pie",
         "mil hojas", "milhojas", "brownie", "alfajor", "cheesecake", "chesecake", "cheese cake",
     ) to DESSERT,
 
@@ -187,7 +223,7 @@ private val KEYWORD_PROFILES: List<Pair<List<String>, NutritionProfile>> = listO
     listOf(
         "marraqueta", "hallulla", "baguette", "pan de molde",
         "pan integral", "pan blanco", "pan", "tortilla", "arepa", "pita",
-        "empanada", "panqueque", "choripan"
+        "panqueque", "choripan"
     ) to BREAD,
 
     // ── Vegetales con almidón ─────────────────────────────────────────────────
@@ -272,8 +308,13 @@ private val ICED_DRINK = Regex(RegexEs.bounded("""(?:te|cafe|mate|agua|jugo|bebi
 private fun profileFor(foodName: String): NutritionProfile? {
     val key = TextKeys.normalize(foodName).replace(ICED_DRINK, " ").trim()
     if (key.isEmpty()) return null
-    return PROFILE_MATCHERS.firstOrNull { (matcher, _) -> matcher.containsMatchIn(key) }?.second
+    val profile = PROFILE_MATCHERS.firstOrNull { (matcher, _) -> matcher.containsMatchIn(key) }?.second
+    // A salad of vegetables is dressed (WP-N8b): "ensalada de repollo" is the vegetable profile plus its teaspoon of oil.
+    return if (profile == VEGETABLE && SALAD_WORD.containsMatchIn(key)) SALAD else profile
 }
+
+/** "ensalada" as a whole word of the accent-free name, with its plural. */
+private val SALAD_WORD = Regex(RegexEs.bounded("""ensaladas?"""))
 
 object NutritionHeuristicEstimator {
     fun estimatePer100g(foodName: String): NutritionProfile {

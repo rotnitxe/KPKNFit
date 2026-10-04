@@ -76,12 +76,14 @@ fun getContextualDefaultServingSize(food: FoodItem): Double {
  * cuál y es la única fuente de esa decisión: la comparten [scaleFoodByPortion], el resolvedor de tags y las pruebas.
  *
  * a) [CookingTransform.StateConversion]: conversión de base por rendimiento cuando el estado de la ficha difiere del pedido.
- *    Ficha cruda y pedido cocido: los gramos que come la persona se dividen por el rendimiento ([cookingWeightYield]); ficha
+ *    Ficha cruda y pedido cocido: los gramos que come la persona se dividen por el rendimiento ([cookingNutrientYield]); ficha
  *    cocida y pedido crudo: se multiplican. El resolvedor la registra una sola vez en `ResolvedTag.stateConversion`. El
- *    rendimiento ya contiene el agua que se pierde o se gana, así que no se le suma ningún factor por gramo.
+ *    rendimiento ya contiene el agua que se pierde o se gana, así que no se le suma ningún factor por gramo. En el pescado graso
+ *    el rendimiento no concentra más de un 5 % la energía por gramo (ver [cookingNutrientYield]).
  * b) [CookingTransform.ConcentrationFactor]: factor por gramo de [COOKING_FACTORS], solo si el estado de la ficha es
  *    desconocido (ni cruda, ni cocida, ni ya preparada para ese método) y el método concentra ([CONCENTRATING_METHODS]:
- *    horno, plancha, parrilla y ahumado).
+ *    horno, plancha, parrilla y ahumado). Nunca sobre un plato completo del catálogo (un preparado o una receta estimada): sus
+ *    valores ya son los del plato cocinado ("empanada de pino al horno" son los 450 kcal de la ficha, no 450 x 1,15; WP-N8b).
  * c) [CookingTransform.None]: nada. La ficha ya es la variante preparada, ya está en la base pedida o no hay método.
  *
  * Frito y empanizado nunca multiplican kcal ni macros: su grasa entra en gramos por [adjustLoggedFoodForOil], con la
@@ -110,11 +112,12 @@ fun cookingTransformFor(food: FoodItem, method: CookingMethod?): CookingTransfor
     val isCooked = CookingStateResolver.isDbFoodCooked(food)
     return when {
         method != CookingMethod.CRUDO && isRaw ->
-            CookingTransform.StateConversion(FoodState.RAW, FoodState.COOKED, cookingWeightYield(food))
+            CookingTransform.StateConversion(FoodState.RAW, FoodState.COOKED, cookingNutrientYield(food))
         method == CookingMethod.CRUDO && isCooked ->
-            CookingTransform.StateConversion(FoodState.COOKED, FoodState.RAW, cookingWeightYield(food))
+            CookingTransform.StateConversion(FoodState.COOKED, FoodState.RAW, cookingNutrientYield(food))
         method in CONCENTRATING_METHODS && !isRaw && !isCooked &&
-            !CookingStateResolver.isAlreadyPreparedForMethod(food, method) ->
+            !CookingStateResolver.isAlreadyPreparedForMethod(food, method) &&
+            !HouseholdPortions.isCompleteDish(food) ->
             CookingTransform.ConcentrationFactor(method, cookingFactorFor(method))
         else -> CookingTransform.None
     }
@@ -152,6 +155,40 @@ fun cookingWeightYield(food: FoodItem): Double {
         if (family?.startsWith("untable_") == true || family == "pasta_concentrada") add("pasta")
     }
     return YIELD_BY_FOOD_WORD.firstOrNull { (group, _) -> group.any { it in words && it !in notThisFood } }?.second ?: 1.0
+}
+
+/** Grasa (g por 100 g) desde la que un pescado crudo es graso: el salmón tiene 13 (WP-N8b). */
+private const val FATTY_RAW_FAT_G_PER_100G = 10.0
+
+/**
+ * Rendimiento mínimo con que se convierten los nutrientes de un pescado graso crudo a su peso cocido: 0,95, es decir, los gramos cocidos
+ * llevan como mucho 1/0,95 (un 5,3 %) más de energía por gramo que los crudos (WP-N8b, N10c).
+ */
+private const val FATTY_RAW_MIN_YIELD = 0.95
+
+/**
+ * Rendimiento con que se pasan los nutrientes de una ficha entre su peso crudo y su peso cocido: el [cookingWeightYield], salvo en el
+ * pescado graso crudo (la familia pescado o atún y [FATTY_RAW_FAT_G_PER_100G] g de grasa por 100 g o más), donde nunca baja de
+ * [FATTY_RAW_MIN_YIELD]. El pescado graso pierde grasa además de agua al cocinarse y sus kcal por gramo apenas cambian: el salmón crudo
+ * da 208 kcal por 100 g (FDC 175167) y el cocido 206 (FDC 175168). Dividir por el rendimiento físico de la ficha (0,78) lo llevaba a 267
+ * kcal por 100 g cocidos: los 150 g de "salmón a la parrilla" daban 400 kcal frente a los 309 de USDA (206 por 100 g cocidos); con el
+ * piso de 0,95 dan 328. Las carnes magras sí concentran (pechuga de pollo cruda 120 kcal por 100 g, cocida 165: FDC 171077 y 171477) y
+ * la carne roja conserva el rendimiento: el asado de tira crudo de la ficha (250 kcal) dividido por 0,7 son 357 kcal por 100 g
+ * cocidos, y el costillar asado de USDA da 352 (FDC 168676).
+ */
+fun cookingNutrientYield(food: FoodItem): Double {
+    val weightYield = cookingWeightYield(food)
+    if (weightYield >= FATTY_RAW_MIN_YIELD || food.fats < FATTY_RAW_FAT_G_PER_100G) return weightYield
+    return if (isFish(food)) FATTY_RAW_MIN_YIELD else weightYield
+}
+
+/** Los pescados grasos que la familia de la ontología no nombra (salmón, merluza y atún sí: [FoodStapleOntology.detectFamily]). */
+private val FATTY_FISH_WORDS = setOf("trucha", "jurel", "sardina", "sardinas", "caballa", "anchoa", "anchoas", "anchoveta", "congrio")
+
+private fun isFish(food: FoodItem): Boolean {
+    val family = FoodStapleOntology.detectFamily(food.name)
+    return family == FoodStapleOntology.Family.PESCADO || family == FoodStapleOntology.Family.ATUN ||
+        TextKeys.normalize(food.name).split(' ').any { it in FATTY_FISH_WORDS }
 }
 
 /**
