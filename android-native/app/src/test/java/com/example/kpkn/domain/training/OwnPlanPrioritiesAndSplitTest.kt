@@ -2,10 +2,12 @@ package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.exercises.catalogv2.toLegacyConfigurationLookup
 import com.example.kpkn.data.models.CardioType
+import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.programs.CatalogEntry
 import com.example.kpkn.data.programs.CatalogLevel
 import com.example.kpkn.data.programs.CatalogSource
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
@@ -16,7 +18,19 @@ import com.example.kpkn.data.protocols.SlotPriority
 import com.example.kpkn.data.protocols.SlotRecipe
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.definitions.NativeProfileKind
+import com.example.kpkn.data.splits.SPLIT_TEMPLATES
+import com.example.kpkn.data.splits.isVisibleForApplication
+import com.example.kpkn.domain.onboarding.NativePlanFailureMapper
+import com.example.kpkn.domain.onboarding.PlanCandidateEvaluation
+import com.example.kpkn.domain.onboarding.PlanCandidateEvaluator
+import com.example.kpkn.domain.onboarding.PlanCandidateRequest
+import com.example.kpkn.domain.onboarding.PlanEvaluationStage
+import com.example.kpkn.domain.onboarding.PlanMaterializationOutcome
+import com.example.kpkn.domain.onboarding.PlanMaterializationPort
+import com.example.kpkn.domain.onboarding.PlanRejectionReason
+import com.example.kpkn.screens.onboarding.SetupExperience
 import com.example.kpkn.screens.onboarding.planOrderPriorityReason
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -26,13 +40,13 @@ import org.junit.BeforeClass
 import org.junit.Test
 
 /**
- * Paquete A · E1 (decisión D6 del plan de curaduría de programas, DEC-w2-08): la bolsa de prioridades de
- * orden se APLICA y se PERSISTE en los cuatro planes propios (`native:*-foundation-v2` y
- * `native:complete-athlete-v2`). Hasta este paso la ruta propia la validaba y la descartaba, así que
- * `OrderPrioritiesContract` respondía `NOT_APPLIED_BAG_MISMATCH` («El programa no registra ninguna bolsa de
- * orden aplicada al generarlo») aunque la persona la hubiera pedido.
+ * Paquete A · E1 y E2 (decisión D6 del plan de curaduría de programas, DEC-w2-08 y DEC-w2-04 parte 2): los dos
+ * efectos que el wizard pregunta y que los cuatro planes propios (`native:*-foundation-v2` y
+ * `native:complete-athlete-v2`) descartaban en silencio.
  *
- * Contrato que fija esta clase (solo la parte de PRIORIDADES; el split de A.E2 se añadirá aquí):
+ * **Prioridades (E1).** La bolsa de prioridades de orden se APLICA y se PERSISTE. Hasta este paso la ruta propia la
+ * validaba y la descartaba, así que `OrderPrioritiesContract` respondía `NOT_APPLIED_BAG_MISMATCH` («El programa no
+ * registra ninguna bolsa de orden aplicada al generarlo») aunque la persona la hubiera pedido. Contrato:
  * - el valor persistido es EXACTAMENTE la bolsa normalizada por `orderPointsFromBag`, que es la que compara
  *   el contrato de orden;
  * - la bolsa solo desempata dentro de cada rango H1 (SPEED, T1, T2, T3 compuesto, aislamiento, core y
@@ -40,6 +54,15 @@ import org.junit.Test
  * - la bolsa NUNCA cambia la viabilidad, los ejercicios, las series, las repeticiones, el RIR ni el volumen
  *   por músculo: se aplica con el plan ya ajustado por el fitter;
  * - con la bolsa vacía (o con una bolsa de un músculo que el plan no trabaja) el programa es el mismo.
+ *
+ * **Reparto (E2).** Un reparto elegido solo se aplica si es el equivalente del calendario propio del plan
+ * ([NativeProfileSplitWitness]); cualquier otro se rechaza con el motivo cerrado `SPLIT`, y quitarlo basta para tener
+ * plan. Contrato (al final de la clase):
+ * - cada testigo de la tabla da el MISMO programa que sin reparto (ejercicios, series, orden, volumen, minutos y
+ *   calendario) con los días nombrados como el reparto y el reparto anotado en el programa;
+ * - cualquier otro reparto (otra estructura, de powerlifting fuera de Fuerza, personalizado, oculto o desconocido) se
+ *   rechaza como `SPLIT` ANTES del fitter y sin ids en el mensaje, y sin reparto el plan sale como siempre;
+ * - el reparto y la bolsa de prioridades no se pisan: el reparto va antes del fitter y la bolsa después.
  */
 class OwnPlanPrioritiesAndSplitTest {
     companion object {
@@ -554,4 +577,407 @@ class OwnPlanPrioritiesAndSplitTest {
             }
         }
     }
+
+    // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+    // Paquete A · E2 (D6, DEC-w2-04 parte 2): el reparto de los planes propios
+    // ═════════════════════════════════════════════════════════════════════════════════════════════════════
+
+    private val bodyweightOnly = setOf("bodyweight")
+
+    /**
+     * Genera el plan propio con el reparto indicado. El material es el gimnasio completo confirmado con 90 min o, para
+     * el calendario de Músculo SIN tirón, solo peso corporal con 100 min (el material con el que no hay remo ni jalón;
+     * es el mismo que usa `NativeProfileRecipeAndFitterTest` para los calendarios corporales de 5 y 6 días).
+     */
+    private fun generateSplit(
+        kind: NativeProfileKind,
+        level: CatalogLevel,
+        days: Int,
+        splitId: String?,
+        minutes: Int? = null,
+        noPull: Boolean = false,
+        generator: SimpleCyclePersonalizer = CoverageFixtures.personalizer(),
+        bag: Map<String, Int> = emptyMap(),
+    ): PersonalizationResult {
+        val budget = minutes ?: if (noPull) 100 else 90
+        val scenario = Scenario(kind, level, days, budget)
+        val input = if (noPull) {
+            PersonalizerInput(
+                catalogEntryId = kind.entryId,
+                focus = TrainingFocus.FULL_BODY,
+                frequency = days,
+                weekdays = CoverageFixtures.weekdays(days),
+                equipment = bodyweightOnly,
+                level = level,
+                availableMinutes = budget,
+            )
+        } else {
+            inputOf(scenario)
+        }
+        return generator.personalize(
+            programId = "own-split-${kind.sourceId}-${level.name}-$days${if (noPull) "-sin-tiron" else ""}",
+            input = input.copy(splitId = splitId),
+            options = if (noPull) TrainingOptions(orderPriorities = bag) else optionsOf(bag),
+        )
+    }
+
+    private fun weeksOf(program: Program) =
+        program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+
+    /** Nombre de cada sesión de cada semana, en orden de día. */
+    private fun dayNamesByWeek(program: Program): List<List<String>> =
+        weeksOf(program).map { week -> week.sessions.map { it.name } }
+
+    /** Etiquetas de los días de entrenamiento del reparto (la semana empieza el día 1, como en `CoverageFixtures.weekdays`). */
+    private fun splitLabels(splitId: String): List<String> =
+        SplitApplicationEngine.patternToTrainingDays(SPLIT_TEMPLATES.first { it.id == splitId }.pattern, startDay = 1)
+            .map { it.label }
+
+    private fun nameOfSplit(splitId: String): String = SPLIT_TEMPLATES.first { it.id == splitId }.name
+
+    // ─── (a) cada testigo da el mismo plan, con los días nombrados como el reparto ─────────────────────────
+
+    /**
+     * Para cada par (perfil, días) de la tabla y los tres niveles: con su reparto equivalente el plan propio es el MISMO
+     * que sin reparto —viabilidad, ejercicios, series, orden, volumen por músculo, minutos y calendario— y solo cambian
+     * el nombre de cada día (el de los días del reparto, en las seis semanas y en la receta) y la anotación del
+     * reparto en el programa. Un plan que no cabe sin reparto tampoco cabe con él, y por el mismo motivo.
+     */
+    @Test
+    fun every_witness_split_gives_the_same_own_plan_with_the_days_named_after_the_split() {
+        val generator = CoverageFixtures.personalizer()
+        val failures = mutableListOf<String>()
+        val notViableWithoutSplit = mutableListOf<String>()
+        val readyContexts = mutableListOf<String>()
+        NativeProfileSplitWitness.allWitnesses().forEach { witness ->
+            val noPull = witness.pull == false
+            LEVELS.forEach { level ->
+                val context = "${witness.profile.sourceId}/${level.name}/${witness.days} días/" +
+                    "${if (noPull) "sin tirón" else "con tirón"}/${witness.splitId}"
+                val base = generateSplit(witness.profile, level, witness.days, splitId = null, noPull = noPull, generator = generator)
+                val chosen = generateSplit(
+                    witness.profile, level, witness.days, splitId = witness.splitId, noPull = noPull, generator = generator,
+                )
+                val baseProgram = base.program
+                val chosenProgram = chosen.program
+                if (baseProgram == null) {
+                    notViableWithoutSplit += "$context (${base.report.reasonCode})"
+                    if (chosenProgram != null) {
+                        failures += "$context: sin reparto NO viable y con su reparto equivalente sí"
+                    } else if (chosen.report.reasonCode != base.report.reasonCode ||
+                        chosen.report.limitations != base.report.limitations ||
+                        chosen.report.maxSessionMinutes != base.report.maxSessionMinutes
+                    ) {
+                        failures += "$context: el rechazo cambia con el reparto equivalente " +
+                            "(${base.report.reasonCode} frente a ${chosen.report.reasonCode})"
+                    }
+                    return@forEach
+                }
+                if (chosenProgram == null) {
+                    failures += "$context: viable sin reparto y rechazado con su reparto equivalente " +
+                        "(${chosen.report.reasonCode}): ${chosen.report.limitations}"
+                    return@forEach
+                }
+                readyContexts += context
+                val labels = splitLabels(witness.splitId)
+                val problems = mutableListOf<String>()
+                if (chosenProgram.selectedSplitId != witness.splitId) problems += "selectedSplitId=${chosenProgram.selectedSplitId}"
+                if (baseProgram.selectedSplitId != null) problems += "sin reparto no se anota ninguno (${baseProgram.selectedSplitId})"
+                dayNamesByWeek(chosenProgram).forEachIndexed { weekIndex, names ->
+                    if (names != labels) problems += "semana ${weekIndex + 1}: los días son $names y deberían ser $labels"
+                }
+                val recipeLabels = requireNotNull(chosenProgram.sourceRecipe).weeks.map { week -> week.days.map { it.label } }
+                if (recipeLabels.any { it != labels }) problems += "las etiquetas de la receta no son las del reparto: $recipeLabels"
+                val defaultLabels = List(witness.days) { "Día ${it + 1}" }
+                if (dayNamesByWeek(baseProgram).any { it != defaultLabels }) problems += "sin reparto los días no son «Día N»"
+                if (prescriptions(chosenProgram) != prescriptions(baseProgram)) problems += "la prescripción cambia"
+                if (sessionOrders(chosenProgram) != sessionOrders(baseProgram)) problems += "el orden de los ejercicios cambia"
+                if (chosen.report.muscles != base.report.muscles) problems += "el volumen por músculo cambia"
+                if (chosen.report.maxSessionMinutes != base.report.maxSessionMinutes) problems += "los minutos máximos cambian"
+                if (chosenProgram.schedulePlan != baseProgram.schedulePlan || chosenProgram.startDay != baseProgram.startDay) {
+                    problems += "el calendario del programa cambia (${chosenProgram.schedulePlan} frente a ${baseProgram.schedulePlan})"
+                }
+                if (sessionsOf(chosenProgram).map { it.dayOfWeek } != sessionsOf(baseProgram).map { it.dayOfWeek }) {
+                    problems += "los días de la semana de las sesiones cambian"
+                }
+                ProgramExecutionContract.validate(chosenProgram).forEach { problems += "contrato: ${it.message}" }
+                if (problems.isNotEmpty()) failures += "$context -> $problems"
+            }
+        }
+        println(
+            "[A.E2][witness-matrix] pares=${NativeProfileSplitWitness.allWitnesses().size} niveles=${LEVELS.size} " +
+                "viables=${readyContexts.size} sinRepartoTampocoViables=$notViableWithoutSplit",
+        )
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+        val witnesses = NativeProfileSplitWitness.allWitnesses()
+        witnesses.forEach { witness ->
+            val prefix = "${witness.profile.sourceId}/"
+            val suffix = "/${witness.days} días/${if (witness.pull == false) "sin tirón" else "con tirón"}/${witness.splitId}"
+            assertTrue(
+                "ningún nivel de ${witness.profile} con ${witness.days} días da un plan viable que probar " +
+                    "(sin reparto tampoco: $notViableWithoutSplit)",
+                readyContexts.any { it.startsWith(prefix) && it.endsWith(suffix) },
+            )
+        }
+    }
+
+    // ─── (b) y (c) otro reparto: SPLIT, sin ids, y quitarlo basta ──────────────────────────────────────────
+
+    @Test
+    fun muscle_with_four_days_rejects_the_three_day_powerlifting_split_as_split_and_clearing_it_gives_the_usual_plan() {
+        val scenario = Scenario(NativeProfileKind.MUSCLE, CatalogLevel.INTERMEDIATE, 4, 90)
+        val rejected = generate(scenario, input = inputOf(scenario).copy(splitId = "pl_sbd_x3"))
+
+        assertNull(rejected.program)
+        assertEquals("SPLIT", rejected.report.reasonCode)
+        val message = rejected.report.limitations.joinToString(" ")
+        assertTrue(message, "SBD Full Body x3" in message)
+        assertTrue("dice cuál sí coincide: $message", "Upper / Lower x4" in message)
+        assertTrue("dice los días: $message", "4 días" in message)
+        assertFalse("ningún id de reparto en el mensaje: $message", "pl_sbd_x3" in message || "ul_x4" in message)
+        val failure = requireNotNull(NativePlanFailureMapper.typedFailure(rejected.report))
+        assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, failure.stage)
+        assertEquals(PlanRejectionReason.SPLIT, failure.reason)
+
+        // Quitar el reparto basta: sale el plan de siempre, sin reparto anotado y con los días «Día N».
+        val cleared = requireProgram(generate(scenario), scenario.label)
+        assertNull(cleared.selectedSplitId)
+        assertEquals(List(4) { "Día ${it + 1}" }, dayNamesByWeek(cleared).first())
+    }
+
+    @Test
+    fun strength_with_three_days_rejects_the_six_day_push_pull_legs_split_and_without_a_witness_nothing_is_accepted() {
+        val three = Scenario(NativeProfileKind.STRENGTH, CatalogLevel.INTERMEDIATE, 3, 90)
+        val wrong = generate(three, input = inputOf(three).copy(splitId = "ppl_x6"))
+        assertNull(wrong.program)
+        assertEquals("SPLIT", wrong.report.reasonCode)
+        assertTrue(wrong.report.limitations.joinToString(" "), "Push Pull Legs x6" in wrong.report.limitations.joinToString(" "))
+        // Su reparto equivalente sí se acepta (3 días de sentadilla, banca y peso muerto).
+        val witness = requireProgram(generate(three, input = inputOf(three).copy(splitId = "pl_sbd_x3")), three.label)
+        assertEquals("pl_sbd_x3", witness.selectedSplitId)
+        assertEquals(listOf("SBD Día 1", "SBD Día 2", "SBD Día 3"), dayNamesByWeek(witness).first())
+
+        // Con 4 días el calendario de Fuerza no tiene reparto equivalente: ni siquiera uno de powerlifting de 4 días.
+        val four = Scenario(NativeProfileKind.STRENGTH, CatalogLevel.INTERMEDIATE, 4, 90)
+        val noWitness = generate(four, input = inputOf(four).copy(splitId = "pl_classic_4"))
+        assertNull(noWitness.program)
+        assertEquals("SPLIT", noWitness.report.reasonCode)
+        val message = noWitness.report.limitations.joinToString(" ")
+        assertTrue(message, "no tiene un reparto equivalente" in message)
+        assertTrue(message, "PL: Clásico 4 Días" in message)
+        assertFalse(message, "pl_classic_4" in message)
+        requireProgram(generate(four), four.label)
+    }
+
+    @Test
+    fun a_custom_hidden_or_unknown_split_is_rejected_as_split_with_a_plain_message() {
+        val scenario = Scenario(NativeProfileKind.MUSCLE, CatalogLevel.INTERMEDIATE, 3, 90)
+        val custom = generate(
+            scenario,
+            input = inputOf(scenario).copy(
+                splitId = "custom",
+                splitPattern = listOf("Empuje", "Descanso", "Tirón", "Descanso", "Pierna", "Descanso", "Descanso"),
+                splitName = "Mi semana",
+            ),
+        )
+        assertNull(custom.program)
+        assertEquals("SPLIT", custom.report.reasonCode)
+        assertTrue(custom.report.limitations.joinToString(" "), "personalizado" in custom.report.limitations.joinToString(" "))
+
+        val hidden = generate(scenario, input = inputOf(scenario).copy(splitId = "sheiko_4day"))
+        assertNull(hidden.program)
+        assertEquals("SPLIT", hidden.report.reasonCode)
+        val hiddenMessage = hidden.report.limitations.joinToString(" ")
+        assertTrue(hiddenMessage, "Sheiko 4 Días" in hiddenMessage)
+        assertFalse(hiddenMessage, "sheiko_4day" in hiddenMessage)
+
+        val unknown = generate(scenario, input = inputOf(scenario).copy(splitId = "reparto_que_no_existe"))
+        assertNull(unknown.program)
+        assertEquals("SPLIT", unknown.report.reasonCode)
+        assertFalse(unknown.report.limitations.joinToString(" "), "reparto_que_no_existe" in unknown.report.limitations.joinToString(" "))
+    }
+
+    @Test
+    fun the_athlete_has_no_equivalent_split_so_every_split_is_rejected_and_clearing_it_gives_the_plan() {
+        val scenario = Scenario(NativeProfileKind.COMPLETE_ATHLETE, CatalogLevel.INTERMEDIATE, 4, 90)
+        listOf("ul_x4", "ppl_ul", "fullbody_x3").forEach { splitId ->
+            val rejected = generate(scenario, input = inputOf(scenario).copy(splitId = splitId))
+            assertNull(splitId, rejected.program)
+            assertEquals(splitId, "SPLIT", rejected.report.reasonCode)
+        }
+        val cleared = requireProgram(generate(scenario), scenario.label)
+        assertNull(cleared.selectedSplitId)
+    }
+
+    // ─── (d) el reparto va antes del fitter; la bolsa, después ─────────────────────────────────────────────
+
+    @Test
+    fun the_split_check_comes_before_time_and_composition_and_an_accepted_split_never_changes_them() {
+        val tight = Scenario(NativeProfileKind.MUSCLE, CatalogLevel.INTERMEDIATE, 4, 20)
+        val withoutSplit = generate(tight)
+        assertNull(withoutSplit.program)
+        assertEquals("sin reparto, a 20 min el plan propio no cabe", "TIME_BUDGET", withoutSplit.report.reasonCode)
+
+        // Un reparto que no es el testigo se rechaza como SPLIT aunque el tiempo tampoco alcance: va ANTES del fitter.
+        val wrong = generate(tight, input = inputOf(tight).copy(splitId = "pl_sbd_x3"))
+        assertEquals("SPLIT", wrong.report.reasonCode)
+        assertNull(wrong.report.maxSessionMinutes)
+
+        // El testigo no cambia el rechazo de tiempo: mismo motivo y los mismos minutos exactos.
+        val witness = generate(tight, input = inputOf(tight).copy(splitId = "ul_x4"))
+        assertNull(witness.program)
+        assertEquals("TIME_BUDGET", witness.report.reasonCode)
+        assertEquals(withoutSplit.report.maxSessionMinutes, witness.report.maxSessionMinutes)
+    }
+
+    @Test
+    fun the_split_and_the_priorities_bag_do_not_step_on_each_other() {
+        val scenario = Scenario(NativeProfileKind.MUSCLE, CatalogLevel.INTERMEDIATE, 4, 90)
+        val bagOnly = requireProgram(generate(scenario, BAG), scenario.label)
+        val splitOnly = requireProgram(generate(scenario, input = inputOf(scenario).copy(splitId = "ul_x4")), scenario.label)
+        val both = requireProgram(generate(scenario, BAG, input = inputOf(scenario).copy(splitId = "ul_x4")), scenario.label)
+
+        // Con los dos: la bolsa aplicada es la normalizada y el reparto el elegido.
+        assertEquals(normalized(BAG), both.planOrderPriorities)
+        assertEquals("ul_x4", both.selectedSplitId)
+        assertEquals(listOf("Torso", "Pierna", "Torso", "Pierna"), dayNamesByWeek(both).first())
+        val capabilities = OrderPrioritiesContract.capabilitiesOf(both, options = TrainingOptions(orderPriorities = BAG))
+        assertEquals(capabilities.reasons.toString(), OrderPrioritiesStatus.APPLIED, capabilities.status)
+
+        // El reparto no mueve la bolsa (mismo orden y misma prescripción que solo con la bolsa)...
+        assertEquals(sessionOrders(bagOnly), sessionOrders(both))
+        assertEquals(prescriptions(bagOnly), prescriptions(both))
+        assertEquals(bagOnly.planOrderPriorities, both.planOrderPriorities)
+        // ...ni la bolsa mueve el reparto (mismos días y nombres que solo con el reparto).
+        assertEquals(dayNamesByWeek(splitOnly), dayNamesByWeek(both))
+        assertEquals(splitOnly.selectedSplitId, both.selectedSplitId)
+        assertNull("sin bolsa no se registra ninguna aunque haya reparto", splitOnly.planOrderPriorities)
+        assertNull("sin reparto no se anota ninguno aunque haya bolsa", bagOnly.selectedSplitId)
+    }
+
+    // ─── (e) todos los repartos del catálogo × todos los calendarios propios ───────────────────────────────
+
+    /**
+     * Para cada plan propio, cada número de días y cada reparto del catálogo (los visibles, uno oculto, el personalizado
+     * y uno que no existe): el reparto se acepta EXACTAMENTE cuando es el testigo de la tabla (con y sin tirón) y, si no,
+     * el plan sale rechazado como `SPLIT`. Con el testigo solo se comprueba que el motivo no es `SPLIT` (que además
+     * sea viable y con los días nombrados lo prueba la matriz de arriba).
+     */
+    @Test
+    fun a_split_is_accepted_exactly_when_it_is_the_witness_and_otherwise_rejected_as_split() {
+        val generator = CoverageFixtures.personalizer()
+        val splitIds = (
+            SPLIT_TEMPLATES.filter { it.isVisibleForApplication }.map { it.id } +
+                listOf("sheiko_4day", "custom", "reparto_que_no_existe")
+            ).distinct()
+        val failures = mutableListOf<String>()
+        var rejected = 0
+        var accepted = 0
+        var expectedAccepted = 0
+        NativeProfileKind.entries.forEach { kind ->
+            (1..6).forEach { days ->
+                listOf(false, true).forEach { noPull ->
+                    if (noPull && kind != NativeProfileKind.MUSCLE) return@forEach
+                    val witness = NativeProfileSplitWitness.witnessSplitId(kind, days, hasPull = !noPull)
+                    if (witness != null) expectedAccepted++
+                    splitIds.forEach { splitId ->
+                        val result = generateSplit(
+                            kind, CatalogLevel.INTERMEDIATE, days, splitId = splitId, noPull = noPull, generator = generator,
+                        )
+                        val context = "${kind.sourceId}/$days días/${if (noPull) "sin tirón" else "con tirón"}/$splitId"
+                        if (splitId == witness) {
+                            accepted++
+                            if (result.report.reasonCode == "SPLIT") {
+                                failures += "$context: es el testigo y se rechazó como SPLIT: ${result.report.limitations}"
+                            }
+                        } else {
+                            rejected++
+                            if (result.program != null || result.report.reasonCode != "SPLIT") {
+                                failures += "$context: no es el testigo ($witness) y salió ${result.report.reasonCode} " +
+                                    "(programa=${result.program != null})"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        println("[A.E2][split-sweep] aceptados=$accepted rechazadosComoSplit=$rejected repartos=${splitIds.size}")
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+        assertEquals(
+            "se aceptó un testigo por cada par (perfil, días, tirón) que tiene reparto equivalente",
+            expectedAccepted,
+            accepted,
+        )
+        assertTrue("el barrido debe rechazar muchos repartos ($rejected)", rejected > 1_000)
+    }
+
+    // ─── (f) el evaluador publica el rechazo en su etapa y el testigo llega como Ready ─────────────────────
+
+    @Test
+    fun the_evaluator_publishes_the_split_rejection_in_its_stage_and_the_witness_arrives_ready() {
+        val generator = CoverageFixtures.personalizer()
+        val snapshot = CoverageFixtures.snapshot(PersonalizedPlanCatalog.entries(), CatalogCompositionTestSupport.catalog)
+        val port = splitAwareMaterializer(generator, FULL_GYM)
+        val gym = CoverageFixtures.legacyFixtures().first { it.id == "E6" }
+        fun requestWith(splitId: String?): PlanCandidateRequest =
+            CoverageFixtures.request(CoverageFixtures.Profile.MUSCLE, SetupExperience.INTERMEDIATE, 4, 90, gym)
+                .let { base -> base.copy(selectedSplitId = splitId, inputKey = "${base.inputKey}|split=$splitId") }
+
+        runBlocking {
+            val ready = PlanCandidateEvaluator.evaluate(requestWith("ul_x4"), snapshot, NativeProfileKind.MUSCLE.entryId, port)
+            assertTrue("el testigo llega Ready: $ready", ready is PlanCandidateEvaluation.Ready)
+            assertEquals("ul_x4", (ready as PlanCandidateEvaluation.Ready).preparedPlan.selectedSplitId)
+
+            val rejected = PlanCandidateEvaluator.evaluate(requestWith("pl_sbd_x3"), snapshot, NativeProfileKind.MUSCLE.entryId, port)
+            assertTrue("otro reparto llega Rejected: $rejected", rejected is PlanCandidateEvaluation.Rejected)
+            rejected as PlanCandidateEvaluation.Rejected
+            assertEquals(NativeProfileKind.MUSCLE.entryId, rejected.planId)
+            assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, rejected.stage)
+            assertEquals(PlanRejectionReason.SPLIT, rejected.reasonCode)
+            assertTrue(rejected.details.orEmpty(), "SBD Full Body x3" in rejected.details.orEmpty())
+
+            val unchosen = PlanCandidateEvaluator.evaluate(requestWith(null), snapshot, NativeProfileKind.MUSCLE.entryId, port)
+            assertTrue("sin reparto llega Ready: $unchosen", unchosen is PlanCandidateEvaluation.Ready)
+            assertNull((unchosen as PlanCandidateEvaluation.Ready).preparedPlan.selectedSplitId)
+        }
+    }
+}
+
+/**
+ * Paquete A · E2: puerto de materialización del motor REAL que, a diferencia de `CoverageFixtures.materializer`, pasa
+ * al generador el reparto elegido del pedido (`PlanCandidateRequest.selectedSplitId`). Un rechazo del generador se
+ * traduce con [NativePlanFailureMapper], como en el wizard.
+ */
+internal fun splitAwareMaterializer(
+    generator: SimpleCyclePersonalizer,
+    availability: EquipmentAvailability,
+    cardioType: CardioType = CardioType.WALK,
+) = PlanMaterializationPort { entry: CatalogEntry, candidate: PlanCandidateRequest ->
+    val result = generator.personalize(
+        programId = "split-${candidate.inputKey.hashCode().toUInt().toString(16)}-${entry.id.substringAfterLast(':')}",
+        input = PersonalizerInput(
+            catalogEntryId = entry.id,
+            focus = candidate.focus,
+            frequency = candidate.daysPerWeek,
+            weekdays = candidate.weekdays.sorted(),
+            equipment = emptySet(),
+            level = candidate.level,
+            availableMinutes = candidate.minutesPerSession,
+            cardio = if (candidate.requiresCardio) {
+                CardioPreference(cardioType, requireNotNull(candidate.cardioMinutes))
+            } else {
+                null
+            },
+            splitId = candidate.selectedSplitId,
+        ),
+        options = TrainingOptions(availability = availability),
+    )
+    val program = result.program
+        ?: throw (
+            NativePlanFailureMapper.typedFailure(result.report)
+                ?: IllegalStateException(
+                    "${entry.id}: rechazo sin motivo de producto reconocido (${result.report.reasonCode}): ${result.report.limitations}",
+                )
+            )
+    PlanMaterializationOutcome(program = program, recipe = program.sourceRecipe, report = result.report)
 }

@@ -117,8 +117,11 @@ private fun inSmokeSlice(key: String): Boolean = Math.floorMod(key.hashCode(), 1
  *
  * // TODO A.C4 (C3): `PlanRejectionPresenter` ya existe (parte pura); falta cablearlo en la UI (C.P11) para que UI y
  * //   test compartan `primary`.
- * // TODO A.D4 (C4): el pase «a peso corporal» solo si todos los rechazos son APPARATUS_* (hoy no existe).
- * // TODO A.E2: `ClearSplit` ya lo propone el asesor, pero la rejilla no fija split; A.E2 lo activará.
+ *
+ * La rejilla no fija reparto (`selectedSplitId` es null en todas las filas), así que el motivo `SPLIT` no puede salir
+ * aquí. Desde A.E2 la cobertura del reparto de los planes propios —cada testigo de `NativeProfileSplitWitness` da
+ * `Ready`, cualquier otro reparto se rechaza con `SPLIT` y `ClearSplit` lo repara— vive en
+ * `OwnPlanPrioritiesAndSplitTest` (y la cláusula C4 del pase a peso corporal la cubre `SetupWizardCandidateGateTest`).
  */
 class PlanCoverageContractTest {
 

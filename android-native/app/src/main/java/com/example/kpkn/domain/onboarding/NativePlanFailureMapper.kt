@@ -18,6 +18,7 @@ import com.example.kpkn.domain.training.PersonalizationReport
  * | `APPARATUS_UNKNOWN` | `MATERIAL`         | `APPARATUS_UNKNOWN` + `missingRequirements` (paquete A · B1) |
  * | `PROFILE_MISMATCH`  | `PROFILE`          | `PROFILE_MISMATCH` |
  * | `COMPOSITION`       | `COMPOSITION`      | `COMPOSITION`      |
+ * | `SPLIT`             | `FREQUENCY_SPLIT`  | `SPLIT` (paquete A · E2) |
  *
  * `missingRequirements` son los tokens de material (`rack`, `bench`, `barbell`…) que el fitter
  * negó (`APPARATUS_ABSENT`) o no pudo confirmar (`APPARATUS_UNKNOWN`); la UI los traduce a la llave
@@ -58,6 +59,13 @@ object NativePlanFailureMapper {
             "COMPOSITION" -> PlanMaterializationException(
                 PlanEvaluationStage.COMPOSITION,
                 PlanRejectionReason.COMPOSITION,
+                message,
+            )
+            // Paquete A · E2: el reparto elegido no es el equivalente del calendario del plan (o el generador
+            // histórico no lo puede cumplir). Se repara quitando el reparto (`PlanRepair.ClearSplit`).
+            "SPLIT" -> PlanMaterializationException(
+                PlanEvaluationStage.FREQUENCY_SPLIT,
+                PlanRejectionReason.SPLIT,
                 message,
             )
             else -> null

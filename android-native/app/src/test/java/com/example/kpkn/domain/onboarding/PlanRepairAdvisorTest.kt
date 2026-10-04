@@ -4,23 +4,40 @@ import com.example.kpkn.data.models.ApparatusPresence
 import com.example.kpkn.data.models.EquipmentAvailability
 import com.example.kpkn.data.models.EquipmentCategory
 import com.example.kpkn.data.programs.CatalogLevel
+import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingFocus
 import com.example.kpkn.data.programs.TrainingReference
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
+import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.CoverageFixtures
+import com.example.kpkn.domain.training.splitAwareMaterializer
+import com.example.kpkn.screens.onboarding.SetupExperience
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.BeforeClass
 import org.junit.Test
 
 /**
  * Paquete A · A.C1 (curaduría de programas, 2026-10-03): reglas de [PlanRepairAdvisor], JVM puro con un
  * evaluador falso programable. Cada prueba fija UNA regla; el comportamiento con el motor real lo comprueba
- * `PlanCoverageContractTest` (que usa el asesor en lugar de las simulaciones que tenía).
+ * `PlanCoverageContractTest` (que usa el asesor en lugar de las simulaciones que tenía). Desde A.E2 el caso
+ * `SPLIT` también tiene sus pruebas con el motor real (al final de la clase), porque ya hay planes propios que lo
+ * producen.
  */
 class PlanRepairAdvisorTest {
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun setUp() {
+            // Solo lo usan las pruebas de SPLIT con el motor real; el resto no toca el catálogo.
+            CatalogCompositionTestSupport.install()
+        }
+    }
 
     private val everything = EquipmentAvailability(categories = EquipmentCategory.entries.toSet())
 
@@ -442,6 +459,70 @@ class PlanRepairAdvisorTest {
             emptyList<PlanRepair>(),
             suggest(request(PlanGoalProfile.MUSCLE, splitId = "ppl_ul"), rejected(PlanRejectionReason.SPLIT), probe = stillRejected),
         )
+    }
+
+    // ─── SPLIT con el motor real (paquete A · E2) ──────────────────────────────────────────────
+
+    private val gym = CoverageFixtures.legacyFixtures().first { it.id == "E6" }
+    private val generator by lazy { CoverageFixtures.personalizer() }
+    private val snapshot by lazy {
+        CoverageFixtures.snapshot(PersonalizedPlanCatalog.entries(), CatalogCompositionTestSupport.catalog)
+    }
+
+    /** Pedido del plan propio de Músculo con 4 días, nivel intermedio y gimnasio completo confirmado. */
+    private fun realRequest(minutes: Int, splitId: String?): PlanCandidateRequest =
+        CoverageFixtures.request(CoverageFixtures.Profile.MUSCLE, SetupExperience.INTERMEDIATE, 4, minutes, gym)
+            .let { base -> base.copy(selectedSplitId = splitId, inputKey = "${base.inputKey}|split=$splitId") }
+
+    /** El evaluador que pide el asesor, con el motor real: evalúa el plan propio de Músculo con el reparto del sondeo. */
+    private val realEvaluator: PlanRepairEvaluator = { probe, availability ->
+        PlanCandidateEvaluator.evaluate(
+            probe,
+            snapshot,
+            NativeProfileKind.MUSCLE.entryId,
+            splitAwareMaterializer(generator, availability),
+        )
+    }
+
+    @Test
+    fun theRealOwnPlanRejectedForItsSplitIsRepairedByClearingIt() {
+        runBlocking {
+            val request = realRequest(minutes = 90, splitId = "pl_sbd_x3")
+            val rejection = realEvaluator(request, gym.availability)
+            assertTrue("el reparto de powerlifting no es el de Músculo con 4 días: $rejection", rejection is PlanCandidateEvaluation.Rejected)
+            rejection as PlanCandidateEvaluation.Rejected
+            assertEquals(PlanRejectionReason.SPLIT, rejection.reasonCode)
+            assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, rejection.stage)
+
+            val repairs = PlanRepairAdvisor.suggest(request, rejection, gym.availability, realEvaluator)
+            assertEquals(listOf<PlanRepair>(PlanRepair.ClearSplit), repairs)
+
+            // Es lo que el asesor probó: sin el reparto el plan queda Ready, y con su reparto equivalente también.
+            assertTrue(realEvaluator(realRequest(90, null), gym.availability) is PlanCandidateEvaluation.Ready)
+            assertTrue(realEvaluator(realRequest(90, "ul_x4"), gym.availability) is PlanCandidateEvaluation.Ready)
+        }
+    }
+
+    @Test
+    fun theRealSplitRejectionHasNoOneTapRepairWhenThePlanDoesNotFitWithoutTheSplitEither() {
+        runBlocking {
+            // A 20 min el plan propio no cabe ni sin reparto; con un reparto que no es el suyo el rechazo es de reparto
+            // (va antes del tiempo) pero quitarlo no deja el plan Ready: ClearSplit no se ofrece.
+            val request = realRequest(minutes = 20, splitId = "pl_sbd_x3")
+            val rejection = realEvaluator(request, gym.availability)
+            assertTrue("$rejection", rejection is PlanCandidateEvaluation.Rejected)
+            rejection as PlanCandidateEvaluation.Rejected
+            assertEquals(PlanRejectionReason.SPLIT, rejection.reasonCode)
+
+            val withoutSplit = realEvaluator(realRequest(20, null), gym.availability)
+            assertTrue("sin reparto tampoco cabe: $withoutSplit", withoutSplit is PlanCandidateEvaluation.Rejected)
+            assertEquals(PlanRejectionReason.TIME_BUDGET, (withoutSplit as PlanCandidateEvaluation.Rejected).reasonCode)
+
+            assertEquals(
+                emptyList<PlanRepair>(),
+                PlanRepairAdvisor.suggest(request, rejection, gym.availability, realEvaluator),
+            )
+        }
     }
 
     // ─── Sin reparación de un toque ────────────────────────────────────────────────────────────

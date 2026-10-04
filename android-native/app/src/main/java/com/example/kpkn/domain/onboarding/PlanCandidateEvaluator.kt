@@ -282,7 +282,10 @@ object PlanCandidateEvaluator {
             )
         }
 
-        // 3 ─ Frecuencia / split.
+        // 3 ─ Frecuencia / split. La frecuencia se decide aquí. El reparto elegido (`request.selectedSplitId`) lo
+        // resuelve el motor con el calendario REAL del plan (en los planes propios depende del tirón que permiten el
+        // material y el nivel, que el evaluador no conoce): su rechazo llega por el fallo tipado de más abajo como
+        // `SPLIT` en esta misma etapa (`NativePlanFailureMapper`) y se repara con `PlanRepair.ClearSplit` (paquete A · E2).
         if (!entry.supportedFrequencies.contains(request.daysPerWeek)) {
             return PlanCandidateEvaluation.Rejected(
                 planId, PlanEvaluationStage.FREQUENCY_SPLIT, PlanRejectionReason.FREQUENCY,

@@ -45,6 +45,7 @@ import com.example.kpkn.domain.exercises.catalogv2.CatalogReviewStatusV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseConfigurationV2
+import com.example.kpkn.domain.text.SpanishPlurals
 import kotlinx.serialization.Serializable
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.ceil
@@ -307,7 +308,9 @@ class SimpleCyclePersonalizer(
         // antes de rellenar las sesiones, no solo sus etiquetas.
         val splitResolution = resolveSplitPlan(input, selectedDays, candidates)
         val splitPlan = when (splitResolution) {
-            is SplitResolution.Invalid -> return unavailable(splitResolution.reason)
+            // Paquete A · E2: el motivo es cerrado (`SPLIT`, etapa frecuencia/reparto) para que el wizard lo
+            // explique sin leer el texto y ofrezca quitar el reparto; el mensaje llano no cambia.
+            is SplitResolution.Invalid -> return unavailable(splitResolution.reason, reasonCode = "SPLIT")
             SplitResolution.None -> null
             is SplitResolution.Ready -> splitResolution.plan
         }
@@ -885,6 +888,17 @@ class SimpleCyclePersonalizer(
         // regla de `PlanMaterializer.rotateWeekday` para caer en el día elegido.
         fun recipeWeekday(day: Int) = ((day - startDay).mod(7)) + 1
 
+        // Paquete A · E2 (D6, DEC-w2-04 parte 2): un reparto elegido solo se aplica si es el equivalente del calendario
+        // propio de este plan con estos días (tabla de `NativeProfileSplitWitness`); si no, se rechaza con el motivo
+        // cerrado `SPLIT`, que la persona repara quitando el reparto (el plan usa entonces su calendario). Va ANTES del
+        // fitter y no lo toca: aceptar un reparto no cambia calendario, dosis ni minutos, solo el nombre de cada día y
+        // la anotación del reparto en el programa; la bolsa de prioridades sigue aplicándose al final (DEC-w2-08).
+        val nativeSplit = when (val resolution = resolveNativeSplitPlan(input, kind, selectedDays, pullAvailable)) {
+            SplitResolution.None -> null
+            is SplitResolution.Invalid -> return fail(resolution.reason, reasonCode = "SPLIT")
+            is SplitResolution.Ready -> resolution.plan
+        }
+
         fun competitionLiftSlot(key: NativeSlotKey, configurationId: String): LiftSlot? = when {
             key == NativeSlotKey.S && configurationId == CatalogIds.SQ_LOW -> LiftSlot.SQUAT
             key == NativeSlotKey.B && configurationId == CatalogIds.BP -> LiftSlot.BENCH
@@ -963,7 +977,8 @@ class SimpleCyclePersonalizer(
             val label = when (sessionKind) {
                 RecipeSessionKind.CARDIO -> "Cardio"
                 RecipeSessionKind.CARDIO_ACCESSORY -> "Cardio y accesorios"
-                else -> "Día ${index + 1}"
+                // Con un reparto aceptado (E2) cada día lleva el nombre del día del reparto, en orden.
+                else -> nativeSplit?.labelsByDay?.get(selectedDays[index]) ?: "Día ${index + 1}"
             }
             val dayPriority = if (archetype.slots.any { it.intent == SlotIntent.P }) SlotPriority.SPEED else SlotPriority.NORMAL
             mergeNativeDaySlots(slots, notes, label)
@@ -1438,6 +1453,10 @@ class SimpleCyclePersonalizer(
             // La bolsa REALMENTE aplicada (la normalizada por `orderPointsFromBag`, que es la que compara
             // `OrderPrioritiesContract`); null si no se pidió ninguna o no se pudo aplicar.
             planOrderPriorities = appliedOrderPoints.takeIf { it.isNotEmpty() },
+            // Paquete A · E2: el reparto aceptado (el equivalente del calendario del plan), anotado DESPUÉS de
+            // materializar. Si estuviera ya en el esqueleto, `PlanMaterializer.materialize` sustituiría los días de
+            // entrenamiento del programa por los del patrón del reparto en lugar de los que eligió la persona.
+            selectedSplitId = nativeSplit?.splitId,
         )
         val stamped = program.withSessionDurations(fit)
         val structuralIssues = ProgramExecutionContract.validate(stamped)
@@ -2076,6 +2095,69 @@ class SimpleCyclePersonalizer(
             groupsByDay[day] = groups
         }
         return SplitResolution.Ready(SplitPlan(rawSplitId, splitName, labelsByDay, groupsByDay, notes))
+    }
+
+    /**
+     * Paquete A · E2 (D6, DEC-w2-04 parte 2): resuelve el reparto elegido para un plan PROPIO.
+     *
+     * El calendario de un plan propio es fijo (arquetipos por número de días, `NativeProfileCalendars`), así que el
+     * reparto solo se acepta si es el equivalente de ese calendario según [NativeProfileSplitWitness]; entonces cada
+     * día toma, en orden, el nombre del día del reparto y el programa lo anota como su reparto. Cualquier otro
+     * reparto (de otra estructura, personalizado, oculto o que ya no existe) es [SplitResolution.Invalid]: el llamador
+     * lo convierte en el motivo cerrado `SPLIT` y la persona lo repara quitándolo (el plan usa su calendario propio).
+     * Nunca se reescribe el calendario, el material ni las dosis para acomodar un reparto, y los mensajes dicen el
+     * nombre del reparto, nunca su id.
+     *
+     * [pullAvailable] es el tirón realmente disponible con el material y el nivel (decide el calendario de Músculo).
+     */
+    private fun resolveNativeSplitPlan(
+        input: PersonalizerInput,
+        kind: NativeProfileKind,
+        selectedDays: List<Int>,
+        pullAvailable: Boolean,
+    ): SplitResolution {
+        val rawSplitId = input.splitId ?: return SplitResolution.None
+        val dayCount = selectedDays.size
+        val daysText = SpanishPlurals.days(dayCount)
+        if (rawSplitId == "custom") {
+            return SplitResolution.Invalid(
+                "Un reparto personalizado no se puede aplicar a este plan: sigue su propio calendario de $daysText.",
+            )
+        }
+        val template = SPLIT_TEMPLATES.firstOrNull { it.id == rawSplitId }
+            ?: return SplitResolution.Invalid("El reparto elegido ya no existe en el catálogo de repartos.")
+        val witnessId = NativeProfileSplitWitness.witnessSplitId(kind, dayCount, pullAvailable)
+            ?: return SplitResolution.Invalid(
+                "El reparto '${template.name}' no se puede aplicar a este plan con $daysText: " +
+                    "su calendario no tiene un reparto equivalente. Quita el reparto para usar el calendario del plan.",
+            )
+        if (rawSplitId != witnessId) {
+            val witnessName = SPLIT_TEMPLATES.firstOrNull { it.id == witnessId }?.name
+            return SplitResolution.Invalid(
+                "El reparto '${template.name}' no coincide con el calendario de este plan con $daysText" +
+                    (witnessName?.let { "; el que coincide es '$it'" }.orEmpty()) +
+                    ". Quita el reparto para usar el calendario del plan.",
+            )
+        }
+        if (!template.isVisibleForApplication) {
+            return SplitResolution.Invalid("El reparto '${template.name}' está oculto porque falta una receta verificable día por día.")
+        }
+        // Mismo convenio que SplitApplicationEngine: solo "Descanso" descansa; el día i del plan toma la etiqueta i.
+        val labels = SplitApplicationEngine.patternToTrainingDays(template.pattern, startDay = selectedDays.first())
+            .map { it.label }
+        if (labels.size != dayCount) {
+            return SplitResolution.Invalid(
+                "El reparto '${template.name}' define ${SpanishPlurals.days(labels.size)} de entrenamiento y has elegido $daysText.",
+            )
+        }
+        return SplitResolution.Ready(
+            SplitPlan(
+                splitId = rawSplitId,
+                splitName = template.name,
+                labelsByDay = selectedDays.zip(labels).toMap(),
+                groupsByDay = emptyMap(),
+            ),
+        )
     }
 
     /**

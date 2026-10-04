@@ -39,6 +39,7 @@ import com.example.kpkn.data.models.PowerliftingProfile
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.protocols.SetRecipe
 import com.example.kpkn.data.protocols.firstCompoundWarmupPercentSets
+import com.example.kpkn.data.protocols.definitions.NativeProfileKind
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.TrainingReference
 import com.example.kpkn.data.splits.SPLIT_TEMPLATES
@@ -61,6 +62,7 @@ import com.example.kpkn.domain.onboarding.SetupStepDefinitions
 import com.example.kpkn.domain.onboarding.SetupStepGraph
 import com.example.kpkn.domain.onboarding.SetupStepId
 import com.example.kpkn.domain.text.SpanishPlurals
+import com.example.kpkn.domain.training.NativeProfileSplitWitness
 import com.example.kpkn.domain.training.SplitApplicationEngine
 import com.example.kpkn.screens.onboarding.design.WizardChoiceCard
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -142,13 +144,42 @@ fun SetupTrainingStepContent(
 // duplica esa lógica (un duplicado propio preseleccionaba «recomendado» en una
 // ruta sin responder).
 
-/** Splits aplicables hoy: visibles para aplicación y con el nº de días real. */
-internal fun compatibleSplitTemplates(daysPerWeek: Int?, startDay: Int): List<SplitTemplate> =
+/**
+ * Splits aplicables hoy: visibles para aplicación, con el nº de días real y, desde A.E2 (D6), compatibles con el
+ * objetivo: los repartos de powerlifting solo se ofrecen en Fuerza ([isSplitOfferedForGoal]). Sin objetivo
+ * ([goal] null) no se filtra por él.
+ */
+internal fun compatibleSplitTemplates(daysPerWeek: Int?, startDay: Int, goal: SetupGoal? = null): List<SplitTemplate> =
     SPLIT_TEMPLATES.filter { split ->
         if (!split.isVisibleForApplication) return@filter false
+        if (!isSplitOfferedForGoal(split, goal)) return@filter false
         daysPerWeek == null ||
             SplitApplicationEngine.patternToTrainingDays(split.pattern, startDay).size == daysPerWeek
     }
+
+/**
+ * D6 (A.E2): un reparto de powerlifting (etiqueta `POWERLIFTING` del catálogo de repartos) solo se ofrece en Fuerza;
+ * Músculo, Fuerza y músculo y Atleta completo no lo listan. Sin objetivo ([goal] null) todo se ofrece.
+ */
+internal fun isSplitOfferedForGoal(split: SplitTemplate, goal: SetupGoal?): Boolean =
+    goal == null || goal == SetupGoal.STRENGTH || SplitTag.POWERLIFTING !in split.tags
+
+/**
+ * El reparto que se destaca en la lista: el equivalente del calendario propio del objetivo con estos días
+ * ([NativeProfileSplitWitness]) si está entre los [compatible]s, para que la propuesta destacada sea siempre una que
+ * el plan propio acepta; si no, el recomendado de KPKN o el primero. En Fuerza con 3 días es «SBD Full Body x3», no
+ * «Cuerpo completo, 3 días» (que el plan propio de Fuerza rechazaría con el motivo `SPLIT`).
+ */
+internal fun featuredSplitTemplate(compatible: List<SplitTemplate>, goal: SetupGoal?, daysPerWeek: Int?): SplitTemplate? {
+    val witnessId = daysPerWeek?.let { days ->
+        ownPlanIdOf(planGoalProfileOf(goal))
+            ?.let { ownId -> NativeProfileKind.fromEntryId(ownId) }
+            ?.let { kind -> NativeProfileSplitWitness.witnessSplitId(kind, days) }
+    }
+    return compatible.firstOrNull { it.id == witnessId }
+        ?: compatible.firstOrNull { SplitTag.RECOMENDADO_KPKN in it.tags }
+        ?: compatible.firstOrNull()
+}
 
 /** Etiquetas del patrón personalizado hasta completar las siete posiciones. */
 internal fun customSplitPatternFromLabels(labels: List<String>): List<String> {
@@ -721,9 +752,10 @@ private fun TrainingSplitStep(state: SetupWizardState, vm: SetupWizardViewModel)
     val options = SetupStepDefinitions.options(step)
     val selected = draft.selectedValues(step)
     val startDay = draft.selectedWeekdays.minOrNull() ?: 1
-    val compatible = compatibleSplitTemplates(draft.daysPerWeek, startDay)
+    // D6 (A.E2): la lista recibe el objetivo; los repartos de powerlifting solo salen en Fuerza.
+    val compatible = compatibleSplitTemplates(draft.daysPerWeek, startDay, draft.goal)
     var query by remember(step) { mutableStateOf("") }
-    val featured = compatible.firstOrNull { SplitTag.RECOMENDADO_KPKN in it.tags } ?: compatible.firstOrNull()
+    val featured = featuredSplitTemplate(compatible, draft.goal, draft.daysPerWeek)
     val rest = compatible.filter { it.id != featured?.id }
     val filtered = if (query.isBlank()) rest else compatible.filter { split ->
         val visible = splitDisplayName(split)

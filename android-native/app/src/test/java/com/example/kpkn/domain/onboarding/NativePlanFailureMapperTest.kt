@@ -11,6 +11,7 @@ import com.example.kpkn.domain.exercises.catalogv2.InMemoryExerciseCatalogReposi
 import com.example.kpkn.domain.training.Calibration
 import com.example.kpkn.domain.training.CatalogCompositionTestSupport
 import com.example.kpkn.domain.training.CatalogProvenance
+import com.example.kpkn.domain.training.CoverageFixtures
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.PersonalizationResult
 import com.example.kpkn.domain.training.PersonalizerInput
@@ -19,6 +20,7 @@ import com.example.kpkn.domain.training.SimpleCyclePersonalizer
 import com.example.kpkn.domain.training.TrainingOptions
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -73,6 +75,8 @@ class NativePlanFailureMapperTest {
             "APPARATUS_UNKNOWN" to (PlanEvaluationStage.MATERIAL to PlanRejectionReason.APPARATUS_UNKNOWN),
             "PROFILE_MISMATCH" to (PlanEvaluationStage.PROFILE to PlanRejectionReason.PROFILE_MISMATCH),
             "COMPOSITION" to (PlanEvaluationStage.COMPOSITION to PlanRejectionReason.COMPOSITION),
+            // Paquete A · E2: el reparto elegido que el plan no puede cumplir.
+            "SPLIT" to (PlanEvaluationStage.FREQUENCY_SPLIT to PlanRejectionReason.SPLIT),
         )
         expected.forEach { (code, pair) ->
             val failure = requireNotNull(NativePlanFailureMapper.typedFailure(report(code, null, "motivo $code")))
@@ -125,7 +129,7 @@ class NativePlanFailureMapperTest {
 
     @Test
     fun onlyTheApparatusReasonsCarryRequirements() {
-        listOf("TIME_BUDGET", "PROFILE_MISMATCH", "COMPOSITION").forEach { code ->
+        listOf("TIME_BUDGET", "PROFILE_MISMATCH", "COMPOSITION", "SPLIT").forEach { code ->
             val failure = requireNotNull(
                 NativePlanFailureMapper.typedFailure(reportWithRequirements(code, listOf("rack"), "motivo $code")),
             )
@@ -162,6 +166,75 @@ class NativePlanFailureMapperTest {
         assertEquals(PlanEvaluationStage.MATERIAL, failure.stage)
         assertEquals(PlanRejectionReason.APPARATUS_UNKNOWN, failure.reason)
         assertEquals(listOf("rack", "bench"), failure.missingRequirements)
+    }
+
+    // ─── Paquete A · E2: el reparto elegido llega como motivo cerrado SPLIT ─────────────────────────
+
+    private val confirmedGym = CoverageFixtures.legacyFixtures().first { it.id == "E6" }.availability
+
+    /** Plan propio de Músculo, intermedio, 4 días, 90 min y gimnasio completo confirmado, con el reparto indicado. */
+    private fun ownMuscleWithSplit(splitId: String?): PersonalizationResult = personalizer().personalize(
+        programId = "e2-muscle-4-${splitId ?: "sin-reparto"}",
+        input = PersonalizerInput(
+            catalogEntryId = NativeProfileKind.MUSCLE.entryId,
+            focus = TrainingFocus.FULL_BODY,
+            frequency = 4,
+            weekdays = listOf(1, 2, 4, 5),
+            equipment = emptySet(),
+            level = CatalogLevel.INTERMEDIATE,
+            availableMinutes = 90,
+            splitId = splitId,
+        ),
+        options = TrainingOptions(availability = confirmedGym),
+    )
+
+    @Test
+    fun theRealOwnPlanTurnsAnInvalidSplitIntoATypedSplitRejectionAndStaysReadyWithItsOwnOrNoSplit() {
+        val rejected = ownMuscleWithSplit("pl_sbd_x3")
+        assertNull(rejected.program)
+        assertEquals("SPLIT", rejected.report.reasonCode)
+        val failure = requireNotNull(NativePlanFailureMapper.typedFailure(rejected.report))
+        assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, failure.stage)
+        assertEquals(PlanRejectionReason.SPLIT, failure.reason)
+        assertNull("un rechazo de reparto no inventa minutos", failure.requiredMinutes)
+        assertTrue("ni requisitos de material", failure.missingRequirements.isEmpty())
+        val message = failure.message.orEmpty()
+        assertTrue("dice el nombre del reparto: $message", "SBD Full Body x3" in message)
+        assertFalse("nunca su id: $message", "pl_sbd_x3" in message)
+
+        // Con el reparto equivalente de su calendario o sin reparto el generador entrega programa, sin motivo de rechazo.
+        listOf("ul_x4", null).forEach { splitId ->
+            val accepted = ownMuscleWithSplit(splitId)
+            assertNotNull("$splitId: ${accepted.report.limitations}", accepted.program)
+            assertNull("un programa no lleva motivo de rechazo", accepted.report.reasonCode)
+        }
+    }
+
+    @Test
+    fun theHistoricalGeneratorTypesItsInvalidSplitAsSplitWithTheSameMessage() {
+        val result = personalizer().personalize(
+            "e2-historical-ul-3",
+            PersonalizerInput(
+                catalogEntryId = "native:machine-muscle",
+                focus = TrainingFocus.FULL_BODY,
+                frequency = 3,
+                weekdays = listOf(1, 3, 5),
+                equipment = setOf("machine"),
+                level = CatalogLevel.INTERMEDIATE,
+                availableMinutes = 90,
+                splitId = "ul_x4",
+            ),
+        )
+        assertNull(result.program)
+        assertEquals("SPLIT", result.report.reasonCode)
+        val failure = requireNotNull(NativePlanFailureMapper.typedFailure(result.report))
+        assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, failure.stage)
+        assertEquals(PlanRejectionReason.SPLIT, failure.reason)
+        // El mensaje llano de siempre (lo fija `OnboardingSplitSelectionTest`): nombre del reparto y días, no su id.
+        val message = failure.message.orEmpty()
+        assertTrue(message, message.contains("Upper / Lower x4"))
+        assertTrue(message, message.contains("4 días de entrenamiento"))
+        assertTrue(message, message.contains("has elegido 3"))
     }
 
     @Test

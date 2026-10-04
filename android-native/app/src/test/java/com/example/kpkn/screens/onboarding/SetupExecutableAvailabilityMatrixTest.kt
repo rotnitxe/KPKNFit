@@ -1547,6 +1547,81 @@ class SetupExecutableAvailabilityMatrixTest {
             }
         }
 
+    // ═════════════════════════════════════════════════════════════════════════════════════
+    // T021 · A.E2 (curaduría de programas, 2026-10-04) — el reparto elegido y el plan propio, con el ViewModel REAL
+    // ═════════════════════════════════════════════════════════════════════════════════════
+    //
+    // Mismo arnés que T020 (motor real, planificador, evaluador, caché y asesor de producción). Una sola fila con las
+    // cuatro cosas que ve y toca la persona (D6):
+    //  1. la lista del paso SPLIT no ofrece un reparto de powerlifting en Músculo...;
+    //  2. ...pero si el borrador ya lo trae (p. ej. el objetivo se cambió a mano), el plan propio lo rechaza como SPLIT, el
+    //     aviso lo explica en llano y ofrece «Quitar el reparto» (la reparación de un toque) y «Cambiar reparto»;
+    //  3. el toque deja el plan propio viable: el programa sale sin reparto anotado y con sus días «Día N»;
+    //  4. el reparto equivalente de su calendario sí se acepta: el programa lo anota, nombra sus días como él, la revisión
+    //     dice su nombre y los días de entrenamiento siguen siendo los que eligió la persona.
+
+    /** Nombre de cada sesión de la primera semana del programa, en orden de día. */
+    private fun firstWeekDayNames(program: Program): List<String> = program.macrocycles
+        .flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
+        .first().sessions.map { it.name }
+
+    @Test
+    fun T021_a_un_reparto_de_powerlifting_en_musculo_se_rechaza_con_un_toque_para_quitarlo_y_el_reparto_equivalente_se_acepta() =
+        runTest(timeout = 10.minutes) {
+            withT020Vm("t021-a-reparto") { vm ->
+                val own = NativeProfileKind.MUSCLE.entryId
+                // Las mismas entradas que T020_d (Músculo, principiante, 3 días, 60 min, gimnasio sin confirmar): el propio cabe.
+                val row = t020Row("t021a", SetupGoal.MUSCLE, SetupExperience.NEW, allCategories, days = 3, minutes = 60)
+                applyFixture(vm, row)
+                val start = requireSettled(vm, "plan propio de Músculo viable sin reparto") { state ->
+                    matchesRequested(state.draft, row) && state.availablePlanCandidates.any { it.id == own }
+                }
+
+                // 1. D6: la lista del paso SPLIT no ofrece los repartos de powerlifting fuera de Fuerza.
+                val startDay = row.weekdays.minOrNull() ?: 1
+                val offered = compatibleSplitTemplates(row.daysPerWeek, startDay, start.draft.goal).map { it.id }
+                assertTrue("Músculo ofrece su reparto equivalente: $offered", "fullbody_x3" in offered)
+                assertFalse("Músculo no ofrece repartos de powerlifting: $offered", "texas_method" in offered || "pl_sbd_x3" in offered)
+
+                // 2. Un borrador que ya trae uno (p. ej. cambiado de objetivo a mano) no se acepta en silencio.
+                vm.updateStep(SetupStepId.SPLIT) { it.copy(selectedSplitId = "texas_method") }
+                val before = requireSettled(vm, "plan propio rechazado por el reparto") { state ->
+                    state.draft.selectedSplitId == "texas_method" &&
+                        state.candidateRejections.any { it.planId == own && it.reasonCode == PlanRejectionReason.SPLIT }
+                }
+                val rejection = before.candidateRejections.single { it.planId == own }
+                assertEquals(SetupCandidateRejectionStage.FREQUENCY, rejection.stage)
+                assertEquals(listOf<PlanRepair>(PlanRepair.ClearSplit), rejection.repairs)
+                val notice = t020Notice(before)
+                assertTrue(notice.text, notice.text.contains("El reparto elegido no encaja con este plan."))
+                assertEquals("Quitar el reparto", notice.primary?.label)
+                assertEquals("Cambiar reparto", notice.secondary?.label)
+                assertT020PlainLanguage(notice)
+
+                // 3. El toque quita el reparto y el plan propio sale como siempre.
+                val usual = tapTheOwnRepairAndOpenTheOwnPlan(vm, own, before)
+                assertNull("quitar el reparto lo retira del borrador", vm.state.value.draft.selectedSplitId)
+                assertNull("sin reparto el programa no anota ninguno", usual.selectedSplitId)
+                assertEquals(listOf("Día 1", "Día 2", "Día 3"), firstWeekDayNames(usual))
+
+                // 4. Su reparto equivalente sí se acepta: el programa lo anota y nombra sus días como él.
+                vm.updateStep(SetupStepId.SPLIT) { it.copy(selectedSplitId = "fullbody_x3") }
+                val accepted = requireSettled(vm, "vista previa con el reparto aceptado") { state ->
+                    state.draft.selectedSplitId == "fullbody_x3" && state.programPreview?.selectedSplitId == "fullbody_x3"
+                }
+                val program = checkNotNull(accepted.programPreview)
+                assertEquals(listOf("Cuerpo Completo A", "Cuerpo Completo B", "Cuerpo Completo C"), firstWeekDayNames(program))
+                assertEquals("la revisión dice el nombre del reparto, no su id", "Cuerpo completo, 3 días", draftSplitLabel(accepted))
+                assertEquals("los días de entrenamiento son los que eligió la persona", row.weekdays, program.schedulePlan?.trainingDays)
+                val issues = ProgramExecutionContract.validate(program)
+                assertTrue("el programa con reparto es ejecutable: ${issues.joinToString("; ") { it.message }}", issues.isEmpty())
+                assertTrue(
+                    "el plan propio sigue viable con su reparto equivalente",
+                    accepted.availablePlanCandidates.any { it.id == own },
+                )
+            }
+        }
+
     // ─── Filas de la matriz ────────────────────────────────────────────────────
 
     private val allCategories: Set<EquipmentCategory> = EquipmentCategory.entries.toSet()

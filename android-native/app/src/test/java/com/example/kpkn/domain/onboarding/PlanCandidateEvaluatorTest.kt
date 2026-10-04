@@ -343,6 +343,53 @@ class PlanCandidateEvaluatorTest {
         }
     }
 
+    /**
+     * Paquete A · E2: el reparto elegido (`request.selectedSplitId`) lo resuelve el motor con el calendario real del plan;
+     * su rechazo llega por el fallo tipado y el evaluador lo publica como SPLIT en la etapa de frecuencia y reparto,
+     * con el texto del motor en `details` y sin inventar minutos ni requisitos de material.
+     */
+    @Test
+    fun aSplitRejectionFromTheEngineIsPublishedAsSplitInTheFrequencyAndSplitStage() = runBlockingTest {
+        val message = "El reparto 'Upper / Lower x4' no coincide con el calendario de este plan con 3 días."
+        val engine = PlanMaterializationPort { _, _ ->
+            throw PlanMaterializationException(PlanEvaluationStage.FREQUENCY_SPLIT, PlanRejectionReason.SPLIT, message)
+        }
+        val result = PlanCandidateEvaluator.evaluate(
+            request().copy(selectedSplitId = "ul_x4"),
+            snapshot(entry()),
+            entryId = "native:test",
+            engine = engine,
+        )
+        assertTrue("esperaba Rejected, llegó $result", result is PlanCandidateEvaluation.Rejected)
+        result as PlanCandidateEvaluation.Rejected
+        assertEquals("native:test", result.planId)
+        assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, result.stage)
+        assertEquals(PlanRejectionReason.SPLIT, result.reasonCode)
+        assertEquals(message, result.details)
+        assertTrue("un rechazo de reparto no inventa minutos", result.requiredMinutes == null)
+        assertTrue(result.missingRequirements.isEmpty())
+    }
+
+    @Test
+    fun theFrequencyIsCheckedBeforeTheSplitAndTheEngineIsNotAskedAboutAnUnsupportedFrequency() = runBlockingTest {
+        var asked = false
+        val engine = PlanMaterializationPort { _, _ ->
+            asked = true
+            throw PlanMaterializationException(PlanEvaluationStage.FREQUENCY_SPLIT, PlanRejectionReason.SPLIT, "reparto")
+        }
+        val result = PlanCandidateEvaluator.evaluate(
+            request(days = 6).copy(selectedSplitId = "ppl_x6"),
+            snapshot(entry(frequencies = 2..3)),
+            entryId = "native:test",
+            engine = engine,
+        )
+        assertTrue(result is PlanCandidateEvaluation.Rejected)
+        result as PlanCandidateEvaluation.Rejected
+        assertEquals(PlanEvaluationStage.FREQUENCY_SPLIT, result.stage)
+        assertEquals("la frecuencia manda sobre el reparto", PlanRejectionReason.FREQUENCY, result.reasonCode)
+        assertFalse("no se pregunta al motor por una frecuencia que el plan no admite", asked)
+    }
+
     @Test
     fun unexpectedEngineErrorsBecomeInternalMaterializationWithStageAndId() = runBlockingTest {
         val engine = PlanMaterializationPort { _, _ -> throw IllegalStateException("boom interno") }
