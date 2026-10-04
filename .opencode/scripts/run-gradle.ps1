@@ -40,29 +40,37 @@ Write-Host ">> $cmd (workdir=$gradleDir, timeout=${TimeoutSec}s)" -ForegroundCol
 
 # Usar cmd /c para desacoplar handles del daemon (fix definitivo en pwsh + gradle 9.x)
 # y capturar salida a archivo para no bloquear el pipe de OpenCode
-$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$stamp = (Get-Date -Format "yyyyMMdd-HHmmss-fff") + "-$PID"
 $logFile = Join-Path $env:TEMP "opencode-gradle-$stamp.log"
 $proc = $null
 try {
   Push-Location $gradleDir
-  # Start-Process con redireccion evita que pwsh quede esperando handles heredados
-  $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $cmd 1`>`"$logFile`" 2`>`&1" -PassThru -NoNewWindow
+  # Process.Start conserva el handle y el ExitCode incluso si cmd termina enseguida.
+  # Start-Process -PassThru podia devolver ExitCode=$null; "exit $null" reportaba exito ante un build fallido.
+  $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+  $startInfo.FileName = $env:ComSpec
+  $startInfo.Arguments = "/c $cmd 1`>`"$logFile`" 2`>`&1"
+  $startInfo.WorkingDirectory = $gradleDir
+  $startInfo.UseShellExecute = $false
+  $startInfo.CreateNoWindow = $true
+  $proc = New-Object System.Diagnostics.Process
+  $proc.StartInfo = $startInfo
+  if (-not $proc.Start()) { throw "No se pudo iniciar Gradle" }
   $exited = $proc.WaitForExit($TimeoutSec * 1000)
   if (-not $exited) {
     Write-Warning "Timeout ${TimeoutSec}s alcanzado, matando arbol gradle..."
-    try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch {}
-    # Matar java daemons huerfanos del mismo worktree (solo daemons de este repo)
-    Get-CimInstance Win32_Process -Filter "Name='java.exe'" 2>$null | Where-Object { $_.CommandLine -like "*GradleDaemon*" } | ForEach-Object {
-      try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch {}
-    }
+    # Solo el arbol del cmd que iniciamos: otros worktrees/sesiones pueden tener su propio Gradle.
+    # Un filtro por "GradleDaemon" mataba tambien compilaciones ajenas al llegar a este timeout.
+    try { & "$env:SystemRoot\System32\taskkill.exe" /PID $proc.Id /T /F 2>$null | Out-Null } catch {}
     Write-Host "--- LOG (tail) ---" -ForegroundColor Yellow
     if (Test-Path $logFile) { Get-Content $logFile -Tail 200 }
     exit 124
   }
   $exitCode = $proc.ExitCode
+  if ($null -eq $exitCode) { throw "Gradle termino sin codigo de salida verificable" }
   # Volcar log al stdout de OpenCode de forma truncada (evita pipe colgado)
   if (Test-Path $logFile) {
-    $lines = Get-Content $logFile
+    $lines = @(Get-Content $logFile)
     $maxLines = 1800
     if ($lines.Count -gt $maxLines) {
       Write-Host "--- LOG truncado ($($lines.Count) lineas, mostrando ultimas $maxLines) ---" -ForegroundColor Yellow
@@ -74,5 +82,6 @@ try {
   }
   exit $exitCode
 } finally {
+  if ($null -ne $proc) { $proc.Dispose() }
   Pop-Location
 }
