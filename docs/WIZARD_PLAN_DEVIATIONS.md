@@ -718,3 +718,125 @@ Corrida final del paso (mensaje del commit): 38 suites, 321 tests, 0 fallos, con
 - El aviso de la selección caída usa una tabla local de motivos que A.C4 sustituirá por `PlanRejectionPresenter`.
 
 **Qué lo confirma.** `SetupWizardCandidateGateTest` (`theBodyweightPassOnlyFollowsRejectionsThatAreAllAboutMaterial` y las tres pruebas de B-07 con el ViewModel real), `PlanCandidateSessionCacheTest`, `SetupProtocolSourceGuardTest` y `SetupExecutableAvailabilityMatrixTest` (17 de 17).
+
+---
+
+## Decisiones de la ola 3 de la curaduría de programas (2026-10-03 y 2026-10-04)
+
+Convención: `DEC-w3-NN` es una decisión del paquete B (recetas y progresión) del plan de curaduría de programas (`docs/audits/2026-10-programs/00-PLAN-curaduria-programas-2026-10-03.md`) que cierra un hueco o un conflicto sin contradecir r2; si lo contradijera sería un `DEV-r2-NN`. Las de la Fase 1 son `DEC-w3-01`, `DEC-w3-02`, `DEC-w3-03` y `DEC-w3-07` (plan 00 §6, paquete B). Cada decisión nombra el test que la confirma o la refuta. Al escribir estas notas no se ejecutó Gradle: las cifras «antes → después» salen de los mensajes de los commits (que citan sus corridas), de la lectura del código y de los tests, y los conteos de pruebas son de anotaciones `@Test` contadas en cada commit, no de una ejecución.
+
+### DEC-w3-03 — La progresión del método se aplica siempre y la de rendimiento viaja como propuesta de TM (B.S3, B.S4 y B.S5, 2026-10-03/04)
+
+**Estado:** implementada en el motor y en el detalle del programa: B.S3 (`5312decc2`, el método), B.S4 (`b18597085`, el rendimiento) y B.S5 (`2d411c58f`, el TM en pantalla). Faltan los datos de las recetas (B.S6, que decide qué regla lleva cada una) y la interfaz de la Fase 2 (B.S13). No contradice r2. El principio es el del plan 00 (§6, B.S3–S5) y separa dos clases de progresión:
+- **La del método** (`CycleIncrement`, `WeeklyKg`) es contenido de la receta y se aplica siempre, con la autorregulación en OFF, PROPOSE o AUTO.
+- **La de rendimiento** (`AmrapDrivenTm`, `RepTargetDrivenTm`, `TopSetPr`, `RepMaxAutoregulated`) sale como propuesta `ADJUST_TM` y respeta OFF (nada), PROPOSE (queda pendiente) y AUTO (se aplica con auditoría).
+
+Registro de consumidores (`ProgressionConsumers`, en `AuthoredProgressionEngine.kt`): reglas de autor = {`CycleIncrement`, `WeeklyKg`}; autorregulación = {`AmrapDrivenTm`, `RepTargetDrivenTm`, `TopSetPr`, `RepMaxAutoregulated`}. `WeeklyPercent` sigue sin consumidor en `2d411c58f` y solo la declara `madcow-5x5`: B.S6 pasa Madcow a `CycleIncrement` y la saca de las recetas. En el contrato de receta (regla C6) los hallazgos pasan de 16 a 7 (B.S3) y a 2 (B.S4); el inventario, de 466 a 457 y a 452, con el techo `CEILING` en 452. Los dos C6 que quedan son `WeeklyPercent` de `madcow-5x5` y la exigencia de AMRAP de `kpkn-rts-style` (`RepTargetDrivenTm` sin series AMRAP).
+
+**Qué dice r2.**
+- §12.4 (l.435): «La progresión propia no modifica la regla original de otros protocolos ni el algoritmo AUGE global», y las adaptaciones de originales «usan la regla del original mientras sea semánticamente compatible». r2 no describe ningún motor para las recetas fijas: pide que su regla se respete. Hasta B.S3 la regla de varias recetas estaba declarada y no hacía nada.
+- §12.4 (l.431): las propuestas se confirman con el flujo existente y no cambian kilos registrados retroactivamente. Eso rige la progresión por rendimiento, que es una propuesta, y se cumple: el flujo es el de OFF, PROPOSE y AUTO de siempre y cada registro conserva su carga. La del método no es una propuesta sino contenido de la receta (el 5/3/1 prescribe su subida por ciclo): no pide confirmación y tampoco toca kilos registrados; lo que se recalcula es la prescripción de lo que viene (ver «Pendiente y riesgos» para las sesiones que el ciclo siguiente reutiliza).
+- DEV-r2-05 (r2 §12.1, l.399): al terminar el bloque el programa continúa solo y se avisa una vez, con un único aviso que sustituye al de caducidad.
+
+**Qué hacía el código** (hallazgos L-03, L-04, L-16, R-02, R-11, R-17 y R-23; el plan 00 no separa cuál de R-02, R-11 y R-17 describe cada punto).
+1. `tmDeltaForAmrap` devolvía `(kg ÷ 100) × 2,5`: un porcentaje calculado a partir de una tabla en kilos, es decir, de 0,06 a 0,19 % del TM en lugar de 2,5 a 7,5 kg (L-04). Un AMRAP corto con 2 o más repeticiones caía en la misma tabla y devolvía un delta positivo: error de signo.
+2. El camino positivo de `RepTargetDrivenTm` (SBS, +0,5 % por repetición) era inalcanzable: `buildProposals`, fuera del caso corto, solo miraba `AmrapDrivenTm`.
+3. `liftSlotFor` buscaba `contains("deadlift")` y `contains("squat")` en el id de la configuración: el rumano, la sentadilla hack y la frontal contaban como peso muerto o sentadilla. Una serie sin levantamiento (las dominadas de Texas, L-16) generaba `ADJUST_TM` con `liftSlot = null` y `applyTmDelta(null)` escalaba los cuatro TM.
+4. `collectAmrapHits` filtraba la semana por `weekId` sin ciclo (mezclaba ciclos) y tomaba la última serie de todas las coincidentes, sin distinguir sesión ni serie: como el historial llega del más reciente al más antiguo, leía el log más antiguo y, con un T1 y un T2 de la misma configuración, la serie de cualquiera de los dos.
+5. `TopSetPr` y `RepMaxAutoregulated` no tenían consumidor (L-03), y `PlanObserver` prometía «≥5 reps y la TM sube 2,5 kg» a toda receta con `AmrapDrivenTm`, con independencia de su tabla (que da 5 kg con 4 o 5 repeticiones y 2,5 kg con 2 o 3).
+6. (B.S3) `CycleIncrement` y `WeeklyKg` no tenían consumidor (L-03): el 5/3/1 no subía el TM al cerrar el ciclo y Smolov y Smolov Jr no sumaban sus kilos por semana. Además `rematerializeWeek` reconstruía con `startDay = 1` y sin los días del split, así que rotaba los días (R-23).
+
+**Qué se hizo.**
+
+*B.S3, el método* (`AuthoredProgressionEngine`, dominio puro; `PlanMaterializer`; `ProgramProgressEngine`):
+- `CycleIncrement(upperKg, lowerKg, scope)` sube el TM de cada levantamiento de `recipe.liftSlots`: `upperKg` en banca y press militar, `lowerKg` en sentadilla y peso muerto. El TM sale del perfil guardado o, sin él, de `1RM × trainingMaxPercent`. El resultado se redondea al paso del inventario (el doble del disco más pequeño; 0,5 kg sin discos declarados), sin que el paso supere nunca el incremento del método y sin que el TM baje.
+- Enganche por ciclo (`scope = CYCLE`): `ProgramProgressEngine.completeCycle`, DESPUÉS de avanzar `cycleNumber` (si no, `weekRecipeSourceFor` arrastraría las semanas escaladas del ciclo cerrado). Enganche por bloque (`scope = BLOCK`, Juggernaut por ola): `advanceComplexAfterSessionComplete`, al entrar en el bloque siguiente; entrar en el primer bloque no es un cierre, ni lo es entrar en una «Descarga (auto)» de AUGE. Con progresión nativa activa (`recipe.nativeProgression` distinta de `NONE`) el motor de autor no actúa.
+- Reconstrucción: solo las semanas de los bloques que vienen de la receta (`Block.sourceDefinitionId == recipe.id`, sin semanas de loop). Al cerrar el ciclo se rematerializan con `executedWeekIds = ∅` (en el ciclo nuevo no hay nada entrenado); al entrar en un bloque, las sesiones con registros del run no se reconstruyen. Las sesiones con ajustes manuales (`manualSessionOverrides`) se conservan y el aviso dice cuántas; los días que el atleta movió arrastrando una sesión se restauran.
+- Idempotente por marca (`AppliedRecipeProposal` con `proposalId` `author-cycle-c<N>`, con N el ciclo nuevo, o `author-block-b<N>`, con N el índice del bloque al que se entra) y con un aviso único del mismo id, con coma decimal y solo los levantamientos que cambian: «Nuevo ciclo: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg, peso muerto 198 → 203 kg.».
+- Respaldo: sin metadatos del catálogo, o si la reconstrucción falla, el TM sube igual, las cargas quedan como estaban, los bloques quedan con `materializationPending` (botón RE-MATERIALIZAR) y la causa técnica va al resumen de la marca, no al aviso. Sin perfil de cargas o sin TM que subir no se hace nada.
+- `WeeklyKg`: `PlanMaterializer.materializeSet` suma los kilos de la semana a la carga resuelta de la serie principal (T1 con `liftSlot`) y deja `targetPercentageRM` coherente con ese kilo; sin base de carga el peso queda `null` y el porcentaje es el de la receta.
+- R-23: `rematerializeWeek` y `materialize` comparten el calendario (`resolveWeekSchedule`: `startDay` y días del split); reconstruir una semana ya no rota los días.
+- `ProgramRepository` entrega al avance de sesión el inventario de discos del atleta, y `executedTrainingEvidence` filtra por ciclo también en los programas Simples cíclicos (antes, tras el ciclo 1 de un 5/3/1, RE-MATERIALIZAR no recalculaba nada).
+- Modelo y JSON: `IncrementScope { CYCLE, BLOCK }` (por defecto `CYCLE`), `CycleIncrement(upperKg, lowerKg, scope)` y `TopSetPr(upperKg = 1,25; lowerKg = 2,5)` como `data class` con `@SerialName("top_set_pr")`. El JSON anterior decodifica y no hay migración de Room.
+
+*B.S4, el rendimiento* (`ProgramAutoregulationEngine`):
+- `AutoregulationProposal.kgDelta` (por defecto `null`) manda sobre `percentDelta` en `ADJUST_TM` y `PROMOTE_TM`; `applyTmKgDelta` redondea a 0,5 kg y, sin TM guardado, parte del 1RM por el porcentaje de la receta. El JSON anterior decodifica con `null`.
+- AMRAP (`amrapTmChange`): lo corto se evalúa primero y nunca sube. Es corto el AMRAP con menos repeticiones que el objetivo, o con 1 o menos desde el 90 % del TM aunque el objetivo fuera 1+ (`SHORT_AMRAP_SINGLE_MIN_PERCENT`, cláusula heredada). Un AMRAP corto baja 2,5 % con `AmrapDrivenTm` (su tabla en kilos no define bajadas), 1 % por repetición que falta con `RepTargetDrivenTm` (solo si faltan 2 o más) y 2,5 % con cualquier otra regla si faltaron repeticiones. Si no es corto, `AmrapDrivenTm` propone los kilos de su tabla (0, 2,5, 5 y 7,5 kg con 0-1, 2-3, 4-5 y 6 o más repeticiones; 0 kg es nada) y solo desde el 85 % del TM (`AMRAP_TM_MIN_PERCENT`); `RepTargetDrivenTm` propone +0,5 % por repetición sobre el objetivo, sin umbral de intensidad. Una serie hecha con menos del 97,5 % de la carga prescrita (`LIGHTER_LOAD_RATIO`) no sube el TM; sí puede bajarlo.
+- Lectura de los registros: `collectAmrapHits` filtra por ciclo y run (`logsForInstance`), toma el log MÁS RECIENTE de cada sesión y empareja por la serie marcada `amrapPerformed` (sin marca, por posición y solo si el registro trae todas las series del plan). El levantamiento de cada serie sale del slot de la receta (`recipeDayId` + `recipeSlotId`; si no, configuración y rol); el texto del id queda como último recurso y excluye rumano, hack, frontal, goblet, zancadas y otras variantes. Sin levantamiento no hay propuesta: las dominadas de Texas ya no escalan los cuatro TM. `applyMutations` ignora las propuestas de TM sin levantamiento y las pendientes antiguas caducan con el motivo «la propuesta no indica a qué levantamiento corresponde».
+- `TopSetPr` (`collectTopSetHits`, `topSetTmChange`): con las repeticiones del objetivo sube el incremento del levantamiento (`upperKg` o `lowerKg`); con 2 o más sobre el objetivo (`TOP_SET_REPS_MARGIN`), el doble; con 2 o más por debajo, baja 2,5 %; con una de menos no cambia nada; con menos carga que la prescrita no sube.
+- `RepMaxAutoregulated` (`collectRepMaxHits`, `repMaxTmChange`; mínimo y conservador): compara el e1RM de las series al máximo (base `REP_MAX`, o top set sin porcentaje, de 1 a 10 repeticiones) del levantamiento de competición de la receta con el 1RM que implica el TM (TM ÷ `trainingMaxPercent`): desde ×1,025 (`REP_MAX_RAISE_RATIO`) sube el TM 2,5 % (`TM_UP_PERCENT`) y hasta ×0,95 (`REP_MAX_DROP_RATIO`) lo baja 2,5 %. Las variantes no cuentan.
+- «Un lift con AMRAP corto no sube»: los enganches de ciclo y de bloque calculan `shortAmrapLifts` del ciclo o bloque que se cierra y excluyen esos levantamientos del incremento del método; el aviso único lo dice: «…; banca se mantiene en 108 kg (AMRAP corto).». Si el AMRAP corto congela todas las subidas, el ciclo se cierra sin cambios de TM ni reconstrucción y deja igualmente su marca y su aviso. El AMRAP corto de un ciclo no congela el siguiente.
+- `PlanObserver.amrapLine` lee la tabla real de la receta (o el porcentaje de `RepTargetDrivenTm`) y `ProgramRepository.buildWeeklyAutoregulationSignals` pasa ciclo, programa, run y receta a `collectAmrapHits`.
+
+*B.S5, el TM en pantalla* (R-03, R-04, R-19, H13, H14):
+- «Guardar TM» (R-04): `TrainingMaxMerge.merge(old, new, trainingMaxPercent)` fusiona el perfil que devuelve el asistente de TM, que solo edita los cuatro 1RM, con el del programa, por levantamiento: 1RM igual → conserva el TM del programa (puede traer un ajuste de una propuesta o del método); 1RM distinto → TM = 1RM × porcentaje de la receta (90 % sin receta); 1RM en blanco → no cambia nada. Las variantes, la modalidad y los estimados son siempre los del perfil viejo. `ProgramDetailViewModel.updatePowerliftingProfile` guarda el perfil fusionado y, si hay receta, reconstruye en la MISMA mutación durable las semanas de los bloques de la receta con la evidencia real de entrenamiento (`executedTrainingEvidence`; lo entrenado y lo editado a mano se conserva) y avisa «TM actualizado: 3 semanas recalculadas, 1 entrenada intacta» (con plurales). Si la reconstrucción falla, el TM se guarda, los bloques quedan pendientes y el aviso remite a RE-MATERIALIZAR; un error de escritura sale en rojo.
+- Test de 1RM (R-19): `resolvePendingOneRmTest`, con un resultado registrado, fusiona los 1RM probados con el mismo `TrainingMaxMerge` y marca `materializationPending` en los bloques de la receta; el ViewModel los reconstruye con la evidencia y avisa «1RM registrado. TM actualizado: …». «Omitir» no toca el perfil.
+- R-03: «VER PROPUESTA» solo navega a la pestaña Semana, donde APLICAR, ACEPTAR TODO y RECHAZAR siguen en la tarjeta; ya no llama a `acceptAutoregulation()`.
+- H13: `PlanMaterializer.materialize` retira de `effectiveWeekRecipes` y de `nativeProgressionAudit` las marcas y avisos de autor (`author-cycle-c`, `author-block-b`) de un run anterior; un cierre de ciclo posterior vuelve a subir el TM. Las marcas `native-progression-c<N>` no se limpian (ver «Pendiente y riesgos»).
+- H14: la tarjeta de progresión titula «Nuevo ciclo» (`author-cycle-c`) y «Nuevo bloque» (`author-block-b` y `native-cycle-c`); cualquier otro aviso, «Progresión de carga».
+- `usesTrainingMax` (decide si la tarjeta de propuestas muestra y deja editar el TM) cubre ahora todas las reglas que mueven el TM y las series de trabajo `PERCENT_TM` de un levantamiento.
+
+**Tests: cifras antes → después.** Primero el comportamiento (oráculos del plan 00 §10.4 y casos de B.S4), todo medido por los tests que se citan al final:
+
+| Caso | Antes | Después |
+|---|---|---|
+| 5/3/1 BBB al cerrar el ciclo, 1RM 200 / 120 / 220 (TM 180 / 108 / 198) | el TM no cambiaba | 185 / 110,5 / 203 kg (`CycleIncrement(2,5; 5,0)`: +5, +2,5 y +5) |
+| El mismo cierre con discos de 1,25 kg (paso de 2,5 kg) | — | 185 / 110 / 202,5 kg |
+| Con discos de 2,5 kg (paso de 5 kg), partiendo de TM 180 / 110 / 200 | — | 185 / 112,5 / 205 kg: el paso nunca supera el incremento, así que la banca sube 2,5 y no 5 |
+| El primer cierre con un AMRAP corto de banca (3 repeticiones donde pedía 5) | — | 185 / 108 / 203 kg y el aviso «…; banca se mantiene en 108 kg (AMRAP corto).» |
+| Smolov Jr, primera sesión de cada semana (6×6 al 70 %), 1RM 200, semanas 1 a 3 | 140 / 140 / 140 kg | 140 / 145 / 150 kg |
+| `AmrapDrivenTm`, AMRAP al 95 % (1+) con 5 repeticiones | +0,125 % del TM (≈ +0,2 kg con TM 180) | +5 kg |
+| `AmrapDrivenTm`, AMRAP corto (3 repeticiones de 5) | +0,06 % (subía) | −2,5 % |
+| `AmrapDrivenTm`, AMRAP al 70 % con 12 repeticiones | ≈ +0,3 kg con TM 180 | nada (no llega al 85 %) |
+| `RepTargetDrivenTm`, 9 repeticiones sobre 6 | nunca se ejecutaba | +1,5 % |
+| `TopSetPr`, sentadilla con 5 y con 7 repeticiones (objetivo 5) | sin consumidor | +2,5 kg y +5 kg |
+| `TopSetPr`, 3 repeticiones (objetivo 5) | sin consumidor | −2,5 % |
+| `RepMaxAutoregulated`, e1RM de 216 y de 174,9 kg frente a 200 kg de 1RM implícito | sin consumidor | +2,5 % y −2,5 % |
+| Contrato de receta: hallazgos C6 / inventario / `CEILING` | 16 / 466 / 466 | 7 / 457 / 457 tras B.S3 y 2 / 452 / 452 tras B.S4 |
+
+Y los conteos de pruebas, contados como `@Test` al final de cada commit (la columna «B.S5» es también `2d411c58f`, el HEAD al escribir esta nota):
+
+| Clase de pruebas | Antes de B.S3 | B.S3 | B.S4 | B.S5 |
+|---|---|---|---|---|
+| `AuthoredProgressionEngineTest` | — | 15 (nuevo) | 18 | 18 |
+| `ProgressionConsumerCoverageTest` | — | 6 (nuevo) | 6 | 6 |
+| `ProgramProgressCycleCloseTest` | 6 | 26 | 31 | 37 |
+| `TopSetProgressionTest` | — | — | 17 (nuevo) | 17 |
+| `ProgramAutoregulationEngineTest` | 7 | 7 | 24 | 24 |
+| `ProgramAutoregulationResolutionTest` | 5 | 5 | 11 | 11 |
+| `PlanMaterializerTest` | 12 | 18 | 18 | 20 |
+| `TrainingMaxMergeTest` | — | — | — | 13 (nuevo) |
+| `ProgramDetailViewModelTest` | 58 | 58 | 58 | 74 |
+| `NativeProgressionCardModelTest` | 13 | 13 | 13 | 15 |
+| `ProgramRepositoryConsolidationTest` | 12 | 15 | 15 | 15 |
+| `TrainingPlanRecipeJsonCompatTest` | 11 | 16 | 16 | 16 |
+| `ProgramProgressEngineTest` | 9 | 10 | 10 | 10 |
+| `RelatorPlanAwareTest` | 6 | 6 | 10 | 10 |
+| `RecipeContractPolicyTest` | 27 | 27 | 27 | 27 |
+| `RecipeContractInventoryTest`, techo `CEILING` | 466 | 457 | 452 | 452 |
+
+Los mensajes de B.S3 y B.S4 traen conteos desfasados. B.S3 dice «`ProgramProgressCycleCloseTest` 18 → 26» (real: 6 → 26), «`ProgramRepositoryConsolidationTest` (+2)» (real: +3) y «`TrainingPlanRecipeJsonCompatTest` (+2)» (real: +5), y no cuenta el `@Test` nuevo de `ProgramProgressEngineTest`. B.S4 dice «`ProgramAutoregulationEngineTest` 6 → 23» (real: 7 → 24). Los de B.S5 coinciden con los `@Test` reales. Corridas que citan los mensajes (no repetidas al escribir esta nota): B.S3, 590 tests y 0 fallos; B.S4, dos corridas y 0 fallos; B.S5, 406 casos y 0 fallos.
+
+**Relación con otras decisiones.**
+- DEV-r2-05 (aviso único al terminar el bloque): sigue siendo uno solo. El cierre de ciclo de una receta de autor deja un aviso (`author-cycle-c<N>`) y la entrada a un bloque nuevo, otro (`author-block-b<N>`); ambos son idempotentes por su marca. Con progresión nativa activa el motor de autor no actúa, así que su aviso y el de la continuación nativa (`native-cycle-c<N>`, «Empiezas un nuevo bloque … con tus últimas cargas.») no se suman. Desde B.S4 el aviso dice también lo que se mantiene por un AMRAP corto y, desde B.S5, la tarjeta lo titula «Nuevo ciclo» o «Nuevo bloque».
+- DEC-w3-02 (base 5RM, por escribir) y D7: el motor sube el TM del perfil (el guardado o, sin él, `1RM × trainingMaxPercent`). Con D7 (Texas y Madcow a 0,87, `4aa1bbb10`) ese TM es aproximadamente el 5RM; cuando B.S6 pase Madcow a `CycleIncrement` (plan 00 §6), la subida actuará sobre él. DEC-w3-02 fijará la base 5RM de esos planes.
+- DEC-w3-01 (contrato C1–C10, por escribir): la regla C6 lee el registro de consumidores de esta decisión.
+
+**Pendiente y riesgos.**
+- **Propuestas en % anteriores a B.S4.** Las que estaban pendientes se siguen aplicando con `percentDelta`; las que no traen levantamiento (`liftSlot = null`) ya no se aplican y caducan con motivo (`outcomeEntries`).
+- **La cláusula heredada «1 repetición o menos desde el 90 % del TM es un AMRAP corto»** también congela el levantamiento en la semana 3 del 5/3/1 (1+ al 95 %) cuando solo sale una repetición, que es el mínimo que pide el «1+».
+- **La última semana de cada ciclo no pasa por la autorregulación semanal:** `completeCycle` no la evalúa, así que sus AMRAP y top sets no generan propuesta de TM. Sus AMRAP sí cuentan para «un lift con AMRAP corto no sube», porque `shortAmrapLifts` lee todas las semanas del ciclo.
+- **Se reescribe la prescripción mostrada del ciclo cerrado** (plan 00 §11, «Programas ya activos»): las sesiones se reutilizan entre ciclos y el cierre rematerializa sus semanas con el TM nuevo; los registros del ciclo cerrado conservan sus kilos. Afecta a los programas ya activados con una receta que ejecute `CycleIncrement` (hoy, los dos 5/3/1). Con la autorregulación en OFF la subida del método se aplica igual: es contenido, no una propuesta.
+- **Marcas `native-progression-c<N>` sin limpiar al re-materializar** (H13 limpió solo las de autor): defecto latente anterior a B.S5. Por la lectura de `registerNativeContinuationOnce`, que usa esa marca como guarda, tras re-materializar el cierre de un ciclo con el mismo número no volvería a registrar la continuación nativa, y el aviso `native-cycle-c<N>` tampoco se limpia. Es una inferencia de código, sin prueba. Pendiente en B.S11 o B.S13 (sección 7 del README de la curaduría).
+- **Datos de recetas pendientes de B.S6** (el motor ya los ejecuta; los datos todavía no son los buenos):
+  - nSuns: el AMRAP está en la última serie, al 65 %, y con el umbral del 85 % nunca sube el TM; hay que moverlo a la serie 1+ al 95 % de los lower (a verificar contra la hoja de nSuns).
+  - Lilliebridge declara `TopSetPr`: cada top set cumplido propondría una subida de TM (2,5 kg en sentadilla y peso muerto, 1,25 kg en banca) hasta que B.S6 la pase a `None`.
+  - Texas: el chin con `amrap` no tiene levantamiento y hoy no propone nada; B.S6 le quita el `amrap`.
+  - `kpkn-rts-style` declara `RepTargetDrivenTm` sin series AMRAP (el C6 restante junto a `WeeklyPercent` de Madcow).
+  - `RepMaxAutoregulated` no produce propuestas con los datos actuales: las series al máximo de Westside son de variantes (sentadilla al cajón, buenos días, press con cadenas…), que no cuentan, y `gzcl-jt-2` prescribe por porcentaje.
+  - Juggernaut declara `CycleIncrement` por ciclo en una receta que no se repite, así que el enganche de ciclo nunca corre en ella (`scopePending = {juggernaut-2}` en `ProgressionConsumerCoverageTest`); B.S6 la pasa a `IncrementScope.BLOCK`.
+  - Comentarios desfasados: `TrainingPlanRecipe.kt` (~l.384, «Su consumidor llega con B.S4») y `RecipeContractPolicy.kt` (~l.366) siguen diciendo que los consumidores de `TopSetPr` y `RepMaxAutoregulated` están por llegar.
+- **B.S6, parte 2** (antes de activar `BLOCK` en Juggernaut): H7, porque `resolvePendingDeload(reject)` y `advanceAfterPendingAction` entran al bloque siguiente sin pasar por el enganche de bloque y no subirían el TM; y H10, porque `WeeklyKg` suma sus kilos sin ningún tope.
+- **B.S13 (Fase 2):** aviso «no aplicable» al aceptar una propuesta (R-13), selector de modo con confirmación para AUTO (R-15) y tarjeta «Programa terminado → Repetir con TM actualizado» (la parte de R-19 que B.S5 no cubre).
+
+**Qué lo confirma.** `AuthoredProgressionEngineTest` (18); `ProgressionConsumerCoverageTest` (6: el registro, el alcance de cada `CycleIncrement` frente a la estructura de la receta y las listas de pendientes); `ProgramProgressCycleCloseTest` (37: el cierre del 5/3/1 de 180 / 108 / 198 a 185 / 110,5 / 203, los discos, los ajustes manuales, los días movidos, la descarga de AUGE, el respaldo sin metadatos, los AMRAP cortos, las olas por bloque y el test de 1RM); `TopSetProgressionTest` (17, con el recorrido de todas las recetas publicadas resolviendo el levantamiento de cada AMRAP y top set, y de punta a punta en AUTO); `ProgramAutoregulationEngineTest` (24); `ProgramAutoregulationResolutionTest` (11); `PlanMaterializerTest` (20: `weekly_kg_offsets_squat_sets_by_week`, R-23 y H13); `TrainingMaxMergeTest` (13); `ProgramDetailViewModelTest` (74: «Guardar TM», test de 1RM, RE-MATERIALIZAR y `verPropuesta_only_navigates_to_the_week_tab_and_never_accepts_the_proposal`); `NativeProgressionCardModelTest` (15); `ProgramRepositoryConsolidationTest` (15; evidencia por ciclo); `TrainingPlanRecipeJsonCompatTest` (16; JSON compatible); `RelatorPlanAwareTest` (10); `RecipeContractPolicyTest` (27) y `RecipeContractInventoryTest` (`CEILING` 452).
