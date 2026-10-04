@@ -37,9 +37,10 @@ class ProgressionConsumerCoverageTest {
         is ProgressionRule.WeeklyKg -> Consumer.AUTHOR_ENGINE
         is ProgressionRule.AmrapDrivenTm -> Consumer.AUTOREGULATION
         is ProgressionRule.RepTargetDrivenTm -> Consumer.AUTOREGULATION
-        is ProgressionRule.TopSetPr -> Consumer.PENDING
+        // B.S4: el top set y la serie al máximo salen como propuestas ADJUST_TM de ProgramAutoregulationEngine.
+        is ProgressionRule.TopSetPr -> Consumer.AUTOREGULATION
         is ProgressionRule.WeeklyPercent -> Consumer.PENDING
-        ProgressionRule.RepMaxAutoregulated -> Consumer.PENDING
+        ProgressionRule.RepMaxAutoregulated -> Consumer.AUTOREGULATION
     }
 
     /** Una instancia de cada regla (y de cada alcance de `CycleIncrement`). */
@@ -57,16 +58,13 @@ class ProgressionConsumerCoverageTest {
 
     /**
      * Recetas publicadas cuya regla todavía no tiene consumidor: nombre de la regla → ids de receta.
-     * Cada entrada se cierra con un consumidor (B.S4) o con un cambio de datos (B.S6) y se retira de
-     * aquí; la prueba [the_pending_list_has_no_stale_entries] avisa si una ya no corresponde.
+     * Cada entrada se cierra con un cambio de datos (B.S6) y se retira de aquí; la prueba
+     * [the_pending_list_has_no_stale_entries] avisa si una ya no corresponde. B.S4 dio consumidor a
+     * `TopSetPr` y `RepMaxAutoregulated`, así que solo queda `WeeklyPercent`.
      */
     private val pending: Map<String, Set<String>> = mapOf(
-        // B.S4 le da consumidor (propuesta ADJUST_TM); B.S6 deja solo Texas y pasa Lilliebridge a None.
-        "TopSetPr" to setOf("texas-method-3d", "texas-method-4d", "lilliebridge"),
         // B.S6: Madcow pasa a CycleIncrement y WeeklyPercent sale de las recetas.
         "WeeklyPercent" to setOf("madcow-5x5"),
-        // B.S4 (RepMaxAutoregulated) o B.S6 (Westside a None; GZCL JT2 con su consumidor).
-        "RepMaxAutoregulated" to setOf("westside-conjugate", "gzcl-jt-2"),
     )
 
     /**

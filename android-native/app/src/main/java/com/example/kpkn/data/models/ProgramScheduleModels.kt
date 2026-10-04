@@ -171,6 +171,12 @@ data class AutoregulationProposal(
     val percentDelta: Double? = null,
     val volumeFactor: Double? = null,
     val explanation: String,
+    /**
+     * Cambio del TM en kilos (AMRAP de AmrapDrivenTm, top set de TopSetPr). Si no es null manda sobre
+     * [percentDelta] en `ADJUST_TM` y `PROMOTE_TM`; null = el porcentaje de siempre. El JSON anterior,
+     * sin este campo, decodifica con null.
+     */
+    val kgDelta: Double? = null,
 )
 
 @Serializable

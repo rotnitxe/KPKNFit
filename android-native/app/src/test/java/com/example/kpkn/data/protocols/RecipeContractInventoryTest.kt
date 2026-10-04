@@ -32,10 +32,13 @@ class RecipeContractInventoryTest {
          * C6 16 + C7 12 + C8 37 + C9 80 + C10 20. 2026-10-03, tras B.S3: C6 solo marca las reglas sin
          * consumidor registrado (`ProgressionConsumers.executable`) y baja de 16 a 7 (TopSetPr ×3,
          * WeeklyPercent, RepMaxAutoregulated ×2 y la exigencia de AMRAP de kpkn-rts-style): 457 = C1 280 +
-         * C4 6 + C5 15 + C6 7 + C7 12 + C8 37 + C9 80 + C10 20. Cada corrección de datos de B.S6 lo baja;
+         * C4 6 + C5 15 + C6 7 + C7 12 + C8 37 + C9 80 + C10 20. 2026-10-03, tras B.S4: TopSetPr y
+         * RepMaxAutoregulated ya tienen consumidor (propuestas ADJUST_TM de ProgramAutoregulationEngine) y
+         * C6 baja de 7 a 2 (WeeklyPercent de madcow-5x5 y la exigencia de AMRAP de kpkn-rts-style): 452 = C1 280 +
+         * C4 6 + C5 15 + C6 2 + C7 12 + C8 37 + C9 80 + C10 20. Cada corrección de datos de B.S6 lo baja;
          * si una corrida da menos, la prueba imprime «techo bajable a N».
          */
-        private const val CEILING = 457
+        private const val CEILING = 452
 
         /** Una justificación de exención debe tener al menos este largo (B.S6). */
         private const val MIN_JUSTIFICATION_LENGTH = 25

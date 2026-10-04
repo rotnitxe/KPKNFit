@@ -6,6 +6,8 @@ import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.data.protocols.SlotRole
 import com.example.kpkn.data.protocols.TechniqueModifier
 import com.example.kpkn.data.protocols.displayName
+import com.example.kpkn.domain.training.NativeProgressionText
+import com.example.kpkn.domain.training.ProgramAutoregulationEngine
 
 object PlanObserver : RelatorObserver {
     override fun observe(context: RelatorContext): List<RelatorCandidate> {
@@ -96,15 +98,49 @@ object PlanObserver : RelatorObserver {
         return "{ex} va al ${formatRelatorKg(pct)} %$basisPart$kgPart."
     }
 
+    private const val GENERIC_AMRAP_LINE = "AMRAP de {ex}: deja 1 limpia; no caces el fallo si no es el test."
+
+    /** El AMRAP dice lo que de verdad hace con el TM: lee la tabla o el porcentaje de la regla de la receta. */
     private fun amrapLine(context: RelatorContext): String? {
         if (!context.isAmrap) return null
-        return when (context.plan.progression) {
-            is ProgressionRule.AmrapDrivenTm ->
-                "AMRAP de {ex}: para con 1 limpia en reserva salvo PR; ≥5 reps y la TM sube 2,5 kg."
-            else ->
-                "AMRAP de {ex}: deja 1 limpia; no caces el fallo si no es el test."
+        return when (val rule = context.plan.progression) {
+            is ProgressionRule.AmrapDrivenTm -> amrapTableLine(rule, context)
+            is ProgressionRule.RepTargetDrivenTm -> repTargetLine(rule)
+            else -> GENERIC_AMRAP_LINE
         }
     }
+
+    /**
+     * `AmrapDrivenTm`: los kilos de la tabla de la receta para 4 o 5 reps y para 6 o más. Solo un AMRAP desde el
+     * 85 % del TM mueve el TM (`ProgramAutoregulationEngine`): en uno más ligero, o de porcentaje
+     * desconocido, no se promete ninguna subida.
+     */
+    private fun amrapTableLine(rule: ProgressionRule.AmrapDrivenTm, context: RelatorContext): String {
+        val percent = context.targetPercentageRm
+        if (percent == null || percent < ProgramAutoregulationEngine.AMRAP_TM_MIN_PERCENT) return GENERIC_AMRAP_LINE
+        val raise = when {
+            rule.fourToFiveKg > 0.0 && rule.sixPlusKg > 0.0 ->
+                "con 4 o 5 reps el TM sube ${kgText(rule.fourToFiveKg)} kg y con 6 o más, ${kgText(rule.sixPlusKg)} kg"
+            rule.sixPlusKg > 0.0 -> "con 6 o más reps el TM sube ${kgText(rule.sixPlusKg)} kg"
+            rule.fourToFiveKg > 0.0 -> "con 4 o 5 reps el TM sube ${kgText(rule.fourToFiveKg)} kg"
+            else -> return GENERIC_AMRAP_LINE
+        }
+        return "AMRAP de {ex}: para con 1 limpia en reserva salvo PR; $raise."
+    }
+
+    /** `RepTargetDrivenTm`: el porcentaje por repetición sobre el objetivo y por repetición que falta. */
+    private fun repTargetLine(rule: ProgressionRule.RepTargetDrivenTm): String {
+        if (rule.extraRepPercent <= 0.0) return GENERIC_AMRAP_LINE
+        val miss = if (rule.missedRepPercent > 0.0) {
+            "; si te faltan ${rule.missThreshold} o más, baja un ${kgText(rule.missedRepPercent)} % por rep"
+        } else {
+            ""
+        }
+        return "AMRAP de {ex}: cada rep sobre el objetivo sube el TM un ${kgText(rule.extraRepPercent)} %$miss."
+    }
+
+    /** `62.5` → «62,5», `5.0` → «5»: coma decimal y sin ceros sobrantes. */
+    private fun kgText(value: Double): String = NativeProgressionText.formatKg(value)
 
     private fun topSetLine(context: RelatorContext): String? {
         if (!context.isTopSet) return null

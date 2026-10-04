@@ -204,6 +204,99 @@ class AuthoredProgressionEngineTest {
         )
     }
 
+    // ─── Levantamientos que se congelan por AMRAP corto (B.S4) ─────────────────────
+
+    private val fullProfile = PowerliftingProfile(
+        squat1RM = 200.0, bench1RM = 120.0, deadlift1RM = 220.0,
+        squatTM = 180.0, benchTM = 108.0, deadliftTM = 198.0,
+    )
+
+    @Test
+    fun an_excluded_lift_does_not_rise_and_is_reported_as_held_at_its_current_tm() {
+        val recipe = recipeWith(increment, setOf(LiftSlot.SQUAT, LiftSlot.BENCH, LiftSlot.DEADLIFT))
+        val excluded = setOf(LiftSlot.BENCH)
+
+        assertEquals(
+            listOf(
+                AuthoredProgressionEngine.TmChange(LiftSlot.SQUAT, 180.0, 185.0),
+                AuthoredProgressionEngine.TmChange(LiftSlot.DEADLIFT, 198.0, 203.0),
+            ),
+            AuthoredProgressionEngine.tmChanges(fullProfile, recipe, excludedLifts = excluded),
+        )
+        assertEquals(
+            listOf(AuthoredProgressionEngine.TmHold(LiftSlot.BENCH, 108.0)),
+            AuthoredProgressionEngine.tmHolds(fullProfile, recipe, excludedLifts = excluded),
+        )
+        // Sin exclusiones nada cambia respecto a B.S3: ningún levantamiento congelado.
+        assertEquals(3, AuthoredProgressionEngine.tmChanges(fullProfile, recipe).size)
+        assertTrue(AuthoredProgressionEngine.tmHolds(fullProfile, recipe).isEmpty())
+    }
+
+    @Test
+    fun a_hold_only_exists_for_a_lift_the_method_would_have_raised() {
+        // El press militar no tiene TM ni 1RM, y el peso muerto no está en la receta: no hay subida que congelar.
+        val recipe = recipeWith(increment, setOf(LiftSlot.SQUAT, LiftSlot.OVERHEAD))
+        val holds = AuthoredProgressionEngine.tmHolds(
+            fullProfile,
+            recipe,
+            excludedLifts = setOf(LiftSlot.OVERHEAD, LiftSlot.DEADLIFT, LiftSlot.SQUAT),
+        )
+        assertEquals(listOf(AuthoredProgressionEngine.TmHold(LiftSlot.SQUAT, 180.0)), holds)
+        // Con una regla sin incremento tampoco.
+        assertTrue(
+            AuthoredProgressionEngine.tmHolds(
+                fullProfile,
+                recipeWith(ProgressionRule.None, setOf(LiftSlot.SQUAT)),
+                excludedLifts = setOf(LiftSlot.SQUAT),
+            ).isEmpty(),
+        )
+    }
+
+    @Test
+    fun the_notice_says_which_lifts_stay_and_why() {
+        val change = listOf(
+            AuthoredProgressionEngine.TmChange(LiftSlot.SQUAT, 180.0, 185.0),
+            AuthoredProgressionEngine.TmChange(LiftSlot.DEADLIFT, 198.0, 203.0),
+        )
+        val withHold = AuthoredProgressionEngine.noticeText(
+            "Nuevo ciclo",
+            change,
+            preservedSessions = 0,
+            pendingMaterialization = false,
+            held = listOf(AuthoredProgressionEngine.TmHold(LiftSlot.BENCH, 108.0)),
+        )
+        assertEquals(
+            "Nuevo ciclo: TM sentadilla 180 → 185 kg, peso muerto 198 → 203 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            withHold,
+        )
+        // Con 2,5 en el TM la coma decimal se conserva también en lo que no sube.
+        val decimal = AuthoredProgressionEngine.noticeText(
+            "Nuevo bloque",
+            change.take(1),
+            preservedSessions = 1,
+            pendingMaterialization = false,
+            held = listOf(
+                AuthoredProgressionEngine.TmHold(LiftSlot.BENCH, 110.5),
+                AuthoredProgressionEngine.TmHold(LiftSlot.OVERHEAD, 62.5),
+            ),
+        )
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 110,5 kg (AMRAP corto) y " +
+                "press militar se mantiene en 62,5 kg (AMRAP corto). " +
+                "1 sesión con ajustes manuales se conservó sin cambios.",
+            decimal,
+        )
+        // Si todo se congela no hay «TM a → b»: solo lo que se mantiene.
+        val onlyHeld = AuthoredProgressionEngine.noticeText(
+            "Nuevo ciclo",
+            emptyList(),
+            preservedSessions = 0,
+            pendingMaterialization = false,
+            held = listOf(AuthoredProgressionEngine.TmHold(LiftSlot.SQUAT, 180.0)),
+        )
+        assertEquals("Nuevo ciclo: sentadilla se mantiene en 180 kg (AMRAP corto).", onlyHeld)
+    }
+
     // ─── Registro de consumidores ──────────────────────────────────────────────────
 
     @Test
@@ -212,18 +305,24 @@ class AuthoredProgressionEngineTest {
             setOf(ProgressionRule.CycleIncrement::class, ProgressionRule.WeeklyKg::class),
             ProgressionConsumers.authored,
         )
+        // B.S4: el top set y la serie al máximo se suman al AMRAP como propuestas ADJUST_TM.
         assertEquals(
-            setOf(ProgressionRule.AmrapDrivenTm::class, ProgressionRule.RepTargetDrivenTm::class),
+            setOf(
+                ProgressionRule.AmrapDrivenTm::class,
+                ProgressionRule.RepTargetDrivenTm::class,
+                ProgressionRule.TopSetPr::class,
+                ProgressionRule.RepMaxAutoregulated::class,
+            ),
             ProgressionConsumers.autoregulation,
         )
         assertEquals(ProgressionConsumers.authored + ProgressionConsumers.autoregulation, ProgressionConsumers.executable)
         assertTrue(ProgressionConsumers.isExecutable(increment))
         assertTrue(ProgressionConsumers.isExecutable(weekly))
         assertTrue(ProgressionConsumers.isExecutable(ProgressionRule.AmrapDrivenTm()))
-        // Hasta B.S4 y B.S6 estas no hacen nada al ejecutar el plan.
-        assertFalse(ProgressionConsumers.isExecutable(ProgressionRule.TopSetPr()))
+        assertTrue(ProgressionConsumers.isExecutable(ProgressionRule.TopSetPr()))
+        assertTrue(ProgressionConsumers.isExecutable(ProgressionRule.RepMaxAutoregulated))
+        // Hasta B.S6 (sale de las recetas) esta no hace nada al ejecutar el plan.
         assertFalse(ProgressionConsumers.isExecutable(ProgressionRule.WeeklyPercent(2.5)))
-        assertFalse(ProgressionConsumers.isExecutable(ProgressionRule.RepMaxAutoregulated))
         assertFalse(ProgressionConsumers.isExecutable(ProgressionRule.None))
     }
 

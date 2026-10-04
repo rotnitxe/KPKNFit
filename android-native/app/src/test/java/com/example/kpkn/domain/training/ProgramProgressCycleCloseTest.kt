@@ -7,6 +7,8 @@ import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
 import com.example.kpkn.data.models.Block
 import com.example.kpkn.data.models.BlockGoal
+import com.example.kpkn.data.models.CompletedExercise
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Macrocycle
@@ -772,16 +774,176 @@ class ProgramProgressCycleCloseTest {
         assertTrue(result.program.effectiveWeekRecipes.isEmpty())
     }
 
+    // ─── B.S4: un levantamiento con un AMRAP corto en el ciclo no sube ─────────────
+
+    /**
+     * Registro de [session] con el T1 de [configurationId]: las series del plan a su repetición objetivo y
+     * [amrapReps] en la serie AMRAP (marcada). Se parece a lo que guarda la app al terminar la sesión.
+     */
+    private fun amrapLog(
+        program: Program,
+        week: ProgramWeek,
+        session: Session,
+        configurationId: String,
+        amrapReps: Int,
+        cycle: Int = 1,
+        runId: String? = null,
+    ): WorkoutLog {
+        val t1 = session.allExercises().first {
+            it.slotRole == SlotRole.T1_MAIN && it.catalogConfigurationId == configurationId
+        }
+        return WorkoutLog(
+            id = "log_${session.id}_c$cycle",
+            programId = program.id,
+            sessionId = session.id,
+            sessionName = session.name,
+            date = "2026-01-01T10:00:00.000Z",
+            durationMinutes = 45,
+            weekId = week.id,
+            cycleNumber = cycle,
+            weekInstanceId = ProgramProgressEngine.instanceIdFor(cycle, week.id),
+            programRunId = runId,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = t1.id,
+                    exerciseName = t1.name,
+                    catalogConfigurationId = t1.catalogConfigurationId,
+                    sets = t1.sets.mapIndexed { index, planned ->
+                        CompletedSet(
+                            id = "set$index",
+                            weight = planned.weight ?: 60.0,
+                            reps = if (planned.isAmrap) amrapReps else planned.targetReps ?: 5,
+                            amrapPerformed = planned.isAmrap,
+                        )
+                    },
+                ),
+            ),
+        )
+    }
+
+    /** [logs] con el registro de la sesión [session] sustituido por [replacement]. */
+    private fun replacingLogOf(logs: List<WorkoutLog>, session: Session, replacement: WorkoutLog): List<WorkoutLog> =
+        logs.map { if (it.sessionId == session.id) replacement else it }
+
+    @Test
+    fun a_lift_with_a_short_amrap_in_the_cycle_keeps_its_tm_and_the_notice_says_so() {
+        val (program, plainLogs) = wendlerAtCycleEnd()
+        val week1 = weeksOf(program).first()
+        val benchDay = week1.sessions[1]
+        // Semana 1: 5/5/5+ al 65/75/85 %. Tres repeticiones en la AMRAP que pide 5: corto.
+        val logs = replacingLogOf(plainLogs, benchDay, amrapLog(program, week1, benchDay, CatalogIds.BP, amrapReps = 3))
+
+        val result = ProgramProgressEngine.completeCycle(program, null, 1, logs)
+
+        assertTrue(result.advancedCycle)
+        val tm = result.program.powerliftingProfile!!
+        assertEquals("la sentadilla sube 5", 185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene", 108.0, tm.benchTM!!, 1e-9)
+        assertEquals("el peso muerto sube 5", 203.0, tm.deadliftTM!!, 1e-9)
+        val notice = userNotices(result.program).single()
+        assertEquals("author-cycle-c2", notice.proposalId)
+        assertEquals(
+            "Nuevo ciclo: TM sentadilla 180 → 185 kg, peso muerto 198 → 203 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            notice.reason,
+        )
+        // Las semanas se reconstruyen con el TM de cada levantamiento: la banca sigue al 65 % de 108.
+        val afterWeeks = weeksOf(result.program)
+        assertEquals(0.65 * 185.0, t1Of(afterWeeks[0], CatalogIds.SQ_LOW).sets.first().weight!!, 1e-6)
+        assertEquals(0.65 * 108.0, t1Of(afterWeeks[0], CatalogIds.BP).sets.first().weight!!, 1e-6)
+        assertEquals(0.65 * 203.0, t1Of(afterWeeks[0], CatalogIds.DL).sets.first().weight!!, 1e-6)
+        assertEquals(1, appliedProposals(result.program, "author-cycle-c2").size)
+    }
+
+    @Test
+    fun an_amrap_that_reaches_its_target_does_not_hold_the_lift() {
+        val (program, plainLogs) = wendlerAtCycleEnd()
+        val week1 = weeksOf(program).first()
+        val benchDay = week1.sessions[1]
+        // 8 repeticiones donde se pedían 5: la banca sube como siempre.
+        val logs = replacingLogOf(plainLogs, benchDay, amrapLog(program, week1, benchDay, CatalogIds.BP, amrapReps = 8))
+
+        val result = ProgramProgressEngine.completeCycle(program, null, 1, logs)
+
+        assertEquals(110.5, result.program.powerliftingProfile!!.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo ciclo: TM sentadilla 180 → 185 kg, banca 108 → 110,5 kg, peso muerto 198 → 203 kg.",
+            userNotices(result.program).single().reason,
+        )
+    }
+
+    @Test
+    fun a_short_amrap_of_the_closed_cycle_does_not_freeze_the_next_one() {
+        val (program, plainLogs) = wendlerAtCycleEnd()
+        val week1 = weeksOf(program).first()
+        val benchDay = week1.sessions[1]
+        val logs1 = replacingLogOf(plainLogs, benchDay, amrapLog(program, week1, benchDay, CatalogIds.BP, amrapReps = 3))
+        val first = ProgramProgressEngine.completeCycle(program, null, 1, logs1)
+        assertEquals(108.0, first.program.powerliftingProfile!!.benchTM!!, 1e-9)
+
+        // El ciclo 2 se entrena entero sin ningún AMRAP corto: el del ciclo 1 ya no cuenta.
+        val logs2 = logsFor(first.program, weeksOf(first.program), cycle = 2, runId = "run_531")
+        val second = ProgramProgressEngine.completeCycle(first.program, null, 2, logs1 + logs2)
+
+        val tm = second.program.powerliftingProfile!!
+        assertEquals(190.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca vuelve a subir", 110.5, tm.benchTM!!, 1e-9)
+        assertEquals(208.0, tm.deadliftTM!!, 1e-9)
+        assertEquals(
+            listOf(
+                "Nuevo ciclo: TM sentadilla 180 → 185 kg, peso muerto 198 → 203 kg; banca se mantiene en 108 kg (AMRAP corto).",
+                "Nuevo ciclo: TM sentadilla 185 → 190 kg, banca 108 → 110,5 kg, peso muerto 203 → 208 kg.",
+            ),
+            userNotices(second.program).map { it.reason },
+        )
+    }
+
+    @Test
+    fun when_every_lift_is_held_the_cycle_closes_without_tm_changes_and_is_registered_once() {
+        val (program, plainLogs) = wendlerAtCycleEnd()
+        val week1 = weeksOf(program).first()
+        val squatDay = week1.sessions[0]
+        val benchDay = week1.sessions[1]
+        val deadliftDay = week1.sessions[2]
+        val logs = replacingLogOf(
+            replacingLogOf(
+                replacingLogOf(plainLogs, squatDay, amrapLog(program, week1, squatDay, CatalogIds.SQ_LOW, amrapReps = 2)),
+                benchDay,
+                amrapLog(program, week1, benchDay, CatalogIds.BP, amrapReps = 3),
+            ),
+            deadliftDay,
+            amrapLog(program, week1, deadliftDay, CatalogIds.DL, amrapReps = 4),
+        )
+
+        val first = ProgramProgressEngine.completeCycle(program, null, 1, logs)
+
+        assertTrue(first.advancedCycle)
+        assertEquals("ningún TM cambia", program.powerliftingProfile, first.program.powerliftingProfile)
+        assertEquals("no hay nada que reconstruir", allWeights(program), allWeights(first.program))
+        assertTrue(first.program.macrocycles.flatMap { it.blocks }.none { it.materializationPending })
+        assertEquals(
+            "Nuevo ciclo: sentadilla se mantiene en 180 kg (AMRAP corto), banca se mantiene en 108 kg (AMRAP corto) " +
+                "y peso muerto se mantiene en 198 kg (AMRAP corto).",
+            userNotices(first.program).single().reason,
+        )
+        assertEquals(1, appliedProposals(first.program, "author-cycle-c2").size)
+
+        // Cerrar otra vez el mismo ciclo no duplica ni el aviso ni la marca.
+        val again = ProgramProgressEngine.completeCycle(first.program, null, 1, logs)
+        assertEquals(first.program.nativeProgressionAudit, again.program.nativeProgressionAudit)
+        assertEquals(first.program.effectiveWeekRecipes, again.program.effectiveWeekRecipes)
+        assertEquals(first.program.powerliftingProfile, again.program.powerliftingProfile)
+    }
+
     // ─── B.S3: CycleIncrement por bloque (olas) ───────────────────────────────────
 
-    /** Dos olas de dos semanas con sentadilla y banca en el T1. */
-    private fun waveRecipe(scope: IncrementScope): TrainingPlanRecipe {
+    /** Dos olas de dos semanas con sentadilla y banca en el T1; con [benchAmrap] la última serie de banca es AMRAP. */
+    private fun waveRecipe(scope: IncrementScope, benchAmrap: Boolean = false): TrainingPlanRecipe {
         fun waveDay() = day(
             "Día A",
             weekday = 1,
             slots = listOf(
                 slot("sq", SlotRole.T1_MAIN, CatalogIds.SQ_LOW, percentSets(180, 5 to 70.0, 5 to 70.0), 180, LiftSlot.SQUAT, isCompetitionLift = true),
-                slot("bp", SlotRole.T1_MAIN, CatalogIds.BP, percentSets(180, 5 to 70.0, 5 to 70.0), 180, LiftSlot.BENCH, isCompetitionLift = true),
+                slot("bp", SlotRole.T1_MAIN, CatalogIds.BP, percentSets(180, 5 to 70.0, 5 to 70.0, amrapLast = benchAmrap), 180, LiftSlot.BENCH, isCompetitionLift = true),
             ),
         )
         return TrainingPlanRecipe(
@@ -798,9 +960,9 @@ class ProgramProgressCycleCloseTest {
         )
     }
 
-    private fun waveProgram(scope: IncrementScope): Program = PlanMaterializer.materialize(
+    private fun waveProgram(scope: IncrementScope, benchAmrap: Boolean = false): Program = PlanMaterializer.materialize(
         Program(id = "waves", name = "Olas"),
-        waveRecipe(scope),
+        waveRecipe(scope, benchAmrap),
         CatalogCompositionTestSupport.metadata,
         SeqIds(),
         profile = PowerliftingProfile(squat1RM = 200.0, bench1RM = 120.0),
@@ -910,6 +1072,33 @@ class ProgramProgressCycleCloseTest {
         assertEquals(185.0, enteringWave2.program.powerliftingProfile!!.squatTM!!, 1e-9)
         assertEquals("la sesión ya entrenada conserva su prescripción", 126.0, squatKg(2), 1e-6)
         assertEquals("la que queda por entrenar toma el TM nuevo", 0.70 * 185.0, squatKg(3), 1e-6)
+    }
+
+    @Test
+    fun block_scoped_increment_holds_the_lift_with_a_short_amrap_in_the_closing_wave() {
+        val program = waveProgram(IncrementScope.BLOCK, benchAmrap = true)
+        val week1 = weeksOf(program)[0]
+        val session = week1.sessions.single()
+        // La ola 1 se entrena con una AMRAP de banca de 3 repeticiones donde se pedían 5. `advanceWave` ya
+        // aporta un registro simple por sesión: manda el más reciente.
+        val shortBench = amrapLog(program, week1, session, CatalogIds.BP, amrapReps = 3)
+            .copy(id = "short-bench", date = "2026-01-02T10:00:00.000Z")
+
+        val inside = advanceWave(program, 0)
+        val enteringWave2 = advanceWave(inside.program, 1, extraLogs = listOf(shortBench))
+
+        assertTrue(enteringWave2.advancedWeek)
+        val tm = enteringWave2.program.powerliftingProfile!!
+        assertEquals("la sentadilla sube 5", 185.0, tm.squatTM!!, 1e-9)
+        assertEquals("la banca se mantiene", 108.0, tm.benchTM!!, 1e-9)
+        assertEquals(
+            "Nuevo bloque: TM sentadilla 180 → 185 kg; banca se mantiene en 108 kg (AMRAP corto).",
+            userNotices(enteringWave2.program).single().reason,
+        )
+        // La ola 2 toma el TM de cada levantamiento.
+        val wave2 = weeksOf(enteringWave2.program)[2]
+        assertEquals(0.70 * 185.0, t1Of(wave2, CatalogIds.SQ_LOW).sets.first().weight!!, 1e-6)
+        assertEquals(0.70 * 108.0, t1Of(wave2, CatalogIds.BP).sets.first().weight!!, 1e-6)
     }
 
     @Test

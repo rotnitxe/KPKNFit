@@ -25,11 +25,11 @@ import kotlin.reflect.KClass
  * - [authored]: las consume [AuthoredProgressionEngine], el motor de progresión de autor.
  *   `CycleIncrement` sube el TM al cerrar el ciclo o el bloque y `WeeklyKg` suma kilos por semana
  *   al materializar la serie.
- * - [autoregulation]: las consume `ProgramAutoregulationEngine`. Sus defectos (R-02, L-04) los
- *   reescribe B.S4; mientras tanto la regla sigue teniendo consumidor.
+ * - [autoregulation]: las consume `ProgramAutoregulationEngine` (B.S4) como propuestas `ADJUST_TM`
+ *   que respetan OFF, PROPOSE y AUTO: `AmrapDrivenTm` y `RepTargetDrivenTm` por el AMRAP de la
+ *   semana, `TopSetPr` por el top set y `RepMaxAutoregulated` por la serie al máximo.
  * - [executable]: la unión de ambas. Una regla que no esté aquí no hace nada al ejecutar el plan.
- *   B.S4 añade `TopSetPr` y `RepMaxAutoregulated` cuando existan sus consumidores; `WeeklyPercent`
- *   sale de las recetas en B.S6 y no tendrá consumidor.
+ *   `WeeklyPercent` sale de las recetas en B.S6 y no tendrá consumidor.
  *
  * `ProgressionConsumerCoverageTest` obliga a clasificar cada regla: una regla nueva, o una receta
  * publicada con una regla sin consumidor que no esté listada como pendiente, rompe esa prueba.
@@ -43,6 +43,8 @@ object ProgressionConsumers {
     val autoregulation: Set<KClass<out ProgressionRule>> = setOf(
         ProgressionRule.AmrapDrivenTm::class,
         ProgressionRule.RepTargetDrivenTm::class,
+        ProgressionRule.TopSetPr::class,
+        ProgressionRule.RepMaxAutoregulated::class,
     )
 
     val executable: Set<KClass<out ProgressionRule>> = authored + autoregulation
@@ -152,15 +154,49 @@ object AuthoredProgressionEngine {
     data class TmChange(val liftSlot: LiftSlot, val beforeKg: Double, val afterKg: Double)
 
     /**
+     * Subida del método que NO se aplica este cierre porque el levantamiento hizo un AMRAP corto en el
+     * ciclo o bloque que termina: su TM se mantiene en [tmKg].
+     */
+    data class TmHold(val liftSlot: LiftSlot, val tmKg: Double)
+
+    /**
      * Cambios de TM que produce la regla de [recipe] sobre [profile]: un levantamiento de
      * `recipe.liftSlots` con TM (guardado, o derivado de su 1RM) y con subida positiva. Solo
      * devuelve los que cambian, en el orden de [LiftSlot]. El paso de redondeo [stepKg] se acota
-     * al incremento de cada levantamiento.
+     * al incremento de cada levantamiento. Los levantamientos de [excludedLifts] (un AMRAP corto
+     * en el ciclo o bloque que se cierra) no suben: quedan en [tmHolds].
      */
     fun tmChanges(
         profile: PowerliftingProfile,
         recipe: TrainingPlanRecipe,
         stepKg: Double = DEFAULT_ROUNDING_STEP_KG,
+        excludedLifts: Set<LiftSlot> = emptySet(),
+    ): List<TmChange> = methodChanges(profile, recipe, stepKg).filterNot { it.liftSlot in excludedLifts }
+
+    /**
+     * Los levantamientos de [excludedLifts] a los que el método les habría subido el TM y se les
+     * congela. Un levantamiento sin subida (sin TM o con incremento cero) no aparece: no hay nada que
+     * explicar. En el orden de [LiftSlot].
+     */
+    fun tmHolds(
+        profile: PowerliftingProfile,
+        recipe: TrainingPlanRecipe,
+        stepKg: Double = DEFAULT_ROUNDING_STEP_KG,
+        excludedLifts: Set<LiftSlot> = emptySet(),
+    ): List<TmHold> =
+        if (excludedLifts.isEmpty()) {
+            emptyList()
+        } else {
+            methodChanges(profile, recipe, stepKg)
+                .filter { it.liftSlot in excludedLifts }
+                .map { TmHold(it.liftSlot, it.beforeKg) }
+        }
+
+    /** La subida completa del método, sin excluir ningún levantamiento. */
+    private fun methodChanges(
+        profile: PowerliftingProfile,
+        recipe: TrainingPlanRecipe,
+        stepKg: Double,
     ): List<TmChange> = LiftSlot.entries
         .filter { it in recipe.liftSlots }
         .mapNotNull { lift ->
@@ -194,6 +230,8 @@ object AuthoredProgressionEngine {
      * `materializationPending` para que el botón RE-MATERIALIZAR las recalcule.
      *
      * @param firstWeekOccurrence ocurrencia de la primera semana del ciclo nuevo: ancla de la guarda.
+     * @param excludedLifts levantamientos con un AMRAP corto en el ciclo que se cierra (B.S4): no
+     *   suben este ciclo y el aviso lo dice («banca se mantiene en 108 kg (AMRAP corto)»).
      */
     fun applyAtCycleClose(
         program: Program,
@@ -202,6 +240,7 @@ object AuthoredProgressionEngine {
         metadata: ExerciseCompositionMetadataProvider?,
         inventory: EquipmentInventory?,
         nowMs: Long = System.currentTimeMillis(),
+        excludedLifts: Set<LiftSlot> = emptySet(),
     ): Program {
         val recipe = program.sourceRecipe ?: return program
         if (!appliesAtCycleClose(recipe.progression) || usesNativeProgression(recipe)) return program
@@ -222,6 +261,7 @@ object AuthoredProgressionEngine {
             metadata = metadata,
             inventory = inventory,
             nowMs = nowMs,
+            excludedLifts = excludedLifts,
         )
     }
 
@@ -235,6 +275,9 @@ object AuthoredProgressionEngine {
      *
      * Nota: `resolvePendingDeload(reject)` y `advanceAfterPendingAction` entran al bloque sin pasar
      * por aquí; hay que cubrirlos antes de activar BLOCK en Juggernaut (B.S6).
+     *
+     * @param excludedLifts levantamientos con un AMRAP corto en el bloque que se cierra (B.S4): no
+     *   suben al entrar en el bloque nuevo y el aviso lo dice.
      */
     fun applyAtBlockClose(
         program: Program,
@@ -243,6 +286,7 @@ object AuthoredProgressionEngine {
         inventory: EquipmentInventory?,
         protectedSessionIds: Set<String> = emptySet(),
         nowMs: Long = System.currentTimeMillis(),
+        excludedLifts: Set<LiftSlot> = emptySet(),
     ): Program {
         val recipe = program.sourceRecipe ?: return program
         if (!appliesAtBlockClose(recipe.progression) || usesNativeProgression(recipe)) return program
@@ -268,6 +312,7 @@ object AuthoredProgressionEngine {
             metadata = metadata,
             inventory = inventory,
             nowMs = nowMs,
+            excludedLifts = excludedLifts,
         )
     }
 
@@ -288,14 +333,20 @@ object AuthoredProgressionEngine {
         metadata: ExerciseCompositionMetadataProvider?,
         inventory: EquipmentInventory?,
         nowMs: Long,
+        excludedLifts: Set<LiftSlot>,
     ): Program {
         val existing = PlanMaterializer.effectiveWeekRecipeFor(program, markerOccurrence, markerCycle)
         if (existing?.appliedProposals?.any { it.proposalId == proposalId } == true) return program
         // Sin semanas de la receta que reconstruir no hay nada a lo que aplicar el TM nuevo.
         if (weekIds.isEmpty()) return program
         val profile = program.powerliftingProfile ?: return program
-        val changes = tmChanges(profile, recipe, roundingStepKg(inventory))
-        if (changes.isEmpty()) return program
+        val stepKg = roundingStepKg(inventory)
+        val changes = tmChanges(profile, recipe, stepKg, excludedLifts)
+        val holds = tmHolds(profile, recipe, stepKg, excludedLifts)
+        if (changes.isEmpty() && holds.isEmpty()) return program
+        // Todo lo que el método subiría se congela por AMRAP corto: no hay TM que cambiar ni semanas que
+        // reconstruir, pero el atleta debe saber por qué no sube y la guarda deja el cierre registrado.
+        if (changes.isEmpty()) return holdOnly(program, proposalId, appliedKind, label, markerOccurrence, markerCycle, holds, nowMs)
 
         val updatedProfile = changes.fold(profile) { acc, change -> acc.withTm(change.liftSlot, change.afterKg) }
         val withProfile = program.copy(powerliftingProfile = updatedProfile)
@@ -316,7 +367,13 @@ object AuthoredProgressionEngine {
             rematerialize(withProfile, recipe, metadata, weekIds, protectedSessionIds)
         }
         val materialized = (rebuild as? Rebuild.Done)?.program ?: markMaterializationPending(withProfile, weekIdSet)
-        val text = noticeText(label, changes, preservedSessions, pendingMaterialization = rebuild is Rebuild.Pending)
+        val text = noticeText(
+            label,
+            changes,
+            preservedSessions,
+            pendingMaterialization = rebuild is Rebuild.Pending,
+            held = holds,
+        )
         // El aviso es para el atleta; el porqué técnico de un fallback queda en el marcador.
         val summary = if (rebuild is Rebuild.Pending) "$text [reconstrucción pendiente: ${rebuild.reason}]" else text
 
@@ -330,6 +387,38 @@ object AuthoredProgressionEngine {
                     proposalId = proposalId,
                     kind = appliedKind,
                     summary = summary,
+                    acceptedAtMs = nowMs,
+                ),
+            ),
+        )
+        return withNotice(marked, proposalId, text, nowMs)
+    }
+
+    /**
+     * Cierre en el que el AMRAP corto congela TODAS las subidas del método: el TM no cambia, así que no
+     * se rematerializa nada. Deja el aviso del atleta y la marca idempotente del cierre.
+     */
+    private fun holdOnly(
+        program: Program,
+        proposalId: String,
+        appliedKind: String,
+        label: String,
+        markerOccurrence: Int,
+        markerCycle: Int,
+        holds: List<TmHold>,
+        nowMs: Long,
+    ): Program {
+        val text = noticeText(label, emptyList(), preservedSessions = 0, pendingMaterialization = false, held = holds)
+        val marked = PlanMaterializer.withEffectiveWeekRecipe(
+            program = program,
+            weekOccurrence = markerOccurrence,
+            cycleNumber = markerCycle,
+            weekRecipe = null,
+            applied = listOf(
+                AppliedRecipeProposal(
+                    proposalId = proposalId,
+                    kind = appliedKind,
+                    summary = text,
                     acceptedAtMs = nowMs,
                 ),
             ),
@@ -456,22 +545,31 @@ object AuthoredProgressionEngine {
 
     /**
      * «Nuevo ciclo: TM sentadilla 180 → 185 kg, banca 120 → 122,5 kg.» con coma decimal y solo los
-     * levantamientos que cambian, más cuántas sesiones con ajustes manuales se conservaron y, si
-     * no se pudo reconstruir, cómo aplicar las cargas nuevas.
+     * levantamientos que cambian, más los que se mantienen por un AMRAP corto («; banca se mantiene en
+     * 108 kg (AMRAP corto)»), cuántas sesiones con ajustes manuales se conservaron y, si no se pudo
+     * reconstruir, cómo aplicar las cargas nuevas.
      */
     internal fun noticeText(
         label: String,
         changes: List<TmChange>,
         preservedSessions: Int,
         pendingMaterialization: Boolean,
+        held: List<TmHold> = emptyList(),
     ): String = buildString {
-        append(label).append(": TM ")
-        append(
-            changes.joinToString(", ") { change ->
-                "${liftName(change.liftSlot)} ${NativeProgressionText.formatKg(change.beforeKg)} → " +
-                    "${NativeProgressionText.formatKg(change.afterKg)} kg"
-            },
-        )
+        append(label).append(':')
+        if (changes.isNotEmpty()) {
+            append(" TM ")
+            append(
+                changes.joinToString(", ") { change ->
+                    "${liftName(change.liftSlot)} ${NativeProgressionText.formatKg(change.beforeKg)} → " +
+                        "${NativeProgressionText.formatKg(change.afterKg)} kg"
+                },
+            )
+        }
+        if (held.isNotEmpty()) {
+            append(if (changes.isEmpty()) " " else "; ")
+            append(heldClause(held))
+        }
         append('.')
         if (preservedSessions > 0) {
             append(' ')
@@ -483,7 +581,16 @@ object AuthoredProgressionEngine {
         if (pendingMaterialization) append(" Las cargas nuevas se aplican al pulsar RE-MATERIALIZAR.")
     }
 
-    private fun liftName(lift: LiftSlot): String = when (lift) {
+    /** «banca se mantiene en 108 kg (AMRAP corto)»; con varios, «…, … y …». */
+    private fun heldClause(held: List<TmHold>): String {
+        val parts = held.map { hold ->
+            "${liftName(hold.liftSlot)} se mantiene en ${NativeProgressionText.formatKg(hold.tmKg)} kg (AMRAP corto)"
+        }
+        return if (parts.size == 1) parts.single() else parts.dropLast(1).joinToString(", ") + " y " + parts.last()
+    }
+
+    /** Nombre del levantamiento en español llano; lo comparten los avisos y las propuestas de TM. */
+    internal fun liftName(lift: LiftSlot): String = when (lift) {
         LiftSlot.SQUAT -> "sentadilla"
         LiftSlot.BENCH -> "banca"
         LiftSlot.DEADLIFT -> "peso muerto"

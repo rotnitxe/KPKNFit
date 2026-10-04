@@ -1111,8 +1111,17 @@ class ProgramRepository private constructor(
             program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }
                 .firstOrNull { it.id == id }
         }
+        // B.S4: los AMRAP son los del ciclo y el run en curso (antes se mezclaban los de ciclos anteriores) y
+        // el levantamiento de cada uno sale del slot de la receta del programa.
         val amrap = week?.let {
-            com.example.kpkn.domain.training.ProgramAutoregulationEngine.collectAmrapHits(it, history)
+            com.example.kpkn.domain.training.ProgramAutoregulationEngine.collectAmrapHits(
+                week = it,
+                logs = history,
+                cycleNumber = program.runState?.cycleNumber,
+                programId = program.id,
+                runId = program.runState?.runId,
+                recipe = program.sourceRecipe,
+            )
         }.orEmpty()
         val e1rm = week?.let {
             com.example.kpkn.domain.training.ProgramAutoregulationEngine.collectE1rmByLift(history, it)

@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.training
 
+import com.example.kpkn.data.db.dbJson
 import com.example.kpkn.data.models.AutoregulationMode
 import com.example.kpkn.data.models.AutoregulationProposal
 import com.example.kpkn.data.models.AutoregulationProposalKind
@@ -340,6 +341,175 @@ class ProgramAutoregulationResolutionTest {
         assertFalse(
             resolutions(resolved).any { it.resolution == PendingActionResolutionStatus.APPLIED },
         )
+    }
+
+    // ─── B.S4: propuestas de TM en kilos ───────────────────────────────────────────
+
+    private fun pendingWith(program: Program, week2Id: String, vararg proposals: AutoregulationProposal): Program =
+        program.copy(
+            runState = ProgramRunState(
+                runId = "run-kg",
+                weekInstanceId = week2Id,
+                weekId = week2Id,
+                pendingAction = PendingProgramAction(
+                    type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
+                    message = "AUGE propone ajustar el TM",
+                    proposals = proposals.toList(),
+                    targetWeekId = week2Id,
+                ),
+            ),
+        )
+
+    private fun firstSquatKg(program: Program, weekIndex: Int): Double =
+        weeksOf(program)[weekIndex].sessions.first().allExercises().first().sets.first().weight!!
+
+    /** Una propuesta en kilos deja el TM cambiado en kilos, estado terminal APPLIED y la semana siguiente con el TM nuevo. */
+    @Test
+    fun an_accepted_kilo_proposal_raises_the_tm_by_the_kilos_and_the_next_week_follows() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+        val proposal = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = "SQUAT",
+            kgDelta = 5.0,
+            explanation = "AMRAP 95 % de sentadilla: 5 reps (objetivo 1+): TM +5 kg",
+        )
+        val seeded = pendingWith(program, week2.id, proposal)
+        assertEquals("antes: 82,5 % de 180", 0.825 * 180.0, firstSquatKg(seeded, 1), 1e-6)
+
+        val accepted = ProgramAutoregulationEngine.resolvePending(
+            seeded,
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        val profile = accepted.powerliftingProfile!!
+        assertEquals("el TM sube los kilos de la propuesta", 185.0, profile.squatTM!!, 1e-9)
+        assertEquals("los otros TM no se tocan", 126.0, profile.benchTM!!, 1e-9)
+        assertEquals("el 1RM no se toca", 200.0, profile.squat1RM!!, 1e-9)
+        assertEquals("después: 82,5 % de 185", 0.825 * 185.0, firstSquatKg(accepted, 1), 1e-6)
+        assertNull(accepted.runState?.pendingAction)
+        val entry = resolutions(accepted).single()
+        assertEquals(PendingActionResolutionStatus.APPLIED, entry.resolution)
+        assertTrue(entry.resolutionReason, entry.resolutionReason.startsWith("Aplicada: AMRAP 95 % de sentadilla"))
+    }
+
+    @Test
+    fun the_kilos_win_over_the_percent_when_a_proposal_carries_both() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+        val both = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = "SQUAT",
+            percentDelta = -2.5,
+            kgDelta = 2.5,
+            explanation = "mixta",
+        )
+
+        val accepted = ProgramAutoregulationEngine.resolvePending(
+            pendingWith(program, week2.id, both),
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertEquals(182.5, accepted.powerliftingProfile!!.squatTM!!, 1e-9)
+    }
+
+    @Test
+    fun a_percent_proposal_still_scales_the_tm_as_before() {
+        val program = materialized()
+        val week2 = weeksOf(program)[1]
+        val percent = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = "SQUAT",
+            percentDelta = -2.5,
+            explanation = "AMRAP corto",
+        )
+
+        val accepted = ProgramAutoregulationEngine.resolvePending(
+            pendingWith(program, week2.id, percent),
+            accept = true,
+            metadata = CatalogCompositionTestSupport.metadata,
+        )
+
+        assertEquals(180.0 * 0.975, accepted.powerliftingProfile!!.squatTM!!, 1e-9)
+        assertEquals(PendingActionResolutionStatus.APPLIED, resolutions(accepted).single().resolution)
+    }
+
+    /** `outcomeEntries` marca APPLIED solo el TM que de verdad cambió: una propuesta sin efecto no se declara aplicada. */
+    @Test
+    fun outcome_entries_mark_applied_only_the_tm_that_really_changed() {
+        val before = materialized()
+        val raise = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM, liftSlot = "SQUAT", kgDelta = 5.0, explanation = "sube sentadilla",
+        )
+        // El perfil no tiene press militar: esa propuesta no puede cambiar nada.
+        val noTm = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM, liftSlot = "OVERHEAD", kgDelta = 2.5, explanation = "sube press militar",
+        )
+        val after = before.copy(powerliftingProfile = before.powerliftingProfile!!.copy(squatTM = 185.0))
+
+        val entries = ProgramAutoregulationEngine.outcomeEntries(
+            before = before,
+            after = after,
+            proposals = listOf(raise, noTm),
+            targetWeekId = null,
+            protectedWeekIds = emptySet(),
+            mode = AutoregulationMode.AUTO,
+            nowMs = 1L,
+        )
+
+        assertEquals(PendingActionResolutionStatus.APPLIED, entries[0].resolution)
+        assertEquals(PendingActionResolutionStatus.EXPIRED, entries[1].resolution)
+        assertTrue(entries[1].resolutionReason, entries[1].resolutionReason.contains("perfil de cargas"))
+    }
+
+    @Test
+    fun a_kilo_change_rounds_to_half_a_kilo_and_derives_the_tm_from_the_one_rm_when_none_is_stored() {
+        fun withKg(profile: PowerliftingProfile, lift: LiftSlot, kg: Double): PowerliftingProfile =
+            ProgramAutoregulationEngine.applyTmKgDelta(profile, lift, kg, 0.9)
+
+        // 1,25 kg de TopSetPr en banca: 126 + 1,25 = 127,25 → 127,5.
+        assertEquals(127.5, withKg(PowerliftingProfile(benchTM = 126.0), LiftSlot.BENCH, 1.25).benchTM!!, 1e-9)
+        // Sin TM guardado sale del 1RM por el porcentaje de la receta: 200 × 0,9 + 5 = 185.
+        assertEquals(185.0, withKg(PowerliftingProfile(squat1RM = 200.0), LiftSlot.SQUAT, 5.0).squatTM!!, 1e-9)
+        // Bajar kilos tampoco cruza el TM actual al redondear.
+        assertEquals(123.5, withKg(PowerliftingProfile(benchTM = 126.0), LiftSlot.BENCH, -2.5).benchTM!!, 1e-9)
+        // Sin TM ni 1RM del levantamiento no hay nada que ajustar.
+        assertEquals(PowerliftingProfile(), withKg(PowerliftingProfile(), LiftSlot.SQUAT, 5.0))
+        // El 1RM y los demás TM no se tocan.
+        val changed = withKg(PowerliftingProfile(squat1RM = 200.0, squatTM = 180.0, benchTM = 126.0), LiftSlot.SQUAT, 2.5)
+        assertEquals(PowerliftingProfile(squat1RM = 200.0, squatTM = 182.5, benchTM = 126.0), changed)
+    }
+
+    @Test
+    fun kilo_proposals_survive_json_and_the_old_json_without_the_field_still_decodes() {
+        val withKg = AutoregulationProposal(
+            kind = AutoregulationProposalKind.ADJUST_TM,
+            liftSlot = "BENCH",
+            kgDelta = 1.25,
+            explanation = "Top set de banca: 5 reps (objetivo 5): TM +1,25 kg",
+        )
+        val pending = PendingProgramAction(
+            type = PendingProgramActionType.CONFIRM_AUTOREGULATION,
+            message = "AUGE propone ajustar el TM",
+            proposals = listOf(withKg),
+            targetWeekId = "w2",
+        )
+        val roundTrip = dbJson.decodeFromString(
+            PendingProgramAction.serializer(),
+            dbJson.encodeToString(PendingProgramAction.serializer(), pending),
+        )
+        assertEquals(pending, roundTrip)
+        assertEquals(1.25, roundTrip.proposals.single().kgDelta!!, 1e-9)
+
+        // Una propuesta pendiente guardada antes de B.S4 (en porcentaje, sin `kgDelta`) se lee igual.
+        val legacy = dbJson.decodeFromString(
+            AutoregulationProposal.serializer(),
+            """{"kind":"ADJUST_TM","liftSlot":"SQUAT","percentDelta":-2.5,"explanation":"AMRAP corto"}""",
+        )
+        assertNull(legacy.kgDelta)
+        assertEquals(-2.5, legacy.percentDelta!!, 1e-9)
     }
 
     /** AC-G4: avanzar sin resolver deja la propuesta EXPIRADA con motivo, nunca fuera. */

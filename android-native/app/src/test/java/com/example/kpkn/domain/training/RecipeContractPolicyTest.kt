@@ -460,13 +460,18 @@ class RecipeContractPolicyTest {
             contract(recipeWithT1(amrap, LiftSlot.SQUAT, ProgressionRule.RepTargetDrivenTm()), c6),
         )
 
-        // Sin consumidor en ejecución (B.S4/B.S6): un hallazgo por regla, con el ámbito de la receta.
+        // B.S4: el top set y la serie al máximo salen como propuestas ADJUST_TM de ProgramAutoregulationEngine.
         // El top set evita el segundo aviso de TopSetPr (sin top set en un slot con liftSlot).
         val topSet = listOf(SetRecipe(reps = 5, percent = 85.0, isTopSet = true))
+        assertNone("TopSetPr", contract(recipeWithT1(topSet, LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6))
+        assertNone(
+            "RepMaxAutoregulated",
+            contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.RepMaxAutoregulated), c6),
+        )
+
+        // Sin consumidor en ejecución (B.S6): un hallazgo por regla, con el ámbito de la receta.
         mapOf(
             "WeeklyPercent" to ProgressionRule.WeeklyPercent(2.5),
-            "RepMaxAutoregulated" to ProgressionRule.RepMaxAutoregulated,
-            "TopSetPr" to ProgressionRule.TopSetPr(),
         ).forEach { (name, rule) ->
             val findings = contract(recipeWithT1(topSet, LiftSlot.SQUAT, rule), c6)
             assertEquals(name, 1, findings.size)
@@ -481,12 +486,12 @@ class RecipeContractPolicyTest {
         val topSet = listOf(SetRecipe(reps = 5, percent = 85.0, isTopSet = true))
         val amrap = listOf(SetRecipe(reps = 5, percent = 85.0, amrap = true))
 
-        // TopSetPr (sin consumidor): el aviso de la regla y, sin top set en un slot con liftSlot, el segundo.
-        assertEquals(2, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6).size)
-        assertEquals(2, contract(recipeWithT1(topSet, null, ProgressionRule.TopSetPr()), c6).size)
-        assertEquals(1, contract(recipeWithT1(topSet, LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6).size)
+        // TopSetPr tiene consumidor (B.S4): solo queda la exigencia de un top set en un slot con liftSlot.
+        assertEquals(1, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6).size)
+        assertEquals(1, contract(recipeWithT1(topSet, null, ProgressionRule.TopSetPr()), c6).size)
+        assertEquals(0, contract(recipeWithT1(topSet, LiftSlot.SQUAT, ProgressionRule.TopSetPr()), c6).size)
         // Con valores propios la regla sigue siendo TopSetPr: la exigencia de top set no depende del default.
-        assertEquals(2, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr(2.5, 5.0)), c6).size)
+        assertEquals(1, contract(recipeWithT1(sets(3), LiftSlot.SQUAT, ProgressionRule.TopSetPr(2.5, 5.0)), c6).size)
 
         // AmrapDrivenTm y RepTargetDrivenTm tienen consumidor, así que solo queda la exigencia de AMRAP.
         listOf(ProgressionRule.AmrapDrivenTm(), ProgressionRule.RepTargetDrivenTm()).forEach { rule ->

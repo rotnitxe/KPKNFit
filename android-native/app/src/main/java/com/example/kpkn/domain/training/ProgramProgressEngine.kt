@@ -23,6 +23,7 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleCalendarizedProgram
 import com.example.kpkn.data.models.isSimpleLinearProgram
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.protocols.LiftSlot
 
 /**
  * Motor de progreso para programas Simples: avanza semana y ciclo por instancia,
@@ -864,7 +865,8 @@ object ProgramProgressEngine {
         // sus propuestas de TM se aplican sobre el TM ya subido. Las sesiones con registros del run no se
         // reconstruyen. Ojo: `resolvePendingDeload(reject)` y `advanceAfterPendingAction` entran al bloque sin
         // pasar por aquí; cubrirlos antes de activar BLOCK en Juggernaut (B.S6).
-        if (nextBlockId != null && AuthoredProgressionEngine.appliesAtBlockClose(program.sourceRecipe?.progression)) {
+        val authoredRecipe = program.sourceRecipe
+        if (nextBlockId != null && authoredRecipe != null && AuthoredProgressionEngine.appliesAtBlockClose(authoredRecipe.progression)) {
             val trainedSessionIds = logs
                 .filter { it.programId == program.id && (it.programRunId == null || it.programRunId == runId) }
                 .mapTo(mutableSetOf()) { it.sessionId }
@@ -874,6 +876,15 @@ object ProgramProgressEngine {
                 metadata = compositionMetadata ?: CompositionMetadataHolder.current,
                 inventory = inventory,
                 protectedSessionIds = trainedSessionIds,
+                // B.S4: un levantamiento con un AMRAP corto en el bloque que se cierra no sube su TM.
+                excludedLifts = ProgramAutoregulationEngine.shortAmrapLifts(
+                    weeks = weeksInBlock,
+                    logs = logs,
+                    cycleNumber = cycleNumber,
+                    programId = program.id,
+                    runId = runId,
+                    recipe = authoredRecipe,
+                ),
             )
         }
         val regulated = applyWeeklyAutoregulation(
@@ -1047,12 +1058,28 @@ object ProgramProgressEngine {
         // B.S3: la progresión DEL MÉTODO (CycleIncrement por ciclo) se aplica siempre, sin pasar por
         // OFF/PROPOSE/AUTO. Va DESPUÉS de avanzar `cycleNumber`: `weekRecipeSourceFor` lee el ciclo del
         // run y, antes del avance, arrastraría las semanas escaladas del ciclo cerrado.
+        // B.S4: un levantamiento con un AMRAP corto en el ciclo que se cierra no sube su TM. Se lee de los
+        // registros de ESE ciclo (`cycleNumber` es el cerrado) y de las semanas tal como se entrenaron.
+        val cycleRecipe = program.sourceRecipe
+        val shortAmrapLifts: Set<LiftSlot> = if (cycleRecipe != null && AuthoredProgressionEngine.appliesAtCycleClose(cycleRecipe.progression)) {
+            ProgramAutoregulationEngine.shortAmrapLifts(
+                weeks = currentInstances.mapNotNull { instance -> hierarchy.locateWeek(instance.templateWeekId)?.week },
+                logs = logs,
+                cycleNumber = cycleNumber,
+                programId = program.id,
+                runId = runId,
+                recipe = cycleRecipe,
+            )
+        } else {
+            emptySet()
+        }
         val authored = AuthoredProgressionEngine.applyAtCycleClose(
             program = updatedProgram,
             newCycle = newCycle,
             firstWeekOccurrence = firstOccurrence,
             metadata = compositionMetadata ?: CompositionMetadataHolder.current,
             inventory = inventory,
+            excludedLifts = shortAmrapLifts,
         )
 
         return ProgressAdvanceResult(
