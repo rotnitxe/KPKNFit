@@ -569,3 +569,152 @@ Techos nuevos (`VIOLATION_CEILING`): smoke 200 → 110; ci/0 790 → 432; ci/1 7
 - Otras sentadillas de barra del catálogo (Anderson frontal, Zercher, hack con barra, sumo, bazuca, somersault) y otros ejercicios que se descargan de un soporte (hip thrust con barra, Smith o máquina; JM press) no entran en B4: ninguna receta ni tabla los usa hoy.
 - Atleta de 1 día, intermedio o avanzado, con solo barra de dominadas (E13): las 120 filas de `COMPOSITION` siguen; B5 no añade remo ni jalón para ese material.
 - `TIME_BUDGET_INEXACT` (1 584 filas) es de A.C2.
+
+### DEC-w2-02 — Redirección honesta con un toque, sin «fuerza relativa» (A.C1 y A.C4 parte pura, 2026-10-03)
+
+**Estado:** implementada en el dominio (`PlanRepair`, `PlanRepairAdvisor` y `PlanRejectionPresenter`, commit `e275d0bbc`); falta el cableado en el wizard (A.C3, `applyRepair` en el ViewModel, y C.P11, la tabla de rechazos de la UI): hoy ningún código de producción llama al asesor ni al presentador. Aplica la decisión D5 del plan de curaduría (§3), que se ejecuta con su recomendación por defecto salvo indicación contraria del dueño: redirección honesta con un botón de un toque, sin variantes de «fuerza relativa». No contradice r2: concreta §15.2 (motivos cerrados, cada uno con su acción) y deja intactas §11.1 y DEC-w1-01.
+
+**Qué dice r2.**
+- §15.2: la UI presenta tres estados distintos —calculando, planes listos e «incompatibilidad con acciones precisas»— y cada rechazo conserva su motivo cerrado (la lista de 14 motivos); «Este plan necesita X min; elegiste Y» ofrece otros planes o editar el tiempo.
+- §11.1: sin barra, rack y banco, Fuerza explica qué falta; con solo bandas o cuerpo, Fuerza y músculo «explica el requisito de resistencia externa para sus principales y ofrece explícitamente Músculo/Atleta completo». Son restricciones de la disciplina acordada, no filtros para esconder un fallo del catálogo. La fuerza relativa con peso corporal solo la reserva para Atleta completo (tabla de §11.1: «Fuerza puede ser relativa con peso corporal; no se promete powerlifting»). r2 no pide variantes de fuerza relativa dentro de Fuerza ni de Fuerza y músculo.
+
+**Qué hacía el código.**
+- Los rechazos de Fuerza y de Fuerza y músculo sin material (P-01 y P-02 del plan, D5) se resumían en `CandidateIncompatibility` (`SetupTrainingSteps.kt`) con el primer rechazo de la lista (`candidateRejections.firstOrNull()`, a menudo el rechazo trivial de un plan que la persona ni pidió), un `when` local por motivo y, debajo, el texto crudo del motor (`rejection.reason`). Los botones eran «Confirmar material», «Editar tiempo» y «Reintentar»: ninguno llevaba a otro objetivo ni confirmaba material con un toque.
+- Fuera del contrato de cobertura no existía ninguna función de reparación. Las reparaciones de un toque que el contrato exigía (`ConfirmApparatus`, `SetMinutes`, `SetCardioMinutes`, `SwitchGoal`) eran simulaciones dentro de `PlanCoverageContractTest` (DEC-w2-01): el contrato daba por buena una reparación que el producto todavía no podía ofrecer.
+
+**Qué decide.** Fuerza y Fuerza y músculo sin material no ganan variantes de «fuerza relativa» dentro del plan propio: serían ≈ 15 h de contenido editorial nuevo y contradicen r2 §11.1, que define esos perfiles por su resistencia externa. Reciben una redirección honesta con un botón de un toque hacia un objetivo cuyo plan propio ya existe y ya cabe, y no hay un motivo de rechazo nuevo: se usan los cerrados de §15.2.
+
+**Qué se hizo.**
+- `PlanRepair` (interfaz sellada, `PlanRepair.kt`): `SetMinutes(minutes)`, `SetCardioMinutes(minutes)`, `ConfirmApparatus(keys, categories)` con `applyTo(availability)` (la escritura pura sobre la disponibilidad, que usarán por igual el asesor y `applyRepair`), `SwitchGoal(goal, alsoMinutes)` y `ClearSplit`. Solo dice QUÉ cambiar; no cambia nada por sí misma.
+- `PlanRepairAdvisor.suggest(request, rejected, availability, evaluate)` (`PlanRepairAdvisor.kt`) devuelve la lista ORDENADA de reparaciones de un toque (vacía = no hay ninguna) y prueba cada candidata con el evaluador que recibe (`PlanRepairEvaluator`: en producción `PlanCandidateEvaluator.evaluate` con el plan propio del objetivo; en las pruebas, un doble): nunca adivina si una reparación funciona. Hace como mucho cuatro evaluaciones por rechazo (el peor caso es un `TIME_BUDGET` de Atleta con cardio de 30 min: una de minutos y tres de cardio). Tabla:
+
+| Motivo del rechazo | Reparación | Solo se propone si |
+|---|---|---|
+| `TIME_BUDGET` | `SetMinutes(requiredMinutes)` | los minutos son un presupuesto que el wizard admite (por encima del elegido y hasta 100) y con ellos el plan queda `Ready`. Si no, y solo en Atleta completo con cardio explícito: `SetCardioMinutes` con el mayor valor de {30, 20, 15, 10} menor que el actual con el que el plan queda `Ready` (el cardio solo baja, y solo por decisión de la persona: DEC-w1-01) |
+| `APPARATUS_UNKNOWN` | `ConfirmApparatus` con las llaves que resuelven los `missingRequirements` del rechazo (`SetupApparatusPanel.keyForToken`) y sus categorías (`categoriesFor`) | con el material confirmado el plan queda `Ready`; si con él solo falla por tiempo, se encadena un único `SetMinutes` con los minutos exactos |
+| `APPARATUS_ABSENT` y `PROFILE_MISMATCH` | `SwitchGoal(destino)`: Fuerza → Fuerza y músculo si la categoría de mancuernas está marcada y, si no, Músculo; Fuerza y músculo → Músculo; Músculo y Atleta completo no tienen destino; nunca Atleta completo | el destino, evaluado con su propia referencia, sin cardio y sin reparto elegido, queda `Ready`, o falla solo por tiempo y un `SetMinutes` lo arregla (`alsoMinutes`) |
+| `SPLIT` | `ClearSplit` | sin el reparto elegido el plan queda `Ready` (hoy ningún plan propio rechaza por SPLIT: lo activa A.E2) |
+| Catálogo, receta no disponible, nivel, frecuencia, configuración sin resolver, sin sustitución válida, base de carga, composición e interno | ninguna | — |
+
+- `PlanRejectionPresenter` (`PlanRejectionPresenter.kt`; el presentador ÚNICO, dominio puro, sin `screens/` ni Android): `primary(rejections, ownPlanId)` elige el rechazo más accionable (el del plan propio del perfil; luego `APPARATUS_UNKNOWN` con llave confirmable; luego `TIME_BUDGET` con menos minutos requeridos; luego `PROFILE_MISMATCH` o `APPARATUS_ABSENT`; si no, el primero de la lista) y `present(rejection, context)` escribe un texto llano con como mucho dos botones según la tabla de C.P11 («Reintentar», «Cambiar objetivo», «Ver alternativas», «Cambiar días», «Cambiar reparto», «Confirmar material» y «Ajustar a N min»). `RejectionView`, la proyección de un rechazo que recibe, no trae el texto crudo del motor, así que ni ids ni tokens llegan a la persona.
+- El contrato de cobertura deja de simular: `PlanCoverageContractTest` llama al asesor real con un `probe` que traduce cada candidata a una fila de la rejilla y comprueba que el asesor arma el pedido del destino como lo arma el wizard (referencia propia de cada objetivo; cardio solo en Atleta completo).
+
+**Alternativas descartadas.** (1) Variantes de «fuerza relativa» con mancuernas o peso corporal dentro de Fuerza y de Fuerza y músculo (≈ 15 h de contenido y contradice §11.1). (2) Proponer `SwitchGoal` sin probar el destino: podría llevar a un plan que tampoco cabe; por eso solo se propone si el destino queda `Ready` o si un `SetMinutes` lo arregla. (3) `SwitchGoal` a Atleta completo en un toque: exige cardio y minutos de cardio que la persona no ha elegido. r2 §11.1 pide además ofrecer Atleta completo para Fuerza y músculo sin resistencia: queda en el botón «Cambiar objetivo» del presentador (abrirá el paso de objetivo cuando se cablee), no en el de un toque.
+
+**Tests: cifras antes → después.**
+
+| Test u oráculo | Antes | Después | Por qué |
+|---|---|---|---|
+| `PlanRepairAdvisorTest` | — | 25 tests (nuevo): la tabla de arriba regla por regla (los minutos exactos arreglan o no, el cardio solo baja y se prefieren los minutos, nunca Atleta, los destinos de `SwitchGoal` se evalúan con sus propios términos, `ConfirmApparatus` con sus llaves y categorías y un único `SetMinutes` encadenado, `ClearSplit`, los motivos sin reparación no evalúan nada, cada sonda lleva su propia clave de entrada) | fija el asesor |
+| `PlanRejectionPresenterTest` | — | 24 tests (nuevo): `primary` (propio, UNKNOWN con llave, menos minutos, el resto) y `present` motivo por motivo con plurales y etiquetas del panel; nunca ids, tokens ni texto del motor | fija la tabla de C.P11 |
+| `PlanCoverageContractTest` (`full`, 25 650 filas) | reparaciones simuladas en el propio test: `SetMinutes` 9 809, `SwitchGoal` 1 520, `SwitchGoal+SetMinutes` 370, `ConfirmApparatus` 315, `ConfirmApparatus+SetMinutes` 45; `NO_REPAIR` 0 | idénticas con el asesor del dominio; `NO_REPAIR` 0 (informe `full`: 12 059 rechazos honestos antes de reparar y 13 471 `Ready`) | el asesor reproduce la semántica de las simulaciones que sustituye |
+
+**Relación con otras decisiones.**
+- DEC-w2-01: resuelve su pendiente de C1 (el asesor reutiliza `keyForToken` y `categoriesFor` y encadena `SetMinutes`) y lleva al dominio las reparaciones que el contrato simulaba. Su decisión de B2 (con mancuernas, Fuerza y músculo no se bloquea por rack y banco sin confirmar) existe porque faltaba el botón de reparación: conviene revisarla cuando A.C3 y C.P11 estén cableados (ver «Decisiones pendientes del dueño» en el README de la curaduría).
+- DEC-w2-03: `SetMinutes` y `alsoMinutes` consumen el `requiredMinutes` exacto de A.C2; con el esfuerzo del fitter la reparación habría ofrecido minutos de más.
+- DEC-w2-05 (A.D4): los rechazos que leerán el asesor y el presentador son siempre los del pase pedido, no los del pase a peso corporal.
+- DEC-w1-01: el cardio nunca se recorta dentro del generador; `SetCardioMinutes` es una elección de la persona.
+- DEC-w2-04, parte 2 (A.E2): `ClearSplit` espera a que los planes propios rechacen por SPLIT.
+
+**Pendiente y riesgos.**
+- **Cableado (A.C3 y C.P11).** `applyRepair(repair)` en el ViewModel con la API que ya existe (`updateStep`, `setStepNumber`, `setStepChoice`, `editStep`), la conversión de `SetupCandidateRejection` en `RejectionView` y la sustitución de la tabla local de `SetupTrainingSteps.kt` (`CandidateIncompatibility` y el aviso de la selección caída, `droppedSelectionNotice`) por el presentador. Ese archivo y `SetupWizardViewModel.kt` los serializan los pasos de A y de C (plan 00 §4b). Las evaluaciones del asesor cuestan 25–60 ms cada una en el equipo de desarrollo (KDoc del contrato de cobertura): hay que lanzarlas fuera de Main (r2 §15.3).
+- **Textos que habrá que cambiar.** `SetupWizardCandidateGateTest` fija hoy el texto antiguo «Este plan necesita 75 min por sesión; elegiste 60 min.», que también escriben `CandidateIncompatibility` y `droppedSelectionNotice`; el presentador dice «Con las series mínimas este plan necesita N min por sesión y elegiste M.».
+- **Botones de un toque sin etiqueta.** D5 nombra «Cambiar a Músculo», «Cambiar a Fuerza y músculo» y «Sí, tengo rack y banco»; el presentador solo trae botones de navegación («Cambiar objetivo», «Confirmar material») y «Ajustar a N min». Las etiquetas de `SwitchGoal` y `ConfirmApparatus` las fija A.C3.
+- **`PROFILE_MISMATCH` es genérico.** El presentador usa la frase de la tabla de C.P11 («Este plan es de {disciplina}; tu objetivo es {objetivo}»). Para el plan propio de Fuerza y músculo sin resistencia externa (o con rack y banco negados y sin mancuernas), r2 §11.1 y el diseño editorial (11 §4) piden explicar el requisito de resistencia; la frase genérica sobre el plan del propio objetivo diría algo como «Este plan es de powerbuilding; tu objetivo es fuerza y músculo». Al cablear hay que añadir ese caso al presentador o no dar disciplina al plan propio (`disciplineLabelOf`).
+- **Desviación de copy:** `APPARATUS_ABSENT` dice «Este plan necesita X, que dijiste que no tienes.» y no «…, que marcaste como que no tienes» (diseño editorial, 11 §4) ni una forma con pronombre («… no lo tienes»): el pronombre no concuerda con etiquetas como «rack de sentadilla», «mancuernas» o «barra y carga» (comentario del código). Decisión de copy pendiente del dueño.
+- `ClearSplit` no se usa en producción hasta A.E2.
+
+**Qué lo confirma.** `PlanRepairAdvisorTest`, `PlanRejectionPresenterTest` y `PlanCoverageContractTest` (con el asesor real: `NO_REPAIR` = 0).
+
+### DEC-w2-03 — `requiredMinutes` exacto con el cardio intacto (A.C2, 2026-10-03)
+
+**Estado:** implementada (paso A.C2 del paquete A, commit `e275d0bbc`). No contradice r2 y deja intacta DEC-w1-01: no añade ninguna palanca al fitter, solo cambia qué minutos se informan cuando el plan propio no cabe. Cierra la clase `TIME_BUDGET_INEXACT` del contrato de cobertura (que DEC-w2-01 y DEC-w2-04, parte 1, dejaban pendiente de A.C2) y el texto de tiempo de P-02.
+
+**Qué dice r2.** §12.3, paso 5: sin variante que quepa, «devolver `TIME_BUDGET` con minutos mínimos calculados y acciones «más tiempo»/«otro plan», conservando respuestas. No devolver éxito parcial». §15.2: «Este plan necesita X min; elegiste Y» ofrece otros planes o editar el tiempo, y el rechazo lleva `requiredMinutes`. r2 pide el mínimo calculado; no dice cómo calcularlo.
+
+**Qué ocurría.**
+- Cuando el fitter agotaba sus palancas con `fit.maxMinutes > budget`, el rechazo informaba `fit.maxMinutes`, el mayor tiempo de sesión que midió el mejor esfuerzo del fitter, y el mensaje imprimía el presupuesto de la persona como si fuera el mínimo: «Este plan necesita $budget min por sesión y no cabe con las dosis mínimas; el mínimo real es de X min…».
+- Ese esfuerzo no es una cota inferior. Caso medido: Atleta de 3 días a 20 min con 10 min de cardio da un esfuerzo de 31 min y, sin embargo, con 30 min ya hay programa (el paso 4 solo mueve un accesorio si los dos días caben en el presupuesto, así que con un presupuesto pequeño el esfuerzo queda por encima del mínimo real). En la rejilla del contrato, 1 584 filas, todas de Atleta con cardio, tenían programa con al menos un minuto menos que el informado (`TIME_BUDGET_INEXACT`).
+- Efecto: «Ajustar a N min» habría ofrecido minutos de más y la UI habría dicho «necesita N min» con una N mayor que el mínimo.
+
+**Qué se hizo.**
+- **Ruta propia** (`SimpleCyclePersonalizer.personalizeNative`): `requiredMinutes` es el mínimo EXACTO. El generador prueba la MISMA entrada (mismo cardio, descansos, dosis mínimas, slots esenciales, días y split) con otros presupuestos, hasta 100 min, e informa el primero que produce programa. `exactMinimumMinutes(budget, hint, viableAt)` prueba la conjetura (el esfuerzo del fitter) y su vecino de abajo, que casi siempre basta; si el vecino también es viable, o la conjetura no lo era, bisecciona entre el presupuesto elegido (que se da por no viable sin probarlo) y el menor viable conocido (el techo de 100 en el segundo caso). Cota: 2 + ⌈log₂(100 − presupuesto)⌉ generaciones, como mucho 10 (el barrido lineal de `firstViableMinutes` llegaba a unas 80). Los sondeos no se anidan: `isViableAt` vuelve a `personalizeAt(…, probeMinimumMinutes = false)`, cuenta `IllegalArgumentException` e `IllegalStateException` como «no viable» y deja pasar `CancellationException`.
+- **Atleta sin minutos de cardio explícitos:** se barre minuto a minuto (`minimumViableMinutes`), porque su cardio por defecto sube con el presupuesto (10, 15 y 20 min, r2 §11.4) y la viabilidad no es monótona. En el wizard el Atleta siempre manda sus minutos de cardio: ese caso solo lo alcanzan las llamadas directas.
+- **Si ni 100 min bastan:** `TIME_BUDGET` sin minutos (`maxSessionMinutes = null`) y el mensaje «Con las series mínimas este plan no cabe ni con 100 min por sesión y elegiste M.»; no existe reparación `SetMinutes` y la UI no promete un ajuste que no funciona.
+- **Mensaje:** «Con las series mínimas este plan necesita N min por sesión y elegiste M.». El diagnóstico de composición de algún intento intermedio del fitter va tras un salto de línea («Diagnóstico de composición (solo para el registro): …») para que el texto de la persona no lo incluya; la UI nueva armará su frase con el presentador a partir de `requiredMinutes`, nunca de este mensaje.
+- **No cambia (DEC-w1-01):** cardio, descansos, dosis mínimas, slots esenciales, días y split. La ruta histórica (los ocho nativos) ya era exacta (barría minuto a minuto con `minimumViableMinutes`) y tampoco cambia.
+
+**Tests: cifras antes → después** (contrato `full`: 25 650 filas, 4 hilos).
+
+| Test u oráculo | Antes | Después | Por qué |
+|---|---|---|---|
+| `PlanCoverageContractTest` (`full`) | 1 704 violaciones: `TIME_BUDGET_INEXACT` 1 584 y `NOT_HONEST` 120 | **120**: `TIME_BUDGET_INEXACT` 0; quedan las 120 `NOT_HONEST` (`COMPOSITION`) de Atleta de 1 día, intermedio y avanzado, con solo barra de dominadas (E13) | con `requiredMinutes` hay plan y con `requiredMinutes − 1` sigue siendo `TIME_BUDGET` (cláusula `time_budget_minimum_is_exact`) |
+| Techos `VIOLATION_CEILING` | smoke 110; ci 432 / 420 / 426 / 426; full 1 704 | smoke **8**; ci **30 / 30 / 30 / 30**; full **120** | ratchet: solo bajan |
+| `NativeProfileRecipeAndFitterTest` | 32 tests | 33: nuevo `time_budget_reports_the_exact_first_viable_minute`, oráculo por barrido en 10 filas (al menos 8 son rechazos de tiempo): con el mínimo hay programa, ningún minuto entre el presupuesto y el mínimo lo tiene y la primera línea del mensaje es la nueva | fija el oráculo con el generador real |
+| `NativePlanFailureMapperTest` | 15 tests | 21: +6 de `exactMinimumMinutes` (todos los umbrales con como mucho 10 sondeos, conjetura ya mínima, conjetura equivocada, techo no viable, borde exacto sin monotonía y propagación de la cancelación y de cualquier otra excepción) | fija el algoritmo |
+| `PlanGenerationCoverageT006Test` (5 tests) y `SetupExecutableAvailabilityMatrixTest` (17) | verdes | verdes, sin tocarlos (mensaje del commit: T006 5/5 y matriz 17/17) | los mínimos que ya eran exactos (el piso de 21 min de Músculo en 1, 3, 5 y 6 días, F-m28) no cambian |
+
+**Coste** (medido en el equipo de desarrollo; en el teléfono no se midió). El contrato `full` pasa de 376 a 638 s (+70 %; el informe de la corrida da 638,37 s con 4 hilos y 35 934 evaluaciones reales). Q2 de T006 pasa de 53,6 a 97,8 s en un benchmark del agente del paso (+82 %; cifras no archivadas), unos 88 ms más por rechazo de tiempo (44,2 s entre las 504 filas `TIME_BUDGET` de Q2). En el teléfono se estima 0,3–0,6 s por plan rechazado por tiempo (estimación, sin medir). La palanca para bajarlo es el coste fijo por llamada: cada evaluación real cuesta 25–60 ms porque el generador reconstruye su tabla de catálogo y el `legacyLookup` (`toLegacyConfigurationLookup`) en cada llamada, y un rechazo de tiempo paga hasta 9 o 10 llamadas más.
+
+**Límite.** La bisección supone que la viabilidad crece con el presupuesto, que es lo que hace el fitter con minutos de cardio explícitos. Si no lo hiciera, el resultado sigue siendo un borde exacto (viable con él y no viable con uno menos), aunque no necesariamente el primero; lo cubre la prueba del borde sin monotonía.
+
+**Relación con otras decisiones.**
+- DEC-w1-01: intacta. Se prueban otros presupuestos con las mismas palancas; ningún cardio ni descanso se recorta.
+- DEC-w2-01 y DEC-w2-04 (parte 1): cierra `TIME_BUDGET_INEXACT` (1 578, luego 1 584, ahora 0).
+- DEC-w2-02: `SetMinutes` y `alsoMinutes` consumen este `requiredMinutes`.
+- DEC-w2-07 y DEC-w1-03: los pisos que la matriz T-019 calcula por su cuenta (21 min en Músculo corporal, 28 min con material) coinciden con el mínimo informado: los oráculos no se movieron.
+
+**Pendiente y riesgos.**
+- Si el coste pesa en el teléfono, la palanca es cachear la tabla de catálogo y el `legacyLookup` entre sondeos, o limitar los sondeos en el wizard; no hay medición en dispositivo.
+- La UI sigue diciendo «Este plan necesita N min por sesión; elegiste M min» (`CandidateIncompatibility` y el aviso de la selección caída) hasta C.P11: el número ya es exacto, la frase todavía no es la del presentador.
+- Atleta de 1 día, intermedio o avanzado, con solo barra de dominadas (E13): las 120 filas de `COMPOSITION` siguen (B5 no añade remo ni jalón para ese material).
+
+**Qué lo confirma.** `NativeProfileRecipeAndFitterTest.time_budget_reports_the_exact_first_viable_minute`, las 6 pruebas de `exactMinimumMinutes` de `NativePlanFailureMapperTest` y la cláusula `time_budget_minimum_is_exact` de `PlanCoverageContractTest`.
+
+### DEC-w2-05 — El pase a peso corporal solo sigue a rechazos de material y publica siempre los rechazos del pase pedido (A.D4, B-07, 2026-10-03)
+
+**Estado:** implementada (A.D4, junto con A.D2 y A.D3, commit `0b50bda5e`; hallazgo B-07; cláusula C4 del contrato de cobertura del plan 00 §6). No contradice r2: concreta su invariante. No cambia planes, recetas, dosis ni viabilidad: solo decide cuándo el wizard sustituye la lista pedida por la del material mínimo y qué explica.
+
+**Qué dice r2.**
+- §3, invariantes: «No usar el segundo pase de peso corporal para cambiar de perfil silenciosamente ni para devolver un plan de disciplina distinta.»
+- §15.2: el ViewModel «no implementa un segundo filtro de material ni presume validez porque haya tarjeta publicada»; cada rechazo conserva su motivo cerrado; la UI distingue calculando, planes listos e incompatibilidad con acciones precisas. §17.2 (negativos indispensables): «error interno/catalog loading no se reporta como falta de material». §15.3: un resultado de material viejo no sobrescribe el nuevo.
+- r2 no dice cuándo procede el segundo pase: lo cierra la cláusula C4 del plan de curaduría.
+
+**Qué hacía el código.**
+- `adaptedPass = ruta != PROTOCOL && requested.viable.isEmpty() && equipmentIds != {bodyweight}`: el pase a peso corporal se intentaba siempre que el pase pedido no dejara nada viable, fuera cual fuera la causa. Si el pase corporal daba plan, se mostraba esa lista con la razón «Plan KPKN adaptado a peso corporal: tu material no tenía una receta ejecutable».
+- Los rechazos y los conteos que se publicaban eran los del pase corporal (`outcome.scan.rejections`), no los del pedido: el motivo real desaparecía. Un `TIME_BUDGET` del plan con tu material podía acabar en un plan de peso corporal presentado como falta de material, y un fallo interno o un catálogo sin cargar también disparaban el pase.
+
+**Qué se hizo.**
+- `bodyweightPassAllowed(requestedViableCount, rejections)` (`SetupWizardViewModel.kt`, función pura): el pase solo se intenta si el pase pedido no dejó viables, hay al menos un rechazo y TODOS son `APPARATUS_UNKNOWN` o `APPARATUS_ABSENT`. Lo impiden `TIME_BUDGET`, `PROFILE_MISMATCH`, `COMPOSITION`, `NO_VALID_SUBSTITUTION`, `UNRESOLVED_CONFIGURATION`, `FREQUENCY`, `LEVEL_UNSUITABLE`, `INTERNAL_MATERIALIZATION`, `CATALOG_NOT_READY` y un rechazo heredado sin código. La ruta PROTOCOL y la petición de solo peso corporal siguen sin segundo pase (D-005/E-015).
+- `CandidateOutcome(requested, scan, useAdapted)`: las tarjetas del pase corporal se muestran solo si dio viables (`planAdaptedToBodyweight = true`, con la razón de siempre); `candidateRejections`, `candidateCounts` y el texto de conteo son SIEMPRE los del pase pedido (con el pase usado: 0 viables y todos los evaluados no viables).
+- En el mismo paso (A.D2 y A.D3):
+  - se borra el `sortedBy { ADAPTED → 1 }` de `collectViable` (DEC-w2-06): el orden es el editorial del planner;
+  - la puerta de la lista es `candidateListGate` (B-01): el error del preview de la selección ya no esconde la lista (sale como aviso encima, con «Reintentar»); una selección que deja de ser viable pasa a `SetupDroppedSelection` con el aviso «Tu plan elegido ya no encaja con tus respuestas…» y una acción por motivo; con PLAN sin confirmar se limpia la selección y con PLAN confirmado se conserva y el paso queda pendiente de revisión; `submitCurrentStep(PLAN)` exige una selección viable;
+  - la caché de la sesión no guarda fallos transitorios (`INTERNAL_MATERIALIZATION` ni `CATALOG_NOT_READY`; B-05);
+  - `ensureCatalogLoaded` solo marca el catálogo como cargado si queda `Ready` (bajo `Mutex`) y, si no, lanza `CATALOG_NOT_READY`: la lista muestra «No pudimos cargar el catálogo de ejercicios. Reintenta.» y «Reintentar» vuelve a cargarlo (B-06).
+
+**Tests: cifras antes → después.**
+
+| Test u oráculo | Antes | Después | Por qué |
+|---|---|---|---|
+| `SetupWizardCandidateGateTest` | — | 20 tests (nuevo): B-01 (puerta de la lista, selección caída con PLAN confirmado y sin confirmar, `planSelectionGate`, orden del planner), B-05 y B-06 (catálogo que no carga y reintento tras un fallo transitorio) y B-07: `bodyweightPassAllowed` y tres pruebas con el ViewModel real (un `TIME_BUDGET` nunca dispara el pase y se publican sus rechazos; una mezcla de material y tiempo tampoco; solo los rechazos de material lo disparan y lo publicado es el pase pedido: 0 viables y todos no viables) | fija la regla |
+| `PlanCandidateSessionCacheTest` | 5 tests | 9 | B-05: la caché no guarda fallos transitorios |
+| `SetupProtocolSourceGuardTest` | el id forzado de otro plan entraba sin confirmar PLAN | el id forzado entra con PLAN ya confirmado | con PLAN sin confirmar la selección caída se limpia (B-01) y la guardia de activación ya no tendría nada que rechazar |
+| `SetupExecutableAvailabilityMatrixTest` | 17 verdes | 17 de 17, sin tocar | mensaje del commit: matriz idéntica. Por lectura: A20 y A21 son solo peso corporal (`categories = emptySet()`) y nunca tuvieron segundo pase (la condición `equipmentIds != {bodyweight}` los excluía); en F-m20 todos los rechazos son `TIME_BUDGET` (DEC-w2-07), así que ya no entra al pase corporal, que a 20 min tampoco daba plan, y publica lo mismo (reconstrucción, no ejecución) |
+| `T004FirstRejectionDiagnosticTest` | 1 test | 1 test, sin tocarlo | es una sonda del planificador y del generador, no del ViewModel |
+
+Corrida final del paso (mensaje del commit): 38 suites, 321 tests, 0 fallos, con `SetupWizardFullJourneyTest` 2 de 2.
+
+**Relación con otras decisiones.**
+- DEC-w2-06: resuelve su pendiente del `sortedBy` de `collectViable` (borrado).
+- D-005/E-015: bajo PROTOCOL sigue sin haber segundo pase.
+- DEC-w2-01: la cláusula C4 queda cumplida en el ViewModel. `PlanCoverageContractTest` no modela el ViewModel y conserva un comentario `TODO A.D4 (C4)` que quedó obsoleto: el pase lo cubre `SetupWizardCandidateGateTest`.
+- DEC-w2-02 (A.C3 y A.C4): el asesor y el presentador leerán los rechazos del pase pedido, que ahora son siempre los publicados.
+
+**Pendiente y riesgos.**
+- `NO_VALID_SUBSTITUTION` cuenta como «no es material» (regla literal: todos `APPARATUS_*`): un perfil con material parcial cuyo único rechazo que no es de material es una adaptación de autor sin sustituto (por ejemplo, PHAT adaptado con la barra baja negada, DEC-w2-04 parte 1) ya no recibe el pase. Es una línea de `bodyweightPassAllowed` si el dueño lo quiere distinto (decisión pendiente).
+- Como el pase exige que TODOS los rechazos sean de material, solo aparece cuando todo lo candidato se rechaza por aparatos, y un solo rechazo de otra clase entre los candidatos lo impide. En la rejilla del contrato (informe `full`) el plan propio de Músculo y el de Atleta completo no se rechazan por aparatos, el de Fuerza y músculo solo lo hace con barra sola (el resto son `PROFILE_MISMATCH`, DEC-w2-01) y el de Fuerza sí. Es inferencia por lectura de la regla y de ese informe; no se midió la frecuencia del pase en el producto.
+- El conteo «N planes evaluados · 0 viables · N no viables» convive con tarjetas del pase corporal: C.P5 debe tolerarlo.
+- El aviso de la selección caída usa una tabla local de motivos que A.C4 sustituirá por `PlanRejectionPresenter`.
+
+**Qué lo confirma.** `SetupWizardCandidateGateTest` (`theBodyweightPassOnlyFollowsRejectionsThatAreAllAboutMaterial` y las tres pruebas de B-07 con el ViewModel real), `PlanCandidateSessionCacheTest`, `SetupProtocolSourceGuardTest` y `SetupExecutableAvailabilityMatrixTest` (17 de 17).
